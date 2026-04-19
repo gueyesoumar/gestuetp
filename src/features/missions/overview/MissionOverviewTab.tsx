@@ -1,5 +1,7 @@
 import { DomainProgressList } from './DomainProgressList'
 import { TeamActivityPanel } from './TeamActivityPanel'
+import { EvidenceTracker } from './EvidenceTracker'
+import { useMissionDocuments } from '../useMissionDocuments'
 import type { MissionDetail, MissionMemberRow } from '../useMissionDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
@@ -14,7 +16,9 @@ interface MissionOverviewTabProps {
   onRefetch: () => void
 }
 
-export function MissionOverviewTab({ mission, members, assessments, domains, progress, onRefetch }: MissionOverviewTabProps){
+export function MissionOverviewTab({ mission, members, assessments, domains, progress, onRefetch }: MissionOverviewTabProps) {
+  const { documents } = useMissionDocuments(mission.id)
+
   return (
     <div>
 
@@ -28,7 +32,10 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
 
       {/* Two columns */}
       <div className="grid grid-cols-[1fr_340px] gap-6">
-        <DomainProgressList domains={domains} assessments={assessments} />
+        <div className="space-y-6">
+          <DomainProgressList domains={domains} assessments={assessments} />
+          <EvidenceTracker missionId={mission.id} domains={domains} documents={documents} />
+        </div>
         <TeamActivityPanel missionId={mission.id} members={members} onRefetch={onRefetch} />
       </div>
     </div>
