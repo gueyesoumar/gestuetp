@@ -1,120 +1,85 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './features/auth/AuthContext'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { ClientProtectedRoute } from './components/ClientProtectedRoute'
+import { AppLayout } from './components/layout/AppLayout'
+import { ClientLayout } from './features/client-portal/layout/ClientLayout'
+import { LoginPage } from './pages/LoginPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { OrganizationPage } from './pages/OrganizationPage'
+import { MembersPage } from './pages/MembersPage'
+import { FrameworksPage } from './pages/FrameworksPage'
+import { FrameworkDetailPage } from './pages/FrameworkDetailPage'
+import { FrameworkComparisonPage } from './pages/FrameworkComparisonPage'
+import { MissionsListPage } from './pages/MissionsListPage'
+import { MissionCreatePage } from './pages/MissionCreatePage'
+import { MissionDetailPage } from './pages/MissionDetailPage'
+import { ClientsListPage } from './pages/ClientsListPage'
+import { ClientCreatePage } from './pages/ClientCreatePage'
+import { ClientDetailPage } from './pages/ClientDetailPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { NotificationsPage } from './pages/NotificationsPage'
+import { QuestionnaireClientPage } from './pages/QuestionnaireClientPage'
+import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDashboardPage'
+import { ClientMissionsPage } from './features/client-portal/missions/ClientMissionsPage'
+import { ClientMissionDetailPage } from './features/client-portal/missions/ClientMissionDetailPage'
+import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
+import { ClientValidationsPage } from './features/client-portal/ClientValidationsPage'
+import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
+import { SetPasswordPage } from './pages/SetPasswordPage'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/set-password" element={<SetPasswordPage />} />
 
-      <div className="ticks"></div>
+          {/* Auditor routes */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="profil" element={<ProfilePage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="organisation" element={<OrganizationPage />} />
+            <Route path="membres" element={<MembersPage />} />
+            <Route path="referentiels" element={<FrameworksPage />} />
+            <Route path="referentiels/comparer" element={<FrameworkComparisonPage />} />
+            <Route path="referentiels/:slug" element={<FrameworkDetailPage />} />
+            <Route path="clients" element={<ClientsListPage />} />
+            <Route path="clients/nouveau" element={<ClientCreatePage />} />
+            <Route path="clients/:id" element={<ClientDetailPage />} />
+            <Route path="missions" element={<MissionsListPage />} />
+            <Route path="missions/nouvelle" element={<MissionCreatePage />} />
+            <Route path="missions/:id" element={<MissionDetailPage />} />
+            <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
+          </Route>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          {/* Client portal routes */}
+          <Route
+            path="/client"
+            element={
+              <ClientProtectedRoute>
+                <ClientLayout />
+              </ClientProtectedRoute>
+            }
+          >
+            <Route index element={<ClientDashboardPage />} />
+            <Route path="missions" element={<ClientMissionsPage />} />
+            <Route path="missions/:id" element={<ClientMissionDetailPage />} />
+            <Route path="documents" element={<ClientDocumentsPage />} />
+            <Route path="validations" element={<ClientValidationsPage />} />
+            <Route path="notifications" element={<ClientNotificationsPage />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
 

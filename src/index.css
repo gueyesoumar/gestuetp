@@ -1,1 +1,114 @@
 @import "tailwindcss";
+
+@theme {
+  /* Vert Forêt */
+  --color-forest-900: #1B4332;
+  --color-forest-700: #2D6A4F;
+  --color-forest-500: #40916C;
+  --color-forest-300: #74C69D;
+  --color-forest-100: #D8F3DC;
+  --color-forest-50: #F0FFF4;
+
+  /* Or */
+  --color-gold-600: #B8922E;
+  --color-gold-500: #D4A843;
+  --color-gold-400: #E2C26B;
+  --color-gold-200: #F2E2B1;
+  --color-gold-50: #FDF8E8;
+
+  /* Fond */
+  --color-page-bg: #FAFAF8;
+
+  /* Sémantiques */
+  --color-success: #27AE60;
+  --color-error: #C0392B;
+
+  /* Produits */
+  --color-product-comply: #D4A843;
+  --color-product-risk: #E07A5F;
+  --color-product-privacy: #7B68EE;
+  --color-product-policy: #3B82F6;
+
+  /* Fonts */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Base */
+body {
+  background-color: var(--color-page-bg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Harmoniser tous les champs de formulaire */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  border-radius: 10px;
+  border: 1px solid #E5E7EB;
+  padding: 9px 12px;
+  outline: none;
+  background-color: white;
+  color: #1A1A1A;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="url"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-forest-500);
+  box-shadow: 0 0 0 3px var(--color-forest-100);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: #F9FAFB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+/* Select avec chevron custom */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5L6 8L9 5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Checkbox et radio */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  padding: 0;
+  border-radius: 4px;
+  accent-color: var(--color-forest-700);
+}
+
+/* Placeholder */
+::placeholder {
+  color: #9CA3AF;
+}

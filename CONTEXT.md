@@ -198,7 +198,11 @@ La plateforme peut être proposée en marque blanche aux organisations clientes 
 
 | Date | Décision | Justification |
 |------|----------|---------------|
-| — | — | — |
+| 2026-04-10 | INSERT/DELETE réservés au `service_role` | Éviter l'auto-élévation de privilèges côté client |
+| 2026-04-10 | Index GIN sur `organizations.types` | Requêtes efficaces sur tableau (`types @> '{cabinet}'`) |
+| 2026-04-10 | `users.auth_id` FK vers `auth.users(id)` | Lien fort avec Supabase Auth |
+| 2026-04-10 | Trigger `set_updated_at()` partagé créé en 00001 | Éviter la duplication entre migrations |
+| 2026-04-11 | Fonctions `SECURITY DEFINER` pour les policies RLS (`get_my_organization_id()`, `get_my_user_id()`) | Éviter la récursion infinie quand une policy sur `users` référence `users` |
 
 ---
 

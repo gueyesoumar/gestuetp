@@ -1,0 +1,128 @@
+import { useState, useCallback } from 'react'
+import { supabase } from '../../../lib/supabase'
+import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { HeroScoreCard } from './HeroScoreCard'
+import { DomainBreakdownList } from './DomainBreakdownList'
+import { ClosureActionCards } from './ClosureActionCards'
+import type { MissionDetail } from '../useMissionDetail'
+
+interface DomainScore {
+  domain_code: string
+  domain_name: string
+  total: number
+  approved: number
+  score: number
+}
+
+interface ScoringData {
+  conformity_score: number
+  total_controls: number
+  approved_controls: number
+  rejected_controls: number
+  pending_controls: number
+  domain_scores: DomainScore[]
+}
+
+interface MissionClosureTabProps {
+  mission: MissionDetail
+  onRefetch: () => void
+}
+
+export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps){
+  const [closing, setClosing] = useState(false)
+  const [closeError, setCloseError] = useState<string | null>(null)
+  const [scoring, setScoring] = useState<ScoringData | null>(null)
+  const isClosed = mission.status === 'closure'
+
+  const handleClose = useCallback(async () => {
+    setClosing(true)
+    setCloseError(null)
+    const { data, error: fnError } = await supabase.functions.invoke('close-mission', {
+      body: { mission_id: mission.id },
+    })
+    if (fnError || data?.error) {
+      setCloseError(fnError?.message ?? data?.error ?? 'Erreur.')
+      setClosing(false)
+      return
+    }
+    if (data?.scoring) setScoring(data.scoring as ScoringData)
+    setClosing(false)
+    onRefetch()
+  }, [mission.id, onRefetch])
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-base font-bold text-gray-900">Cl&ocirc;ture &amp; livraison</h3>
+        <p className="text-[13px] text-gray-500 mt-0.5">
+          {isClosed ? 'Cette mission est cl&ocirc;tur&eacute;e.' : 'Cl&ocirc;turez la mission pour g&eacute;n&eacute;rer le scoring.'}
+        </p>
+      </div>
+
+      {closeError && <ErrorAlert message={closeError} />}
+
+      {!isClosed && !scoring && (
+        <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <div>
+            <p className="text-sm font-medium text-amber-800">Pr&ecirc;t &agrave; cl&ocirc;turer la mission ?</p>
+            <p className="text-xs text-amber-600 mt-0.5">Le scoring sera calcul&eacute; et la mission passera en statut cl&ocirc;tur&eacute;.</p>
+          </div>
+          <button onClick={handleClose} disabled={closing}
+            className="bg-amber-600 text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-amber-700 disabled:opacity-50 transition-colors">
+            {closing ? 'Cl&ocirc;ture...' : 'Cl&ocirc;turer la mission'}
+          </button>
+        </div>
+      )}
+
+      {scoring && (
+        <>
+          <HeroScoreCard score={scoring.conformity_score} approvedControls={scoring.approved_controls} totalControls={scoring.total_controls} />
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <StatCard label="Conformes" value={scoring.approved_controls} color="text-green-600" bg="bg-green-50 border-green-200" />
+            <StatCard label="Non conformes" value={scoring.rejected_controls} color="text-red-600" bg="bg-red-50 border-red-200" />
+            <StatCard label="En attente" value={scoring.pending_controls} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
+          </div>
+          <DomainBreakdownList domainScores={scoring.domain_scores} />
+          <ClosureActionCards />
+        </>
+      )}
+
+      {isClosed && !scoring && <ScoringLoader missionId={mission.id} />}
+    </div>
+  )
+}
+
+function StatCard({ label, value, color, bg }: { label: string; value: number; color: string; bg: string }){
+  return (
+    <div className={`rounded-xl border p-5 text-center ${bg}`}>
+      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      <p className="text-xs font-medium text-gray-500 mt-1">{label}</p>
+    </div>
+  )
+}
+
+function ScoringLoader({ missionId }: { missionId: string }){
+  const [scoring, setScoring] = useState<ScoringData | null>(null)
+  const [loaded, setLoaded] = useState(false)
+
+  if (!loaded) {
+    setLoaded(true)
+    supabase.functions.invoke('close-mission', { body: { mission_id: missionId } })
+      .then(({ data }) => { if (data?.scoring) setScoring(data.scoring as ScoringData) })
+  }
+
+  if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du scoring...</p>
+
+  return (
+    <>
+      <HeroScoreCard score={scoring.conformity_score} approvedControls={scoring.approved_controls} totalControls={scoring.total_controls} />
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <StatCard label="Conformes" value={scoring.approved_controls} color="text-green-600" bg="bg-green-50 border-green-200" />
+        <StatCard label="Non conformes" value={scoring.rejected_controls} color="text-red-600" bg="bg-red-50 border-red-200" />
+        <StatCard label="En attente" value={scoring.pending_controls} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
+      </div>
+      <DomainBreakdownList domainScores={scoring.domain_scores} />
+      <ClosureActionCards />
+    </>
+  )
+}
