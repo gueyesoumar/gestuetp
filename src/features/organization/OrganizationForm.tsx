@@ -49,7 +49,7 @@ export function OrganizationForm({ organization, onSubmit, submitting, error }: 
   }
 
   return (
-    <div className="max-w-3xl">
+    <div>
       {error && <div className="mb-4"><ErrorAlert message={error} /></div>}
       {success && (
         <div className="mb-4 rounded-lg bg-green-50 p-3 text-[13px] text-green-700">
@@ -81,11 +81,16 @@ export function OrganizationForm({ organization, onSubmit, submitting, error }: 
           <div className="space-y-4">
             <FormField id="org-phone" label="T&eacute;l&eacute;phone" type="tel" value={phone} onChange={setPhone} disabled={submitting} />
             <FormField id="org-address" label="Adresse" value={address} onChange={setAddress} disabled={submitting} />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField id="org-city" label="Ville" value={city} onChange={setCity} disabled={submitting} />
-              <div>
-                <label htmlFor="org-country" className="block text-[13px] font-medium text-gray-700">Pays</label>
-                <select id="org-country" value={country} onChange={(e) => setCountry(e.target.value)} disabled={submitting} className={selectClass}>
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label htmlFor="org-city" className="block text-[13px] font-medium text-gray-700 mb-1">Ville</label>
+                <input id="org-city" type="text" value={city} onChange={(e) => setCity(e.target.value)} disabled={submitting}
+                  className="block w-full h-[38px] rounded-lg border border-gray-200 px-3 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 disabled:bg-gray-50" />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="org-country" className="block text-[13px] font-medium text-gray-700 mb-1">Pays</label>
+                <select id="org-country" value={country} onChange={(e) => setCountry(e.target.value)} disabled={submitting}
+                  className="block w-full h-[38px] rounded-lg border border-gray-200 px-3 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 disabled:bg-gray-50">
                   <option value="">S&eacute;lectionner</option>
                   {PAYS_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
                 </select>

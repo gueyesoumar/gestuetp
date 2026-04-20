@@ -21,6 +21,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
   const [pendingDocName, setPendingDocName] = useState<string | null>(null)
   const [pendingControlIds, setPendingControlIds] = useState<string[]>([])
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
+  const [localUploadError, setLocalUploadError] = useState<string | null>(null)
   const [linkingDocName, setLinkingDocName] = useState<string | null>(null)
 
   const { instance, questions, responses, loading: qLoading } = useMissionQuestionnaire(mission.id)
@@ -61,7 +62,8 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
 
     const { error: storageError } = await supabase.storage.from('documents').upload(filePath, file)
     if (storageError) {
-      console.error('Upload storage error:', storageError.message)
+      setUploadSuccess(null)
+      setLocalUploadError(`Erreur lors de l\u2019upload : ${storageError.message}`)
       setPendingDocName(null)
       setPendingControlIds([])
       return
@@ -201,7 +203,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
             )}
           </div>
         )}
-        {uploadError && <p className="text-xs text-red-500 mb-2">{uploadError}</p>}
+        {(uploadError || localUploadError) && <p className="text-xs text-red-500 mb-2">{uploadError ?? localUploadError}</p>}
 
         {/* AI banner */}
         {documents.length > 0 && (

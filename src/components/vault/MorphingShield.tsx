@@ -46,6 +46,14 @@ export function MorphingShield({ size = 64 }: MorphingShieldProps): JSX.Element 
 
   return (
     <div className="flex flex-col items-center gap-3">
+      <style>{`
+        @keyframes shieldScan {
+          0%, 100% { top: 20%; opacity: 0; }
+          10% { opacity: 1; }
+          50% { top: 75%; opacity: 1; }
+          60% { opacity: 0; }
+        }
+      `}</style>
       <div className="relative">
         <svg
           width={size}
@@ -74,10 +82,15 @@ export function MorphingShield({ size = 64 }: MorphingShieldProps): JSX.Element 
         </svg>
         {/* Scan line */}
         <div
-          className="absolute left-0 right-0 h-[2px] animate-[scanLine_2.5s_ease-in-out_infinite]"
+          className="absolute h-[2px]"
           style={{
+            left: '20%',
+            right: '20%',
+            top: '20%',
             background: `linear-gradient(90deg, transparent, ${product.color}, transparent)`,
-            transition: 'background 0.8s ease',
+            boxShadow: `0 0 10px ${product.color}60`,
+            animation: 'shieldScan 2.5s ease-in-out infinite',
+            transition: 'background 0.8s ease, box-shadow 0.8s ease',
           }}
         />
       </div>

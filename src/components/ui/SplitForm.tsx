@@ -3,12 +3,13 @@ import type { ReactNode, FormEvent } from 'react'
 interface SplitFormProps {
   children: ReactNode
   onSubmit: (e: FormEvent) => void
+  onSave?: () => void
   submitLabel?: string
   submitting?: boolean
   onCancel?: () => void
 }
 
-export function SplitForm({ children, onSubmit, submitLabel = 'Enregistrer', submitting = false, onCancel }: SplitFormProps) {
+export function SplitForm({ children, onSubmit, onSave, submitLabel = 'Enregistrer', submitting = false, onCancel }: SplitFormProps) {
   return (
     <form onSubmit={onSubmit} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
       {children}
@@ -23,8 +24,9 @@ export function SplitForm({ children, onSubmit, submitLabel = 'Enregistrer', sub
           </button>
         )}
         <button
-          type="submit"
+          type="button"
           disabled={submitting}
+          onClick={onSave}
           className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors disabled:opacity-50"
         >
           {submitting ? 'Enregistrement...' : submitLabel}

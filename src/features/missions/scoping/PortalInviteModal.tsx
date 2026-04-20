@@ -66,7 +66,9 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
 
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-client`, {
+    let res: Response
+    try {
+      res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-client`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -79,7 +81,12 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
         mission_id: missionId,
         permission,
       }),
-    })
+      })
+    } catch {
+      setError('Erreur r\u00e9seau. V\u00e9rifiez votre connexion.')
+      setInviting(false)
+      return
+    }
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: 'Erreur inconnue' }))

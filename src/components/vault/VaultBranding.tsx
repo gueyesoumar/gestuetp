@@ -11,7 +11,7 @@ export function VaultBranding({ size = 'md' }: VaultBrandingProps): JSX.Element 
   const textClass = size === 'lg' ? 'text-[48px]' : 'text-[36px]'
   const dotClass = size === 'lg' ? 'w-[6px] h-[6px]' : 'w-[5px] h-[5px]'
   const dotGap = size === 'lg' ? 'gap-[6px]' : 'gap-[5px]'
-  const dotTop = size === 'lg' ? 'top-[3px]' : 'top-[2px]'
+  const dotTop = size === 'lg' ? '-top-[6px]' : '-top-[4px]'
 
   return (
     <div className="flex flex-col items-center">
@@ -22,7 +22,7 @@ export function VaultBranding({ size = 'md' }: VaultBrandingProps): JSX.Element 
         <span className="relative inline-block">
           E
           <span
-            className={`absolute left-1/2 -translate-x-1/2 flex ${dotGap} ${dotTop}`}
+            className={`absolute left-[calc(50%-4px)] -translate-x-1/2 flex ${dotGap} ${dotTop}`}
           >
             <span className={`${dotClass} rounded-full bg-[#D4A843]`} />
             <span className={`${dotClass} rounded-full bg-[#D4A843]`} />

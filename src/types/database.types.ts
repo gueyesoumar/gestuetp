@@ -614,6 +614,11 @@ export interface CabinetClient {
   structure_hierarchique: string | null
   parties_interessees: PartieInteressee[]
   exigences_reglementaires: ExigenceReglementaire[]
+  logo_url: string | null
+  brand_primary_color: string | null
+  brand_secondary_color: string | null
+  brand_accent_color: string | null
+  brand_font: string | null
   it_environment: string | null
   it_systems: string[]
   notes: string | null
@@ -661,6 +666,11 @@ export interface CabinetClientUpdate {
   structure_hierarchique?: string | null
   parties_interessees?: PartieInteressee[]
   exigences_reglementaires?: ExigenceReglementaire[]
+  logo_url?: string | null
+  brand_primary_color?: string | null
+  brand_secondary_color?: string | null
+  brand_accent_color?: string | null
+  brand_font?: string | null
   notes?: string | null
 }
 

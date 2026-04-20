@@ -5,13 +5,13 @@ import { useCabinetClientDetail } from '../features/clients/useCabinetClientDeta
 import { useUpdateCabinetClient } from '../features/clients/useUpdateCabinetClient'
 import { ClientIdentitySection } from '../features/clients/ClientIdentitySection'
 import { ClientInfoSection } from '../features/clients/ClientInfoSection'
-import { PartiesInteresseesSection } from '../features/clients/PartiesInteresseesSection'
 import { ExigencesSection } from '../features/clients/ExigencesSection'
+import { ClientBrandingSection } from '../features/clients/ClientBrandingSection'
 import { SplitForm } from '../components/ui/SplitForm'
 import { SplitFormSection } from '../components/ui/SplitFormSection'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
-import type { PartieInteressee, ExigenceReglementaire } from '../types/database.types'
+import type { ExigenceReglementaire } from '../types/database.types'
 
 export function ClientDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -30,10 +30,13 @@ export function ClientDetailPage() {
   const [effectifs, setEffectifs] = useState('')
   const [ca, setCa] = useState('')
   const [sites, setSites] = useState('')
-  const [activites, setActivites] = useState('')
-  const [structure, setStructure] = useState('')
-  const [parties, setParties] = useState<PartieInteressee[]>([])
+
   const [exigences, setExigences] = useState<ExigenceReglementaire[]>([])
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [brandPrimary, setBrandPrimary] = useState<string | null>(null)
+  const [brandSecondary, setBrandSecondary] = useState<string | null>(null)
+  const [brandAccent, setBrandAccent] = useState<string | null>(null)
+  const [brandFont, setBrandFont] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
   const [initialized, setInitialized] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -55,26 +58,41 @@ export function ClientDetailPage() {
     setEffectifs(client.effectifs ?? '')
     setCa(client.chiffre_affaires ?? '')
     setSites(client.nombre_sites?.toString() ?? '')
-    setActivites(client.activites_principales ?? '')
-    setStructure(client.structure_hierarchique ?? '')
-    setParties(client.parties_interessees ?? [])
     setExigences(client.exigences_reglementaires ?? [])
+    setLogoUrl(client.logo_url ?? null)
+    setBrandPrimary(client.brand_primary_color ?? null)
+    setBrandSecondary(client.brand_secondary_color ?? null)
+    setBrandAccent(client.brand_accent_color ?? null)
+    setBrandFont(client.brand_font ?? null)
     setNotes(client.notes ?? '')
     setInitialized(true)
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: FormEvent) => {
+    if (e) e.preventDefault()
     setSuccess(false)
-    const ok = await updateClient(client.id, {
-      client_name: clientName, client_email_domain: emailDomain || null,
-      client_registration_number: registrationNumber || null, client_sector: sector || null,
-      client_address: address || null, client_city: city || null, client_country: country || null,
-      client_website: website || null, client_phone: phone || null, effectifs: effectifs || null,
-      chiffre_affaires: ca || null, nombre_sites: sites ? parseInt(sites, 10) : null,
-      activites_principales: activites || null, structure_hierarchique: structure || null,
-      parties_interessees: parties, exigences_reglementaires: exigences, notes: notes || null,
-    })
+    const payload: Record<string, unknown> = {
+      client_name: clientName,
+      client_email_domain: emailDomain || null,
+      client_registration_number: registrationNumber || null,
+      client_sector: sector || null,
+      client_address: address || null,
+      client_city: city || null,
+      client_country: country || null,
+      client_website: website || null,
+      client_phone: phone || null,
+      effectifs: effectifs || null,
+      chiffre_affaires: ca || null,
+      nombre_sites: sites ? parseInt(sites, 10) : null,
+      exigences_reglementaires: exigences,
+      logo_url: logoUrl,
+      brand_primary_color: brandPrimary,
+      brand_secondary_color: brandSecondary,
+      brand_accent_color: brandAccent,
+      brand_font: brandFont,
+      notes: notes || null,
+    }
+    const ok = await updateClient(client.id, payload as Record<string, unknown> & import('../types/database.types').CabinetClientUpdate)
     if (ok) setSuccess(true)
   }
 
@@ -94,8 +112,8 @@ export function ClientDetailPage() {
         </div>
       )}
 
-      <div className="mt-6 max-w-3xl">
-        <SplitForm onSubmit={handleSubmit} submitting={updating}>
+      <div className="mt-6">
+        <SplitForm onSubmit={handleSubmit} submitting={updating} onSave={() => handleSubmit()}>
           <SplitFormSection title="Identit&eacute;" description="Nom, coordonn&eacute;es et immatriculation du client">
             <ClientIdentitySection
               clientName={clientName} emailDomain={emailDomain} registrationNumber={registrationNumber}
@@ -107,18 +125,29 @@ export function ClientDetailPage() {
             />
           </SplitFormSection>
 
-          <SplitFormSection title="Informations" description="Effectifs, CA, activit&eacute;s et structure">
+          <SplitFormSection title="Informations" description="Effectifs, CA et sites">
             <ClientInfoSection
               effectifs={effectifs} chiffreAffaires={ca} nombreSites={sites}
-              activitesPrincipales={activites} structureHierarchique={structure}
               disabled={updating}
               onEffectifs={setEffectifs} onChiffreAffaires={setCa} onNombreSites={setSites}
-              onActivitesPrincipales={setActivites} onStructureHierarchique={setStructure}
             />
           </SplitFormSection>
 
-          <SplitFormSection title="Parties int&eacute;ress&eacute;es" description="Acteurs internes et externes">
-            <PartiesInteresseesSection parties={parties} disabled={updating} onChange={setParties} />
+          <SplitFormSection title="Identit&eacute; visuelle" description="Logo et charte graphique pour personnaliser les rapports">
+            <ClientBrandingSection
+              clientId={client.id}
+              logoUrl={logoUrl}
+              primaryColor={brandPrimary}
+              secondaryColor={brandSecondary}
+              accentColor={brandAccent}
+              brandFont={brandFont}
+              disabled={updating}
+              onLogoUrl={setLogoUrl}
+              onPrimaryColor={setBrandPrimary}
+              onSecondaryColor={setBrandSecondary}
+              onAccentColor={setBrandAccent}
+              onBrandFont={setBrandFont}
+            />
           </SplitFormSection>
 
           <SplitFormSection title="Exigences" description="Cadre l&eacute;gal et normatif">

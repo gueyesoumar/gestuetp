@@ -38,6 +38,7 @@ export function useMembers(): UseMembersResult {
       .from('users')
       .select('*, user_platform_roles!user_platform_roles_user_id_fkey(platform_roles(*))')
       .eq('organization_id', profile.organization_id)
+      .eq('role', 'auditor')
       .order('last_name')
       .abortSignal(abortController.signal)
       .then(({ data, error: queryError }) => {

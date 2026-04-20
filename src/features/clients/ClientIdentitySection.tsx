@@ -1,7 +1,7 @@
 import { FormField } from '../../components/ui/FormField'
 import { SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
 
-const selectClass = 'mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100'
+const selectClass = 'mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 disabled:bg-gray-50'
 
 interface ClientIdentitySectionProps {
   clientName: string

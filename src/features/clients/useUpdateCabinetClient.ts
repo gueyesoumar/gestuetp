@@ -16,14 +16,29 @@ export function useUpdateCabinetClient(onSuccess?: () => void): UseUpdateCabinet
     setUpdating(true)
     setError(null)
 
-    const { error: queryError } = await supabase
-      .from('cabinet_clients')
-      .update(data)
-      .eq('id', id)
+    const session = await supabase.auth.getSession()
+    const token = session.data.session?.access_token
+    if (!token) {
+      setError('Non authentifi\u00e9')
+      setUpdating(false)
+      return false
+    }
 
-    if (queryError) {
-      console.error('useUpdateCabinetClient:', queryError.message)
-      setError('Impossible de mettre à jour le client.')
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/cabinet_clients?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!res.ok) {
+      const text = await res.text()
+      console.error('useUpdateCabinetClient:', res.status, text)
+      setError('Impossible de mettre \u00e0 jour le client.')
       setUpdating(false)
       return false
     }

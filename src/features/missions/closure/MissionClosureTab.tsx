@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { HeroScoreCard } from './HeroScoreCard'
@@ -103,13 +103,11 @@ function StatCard({ label, value, color, bg }: { label: string; value: number; c
 
 function ScoringLoader({ missionId }: { missionId: string }){
   const [scoring, setScoring] = useState<ScoringData | null>(null)
-  const [loaded, setLoaded] = useState(false)
 
-  if (!loaded) {
-    setLoaded(true)
+  useEffect(() => {
     supabase.functions.invoke('close-mission', { body: { mission_id: missionId } })
       .then(({ data }) => { if (data?.scoring) setScoring(data.scoring as ScoringData) })
-  }
+  }, [missionId])
 
   if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du scoring...</p>
 

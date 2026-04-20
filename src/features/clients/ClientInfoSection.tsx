@@ -5,19 +5,15 @@ interface ClientInfoSectionProps {
   effectifs: string
   chiffreAffaires: string
   nombreSites: string
-  activitesPrincipales: string
-  structureHierarchique: string
   disabled: boolean
   onEffectifs: (v: string) => void
   onChiffreAffaires: (v: string) => void
   onNombreSites: (v: string) => void
-  onActivitesPrincipales: (v: string) => void
-  onStructureHierarchique: (v: string) => void
 }
 
 export function ClientInfoSection({
-  effectifs, chiffreAffaires, nombreSites, activitesPrincipales, structureHierarchique, disabled,
-  onEffectifs, onChiffreAffaires, onNombreSites, onActivitesPrincipales, onStructureHierarchique,
+  effectifs, chiffreAffaires, nombreSites, disabled,
+  onEffectifs, onChiffreAffaires, onNombreSites,
 }: ClientInfoSectionProps) {
   return (
     <fieldset className="space-y-4">
@@ -55,8 +51,6 @@ export function ClientInfoSection({
         </select>
       </div>
       <FormField id="client-sites" label="Nombre de sites" type="number" value={nombreSites} onChange={onNombreSites} disabled={disabled} />
-      <FormField id="client-activites" label="Activit&eacute;s principales" value={activitesPrincipales} onChange={onActivitesPrincipales} multiline disabled={disabled} />
-      <FormField id="client-structure" label="Structure hi&eacute;rarchique" value={structureHierarchique} onChange={onStructureHierarchique} multiline disabled={disabled} placeholder="D&eacute;crivez l&apos;organigramme et la gouvernance" />
     </fieldset>
   )
 }

@@ -106,7 +106,10 @@ export function ProfilePage() {
                 <FormField id="prof-first" label="Pr&eacute;nom" value={firstName} onChange={setFirstName} required disabled={updating} />
                 <FormField id="prof-last" label="Nom" value={lastName} onChange={setLastName} required disabled={updating} />
               </div>
-              <FormField id="prof-email" label="Email" value={profile.email} onChange={() => {}} disabled />
+              <div>
+                <FormField id="prof-email" label="Email" value={profile.email} onChange={() => {}} disabled />
+                <p className="mt-1 text-[10px] text-gray-300">L&rsquo;email ne peut pas &ecirc;tre modifi&eacute;. Contactez un administrateur.</p>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <FormField id="prof-phone" label="T&eacute;l&eacute;phone" type="tel" value={phone} onChange={setPhone} disabled={updating} />
                 <FormField id="prof-job" label="Poste / Fonction" value={jobTitle} onChange={setJobTitle} disabled={updating} placeholder="Ex : Associ&eacute;, Manager..." />

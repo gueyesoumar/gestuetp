@@ -1,7 +1,7 @@
 import { FormField } from '../../components/ui/FormField'
 import { SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
 
-const selectClass = 'mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100'
+const selectClass = 'mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100'
 
 interface OrganizationDetailsSectionProps {
   phone: string
@@ -33,11 +33,16 @@ export function OrganizationDetailsSection({
 
       <FormField id="org-address" label="Adresse" value={address} onChange={onAddress} disabled={disabled} />
 
-      <div className="grid grid-cols-2 gap-3">
-        <FormField id="org-city" label="Ville" value={city} onChange={onCity} disabled={disabled} />
-        <div>
-          <label htmlFor="org-country" className="block text-sm font-medium text-gray-700">Pays</label>
-          <select id="org-country" value={country} onChange={(e) => onCountry(e.target.value)} disabled={disabled} className={selectClass}>
+      <div className="flex gap-3 items-end">
+        <div className="flex-1">
+          <label htmlFor="org-city" className="block text-[13px] font-medium text-gray-700 mb-1">Ville</label>
+          <input id="org-city" type="text" value={city} onChange={(e) => onCity(e.target.value)} disabled={disabled}
+            className="block w-full h-[38px] rounded-lg border border-gray-200 px-3 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 disabled:bg-gray-50" />
+        </div>
+        <div className="flex-1">
+          <label htmlFor="org-country" className="block text-[13px] font-medium text-gray-700 mb-1">Pays</label>
+          <select id="org-country" value={country} onChange={(e) => onCountry(e.target.value)} disabled={disabled}
+            className="block w-full h-[38px] rounded-lg border border-gray-200 px-3 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 disabled:bg-gray-50 appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%236B7280%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10z%22/%3E%3C/svg%3E')] bg-no-repeat bg-[right_12px_center]">
             <option value="">S&eacute;lectionner</option>
             {PAYS_OPTIONS.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
           </select>
@@ -53,7 +58,7 @@ export function OrganizationDetailsSection({
       />
 
       <div>
-        <label htmlFor="org-sector" className="block text-sm font-medium text-gray-700">Secteur d&apos;activit&eacute;</label>
+        <label htmlFor="org-sector" className="block text-[13px] font-medium text-gray-700">Secteur d&apos;activit&eacute;</label>
         <select id="org-sector" value={sector} onChange={(e) => onSector(e.target.value)} disabled={disabled} className={selectClass}>
           <option value="">S&eacute;lectionner</option>
           {SECTEURS_OPTIONS.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}

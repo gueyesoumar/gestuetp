@@ -78,13 +78,15 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
   }, [mission.id])
 
   const handleDownload = async (filePath: string, title: string): Promise<void> => {
-    const { data } = await supabase.storage.from('reports').createSignedUrl(filePath, 300)
-    if (data?.signedUrl) {
-      const a = document.createElement('a')
-      a.href = data.signedUrl
-      a.download = title
-      a.click()
+    const { data, error: signError } = await supabase.storage.from('reports').createSignedUrl(filePath, 300)
+    if (signError || !data?.signedUrl) {
+      alert('Impossible de t\u00e9l\u00e9charger le rapport. Le fichier est peut-\u00eatre indisponible.')
+      return
     }
+    const a = document.createElement('a')
+    a.href = data.signedUrl
+    a.download = title
+    a.click()
   }
 
   if (loading) {

@@ -23,7 +23,8 @@ export function QuestionnaireClientPage() {
     }
   }
 
-  const templateName = (instance as unknown as { snapshot: { template: { name: string } } }).snapshot?.template?.name ?? 'Questionnaire'
+  const snapshot = instance.snapshot as { template?: { name?: string } } | null
+  const templateName = snapshot?.template?.name ?? 'Questionnaire'
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] py-8 px-4">
