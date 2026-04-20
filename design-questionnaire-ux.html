@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Questionnaire UX (3 propositions)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .section { max-width: 800px; margin: 40px auto; padding: 0 24px; }
+  .st { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); text-align: center; margin-bottom: 6px; }
+  .ss { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+
+  /* Diagnostic */
+  .diag { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 40px; }
+  .diag h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .diag-row { display: flex; gap: 12px; margin-bottom: 8px; }
+  .diag-bad { flex: 1; padding: 10px 14px; background: #FEF2F2; border-left: 3px solid var(--error); border-radius: 6px; font-size: 12px; color: var(--text-700); }
+  .diag-good { flex: 1; padding: 10px 14px; background: var(--forest-50); border-left: 3px solid var(--success); border-radius: 6px; font-size: 12px; color: var(--text-700); }
+
+  /* Proposal card */
+  .proposal { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  .proposal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .proposal-header h3 { font-size: 16px; font-weight: 700; }
+  .proposal-badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 99px; }
+  .proposal-badge.rec { background: var(--forest-100); color: var(--forest-700); }
+  .proposal-badge.alt { background: #F3F4F6; color: var(--text-500); }
+  .proposal-body { padding: 24px; }
+  .proposal-desc { font-size: 13px; color: var(--text-500); margin-bottom: 20px; line-height: 1.6; }
+
+  /* Shared question styles */
+  .q-group { margin-bottom: 24px; }
+  .q-group-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--forest-700); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--forest-100); }
+  .q-item { margin-bottom: 16px; }
+  .q-label { font-size: 13px; font-weight: 600; color: var(--text-900); margin-bottom: 6px; }
+  .q-hint { font-size: 11px; color: var(--text-300); margin-bottom: 8px; }
+
+  /* === PROP A: Card-based with visual inputs === */
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; transition: all 0.15s; cursor: pointer; }
+  .toggle-row:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .toggle-row.active { border-color: var(--forest-500); background: var(--forest-50); }
+  .toggle-label { font-size: 13px; color: var(--text-700); flex: 1; }
+  .toggle-sub { font-size: 11px; color: var(--text-300); }
+  .toggle { width: 40px; height: 22px; border-radius: 11px; background: var(--border); position: relative; flex-shrink: 0; transition: background 0.2s; cursor: pointer; }
+  .toggle.on { background: var(--forest-500); }
+  .toggle-knob { width: 18px; height: 18px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .toggle.on .toggle-knob { left: 20px; }
+
+  /* Conditional follow-up */
+  .follow-up { margin-left: 20px; padding: 12px 16px; background: var(--gold-50); border-left: 3px solid var(--gold-500); border-radius: 0 8px 8px 0; margin-top: -4px; margin-bottom: 8px; }
+  .follow-up input, .follow-up select { padding: 6px 10px; border: 1px solid var(--gold-200); border-radius: 6px; font-size: 12px; outline: none; width: 100%; }
+
+  /* Multi-select chips */
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-option { padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--text-700); cursor: pointer; transition: all 0.15s; user-select: none; }
+  .chip-option:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .chip-option.selected { border-color: var(--forest-700); background: var(--forest-100); color: var(--forest-900); font-weight: 500; }
+
+  /* Slider */
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; position: relative; }
+  .slider-fill { height: 6px; background: var(--forest-500); border-radius: 3px; }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-300); margin-top: 4px; }
+  .slider-value { font-size: 16px; font-weight: 700; color: var(--forest-700); width: 50px; text-align: center; }
+
+  /* Visual scale */
+  .scale-row { display: flex; gap: 6px; }
+  .scale-item { flex: 1; padding: 10px 6px; border: 2px solid var(--border); border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .scale-item:hover { border-color: var(--forest-300); }
+  .scale-item.selected { border-color: var(--forest-700); background: var(--forest-50); }
+  .scale-value { font-size: 18px; font-weight: 700; }
+  .scale-label { font-size: 9px; color: var(--text-500); margin-top: 2px; }
+
+  /* === PROP B: Conversational wizard === */
+
+  .conv-step { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 16px; position: relative; }
+  .conv-step.completed { opacity: 0.6; }
+  .conv-step.completed::after { content: '✓'; position: absolute; top: 12px; right: 16px; width: 24px; height: 24px; border-radius: 50%; background: var(--success); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .conv-number { font-size: 10px; font-weight: 600; color: var(--forest-700); background: var(--forest-100); padding: 2px 8px; border-radius: 99px; margin-bottom: 8px; display: inline-block; }
+  .conv-question { font-size: 15px; font-weight: 600; color: var(--text-900); margin-bottom: 4px; }
+  .conv-hint { font-size: 12px; color: var(--text-300); margin-bottom: 16px; }
+  .conv-answer { display: flex; gap: 8px; flex-wrap: wrap; }
+  .conv-btn { padding: 10px 20px; border: 2px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--text-700); cursor: pointer; transition: all 0.15s; background: white; }
+  .conv-btn:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .conv-btn.selected { border-color: var(--forest-700); background: var(--forest-100); color: var(--forest-900); font-weight: 600; }
+  .conv-btn.large { padding: 14px 20px; flex: 1; min-width: 140px; text-align: center; }
+
+  .conv-nav { display: flex; justify-content: space-between; margin-top: 20px; }
+  .conv-next { padding: 10px 24px; background: var(--forest-700); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .conv-prev { padding: 10px 24px; border: 1px solid var(--border); background: white; border-radius: 8px; font-size: 13px; color: var(--text-500); cursor: pointer; }
+
+  /* Progress */
+  .conv-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .conv-progress-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+  .conv-progress-fill { height: 4px; background: var(--forest-500); border-radius: 2px; }
+  .conv-progress-label { font-size: 12px; font-weight: 600; color: var(--forest-700); }
+
+  /* === PROP C: Smart form with sections === */
+
+  .smart-section { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .smart-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #FAFAFA; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .smart-header:hover { background: var(--forest-50); }
+  .smart-title { font-size: 13px; font-weight: 600; color: var(--text-900); display: flex; align-items: center; gap: 8px; }
+  .smart-count { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--forest-100); color: var(--forest-700); }
+  .smart-body { padding: 16px 18px; }
+
+  .smart-field { margin-bottom: 14px; }
+  .smart-field:last-child { margin-bottom: 0; }
+  .smart-label { font-size: 12px; font-weight: 600; color: var(--text-900); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .smart-required { color: var(--error); font-size: 10px; }
+  .smart-select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--text-700); outline: none; background: white; }
+  .smart-select:focus { border-color: var(--forest-500); }
+  .smart-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; outline: none; }
+  .smart-input:focus { border-color: var(--forest-500); }
+
+  /* Yes/No inline */
+  .yn-row { display: flex; gap: 8px; }
+  .yn-btn { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 8px; text-align: center; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .yn-btn:hover { border-color: var(--forest-300); }
+  .yn-btn.yes.selected { border-color: var(--success); background: #E8F5E8; color: var(--success); }
+  .yn-btn.no.selected { border-color: var(--error); background: #FDE8E8; color: var(--error); }
+
+  /* Compact tag input */
+  .tag-input { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; border: 1px solid var(--border); border-radius: 8px; min-height: 38px; align-items: center; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: var(--forest-100); color: var(--forest-700); border-radius: 6px; font-size: 11px; font-weight: 500; }
+  .tag-x { cursor: pointer; opacity: 0.5; }
+  .tag-x:hover { opacity: 1; }
+  .tag-add { border: none; background: none; font-size: 12px; color: var(--text-300); outline: none; min-width: 100px; }
+
+  /* Compare table */
+  .compare { margin-top: 40px; }
+  .compare table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .compare th { padding: 10px 14px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-500); background: #FAFAFA; border-bottom: 1px solid var(--border); }
+  .compare th:first-child { text-align: left; width: 180px; }
+  .compare td { padding: 10px 14px; text-align: center; font-size: 12px; color: var(--text-700); border-bottom: 1px solid #F5F5F5; }
+  .compare td:first-child { text-align: left; font-weight: 500; }
+  .star { color: var(--gold-500); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Questionnaire UX (3 propositions)</h1>
+</div>
+
+<!-- Diagnostic -->
+<div class="section">
+  <p class="st">Diagnostic du questionnaire actuel</p>
+  <div class="diag">
+    <h3>15 questions &mdash; probl&egrave;mes identifi&eacute;s</h3>
+    <div class="diag-row">
+      <div class="diag-bad"><strong>4 textareas</strong> &mdash; Demandent une r&eacute;daction longue au client. Taux d&rsquo;abandon &eacute;lev&eacute;.</div>
+      <div class="diag-bad"><strong>Pas de logique conditionnelle</strong> &mdash; Q05 (date certif) s&rsquo;affiche m&ecirc;me si Q04 = Non.</div>
+    </div>
+    <div class="diag-row">
+      <div class="diag-bad"><strong>Format lin&eacute;aire</strong> &mdash; Toutes les questions empil&eacute;es, pas de progression visible.</div>
+      <div class="diag-bad"><strong>Questions ouvertes</strong> &mdash; &laquo; Quels syst&egrave;mes ? &raquo; &rarr; r&eacute;ponse impossible &agrave; structurer.</div>
+    </div>
+    <div class="diag-row">
+      <div class="diag-good"><strong>&Agrave; conserver</strong> &mdash; Les 7 questions Oui/Non sont rapides et efficaces.</div>
+      <div class="diag-good"><strong>&Agrave; conserver</strong> &mdash; La question effectifs (Q02) avec choix unique fonctionne bien.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PROPOSITION A : Structured Visual Form
+     ============================================================ -->
+<div class="section">
+  <div class="proposal">
+    <div class="proposal-header">
+      <h3>A &mdash; Formulaire visuel structur&eacute;</h3>
+      <span class="proposal-badge rec">&#9733; Recommand&eacute;</span>
+    </div>
+    <div class="proposal-body">
+      <div class="proposal-desc">
+        Remplace les textareas par des <strong>s&eacute;lecteurs visuels</strong> (chips, toggles, &eacute;chelles, tags). Le client clique plus qu&rsquo;il ne tape.
+        Les questions ouvertes deviennent des <strong>multi-select avec suggestions</strong>.
+        Les questions conditionnelles apparaissent dynamiquement.
+      </div>
+
+      <!-- Section 1: Contexte -->
+      <div class="q-group">
+        <div class="q-group-label">&#127970; Contexte de l&rsquo;organisation</div>
+
+        <div class="q-item">
+          <div class="q-label">Secteur d&rsquo;activit&eacute;</div>
+          <div class="chip-grid">
+            <div class="chip-option">Banque / Finance</div>
+            <div class="chip-option selected">T&eacute;l&eacute;coms / IT</div>
+            <div class="chip-option">Assurance</div>
+            <div class="chip-option">Sant&eacute;</div>
+            <div class="chip-option">&Eacute;nergie</div>
+            <div class="chip-option">Commerce</div>
+            <div class="chip-option">Industrie</div>
+            <div class="chip-option">Services</div>
+            <div class="chip-option">&Eacute;ducation</div>
+            <div class="chip-option" style="border-style:dashed;color:var(--text-300);">+ Autre</div>
+          </div>
+        </div>
+
+        <div class="q-item">
+          <div class="q-label">Taille de l&rsquo;organisation</div>
+          <div class="scale-row">
+            <div class="scale-item"><div class="scale-value">&lt;50</div><div class="scale-label">TPE</div></div>
+            <div class="scale-item"><div class="scale-value">50-250</div><div class="scale-label">PME</div></div>
+            <div class="scale-item selected"><div class="scale-value">250-1K</div><div class="scale-label">ETI</div></div>
+            <div class="scale-item"><div class="scale-value">1K-5K</div><div class="scale-label">Grande</div></div>
+            <div class="scale-item"><div class="scale-value">&gt;5K</div><div class="scale-label">Tr&egrave;s grande</div></div>
+          </div>
+        </div>
+
+        <div class="q-item">
+          <div class="q-label">Nombre de sites concern&eacute;s</div>
+          <div class="scale-row">
+            <div class="scale-item selected"><div class="scale-value">1</div><div class="scale-label">Unique</div></div>
+            <div class="scale-item"><div class="scale-value">2-5</div><div class="scale-label">Multi</div></div>
+            <div class="scale-item"><div class="scale-value">6-20</div><div class="scale-label">National</div></div>
+            <div class="scale-item"><div class="scale-value">&gt;20</div><div class="scale-label">International</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Gouvernance -->
+      <div class="q-group">
+        <div class="q-group-label">&#128218; Gouvernance &amp; maturit&eacute;</div>
+
+        <div class="toggle-row active">
+          <div>
+            <div class="toggle-label">RSSI ou &eacute;quivalent nomm&eacute;</div>
+            <div class="toggle-sub">Responsable de la s&eacute;curit&eacute; du SI d&eacute;sign&eacute;</div>
+          </div>
+          <div class="toggle on"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="follow-up">
+          <div class="q-hint">&#8618; Qui est le RSSI ?</div>
+          <input type="text" placeholder="Nom et rattachement (ex: Amadou Diop, rattach&eacute; au DSI)" value="Amadou Diop, rattach&eacute; au DSI">
+        </div>
+
+        <div class="toggle-row active">
+          <div>
+            <div class="toggle-label">Politique SSI formalis&eacute;e</div>
+            <div class="toggle-sub">Document &eacute;crit, approuv&eacute; et diffus&eacute;</div>
+          </div>
+          <div class="toggle on"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Comit&eacute; de s&eacute;curit&eacute; de l&rsquo;information</div>
+            <div class="toggle-sub">Instance de gouvernance d&eacute;di&eacute;e &agrave; la SSI</div>
+          </div>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div class="toggle-row active">
+          <div>
+            <div class="toggle-label">Certification ISO 27001 existante</div>
+            <div class="toggle-sub">Certification en cours de validit&eacute;</div>
+          </div>
+          <div class="toggle on"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="follow-up">
+          <div class="q-hint">&#8618; Date d&rsquo;expiration de la certification</div>
+          <input type="date" value="2026-12-31">
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Analyse de risques r&eacute;cente (&lt; 12 mois)</div>
+            <div class="toggle-sub">Cartographie formelle des risques SI</div>
+          </div>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+
+      <!-- Section 3: SI -->
+      <div class="q-group">
+        <div class="q-group-label">&#128187; Syst&egrave;me d&rsquo;information</div>
+
+        <div class="q-item">
+          <div class="q-label">Principaux syst&egrave;mes dans le p&eacute;rim&egrave;tre</div>
+          <div class="q-hint">S&eacute;lectionnez les cat&eacute;gories puis pr&eacute;cisez</div>
+          <div class="chip-grid">
+            <div class="chip-option selected">ERP (SAP, Oracle...)</div>
+            <div class="chip-option selected">CRM</div>
+            <div class="chip-option selected">ITSM / CMDB</div>
+            <div class="chip-option">E-commerce</div>
+            <div class="chip-option selected">Active Directory</div>
+            <div class="chip-option">Messagerie</div>
+            <div class="chip-option selected">Pare-feu / SIEM</div>
+            <div class="chip-option">Bases de donn&eacute;es</div>
+            <div class="chip-option">Application m&eacute;tier</div>
+            <div class="chip-option" style="border-style:dashed;color:var(--text-300);">+ Autre</div>
+          </div>
+        </div>
+
+        <div class="q-item">
+          <div class="q-label">Services cloud utilis&eacute;s</div>
+          <div class="chip-grid">
+            <div class="chip-option">Aucun (100% on-premise)</div>
+            <div class="chip-option selected">Azure</div>
+            <div class="chip-option">AWS</div>
+            <div class="chip-option">GCP</div>
+            <div class="chip-option selected">Microsoft 365</div>
+            <div class="chip-option">Salesforce</div>
+            <div class="chip-option">SaaS m&eacute;tier</div>
+            <div class="chip-option" style="border-style:dashed;color:var(--text-300);">+ Autre</div>
+          </div>
+        </div>
+
+        <div class="toggle-row active">
+          <div>
+            <div class="toggle-label">Inventaire des actifs informationnels</div>
+            <div class="toggle-sub">CMDB ou registre formalis&eacute;</div>
+          </div>
+          <div class="toggle on"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+
+      <!-- Section 4: Incidents -->
+      <div class="q-group">
+        <div class="q-group-label">&#128680; Incidents &amp; continuit&eacute;</div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Incidents de s&eacute;curit&eacute; majeurs (&lt; 12 mois)</div>
+            <div class="toggle-sub">Fuite de donn&eacute;es, ransomware, intrusion&hellip;</div>
+          </div>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div class="toggle-row active">
+          <div>
+            <div class="toggle-label">Plan de continuit&eacute; d&rsquo;activit&eacute; (PCA/PRA)</div>
+            <div class="toggle-sub">Document formalis&eacute; et test&eacute;</div>
+          </div>
+          <div class="toggle on"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+
+      <!-- Section 5: Attentes -->
+      <div class="q-group">
+        <div class="q-group-label">&#127919; Attentes &amp; enjeux</div>
+
+        <div class="q-item">
+          <div class="q-label">Principaux enjeux de cette mission</div>
+          <div class="q-hint">S&eacute;lectionnez 1 &agrave; 3 enjeux principaux</div>
+          <div class="chip-grid">
+            <div class="chip-option selected">Obtenir la certification</div>
+            <div class="chip-option selected">Identifier les failles</div>
+            <div class="chip-option">Conformit&eacute; r&eacute;glementaire</div>
+            <div class="chip-option">Rassurer les partenaires</div>
+            <div class="chip-option">Am&eacute;liorer la maturit&eacute;</div>
+            <div class="chip-option">Suite &agrave; un incident</div>
+            <div class="chip-option">Exigence maison m&egrave;re</div>
+            <div class="chip-option" style="border-style:dashed;color:var(--text-300);">+ Autre</div>
+          </div>
+        </div>
+
+        <div class="q-item">
+          <div class="q-label">Commentaire libre (optionnel)</div>
+          <textarea style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:12px;resize:vertical;min-height:60px;outline:none;" placeholder="Informations compl&eacute;mentaires que vous souhaitez partager..."></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PROPOSITION B : Conversational wizard (1 question at a time)
+       ============================================================ -->
+  <div class="proposal">
+    <div class="proposal-header">
+      <h3>B &mdash; Wizard conversationnel</h3>
+      <span class="proposal-badge alt">Alternative</span>
+    </div>
+    <div class="proposal-body">
+      <div class="proposal-desc">
+        <strong>Une question &agrave; la fois</strong>, comme un chatbot. Le client avance &eacute;tape par &eacute;tape avec des boutons de r&eacute;ponse.
+        Les questions conditionnelles s&rsquo;enchainent naturellement. Sentiment de rapidit&eacute; et de progression.
+      </div>
+
+      <!-- Progress -->
+      <div class="conv-progress">
+        <div class="conv-progress-bar"><div class="conv-progress-fill" style="width:35%;"></div></div>
+        <span class="conv-progress-label">5/15</span>
+      </div>
+
+      <!-- Completed steps (collapsed) -->
+      <div class="conv-step completed" style="padding:12px 18px;">
+        <span style="font-size:12px;color:var(--text-300);">&#10003; Secteur : T&eacute;l&eacute;coms/IT &middot; Effectif : 250-1K &middot; Sites : 1</span>
+      </div>
+      <div class="conv-step completed" style="padding:12px 18px;">
+        <span style="font-size:12px;color:var(--text-300);">&#10003; RSSI : Oui (Amadou Diop) &middot; Politique SSI : Oui &middot; Comit&eacute; : Non</span>
+      </div>
+
+      <!-- Current question -->
+      <div class="conv-step">
+        <span class="conv-number">Question 5 sur 15</span>
+        <div class="conv-question">Disposez-vous d&rsquo;une certification ISO 27001 ?</div>
+        <div class="conv-hint">Certification en cours de validit&eacute; d&eacute;livr&eacute;e par un organisme accr&eacute;dit&eacute;</div>
+
+        <div class="conv-answer">
+          <button class="conv-btn large selected">&#10003; Oui, certifi&eacute;</button>
+          <button class="conv-btn large">&#10007; Non</button>
+          <button class="conv-btn large">&#128260; En cours</button>
+        </div>
+
+        <!-- Follow-up appears -->
+        <div style="margin-top:16px;padding:16px;background:var(--gold-50);border-radius:10px;border:1px solid var(--gold-200);">
+          <div style="font-size:12px;font-weight:600;color:var(--gold-600);margin-bottom:8px;">&#8618; Date d&rsquo;expiration ?</div>
+          <input type="date" style="padding:8px 12px;border:1px solid var(--gold-200);border-radius:8px;font-size:13px;outline:none;" value="2026-12-31">
+        </div>
+
+        <div class="conv-nav">
+          <button class="conv-prev">&larr; Pr&eacute;c&eacute;dent</button>
+          <button class="conv-next">Suivant &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PROPOSITION C : Smart compact form with sections
+       ============================================================ -->
+  <div class="proposal">
+    <div class="proposal-header">
+      <h3>C &mdash; Formulaire compact par sections</h3>
+      <span class="proposal-badge alt">Alternative</span>
+    </div>
+    <div class="proposal-body">
+      <div class="proposal-desc">
+        Formulaire classique mais <strong>optimis&eacute;</strong> : sections d&eacute;pliables, questions group&eacute;es, r&eacute;ponses Oui/Non visuelles,
+        s&eacute;lections multiples au lieu de texte libre. Compact et familier.
+      </div>
+
+      <!-- Section 1 -->
+      <div class="smart-section">
+        <div class="smart-header">
+          <span class="smart-title">&#127970; Contexte g&eacute;n&eacute;ral <span class="smart-count">3/3 &#10003;</span></span>
+        </div>
+        <div class="smart-body">
+          <div class="smart-field">
+            <div class="smart-label">Secteur d&rsquo;activit&eacute; <span class="smart-required">*</span></div>
+            <select class="smart-select"><option>T&eacute;l&eacute;communications / IT</option></select>
+          </div>
+          <div class="smart-field">
+            <div class="smart-label">Effectif <span class="smart-required">*</span></div>
+            <select class="smart-select"><option>250 &agrave; 1 000 collaborateurs</option></select>
+          </div>
+          <div class="smart-field">
+            <div class="smart-label">Nombre de sites <span class="smart-required">*</span></div>
+            <select class="smart-select"><option>1 site unique</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="smart-section">
+        <div class="smart-header">
+          <span class="smart-title">&#128218; Gouvernance SSI <span class="smart-count">4/5</span></span>
+        </div>
+        <div class="smart-body">
+          <div class="smart-field">
+            <div class="smart-label">RSSI ou &eacute;quivalent <span class="smart-required">*</span></div>
+            <div class="yn-row">
+              <div class="yn-btn yes selected">&#10003; Oui</div>
+              <div class="yn-btn no">&#10007; Non</div>
+            </div>
+          </div>
+          <div class="smart-field" style="margin-left:16px;padding-left:12px;border-left:2px solid var(--gold-200);">
+            <div class="smart-label" style="font-size:11px;color:var(--gold-600);">&#8618; Nom et rattachement</div>
+            <input class="smart-input" value="Amadou Diop, rattach&eacute; au DSI">
+          </div>
+          <div class="smart-field">
+            <div class="smart-label">Politique SSI formalis&eacute;e <span class="smart-required">*</span></div>
+            <div class="yn-row">
+              <div class="yn-btn yes selected">&#10003; Oui</div>
+              <div class="yn-btn no">&#10007; Non</div>
+            </div>
+          </div>
+          <div class="smart-field">
+            <div class="smart-label">Comit&eacute; de s&eacute;curit&eacute; <span class="smart-required">*</span></div>
+            <div class="yn-row">
+              <div class="yn-btn yes">&#10003; Oui</div>
+              <div class="yn-btn no selected">&#10007; Non</div>
+            </div>
+          </div>
+          <div class="smart-field">
+            <div class="smart-label">Certification ISO 27001 <span class="smart-required">*</span></div>
+            <select class="smart-select">
+              <option>Oui, en cours de validit&eacute;</option>
+              <option>En cours d&rsquo;obtention</option>
+              <option>Non</option>
+              <option>Expir&eacute;e</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="smart-section">
+        <div class="smart-header">
+          <span class="smart-title">&#128187; Syst&egrave;me d&rsquo;information <span class="smart-count">2/3</span></span>
+        </div>
+        <div class="smart-body">
+          <div class="smart-field">
+            <div class="smart-label">Principaux syst&egrave;mes <span class="smart-required">*</span></div>
+            <div class="tag-input">
+              <span class="tag">SAP <span class="tag-x">&times;</span></span>
+              <span class="tag">ServiceNow <span class="tag-x">&times;</span></span>
+              <span class="tag">Active Directory <span class="tag-x">&times;</span></span>
+              <span class="tag">Fortinet <span class="tag-x">&times;</span></span>
+              <input class="tag-add" placeholder="Ajouter un syst&egrave;me...">
+            </div>
+          </div>
+          <div class="smart-field">
+            <div class="smart-label">Services cloud <span class="smart-required">*</span></div>
+            <div class="tag-input">
+              <span class="tag">Azure <span class="tag-x">&times;</span></span>
+              <span class="tag">Microsoft 365 <span class="tag-x">&times;</span></span>
+              <input class="tag-add" placeholder="Ajouter un service cloud...">
+            </div>
+          </div>
+          <div class="smart-field">
+            <div class="smart-label">Inventaire des actifs <span class="smart-required">*</span></div>
+            <div class="yn-row">
+              <div class="yn-btn yes selected">&#10003; Oui</div>
+              <div class="yn-btn no">&#10007; Non</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparatif -->
+  <div class="compare">
+    <p class="st" style="margin-bottom:16px;">Comparatif</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Crit&egrave;re</th>
+          <th>A &mdash; Visuel structur&eacute;</th>
+          <th>B &mdash; Wizard</th>
+          <th>C &mdash; Compact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Effort de saisie</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Clics > texte</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> 1 question/&eacute;cran</td>
+          <td><span class="star">&#9733;&#9733;</span> Classique optimis&eacute;</td>
+        </tr>
+        <tr>
+          <td>Logique conditionnelle</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Follow-ups inline</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Enchai&icirc;nement naturel</td>
+          <td><span class="star">&#9733;&#9733;</span> Indent&eacute;s</td>
+        </tr>
+        <tr>
+          <td>Vision globale</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Toutes les sections</td>
+          <td><span class="star">&#9733;</span> 1 question visible</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Sections d&eacute;pliables</td>
+        </tr>
+        <tr>
+          <td>Taux de compl&eacute;tion</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Engageant</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Guid&eacute;</td>
+          <td><span class="star">&#9733;&#9733;</span> Standard</td>
+        </tr>
+        <tr>
+          <td>Complexit&eacute; dev</td>
+          <td>Moyenne</td>
+          <td>&Eacute;lev&eacute;e</td>
+          <td>Faible</td>
+        </tr>
+        <tr>
+          <td>Recommandation</td>
+          <td style="font-weight:600;color:var(--success);">&#9733; Recommand&eacute;</td>
+          <td>V2 (mobile)</td>
+          <td>Fallback</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

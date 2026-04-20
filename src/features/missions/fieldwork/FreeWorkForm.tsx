@@ -1,3 +1,4 @@
+import { Star, Paperclip } from 'lucide-react'
 import { CONFORMITY_LEVELS } from '../mission-constants'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
@@ -30,7 +31,7 @@ export function FreeWorkForm(props: FreeWorkFormProps){
       {/* AI draft */}
       {assessment.ai_draft && (
         <div className="flex items-start gap-2.5 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="w-6 h-6 rounded-md bg-purple-500 text-white flex items-center justify-center text-xs shrink-0">&#9733;</div>
+          <div className="w-6 h-6 rounded-md bg-purple-500 text-white flex items-center justify-center shrink-0"><Star size={13} /></div>
           <p className="flex-1 text-xs text-purple-800 leading-relaxed">{assessment.ai_draft}</p>
         </div>
       )}
@@ -66,7 +67,7 @@ export function FreeWorkForm(props: FreeWorkFormProps){
 
       {/* Upload zone */}
       <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-forest-300 hover:bg-forest-50 transition-colors cursor-pointer">
-        <p className="text-base text-gray-300 mb-1">&#128206;</p>
+        <div className="flex justify-center text-gray-300 mb-1"><Paperclip size={18} /></div>
         <p className="text-xs text-gray-500">Glissez-d&eacute;posez ou <span className="text-forest-700 font-medium underline">parcourir</span></p>
       </div>
     </div>

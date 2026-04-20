@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Objectifs & Critères d'audit (3 propositions)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+    --warning: #E67E22; --warning-light: #FFF3E0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .section { max-width: 900px; margin: 40px auto; padding: 0 30px; }
+  .st { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); text-align: center; margin-bottom: 6px; }
+  .ss { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+  .mockup { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 50px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge.green { background: #E8F5E8; color: var(--success); }
+  .badge.purple { background: var(--purple-light); color: var(--purple); }
+  .badge.gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge.gray { background: #F3F4F6; color: var(--text-500); }
+
+  /* Demo tabs */
+  .demo-switch { display: flex; gap: 4px; padding: 12px 20px; border-bottom: 1px solid var(--border); background: #FAFAFA; }
+  .demo-btn { padding: 8px 18px; font-size: 12px; font-weight: 500; color: var(--text-500); border: none; background: none; cursor: pointer; border-radius: 8px; }
+  .demo-btn:hover { background: var(--forest-50); color: var(--forest-700); }
+  .demo-btn.active { background: var(--forest-700); color: white; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ============ SHARED ============ */
+  .card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text-900); display: flex; align-items: center; gap: 8px; }
+  .card-body { padding: 16px 20px; }
+
+  /* ============ PROPOSITION A: Structured Cards ============ */
+
+  /* Objective item */
+  .obj-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F5F5F5; }
+  .obj-item:last-child { border-bottom: none; }
+  .obj-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+  .obj-icon.target { background: var(--forest-100); color: var(--forest-700); }
+  .obj-icon.scope { background: var(--info-light); color: var(--info); }
+  .obj-icon.compliance { background: var(--gold-50); color: var(--gold-600); }
+  .obj-text { flex: 1; }
+  .obj-title { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .obj-desc { font-size: 12px; color: var(--text-500); margin-top: 2px; line-height: 1.5; }
+  .obj-source { font-size: 10px; color: var(--text-300); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+  /* Criteria tag list */
+  .criteria-group { margin-bottom: 16px; }
+  .criteria-group:last-child { margin-bottom: 0; }
+  .criteria-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .criteria-tag { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; color: var(--text-700); margin: 0 6px 6px 0; background: white; transition: all 0.15s; }
+  .criteria-tag:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .criteria-tag .ct-icon { font-size: 14px; }
+  .criteria-tag .ct-name { font-weight: 500; }
+  .criteria-tag .ct-detail { font-size: 10px; color: var(--text-300); }
+  .criteria-tag .ct-remove { font-size: 12px; color: var(--text-300); cursor: pointer; margin-left: 4px; }
+  .criteria-tag .ct-remove:hover { color: var(--error); }
+  .criteria-tag.ref { border-color: var(--forest-300); background: var(--forest-50); }
+  .criteria-tag.reg { border-color: var(--gold-200); background: var(--gold-50); }
+  .criteria-tag.int { border-color: #DDD6FE; background: var(--purple-light); }
+
+  /* AI generation banner */
+  .ai-gen { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: linear-gradient(135deg, var(--purple-light), #F0ECFF); border-bottom: 1px solid #DDD6FE; }
+  .ai-gen-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .ai-gen-text { flex: 1; }
+  .ai-gen-title { font-size: 13px; font-weight: 600; color: #5B21B6; }
+  .ai-gen-desc { font-size: 11px; color: #7C3AED; margin-top: 2px; }
+  .ai-gen-btn { font-size: 12px; font-weight: 600; color: white; background: var(--purple); border: none; padding: 9px 20px; border-radius: 8px; cursor: pointer; flex-shrink: 0; }
+  .ai-gen-btn:hover { opacity: 0.9; }
+
+  /* ============ PROPOSITION B: Split Panels ============ */
+
+  .split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .split-left { border-right: 1px solid var(--border); }
+
+  .obj-editable { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; border-bottom: 1px solid #F5F5F5; transition: background 0.1s; }
+  .obj-editable:hover { background: var(--forest-50); }
+  .obj-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--forest-500); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; margin-top: 2px; font-size: 11px; color: white; }
+  .obj-check.checked { background: var(--forest-700); border-color: var(--forest-700); }
+  .obj-editable-text { flex: 1; font-size: 12px; color: var(--text-700); line-height: 1.5; }
+  .obj-editable-source { font-size: 10px; color: var(--text-300); }
+
+  .add-row { display: flex; align-items: center; gap: 8px; padding: 10px 16px; cursor: pointer; color: var(--forest-700); font-size: 12px; font-weight: 500; }
+  .add-row:hover { background: var(--forest-50); }
+
+  /* Criteria as chips with categories */
+  .chip-section { padding: 16px 20px; }
+  .chip-cat { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 12px; }
+  .chip-cat:first-child { margin-top: 0; }
+  .chip-cat.ref { color: var(--forest-700); }
+  .chip-cat.reg { color: var(--gold-600); }
+  .chip-cat.int { color: var(--purple); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500; margin: 0 4px 4px 0; }
+  .chip.ref { background: var(--forest-50); color: var(--forest-700); border: 1px solid var(--forest-300); }
+  .chip.reg { background: var(--gold-50); color: var(--gold-600); border: 1px solid var(--gold-200); }
+  .chip.int { background: var(--purple-light); color: var(--purple); border: 1px solid #DDD6FE; }
+  .chip .chip-x { cursor: pointer; opacity: 0.5; }
+  .chip .chip-x:hover { opacity: 1; }
+
+  /* ============ PROPOSITION C: Timeline / Checklist ============ */
+
+  .timeline-card { position: relative; padding-left: 36px; }
+  .timeline-line { position: absolute; left: 17px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+
+  .tl-item { position: relative; padding: 14px 20px 14px 0; border-bottom: 1px solid #F5F5F5; }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-dot { position: absolute; left: -27px; top: 18px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; z-index: 1; background: white; }
+  .tl-dot.done { background: var(--success); color: white; }
+  .tl-dot.active { background: var(--forest-700); color: white; box-shadow: 0 0 0 3px var(--forest-100); }
+  .tl-dot.pending { background: white; color: var(--text-300); border: 2px solid var(--border); }
+
+  .tl-category { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-300); margin-bottom: 4px; }
+  .tl-title { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .tl-desc { font-size: 11px; color: var(--text-500); margin-top: 3px; line-height: 1.5; }
+  .tl-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .tl-tag { font-size: 9px; font-weight: 500; padding: 2px 7px; border-radius: 4px; }
+  .tl-tag.auto { background: var(--purple-light); color: var(--purple); }
+  .tl-tag.manual { background: #F3F4F6; color: var(--text-500); }
+  .tl-tag.ref { background: var(--forest-50); color: var(--forest-700); }
+
+  /* Criteria as a visual matrix */
+  .matrix { display: grid; grid-template-columns: 1fr auto auto auto; gap: 0; }
+  .matrix-header { padding: 8px 14px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); background: #FAFAFA; border-bottom: 1px solid var(--border); }
+  .matrix-cell { padding: 10px 14px; border-bottom: 1px solid #F5F5F5; display: flex; align-items: center; }
+  .matrix-name { font-size: 12px; color: var(--text-700); }
+  .matrix-type { text-align: center; }
+  .matrix-impact { text-align: center; }
+  .matrix-dot { width: 10px; height: 10px; border-radius: 50%; margin: auto; }
+  .matrix-dot.high { background: var(--error); }
+  .matrix-dot.medium { background: var(--warning); }
+  .matrix-dot.low { background: var(--text-300); }
+
+  /* Comparison table */
+  .compare { margin-top: 40px; }
+  .compare table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .compare th { padding: 10px 14px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-500); background: #FAFAFA; border-bottom: 1px solid var(--border); }
+  .compare th:first-child { text-align: left; width: 200px; }
+  .compare td { padding: 10px 14px; text-align: center; font-size: 12px; color: var(--text-700); border-bottom: 1px solid #F5F5F5; }
+  .compare td:first-child { text-align: left; font-weight: 500; }
+  .compare tr:last-child td { border-bottom: none; }
+  .star { color: var(--gold-500); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Objectifs &amp; Crit&egrave;res d&rsquo;audit (3 propositions)</h1>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+  <p class="st">Comment rendre les objectifs et crit&egrave;res modernes et automatiques ?</p>
+  <p class="ss">3 approches UX pour remplacer les textareas actuels</p>
+
+  <div class="mockup">
+    <div class="demo-switch">
+      <button class="demo-btn active" onclick="showTab('a')">A &mdash; Structured Cards</button>
+      <button class="demo-btn" onclick="showTab('b')">B &mdash; Split Panels</button>
+      <button class="demo-btn" onclick="showTab('c')">C &mdash; Timeline + Matrix</button>
+    </div>
+
+    <!-- ============ PROPOSITION A: Structured Cards ============ -->
+    <div class="tab-content active" id="tab-a">
+
+      <!-- AI Generation banner -->
+      <div class="ai-gen">
+        <div class="ai-gen-icon">&#9733;</div>
+        <div class="ai-gen-text">
+          <div class="ai-gen-title">Objectifs &amp; crit&egrave;res g&eacute;n&eacute;r&eacute;s automatiquement</div>
+          <div class="ai-gen-desc">Bas&eacute; sur le r&eacute;f&eacute;rentiel ISO 27001, le secteur T&eacute;l&eacute;coms, et 3 r&eacute;glementations applicables</div>
+        </div>
+        <button class="ai-gen-btn">&#9733; Reg&eacute;n&eacute;rer</button>
+      </div>
+
+      <div style="padding:20px;">
+        <!-- Objectifs -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">&#127919; Objectifs de la mission</span>
+            <span class="badge purple">&#9733; Auto-g&eacute;n&eacute;r&eacute;</span>
+          </div>
+          <div class="card-body">
+            <div class="obj-item">
+              <div class="obj-icon target">&#127919;</div>
+              <div class="obj-text">
+                <div class="obj-title">&Eacute;valuer la conformit&eacute; du SMSI</div>
+                <div class="obj-desc">Mesurer le niveau de conformit&eacute; du syst&egrave;me de management de la s&eacute;curit&eacute; de l&rsquo;information par rapport aux exigences ISO/IEC 27001:2022 (clauses 4 &agrave; 10 + Annexe A).</div>
+                <div class="obj-source">&#9733; D&eacute;duit du r&eacute;f&eacute;rentiel ISO 27001</div>
+              </div>
+            </div>
+            <div class="obj-item">
+              <div class="obj-icon scope">&#128269;</div>
+              <div class="obj-text">
+                <div class="obj-title">Identifier les &eacute;carts et non-conformit&eacute;s</div>
+                <div class="obj-desc">D&eacute;tecter les &eacute;carts critiques entre les pratiques actuelles et les exigences du r&eacute;f&eacute;rentiel, avec priorisation par niveau de risque.</div>
+                <div class="obj-source">&#9733; Objectif standard pour audit de conformit&eacute;</div>
+              </div>
+            </div>
+            <div class="obj-item">
+              <div class="obj-icon compliance">&#9878;</div>
+              <div class="obj-text">
+                <div class="obj-title">V&eacute;rifier la conformit&eacute; r&eacute;glementaire</div>
+                <div class="obj-desc">S&rsquo;assurer du respect des exigences de la Loi 2008-12 (protection des donn&eacute;es), de la Loi 2008-11 (cybercriminalit&eacute;) et du D&eacute;cret 2008-721.</div>
+                <div class="obj-source">&#9733; D&eacute;duit des 3 r&eacute;glementations du client</div>
+              </div>
+            </div>
+            <div class="obj-item">
+              <div class="obj-icon target">&#128200;</div>
+              <div class="obj-text">
+                <div class="obj-title">Formuler un plan de rem&eacute;diation</div>
+                <div class="obj-desc">Proposer des recommandations concr&egrave;tes et un plan d&rsquo;action prioris&eacute; pour atteindre la conformit&eacute; cible.</div>
+                <div class="obj-source">&#9733; Objectif standard pour audit de conformit&eacute;</div>
+              </div>
+            </div>
+
+            <div class="add-row">+ Ajouter un objectif personnalis&eacute;</div>
+          </div>
+        </div>
+
+        <!-- Crit&egrave;res d'audit -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">&#128220; Crit&egrave;res d&rsquo;audit</span>
+            <span class="badge purple">&#9733; Auto-g&eacute;n&eacute;r&eacute;</span>
+          </div>
+          <div class="card-body">
+            <div class="criteria-group">
+              <div class="criteria-group-label"><span style="color:var(--forest-700);">&#9632;</span> R&eacute;f&eacute;rentiel principal</div>
+              <div class="criteria-tag ref">
+                <span class="ct-icon">&#128196;</span>
+                <span>
+                  <span class="ct-name">ISO/IEC 27001:2022</span><br>
+                  <span class="ct-detail">Clauses 4-10 + Annexe A &middot; 93 contr&ocirc;les</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="criteria-group">
+              <div class="criteria-group-label"><span style="color:var(--gold-600);">&#9632;</span> R&eacute;glementations applicables</div>
+              <div class="criteria-tag reg">
+                <span class="ct-icon">&#9878;</span>
+                <span>
+                  <span class="ct-name">CDP-SN &mdash; Loi 2008-12</span><br>
+                  <span class="ct-detail">Protection des donn&eacute;es personnelles &middot; Impact fort</span>
+                </span>
+                <span class="ct-remove">&times;</span>
+              </div>
+              <div class="criteria-tag reg">
+                <span class="ct-icon">&#9878;</span>
+                <span>
+                  <span class="ct-name">CYBER-SN &mdash; Loi 2008-11</span><br>
+                  <span class="ct-detail">Cybercriminalit&eacute; &middot; Impact fort</span>
+                </span>
+                <span class="ct-remove">&times;</span>
+              </div>
+              <div class="criteria-tag reg">
+                <span class="ct-icon">&#9878;</span>
+                <span>
+                  <span class="ct-name">DEC721-SN &mdash; D&eacute;cret 2008-721</span><br>
+                  <span class="ct-detail">Application loi donn&eacute;es personnelles &middot; Impact fort</span>
+                </span>
+                <span class="ct-remove">&times;</span>
+              </div>
+            </div>
+
+            <div class="criteria-group">
+              <div class="criteria-group-label"><span style="color:var(--purple);">&#9632;</span> Documents internes de r&eacute;f&eacute;rence</div>
+              <div class="criteria-tag int">
+                <span class="ct-icon">&#128203;</span>
+                <span>
+                  <span class="ct-name">PSSI interne</span><br>
+                  <span class="ct-detail">Politique SI du client &middot; Ajout&eacute; manuellement</span>
+                </span>
+                <span class="ct-remove">&times;</span>
+              </div>
+              <button style="display:inline-flex;align-items:center;gap:4px;padding:8px 14px;border:1px dashed var(--border);border-radius:10px;font-size:12px;color:var(--text-300);background:none;cursor:pointer;">+ Ajouter un crit&egrave;re</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PROPOSITION B: Split Panels ============ -->
+    <div class="tab-content" id="tab-b">
+
+      <div class="ai-gen">
+        <div class="ai-gen-icon">&#9733;</div>
+        <div class="ai-gen-text">
+          <div class="ai-gen-title">G&eacute;n&eacute;ration automatique</div>
+          <div class="ai-gen-desc">4 objectifs et 4 crit&egrave;res g&eacute;n&eacute;r&eacute;s &middot; Cochez/d&eacute;cochez pour personnaliser</div>
+        </div>
+        <button class="ai-gen-btn">&#9733; Reg&eacute;n&eacute;rer</button>
+      </div>
+
+      <div class="split-layout">
+        <!-- Left: Objectifs -->
+        <div class="split-left">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);background:#FAFAFA;">
+            <span style="font-size:13px;font-weight:700;color:var(--text-900);">&#127919; Objectifs</span>
+            <span class="badge green" style="margin-left:8px;">4 actifs</span>
+          </div>
+
+          <div class="obj-editable">
+            <div class="obj-check checked">&#10003;</div>
+            <div>
+              <div class="obj-editable-text"><strong>&Eacute;valuer la conformit&eacute; du SMSI</strong> par rapport aux exigences ISO/IEC 27001:2022</div>
+              <div class="obj-editable-source">&#9733; D&eacute;duit du r&eacute;f&eacute;rentiel</div>
+            </div>
+          </div>
+          <div class="obj-editable">
+            <div class="obj-check checked">&#10003;</div>
+            <div>
+              <div class="obj-editable-text"><strong>Identifier les &eacute;carts critiques</strong> et non-conformit&eacute;s avec priorisation par risque</div>
+              <div class="obj-editable-source">&#9733; Objectif standard</div>
+            </div>
+          </div>
+          <div class="obj-editable">
+            <div class="obj-check checked">&#10003;</div>
+            <div>
+              <div class="obj-editable-text"><strong>V&eacute;rifier la conformit&eacute; r&eacute;glementaire</strong> (Loi 2008-12, Loi 2008-11, D&eacute;cret 2008-721)</div>
+              <div class="obj-editable-source">&#9733; D&eacute;duit des r&eacute;glementations</div>
+            </div>
+          </div>
+          <div class="obj-editable">
+            <div class="obj-check checked">&#10003;</div>
+            <div>
+              <div class="obj-editable-text"><strong>Formuler un plan de rem&eacute;diation</strong> prioris&eacute; avec recommandations concr&egrave;tes</div>
+              <div class="obj-editable-source">&#9733; Objectif standard</div>
+            </div>
+          </div>
+          <div class="obj-editable" style="opacity:0.5;">
+            <div class="obj-check"></div>
+            <div>
+              <div class="obj-editable-text" style="color:var(--text-300);">Pr&eacute;parer la certification ISO 27001</div>
+              <div class="obj-editable-source">Suggestion &mdash; cliquez pour activer</div>
+            </div>
+          </div>
+
+          <div class="add-row">+ Ajouter un objectif</div>
+        </div>
+
+        <!-- Right: Crit&egrave;res -->
+        <div>
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);background:#FAFAFA;">
+            <span style="font-size:13px;font-weight:700;color:var(--text-900);">&#128220; Crit&egrave;res</span>
+            <span class="badge green" style="margin-left:8px;">4 actifs</span>
+          </div>
+
+          <div class="chip-section">
+            <div class="chip-cat ref">R&eacute;f&eacute;rentiel</div>
+            <span class="chip ref">&#128196; ISO/IEC 27001:2022 <span class="chip-x">&times;</span></span>
+
+            <div class="chip-cat reg">R&eacute;glementations</div>
+            <span class="chip reg">&#9878; CDP-SN (Loi 2008-12) <span class="chip-x">&times;</span></span>
+            <span class="chip reg">&#9878; CYBER-SN (Loi 2008-11) <span class="chip-x">&times;</span></span>
+            <span class="chip reg">&#9878; DEC721-SN <span class="chip-x">&times;</span></span>
+
+            <div class="chip-cat int">Documents internes</div>
+            <span class="chip int">&#128203; PSSI interne v2 <span class="chip-x">&times;</span></span>
+            <button style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1px dashed var(--border);border-radius:8px;font-size:11px;color:var(--text-300);background:none;cursor:pointer;">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PROPOSITION C: Timeline + Matrix ============ -->
+    <div class="tab-content" id="tab-c">
+
+      <div class="ai-gen">
+        <div class="ai-gen-icon">&#9733;</div>
+        <div class="ai-gen-text">
+          <div class="ai-gen-title">Plan de cadrage g&eacute;n&eacute;r&eacute;</div>
+          <div class="ai-gen-desc">Objectifs en timeline s&eacute;quentielle + crit&egrave;res en matrice d&rsquo;impact</div>
+        </div>
+        <button class="ai-gen-btn">&#9733; Reg&eacute;n&eacute;rer</button>
+      </div>
+
+      <div style="padding:20px;">
+        <!-- Objectifs as timeline -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <span class="card-title">&#127919; Objectifs de la mission</span>
+            <span class="badge purple">&#9733; Auto-g&eacute;n&eacute;r&eacute;</span>
+          </div>
+          <div class="card-body timeline-card">
+            <div class="timeline-line"></div>
+
+            <div class="tl-item">
+              <div class="tl-dot done">1</div>
+              <div class="tl-category">Conformit&eacute;</div>
+              <div class="tl-title">&Eacute;valuer la conformit&eacute; du SMSI</div>
+              <div class="tl-desc">Mesurer le niveau de maturit&eacute; par rapport &agrave; ISO 27001:2022 (93 contr&ocirc;les de l&rsquo;Annexe A).</div>
+              <div class="tl-tags"><span class="tl-tag auto">&#9733; Auto</span><span class="tl-tag ref">ISO 27001</span></div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot done">2</div>
+              <div class="tl-category">&Eacute;carts</div>
+              <div class="tl-title">Identifier les non-conformit&eacute;s</div>
+              <div class="tl-desc">D&eacute;tecter les &eacute;carts critiques avec priorisation par risque et impact m&eacute;tier.</div>
+              <div class="tl-tags"><span class="tl-tag auto">&#9733; Auto</span></div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot active">3</div>
+              <div class="tl-category">R&eacute;glementation</div>
+              <div class="tl-title">V&eacute;rifier la conformit&eacute; r&eacute;glementaire</div>
+              <div class="tl-desc">CDP-SN (Loi 2008-12), CYBER-SN (Loi 2008-11), DEC721-SN (D&eacute;cret 2008-721).</div>
+              <div class="tl-tags"><span class="tl-tag auto">&#9733; Auto</span><span class="tl-tag ref">3 r&egrave;glements</span></div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot pending">4</div>
+              <div class="tl-category">Rem&eacute;diation</div>
+              <div class="tl-title">Formuler le plan d&rsquo;action</div>
+              <div class="tl-desc">Recommandations concr&egrave;tes et plan de rem&eacute;diation prioris&eacute; par criticit&eacute;.</div>
+              <div class="tl-tags"><span class="tl-tag auto">&#9733; Auto</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Crit&egrave;res as matrix -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">&#128220; Crit&egrave;res d&rsquo;audit</span>
+            <span class="badge purple">&#9733; Auto-g&eacute;n&eacute;r&eacute;</span>
+          </div>
+          <div class="matrix">
+            <div class="matrix-header">Crit&egrave;re</div>
+            <div class="matrix-header" style="width:100px;">Type</div>
+            <div class="matrix-header" style="width:80px;">Impact</div>
+            <div class="matrix-header" style="width:80px;">Contr&ocirc;les</div>
+
+            <div class="matrix-cell"><span class="matrix-name">ISO/IEC 27001:2022</span></div>
+            <div class="matrix-cell matrix-type"><span class="chip ref" style="margin:0;font-size:10px;padding:3px 8px;">R&eacute;f&eacute;rentiel</span></div>
+            <div class="matrix-cell matrix-impact"><div class="matrix-dot high"></div></div>
+            <div class="matrix-cell" style="justify-content:center;font-size:12px;font-weight:600;color:var(--forest-700);">93</div>
+
+            <div class="matrix-cell"><span class="matrix-name">CDP-SN &mdash; Loi 2008-12</span></div>
+            <div class="matrix-cell matrix-type"><span class="chip reg" style="margin:0;font-size:10px;padding:3px 8px;">R&eacute;glement.</span></div>
+            <div class="matrix-cell matrix-impact"><div class="matrix-dot high"></div></div>
+            <div class="matrix-cell" style="justify-content:center;font-size:12px;color:var(--text-500);">7</div>
+
+            <div class="matrix-cell"><span class="matrix-name">CYBER-SN &mdash; Loi 2008-11</span></div>
+            <div class="matrix-cell matrix-type"><span class="chip reg" style="margin:0;font-size:10px;padding:3px 8px;">R&eacute;glement.</span></div>
+            <div class="matrix-cell matrix-impact"><div class="matrix-dot high"></div></div>
+            <div class="matrix-cell" style="justify-content:center;font-size:12px;color:var(--text-500);">4</div>
+
+            <div class="matrix-cell"><span class="matrix-name">DEC721-SN &mdash; D&eacute;cret 2008-721</span></div>
+            <div class="matrix-cell matrix-type"><span class="chip reg" style="margin:0;font-size:10px;padding:3px 8px;">R&eacute;glement.</span></div>
+            <div class="matrix-cell matrix-impact"><div class="matrix-dot high"></div></div>
+            <div class="matrix-cell" style="justify-content:center;font-size:12px;color:var(--text-500);">3</div>
+
+            <div class="matrix-cell"><span class="matrix-name">PSSI interne v2</span></div>
+            <div class="matrix-cell matrix-type"><span class="chip int" style="margin:0;font-size:10px;padding:3px 8px;">Interne</span></div>
+            <div class="matrix-cell matrix-impact"><div class="matrix-dot medium"></div></div>
+            <div class="matrix-cell" style="justify-content:center;font-size:12px;color:var(--text-300);">&mdash;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Comparatif -->
+  <div class="compare">
+    <p class="st">Comparatif</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Crit&egrave;re</th>
+          <th>A &mdash; Structured Cards</th>
+          <th>B &mdash; Split Panels</th>
+          <th>C &mdash; Timeline + Matrix</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Clart&eacute; visuelle</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Cartes riches</td>
+          <td><span class="star">&#9733;&#9733;</span> Dense mais clair</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Timeline narrative</td>
+        </tr>
+        <tr>
+          <td>Auto-g&eacute;n&eacute;ration</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Source visible</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Check/uncheck</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Cat&eacute;gorie + tags</td>
+        </tr>
+        <tr>
+          <td>Personnalisation</td>
+          <td><span class="star">&#9733;&#9733;</span> Ajouter objectif</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Toggle + ajout</td>
+          <td><span class="star">&#9733;&#9733;</span> Ajout seulement</td>
+        </tr>
+        <tr>
+          <td>Crit&egrave;res structur&eacute;s</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Tags cat&eacute;goris&eacute;s</td>
+          <td><span class="star">&#9733;&#9733;</span> Chips simples</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Matrice impact</td>
+        </tr>
+        <tr>
+          <td>Complexit&eacute; dev</td>
+          <td>Moyenne</td>
+          <td>Faible</td>
+          <td>Moyenne</td>
+        </tr>
+        <tr>
+          <td>Recommandation</td>
+          <td style="font-weight:600;color:var(--success);">&#9733; Recommand&eacute;</td>
+          <td>Alternative</td>
+          <td>V2 (avec plus de donn&eacute;es)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

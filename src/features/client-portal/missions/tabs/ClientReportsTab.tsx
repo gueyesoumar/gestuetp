@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FileText, Download } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
 
@@ -99,7 +100,7 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
           <div className="space-y-2">
             {reports.map((r) => (
               <div key={r.id} className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-white">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-lg shrink-0">&#128196;</div>
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0"><FileText size={20} className="text-red-400" /></div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold">{r.title}</p>
                   <p className="text-[10px] text-gray-300 mt-0.5">
@@ -109,7 +110,7 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
                 </div>
                 <button onClick={() => handleDownload(r.filePath, r.title)}
                   className="px-4 py-2 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 transition-colors shrink-0">
-                  &#11015; T&eacute;l&eacute;charger
+                  <Download size={13} className="inline mr-1" />T&eacute;l&eacute;charger
                 </button>
               </div>
             ))}

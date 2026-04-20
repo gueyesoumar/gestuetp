@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Target } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import type { MissionDetail } from '../useMissionDetail'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
@@ -49,7 +50,7 @@ export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExc
       {/* Scope: controls by domain */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200">
-          <h4 className="text-[14px] font-bold text-gray-900 flex items-center gap-2">&#128204; P&eacute;rim&egrave;tre des contr&ocirc;les</h4>
+          <h4 className="text-[14px] font-bold text-gray-900 flex items-center gap-2"><Target size={16} /> P&eacute;rim&egrave;tre des contr&ocirc;les</h4>
           <Badge label={`${includedCount} inclus \u00b7 ${excludedCount} exclus`} variant={excludedCount === 0 ? 'green' : 'gold'} />
         </div>
         <div className="px-5 py-2">

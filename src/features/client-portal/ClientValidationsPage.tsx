@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Check, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useClientMissions } from './useClientMissions'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -141,16 +142,16 @@ export function ClientValidationsPage(): JSX.Element {
                 <span className="text-xs font-semibold flex-1 truncate">{f.controlName}</span>
                 <span className="text-[9px] text-gray-300 bg-gray-50 px-2 py-0.5 rounded">{f.missionName}</span>
                 {f.clientValidation === 'pending' && <span className="text-[10px] font-medium text-gold-600 bg-gold-50 px-2 py-0.5 rounded-full">&Agrave; valider</span>}
-                {f.clientValidation === 'approved' && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">&#10003;</span>}
-                {f.clientValidation === 'contested' && <span className="text-[10px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">&#10007;</span>}
+                {f.clientValidation === 'approved' && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full"><Check size={10} /></span>}
+                {f.clientValidation === 'contested' && <span className="text-[10px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full"><X size={10} /></span>}
               </div>
               {f.clientValidation === 'pending' && (
                 <div className="flex gap-2 px-3 py-2 border-t border-gray-100 bg-gray-50/50">
                   <p className="text-[11px] text-gray-500 flex-1 truncate">{f.findings}</p>
                   <button onClick={() => handleSubmit(f.id, 'approved')} disabled={submitting}
-                    className="px-2.5 py-1 bg-green-500 text-white rounded text-[10px] font-semibold disabled:opacity-50">&#10003;</button>
+                    className="px-2.5 py-1 bg-green-500 text-white rounded text-[10px] font-semibold disabled:opacity-50"><Check size={10} /></button>
                   <button onClick={() => handleSubmit(f.id, 'contested')} disabled={submitting}
-                    className="px-2.5 py-1 bg-white text-red-500 border border-red-400 rounded text-[10px] font-semibold disabled:opacity-50">&#10007;</button>
+                    className="px-2.5 py-1 bg-white text-red-500 border border-red-400 rounded text-[10px] font-semibold disabled:opacity-50"><X size={10} /></button>
                 </div>
               )}
             </div>

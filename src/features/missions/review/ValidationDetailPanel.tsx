@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Check, X, Pencil } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
 import { Modal } from '../../../components/ui/Modal'
@@ -98,11 +99,11 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
             <div className="flex gap-3">
               <button onClick={() => handleDecision('approved')} disabled={reviewing}
                 className="flex-1 bg-green-600 text-white py-2.5 rounded-lg text-[13px] font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors">
-                &#10003; Approuver
+                <Check size={14} className="inline" /> Approuver
               </button>
               <button onClick={() => handleDecision('rejected')} disabled={reviewing}
                 className="flex-1 bg-white text-red-600 border border-red-600 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-red-50 disabled:opacity-50 transition-colors">
-                &#10007; Rejeter
+                <X size={14} className="inline" /> Rejeter
               </button>
             </div>
           </div>
@@ -132,8 +133,8 @@ function Section({ label, text }: { label: string; text: string | null }){
 
 function TimelineDot({ done, current, rejected }: { done: boolean; current: boolean; rejected: boolean }){
   const base = 'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0'
-  if (rejected) return <div className={`${base} bg-red-600 text-white`}>&#10007;</div>
-  if (done) return <div className={`${base} bg-green-600 text-white`}>&#10003;</div>
-  if (current) return <div className={`${base} bg-forest-700 text-white shadow-[0_0_0_3px_theme(colors.forest.100)]`}>&#9998;</div>
+  if (rejected) return <div className={`${base} bg-red-600 text-white`}><X size={11} /></div>
+  if (done) return <div className={`${base} bg-green-600 text-white`}><Check size={11} /></div>
+  if (current) return <div className={`${base} bg-forest-700 text-white shadow-[0_0_0_3px_theme(colors.forest.100)]`}><Pencil size={10} /></div>
   return <div className={`${base} bg-white text-gray-300 border-2 border-gray-200`}>&middot;</div>
 }

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Page Référentiels</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-300: #74C69D;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --gold-50: #FDF8E8;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-700: #374151;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+    --error: #C0392B;
+    --success: #27AE60;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+
+  .section { max-width: 1100px; margin: 50px auto; padding: 0 30px; }
+
+  /* Page header */
+  .page-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .page-top h2 { font-size: 20px; font-weight: 700; }
+  .page-top p { font-size: 13px; color: var(--text-500); margin-top: 2px; }
+  .btn-outline { padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: white; color: var(--text-500); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+  .btn-outline:hover { border-color: var(--forest-300); color: var(--forest-700); background: var(--forest-50); }
+
+  /* Stats chips */
+  .stats-bar { display: flex; gap: 12px; margin-bottom: 16px; }
+  .stat-chip { display: flex; align-items: center; gap: 6px; padding: 7px 14px; background: white; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; color: var(--text-500); }
+  .stat-chip .stat-value { font-weight: 700; color: var(--text-900); }
+
+  /* Filter tabs */
+  .filter-tabs { display: inline-flex; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-bottom: 20px; }
+  .filter-tab { padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; font-family: 'Inter', sans-serif; background: transparent; color: var(--text-500); transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+  .filter-tab:hover { color: var(--forest-700); }
+  .filter-tab.active { background: var(--forest-700); color: white; font-weight: 600; }
+  .filter-count { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 99px; }
+  .filter-tab.active .filter-count { background: rgba(255,255,255,0.2); color: white; }
+  .filter-tab:not(.active) .filter-count { background: #F3F4F6; color: var(--text-500); }
+
+  /* Category label */
+  .category-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-300);
+    margin-bottom: 12px;
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .category-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .category-label:first-of-type { margin-top: 0; }
+
+  /* Cards grid */
+  .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  /* Framework card */
+  .fw-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .fw-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-color: var(--forest-300); }
+
+  .fw-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .fw-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .fw-icon.iso { background: var(--forest-100); color: var(--forest-700); }
+  .fw-icon.nist { background: #DBEAFE; color: #1E40AF; }
+  .fw-icon.cobit { background: var(--gold-200); color: var(--gold-600); }
+  .fw-icon.itil { background: #E0E7FF; color: #4338CA; }
+  .fw-icon.gestu { background: var(--forest-900); color: var(--gold-500); }
+
+  .fw-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+  .fw-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+  .fw-badge-version { background: #F3F4F6; color: var(--text-500); }
+  .fw-badge-gestu { background: var(--gold-200); color: var(--gold-600); }
+  .fw-badge-category { background: var(--forest-50); color: var(--forest-700); }
+
+  .fw-name { font-size: 14px; font-weight: 700; color: var(--text-900); margin-top: 12px; }
+  .fw-publisher { font-size: 11px; color: var(--text-300); margin-top: 2px; }
+  .fw-desc { font-size: 12px; color: var(--text-500); margin-top: 8px; line-height: 1.5; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .fw-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #F5F5F4;
+  }
+  .fw-stat { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-300); }
+  .fw-stat-value { font-weight: 700; color: var(--text-700); }
+
+  /* Comparison link */
+  .compare-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    padding: 10px 18px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text-500);
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .compare-link:hover { border-color: var(--forest-300); color: var(--forest-700); background: var(--forest-50); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu — Page R&eacute;f&eacute;rentiels</h1>
+</div>
+
+<div class="section">
+
+  <!-- Header -->
+  <div class="page-top">
+    <div>
+      <h2>R&eacute;f&eacute;rentiels</h2>
+      <p>R&eacute;f&eacute;rentiels de conformit&eacute;, d'audit et d'&eacute;valuation disponibles sur la plateforme.</p>
+    </div>
+    <button class="btn-outline">Comparer les r&eacute;f&eacute;rentiels</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-chip"><span class="stat-value">8</span> r&eacute;f&eacute;rentiels</div>
+    <div class="stat-chip"><span class="stat-value">356</span> contr&ocirc;les</div>
+    <div class="stat-chip"><span class="stat-value">3</span> r&eacute;f&eacute;rentiels G&euml;stu</div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab active">Tous <span class="filter-count">8</span></button>
+    <button class="filter-tab">Conformit&eacute; & S&eacute;curit&eacute; <span class="filter-count">3</span></button>
+    <button class="filter-tab">Gouvernance & Management <span class="filter-count">2</span></button>
+    <button class="filter-tab">&Eacute;valuation & Investissement <span class="filter-count">3</span></button>
+  </div>
+
+  <!-- CATEGORY 1 -->
+  <div class="category-label">Conformit&eacute; & S&eacute;curit&eacute; SI</div>
+  <div class="cards-grid">
+    <!-- ISO 27001 -->
+    <div class="fw-card">
+      <div class="fw-card-header">
+        <div class="fw-icon iso">ISO</div>
+        <div class="fw-badges">
+          <span class="fw-badge fw-badge-version">v2022</span>
+        </div>
+      </div>
+      <div class="fw-name">ISO/IEC 27001</div>
+      <div class="fw-publisher">ISO/IEC</div>
+      <div class="fw-desc">Système de management de la sécurité de l'information (SMSI). Annexe A — contrôles de référence.</div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-value">4</span> domaines</div>
+        <div class="fw-stat"><span class="fw-stat-value">93</span> contrôles</div>
+        <div class="fw-stat"><span class="fw-stat-value">178</span> preuves</div>
+      </div>
+    </div>
+
+    <!-- NIST -->
+    <div class="fw-card">
+      <div class="fw-card-header">
+        <div class="fw-icon nist">NIST</div>
+        <div class="fw-badges">
+          <span class="fw-badge fw-badge-version">v2.0</span>
+        </div>
+      </div>
+      <div class="fw-name">NIST Cybersecurity Framework</div>
+      <div class="fw-publisher">NIST</div>
+      <div class="fw-desc">Cadre de cybersécurité organisé en 6 fonctions : Gouverner, Identifier, Protéger, Détecter, Répondre, Rétablir.</div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-value">6</span> domaines</div>
+        <div class="fw-stat"><span class="fw-stat-value">22</span> contrôles</div>
+      </div>
+    </div>
+
+    <!-- Audit SI -->
+    <div class="fw-card">
+      <div class="fw-card-header">
+        <div class="fw-icon gestu">G&euml;</div>
+        <div class="fw-badges">
+          <span class="fw-badge fw-badge-gestu">G&euml;stu</span>
+          <span class="fw-badge fw-badge-version">v1.0</span>
+        </div>
+      </div>
+      <div class="fw-name">Audit SI</div>
+      <div class="fw-publisher">G&euml;stu</div>
+      <div class="fw-desc">Référentiel composite d'audit SI. Gouvernance, risques, architecture, données, services et sécurité. S'appuie sur COBIT, ITIL, ISO 27001.</div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-value">6</span> domaines</div>
+        <div class="fw-stat"><span class="fw-stat-value">79</span> contrôles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORY 2 -->
+  <div class="category-label">Gouvernance & Management SI</div>
+  <div class="cards-grid">
+    <!-- COBIT -->
+    <div class="fw-card">
+      <div class="fw-card-header">
+        <div class="fw-icon cobit">COB</div>
+        <div class="fw-badges">
+          <span class="fw-badge fw-badge-version">2019</span>
+        </div>
+      </div>
+      <div class="fw-name">COBIT</div>
+      <div class="fw-publisher">ISACA</div>
+      <div class="fw-desc">Cadre de gouvernance et de management des TI. 5 domaines et 40 objectifs de gouvernance et management.</div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-value">5</span> domaines</div>
+        <div class="fw-stat"><span class="fw-stat-value">40</span> contrôles</div>
+      </div>
+    </div>
+
+    <!-- ITIL -->
+    <div class="fw-card">
+      <div class="fw-card-header">
+        <div class="fw-icon itil">ITIL</div>
+        <div class="fw-badges">
+          <span class="fw-badge fw-badge-version">v4</span>
+        </div>
+      </div>
+      <div class="fw-name">ITIL</div>
+      <div class="fw-publisher">Axelos / PeopleCert</div>
+      <div class="fw-desc">Cadre de bonnes pratiques pour la gestion des services IT. 34 pratiques réparties en 3 catégories.</div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-value">3</span> domaines</div>
+        <div class="fw-stat"><span class="fw-stat-value">34</span> contrôles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORY 3 -->
+  <div class="category-label">&Eacute;valuation & Investissement</div>
+  <div class="cards-grid">
+    <!-- Due Diligence -->
+    <div class="fw-card">
+      <div class="fw-card-header">
+        <div class="fw-icon gestu">G&euml;</div>
+        <div class="fw-badges">
+          <span class="fw-badge fw-badge-gestu">G&euml;stu</span>
+          <span class="fw-badge fw-badge-version">v1.0</span>
+        </div>
+      </div>
+      <div class="fw-name">Due Diligence Technique</div>
+      <div class="fw-publisher">G&euml;stu</div>
+      <div class="fw-desc">Évaluation de la maturité technique pour les investisseurs. Produit, équipe, sécurité, infrastructure et PI.</div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-value">5</span> domaines</div>
+        <div class="fw-stat"><span class="fw-stat-value">42</span> contrôles</div>
+      </div>
+    </div>
+
+    <!-- Maturité Digitale -->
+    <div class="fw-card">
+      <div class="fw-card-header">
+        <div class="fw-icon gestu">G&euml;</div>
+        <div class="fw-badges">
+          <span class="fw-badge fw-badge-gestu">G&euml;stu</span>
+          <span class="fw-badge fw-badge-version">v1.0</span>
+        </div>
+      </div>
+      <div class="fw-name">Maturit&eacute; Digitale</div>
+      <div class="fw-publisher">G&euml;stu</div>
+      <div class="fw-desc">Évaluation de la maturité numérique. Stratégie digitale, expérience client, processus, données, capital humain et innovation.</div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-value">6</span> domaines</div>
+        <div class="fw-stat"><span class="fw-stat-value">46</span> contrôles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparer -->
+  <a class="compare-link" href="#">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2V14M12 2V14M4 8H12M4 4H12M4 12H12"/></svg>
+    Comparer les r&eacute;f&eacute;rentiels entre eux
+  </a>
+
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  G&euml;stu Comply — Page R&eacute;f&eacute;rentiels v2.0
+</div>
+
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Paperclip, Check, Circle } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
@@ -111,7 +112,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-sm">&#128206;</span>
+          <Paperclip size={15} className="text-forest-700" />
           <h3 className="text-sm font-bold">Suivi des preuves</h3>
         </div>
         <div className="flex items-center gap-2">
@@ -136,9 +137,9 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
             ev.status === 'uploaded' ? 'bg-green-50' : 'bg-white'
           }`}>
             {ev.status === 'uploaded' ? (
-              <span className="text-green-600 text-xs">&#10003;</span>
+              <Check size={13} className="text-green-600" />
             ) : (
-              <span className="text-gold-500 text-xs">&#9675;</span>
+              <Circle size={13} className="text-gold-500" />
             )}
             <span className={`text-[11px] flex-1 truncate ${ev.status === 'uploaded' ? 'text-green-800' : 'text-gray-700'}`}>
               {ev.name}

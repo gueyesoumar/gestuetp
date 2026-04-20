@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 interface ModalProps {
@@ -37,7 +38,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
           className="text-gray-400 hover:text-gray-600"
           aria-label="Fermer"
         >
-          &#10005;
+          <X size={18} />
         </button>
       </div>
       <div className="px-6 py-4">

@@ -1,3 +1,4 @@
+import { Monitor, ClipboardList, Scale } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { ScopingClientContext } from './ScopingClientContext'
 import type { CabinetClient, AuditHistoryEntry } from '../../../types/database.types'
@@ -31,7 +32,7 @@ export function ScopingClientTab({ client, auditHistory }: ScopingClientTabProps
       {/* Regulatory environment */}
       {client.exigences_reglementaires.length > 0 && (
         <ScopingClientContext
-          icon="&#9878;"
+          icon={<Scale size={16} />}
           title="Environnement r&eacute;glementaire"
           description="Cadres r&eacute;glementaires applicables au client."
           tags={client.exigences_reglementaires.map((e) => ({ label: e.nom, variant: 'reg' as const }))}
@@ -40,7 +41,7 @@ export function ScopingClientTab({ client, auditHistory }: ScopingClientTabProps
 
       {/* IT environment */}
       <ScopingClientContext
-        icon="&#128187;"
+        icon={<Monitor size={16} />}
         title="Environnement SI"
         description={client.it_environment ?? 'Non renseign\u00e9. Compl\u00e9tez la fiche client pour enrichir cette section.'}
         tags={(client.it_systems ?? []).map((s) => ({ label: s }))}
@@ -48,7 +49,7 @@ export function ScopingClientTab({ client, auditHistory }: ScopingClientTabProps
 
       {/* Audit history */}
       {auditHistory.length > 0 && (
-        <ScopingClientContext icon="&#128203;" title="Historique des audits">
+        <ScopingClientContext icon={<ClipboardList size={16} />} title="Historique des audits">
           <div className="px-4 pb-3 space-y-2">
             {auditHistory.map((h) => (
               <div key={h.id} className="flex items-center gap-2">

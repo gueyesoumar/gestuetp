@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Déclinaisons Produits</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-300: #9CA3AF;
+    --text-500: #6B7280;
+    --border: #E5E7EB;
+
+    /* Couleurs produits */
+    --comply-500: #D4A843;
+    --comply-100: #FDF8E8;
+    --risk-500: #E07A5F;
+    --risk-100: #FEF0EC;
+    --privacy-500: #7B68EE;
+    --privacy-100: #F0EDFF;
+    --policy-500: #3B82F6;
+    --policy-100: #EFF6FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1A1A1A; }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .page-header p { color: rgba(255,255,255,0.3); font-size: 13px; margin-top: 8px; }
+
+  .section { max-width: 1100px; margin: 40px auto; padding: 0 40px; }
+  .section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 24px; text-align: center; }
+
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 32px; }
+  .card-header { padding: 20px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 15px; font-weight: 700; }
+  .card-desc { padding: 16px 28px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-500); line-height: 1.6; }
+  .tag { font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600; }
+  .tag-gold { background: var(--gold-200); color: var(--gold-600); }
+  .tag-green { background: #D1FAE5; color: #065F46; }
+
+  .products-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0; }
+  .product-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 16px; gap: 6px; border-right: 1px solid var(--border); }
+  .product-cell:last-child { border-right: none; }
+  .product-cell .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-300); margin-top: 8px; }
+
+  .product-cell.dark { background: var(--forest-900); }
+  .product-cell.dark .label { color: rgba(255,255,255,0.3); }
+
+  /* Approach rows */
+  .approach-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border-top: 1px solid var(--border); }
+  .approach-row:first-child { border-top: none; }
+
+  .logo-text { font-weight: 800; letter-spacing: -1px; }
+  .sub-tag { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; }
+  .sub-tag.sm { font-size: 9px; letter-spacing: 2px; }
+
+  /* Sidebar comparison */
+  .sidebar-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .sidebar-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .sidebar-label { padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-500); border-bottom: 1px solid var(--border); }
+  .sidebar-mock { background: var(--forest-900); padding: 16px; }
+  .sidebar-logo-area { display: flex; align-items: center; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-nav { padding-top: 10px; }
+  .sidebar-nav-item { padding: 7px 10px; border-radius: 6px; font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 2px; }
+  .sidebar-nav-item.active { background: rgba(255,255,255,0.1); color: white; }
+
+  /* Mini icon for products */
+  .product-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu — D&eacute;clinaisons Produits</h1>
+  <p>Comment diff&eacute;rencier les produits sous la marque G&euml;stu Group</p>
+</div>
+
+<div class="section">
+
+  <!-- APPROCHE 1 : Couleur du sous-titre -->
+  <h2>Approche 1 — Couleur du nom produit</h2>
+  <div class="card">
+    <div class="card-header">
+      <h3>Chaque produit a sa couleur signature sur le sous-titre</h3>
+      <span class="tag tag-gold">Recommand&eacute;</span>
+    </div>
+    <div class="card-desc">
+      Le logo Gëstu (bouclier + texte) reste identique. Seul le sous-titre change de couleur par produit. Simple, coh&eacute;rent, &eacute;volutif. Le bouclier garde toujours l'or + vert for&ecirc;t.
+    </div>
+    <div class="approach-row">
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--comply-500);">Comply</div>
+        <div style="width: 40px; height: 3px; border-radius: 2px; background: var(--comply-500); margin-top: 4px;"></div>
+        <span class="label">Conformit&eacute;</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--risk-500);">Risk</div>
+        <div style="width: 40px; height: 3px; border-radius: 2px; background: var(--risk-500); margin-top: 4px;"></div>
+        <span class="label">Gestion du risque</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--privacy-500);">Privacy</div>
+        <div style="width: 40px; height: 3px; border-radius: 2px; background: var(--privacy-500); margin-top: 4px;"></div>
+        <span class="label">Data Privacy</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--policy-500);">Policy</div>
+        <div style="width: 40px; height: 3px; border-radius: 2px; background: var(--policy-500); margin-top: 4px;"></div>
+        <span class="label">Politiques & Proc&eacute;dures</span>
+      </div>
+    </div>
+    <!-- Dark version -->
+    <div class="approach-row">
+      <div class="product-cell dark">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: white;">Gëstu</div>
+        <div class="sub-tag" style="color: var(--comply-500);">Comply</div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="product-cell dark">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: white;">Gëstu</div>
+        <div class="sub-tag" style="color: var(--risk-500);">Risk</div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="product-cell dark">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: white;">Gëstu</div>
+        <div class="sub-tag" style="color: var(--privacy-500);">Privacy</div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="product-cell dark">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: white;">Gëstu</div>
+        <div class="sub-tag" style="color: var(--policy-500);">Policy</div>
+        <span class="label">Fond sombre</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPROCHE 2 : Liseré couleur sur le bouclier -->
+  <h2>Approche 2 — Lis&eacute;r&eacute; produit sur le bouclier</h2>
+  <div class="card">
+    <div class="card-header">
+      <h3>Le contour du bouclier prend la couleur du produit</h3>
+    </div>
+    <div class="card-desc">
+      Le bouclier reste vert for&ecirc;t mais son contour prend la couleur du produit au lieu de l'or. Le sous-titre aussi. L'empreinte reste dor&eacute;e. Plus de diff&eacute;renciation visuelle.
+    </div>
+    <div class="approach-row">
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--comply-500);">Comply</div>
+        <span class="label">Or (d&eacute;faut)</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#E07A5F" stroke-width="2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--risk-500);">Risk</div>
+        <span class="label">Terracotta</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#7B68EE" stroke-width="2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--privacy-500);">Privacy</div>
+        <span class="label">Violet</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#3B82F6" stroke-width="2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div class="sub-tag" style="color: var(--policy-500);">Policy</div>
+        <span class="label">Bleu</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPROCHE 3 : Icône produit à côté -->
+  <h2>Approche 3 — Ic&ocirc;ne produit &agrave; c&ocirc;t&eacute; du sous-titre</h2>
+  <div class="card">
+    <div class="card-header">
+      <h3>Chaque produit a une petite ic&ocirc;ne sp&eacute;cifique</h3>
+    </div>
+    <div class="card-desc">
+      Le logo reste identique. Une petite ic&ocirc;ne color&eacute;e accompagne le nom du produit. Renforce l'identit&eacute; de chaque module sans toucher au logo principal.
+    </div>
+    <div class="approach-row">
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3.5V7C2 10.5 7 13 7 13S12 10.5 12 7V3.5L7 1Z" fill="#D4A843"/><path d="M5 7L6.5 8.5L9 5.5" stroke="#1B4332" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="sub-tag" style="color: var(--comply-500);">Comply</span>
+        </div>
+        <span class="label">Bouclier + coche</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7Z" fill="#E07A5F"/><circle cx="7" cy="5.5" r="1" fill="white"/><rect x="6.5" y="7" width="1" height="3" rx="0.5" fill="white"/></svg>
+          <span class="sub-tag" style="color: var(--risk-500);">Risk</span>
+        </div>
+        <span class="label">Losange alerte</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="#7B68EE"/><circle cx="7" cy="7" r="3" stroke="white" stroke-width="1.2"/><circle cx="7" cy="7" r="1" fill="white"/></svg>
+          <span class="sub-tag" style="color: var(--privacy-500);">Privacy</span>
+        </div>
+        <span class="label">Oeil / cible</span>
+      </div>
+      <div class="product-cell">
+        <svg width="30" height="35" viewBox="0 0 44 52" fill="none">
+          <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.2"/>
+          <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 23V33" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="logo-text" style="font-size: 24px; color: var(--forest-900);">Gëstu</div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="10" rx="2" fill="#3B82F6"/><line x1="4" y1="5.5" x2="10" y2="5.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="4" y1="8.5" x2="8" y2="8.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span class="sub-tag" style="color: var(--policy-500);">Policy</span>
+        </div>
+        <span class="label">Document</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR COMPARISON -->
+  <h2>Mise en situation sidebar</h2>
+  <div class="sidebar-grid">
+    <div class="sidebar-card">
+      <div class="sidebar-label">Approche 1 — Couleur sous-titre</div>
+      <div class="sidebar-mock">
+        <div class="sidebar-logo-area">
+          <svg width="20" height="24" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.5"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div style="color: white; font-size: 16px; font-weight: 800; letter-spacing: -0.5px;">Gëstu</div>
+            <div style="color: #D4A843; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Comply</div>
+          </div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="sidebar-nav-item active">Tableau de bord</div>
+          <div class="sidebar-nav-item">Missions</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-card">
+      <div class="sidebar-label">Approche 2 — Lis&eacute;r&eacute; bouclier</div>
+      <div class="sidebar-mock">
+        <div class="sidebar-logo-area">
+          <svg width="20" height="24" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#E07A5F" stroke-width="2"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div style="color: white; font-size: 16px; font-weight: 800; letter-spacing: -0.5px;">Gëstu</div>
+            <div style="color: #E07A5F; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Risk</div>
+          </div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="sidebar-nav-item active">Tableau de bord</div>
+          <div class="sidebar-nav-item">Risques</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-card">
+      <div class="sidebar-label">Approche 3 — Ic&ocirc;ne produit</div>
+      <div class="sidebar-mock">
+        <div class="sidebar-logo-area">
+          <svg width="20" height="24" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.5"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div style="color: white; font-size: 16px; font-weight: 800; letter-spacing: -0.5px;">Gëstu</div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="#7B68EE"/><circle cx="7" cy="7" r="3" stroke="white" stroke-width="1.2"/><circle cx="7" cy="7" r="1" fill="white"/></svg>
+              <span style="color: #7B68EE; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Privacy</span>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="sidebar-nav-item active">Tableau de bord</div>
+          <div class="sidebar-nav-item">Traitements</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PALETTE PRODUITS -->
+  <h2 style="margin-top: 40px;">Palette des couleurs produits</h2>
+  <div class="card">
+    <div class="approach-row" style="border-top: none;">
+      <div class="product-cell" style="gap: 12px;">
+        <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--comply-500);"></div>
+        <div style="font-size: 12px; font-weight: 700;">Comply</div>
+        <div style="font-size: 10px; color: var(--text-300); font-family: monospace;">#D4A843</div>
+        <div style="font-size: 10px; color: var(--text-500);">Or — Confiance</div>
+      </div>
+      <div class="product-cell" style="gap: 12px;">
+        <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--risk-500);"></div>
+        <div style="font-size: 12px; font-weight: 700;">Risk</div>
+        <div style="font-size: 10px; color: var(--text-300); font-family: monospace;">#E07A5F</div>
+        <div style="font-size: 10px; color: var(--text-500);">Terracotta — Alerte</div>
+      </div>
+      <div class="product-cell" style="gap: 12px;">
+        <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--privacy-500);"></div>
+        <div style="font-size: 12px; font-weight: 700;">Privacy</div>
+        <div style="font-size: 10px; color: var(--text-300); font-family: monospace;">#7B68EE</div>
+        <div style="font-size: 10px; color: var(--text-500);">Violet — Discr&eacute;tion</div>
+      </div>
+      <div class="product-cell" style="gap: 12px;">
+        <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--policy-500);"></div>
+        <div style="font-size: 12px; font-weight: 700;">Policy</div>
+        <div style="font-size: 10px; color: var(--text-300); font-family: monospace;">#3B82F6</div>
+        <div style="font-size: 10px; color: var(--text-500);">Bleu — Structure</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  G&euml;stu Group — D&eacute;clinaisons Produits v1.0
+</div>
+
+</body>
+</html>

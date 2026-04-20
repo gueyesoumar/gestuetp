@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Options Logo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header {
+    background: var(--forest-900);
+    padding: 40px;
+    text-align: center;
+  }
+  .page-header h1 {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+
+  .options-grid {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .option-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .option-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .option-header h2 { font-size: 16px; font-weight: 700; color: var(--text-900); }
+  .option-header .tag {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+  .tag-recommended { background: var(--gold-200); color: var(--gold-600); }
+  .tag-safe { background: #D1FAE5; color: #065F46; }
+
+  .option-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    min-height: 220px;
+  }
+  .option-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+  }
+  .option-preview.light { background: var(--white); }
+  .option-preview.dark { background: var(--forest-900); }
+  .option-preview.gold-bg { background: var(--gold-200); }
+  .option-preview .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-300);
+  }
+  .option-preview.dark .label { color: rgba(255,255,255,0.3); }
+  .option-preview.gold-bg .label { color: var(--gold-600); }
+
+  .option-desc {
+    padding: 16px 28px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-500);
+    line-height: 1.6;
+  }
+
+  /* ===== SHARED LOGO STYLES ===== */
+  .logo-text {
+    font-weight: 800;
+    letter-spacing: -1px;
+    display: inline-flex;
+    align-items: baseline;
+  }
+
+  /* ===== OPTION 1: Bouclier + Coche ===== */
+  .opt1-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .opt1-shield {
+    position: relative;
+    width: 44px;
+    height: 50px;
+  }
+  .opt1-shield svg { width: 44px; height: 50px; }
+  .opt1-text { font-size: 36px; }
+  .opt1-text.sm { font-size: 24px; }
+  .opt1-shield.sm { width: 30px; height: 34px; }
+  .opt1-shield.sm svg { width: 30px; height: 34px; }
+  .opt1-logo.sm { gap: 8px; }
+
+  /* ===== OPTION 2: Empreinte digitale ===== */
+  .opt2-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .opt2-fingerprint { width: 42px; height: 42px; }
+  .opt2-fingerprint.sm { width: 28px; height: 28px; }
+  .opt2-text { font-size: 36px; }
+  .opt2-text.sm { font-size: 24px; }
+  .opt2-logo.sm { gap: 8px; }
+
+  /* ===== OPTION 3: Verrou ouvert ===== */
+  .opt3-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .opt3-lock { width: 38px; height: 44px; }
+  .opt3-lock.sm { width: 26px; height: 30px; }
+  .opt3-text { font-size: 36px; }
+  .opt3-text.sm { font-size: 24px; }
+  .opt3-logo.sm { gap: 8px; }
+
+  /* ===== OPTION 4: Double cercle / sceau ===== */
+  .opt4-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .opt4-seal { width: 44px; height: 44px; }
+  .opt4-seal.sm { width: 30px; height: 30px; }
+  .opt4-text { font-size: 36px; }
+  .opt4-text.sm { font-size: 24px; }
+  .opt4-logo.sm { gap: 8px; }
+
+  /* ===== OPTION 5: Bouclier fusionné avec tréma ===== */
+  .opt5-logo { display: inline-flex; align-items: baseline; }
+  .opt5-text { font-size: 42px; font-weight: 800; letter-spacing: -1px; }
+  .opt5-text.sm { font-size: 26px; }
+  .opt5-e { position: relative; display: inline-block; }
+  .opt5-shield-trema {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .comply-tag {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .comply-tag.light { color: var(--text-300); }
+  .comply-tag.dark { color: rgba(255,255,255,0.4); }
+  .comply-tag.gold { color: var(--gold-600); }
+
+  /* Favicon row */
+  .favicon-section {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 40px;
+  }
+  .favicon-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .favicon-card h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-500);
+    margin-bottom: 20px;
+  }
+  .favicon-row {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .favicon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .favicon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .favicon-box.light { background: var(--white); border: 1px solid var(--border); }
+  .favicon-box.dark { background: var(--forest-900); }
+  .favicon-label { font-size: 10px; color: var(--text-300); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Gëstu Comply — Options de Logo avec Symbole</h1>
+</div>
+
+<div class="options-grid">
+
+  <!-- OPTION 1: Bouclier + Coche -->
+  <div class="option-card">
+    <div class="option-header">
+      <h2>Option 1 — Bouclier + Coche</h2>
+      <span class="tag tag-safe">Choix sûr</span>
+    </div>
+    <div class="option-body">
+      <div class="option-preview light">
+        <div class="opt1-logo">
+          <div class="opt1-shield">
+            <svg viewBox="0 0 44 50" fill="none">
+              <path d="M22 2L4 10V22C4 35 22 47 22 47C22 47 40 35 40 22V10L22 2Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+              <path d="M15 24L20 29L30 19" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="logo-text opt1-text" style="color: var(--forest-900);">Gëstu</div>
+            <div class="comply-tag light">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="option-preview dark">
+        <div class="opt1-logo">
+          <div class="opt1-shield">
+            <svg viewBox="0 0 44 50" fill="none">
+              <path d="M22 2L4 10V22C4 35 22 47 22 47C22 47 40 35 40 22V10L22 2Z" fill="rgba(255,255,255,0.1)" stroke="#D4A843" stroke-width="1.5"/>
+              <path d="M15 24L20 29L30 19" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="logo-text opt1-text" style="color: white;">Gëstu</div>
+            <div class="comply-tag dark">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="option-preview light">
+        <div class="opt1-logo sm">
+          <div class="opt1-shield sm">
+            <svg viewBox="0 0 44 50" fill="none">
+              <path d="M22 2L4 10V22C4 35 22 47 22 47C22 47 40 35 40 22V10L22 2Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+              <path d="M15 24L20 29L30 19" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="logo-text opt1-text sm" style="color: var(--forest-900);">Gëstu</div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+    </div>
+    <div class="option-desc">
+      Bouclier = protection. Coche = validation/conformité. Le symbole le plus universel pour la confiance numérique. Immédiatement compréhensible, fonctionne à toutes les tailles.
+    </div>
+  </div>
+
+  <!-- OPTION 2: Empreinte digitale -->
+  <div class="option-card">
+    <div class="option-header">
+      <h2>Option 2 — Empreinte digitale</h2>
+    </div>
+    <div class="option-body">
+      <div class="option-preview light">
+        <div class="opt2-logo">
+          <svg class="opt2-fingerprint" viewBox="0 0 42 42" fill="none">
+            <path d="M21 4C12 4 5 11 5 20" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 10C15 10 10 15 10 21" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 16C18 16 15 18.5 15 22V30" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 10C27 10 32 15 32 21V26" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 4C30 4 37 11 37 20V24" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 22V34" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M27 21V32" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div class="logo-text opt2-text" style="color: var(--forest-900);">Gëstu</div>
+            <div class="comply-tag light">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="option-preview dark">
+        <div class="opt2-logo">
+          <svg class="opt2-fingerprint" viewBox="0 0 42 42" fill="none">
+            <path d="M21 4C12 4 5 11 5 20" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 10C15 10 10 15 10 21" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 16C18 16 15 18.5 15 22V30" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 10C27 10 32 15 32 21V26" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 4C30 4 37 11 37 20V24" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 22V34" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M27 21V32" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div class="logo-text opt2-text" style="color: white;">Gëstu</div>
+            <div class="comply-tag dark">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="option-preview light">
+        <div class="opt2-logo sm">
+          <svg class="opt2-fingerprint sm" viewBox="0 0 42 42" fill="none">
+            <path d="M21 4C12 4 5 11 5 20" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M21 10C15 10 10 15 10 21" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M21 16C18 16 15 18.5 15 22V30" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M21 10C27 10 32 15 32 21V26" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M21 4C30 4 37 11 37 20V24" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M21 22V34" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M27 21V32" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="logo-text opt2-text sm" style="color: var(--forest-900);">Gëstu</div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+    </div>
+    <div class="option-desc">
+      L'empreinte digitale symbolise l'identité numérique unique. Les arcs alternent vert forêt et or. Très digital, très moderne. Peut être complexe en très petit.
+    </div>
+  </div>
+
+  <!-- OPTION 3: Verrou ouvert -->
+  <div class="option-card">
+    <div class="option-header">
+      <h2>Option 3 — Verrou ouvert</h2>
+    </div>
+    <div class="option-body">
+      <div class="option-preview light">
+        <div class="opt3-logo">
+          <svg class="opt3-lock" viewBox="0 0 38 44" fill="none">
+            <rect x="3" y="18" width="32" height="23" rx="4" fill="#1B4332"/>
+            <path d="M12 18V13C12 7.5 16 4 22 4C28 4 31 7 31 11" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="19" cy="28" r="3" fill="#D4A843"/>
+            <line x1="19" y1="31" x2="19" y2="35" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div class="logo-text opt3-text" style="color: var(--forest-900);">Gëstu</div>
+            <div class="comply-tag light">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="option-preview dark">
+        <div class="opt3-logo">
+          <svg class="opt3-lock" viewBox="0 0 38 44" fill="none">
+            <rect x="3" y="18" width="32" height="23" rx="4" fill="rgba(255,255,255,0.15)"/>
+            <path d="M12 18V13C12 7.5 16 4 22 4C28 4 31 7 31 11" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="19" cy="28" r="3" fill="#D4A843"/>
+            <line x1="19" y1="31" x2="19" y2="35" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div class="logo-text opt3-text" style="color: white;">Gëstu</div>
+            <div class="comply-tag dark">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="option-preview light">
+        <div class="opt3-logo sm">
+          <svg class="opt3-lock sm" viewBox="0 0 38 44" fill="none">
+            <rect x="3" y="18" width="32" height="23" rx="4" fill="#1B4332"/>
+            <path d="M12 18V13C12 7.5 16 4 22 4C28 4 31 7 31 11" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="19" cy="28" r="3" fill="#D4A843"/>
+            <line x1="19" y1="31" x2="19" y2="35" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="logo-text opt3-text sm" style="color: var(--forest-900);">Gëstu</div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+    </div>
+    <div class="option-desc">
+      Verrou ouvert = sécurité maîtrisée, accès contrôlé. L'anse ouverte vers la droite suggère l'accompagnement, pas le blocage. Très lisible à toutes les tailles.
+    </div>
+  </div>
+
+  <!-- OPTION 4: Double cercle / sceau -->
+  <div class="option-card">
+    <div class="option-header">
+      <h2>Option 4 — Sceau de certification</h2>
+    </div>
+    <div class="option-body">
+      <div class="option-preview light">
+        <div class="opt4-logo">
+          <svg class="opt4-seal" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="19" stroke="#1B4332" stroke-width="2"/>
+            <circle cx="22" cy="22" r="14" stroke="#D4A843" stroke-width="1.5"/>
+            <path d="M16 22L20 26L28 18" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <div class="logo-text opt4-text" style="color: var(--forest-900);">Gëstu</div>
+            <div class="comply-tag light">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="option-preview dark">
+        <div class="opt4-logo">
+          <svg class="opt4-seal" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="19" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+            <circle cx="22" cy="22" r="14" stroke="#D4A843" stroke-width="1.5"/>
+            <path d="M16 22L20 26L28 18" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <div class="logo-text opt4-text" style="color: white;">Gëstu</div>
+            <div class="comply-tag dark">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="option-preview light">
+        <div class="opt4-logo sm">
+          <svg class="opt4-seal sm" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="19" stroke="#1B4332" stroke-width="2.5"/>
+            <circle cx="22" cy="22" r="14" stroke="#D4A843" stroke-width="2"/>
+            <path d="M16 22L20 26L28 18" stroke="#D4A843" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="logo-text opt4-text sm" style="color: var(--forest-900);">Gëstu</div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+    </div>
+    <div class="option-desc">
+      Double cercle = sceau de certification, tampon d'audit. La coche dorée au centre confirme la conformité. Très « audit », très institutionnel. Fonctionne bien comme favicon.
+    </div>
+  </div>
+
+  <!-- OPTION 5: Bouclier fusionné avec tréma -->
+  <div class="option-card">
+    <div class="option-header">
+      <h2>Option 5 — Bouclier-tréma fusionné</h2>
+      <span class="tag tag-recommended">Recommandé</span>
+    </div>
+    <div class="option-body">
+      <div class="option-preview light">
+        <div>
+          <div class="logo-text" style="font-size: 42px; color: var(--forest-900); font-weight: 800; letter-spacing: -1px;">
+            G<span style="position: relative; display: inline-block;">e<svg style="position: absolute; top: -16px; left: 50%; transform: translateX(-50%);" width="24" height="16" viewBox="0 0 24 16" fill="none">
+              <path d="M12 16L3 8V3C3 1.5 4 0 6 0H8L12 4L16 0H18C20 0 21 1.5 21 3V8L12 16Z" fill="#D4A843"/>
+            </svg></span>stu
+          </div>
+          <div class="comply-tag light" style="text-align: center;">Comply</div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="option-preview dark">
+        <div>
+          <div class="logo-text" style="font-size: 42px; color: white; font-weight: 800; letter-spacing: -1px;">
+            G<span style="position: relative; display: inline-block;">e<svg style="position: absolute; top: -16px; left: 50%; transform: translateX(-50%);" width="24" height="16" viewBox="0 0 24 16" fill="none">
+              <path d="M12 16L3 8V3C3 1.5 4 0 6 0H8L12 4L16 0H18C20 0 21 1.5 21 3V8L12 16Z" fill="#D4A843"/>
+            </svg></span>stu
+          </div>
+          <div class="comply-tag dark" style="text-align: center;">Comply</div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="option-preview light">
+        <div>
+          <div class="logo-text" style="font-size: 26px; color: var(--forest-900); font-weight: 800; letter-spacing: -0.5px;">
+            G<span style="position: relative; display: inline-block;">e<svg style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%);" width="16" height="11" viewBox="0 0 24 16" fill="none">
+              <path d="M12 16L3 8V3C3 1.5 4 0 6 0H8L12 4L16 0H18C20 0 21 1.5 21 3V8L12 16Z" fill="#D4A843"/>
+            </svg></span>stu
+          </div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+    </div>
+    <div class="option-desc">
+      <strong>Le tréma devient un bouclier doré inversé.</strong> Les deux pointes du tréma forment le haut du bouclier, la pointe descend vers le « e ». Le logo EST le symbole — pas d'élément séparé. Compact, mémorable, unique. Le bouclier doré sur le texte vert forêt crée un contraste premium.
+    </div>
+  </div>
+
+</div>
+
+<!-- FAVICON COMPARISON -->
+<div class="favicon-section">
+  <div class="favicon-card">
+    <h2>Favicons — Comparaison à petite taille</h2>
+    <div class="favicon-row">
+      <div class="favicon-item">
+        <div class="favicon-box dark">
+          <svg width="24" height="28" viewBox="0 0 44 50" fill="none">
+            <path d="M22 2L4 10V22C4 35 22 47 22 47C22 47 40 35 40 22V10L22 2Z" fill="rgba(255,255,255,0.15)" stroke="#D4A843" stroke-width="2"/>
+            <path d="M15 24L20 29L30 19" stroke="#D4A843" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="favicon-label">Option 1</span>
+      </div>
+      <div class="favicon-item">
+        <div class="favicon-box dark">
+          <svg width="24" height="24" viewBox="0 0 42 42" fill="none">
+            <path d="M21 4C12 4 5 11 5 20" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+            <path d="M21 10C15 10 10 15 10 21" stroke="rgba(255,255,255,0.5)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M21 16C18 16 15 18.5 15 22V30" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+            <path d="M21 10C27 10 32 15 32 21V26" stroke="rgba(255,255,255,0.5)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M21 22V34" stroke="rgba(255,255,255,0.5)" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="favicon-label">Option 2</span>
+      </div>
+      <div class="favicon-item">
+        <div class="favicon-box dark">
+          <svg width="22" height="26" viewBox="0 0 38 44" fill="none">
+            <rect x="3" y="18" width="32" height="23" rx="4" fill="rgba(255,255,255,0.2)"/>
+            <path d="M12 18V13C12 7.5 16 4 22 4C28 4 31 7 31 11" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="19" cy="28" r="3" fill="#D4A843"/>
+          </svg>
+        </div>
+        <span class="favicon-label">Option 3</span>
+      </div>
+      <div class="favicon-item">
+        <div class="favicon-box dark">
+          <svg width="26" height="26" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="18" stroke="rgba(255,255,255,0.3)" stroke-width="2.5"/>
+            <circle cx="22" cy="22" r="13" stroke="#D4A843" stroke-width="2"/>
+            <path d="M16 22L20 26L28 18" stroke="#D4A843" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="favicon-label">Option 4</span>
+      </div>
+      <div class="favicon-item">
+        <div class="favicon-box dark">
+          <svg width="24" height="28" viewBox="0 0 24 28" fill="none">
+            <text x="4" y="24" font-family="Inter" font-weight="800" font-size="22" fill="white">G</text>
+            <path d="M16 8L13 5V2.5C13 1.5 13.5 1 14.5 1H15.5L16 1.5L17.5 0H18.5C19.5 0 20 0.5 20 1.5V4L16 8Z" fill="#D4A843"/>
+          </svg>
+        </div>
+        <span class="favicon-label">Option 5</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  Gëstu ETP — Options Logo v1.0 — Vert Forêt & Or
+</div>
+
+</body>
+</html>

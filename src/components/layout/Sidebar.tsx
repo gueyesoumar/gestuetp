@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
+import { LayoutGrid } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
   ProfileIcon, OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
@@ -89,6 +90,22 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
             <ExpandIcon />
           </button>
         )}
+
+        {/* Back to Hub */}
+        <div className={`border-b border-white/10 py-2 ${collapsed ? 'px-2' : 'px-3'}`}>
+          <NavLink
+            to="/hub"
+            onClick={onClose}
+            title={collapsed ? 'Hub ETP' : undefined}
+            className={collapsed
+              ? 'flex items-center justify-center w-11 h-11 mx-auto rounded-xl text-white/30 hover:bg-white/8 hover:text-white/60 transition-colors'
+              : 'flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white/30 hover:bg-white/8 hover:text-white/60 transition-colors'
+            }
+          >
+            <LayoutGrid size={16} />
+            {!collapsed && <span>Hub ETP</span>}
+          </NavLink>
+        </div>
 
         {/* Navigation principale */}
         <nav className={`flex-1 py-3 ${collapsed ? 'px-2' : 'px-3'}`}>

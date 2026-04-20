@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Revamp Phase Cadrage</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --warning: #E67E22; --warning-light: #FFF3E0;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .section { max-width: 1400px; margin: 40px auto; padding: 0 30px; }
+  .st { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); text-align: center; margin-bottom: 6px; }
+  .ss { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+  .mockup { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 50px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge.green { background: #E8F5E8; color: var(--success); }
+  .badge.gray { background: #F3F4F6; color: var(--text-500); }
+  .badge.gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge.blue { background: var(--info-light); color: var(--info); }
+  .badge.red { background: #FDE8E8; color: var(--error); }
+  .badge.purple { background: var(--purple-light); color: var(--purple); }
+
+  /* ============ LAYOUT ============ */
+  .sc-layout { display: grid; grid-template-columns: 1fr 360px; min-height: 720px; }
+  .sc-left { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .sc-right { display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); }
+
+  /* ============ TABS ============ */
+  .sc-tabs { display: flex; border-bottom: 1px solid var(--border); background: #FAFAFA; }
+  .sc-tab {
+    padding: 12px 20px; font-size: 12px; font-weight: 500; color: var(--text-500);
+    border: none; background: none; cursor: pointer; position: relative; white-space: nowrap;
+  }
+  .sc-tab:hover { color: var(--forest-700); }
+  .sc-tab.active { color: var(--forest-700); font-weight: 600; }
+  .sc-tab.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--forest-700); }
+  .sc-tab .cnt { font-size: 10px; font-weight: 600; background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 99px; margin-left: 4px; }
+  .sc-tab.active .cnt { background: var(--forest-100); color: var(--forest-700); }
+
+  .tab-pane { display: none; flex: 1; overflow: hidden; }
+  .tab-pane.active { display: flex; flex-direction: column; }
+
+  /* ============ SIDEBAR SECTIONS ============ */
+  .sb { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .sb h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+
+  /* ============ PROGRESS RING ============ */
+  .progress-ring { text-align: center; padding: 20px 0; }
+  .ring-value { font-size: 36px; font-weight: 800; color: var(--forest-700); }
+  .ring-label { font-size: 11px; color: var(--text-500); margin-top: 4px; }
+  .ring-bar { height: 6px; background: var(--border); border-radius: 3px; margin: 12px 18px 0; }
+  .ring-fill { height: 6px; border-radius: 3px; background: var(--forest-500); }
+
+  /* ============ CHECKLIST ============ */
+  .checklist-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F5F5F5; }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .check-icon.done { background: var(--success); color: white; }
+  .check-icon.pending { background: var(--border); color: var(--text-300); }
+  .check-icon.active { background: var(--info); color: white; }
+  .check-text { font-size: 12px; color: var(--text-700); flex: 1; }
+  .check-text.done { color: var(--text-300); text-decoration: line-through; }
+
+  /* ============ STAKEHOLDER CARDS ============ */
+  .stakeholder { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F5F5F5; }
+  .stakeholder:last-child { border-bottom: none; }
+  .stakeholder-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: white; flex-shrink: 0; }
+  .stakeholder-info { flex: 1; min-width: 0; }
+  .stakeholder-name { font-size: 12px; font-weight: 600; color: var(--text-900); }
+  .stakeholder-role { font-size: 10px; color: var(--text-300); }
+
+  /* ============ TAB 1: FICHE CLIENT ============ */
+  .client-card { background: white; border: 1px solid var(--border); border-radius: 12px; margin: 16px; overflow: hidden; }
+  .cc-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .cc-header h3 { font-size: 14px; font-weight: 700; color: var(--text-900); }
+  .cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .cc-field { padding: 12px 20px; border-bottom: 1px solid #F5F5F5; border-right: 1px solid #F5F5F5; }
+  .cc-field:nth-child(even) { border-right: none; }
+  .cc-field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); margin-bottom: 4px; }
+  .cc-field-value { font-size: 13px; color: var(--text-900); }
+  .cc-field-value.mono { font-size: 12px; }
+
+  /* Context cards */
+  .ctx-card { background: white; border: 1px solid var(--border); border-radius: 12px; margin: 0 16px 12px; overflow: hidden; }
+  .ctx-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .ctx-icon { font-size: 16px; }
+  .ctx-title { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .ctx-body { padding: 12px 16px; font-size: 12px; color: var(--text-700); line-height: 1.6; }
+  .ctx-tags { display: flex; gap: 4px; flex-wrap: wrap; padding: 0 16px 12px; }
+  .ctx-tag { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 6px; background: #F3F4F6; color: var(--text-500); }
+  .ctx-tag.reg { background: var(--gold-50); color: var(--gold-600); }
+  .ctx-tag.risk { background: #FDE8E8; color: var(--error); }
+
+  /* ============ TAB 2: PERIMETRE ============ */
+  .scope-section { padding: 16px; }
+  .scope-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+  .scope-card h4 { font-size: 13px; font-weight: 600; color: var(--text-900); margin-bottom: 8px; }
+
+  .scope-domain { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #F5F5F5; }
+  .scope-domain:last-child { border-bottom: none; }
+  .scope-domain-check { width: 16px; height: 16px; border-radius: 4px; border: 2px solid var(--forest-500); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .scope-domain-check.checked { background: var(--forest-700); border-color: var(--forest-700); color: white; font-size: 10px; }
+  .scope-domain-code { font-size: 11px; font-weight: 500; color: var(--forest-700); }
+  .scope-domain-name { font-size: 12px; color: var(--text-700); flex: 1; }
+  .scope-domain-count { font-size: 10px; color: var(--text-300); }
+
+  .exclusion { background: #FEF2F2; border: 1px solid #FDE8E8; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .exclusion-icon { color: var(--error); font-size: 14px; flex-shrink: 0; }
+  .exclusion-text { font-size: 12px; color: var(--error); flex: 1; }
+
+  .objective { background: var(--forest-50); border: 1px solid var(--forest-300); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px; }
+  .objective-icon { color: var(--forest-700); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .objective-text { font-size: 12px; color: var(--forest-900); flex: 1; line-height: 1.5; }
+
+  /* ============ TAB 3: QUESTIONNAIRE (existant ameliore) ============ */
+  .quest-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .quest-progress { display: flex; align-items: center; gap: 12px; }
+  .quest-bar { width: 120px; height: 6px; background: var(--border); border-radius: 3px; }
+  .quest-fill { height: 6px; border-radius: 3px; background: var(--forest-500); }
+  .quest-pct { font-size: 12px; font-weight: 600; color: var(--forest-700); }
+  .quest-scroll { flex: 1; overflow-y: auto; }
+
+  .quest-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #F5F5F5; }
+  .quest-item:hover { background: var(--forest-50); }
+  .quest-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .quest-dot.answered { background: var(--success); }
+  .quest-dot.pending { background: var(--text-300); }
+  .quest-info { flex: 1; min-width: 0; }
+  .quest-code { font-size: 10px; color: var(--text-300); }
+  .quest-text { font-size: 12px; color: var(--text-900); margin-top: 2px; }
+  .quest-answer { font-size: 11px; color: var(--text-500); margin-top: 4px; background: #F9FAFB; padding: 6px 10px; border-radius: 6px; }
+
+  /* ============ TAB 4: COLLECTE DOCUMENTAIRE ============ */
+  .doc-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+
+  .doc-category { margin: 0 16px 16px; }
+  .doc-cat-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); padding: 8px 0; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+
+  .doc-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #F5F5F5; }
+  .doc-item:last-child { border-bottom: none; }
+  .doc-icon { font-size: 18px; flex-shrink: 0; }
+  .doc-info { flex: 1; min-width: 0; }
+  .doc-name { font-size: 12px; font-weight: 500; color: var(--text-900); }
+  .doc-meta { font-size: 10px; color: var(--text-300); margin-top: 1px; }
+  .doc-status { flex-shrink: 0; }
+
+  .doc-upload-zone { margin: 0 16px 16px; border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .doc-upload-zone:hover { border-color: var(--forest-300); background: var(--forest-50); }
+
+  /* ============ TAB 5: RISQUES ============ */
+  .risk-card { background: white; border: 1px solid var(--border); border-radius: 10px; margin: 0 16px 12px; overflow: hidden; }
+  .risk-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .risk-level { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+  .risk-level.critical { background: #FDE8E8; color: var(--error); }
+  .risk-level.high { background: var(--warning-light); color: var(--warning); }
+  .risk-level.medium { background: var(--gold-50); color: var(--gold-600); }
+  .risk-title { font-size: 13px; font-weight: 600; color: var(--text-900); flex: 1; }
+  .risk-body { padding: 12px 16px; font-size: 12px; color: var(--text-700); line-height: 1.5; }
+  .risk-impact { padding: 8px 16px 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .risk-impact-tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: #F3F4F6; color: var(--text-500); }
+
+  /* AI Banner */
+  .ai-banner { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--purple-light); border-bottom: 1px solid #DDD6FE; }
+  .ai-icon { width: 30px; height: 30px; border-radius: 8px; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .ai-text { font-size: 12px; color: #5B21B6; flex: 1; line-height: 1.4; }
+  .ai-btn { font-size: 12px; color: white; background: var(--purple); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Revamp Phase Cadrage</h1>
+</div>
+
+<div class="section">
+  <p class="st">Phase Cadrage — Vision enrichie</p>
+  <p class="ss">5 sous-onglets : Fiche client &middot; P&eacute;rim&egrave;tre &middot; Questionnaire &middot; Collecte documentaire &middot; Risques initiaux</p>
+
+  <div class="mockup">
+
+    <!-- AI Banner -->
+    <div class="ai-banner">
+      <div class="ai-icon">&#9733;</div>
+      <div class="ai-text">
+        <strong>SmartScope</strong> peut analyser les documents re&ccedil;us et les r&eacute;ponses au questionnaire pour identifier automatiquement les risques cl&eacute;s et les zones d&rsquo;attention.
+      </div>
+      <button class="ai-btn">&#9733; Analyser le cadrage</button>
+    </div>
+
+    <div class="sc-layout">
+
+      <!-- ============ LEFT PANEL ============ -->
+      <div class="sc-left">
+        <div class="sc-tabs">
+          <button class="sc-tab active" onclick="showScTab('client')">Fiche client</button>
+          <button class="sc-tab" onclick="showScTab('scope')">P&eacute;rim&egrave;tre <span class="cnt">6</span></button>
+          <button class="sc-tab" onclick="showScTab('questionnaire')">Questionnaire <span class="cnt">18/24</span></button>
+          <button class="sc-tab" onclick="showScTab('documents')">Documents <span class="cnt">8</span></button>
+          <button class="sc-tab" onclick="showScTab('risks')">Risques <span class="cnt">4</span></button>
+        </div>
+
+        <!-- ===== TAB 1: FICHE CLIENT ===== -->
+        <div class="tab-pane active" id="pane-client" style="overflow-y:auto;">
+
+          <!-- Client identity -->
+          <div class="client-card">
+            <div class="cc-header">
+              <h3>&#127970; Sonatel SA</h3>
+              <span class="badge blue">T&eacute;l&eacute;coms / IT</span>
+            </div>
+            <div class="cc-grid">
+              <div class="cc-field"><div class="cc-field-label">Secteur d&rsquo;activit&eacute;</div><div class="cc-field-value">T&eacute;l&eacute;communications</div></div>
+              <div class="cc-field"><div class="cc-field-label">Effectif</div><div class="cc-field-value">1 000 &ndash; 5 000 employ&eacute;s</div></div>
+              <div class="cc-field"><div class="cc-field-label">Chiffre d&rsquo;affaires</div><div class="cc-field-value">&gt; 50 milliards FCFA</div></div>
+              <div class="cc-field"><div class="cc-field-label">Pays</div><div class="cc-field-value">S&eacute;n&eacute;gal</div></div>
+              <div class="cc-field"><div class="cc-field-label">Adresse</div><div class="cc-field-value">46, Bd de la R&eacute;publique, Dakar</div></div>
+              <div class="cc-field"><div class="cc-field-label">Contact principal</div><div class="cc-field-value">Amadou Diop (RSSI)</div></div>
+            </div>
+          </div>
+
+          <!-- Contexte r&eacute;glementaire -->
+          <div class="ctx-card">
+            <div class="ctx-header">
+              <span class="ctx-icon">&#9878;</span>
+              <span class="ctx-title">Environnement r&eacute;glementaire</span>
+            </div>
+            <div class="ctx-body">
+              En tant qu&rsquo;op&eacute;rateur t&eacute;l&eacute;com, Sonatel est soumise &agrave; plusieurs cadres r&eacute;glementaires en mati&egrave;re de s&eacute;curit&eacute; SI et protection des donn&eacute;es.
+            </div>
+            <div class="ctx-tags">
+              <span class="ctx-tag reg">Loi 2008-12 (CDP)</span>
+              <span class="ctx-tag reg">BCEAO-SSI</span>
+              <span class="ctx-tag reg">CEDEAO-DP</span>
+              <span class="ctx-tag reg">RGPD (UE)</span>
+              <span class="ctx-tag">ISO 27001 (exigence contractuelle)</span>
+              <span class="ctx-tag">PCI-DSS (paiement mobile)</span>
+            </div>
+          </div>
+
+          <!-- Contexte m&eacute;tier -->
+          <div class="ctx-card">
+            <div class="ctx-header">
+              <span class="ctx-icon">&#128187;</span>
+              <span class="ctx-title">Environnement SI</span>
+            </div>
+            <div class="ctx-body">
+              Environnement IT complexe avec infrastructure on-premise et cloud hybride. ~500 serveurs, 3 data centers, migration en cours vers Azure. ERP SAP, CRM Salesforce, CMDB ServiceNow. Equipe SI de 120 personnes.
+            </div>
+            <div class="ctx-tags">
+              <span class="ctx-tag">SAP S/4HANA</span>
+              <span class="ctx-tag">Azure (migration)</span>
+              <span class="ctx-tag">ServiceNow CMDB</span>
+              <span class="ctx-tag">Active Directory</span>
+              <span class="ctx-tag">Fortinet (s&eacute;curit&eacute;)</span>
+            </div>
+          </div>
+
+          <!-- Historique audits -->
+          <div class="ctx-card">
+            <div class="ctx-header">
+              <span class="ctx-icon">&#128203;</span>
+              <span class="ctx-title">Historique des audits</span>
+            </div>
+            <div class="ctx-body">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span class="badge green">2024</span>
+                <span style="font-size:12px;">Audit ISO 27001 &mdash; Score 68% &mdash; 12 non-conformit&eacute;s majeures</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span class="badge gray">2023</span>
+                <span style="font-size:12px;">Audit PCI-DSS &mdash; Non conforme &mdash; Plan de rem&eacute;diation en cours</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="badge gray">2022</span>
+                <span style="font-size:12px;">Premier audit SI interne &mdash; Cartographie des actifs incompl&egrave;te</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== TAB 2: PERIMETRE ===== -->
+        <div class="tab-pane" id="pane-scope" style="overflow-y:auto;">
+          <div class="scope-section">
+
+            <!-- Objectifs -->
+            <div class="scope-card">
+              <h4>&#127919; Objectifs de la mission</h4>
+              <div class="objective">
+                <span class="objective-icon">&#10003;</span>
+                <span class="objective-text">&Eacute;valuer le niveau de conformit&eacute; du SMSI de Sonatel par rapport aux exigences ISO 27001:2022</span>
+              </div>
+              <div class="objective">
+                <span class="objective-icon">&#10003;</span>
+                <span class="objective-text">Identifier les &eacute;carts critiques et formuler un plan de rem&eacute;diation prioris&eacute;</span>
+              </div>
+              <div class="objective">
+                <span class="objective-icon">&#10003;</span>
+                <span class="objective-text">Pr&eacute;parer l&rsquo;organisation &agrave; la certification ISO 27001 pr&eacute;vue en Q4 2026</span>
+              </div>
+            </div>
+
+            <!-- Crit&egrave;res d'audit -->
+            <div class="scope-card">
+              <h4>&#128220; Crit&egrave;res d&rsquo;audit</h4>
+              <div style="font-size:12px;color:var(--text-700);line-height:1.6;">
+                <p>&bull; Norme ISO/IEC 27001:2022 (clauses 4 &agrave; 10 + Annexe A)</p>
+                <p>&bull; D&eacute;claration d&rsquo;applicabilit&eacute; (SoA) de Sonatel v3.1</p>
+                <p>&bull; Politique de s&eacute;curit&eacute; SI interne (PSSI v2, mars 2025)</p>
+                <p>&bull; Exigences r&eacute;glementaires applicables (Loi 2008-12, BCEAO-SSI)</p>
+              </div>
+            </div>
+
+            <!-- Domaines inclus -->
+            <div class="scope-card">
+              <h4>&#128204; Domaines inclus <span class="badge green" style="font-size:10px;">6 domaines &middot; 32 contr&ocirc;les</span></h4>
+              <div class="scope-domain">
+                <div class="scope-domain-check checked">&#10003;</div>
+                <span class="scope-domain-code mono">A.5</span>
+                <span class="scope-domain-name">Politiques de s&eacute;curit&eacute; de l&rsquo;information</span>
+                <span class="scope-domain-count">4 ctrl</span>
+              </div>
+              <div class="scope-domain">
+                <div class="scope-domain-check checked">&#10003;</div>
+                <span class="scope-domain-code mono">A.6</span>
+                <span class="scope-domain-name">Organisation de la s&eacute;curit&eacute;</span>
+                <span class="scope-domain-count">5 ctrl</span>
+              </div>
+              <div class="scope-domain">
+                <div class="scope-domain-check checked">&#10003;</div>
+                <span class="scope-domain-code mono">A.7</span>
+                <span class="scope-domain-name">S&eacute;curit&eacute; des ressources humaines</span>
+                <span class="scope-domain-count">6 ctrl</span>
+              </div>
+              <div class="scope-domain">
+                <div class="scope-domain-check checked">&#10003;</div>
+                <span class="scope-domain-code mono">A.8</span>
+                <span class="scope-domain-name">Gestion des actifs</span>
+                <span class="scope-domain-count">8 ctrl</span>
+              </div>
+              <div class="scope-domain">
+                <div class="scope-domain-check checked">&#10003;</div>
+                <span class="scope-domain-code mono">A.9</span>
+                <span class="scope-domain-name">Contr&ocirc;le d&rsquo;acc&egrave;s</span>
+                <span class="scope-domain-count">8 ctrl</span>
+              </div>
+              <div class="scope-domain">
+                <div class="scope-domain-check checked">&#10003;</div>
+                <span class="scope-domain-code mono">A.10</span>
+                <span class="scope-domain-name">Cryptographie</span>
+                <span class="scope-domain-count">1 ctrl</span>
+              </div>
+            </div>
+
+            <!-- Exclusions -->
+            <div class="scope-card">
+              <h4>&#128683; Exclusions</h4>
+              <div class="exclusion">
+                <span class="exclusion-icon">&#10007;</span>
+                <span class="exclusion-text"><strong>A.11 S&eacute;curit&eacute; physique</strong> &mdash; Audit&eacute; s&eacute;par&eacute;ment par un prestataire sp&eacute;cialis&eacute;</span>
+              </div>
+              <div class="exclusion">
+                <span class="exclusion-icon">&#10007;</span>
+                <span class="exclusion-text"><strong>A.14 D&eacute;veloppement</strong> &mdash; Pas de d&eacute;veloppement interne chez le client (tout externalis&eacute;)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== TAB 3: QUESTIONNAIRE ===== -->
+        <div class="tab-pane" id="pane-questionnaire" style="overflow-y:auto;">
+          <div class="quest-header">
+            <div>
+              <span style="font-size:13px;font-weight:600;color:var(--text-900);">Questionnaire de prise de connaissance</span>
+              <span style="font-size:11px;color:var(--text-300);margin-left:8px;">24 questions</span>
+            </div>
+            <div class="quest-progress">
+              <div class="quest-bar"><div class="quest-fill" style="width:75%;"></div></div>
+              <span class="quest-pct">75%</span>
+              <span class="badge green">18/24</span>
+            </div>
+          </div>
+          <div class="quest-scroll" style="flex:1;overflow-y:auto;">
+            <div class="quest-item">
+              <div class="quest-dot answered"></div>
+              <div class="quest-info">
+                <div class="quest-code">Q1 &middot; Gouvernance</div>
+                <div class="quest-text">Disposez-vous d&rsquo;une politique de s&eacute;curit&eacute; de l&rsquo;information formalis&eacute;e ?</div>
+                <div class="quest-answer">Oui, la PSSI v2 a &eacute;t&eacute; approuv&eacute;e par le COMEX en mars 2025.</div>
+              </div>
+              <span class="badge green">R&eacute;pondu</span>
+            </div>
+            <div class="quest-item">
+              <div class="quest-dot answered"></div>
+              <div class="quest-info">
+                <div class="quest-code">Q2 &middot; Gouvernance</div>
+                <div class="quest-text">&Agrave; quelle fr&eacute;quence la politique est-elle r&eacute;vis&eacute;e ?</div>
+                <div class="quest-answer">Annuellement. Derni&egrave;re r&eacute;vision : mars 2025.</div>
+              </div>
+              <span class="badge green">R&eacute;pondu</span>
+            </div>
+            <div class="quest-item">
+              <div class="quest-dot answered"></div>
+              <div class="quest-info">
+                <div class="quest-code">Q3 &middot; Organisation</div>
+                <div class="quest-text">Quel est le rattachement hi&eacute;rarchique du RSSI ?</div>
+                <div class="quest-answer">Rattach&eacute; au DSI, qui rapporte au DG.</div>
+              </div>
+              <span class="badge green">R&eacute;pondu</span>
+            </div>
+            <div class="quest-item">
+              <div class="quest-dot pending"></div>
+              <div class="quest-info">
+                <div class="quest-code">Q8 &middot; Actifs</div>
+                <div class="quest-text">Disposez-vous d&rsquo;un inventaire automatis&eacute; des actifs IT ? Quel outil utilisez-vous ?</div>
+              </div>
+              <span class="badge gray">En attente</span>
+            </div>
+            <div class="quest-item">
+              <div class="quest-dot pending"></div>
+              <div class="quest-info">
+                <div class="quest-code">Q9 &middot; Actifs</div>
+                <div class="quest-text">Quelle est la couverture de l&rsquo;inventaire (% d&rsquo;actifs r&eacute;f&eacute;renc&eacute;s) ?</div>
+              </div>
+              <span class="badge gray">En attente</span>
+            </div>
+            <div class="quest-item" style="opacity:0.5;text-align:center;padding:20px;">
+              <span style="font-size:12px;color:var(--text-300);">+ 19 questions...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== TAB 4: DOCUMENTS ===== -->
+        <div class="tab-pane" id="pane-documents" style="overflow-y:auto;">
+          <div class="doc-header">
+            <div>
+              <span style="font-size:13px;font-weight:600;color:var(--text-900);">Collecte documentaire</span>
+              <span style="font-size:11px;color:var(--text-300);margin-left:8px;">8 re&ccedil;us / 14 attendus</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <span class="badge green">8 re&ccedil;us</span>
+              <span class="badge gold">6 en attente</span>
+            </div>
+          </div>
+
+          <div class="doc-category">
+            <div class="doc-cat-header">Documents re&ccedil;us</div>
+            <div class="doc-item">
+              <span class="doc-icon">&#128196;</span>
+              <div class="doc-info">
+                <div class="doc-name">PSSI_Sonatel_v2_2025.pdf</div>
+                <div class="doc-meta">Politique de s&eacute;curit&eacute; SI &middot; 2.3 Mo &middot; Re&ccedil;u le 12 mars</div>
+              </div>
+              <span class="badge green">Re&ccedil;u</span>
+            </div>
+            <div class="doc-item">
+              <span class="doc-icon">&#128202;</span>
+              <div class="doc-info">
+                <div class="doc-name">Organigramme_DSI_2026.xlsx</div>
+                <div class="doc-meta">Organisation SI &middot; 450 Ko &middot; Re&ccedil;u le 12 mars</div>
+              </div>
+              <span class="badge green">Re&ccedil;u</span>
+            </div>
+            <div class="doc-item">
+              <span class="doc-icon">&#128196;</span>
+              <div class="doc-info">
+                <div class="doc-name">SoA_ISO27001_v3.1.pdf</div>
+                <div class="doc-meta">D&eacute;claration d&rsquo;applicabilit&eacute; &middot; 1.8 Mo &middot; Re&ccedil;u le 13 mars</div>
+              </div>
+              <span class="badge green">Re&ccedil;u</span>
+            </div>
+            <div class="doc-item">
+              <span class="doc-icon">&#128202;</span>
+              <div class="doc-info">
+                <div class="doc-name">Inventaire_actifs_CMDB.xlsx</div>
+                <div class="doc-meta">Export ServiceNow &middot; 8.5 Mo &middot; Re&ccedil;u le 14 mars</div>
+              </div>
+              <span class="badge green">Re&ccedil;u</span>
+            </div>
+          </div>
+
+          <div class="doc-category">
+            <div class="doc-cat-header">Documents en attente</div>
+            <div class="doc-item" style="opacity:0.6;">
+              <span class="doc-icon">&#128203;</span>
+              <div class="doc-info">
+                <div class="doc-name">Rapport d&rsquo;audit PCI-DSS 2024</div>
+                <div class="doc-meta">Demand&eacute; le 10 mars &middot; Relance envoy&eacute;e</div>
+              </div>
+              <span class="badge gold">Relance</span>
+            </div>
+            <div class="doc-item" style="opacity:0.6;">
+              <span class="doc-icon">&#128203;</span>
+              <div class="doc-info">
+                <div class="doc-name">Plan de continuit&eacute; d&rsquo;activit&eacute; (PCA)</div>
+                <div class="doc-meta">Demand&eacute; le 10 mars</div>
+              </div>
+              <span class="badge gray">En attente</span>
+            </div>
+            <div class="doc-item" style="opacity:0.6;">
+              <span class="doc-icon">&#128203;</span>
+              <div class="doc-info">
+                <div class="doc-name">Politique de gestion des acc&egrave;s</div>
+                <div class="doc-meta">Demand&eacute; le 10 mars</div>
+              </div>
+              <span class="badge gray">En attente</span>
+            </div>
+          </div>
+
+          <div class="doc-upload-zone">
+            <p style="font-size:20px;color:var(--text-300);margin-bottom:4px;">&#128206;</p>
+            <p style="font-size:12px;color:var(--text-500);">Glissez-d&eacute;posez ou <span style="color:var(--forest-700);font-weight:500;text-decoration:underline;">parcourir</span></p>
+            <p style="font-size:10px;color:var(--text-300);margin-top:2px;">PDF, Excel, Word, images &mdash; 25 Mo max</p>
+          </div>
+        </div>
+
+        <!-- ===== TAB 5: RISQUES ===== -->
+        <div class="tab-pane" id="pane-risks" style="overflow-y:auto;padding-top:16px;">
+          <div style="padding:0 16px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:600;color:var(--text-900);">Risques initiaux identifi&eacute;s</span>
+            <button style="font-size:11px;font-weight:600;color:white;background:var(--purple);border:none;padding:6px 14px;border-radius:8px;cursor:pointer;">&#9733; D&eacute;tecter avec l&rsquo;IA</button>
+          </div>
+
+          <div class="risk-card">
+            <div class="risk-header">
+              <span class="risk-level critical">Critique</span>
+              <span class="risk-title">Gestion des acc&egrave;s privil&eacute;gi&eacute;s insuffisante</span>
+            </div>
+            <div class="risk-body">
+              L&rsquo;audit PCI-DSS 2024 a r&eacute;v&eacute;l&eacute; une absence de revue p&eacute;riodique des comptes &agrave; privil&egrave;ges. 15 comptes admin non rattach&eacute;s &agrave; un employ&eacute; actif identifi&eacute;s.
+            </div>
+            <div class="risk-impact">
+              <span class="risk-impact-tag">A.9 Contr&ocirc;le d&rsquo;acc&egrave;s</span>
+              <span class="risk-impact-tag">A.8 Gestion des actifs</span>
+              <span class="risk-impact-tag">Source: Audit PCI-DSS 2024</span>
+            </div>
+          </div>
+
+          <div class="risk-card">
+            <div class="risk-header">
+              <span class="risk-level high">&Eacute;lev&eacute;</span>
+              <span class="risk-title">Migration cloud sans cadre de s&eacute;curit&eacute; formalis&eacute;</span>
+            </div>
+            <div class="risk-body">
+              Migration vers Azure en cours sans &eacute;valuation de risques cloud formalis&eacute;e ni mise &agrave; jour de la politique de s&eacute;curit&eacute; pour int&eacute;grer les sp&eacute;cificit&eacute;s cloud.
+            </div>
+            <div class="risk-impact">
+              <span class="risk-impact-tag">A.5 Politiques</span>
+              <span class="risk-impact-tag">A.6 Organisation</span>
+              <span class="risk-impact-tag">Source: Questionnaire Q5</span>
+            </div>
+          </div>
+
+          <div class="risk-card">
+            <div class="risk-header">
+              <span class="risk-level high">&Eacute;lev&eacute;</span>
+              <span class="risk-title">Taux de sensibilisation &agrave; 72% (cible 90%)</span>
+            </div>
+            <div class="risk-body">
+              Le programme de sensibilisation existe mais la couverture est insuffisante. Pas de campagne de phishing simul&eacute; document&eacute;e.
+            </div>
+            <div class="risk-impact">
+              <span class="risk-impact-tag">A.7 S&eacute;curit&eacute; RH</span>
+              <span class="risk-impact-tag">Source: Questionnaire Q12</span>
+            </div>
+          </div>
+
+          <div class="risk-card">
+            <div class="risk-header">
+              <span class="risk-level medium">Moyen</span>
+              <span class="risk-title">Inventaire actifs IoT incomplet</span>
+            </div>
+            <div class="risk-body">
+              La CMDB couvre 98% des actifs IT classiques mais les dispositifs IoT (capteurs, cam&eacute;ras, bornes WiFi) ne sont pas int&eacute;gr&eacute;s dans l&rsquo;inventaire.
+            </div>
+            <div class="risk-impact">
+              <span class="risk-impact-tag">A.8 Gestion des actifs</span>
+              <span class="risk-impact-tag">Source: Document CMDB</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ RIGHT SIDEBAR ============ -->
+      <div class="sc-right">
+
+        <!-- Progress ring -->
+        <div class="sb" style="text-align:center;padding-top:20px;">
+          <div class="ring-value">65%</div>
+          <div class="ring-label">Cadrage compl&eacute;t&eacute;</div>
+          <div class="ring-bar"><div class="ring-fill" style="width:65%;"></div></div>
+        </div>
+
+        <!-- Checklist de cadrage -->
+        <div class="sb">
+          <h4>Checklist de cadrage</h4>
+          <div class="checklist-item">
+            <div class="check-icon done">&#10003;</div>
+            <span class="check-text done">Fiche client compl&eacute;t&eacute;e</span>
+          </div>
+          <div class="checklist-item">
+            <div class="check-icon done">&#10003;</div>
+            <span class="check-text done">P&eacute;rim&egrave;tre d&eacute;fini (6 domaines)</span>
+          </div>
+          <div class="checklist-item">
+            <div class="check-icon done">&#10003;</div>
+            <span class="check-text done">Questionnaire envoy&eacute;</span>
+          </div>
+          <div class="checklist-item">
+            <div class="check-icon active">&#9679;</div>
+            <span class="check-text">Questionnaire compl&eacute;t&eacute; (75%)</span>
+          </div>
+          <div class="checklist-item">
+            <div class="check-icon active">&#9679;</div>
+            <span class="check-text">Documents initiaux re&ccedil;us (8/14)</span>
+          </div>
+          <div class="checklist-item">
+            <div class="check-icon pending">&#183;</div>
+            <span class="check-text">Risques initiaux valid&eacute;s</span>
+          </div>
+          <div class="checklist-item">
+            <div class="check-icon pending">&#183;</div>
+            <span class="check-text">Note de cadrage valid&eacute;e</span>
+          </div>
+        </div>
+
+        <!-- Parties prenantes -->
+        <div class="sb">
+          <h4>Interlocuteurs cl&eacute;s <button style="font-size:10px;color:var(--forest-700);background:var(--forest-50);border:1px solid var(--forest-300);padding:2px 8px;border-radius:4px;cursor:pointer;">+ Ajouter</button></h4>
+          <div class="stakeholder">
+            <div class="stakeholder-avatar" style="background:var(--info);">AD</div>
+            <div class="stakeholder-info">
+              <div class="stakeholder-name">Amadou Diop</div>
+              <div class="stakeholder-role">RSSI &middot; Contact principal</div>
+            </div>
+            <span class="badge blue">RSSI</span>
+          </div>
+          <div class="stakeholder">
+            <div class="stakeholder-avatar" style="background:#E07A5F;">IK</div>
+            <div class="stakeholder-info">
+              <div class="stakeholder-name">Ibrahima Ka</div>
+              <div class="stakeholder-role">DSI</div>
+            </div>
+            <span class="badge gray">DSI</span>
+          </div>
+          <div class="stakeholder">
+            <div class="stakeholder-avatar" style="background:var(--purple);">MS</div>
+            <div class="stakeholder-info">
+              <div class="stakeholder-name">Mariama Sow</div>
+              <div class="stakeholder-role">DRH</div>
+            </div>
+            <span class="badge gray">DRH</span>
+          </div>
+          <div class="stakeholder">
+            <div class="stakeholder-avatar" style="background:var(--text-500);">PN</div>
+            <div class="stakeholder-info">
+              <div class="stakeholder-name">Papa Ndiaye</div>
+              <div class="stakeholder-role">Admin syst&egrave;me / IAM</div>
+            </div>
+            <span class="badge gray">IT</span>
+          </div>
+        </div>
+
+        <!-- R&eacute;glementations applicables -->
+        <div class="sb">
+          <h4>R&eacute;glementations applicables</h4>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+              <span class="badge red" style="font-size:9px;">Fort</span>
+              <span style="color:var(--text-700);">Loi 2008-12 (Protection donn&eacute;es)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+              <span class="badge red" style="font-size:9px;">Fort</span>
+              <span style="color:var(--text-700);">BCEAO-SSI (S&eacute;curit&eacute; SI banques)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+              <span class="badge red" style="font-size:9px;">Fort</span>
+              <span style="color:var(--text-700);">RGPD (clients UE)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+              <span class="badge gold" style="font-size:9px;">Moyen</span>
+              <span style="color:var(--text-700);">PCI-DSS (paiement mobile)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="sb" style="border-bottom:none;">
+          <h4>Actions</h4>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:12px;color:var(--text-700);text-align:left;">
+              <span style="width:20px;text-align:center;">&#128231;</span> Relancer le client (6 documents)
+            </button>
+            <button style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:12px;color:var(--text-700);text-align:left;">
+              <span style="width:20px;text-align:center;">&#128196;</span> G&eacute;n&eacute;rer la note de cadrage
+            </button>
+            <button style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:none;border-radius:8px;background:var(--forest-700);cursor:pointer;font-size:12px;color:white;text-align:left;font-weight:600;">
+              <span style="width:20px;text-align:center;">&#10003;</span> Valider le cadrage &rarr; Planification
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function showScTab(name) {
+  document.querySelectorAll('#pane-client,#pane-scope,#pane-questionnaire,#pane-documents,#pane-risks').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + name).classList.add('active');
+  document.querySelectorAll('.sc-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, FileText, Building2, Calendar, Clock, Play, MoreVertical, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { MissionStatusBadge } from './MissionStatusBadge'
 import { Modal } from '../../components/ui/Modal'
@@ -54,24 +55,24 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
     <div className="bg-white border-b border-gray-200">
       <div className="px-7 pt-5 pb-0">
         <Link to="/missions" className="inline-flex items-center gap-1.5 text-[13px] text-forest-700 hover:text-forest-900 mb-3">
-          &larr; Missions
+          <ArrowLeft size={14} /> Missions
         </Link>
 
         <div className="flex items-start justify-between mb-5">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{mission.name}</h2>
             <div className="flex items-center gap-4 mt-1.5 text-[13px] text-gray-500">
-              {mission.framework?.name && <span>&#128196; {mission.framework.name}</span>}
+              {mission.framework?.name && <span className="inline-flex items-center gap-1"><FileText size={13} /> {mission.framework.name}</span>}
               <Dot />
-              {mission.client?.name && <span>&#127970; {mission.client.name}</span>}
-              {period && <><Dot /><span>&#128197; {period}</span></>}
+              {mission.client?.name && <span className="inline-flex items-center gap-1"><Building2 size={13} /> {mission.client.name}</span>}
+              {period && <><Dot /><span className="inline-flex items-center gap-1"><Calendar size={13} /> {period}</span></>}
             </div>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
             {progress.daysRemaining !== null && progress.daysRemaining <= 30 && (
-              <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
-                &#9202; {progress.daysRemaining}j restants
+              <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full inline-flex items-center gap-1">
+                <Clock size={12} /> {progress.daysRemaining}j restants
               </span>
             )}
             <MissionStatusBadge status={mission.status} />
@@ -80,7 +81,7 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
                 onClick={onCtaClick}
                 className="bg-forest-700 text-white px-5 py-2 rounded-lg text-[13px] font-semibold hover:bg-forest-900 transition-colors flex items-center gap-1.5"
               >
-                &#9654; {progress.nextAction.ctaLabel}
+                <Play size={13} /> {progress.nextAction.ctaLabel}
               </button>
             )}
 
@@ -88,7 +89,7 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
             <div className="relative">
               <button onClick={() => setShowMenu(!showMenu)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
-                &#8942;
+                <MoreVertical size={16} />
               </button>
               {showMenu && (
                 <>
@@ -96,7 +97,7 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
                   <div className="absolute right-0 top-10 z-20 w-52 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5">
                     <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true) }}
                       className="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                      &#128465; Supprimer la mission
+                      <Trash2 size={13} /> Supprimer la mission
                     </button>
                   </div>
                 </>

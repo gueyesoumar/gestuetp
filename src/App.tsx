@@ -5,6 +5,7 @@ import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AppLayout } from './components/layout/AppLayout'
 import { ClientLayout } from './features/client-portal/layout/ClientLayout'
 import { LoginPage } from './pages/LoginPage'
+import { HubPage } from './pages/HubPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { OrganizationPage } from './pages/OrganizationPage'
 import { MembersPage } from './pages/MembersPage'
@@ -36,7 +37,17 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/set-password" element={<SetPasswordPage />} />
 
-          {/* Auditor routes */}
+          {/* Hub — product selection (auditors only) */}
+          <Route
+            path="/hub"
+            element={
+              <ProtectedRoute>
+                <HubPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Auditor routes (Comply product) */}
           <Route
             element={
               <ProtectedRoute>

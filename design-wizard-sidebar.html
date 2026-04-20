@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Wizard Sidebar Propositions</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-300: #74C69D;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+    --success: #27AE60;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+
+  .section { max-width: 1100px; margin: 50px auto; padding: 0 30px; }
+  .section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 6px; text-align: center; }
+  .section .subtitle { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+
+  .tag { font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600; background: var(--gold-200); color: var(--gold-600); }
+
+  /* Wizard frame */
+  .wizard-frame {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    min-height: 480px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .wiz-main { flex: 1; padding: 28px; display: flex; flex-direction: column; }
+  .wiz-main h3 { font-size: 18px; font-weight: 700; }
+  .wiz-main p { font-size: 13px; color: var(--text-500); margin-top: 3px; }
+  .wiz-content { flex: 1; margin-top: 20px; color: var(--text-300); font-size: 13px; }
+  .wiz-footer { display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px; }
+  .btn { padding: 9px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-primary { background: var(--forest-700); color: white; }
+  .btn-secondary { background: white; color: var(--text-500); border: 1px solid var(--border); }
+
+  /* ===== OPTION A: Connected dots with line ===== */
+  .oa-sidebar {
+    width: 240px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    padding: 28px 20px;
+    position: relative;
+  }
+  .oa-steps { position: relative; }
+  .oa-line {
+    position: absolute;
+    left: 15px;
+    top: 20px;
+    bottom: 20px;
+    width: 2px;
+    background: var(--border);
+  }
+  .oa-line-fill {
+    position: absolute;
+    left: 15px;
+    top: 20px;
+    width: 2px;
+    background: var(--forest-500);
+    transition: height 0.3s;
+  }
+  .oa-step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+  }
+  .oa-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    background: white;
+    border: 2px solid var(--border);
+    color: var(--text-300);
+  }
+  .oa-step.done .oa-dot { background: var(--success); border-color: var(--success); color: white; }
+  .oa-step.active .oa-dot { background: var(--forest-700); border-color: var(--forest-700); color: white; box-shadow: 0 0 0 4px var(--forest-100); }
+  .oa-label { font-size: 13px; color: var(--text-300); }
+  .oa-step.active .oa-label { color: var(--forest-900); font-weight: 600; }
+  .oa-step.done .oa-label { color: var(--success); font-weight: 500; }
+
+  /* ===== OPTION B: Top horizontal stepper ===== */
+  .ob-stepper {
+    display: flex;
+    align-items: center;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    gap: 0;
+  }
+  .ob-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    position: relative;
+  }
+  .ob-step::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin: 0 8px;
+  }
+  .ob-step:last-child::after { display: none; }
+  .ob-step.done::after { background: var(--success); }
+  .ob-step.active::after { background: var(--border); }
+  .ob-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: white;
+    border: 2px solid var(--border);
+    color: var(--text-300);
+  }
+  .ob-step.done .ob-dot { background: var(--success); border-color: var(--success); color: white; }
+  .ob-step.active .ob-dot { background: var(--forest-700); border-color: var(--forest-700); color: white; }
+  .ob-label { font-size: 11px; color: var(--text-300); white-space: nowrap; }
+  .ob-step.active .ob-label { color: var(--forest-900); font-weight: 600; }
+  .ob-step.done .ob-label { color: var(--success); }
+
+  /* ===== OPTION C: Compact sidebar with progress ===== */
+  .oc-sidebar {
+    width: 200px;
+    background: var(--forest-900);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  .oc-progress { margin-bottom: 20px; }
+  .oc-progress-text { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+  .oc-progress-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+  .oc-progress-fill { height: 100%; background: var(--gold-500); border-radius: 2px; }
+  .oc-steps { flex: 1; }
+  .oc-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .oc-step:hover { background: rgba(255,255,255,0.05); }
+  .oc-step.active { background: rgba(255,255,255,0.1); }
+  .oc-step.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 3px;
+    height: 24px;
+    background: var(--gold-500);
+    border-radius: 0 2px 2px 0;
+  }
+  .oc-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.3);
+  }
+  .oc-step.active .oc-dot { background: var(--gold-500); border-color: var(--gold-500); color: var(--forest-900); }
+  .oc-step.done .oc-dot { background: var(--success); border-color: var(--success); color: white; }
+  .oc-label { font-size: 12px; color: rgba(255,255,255,0.4); }
+  .oc-step.active .oc-label { color: white; font-weight: 600; }
+  .oc-step.done .oc-label { color: var(--success); }
+
+  .desc-box { padding: 14px 20px; background: white; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-500); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu — Wizard Sidebar Propositions</h1>
+</div>
+
+<!-- ====== OPTION A: Connected dots ====== -->
+<div class="section">
+  <h2>Option A — Ligne connect&eacute;e avec progression</h2>
+  <div class="subtitle">Les &eacute;tapes sont reli&eacute;es par une ligne verticale qui se remplit au fur et &agrave; mesure</div>
+
+  <div class="wizard-frame">
+    <span class="tag" style="position: absolute; top: 12px; right: 12px; z-index: 2;">Recommand&eacute;</span>
+    <div class="oa-sidebar">
+      <div class="oa-steps">
+        <div class="oa-line"></div>
+        <div class="oa-line-fill" style="height: 70px;"></div>
+        <div class="oa-step done"><div class="oa-dot">✓</div><span class="oa-label">Type de mission</span></div>
+        <div class="oa-step active"><div class="oa-dot">2</div><span class="oa-label">Client</span></div>
+        <div class="oa-step"><div class="oa-dot">3</div><span class="oa-label">P&eacute;rim&egrave;tre</span></div>
+        <div class="oa-step"><div class="oa-dot">4</div><span class="oa-label">&Eacute;quipe</span></div>
+        <div class="oa-step"><div class="oa-dot">5</div><span class="oa-label">Calendrier</span></div>
+        <div class="oa-step"><div class="oa-dot">6</div><span class="oa-label">Confirmation</span></div>
+      </div>
+    </div>
+    <div class="wiz-main">
+      <h3>Pour quel client ?</h3>
+      <p>S&eacute;lectionnez un client de votre portefeuille</p>
+      <div class="wiz-content">Contenu de l'&eacute;tape 2...</div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== OPTION B: Horizontal stepper ====== -->
+<div class="section">
+  <h2>Option B — Stepper horizontal en haut</h2>
+  <div class="subtitle">Les &eacute;tapes sont en bande horizontale. Pas de sidebar, plus d'espace pour le contenu.</div>
+
+  <div class="wizard-frame" style="flex-direction: column; min-height: 420px;">
+    <div class="ob-stepper">
+      <div class="ob-step done">
+        <div class="ob-dot">✓</div>
+        <span class="ob-label">Type</span>
+      </div>
+      <div class="ob-step active">
+        <div class="ob-dot">2</div>
+        <span class="ob-label">Client</span>
+      </div>
+      <div class="ob-step">
+        <div class="ob-dot">3</div>
+        <span class="ob-label">P&eacute;rim&egrave;tre</span>
+      </div>
+      <div class="ob-step">
+        <div class="ob-dot">4</div>
+        <span class="ob-label">&Eacute;quipe</span>
+      </div>
+      <div class="ob-step">
+        <div class="ob-dot">5</div>
+        <span class="ob-label">Calendrier</span>
+      </div>
+      <div class="ob-step">
+        <div class="ob-dot">6</div>
+        <span class="ob-label">Confirmation</span>
+      </div>
+    </div>
+    <div class="wiz-main">
+      <h3>Pour quel client ?</h3>
+      <p>S&eacute;lectionnez un client de votre portefeuille</p>
+      <div class="wiz-content">Contenu de l'&eacute;tape 2...</div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== OPTION C: Dark compact sidebar ====== -->
+<div class="section">
+  <h2>Option C — Sidebar sombre compacte avec barre de progression</h2>
+  <div class="subtitle">Sidebar vert for&ecirc;t, plus compacte, avec une barre de progression dor&eacute;e en haut</div>
+
+  <div class="wizard-frame">
+    <div class="oc-sidebar">
+      <div class="oc-progress">
+        <div class="oc-progress-text">&Eacute;tape 2 sur 6</div>
+        <div class="oc-progress-bar"><div class="oc-progress-fill" style="width: 33%;"></div></div>
+      </div>
+      <div class="oc-steps">
+        <div class="oc-step done" style="position: relative;"><div class="oc-dot">✓</div><span class="oc-label">Type de mission</span></div>
+        <div class="oc-step active" style="position: relative;"><div class="oc-dot">2</div><span class="oc-label">Client</span></div>
+        <div class="oc-step" style="position: relative;"><div class="oc-dot">3</div><span class="oc-label">P&eacute;rim&egrave;tre</span></div>
+        <div class="oc-step" style="position: relative;"><div class="oc-dot">4</div><span class="oc-label">&Eacute;quipe</span></div>
+        <div class="oc-step" style="position: relative;"><div class="oc-dot">5</div><span class="oc-label">Calendrier</span></div>
+        <div class="oc-step" style="position: relative;"><div class="oc-dot">6</div><span class="oc-label">Confirmation</span></div>
+      </div>
+    </div>
+    <div class="wiz-main">
+      <h3>Pour quel client ?</h3>
+      <p>S&eacute;lectionnez un client de votre portefeuille</p>
+      <div class="wiz-content">Contenu de l'&eacute;tape 2...</div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  G&euml;stu Comply — Wizard Sidebar v2.0
+</div>
+
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Users, Mail, FileText, Check, Circle } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import type { MissionDetail, MissionMemberRow } from '../useMissionDetail'
 import type { MissionExclusion, MissionRisk, CabinetClient } from '../../../types/database.types'
@@ -102,7 +103,7 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
       {/* Success message */}
       {actionSuccess && (
         <div className="mx-4 mt-4 p-2.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 text-center">
-          &#10003; {actionSuccess}
+          <Check size={14} className="inline mr-1" />{actionSuccess}
         </div>
       )}
 
@@ -112,19 +113,19 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
         <div className="flex flex-col gap-2">
           <button onClick={onInvitePortal} disabled={actionLoading}
             className="flex items-center gap-2 px-3.5 py-2.5 border border-forest-200 rounded-lg text-xs text-forest-700 bg-forest-50 hover:bg-forest-100 hover:border-forest-300 transition-colors text-left disabled:opacity-50 font-medium">
-            <span className="w-5 text-center text-sm">&#128101;</span> Inviter au portail
+            <Users size={15} className="w-5 text-center" /> Inviter au portail
           </button>
           <button onClick={onRemindClient} disabled={actionLoading}
             className="flex items-center gap-2 px-3.5 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 transition-colors text-left disabled:opacity-50">
-            <span className="w-5 text-center text-sm">&#128231;</span> Relancer le client
+            <Mail size={15} className="w-5 text-center" /> Relancer le client
           </button>
           <button onClick={onGenerateNote} disabled={actionLoading}
             className="flex items-center gap-2 px-3.5 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 transition-colors text-left disabled:opacity-50">
-            <span className="w-5 text-center text-sm">&#128196;</span> G&eacute;n&eacute;rer la note de cadrage
+            <FileText size={15} className="w-5 text-center" /> G&eacute;n&eacute;rer la note de cadrage
           </button>
           <button onClick={onValidateScoping} disabled={actionLoading}
             className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-forest-700 text-white hover:bg-forest-900 transition-colors disabled:opacity-50">
-            <span className="w-5 text-center">&#10003;</span> Valider le cadrage
+            <Check size={15} className="w-5 text-center" /> Valider le cadrage
           </button>
         </div>
       </div>
@@ -133,7 +134,7 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
 }
 
 function CheckIcon({ done, active }: { done: boolean; active: boolean }) {
-  if (done) return <div className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px] shrink-0">&#10003;</div>
-  if (active) return <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] shrink-0">&#9679;</div>
+  if (done) return <div className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center shrink-0"><Check size={11} /></div>
+  if (active) return <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0"><Circle size={8} /></div>
   return <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-300 flex items-center justify-center text-[10px] shrink-0">&middot;</div>
 }

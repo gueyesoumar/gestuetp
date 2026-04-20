@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FileText } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useClientMissions } from './useClientMissions'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -67,7 +68,7 @@ export function ClientDocumentsPage(): JSX.Element {
         <div className="space-y-1.5">
           {docs.map((doc) => (
             <div key={doc.id} className="flex items-center gap-2.5 px-3 py-2.5 border border-gray-200 rounded-lg bg-white">
-              <span className="text-sm">&#128196;</span>
+              <FileText size={16} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{doc.fileName}</p>
                 <p className="text-[10px] text-gray-300">{doc.missionName} &middot; {new Date(doc.createdAt).toLocaleDateString('fr-FR')}</p>

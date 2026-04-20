@@ -1,3 +1,4 @@
+import { Diamond, Check } from 'lucide-react'
 import type { MissionProgress } from './useMissionProgress'
 
 interface MissionStepperProps {
@@ -27,7 +28,7 @@ export function MissionStepper({ phases, activeTab, onTabChange }: MissionSteppe
             : 'text-gray-500 hover:text-forest-700'
         }`}
       >
-        &#9670; Vue d&rsquo;ensemble
+        <Diamond size={12} /> Vue d&rsquo;ensemble
       </button>
 
       <div className="w-px h-6 bg-gray-200 mr-4 shrink-0" />
@@ -76,7 +77,7 @@ function StepDot({ state, index }: { state: 'done' | 'active' | 'locked'; index:
   const base = 'w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all'
 
   if (state === 'done') {
-    return <div className={`${base} bg-green-600 text-white`}>&#10003;</div>
+    return <div className={`${base} bg-green-600 text-white`}><Check size={14} /></div>
   }
   if (state === 'active') {
     return <div className={`${base} bg-forest-700 text-white shadow-[0_0_0_4px_theme(colors.forest.100)]`}>{index}</div>

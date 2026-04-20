@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import type { ReactNode } from 'react'
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+export function ProtectedRoute({ children }: { children: ReactNode }): JSX.Element {
   const { session, profile, loading } = useAuth()
 
   if (loading) {
@@ -17,7 +17,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />
   }
 
-  // Rediriger les clients vers le portail client
+  // Redirect clients to their portal
   if (profile && profile.role === 'client') {
     return <Navigate to="/client" replace />
   }

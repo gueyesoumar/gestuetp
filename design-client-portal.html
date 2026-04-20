@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G&euml;stu &mdash; Portail Client (multi-missions / multi-cabinets)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --warning: #E67E22; --warning-light: #FFF3E0;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .page-header p { color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 6px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge.green { background: #E8F5E8; color: var(--success); }
+  .badge.gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge.gray { background: #F3F4F6; color: var(--text-500); }
+  .badge.blue { background: var(--info-light); color: var(--info); }
+  .badge.red { background: #FDE8E8; color: var(--error); }
+  .badge.purple { background: var(--purple-light); color: var(--purple); }
+
+  /* ============ LAYOUT ============ */
+  .portal-layout { display: flex; min-height: 800px; max-width: 1400px; margin: 30px auto; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  .portal-sidebar { width: 240px; background: var(--forest-900); flex-shrink: 0; position: relative; display: flex; flex-direction: column; }
+  .portal-main { flex: 1; padding: 24px 28px; overflow-y: auto; background: var(--bg); }
+
+  /* Sidebar */
+  .ps-logo { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .ps-logo-text { font-size: 18px; font-weight: 800; color: white; }
+  .ps-logo-text span { color: var(--gold-500); }
+  .ps-logo-sub { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .ps-nav { flex: 1; padding-top: 8px; }
+  .ps-nav-section { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.25); padding: 16px 20px 6px; }
+  .ps-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; position: relative; }
+  .ps-nav-item:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.05); }
+  .ps-nav-item.active { color: white; background: rgba(255,255,255,0.1); }
+  .ps-nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold-500); }
+  .ps-nav-icon { font-size: 15px; width: 20px; text-align: center; }
+  .ps-nav-badge { margin-left: auto; font-size: 10px; font-weight: 600; background: var(--gold-500); color: var(--forest-900); padding: 1px 6px; border-radius: 99px; }
+  .ps-user { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+  .ps-user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold-500); color: var(--forest-900); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .ps-user-name { font-size: 12px; color: white; font-weight: 500; }
+  .ps-user-org { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+  /* ============ COMMON ============ */
+  .page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text-300); margin-bottom: 20px; }
+  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); margin-bottom: 10px; }
+  .cabinet-filter { display: flex; gap: 6px; margin-bottom: 16px; }
+  .cf-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 500; color: var(--text-500); background: white; cursor: pointer; transition: all 0.15s; }
+  .cf-btn:hover { border-color: var(--forest-300); }
+  .cf-btn.active { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .mission-tag { font-size: 9px; color: var(--text-300); background: #F3F4F6; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; white-space: nowrap; }
+  .cabinet-tag { font-size: 9px; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; white-space: nowrap; }
+  .cabinet-tag.a { background: var(--forest-50); color: var(--forest-700); }
+  .cabinet-tag.b { background: var(--info-light); color: var(--info); }
+
+  /* ============ VIEW: DASHBOARD ============ */
+  .dg-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .dg-kpi { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; }
+  .dg-kpi-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); }
+  .dg-kpi-value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+  .dg-kpi-sub { font-size: 10px; color: var(--text-300); margin-top: 2px; }
+
+  .pending-card { display: flex; align-items: center; gap: 12px; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
+  .pending-card:hover { border-color: var(--forest-300); }
+  .pending-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .pending-icon.quest { background: var(--purple-light); }
+  .pending-icon.doc { background: var(--gold-50); }
+  .pending-icon.review { background: var(--forest-50); }
+  .pending-text { flex: 1; min-width: 0; }
+  .pending-label { font-size: 12px; font-weight: 500; color: var(--text-900); }
+  .pending-sub { font-size: 10px; color: var(--text-300); margin-top: 1px; }
+
+  /* ============ VIEW: MISSIONS ============ */
+  .mission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .m-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: all 0.15s; }
+  .m-card:hover { border-color: var(--forest-300); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .m-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .m-card-title { font-size: 14px; font-weight: 600; color: var(--text-900); }
+  .m-card-meta { font-size: 10px; color: var(--text-300); margin-top: 3px; display: flex; gap: 10px; }
+  .m-card-cabinet { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 4px; margin-top: 6px; }
+  .m-card-bar { height: 5px; background: var(--border); border-radius: 3px; margin-top: 10px; }
+  .m-card-fill { height: 5px; border-radius: 3px; }
+  .m-card-stats { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+  .m-card-stat { font-size: 10px; color: var(--text-300); display: flex; align-items: center; gap: 3px; }
+  .m-card-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* ============ VIEW: DOCUMENTS AGREG ============ */
+  .doc-group-header { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; }
+  .doc-group-header:first-child { margin-top: 0; }
+  .doc-group-title { font-size: 12px; font-weight: 600; color: var(--text-700); }
+  .doc-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; background: white; transition: all 0.15s; }
+  .doc-item:hover { border-color: var(--forest-300); }
+  .doc-item.pending { border-left: 3px solid var(--gold-500); }
+  .doc-item.done { border-left: 3px solid var(--success); }
+  .doc-icon { font-size: 16px; flex-shrink: 0; }
+  .doc-info { flex: 1; min-width: 0; }
+  .doc-name { font-size: 12px; font-weight: 500; color: var(--text-900); }
+  .doc-ctrl { font-size: 10px; color: var(--text-300); }
+  .doc-btn { padding: 5px 12px; border: 1px solid var(--forest-300); border-radius: 6px; font-size: 10px; font-weight: 600; color: var(--forest-700); background: var(--forest-50); cursor: pointer; flex-shrink: 0; }
+  .doc-btn:hover { background: var(--forest-100); }
+
+  /* Filter tabs */
+  .filter-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .ft-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 500; color: var(--text-500); background: white; cursor: pointer; }
+  .ft-btn.active { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .ft-count { font-size: 10px; font-weight: 600; margin-left: 3px; opacity: 0.7; }
+
+  /* ============ VIEW: VALIDATIONS AGREG ============ */
+  .rv-card { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; background: white; transition: all 0.15s; }
+  .rv-card:hover { border-color: var(--forest-300); }
+  .rv-top { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .rv-code { font-family: 'JetBrains Mono'; font-size: 11px; font-weight: 600; color: var(--forest-700); }
+  .rv-name { font-size: 12px; font-weight: 600; color: var(--text-900); flex: 1; }
+  .rv-body { padding: 12px 14px; font-size: 12px; color: var(--text-700); line-height: 1.6; }
+  .rv-risk { margin-top: 8px; padding: 8px 12px; border-radius: 6px; font-size: 11px; line-height: 1.5; }
+  .rv-risk.high { background: #FDE8E8; border-left: 3px solid var(--error); color: var(--error); }
+  .rv-risk.medium { background: var(--warning-light); border-left: 3px solid var(--warning); color: var(--warning); }
+  .rv-actions { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); background: #FAFAFA; }
+  .rv-comment { flex: 1; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; outline: none; font-family: 'Inter'; }
+  .rv-approve { padding: 7px 16px; background: var(--success); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .rv-reject { padding: 7px 16px; background: white; color: var(--error); border: 1px solid var(--error); border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; }
+
+  /* ============ VIEW: DETAIL MISSION ============ */
+  .detail-back { font-size: 12px; color: var(--forest-700); cursor: pointer; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 4px; }
+  .detail-back:hover { color: var(--forest-900); }
+  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .detail-title { font-size: 18px; font-weight: 700; color: var(--text-900); }
+  .detail-meta { font-size: 12px; color: var(--text-300); margin-top: 4px; display: flex; gap: 14px; }
+  .detail-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .dt-btn { padding: 8px 16px; font-size: 12px; font-weight: 500; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text-500); cursor: pointer; }
+  .dt-btn.active { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .dt-cnt { font-size: 10px; font-weight: 600; margin-left: 4px; background: rgba(0,0,0,0.1); padding: 0 5px; border-radius: 99px; }
+  .dt-btn.active .dt-cnt { background: rgba(255,255,255,0.2); }
+
+  .rp-card { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: white; }
+  .rp-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .rp-icon.pdf { background: #FDE8E8; }
+  .rp-icon.pptx { background: var(--warning-light); }
+  .rp-info { flex: 1; }
+  .rp-title { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .rp-meta { font-size: 10px; color: var(--text-300); margin-top: 1px; }
+  .rp-dl { padding: 7px 16px; background: var(--forest-700); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+
+  /* Hidden views */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ============ SMART INTERVIEW STEPPER ============ */
+  .qi-step { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 2px solid var(--border); color: var(--text-300); background: white; flex-shrink: 0; }
+  .qi-step.done { background: var(--success); border-color: var(--success); color: white; }
+  .qi-step.active { background: var(--forest-700); border-color: var(--forest-700); color: white; }
+  .qi-step-line { flex: 1; height: 2px; background: var(--border); }
+  .qi-step-line.done { background: var(--success); }
+  .qi-step-line.active { background: linear-gradient(90deg, var(--success), var(--border)); }
+  .qi-step-label { font-size: 10px; font-weight: 500; color: var(--text-300); text-align: center; flex: 1; }
+  .qi-step-label.done { color: var(--success); }
+  .qi-step-label.active { color: var(--forest-700); font-weight: 600; }
+  .qi-panel { }
+
+  /* ============ NOTIFICATIONS ============ */
+  .notif-card { display: flex; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; background: white; cursor: pointer; transition: all 0.15s; }
+  .notif-card:hover { border-color: var(--forest-300); }
+  .notif-card.unread { background: var(--forest-50); border-color: var(--forest-200, #B7E4C7); }
+  .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest-500); margin-top: 4px; flex-shrink: 0; }
+  .notif-dot.read { background: transparent; }
+  .notif-body { flex: 1; }
+  .notif-title { font-size: 12px; font-weight: 500; color: var(--text-900); }
+  .notif-desc { font-size: 11px; color: var(--text-300); margin-top: 2px; line-height: 1.4; }
+  .notif-time { font-size: 10px; color: var(--text-300); flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Portail Client (Option A : sidebar globale + vues agr&eacute;g&eacute;es)</h1>
+  <p>Sidebar = navigation globale cross-missions &middot; D&eacute;tail mission = sous-onglets dans le contenu principal</p>
+</div>
+
+<div class="portal-layout">
+  <!-- ==================== SIDEBAR ==================== -->
+  <div class="portal-sidebar">
+    <div class="ps-logo">
+      <div class="ps-logo-text">G&euml;stu<span>.</span></div>
+      <div class="ps-logo-sub">Portail Client</div>
+    </div>
+
+    <div class="ps-nav">
+      <div class="ps-nav-item active" onclick="switchView('dashboard')">
+        <span class="ps-nav-icon">&#9776;</span> Tableau de bord
+      </div>
+      <div class="ps-nav-item" onclick="switchView('missions')">
+        <span class="ps-nav-icon">&#128203;</span> Mes missions
+        <span class="ps-nav-badge">3</span>
+      </div>
+
+      <div class="ps-nav-section">Actions</div>
+      <div class="ps-nav-item" onclick="switchView('documents')">
+        <span class="ps-nav-icon">&#128206;</span> Documents
+        <span class="ps-nav-badge">5</span>
+      </div>
+      <div class="ps-nav-item" onclick="switchView('validations')">
+        <span class="ps-nav-icon">&#10003;</span> Validations
+        <span class="ps-nav-badge">12</span>
+      </div>
+
+      <div class="ps-nav-section">Autre</div>
+      <div class="ps-nav-item" onclick="switchView('notifications')">
+        <span class="ps-nav-icon">&#128276;</span> Notifications
+        <span class="ps-nav-badge">4</span>
+      </div>
+    </div>
+
+    <div class="ps-user">
+      <div class="ps-user-avatar">AD</div>
+      <div><div class="ps-user-name">Amadou Diop</div><div class="ps-user-org">Groupe ISM &middot; RSSI</div></div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <div class="portal-main">
+
+    <!-- ============ VIEW 1: DASHBOARD ============ -->
+    <div class="view active" id="view-dashboard">
+      <h2 class="page-title">Bonjour, Amadou</h2>
+      <p class="page-sub">3 missions d&rsquo;audit en cours avec 2 cabinets &middot; 9 actions en attente</p>
+
+      <div class="dg-kpis">
+        <div class="dg-kpi">
+          <div class="dg-kpi-label">Missions actives</div>
+          <div class="dg-kpi-value" style="color:var(--forest-700);">3</div>
+          <div class="dg-kpi-sub">2 cabinets</div>
+        </div>
+        <div class="dg-kpi">
+          <div class="dg-kpi-label">Documents en attente</div>
+          <div class="dg-kpi-value" style="color:var(--gold-500);">5</div>
+          <div class="dg-kpi-sub">toutes missions</div>
+        </div>
+        <div class="dg-kpi">
+          <div class="dg-kpi-label">Questionnaires</div>
+          <div class="dg-kpi-value" style="color:var(--purple);">2</div>
+          <div class="dg-kpi-sub">&agrave; compl&eacute;ter</div>
+        </div>
+        <div class="dg-kpi">
+          <div class="dg-kpi-label">Constats &agrave; valider</div>
+          <div class="dg-kpi-value" style="color:var(--warning);">12</div>
+          <div class="dg-kpi-sub">toutes missions</div>
+        </div>
+      </div>
+
+      <p class="section-label">Actions en attente</p>
+
+      <div class="pending-card" onclick="switchView('documents')">
+        <div class="pending-icon doc">&#128206;</div>
+        <div class="pending-text">
+          <div class="pending-label">5 documents &agrave; d&eacute;poser</div>
+          <div class="pending-sub">3 pour ISO 27001 &middot; 2 pour RGPD</div>
+        </div>
+        <span class="mission-tag">Cross-missions</span>
+        <span style="font-size:11px;font-weight:600;color:var(--forest-700);">&rarr;</span>
+      </div>
+
+      <div class="pending-card" onclick="switchView('validations')">
+        <div class="pending-icon review">&#10003;</div>
+        <div class="pending-text">
+          <div class="pending-label">12 constats &agrave; valider</div>
+          <div class="pending-sub">Envoy&eacute;s par G&euml;stu Comply &middot; Mission ISO 27001</div>
+        </div>
+        <span class="mission-tag">ISO 27001</span>
+        <span style="font-size:11px;font-weight:600;color:var(--forest-700);">&rarr;</span>
+      </div>
+
+      <div class="pending-card">
+        <div class="pending-icon quest">&#128221;</div>
+        <div class="pending-text">
+          <div class="pending-label">Questionnaire ISO 27001</div>
+          <div class="pending-sub">6 questions restantes sur 14</div>
+        </div>
+        <span class="mission-tag">ISO 27001</span>
+        <span style="font-size:11px;font-weight:600;color:var(--forest-700);">&rarr;</span>
+      </div>
+
+      <div class="pending-card">
+        <div class="pending-icon quest">&#128221;</div>
+        <div class="pending-text">
+          <div class="pending-label">Questionnaire RGPD</div>
+          <div class="pending-sub">Non commenc&eacute;</div>
+        </div>
+        <span class="mission-tag">RGPD</span>
+        <span style="font-size:11px;font-weight:600;color:var(--forest-700);">&rarr;</span>
+      </div>
+
+      <!-- Recent missions preview -->
+      <p class="section-label" style="margin-top:24px;">Missions r&eacute;centes</p>
+      <div class="mission-grid">
+        <div class="m-card" onclick="switchView('detail')">
+          <div class="m-card-top">
+            <div>
+              <div class="m-card-title">ISO 27001 &mdash; Audit de conformit&eacute;</div>
+              <div class="m-card-meta"><span>&#128197; 13 avr &rarr; 13 mai 2026</span></div>
+            </div>
+            <span class="badge blue">Travaux</span>
+          </div>
+          <div class="m-card-cabinet cabinet-tag a">&#127970; G&euml;stu Comply</div>
+          <div class="m-card-bar"><div class="m-card-fill" style="width:45%;background:var(--forest-500);"></div></div>
+        </div>
+        <div class="m-card">
+          <div class="m-card-top">
+            <div>
+              <div class="m-card-title">RGPD &mdash; Conformit&eacute; donn&eacute;es</div>
+              <div class="m-card-meta"><span>&#128197; 1 mai &rarr; 30 mai 2026</span></div>
+            </div>
+            <span class="badge gold">Cadrage</span>
+          </div>
+          <div class="m-card-cabinet cabinet-tag a">&#127970; G&euml;stu Comply</div>
+          <div class="m-card-bar"><div class="m-card-fill" style="width:15%;background:var(--gold-500);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VIEW 2: MES MISSIONS ============ -->
+    <div class="view" id="view-missions">
+      <h2 class="page-title">Mes missions</h2>
+      <p class="page-sub">Toutes vos missions d&rsquo;audit, tous cabinets confondus</p>
+
+      <div class="cabinet-filter">
+        <button class="cf-btn active">Tous (3)</button>
+        <button class="cf-btn">G&euml;stu Comply (2)</button>
+        <button class="cf-btn">KPMG S&eacute;n&eacute;gal (1)</button>
+      </div>
+
+      <div class="mission-grid">
+        <div class="m-card" onclick="switchView('detail')">
+          <div class="m-card-top">
+            <div>
+              <div class="m-card-title">ISO/IEC 27001 &mdash; Audit de conformit&eacute;</div>
+              <div class="m-card-meta">
+                <span>&#128197; 13 avr &rarr; 13 mai 2026</span>
+                <span>&#128101; 3 auditeurs</span>
+              </div>
+            </div>
+            <span class="badge blue">Travaux</span>
+          </div>
+          <div class="m-card-cabinet cabinet-tag a">&#127970; G&euml;stu Comply</div>
+          <div class="m-card-bar"><div class="m-card-fill" style="width:45%;background:var(--forest-500);"></div></div>
+          <div class="m-card-stats">
+            <span class="m-card-stat"><span class="m-card-dot" style="background:var(--gold-500);"></span> 3 docs en attente</span>
+            <span class="m-card-stat"><span class="m-card-dot" style="background:var(--warning);"></span> 12 constats</span>
+          </div>
+        </div>
+
+        <div class="m-card">
+          <div class="m-card-top">
+            <div>
+              <div class="m-card-title">Audit RGPD &mdash; Conformit&eacute; donn&eacute;es</div>
+              <div class="m-card-meta">
+                <span>&#128197; 1 mai &rarr; 30 mai 2026</span>
+                <span>&#128101; 2 auditeurs</span>
+              </div>
+            </div>
+            <span class="badge gold">Cadrage</span>
+          </div>
+          <div class="m-card-cabinet cabinet-tag a">&#127970; G&euml;stu Comply</div>
+          <div class="m-card-bar"><div class="m-card-fill" style="width:15%;background:var(--gold-500);"></div></div>
+          <div class="m-card-stats">
+            <span class="m-card-stat"><span class="m-card-dot" style="background:var(--purple);"></span> Questionnaire &agrave; compl&eacute;ter</span>
+          </div>
+        </div>
+
+        <div class="m-card">
+          <div class="m-card-top">
+            <div>
+              <div class="m-card-title">PCI-DSS &mdash; S&eacute;curit&eacute; des paiements</div>
+              <div class="m-card-meta">
+                <span>&#128197; 20 mars &rarr; 20 avr 2026</span>
+                <span>&#128101; 4 auditeurs</span>
+              </div>
+            </div>
+            <span class="badge green">Cl&ocirc;tur&eacute;</span>
+          </div>
+          <div class="m-card-cabinet cabinet-tag b">&#127970; KPMG S&eacute;n&eacute;gal</div>
+          <div class="m-card-bar"><div class="m-card-fill" style="width:100%;background:var(--success);"></div></div>
+          <div class="m-card-stats">
+            <span class="m-card-stat"><span class="m-card-dot" style="background:var(--success);"></span> Score : 82%</span>
+            <span class="m-card-stat"><span class="m-card-dot" style="background:var(--success);"></span> Rapport disponible</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VIEW 3: DOCUMENTS (agr&eacute;g&eacute;s cross-missions) ============ -->
+    <div class="view" id="view-documents">
+      <h2 class="page-title">Documents</h2>
+      <p class="page-sub">Tous les documents demand&eacute;s et d&eacute;pos&eacute;s, toutes missions confondues</p>
+
+      <div class="filter-tabs">
+        <button class="ft-btn active">En attente<span class="ft-count">5</span></button>
+        <button class="ft-btn">D&eacute;pos&eacute;s<span class="ft-count">8</span></button>
+        <button class="ft-btn">Tous<span class="ft-count">13</span></button>
+      </div>
+
+      <div class="cabinet-filter">
+        <button class="cf-btn active">Toutes les missions</button>
+        <button class="cf-btn">ISO 27001</button>
+        <button class="cf-btn">RGPD</button>
+        <button class="cf-btn">PCI-DSS</button>
+      </div>
+
+      <!-- Group: ISO 27001 -->
+      <div class="doc-group-header">
+        <div class="doc-group-title">ISO 27001 &mdash; Audit de conformit&eacute;</div>
+        <span class="cabinet-tag a">G&euml;stu Comply</span>
+        <span class="badge gold">3 en attente</span>
+      </div>
+
+      <div class="doc-item pending">
+        <span class="doc-icon">&#128203;</span>
+        <div class="doc-info">
+          <div class="doc-name">Rapport d&rsquo;audit PCI-DSS 2024</div>
+          <div class="doc-ctrl">A.5.1 &middot; Politiques SSI &middot; Demand&eacute; le 10 avr</div>
+        </div>
+        <span class="mission-tag">ISO 27001</span>
+        <button class="doc-btn">&#128206; D&eacute;poser</button>
+      </div>
+      <div class="doc-item pending">
+        <span class="doc-icon">&#128203;</span>
+        <div class="doc-info">
+          <div class="doc-name">Plan de continuit&eacute; d&rsquo;activit&eacute; (PCA)</div>
+          <div class="doc-ctrl">A.5.30 &middot; Continuit&eacute; &middot; Demand&eacute; le 10 avr</div>
+        </div>
+        <span class="mission-tag">ISO 27001</span>
+        <button class="doc-btn">&#128206; D&eacute;poser</button>
+      </div>
+      <div class="doc-item pending">
+        <span class="doc-icon">&#128203;</span>
+        <div class="doc-info">
+          <div class="doc-name">Politique gestion des acc&egrave;s</div>
+          <div class="doc-ctrl">A.5.15 &middot; Gestion des acc&egrave;s &middot; Demand&eacute; le 10 avr</div>
+        </div>
+        <span class="mission-tag">ISO 27001</span>
+        <button class="doc-btn">&#128206; D&eacute;poser</button>
+      </div>
+
+      <!-- Group: RGPD -->
+      <div class="doc-group-header">
+        <div class="doc-group-title">RGPD &mdash; Conformit&eacute; donn&eacute;es</div>
+        <span class="cabinet-tag a">G&euml;stu Comply</span>
+        <span class="badge gold">2 en attente</span>
+      </div>
+
+      <div class="doc-item pending">
+        <span class="doc-icon">&#128203;</span>
+        <div class="doc-info">
+          <div class="doc-name">Registre des traitements</div>
+          <div class="doc-ctrl">Art. 30 &middot; Demand&eacute; le 2 mai</div>
+        </div>
+        <span class="mission-tag">RGPD</span>
+        <button class="doc-btn">&#128206; D&eacute;poser</button>
+      </div>
+      <div class="doc-item pending">
+        <span class="doc-icon">&#128203;</span>
+        <div class="doc-info">
+          <div class="doc-name">PIA / Analyse d&rsquo;impact</div>
+          <div class="doc-ctrl">Art. 35 &middot; Demand&eacute; le 2 mai</div>
+        </div>
+        <span class="mission-tag">RGPD</span>
+        <button class="doc-btn">&#128206; D&eacute;poser</button>
+      </div>
+
+      <!-- Already deposited (collapsed) -->
+      <div style="margin-top:24px;padding:14px;background:white;border:1px solid var(--border);border-radius:10px;color:var(--text-300);font-size:12px;text-align:center;cursor:pointer;">
+        &#10003; 8 documents d&eacute;j&agrave; d&eacute;pos&eacute;s &mdash; <span style="color:var(--forest-700);font-weight:500;">Voir tout</span>
+      </div>
+    </div>
+
+    <!-- ============ VIEW 4: VALIDATIONS (agr&eacute;g&eacute;es cross-missions) ============ -->
+    <div class="view" id="view-validations">
+      <h2 class="page-title">Validations</h2>
+      <p class="page-sub">Constats d&rsquo;audit &agrave; examiner, toutes missions confondues</p>
+
+      <div class="filter-tabs">
+        <button class="ft-btn active">&Agrave; valider<span class="ft-count">12</span></button>
+        <button class="ft-btn">Approuv&eacute;s<span class="ft-count">8</span></button>
+        <button class="ft-btn">Contest&eacute;s<span class="ft-count">2</span></button>
+        <button class="ft-btn">Tous<span class="ft-count">22</span></button>
+      </div>
+
+      <div class="cabinet-filter">
+        <button class="cf-btn active">Toutes les missions</button>
+        <button class="cf-btn">ISO 27001 (12)</button>
+        <button class="cf-btn">PCI-DSS (0)</button>
+      </div>
+
+      <!-- Constat 1 -->
+      <div class="rv-card">
+        <div class="rv-top">
+          <span class="rv-code">A.5.1</span>
+          <span class="rv-name">Politiques de s&eacute;curit&eacute; de l&rsquo;information</span>
+          <span class="mission-tag">ISO 27001</span>
+          <span class="cabinet-tag a">G&euml;stu Comply</span>
+          <span class="badge gold">&Agrave; valider</span>
+        </div>
+        <div class="rv-body">
+          La PSSI v2 couvre les 14 domaines ISO 27001. Diffusion &agrave; 85% des collaborateurs. 15% non couverts (nouveaux employ&eacute;s depuis Q3 2025).
+          <div class="rv-risk medium">&#9888; Risque : non-conformit&eacute; partielle &agrave; l&rsquo;exigence de diffusion syst&eacute;matique.</div>
+        </div>
+        <div class="rv-actions">
+          <input class="rv-comment" placeholder="Votre commentaire (optionnel)...">
+          <button class="rv-approve">&#10003; Approuver</button>
+          <button class="rv-reject">&#10007; Contester</button>
+        </div>
+      </div>
+
+      <!-- Constat 2 -->
+      <div class="rv-card">
+        <div class="rv-top">
+          <span class="rv-code">A.5.3</span>
+          <span class="rv-name">S&eacute;paration des t&acirc;ches</span>
+          <span class="mission-tag">ISO 27001</span>
+          <span class="cabinet-tag a">G&euml;stu Comply</span>
+          <span class="badge gold">&Agrave; valider</span>
+        </div>
+        <div class="rv-body">
+          Pas de matrice RACI formelle. Le responsable IT cumule les r&ocirc;les d&rsquo;administrateur et de validateur.
+          <div class="rv-risk high">&#9888; Risque &eacute;lev&eacute; de fraude ou abus de privil&egrave;ges non d&eacute;tect&eacute;.</div>
+        </div>
+        <div class="rv-actions">
+          <input class="rv-comment" placeholder="Votre commentaire (optionnel)...">
+          <button class="rv-approve">&#10003; Approuver</button>
+          <button class="rv-reject">&#10007; Contester</button>
+        </div>
+      </div>
+
+      <!-- Constat 3 -->
+      <div class="rv-card">
+        <div class="rv-top">
+          <span class="rv-code">A.5.15</span>
+          <span class="rv-name">Contr&ocirc;le d&rsquo;acc&egrave;s</span>
+          <span class="mission-tag">ISO 27001</span>
+          <span class="cabinet-tag a">G&euml;stu Comply</span>
+          <span class="badge gold">&Agrave; valider</span>
+        </div>
+        <div class="rv-body">
+          Revue des droits effectu&eacute;e semestriellement. Comptes dormants &gt; 90 jours d&eacute;sactiv&eacute;s automatiquement. Pas de MFA sur les acc&egrave;s VPN.
+          <div class="rv-risk medium">&#9888; Risque mod&eacute;r&eacute; : absence de MFA sur le VPN expose les acc&egrave;s distants.</div>
+        </div>
+        <div class="rv-actions">
+          <input class="rv-comment" placeholder="Votre commentaire (optionnel)...">
+          <button class="rv-approve">&#10003; Approuver</button>
+          <button class="rv-reject">&#10007; Contester</button>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:12px;color:var(--text-300);font-size:12px;">
+        + 9 autres constats &agrave; valider
+      </div>
+    </div>
+
+    <!-- ============ VIEW 5: NOTIFICATIONS ============ -->
+    <div class="view" id="view-notifications">
+      <h2 class="page-title">Notifications</h2>
+      <p class="page-sub">Activit&eacute; r&eacute;cente sur vos missions</p>
+
+      <div class="notif-card unread">
+        <div class="notif-dot"></div>
+        <div class="notif-body">
+          <div class="notif-title">12 nouveaux constats &agrave; valider</div>
+          <div class="notif-desc">G&euml;stu Comply a soumis des constats pour la mission ISO 27001. Consultez l&rsquo;onglet Validations.</div>
+        </div>
+        <div>
+          <div class="notif-time">Il y a 2h</div>
+          <span class="mission-tag" style="margin-top:4px;display:block;">ISO 27001</span>
+        </div>
+      </div>
+
+      <div class="notif-card unread">
+        <div class="notif-dot"></div>
+        <div class="notif-body">
+          <div class="notif-title">Questionnaire RGPD envoy&eacute;</div>
+          <div class="notif-desc">Un nouveau questionnaire de prise de connaissance a &eacute;t&eacute; envoy&eacute; pour la mission RGPD.</div>
+        </div>
+        <div>
+          <div class="notif-time">Il y a 5h</div>
+          <span class="mission-tag" style="margin-top:4px;display:block;">RGPD</span>
+        </div>
+      </div>
+
+      <div class="notif-card unread">
+        <div class="notif-dot"></div>
+        <div class="notif-body">
+          <div class="notif-title">3 documents demand&eacute;s</div>
+          <div class="notif-desc">G&euml;stu Comply demande 3 documents suppl&eacute;mentaires pour la mission ISO 27001.</div>
+        </div>
+        <div>
+          <div class="notif-time">Hier</div>
+          <span class="mission-tag" style="margin-top:4px;display:block;">ISO 27001</span>
+        </div>
+      </div>
+
+      <div class="notif-card">
+        <div class="notif-dot read"></div>
+        <div class="notif-body">
+          <div class="notif-title">Rapport PCI-DSS disponible</div>
+          <div class="notif-desc">Le rapport final de la mission PCI-DSS est disponible au t&eacute;l&eacute;chargement.</div>
+        </div>
+        <div>
+          <div class="notif-time">3 avr</div>
+          <span class="mission-tag" style="margin-top:4px;display:block;">PCI-DSS</span>
+        </div>
+      </div>
+
+      <div class="notif-card">
+        <div class="notif-dot read"></div>
+        <div class="notif-body">
+          <div class="notif-title">Mission PCI-DSS cl&ocirc;tur&eacute;e</div>
+          <div class="notif-desc">KPMG S&eacute;n&eacute;gal a cl&ocirc;tur&eacute; la mission PCI-DSS. Score final : 82%.</div>
+        </div>
+        <div>
+          <div class="notif-time">28 mars</div>
+          <span class="mission-tag" style="margin-top:4px;display:block;">PCI-DSS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VIEW 6: DETAIL MISSION ============ -->
+    <div class="view" id="view-detail">
+      <a class="detail-back" onclick="switchView('missions')">&larr; Retour aux missions</a>
+
+      <div class="detail-header">
+        <div>
+          <div class="detail-title">ISO/IEC 27001 &mdash; Audit de conformit&eacute;</div>
+          <div class="detail-meta">
+            <span>&#127970; G&euml;stu Comply</span>
+            <span>&#128196; ISO 27001 v2022</span>
+            <span>&#128197; 13 avr &rarr; 13 mai 2026</span>
+          </div>
+        </div>
+        <span class="badge blue">Travaux terrain</span>
+      </div>
+
+      <div class="detail-tabs" id="detail-tabs">
+        <button class="dt-btn active" onclick="showDetailTab('dashboard')">Tableau de bord</button>
+        <button class="dt-btn" onclick="showDetailTab('exchanges')">&Eacute;changes <span class="dt-cnt">8</span></button>
+        <button class="dt-btn" onclick="showDetailTab('results')">R&eacute;sultats <span class="dt-cnt">12</span></button>
+        <button class="dt-btn" onclick="showDetailTab('reports')">Rapports</button>
+      </div>
+
+      <!-- ============ TAB 1: TABLEAU DE BORD ============ -->
+      <div id="dtab-dashboard">
+
+        <!-- Timeline + Next actions side by side -->
+        <div style="display:flex;gap:16px;margin-bottom:16px;">
+
+          <!-- Timeline -->
+          <div style="flex:1;background:white;border:1px solid var(--border);border-radius:12px;padding:18px;">
+            <p style="font-size:13px;font-weight:700;margin-bottom:12px;">Timeline de la mission</p>
+            <div style="position:relative;padding-left:22px;">
+              <div style="position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:linear-gradient(to bottom,var(--success) 0%,var(--success) 35%,var(--forest-500) 35%,var(--forest-500) 50%,var(--border) 50%);"></div>
+
+              <div style="position:relative;margin-bottom:14px;">
+                <div style="position:absolute;left:-18px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--success);"></div>
+                <div style="display:flex;justify-content:space-between;">
+                  <p style="font-size:12px;font-weight:600;">Cadrage</p>
+                  <p style="font-size:10px;color:var(--success);">Termin&eacute;</p>
+                </div>
+                <p style="font-size:10px;color:var(--text-300);">13 &mdash; 20 avr</p>
+              </div>
+
+              <div style="position:relative;margin-bottom:14px;">
+                <div style="position:absolute;left:-18px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--success);"></div>
+                <div style="display:flex;justify-content:space-between;">
+                  <p style="font-size:12px;font-weight:600;">Planification</p>
+                  <p style="font-size:10px;color:var(--success);">Termin&eacute;</p>
+                </div>
+                <p style="font-size:10px;color:var(--text-300);">20 &mdash; 22 avr</p>
+              </div>
+
+              <div style="position:relative;margin-bottom:14px;">
+                <div style="position:absolute;left:-18px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--forest-500);border:2px solid var(--forest-700);"></div>
+                <div style="background:var(--forest-50);margin:-4px -6px;padding:4px 6px;border-radius:6px;border:1px solid var(--forest-100);">
+                  <div style="display:flex;justify-content:space-between;">
+                    <p style="font-size:12px;font-weight:700;color:var(--forest-900);">Travaux terrain</p>
+                    <p style="font-size:10px;font-weight:600;color:var(--forest-700);">En cours</p>
+                  </div>
+                  <p style="font-size:10px;color:var(--forest-700);">22 avr &mdash; 2 mai</p>
+                </div>
+              </div>
+
+              <div style="position:relative;margin-bottom:14px;opacity:0.4;">
+                <div style="position:absolute;left:-18px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--border);"></div>
+                <p style="font-size:12px;font-weight:500;">Revue interne</p>
+                <p style="font-size:10px;color:var(--text-300);">2 &mdash; 5 mai</p>
+              </div>
+
+              <div style="position:relative;margin-bottom:14px;opacity:0.4;">
+                <div style="position:absolute;left:-18px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--border);"></div>
+                <p style="font-size:12px;font-weight:500;">Validation client</p>
+                <p style="font-size:10px;color:var(--text-300);">5 &mdash; 9 mai</p>
+              </div>
+
+              <div style="position:relative;opacity:0.4;">
+                <div style="position:absolute;left:-18px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--border);"></div>
+                <p style="font-size:12px;font-weight:500;">Restitution</p>
+                <p style="font-size:10px;color:var(--text-300);">12 mai</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Next actions + team -->
+          <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+            <!-- Next actions -->
+            <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:18px;flex:1;">
+              <p style="font-size:13px;font-weight:700;margin-bottom:10px;">Prochaines &eacute;ch&eacute;ances</p>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--gold-50);border:1px solid var(--gold-200);border-radius:8px;">
+                  <span style="font-size:12px;">&#128197;</span>
+                  <div style="flex:1;">
+                    <p style="font-size:11px;font-weight:600;">Entretien Gouvernance SSI</p>
+                    <p style="font-size:10px;color:var(--gold-600);">Demain, 10h00</p>
+                  </div>
+                  <span class="badge gold">Demain</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;">
+                  <span style="font-size:12px;">&#128206;</span>
+                  <div style="flex:1;">
+                    <p style="font-size:11px;font-weight:600;">D&eacute;poser PCA + inventaire</p>
+                    <p style="font-size:10px;color:var(--text-300);">Avant le 28 avr</p>
+                  </div>
+                  <span class="badge gray">5j</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;">
+                  <span style="font-size:12px;">&#10003;</span>
+                  <div style="flex:1;">
+                    <p style="font-size:11px;font-weight:600;">Valider les constats</p>
+                    <p style="font-size:10px;color:var(--text-300);">Estim&eacute; : 5 mai</p>
+                  </div>
+                  <span class="badge gray">~2 sem.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audit team -->
+            <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <p style="font-size:13px;font-weight:700;margin-bottom:10px;">&Eacute;quipe d&rsquo;audit</p>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:var(--forest-700);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">MN</div>
+                  <div><p style="font-size:11px;font-weight:600;">M. Moussa Ndiaye</p><p style="font-size:9px;color:var(--text-300);">Chef de mission</p></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:var(--forest-500);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">FS</div>
+                  <div><p style="font-size:11px;font-weight:600;">Mme Fatou Sow</p><p style="font-size:9px;color:var(--text-300);">Auditrice senior</p></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:var(--forest-300);color:var(--forest-900);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">AB</div>
+                  <div><p style="font-size:11px;font-weight:600;">M. Aliou Ba</p><p style="font-size:9px;color:var(--text-300);">Auditeur junior</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 2: ÉCHANGES (Documents + Questionnaire + Entretiens) ============ -->
+      <div id="dtab-exchanges" style="display:none;">
+
+        <!-- SECTION: Documents -->
+        <div style="margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span style="font-size:14px;">&#128206;</span>
+            <p style="font-size:14px;font-weight:700;">Documents</p>
+            <span class="badge gold">2 en attente</span>
+            <span class="badge green">4 d&eacute;pos&eacute;s</span>
+            <span style="margin-left:auto;font-size:10px;color:var(--text-300);">6 docs couvrent 28 contr&ocirc;les sur 93</span>
+          </div>
+
+          <!-- Upload zone compact -->
+          <div style="border:2px dashed var(--forest-300);border-radius:10px;padding:16px;text-align:center;background:var(--forest-50);cursor:pointer;margin-bottom:10px;" onmouseover="this.style.borderColor='var(--forest-500)'" onmouseout="this.style.borderColor='var(--forest-300)'">
+            <span style="font-size:16px;">&#128206;</span>
+            <span style="font-size:12px;font-weight:600;color:var(--forest-900);margin-left:8px;">Glissez vos fichiers ici</span>
+            <span style="font-size:11px;color:var(--text-500);margin-left:4px;">ou <span style="color:var(--forest-700);font-weight:600;">parcourez</span></span>
+          </div>
+
+          <!-- AI banner -->
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--gold-50);border:1px solid var(--gold-200);border-radius:8px;margin-bottom:10px;">
+            <span style="font-size:12px;">&#10024;</span>
+            <p style="font-size:10px;color:var(--gold-600);flex:1;"><b>Analyse IA active</b> &mdash; Les documents d&eacute;pos&eacute;s pr&eacute;-remplissent automatiquement votre questionnaire.</p>
+          </div>
+
+          <!-- Pending docs -->
+          <div class="doc-item pending">
+            <span class="doc-icon">&#128213;</span>
+            <div class="doc-info">
+              <div class="doc-name">Plan de Continuit&eacute; (PCA/PRA)</div>
+              <div style="display:flex;gap:3px;margin-top:2px;"><span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.29</span><span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.30</span></div>
+            </div>
+            <button class="doc-btn">&#128206; D&eacute;poser</button>
+          </div>
+          <div class="doc-item pending">
+            <span class="doc-icon">&#128202;</span>
+            <div class="doc-info">
+              <div class="doc-name">Inventaire des actifs informationnels</div>
+              <div style="display:flex;gap:3px;margin-top:2px;"><span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.9</span><span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.10</span><span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.11</span></div>
+            </div>
+            <button class="doc-btn">&#128206; D&eacute;poser</button>
+          </div>
+
+          <!-- Deposited (collapsed) -->
+          <div style="margin-top:6px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <span style="font-size:10px;color:var(--success);">&#10003;</span>
+            <p style="font-size:11px;color:var(--text-500);flex:1;">4 documents d&eacute;pos&eacute;s et analys&eacute;s (PSSI, Organigramme, Politique acc&egrave;s, Proc&eacute;dure incidents)</p>
+            <span style="font-size:10px;color:var(--forest-700);font-weight:500;">Voir &darr;</span>
+          </div>
+        </div>
+
+        <!-- SECTION: Questionnaire -->
+        <div style="margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span style="font-size:14px;">&#128221;</span>
+            <p style="font-size:14px;font-weight:700;">Questionnaire</p>
+            <span class="badge purple">6 restantes</span>
+            <span class="badge green">8 r&eacute;pondues</span>
+          </div>
+
+          <!-- Progress + AI prefill banner -->
+          <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:44px;height:44px;border-radius:50%;border:3px solid var(--forest-500);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="font-size:13px;font-weight:700;color:var(--forest-700);">8/14</span>
+              </div>
+              <div style="flex:1;">
+                <p style="font-size:12px;font-weight:600;">8 r&eacute;ponses pr&eacute;-remplies par l&rsquo;IA depuis vos documents</p>
+                <p style="font-size:10px;color:var(--text-300);">Validez les suggestions ou r&eacute;pondez aux 6 questions restantes</p>
+              </div>
+              <div style="height:6px;width:120px;background:var(--border);border-radius:3px;flex-shrink:0;"><div style="height:6px;width:57%;background:var(--forest-500);border-radius:3px;"></div></div>
+            </div>
+
+            <!-- 2 sample pre-filled answers -->
+            <div style="border:1px solid var(--forest-100);border-radius:8px;padding:8px 12px;margin-bottom:6px;background:var(--forest-50);display:flex;align-items:center;gap:8px;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;color:var(--forest-700);">A.5.1</span>
+              <p style="font-size:11px;flex:1;">PSSI v3.2 valid&eacute;e, 14 domaines, approuv&eacute;e par la DG</p>
+              <span style="font-size:8px;font-weight:600;background:var(--forest-100);color:var(--forest-700);padding:1px 6px;border-radius:99px;">95%</span>
+              <button style="padding:3px 10px;background:var(--success);color:white;border:none;border-radius:5px;font-size:9px;font-weight:600;cursor:pointer;">&#10003;</button>
+            </div>
+            <div style="border:1px solid var(--forest-100);border-radius:8px;padding:8px 12px;margin-bottom:6px;background:var(--forest-50);display:flex;align-items:center;gap:8px;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;color:var(--forest-700);">A.5.2</span>
+              <p style="font-size:11px;flex:1;">RSSI : M. Ibrahima Fall, rattach&eacute; DG, poste d&eacute;di&eacute;</p>
+              <span style="font-size:8px;font-weight:600;background:var(--forest-100);color:var(--forest-700);padding:1px 6px;border-radius:99px;">91%</span>
+              <button style="padding:3px 10px;background:var(--success);color:white;border:none;border-radius:5px;font-size:9px;font-weight:600;cursor:pointer;">&#10003;</button>
+            </div>
+            <p style="font-size:10px;color:var(--text-300);text-align:center;margin-top:4px;">+ 6 autres r&eacute;ponses pr&eacute;-remplies</p>
+          </div>
+
+          <!-- Conversation CTA -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border:1px solid var(--border);border-radius:10px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--forest-700),var(--forest-500));display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:white;font-size:16px;">&#10024;</span></div>
+            <div style="flex:1;">
+              <p style="font-size:12px;font-weight:600;">6 questions restantes</p>
+              <p style="font-size:10px;color:var(--text-300);">L&rsquo;IA vous pose les questions adapt&eacute;es &agrave; votre contexte</p>
+            </div>
+            <button style="padding:8px 20px;background:var(--forest-700);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Continuer &rarr;</button>
+          </div>
+        </div>
+
+        <!-- SECTION: Entretiens -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span style="font-size:14px;">&#128197;</span>
+            <p style="font-size:14px;font-weight:700;">Entretiens</p>
+            <span class="badge gold">1 &agrave; confirmer</span>
+            <span class="badge green">2 confirm&eacute;s</span>
+          </div>
+
+          <!-- Interview to confirm -->
+          <div style="border:1px solid var(--gold-200);border-radius:10px;margin-bottom:8px;background:var(--gold-50);overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;">
+              <span style="font-size:14px;">&#128197;</span>
+              <div style="flex:1;">
+                <p style="font-size:12px;font-weight:600;">Gouvernance &amp; Organisation SSI</p>
+                <p style="font-size:10px;color:var(--gold-600);">Demain, 23 avr &middot; 10h00&ndash;11h30 &middot; Visio</p>
+              </div>
+              <div style="display:flex;gap:3px;">
+                <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.1</span>
+                <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.2</span>
+                <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.3</span>
+              </div>
+            </div>
+            <div style="padding:8px 14px 12px;border-top:1px solid var(--gold-200);display:flex;gap:8px;align-items:center;">
+              <p style="font-size:10px;color:var(--text-500);flex:1;">Auditeur : M. Moussa Ndiaye &middot; Interlocuteur : RSSI</p>
+              <button style="padding:6px 14px;background:var(--forest-700);color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">&#10003; Confirmer</button>
+              <button style="padding:6px 14px;background:white;color:var(--text-500);border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;">Autre cr&eacute;neau</button>
+            </div>
+          </div>
+
+          <!-- Confirmed interviews -->
+          <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:white;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:14px;">&#128197;</span>
+            <div style="flex:1;">
+              <p style="font-size:12px;font-weight:600;">Contr&ocirc;le d&rsquo;acc&egrave;s &amp; identit&eacute;s</p>
+              <p style="font-size:10px;color:var(--text-300);">25 avr &middot; 14h00 &middot; Mme Fatou Sow</p>
+            </div>
+            <div style="display:flex;gap:3px;">
+              <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.15</span>
+              <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.8.2</span>
+            </div>
+            <span class="badge green">Confirm&eacute;</span>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:white;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:14px;">&#128197;</span>
+            <div style="flex:1;">
+              <p style="font-size:12px;font-weight:600;">Incidents &amp; continuit&eacute;</p>
+              <p style="font-size:10px;color:var(--text-300);">28 avr &middot; 10h00 &middot; M. Moussa Ndiaye</p>
+            </div>
+            <div style="display:flex;gap:3px;">
+              <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.24</span>
+              <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.29</span>
+            </div>
+            <span class="badge green">Confirm&eacute;</span>
+          </div>
+
+          <!-- Past interview -->
+          <div style="border:1px solid var(--border);border-radius:10px;background:white;padding:12px 14px;display:flex;align-items:center;gap:10px;opacity:0.5;">
+            <span style="font-size:14px;">&#128197;</span>
+            <div style="flex:1;">
+              <p style="font-size:12px;font-weight:600;">Prise de connaissance g&eacute;n&eacute;rale</p>
+              <p style="font-size:10px;color:var(--text-300);">18 avr &middot; R&eacute;alis&eacute;</p>
+            </div>
+            <button style="padding:4px 10px;background:var(--forest-50);color:var(--forest-700);border:1px solid var(--forest-100);border-radius:6px;font-size:9px;font-weight:600;cursor:pointer;">&#128196; Voir le CR</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 3: RÉSULTATS (Validation + Plan d'action + Radar) ============ -->
+      <div id="dtab-results" style="display:none;">
+
+        <!-- Mini radar + KPIs -->
+        <div style="display:flex;gap:16px;margin-bottom:20px;">
+          <!-- Radar -->
+          <div style="width:260px;background:white;border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;flex-shrink:0;">
+            <p style="font-size:12px;font-weight:700;margin-bottom:2px;">Maturit&eacute; SSI</p>
+            <p style="font-size:10px;color:var(--text-300);margin-bottom:8px;">Bas&eacute; sur 45% des contr&ocirc;les</p>
+            <svg width="180" height="160" viewBox="0 0 180 160">
+              <polygon points="90,15 160,48 148,128 32,128 20,48" fill="none" stroke="#E5E7EB" stroke-width="1"/>
+              <polygon points="90,35 140,58 132,115 48,115 40,58" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+              <polygon points="90,55 115,68 112,98 68,98 65,68" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+              <polygon points="90,28 145,55 120,122 60,122 38,55" fill="var(--forest-100)" fill-opacity="0.5" stroke="var(--forest-500)" stroke-width="1.5"/>
+              <polygon points="90,30 138,52 128,118 52,118 42,52" fill="none" stroke="var(--gold-500)" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+              <text x="90" y="10" text-anchor="middle" font-size="8" fill="#6B7280">Gouv.</text>
+              <text x="168" y="50" text-anchor="start" font-size="8" fill="#6B7280">Op&eacute;r.</text>
+              <text x="153" y="136" text-anchor="start" font-size="8" fill="#6B7280">Tech.</text>
+              <text x="27" y="136" text-anchor="end" font-size="8" fill="#6B7280">Incid.</text>
+              <text x="12" y="50" text-anchor="end" font-size="8" fill="#6B7280">Hum.</text>
+            </svg>
+            <div style="display:flex;gap:10px;justify-content:center;font-size:9px;">
+              <span style="color:var(--forest-500);">&#9632; Actuel</span>
+              <span style="color:var(--gold-500);">-- M&eacute;diane</span>
+            </div>
+          </div>
+
+          <!-- KPIs stacked -->
+          <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+              <p style="font-size:9px;font-weight:600;text-transform:uppercase;color:var(--text-500);">Constats</p>
+              <p style="font-size:24px;font-weight:700;color:var(--warning);">12</p>
+              <p style="font-size:9px;color:var(--text-300);">&agrave; valider</p>
+            </div>
+            <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+              <p style="font-size:9px;font-weight:600;text-transform:uppercase;color:var(--text-500);">Approuv&eacute;s</p>
+              <p style="font-size:24px;font-weight:700;color:var(--success);">8</p>
+              <p style="font-size:9px;color:var(--text-300);">valid&eacute;s par vous</p>
+            </div>
+            <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+              <p style="font-size:9px;font-weight:600;text-transform:uppercase;color:var(--text-500);">Actions</p>
+              <p style="font-size:24px;font-weight:700;color:var(--forest-700);">7</p>
+              <p style="font-size:9px;color:var(--text-300);">recommandations</p>
+            </div>
+            <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+              <p style="font-size:9px;font-weight:600;text-transform:uppercase;color:var(--text-500);">R&eacute;m&eacute;diation</p>
+              <p style="font-size:24px;font-weight:700;color:var(--forest-700);">14%</p>
+              <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;"><div style="height:4px;border-radius:2px;width:14%;background:var(--forest-500);"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Constats à valider -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <p style="font-size:13px;font-weight:700;">Constats &agrave; valider</p>
+          <span class="badge gold">12 en attente</span>
+        </div>
+
+        <div class="rv-card">
+          <div class="rv-top">
+            <span class="rv-code">A.5.1</span>
+            <span class="rv-name">Politiques SSI</span>
+            <span class="badge gold">&Agrave; valider</span>
+          </div>
+          <div class="rv-body">
+            PSSI v2 couvre 14 domaines. Diffusion &agrave; 85%. 15% non couverts (nouveaux employ&eacute;s).
+            <div class="rv-risk medium">&#9888; Non-conformit&eacute; partielle &agrave; l&rsquo;exigence de diffusion.</div>
+          </div>
+          <div class="rv-actions">
+            <input class="rv-comment" placeholder="Commentaire...">
+            <button class="rv-approve">&#10003; Approuver</button>
+            <button class="rv-reject">&#10007; Contester</button>
+          </div>
+        </div>
+
+        <div class="rv-card">
+          <div class="rv-top">
+            <span class="rv-code">A.5.3</span>
+            <span class="rv-name">S&eacute;paration des t&acirc;ches</span>
+            <span class="badge gold">&Agrave; valider</span>
+          </div>
+          <div class="rv-body">
+            Pas de matrice RACI. Cumul admin + validateur.
+            <div class="rv-risk high">&#9888; Risque &eacute;lev&eacute; de fraude non d&eacute;tect&eacute;e.</div>
+          </div>
+          <div class="rv-actions">
+            <input class="rv-comment" placeholder="Commentaire...">
+            <button class="rv-approve">&#10003; Approuver</button>
+            <button class="rv-reject">&#10007; Contester</button>
+          </div>
+        </div>
+
+        <div style="text-align:center;padding:8px;color:var(--text-300);font-size:11px;margin-bottom:24px;">+ 10 autres constats &agrave; valider</div>
+
+        <!-- Plan d'action -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <p style="font-size:13px;font-weight:700;">Plan d&rsquo;action</p>
+          <span class="badge red">2 critiques</span>
+          <span class="badge green">1 r&eacute;alis&eacute;e</span>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:white;border-left:3px solid var(--error);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+          <div style="width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;"></div>
+          <div style="flex:1;">
+            <p style="font-size:12px;font-weight:600;">Mettre en place une matrice RACI</p>
+            <div style="display:flex;gap:6px;margin-top:3px;align-items:center;">
+              <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.3</span>
+              <span class="badge red">Critique</span>
+              <span style="font-size:9px;color:var(--text-300);">30 juin 2026</span>
+            </div>
+          </div>
+          <span class="badge gold">&Agrave; faire</span>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:white;border-left:3px solid var(--error);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+          <div style="width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;"></div>
+          <div style="flex:1;">
+            <p style="font-size:12px;font-weight:600;">D&eacute;ployer le MFA sur VPN et admin</p>
+            <div style="display:flex;gap:6px;margin-top:3px;align-items:center;">
+              <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.15</span>
+              <span class="badge red">Critique</span>
+              <span style="font-size:9px;color:var(--text-300);">30 juin 2026</span>
+            </div>
+          </div>
+          <span class="badge blue">En cours</span>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:white;border-left:3px solid var(--warning);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+          <div style="width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;"></div>
+          <div style="flex:1;">
+            <p style="font-size:12px;font-weight:600;">Formaliser et tester le PCA/PRA</p>
+            <div style="display:flex;gap:6px;margin-top:3px;align-items:center;">
+              <span style="font-family:'JetBrains Mono';font-size:8px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 5px;border-radius:3px;">A.5.29</span>
+              <span class="badge gold">Mod&eacute;r&eacute;</span>
+              <span style="font-size:9px;color:var(--text-300);">30 sept 2026</span>
+            </div>
+          </div>
+          <span class="badge gold">&Agrave; faire</span>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:var(--forest-50);border-left:3px solid var(--success);padding:10px 14px;display:flex;align-items:center;gap:10px;opacity:0.6;">
+          <div style="width:18px;height:18px;border:2px solid var(--success);border-radius:4px;flex-shrink:0;background:var(--success);display:flex;align-items:center;justify-content:center;"><span style="color:white;font-size:10px;font-weight:700;">&#10003;</span></div>
+          <div style="flex:1;">
+            <p style="font-size:12px;font-weight:600;text-decoration:line-through;">Compl&eacute;ter la diffusion PSSI aux 15% restants</p>
+            <p style="font-size:9px;color:var(--success);">R&eacute;alis&eacute; le 15 avr</p>
+          </div>
+          <span class="badge green">Fait</span>
+        </div>
+
+        <div style="text-align:center;padding:8px;color:var(--text-300);font-size:11px;">+ 3 autres recommandations</div>
+      </div>
+
+      <!-- ============ TAB 4: RAPPORTS (Rapports + Historique) ============ -->
+      <div id="dtab-reports" style="display:none;">
+
+        <!-- Reports -->
+        <div style="margin-bottom:24px;">
+          <p style="font-size:13px;font-weight:700;margin-bottom:10px;">Livrables</p>
+          <div class="rp-card">
+            <div class="rp-icon pdf">&#128196;</div>
+            <div class="rp-info"><div class="rp-title">Rapport d&rsquo;audit ISO 27001</div><div class="rp-meta">42 pages &middot; Version 1.0 &middot; 10 mai 2026</div></div>
+            <button class="rp-dl">&#11015; T&eacute;l&eacute;charger</button>
+          </div>
+          <div class="rp-card">
+            <div class="rp-icon pptx">&#128202;</div>
+            <div class="rp-info"><div class="rp-title">Synth&egrave;se COMEX</div><div class="rp-meta">15 slides &middot; PowerPoint</div></div>
+            <button class="rp-dl">&#11015; T&eacute;l&eacute;charger</button>
+          </div>
+        </div>
+
+        <!-- Score -->
+        <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-500);">Score de conformit&eacute;</div>
+          <div style="font-size:48px;font-weight:800;color:var(--success);margin:8px 0;">78%</div>
+          <div style="font-size:12px;color:var(--text-300);">25 contr&ocirc;les conformes sur 32</div>
+        </div>
+
+        <!-- History: Score evolution -->
+        <p style="font-size:13px;font-weight:700;margin-bottom:10px;">&Eacute;volution dans le temps</p>
+        <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
+          <div style="display:flex;align-items:flex-end;gap:20px;height:130px;padding:0 16px;border-bottom:1px solid var(--border);">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <span style="font-size:11px;font-weight:700;color:var(--error);">42%</span>
+              <div style="height:55px;width:100%;background:var(--error);border-radius:6px 6px 0 0;opacity:0.7;"></div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <span style="font-size:11px;font-weight:700;color:var(--warning);">61%</span>
+              <div style="height:80px;width:100%;background:var(--warning);border-radius:6px 6px 0 0;opacity:0.8;"></div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <span style="font-size:11px;font-weight:700;color:var(--forest-700);">78%</span>
+              <div style="height:102px;width:100%;background:var(--forest-500);border-radius:6px 6px 0 0;"></div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <span style="font-size:11px;font-weight:700;color:var(--forest-700);">?</span>
+              <div style="height:40px;width:100%;background:var(--forest-300);border-radius:6px 6px 0 0;border:2px dashed var(--forest-500);"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:20px;padding:6px 16px 0;">
+            <span style="flex:1;text-align:center;font-size:10px;color:var(--text-300);">2023</span>
+            <span style="flex:1;text-align:center;font-size:10px;color:var(--text-300);">2024</span>
+            <span style="flex:1;text-align:center;font-size:10px;color:var(--text-300);">2025</span>
+            <span style="flex:1;text-align:center;font-size:10px;font-weight:600;color:var(--forest-700);">2026</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-top:10px;">
+            <span style="font-size:16px;">&#128200;</span>
+            <p style="font-size:12px;font-weight:600;color:var(--forest-700);">+36 points en 3 ans</p>
+          </div>
+        </div>
+
+        <!-- History table -->
+        <div style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border);background:#FAFAFA;">
+                <th style="text-align:left;padding:10px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-500);">Ann&eacute;e</th>
+                <th style="text-align:left;padding:10px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-500);">R&eacute;f&eacute;rentiel</th>
+                <th style="text-align:left;padding:10px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-500);">Cabinet</th>
+                <th style="text-align:center;padding:10px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-500);">Score</th>
+                <th style="text-align:center;padding:10px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-500);">&Eacute;volution</th>
+                <th style="text-align:right;padding:10px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-500);">Rapport</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 12px;font-weight:600;">2026</td>
+                <td style="padding:10px 12px;">ISO 27001</td>
+                <td style="padding:10px 12px;">G&euml;stu Comply</td>
+                <td style="padding:10px 12px;text-align:center;"><span class="badge blue">En cours</span></td>
+                <td style="padding:10px 12px;text-align:center;">&mdash;</td>
+                <td style="padding:10px 12px;text-align:right;">&mdash;</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 12px;">2025</td>
+                <td style="padding:10px 12px;">ISO 27001</td>
+                <td style="padding:10px 12px;">G&euml;stu Comply</td>
+                <td style="padding:10px 12px;text-align:center;font-weight:700;color:var(--forest-700);">78%</td>
+                <td style="padding:10px 12px;text-align:center;color:var(--success);font-weight:600;">&#9650; +17</td>
+                <td style="padding:10px 12px;text-align:right;"><button style="padding:3px 8px;background:var(--forest-50);color:var(--forest-700);border:1px solid var(--forest-100);border-radius:5px;font-size:9px;font-weight:600;cursor:pointer;">&#128196; PDF</button></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 12px;">2024</td>
+                <td style="padding:10px 12px;">ISO 27001</td>
+                <td style="padding:10px 12px;">KPMG S&eacute;n&eacute;gal</td>
+                <td style="padding:10px 12px;text-align:center;font-weight:700;color:var(--warning);">61%</td>
+                <td style="padding:10px 12px;text-align:center;color:var(--success);font-weight:600;">&#9650; +19</td>
+                <td style="padding:10px 12px;text-align:right;"><button style="padding:3px 8px;background:var(--forest-50);color:var(--forest-700);border:1px solid var(--forest-100);border-radius:5px;font-size:9px;font-weight:600;cursor:pointer;">&#128196; PDF</button></td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px;">2023</td>
+                <td style="padding:10px 12px;">ISO 27001</td>
+                <td style="padding:10px 12px;">KPMG S&eacute;n&eacute;gal</td>
+                <td style="padding:10px 12px;text-align:center;font-weight:700;color:var(--error);">42%</td>
+                <td style="padding:10px 12px;text-align:center;color:var(--text-300);">&mdash;</td>
+                <td style="padding:10px 12px;text-align:right;"><button style="padding:3px 8px;background:var(--forest-50);color:var(--forest-700);border:1px solid var(--forest-100);border-radius:5px;font-size:9px;font-weight:600;cursor:pointer;">&#128196; PDF</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      <!-- Legacy tabs cleaned out -->
+
+      </div>
+    </div>
+
+  </div><!-- /portal-main -->
+</div><!-- /portal-layout -->
+
+<script>
+function switchView(name) {
+  // Hide all views
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+
+  // Update sidebar active state
+  document.querySelectorAll('.ps-nav-item').forEach(item => item.classList.remove('active'));
+  const navItems = document.querySelectorAll('.ps-nav-item');
+  const viewMap = { dashboard: 0, missions: 1, documents: 2, validations: 3, notifications: 4, detail: 1 };
+  const idx = viewMap[name];
+  if (idx !== undefined && navItems[idx]) navItems[idx].classList.add('active');
+}
+
+function showDetailTab(name) {
+  ['dashboard','exchanges','results','reports'].forEach(t => {
+    document.getElementById('dtab-' + t).style.display = 'none';
+  });
+  document.getElementById('dtab-' + name).style.display = 'block';
+  document.querySelectorAll('#detail-tabs .dt-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.dt-btn').classList.add('active');
+}
+
+function showQiTab(name) {
+  ['prefill','chat','radar'].forEach(t => {
+    var el = document.getElementById('qi-' + t);
+    if (el) { el.style.display = 'none'; el.classList.remove('active'); }
+  });
+  var target = document.getElementById('qi-' + name);
+  if (target) { target.style.display = 'block'; target.classList.add('active'); }
+  document.querySelectorAll('#qi-tabs .dt-btn').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.closest('.dt-btn').classList.add('active');
+}
+</script>
+
+</body>
+</html>

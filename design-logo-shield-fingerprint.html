@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Bouclier + Empreinte digitale</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .page-header p { color: rgba(255,255,255,0.3); font-size: 13px; margin-top: 8px; }
+
+  .section { max-width: 1100px; margin: 40px auto; padding: 0 40px; }
+  .section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 24px; text-align: center; }
+
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 32px; }
+  .card-header { padding: 20px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 15px; font-weight: 700; }
+  .card-desc { padding: 16px 28px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-500); line-height: 1.6; }
+  .tag { font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600; background: var(--gold-200); color: var(--gold-600); }
+
+  .previews { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .preview { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 16px; }
+  .preview.light { background: var(--white); }
+  .preview.dark { background: var(--forest-900); }
+  .preview.cream { background: var(--bg); }
+  .preview .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-300); }
+  .preview.dark .label { color: rgba(255,255,255,0.3); }
+
+  .logo-group { display: flex; align-items: center; gap: 14px; }
+  .logo-group.sm { gap: 9px; }
+  .logo-text { font-weight: 800; letter-spacing: -1px; }
+  .comply-tag { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 500; }
+
+  .favicon-row { display: flex; gap: 16px; justify-content: center; }
+  .favicon-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .favicon-box { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .favicon-box.dark { background: var(--forest-900); }
+  .favicon-box.light { background: var(--white); border: 1px solid var(--border); }
+  .favicon-box.gold { background: var(--gold-500); }
+  .favicon-label { font-size: 10px; color: var(--text-300); }
+
+  .usage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .usage-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .usage-header { padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-500); border-bottom: 1px solid var(--border); }
+
+  .sidebar-mock { width: 100%; background: var(--forest-900); padding: 16px; }
+  .sidebar-logo-area { display: flex; align-items: center; gap: 10px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-nav { padding-top: 12px; }
+  .sidebar-nav-item { padding: 8px 10px; border-radius: 6px; font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+  .sidebar-nav-item.active { background: rgba(255,255,255,0.1); color: white; }
+  .sidebar-nav-item.active::before { content: ''; width: 3px; height: 16px; background: var(--gold-500); border-radius: 2px; }
+
+  .login-mock { background: var(--forest-900); padding: 32px; display: flex; align-items: center; justify-content: center; min-height: 320px; }
+  .login-box { background: var(--white); border-radius: 12px; padding: 28px; width: 280px; text-align: center; }
+  .login-subtitle { font-size: 11px; color: var(--text-500); margin-top: 4px; margin-bottom: 16px; }
+  .login-input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; margin-bottom: 8px; font-family: 'Inter', sans-serif; outline: none; }
+  .login-input:focus { border-color: var(--forest-500); }
+  .login-btn-mock { width: 100%; padding: 9px; background: var(--forest-700); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Gëstu — Bouclier avec empreinte digitale</h1>
+  <p>L'empreinte est à l'intérieur du bouclier — identité protégée</p>
+</div>
+
+<div class="section">
+
+  <!-- VARIANTE A: Bouclier vert, empreinte dorée à l'intérieur -->
+  <h2>Variante A — Bouclier vert forêt, empreinte dorée à l'intérieur</h2>
+  <div class="card">
+    <div class="card-header">
+      <h3>Empreinte dorée au centre du bouclier</h3>
+      <span class="tag">Recommandé</span>
+    </div>
+    <div class="card-desc">
+      Bouclier vert forêt plein. L'empreinte digitale dorée remplace la coche — elle est au centre, comme une identité protégée. <strong>Le bouclier protège l'identité numérique.</strong>
+    </div>
+    <div class="previews">
+      <div class="preview light">
+        <div class="logo-group">
+          <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332"/>
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="1.2"/>
+            <!-- Empreinte dorée -->
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 13C16 13 12 17.5 12 23.5" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M26 23V31" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+          <div>
+            <div class="logo-text" style="font-size: 36px; color: var(--forest-900);">Gëstu</div>
+            <div class="comply-tag" style="color: var(--text-300);">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="preview dark">
+        <div class="logo-group">
+          <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)"/>
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="1.2"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 13C16 13 12 17.5 12 23.5" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M26 23V31" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div class="logo-text" style="font-size: 36px; color: white;">Gëstu</div>
+            <div class="comply-tag" style="color: rgba(255,255,255,0.4);">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="preview light">
+        <div class="logo-group sm">
+          <svg width="28" height="33" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332"/>
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="1.5"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <div class="logo-text" style="font-size: 22px; color: var(--forest-900);">Gëstu</div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+      <div class="preview cream">
+        <div class="favicon-row">
+          <div class="favicon-item">
+            <div class="favicon-box dark">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none">
+                <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.1)" stroke="#D4A843" stroke-width="2"/>
+                <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="favicon-label">Sombre</span>
+          </div>
+          <div class="favicon-item">
+            <div class="favicon-box light">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none">
+                <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+                <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="favicon-label">Clair</span>
+          </div>
+          <div class="favicon-item">
+            <div class="favicon-box gold">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none">
+                <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332"/>
+                <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="favicon-label">Or</span>
+          </div>
+        </div>
+        <span class="label">Favicons</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANTE B: Bouclier contour doré, fond transparent, empreinte verte -->
+  <h2>Variante B — Bouclier contour doré, empreinte verte</h2>
+  <div class="card">
+    <div class="card-header">
+      <h3>Bouclier ouvert avec empreinte en vert forêt</h3>
+    </div>
+    <div class="card-desc">
+      Le bouclier n'est qu'un contour doré, léger et élégant. L'empreinte digitale en vert forêt est visible à travers. Plus aéré, plus moderne. <strong>La confiance est transparente.</strong>
+    </div>
+    <div class="previews">
+      <div class="preview light">
+        <div class="logo-group">
+          <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="2"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C16 13 12 17.5 12 23.5" stroke="#2D6A4F" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#2D6A4F" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 23V33" stroke="#2D6A4F" stroke-width="2" stroke-linecap="round"/>
+            <path d="M26 23V31" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+          <div>
+            <div class="logo-text" style="font-size: 36px; color: var(--forest-900);">Gëstu</div>
+            <div class="comply-tag" style="color: var(--text-300);">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="preview dark">
+        <div class="logo-group">
+          <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="2"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C16 13 12 17.5 12 23.5" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#D4A843" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 23V33" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M26 23V31" stroke="#D4A843" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+          <div>
+            <div class="logo-text" style="font-size: 36px; color: white;">Gëstu</div>
+            <div class="comply-tag" style="color: rgba(255,255,255,0.4);">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="preview light">
+        <div class="logo-group sm">
+          <svg width="28" height="33" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="2.5"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 23V33" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="logo-text" style="font-size: 22px; color: var(--forest-900);">Gëstu</div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+      <div class="preview cream">
+        <div class="favicon-row">
+          <div class="favicon-item">
+            <div class="favicon-box dark">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none">
+                <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="2.5"/>
+                <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 23V33" stroke="#D4A843" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="favicon-label">Sombre</span>
+          </div>
+          <div class="favicon-item">
+            <div class="favicon-box light">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none">
+                <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke="#D4A843" stroke-width="2"/>
+                <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 16C26 16 29 19 29 23V27" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 23V33" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="favicon-label">Clair</span>
+          </div>
+        </div>
+        <span class="label">Favicons</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANTE C: Bouclier doré, empreinte verte foncée -->
+  <h2>Variante C — Bouclier doré plein, empreinte vert forêt</h2>
+  <div class="card">
+    <div class="card-header">
+      <h3>Inversion : fond doré, empreinte sombre</h3>
+    </div>
+    <div class="card-desc">
+      Bouclier entièrement doré. L'empreinte est en vert forêt foncé à l'intérieur. <strong>L'or de la confiance entoure l'identité.</strong> Plus premium, plus audacieux.
+    </div>
+    <div class="previews">
+      <div class="preview light">
+        <div class="logo-group">
+          <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#D4A843"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C16 13 12 17.5 12 23.5" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            <path d="M22 23V33" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M26 23V31" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+          <div>
+            <div class="logo-text" style="font-size: 36px; color: var(--forest-900);">Gëstu</div>
+            <div class="comply-tag" style="color: var(--text-300);">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond clair</span>
+      </div>
+      <div class="preview dark">
+        <div class="logo-group">
+          <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#D4A843"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C16 13 12 17.5 12 23.5" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            <path d="M22 23V33" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+            <path d="M26 23V31" stroke="#1B4332" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+          <div>
+            <div class="logo-text" style="font-size: 36px; color: white;">Gëstu</div>
+            <div class="comply-tag" style="color: rgba(255,255,255,0.4);">Comply</div>
+          </div>
+        </div>
+        <span class="label">Fond sombre</span>
+      </div>
+      <div class="preview light">
+        <div class="logo-group sm">
+          <svg width="28" height="33" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#D4A843"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M22 23V33" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <div class="logo-text" style="font-size: 22px; color: var(--forest-900);">Gëstu</div>
+        </div>
+        <span class="label">Sidebar</span>
+      </div>
+      <div class="preview cream">
+        <div class="favicon-row">
+          <div class="favicon-item">
+            <div class="favicon-box dark">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none">
+                <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#D4A843"/>
+                <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 16C26 16 29 19 29 23V27" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 23V33" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="favicon-label">Sombre</span>
+          </div>
+          <div class="favicon-item">
+            <div class="favicon-box light">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none">
+                <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#D4A843"/>
+                <path d="M22 16C18 16 15 19 15 23" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 16C26 16 29 19 29 23V27" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+                <path d="M22 23V33" stroke="#1B4332" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="favicon-label">Clair</span>
+          </div>
+        </div>
+        <span class="label">Favicons</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISE EN SITUATION -->
+  <h2>Mise en situation — Variante A</h2>
+  <div class="usage-grid">
+    <div class="usage-card">
+      <div class="usage-header">Sidebar</div>
+      <div class="sidebar-mock">
+        <div class="sidebar-logo-area">
+          <svg width="24" height="28" viewBox="0 0 44 52" fill="none">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.5"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <div style="color: white; font-size: 17px; font-weight: 800; letter-spacing: -0.5px;">Gëstu</div>
+            <div style="color: rgba(255,255,255,0.3); font-size: 9px; letter-spacing: 2px; text-transform: uppercase;">Comply</div>
+          </div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="sidebar-nav-item active">Tableau de bord</div>
+          <div class="sidebar-nav-item">Organisation</div>
+          <div class="sidebar-nav-item">Clients</div>
+          <div class="sidebar-nav-item">Référentiels</div>
+          <div class="sidebar-nav-item">Missions</div>
+        </div>
+      </div>
+    </div>
+    <div class="usage-card">
+      <div class="usage-header">Page de connexion</div>
+      <div class="login-mock">
+        <div class="login-box">
+          <svg width="36" height="42" viewBox="0 0 44 52" fill="none" style="margin-bottom: 4px;">
+            <path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1"/>
+            <path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 13C16 13 12 17.5 12 23.5" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+            <path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M26 23V31" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+          <div style="font-size: 24px; font-weight: 800; color: var(--forest-900); letter-spacing: -0.5px;">Gëstu</div>
+          <div class="login-subtitle">Connectez-vous à votre espace</div>
+          <input class="login-input" placeholder="Email" value="admin@gestudemo.com">
+          <input class="login-input" type="password" placeholder="Mot de passe" value="••••••••">
+          <button class="login-btn-mock">Se connecter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  Gëstu ETP — Bouclier + Empreinte digitale — Vert Forêt & Or
+</div>
+
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from 'react'
+import { ArrowRight, Check, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { useAuditorAssessments } from '../useAuditorAssessments'
@@ -156,13 +157,13 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
           </div>
           <button onClick={handleLaunchReview}
             className="px-5 py-2.5 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 transition-colors shrink-0">
-            {'\u2192'} Lancer la revue interne
+            <ArrowRight size={14} className="inline" /> Lancer la revue interne
           </button>
         </div>
       )}
       {reviewTransition && (
         <div className="p-3 mb-4 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700">
-          {'\u2713'} {reviewTransition}
+          <Check size={14} className="inline mr-1" />{reviewTransition}
         </div>
       )}
 
@@ -201,7 +202,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         />
       ) : (
         <div className="flex-1 flex items-center justify-center text-sm text-gray-300">
-          {'\u2190'} S{'\u00e9'}lectionnez un contr{'\u00f4'}le dans la liste
+          <ArrowLeft size={14} className="inline mr-1" />S{'\u00e9'}lectionnez un contr{'\u00f4'}le dans la liste
         </div>
       )}
     </div>

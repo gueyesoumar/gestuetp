@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Sparkles, Check, Pencil, MessageCircle, Brain, Square } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import type { Question } from '../../../types/database.types'
 import type { SmartAnswer } from './SmartInterviewContainer'
@@ -153,14 +154,14 @@ export function SmartPrefilledAnswers({
       {/* Analyze button if no prefilled answers yet */}
       {prefilledAnswers.length === 0 && !analyzing && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 text-center mb-4">
-          <p className="text-2xl mb-3">&#10024;</p>
+          <div className="flex justify-center mb-3"><Sparkles size={24} className="text-gold-500" /></div>
           <p className="text-sm font-semibold mb-1">Analyse IA des documents</p>
           <p className="text-xs text-gray-400 mb-4 max-w-md mx-auto">
             L&rsquo;IA va analyser les documents d&eacute;pos&eacute;s et pr&eacute;-remplir automatiquement les r&eacute;ponses du questionnaire.
           </p>
           <button onClick={handleAnalyze} disabled={readOnly}
             className="px-6 py-2.5 bg-forest-700 text-white rounded-lg text-sm font-semibold hover:bg-forest-900 transition-colors disabled:opacity-50">
-            &#10024; Analyser et pr&eacute;-remplir
+            <Sparkles size={15} className="inline mr-1" />Analyser et pr&eacute;-remplir
           </button>
         </div>
       )}
@@ -169,7 +170,7 @@ export function SmartPrefilledAnswers({
       {analyzing && (
         <div className="bg-white border border-gray-200 rounded-xl p-8 text-center mb-4">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gold-50 border-2 border-gold-200 flex items-center justify-center animate-pulse">
-            <span className="text-3xl">&#129504;</span>
+            <Brain size={28} className="text-gold-500" />
           </div>
           <p className="text-sm font-semibold mb-1">Analyse en cours...</p>
           <p className="text-xs text-gray-400">L&rsquo;IA parcourt vos documents pour identifier les r&eacute;ponses</p>
@@ -180,13 +181,13 @@ export function SmartPrefilledAnswers({
       {alreadyAnswered.length > 0 && (
         <div className="mb-4">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-green-600 mb-2">
-            &#10003; {alreadyAnswered.length} d&eacute;j&agrave; r&eacute;pondu{alreadyAnswered.length > 1 ? 'es' : 'e'}
+            <Check size={12} className="inline mr-0.5" />{alreadyAnswered.length} d&eacute;j&agrave; r&eacute;pondu{alreadyAnswered.length > 1 ? 'es' : 'e'}
           </p>
           {alreadyAnswered.map((q) => (
             <div key={q.code} className="flex items-center gap-2 p-2.5 mb-1.5 bg-green-50 border border-green-100 rounded-lg">
               <span className="font-mono text-[10px] font-semibold text-forest-700">{q.code}</span>
               <span className="text-xs text-gray-700 flex-1 truncate">{q.text}</span>
-              <span className="text-[10px] text-green-600 font-medium">&#10003; R&eacute;pondu</span>
+              <span className="text-[10px] text-green-600 font-medium inline-flex items-center gap-0.5"><Check size={10} /> R&eacute;pondu</span>
             </div>
           ))}
         </div>
@@ -196,7 +197,7 @@ export function SmartPrefilledAnswers({
       {aiPrefilled.length > 0 && (
         <div className="mb-4">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-forest-700 mb-2 pb-1 border-b-2 border-forest-100">
-            &#10024; R&eacute;ponses IA &agrave; valider
+            <Sparkles size={12} className="inline mr-0.5" />R&eacute;ponses IA &agrave; valider
           </p>
           {aiPrefilled.map((q) => {
             const answer = prefilledAnswers.find((a) => a.questionCode === q.code)
@@ -225,19 +226,19 @@ export function SmartPrefilledAnswers({
                   <div className={`px-3 py-2.5 border-t flex items-center gap-2 ${
                     answer.validated ? 'bg-green-50 border-green-100' : 'bg-forest-50 border-forest-100'
                   }`}>
-                    <span className="text-[10px]">&#10024;</span>
+                    <Sparkles size={11} className="text-gold-500" />
                     <p className="text-[11px] text-gray-700 flex-1">{answer.answer}</p>
                     {answer.validated ? (
-                      <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded">&#10003; Valid&eacute;</span>
+                      <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded inline-flex items-center gap-0.5"><Check size={10} /> Valid&eacute;</span>
                     ) : !readOnly ? (
                       <>
                         <button onClick={() => handleValidate(q.code)}
                           className="px-2.5 py-1 bg-green-500 text-white rounded text-[10px] font-semibold hover:bg-green-600 transition-colors">
-                          &#10003; Correct
+                          <Check size={10} /> Correct
                         </button>
                         <button onClick={() => setEditingCode(q.code)}
                           className="px-2.5 py-1 bg-white text-gray-500 border border-gray-200 rounded text-[10px] font-medium hover:border-forest-300 transition-colors">
-                          &#9998; Modifier
+                          <Pencil size={10} /> Modifier
                         </button>
                       </>
                     ) : null}
@@ -253,7 +254,7 @@ export function SmartPrefilledAnswers({
       {unanswered.length > 0 && prefilledAnswers.length > 0 && (
         <div className="mb-4">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2 pb-1 border-b-2 border-gray-100">
-            &#9744; {unanswered.length} question{unanswered.length > 1 ? 's' : ''} restante{unanswered.length > 1 ? 's' : ''}
+            <Square size={12} className="inline mr-0.5" />{unanswered.length} question{unanswered.length > 1 ? 's' : ''} restante{unanswered.length > 1 ? 's' : ''}
           </p>
           {unanswered.map((q) => (
             <div key={q.code} className="flex items-center gap-2 p-2.5 mb-1.5 border border-dashed border-gray-200 rounded-lg opacity-60">
@@ -266,7 +267,7 @@ export function SmartPrefilledAnswers({
             <div className="text-center mt-3">
               <button onClick={onGoToConversation}
                 className="px-5 py-2.5 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 transition-colors">
-                &#128172; R&eacute;pondre aux {unanswered.length} questions restantes &rarr;
+                <MessageCircle size={13} className="inline mr-0.5" />R&eacute;pondre aux {unanswered.length} questions restantes
               </button>
             </div>
           )}

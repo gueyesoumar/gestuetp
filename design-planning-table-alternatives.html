@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Programme de travail : 3 alternatives tableau</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --warning: #E67E22; --warning-light: #FFF3E0;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .section { max-width: 1300px; margin: 40px auto; padding: 0 24px; }
+  .st { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); text-align: center; margin-bottom: 6px; }
+  .ss { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+  .mockup { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 50px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge.green { background: #E8F5E8; color: var(--success); }
+  .badge.gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge.gray { background: #F3F4F6; color: var(--text-500); }
+  .badge.blue { background: var(--info-light); color: var(--info); }
+
+  .risk { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+  .risk.critical { background: #FDE8E8; color: var(--error); }
+  .risk.high { background: var(--warning-light); color: var(--warning); }
+  .risk.medium { background: var(--gold-50); color: var(--gold-600); }
+  .risk.low { background: #F3F4F6; color: var(--text-500); }
+
+  .tech-tag { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .tech-tag.inspection { background: #EBF5FF; color: var(--info); }
+  .tech-tag.entretien { background: var(--forest-50); color: var(--forest-700); }
+  .tech-tag.echantillon { background: var(--warning-light); color: var(--warning); }
+  .tech-tag.reexecution { background: var(--purple-light); color: var(--purple); }
+  .tech-tag.analytique { background: #F3F4F6; color: var(--text-500); }
+  .tech-tag.observation { background: var(--gold-50); color: var(--gold-600); }
+
+  .avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 600; color: white; flex-shrink: 0; background: var(--info); }
+
+  /* Demo tabs */
+  .demo-switch { display: flex; gap: 4px; padding: 12px 20px; border-bottom: 1px solid var(--border); background: #FAFAFA; }
+  .demo-btn { padding: 8px 18px; font-size: 12px; font-weight: 500; color: var(--text-500); border: none; background: none; cursor: pointer; border-radius: 8px; }
+  .demo-btn:hover { background: var(--forest-50); color: var(--forest-700); }
+  .demo-btn.active { background: var(--forest-700); color: white; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ============ OPTION A : Row cards (une ligne = une carte) ============ */
+
+  .card-list { padding: 16px; }
+  .card-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .domain-sep { font-size: 11px; font-weight: 600; color: var(--forest-700); background: var(--forest-50); padding: 6px 14px; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .domain-hours { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--forest-700); }
+
+  .ctrl-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; transition: all 0.15s; }
+  .ctrl-card:hover { border-color: var(--forest-300); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .ctrl-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .ctrl-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--forest-700); flex-shrink: 0; }
+  .ctrl-name { font-size: 13px; font-weight: 500; color: var(--text-900); flex: 1; }
+  .ctrl-card-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ctrl-hours { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text-700); background: #F3F4F6; padding: 2px 8px; border-radius: 4px; }
+  .ctrl-auditor { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-500); margin-left: auto; }
+  .ctrl-sampling { font-size: 10px; color: var(--text-300); }
+
+  /* ============ OPTION B : Two-line rows (tableau 2 lignes par controle) ============ */
+
+  .tl-table { width: 100%; border-collapse: collapse; }
+  .tl-table thead th { padding: 8px 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); text-align: left; background: #FAFAFA; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; }
+  .tl-domain td { background: #FAFAFA; font-weight: 600; color: var(--text-900); font-size: 12px; border-bottom: 1px solid var(--border); padding: 10px 12px; }
+  .tl-row-main td { padding: 10px 12px; border-bottom: none; vertical-align: top; }
+  .tl-row-detail td { padding: 0 12px 10px 12px; border-bottom: 1px solid #F3F4F6; vertical-align: top; }
+  .tl-table tbody tr:hover td { background: var(--forest-50); }
+  .tl-ctrl-name { font-size: 13px; color: var(--text-900); font-weight: 500; }
+  .tl-ctrl-desc { font-size: 11px; color: var(--text-300); margin-top: 2px; line-height: 1.4; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ============ OPTION C : Compact + tooltip/expandable ============ */
+
+  .cp-table { width: 100%; border-collapse: collapse; }
+  .cp-table thead th { padding: 10px 14px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-500); text-align: left; background: #FAFAFA; border-bottom: 1px solid var(--border); }
+  .cp-table tbody td { padding: 10px 14px; border-bottom: 1px solid #F5F5F5; vertical-align: middle; }
+  .cp-table tbody tr:hover { background: var(--forest-50); }
+  .cp-domain td { background: #FAFAFA; font-weight: 600; border-bottom: 1px solid var(--border); }
+
+  .cp-ctrl { display: flex; align-items: center; gap: 8px; }
+  .cp-ctrl-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--forest-700); width: 44px; flex-shrink: 0; }
+  .cp-ctrl-name { font-size: 12px; color: var(--text-900); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Risk + techniques combined cell */
+  .cp-combo { display: flex; flex-direction: column; gap: 4px; }
+  .cp-techs { display: flex; gap: 2px; flex-wrap: wrap; }
+
+  /* Hours as visual bar */
+  .cp-hours-cell { display: flex; align-items: center; gap: 6px; }
+  .cp-hours-bar { width: 40px; height: 6px; background: var(--border); border-radius: 3px; }
+  .cp-hours-fill { height: 6px; border-radius: 3px; }
+  .cp-hours-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text-700); }
+
+  /* Auditor compact */
+  .cp-auditor { display: flex; align-items: center; gap: 4px; }
+  .cp-auditor-name { font-size: 11px; color: var(--text-500); white-space: nowrap; }
+
+  /* Expanded row */
+  .cp-expanded { padding: 12px 14px 12px 66px; background: var(--forest-50); border-bottom: 1px solid var(--forest-100); }
+  .cp-expanded-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .cp-expanded-field { font-size: 11px; }
+  .cp-expanded-label { font-weight: 600; color: var(--text-500); text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .cp-expanded-value { color: var(--text-700); line-height: 1.4; }
+
+  /* Compare */
+  .compare { margin-top: 40px; }
+  .compare table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .compare th { padding: 10px 14px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text-500); background: #FAFAFA; border-bottom: 1px solid var(--border); }
+  .compare th:first-child { text-align: left; width: 180px; }
+  .compare td { padding: 10px 14px; text-align: center; font-size: 12px; color: var(--text-700); border-bottom: 1px solid #F5F5F5; }
+  .compare td:first-child { text-align: left; font-weight: 500; }
+  .star { color: var(--gold-500); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Programme de travail : 3 alternatives tableau</h1>
+</div>
+
+<div class="section">
+  <p class="st">Probl&egrave;me : le tableau actuel est trop compact</p>
+  <p class="ss">Les colonnes se chevauchent. Voici 3 alternatives pour afficher les m&ecirc;mes informations lisiblement.</p>
+
+  <div class="mockup">
+    <div class="demo-switch">
+      <button class="demo-btn active" onclick="showAlt('a')">A &mdash; Cartes par contr&ocirc;le</button>
+      <button class="demo-btn" onclick="showAlt('b')">B &mdash; Tableau 2 lignes</button>
+      <button class="demo-btn" onclick="showAlt('c')">C &mdash; Compact + expand</button>
+    </div>
+
+    <!-- ============ OPTION A : Card rows ============ -->
+    <div class="tab-content active" id="alt-a">
+      <div class="card-list">
+        <div class="domain-sep">
+          <span><span class="mono">A.5</span> &mdash; Mesures organisationnelles</span>
+          <span class="domain-hours">20h &middot; 4/4 affect&eacute;s</span>
+        </div>
+
+        <div class="ctrl-card">
+          <div class="ctrl-card-top">
+            <span class="ctrl-code">A.5.1</span>
+            <span class="ctrl-name">Politiques de s&eacute;curit&eacute; de l&rsquo;information</span>
+            <span class="risk critical">Critique</span>
+          </div>
+          <div class="ctrl-card-bottom">
+            <span class="tech-tag inspection">Inspection</span>
+            <span class="tech-tag entretien">Entretien</span>
+            <span class="ctrl-hours">4h</span>
+            <span class="ctrl-auditor">
+              <span class="avatar">SM</span> S. Man&eacute;
+            </span>
+          </div>
+        </div>
+
+        <div class="ctrl-card">
+          <div class="ctrl-card-top">
+            <span class="ctrl-code">A.5.2</span>
+            <span class="ctrl-name">R&ocirc;les et responsabilit&eacute;s en mati&egrave;re de s&eacute;curit&eacute;</span>
+            <span class="risk high">&Eacute;lev&eacute;</span>
+          </div>
+          <div class="ctrl-card-bottom">
+            <span class="tech-tag entretien">Entretien</span>
+            <span class="tech-tag analytique">Analytique</span>
+            <span class="ctrl-hours">3h</span>
+            <span class="ctrl-auditor">
+              <span class="avatar">SM</span> S. Man&eacute;
+            </span>
+          </div>
+        </div>
+
+        <div class="ctrl-card">
+          <div class="ctrl-card-top">
+            <span class="ctrl-code">A.5.3</span>
+            <span class="ctrl-name">S&eacute;paration des t&acirc;ches</span>
+            <span class="risk medium">Moyen</span>
+          </div>
+          <div class="ctrl-card-bottom">
+            <span class="tech-tag inspection">Inspection</span>
+            <span class="tech-tag entretien">Entretien</span>
+            <span class="ctrl-hours">2h</span>
+            <span class="ctrl-auditor">
+              <span class="avatar" style="background:var(--text-500);">OG</span> O. Gueye
+            </span>
+          </div>
+        </div>
+
+        <div class="ctrl-card">
+          <div class="ctrl-card-top">
+            <span class="ctrl-code">A.5.9</span>
+            <span class="ctrl-name">Inventaire des informations et autres actifs associ&eacute;s</span>
+            <span class="risk high">&Eacute;lev&eacute;</span>
+          </div>
+          <div class="ctrl-card-bottom">
+            <span class="tech-tag inspection">Inspection</span>
+            <span class="tech-tag echantillon">&Eacute;chantillon</span>
+            <span class="tech-tag reexecution">Re-ex&eacute;c.</span>
+            <span class="ctrl-sampling">50/500</span>
+            <span class="ctrl-hours">4.5h</span>
+            <span class="ctrl-auditor">
+              <span class="avatar" style="background:#E07A5F;">SM</span> S. Man&eacute;
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION B : Two-line table ============ -->
+    <div class="tab-content" id="alt-b">
+      <div style="overflow-x:auto;">
+        <table class="tl-table">
+          <thead>
+            <tr>
+              <th style="width:70px;">Code</th>
+              <th>Contr&ocirc;le</th>
+              <th style="width:80px;">Risque</th>
+              <th style="width:50px;">Heures</th>
+              <th style="width:130px;">Auditeur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="tl-domain"><td colspan="5"><span class="mono">A.5</span> &mdash; Mesures organisationnelles <span style="float:right;font-family:'JetBrains Mono';font-weight:700;color:var(--forest-700);">20h</span></td></tr>
+
+            <tr class="tl-row-main">
+              <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.5.1</span></td>
+              <td>
+                <div class="tl-ctrl-name">Politiques de s&eacute;curit&eacute; de l&rsquo;information</div>
+              </td>
+              <td><span class="risk critical">Critique</span></td>
+              <td><span class="mono" style="font-size:12px;font-weight:600;">4h</span></td>
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="avatar">SM</span><span style="font-size:11px;">S. Man&eacute;</span></div></td>
+            </tr>
+            <tr class="tl-row-detail">
+              <td></td>
+              <td colspan="4">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="tech-tag inspection">Inspection</span>
+                  <span class="tech-tag entretien">Entretien</span>
+                  <span style="font-size:10px;color:var(--text-300);margin-left:8px;">Description : V&eacute;rifier l&rsquo;existence d&rsquo;une PSSI formalis&eacute;e, approuv&eacute;e et diffus&eacute;e.</span>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="tl-row-main">
+              <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.5.2</span></td>
+              <td><div class="tl-ctrl-name">R&ocirc;les et responsabilit&eacute;s en mati&egrave;re de s&eacute;curit&eacute;</div></td>
+              <td><span class="risk high">&Eacute;lev&eacute;</span></td>
+              <td><span class="mono" style="font-size:12px;font-weight:600;">3h</span></td>
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="avatar">SM</span><span style="font-size:11px;">S. Man&eacute;</span></div></td>
+            </tr>
+            <tr class="tl-row-detail">
+              <td></td>
+              <td colspan="4">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="tech-tag entretien">Entretien</span>
+                  <span class="tech-tag analytique">Analytique</span>
+                  <span style="font-size:10px;color:var(--text-300);margin-left:8px;">Entretien RSSI + revue de la matrice RACI</span>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="tl-row-main">
+              <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.5.9</span></td>
+              <td><div class="tl-ctrl-name">Inventaire des informations et autres actifs associ&eacute;s</div></td>
+              <td><span class="risk high">&Eacute;lev&eacute;</span></td>
+              <td><span class="mono" style="font-size:12px;font-weight:600;">4.5h</span></td>
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="avatar" style="background:#E07A5F;">SM</span><span style="font-size:11px;">S. Man&eacute;</span></div></td>
+            </tr>
+            <tr class="tl-row-detail">
+              <td></td>
+              <td colspan="4">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="tech-tag inspection">Inspection</span>
+                  <span class="tech-tag echantillon">&Eacute;chantillon</span>
+                  <span class="tech-tag reexecution">Re-ex&eacute;c.</span>
+                  <span style="font-size:10px;color:var(--text-300);margin-left:8px;">&Eacute;chantillon : 50/500</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ OPTION C : Compact + expandable ============ -->
+    <div class="tab-content" id="alt-c">
+      <div style="overflow-x:auto;">
+        <table class="cp-table">
+          <thead>
+            <tr>
+              <th>Contr&ocirc;le</th>
+              <th style="width:140px;">Risque &amp; techniques</th>
+              <th style="width:90px;">Budget</th>
+              <th style="width:120px;">Auditeur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="cp-domain"><td colspan="4" style="padding:10px 14px;font-size:12px;"><span class="mono" style="color:var(--forest-700);">A.5</span> &mdash; Mesures organisationnelles <span style="float:right;" class="mono" >20h &middot; 4 ctrl</span></td></tr>
+
+            <tr style="cursor:pointer;">
+              <td>
+                <div class="cp-ctrl">
+                  <span class="cp-ctrl-code">A.5.1</span>
+                  <span class="cp-ctrl-name">Politiques de s&eacute;curit&eacute; de l&rsquo;information</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-combo">
+                  <span class="risk critical">Critique</span>
+                  <div class="cp-techs">
+                    <span class="tech-tag inspection">Insp.</span>
+                    <span class="tech-tag entretien">Entr.</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="cp-hours-cell">
+                  <div class="cp-hours-bar"><div class="cp-hours-fill" style="width:80%;background:var(--forest-500);"></div></div>
+                  <span class="cp-hours-val">4h</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-auditor"><span class="avatar">SM</span><span class="cp-auditor-name">S. Man&eacute;</span></div>
+              </td>
+            </tr>
+
+            <!-- Expanded detail row (click to toggle) -->
+            <tr>
+              <td colspan="4" class="cp-expanded">
+                <div class="cp-expanded-grid">
+                  <div class="cp-expanded-field">
+                    <div class="cp-expanded-label">Description</div>
+                    <div class="cp-expanded-value">V&eacute;rifier l&rsquo;existence, l&rsquo;approbation et la diffusion de la PSSI.</div>
+                  </div>
+                  <div class="cp-expanded-field">
+                    <div class="cp-expanded-label">Techniques</div>
+                    <div class="cp-expanded-value">Inspection documentaire + Entretien RSSI</div>
+                  </div>
+                  <div class="cp-expanded-field">
+                    <div class="cp-expanded-label">&Eacute;chantillonnage</div>
+                    <div class="cp-expanded-value">Non applicable</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="cp-ctrl">
+                  <span class="cp-ctrl-code">A.5.2</span>
+                  <span class="cp-ctrl-name">R&ocirc;les et responsabilit&eacute;s en mati&egrave;re de s&eacute;curit&eacute;</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-combo">
+                  <span class="risk high">&Eacute;lev&eacute;</span>
+                  <div class="cp-techs">
+                    <span class="tech-tag entretien">Entr.</span>
+                    <span class="tech-tag analytique">Anal.</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="cp-hours-cell">
+                  <div class="cp-hours-bar"><div class="cp-hours-fill" style="width:60%;background:var(--gold-500);"></div></div>
+                  <span class="cp-hours-val">3h</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-auditor"><span class="avatar">SM</span><span class="cp-auditor-name">S. Man&eacute;</span></div>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="cp-ctrl">
+                  <span class="cp-ctrl-code">A.5.3</span>
+                  <span class="cp-ctrl-name">S&eacute;paration des t&acirc;ches</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-combo">
+                  <span class="risk medium">Moyen</span>
+                  <div class="cp-techs">
+                    <span class="tech-tag inspection">Insp.</span>
+                    <span class="tech-tag entretien">Entr.</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="cp-hours-cell">
+                  <div class="cp-hours-bar"><div class="cp-hours-fill" style="width:40%;background:var(--text-300);"></div></div>
+                  <span class="cp-hours-val">2h</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-auditor"><span class="avatar" style="background:var(--text-500);">OG</span><span class="cp-auditor-name">O. Gueye</span></div>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="cp-ctrl">
+                  <span class="cp-ctrl-code">A.5.9</span>
+                  <span class="cp-ctrl-name">Inventaire des informations et actifs</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-combo">
+                  <span class="risk high">&Eacute;lev&eacute;</span>
+                  <div class="cp-techs">
+                    <span class="tech-tag inspection">Insp.</span>
+                    <span class="tech-tag echantillon">&Eacute;ch.</span>
+                    <span class="tech-tag reexecution">Re-ex.</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="cp-hours-cell">
+                  <div class="cp-hours-bar"><div class="cp-hours-fill" style="width:90%;background:var(--error);"></div></div>
+                  <span class="cp-hours-val">4.5h</span>
+                </div>
+              </td>
+              <td>
+                <div class="cp-auditor"><span class="avatar" style="background:#E07A5F;">SM</span><span class="cp-auditor-name">S. Man&eacute;</span></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Comparatif -->
+  <div class="compare">
+    <p class="st" style="margin-bottom:16px;">Comparatif</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Crit&egrave;re</th>
+          <th>A &mdash; Cartes</th>
+          <th>B &mdash; Tableau 2 lignes</th>
+          <th>C &mdash; Compact + expand</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Lisibilit&eacute;</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Tr&egrave;s a&eacute;r&eacute;</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Techniques visibles</td>
+          <td><span class="star">&#9733;&#9733;</span> Compact, d&eacute;tail au clic</td>
+        </tr>
+        <tr>
+          <td>Densit&eacute; d&rsquo;info</td>
+          <td><span class="star">&#9733;&#9733;</span> Moins dense</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Tout visible</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Compact + d&eacute;tail</td>
+        </tr>
+        <tr>
+          <td>Scroll vertical</td>
+          <td>Beaucoup (60 ctrl = 60 cartes)</td>
+          <td>Mod&eacute;r&eacute; (2 lignes / ctrl)</td>
+          <td>Peu (1 ligne / ctrl)</td>
+        </tr>
+        <tr>
+          <td>Modification inline</td>
+          <td><span class="star">&#9733;&#9733;</span> Clic sur carte</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Select dans la ligne</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Select + expand</td>
+        </tr>
+        <tr>
+          <td>Mobile friendly</td>
+          <td><span class="star">&#9733;&#9733;&#9733;</span> Naturellement</td>
+          <td><span class="star">&#9733;&#9733;</span> Scroll horizontal</td>
+          <td><span class="star">&#9733;&#9733;</span> Scroll horizontal</td>
+        </tr>
+        <tr>
+          <td>Complexit&eacute; dev</td>
+          <td>Faible</td>
+          <td>Moyenne</td>
+          <td>Moyenne</td>
+        </tr>
+        <tr>
+          <td>Recommandation</td>
+          <td style="color:var(--text-500);">Alt. mobile</td>
+          <td style="color:var(--text-500);">Alternative</td>
+          <td style="font-weight:600;color:var(--success);">&#9733; Recommand&eacute;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function showAlt(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('alt-' + id).classList.add('active');
+  document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

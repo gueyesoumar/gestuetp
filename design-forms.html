@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Propositions UX Formulaires</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-300: #74C69D;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --gold-50: #FDF8E8;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-700: #374151;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+    --error: #C0392B;
+    --success: #27AE60;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .page-header p { color: rgba(255,255,255,0.3); font-size: 13px; margin-top: 8px; }
+
+  .section { max-width: 1200px; margin: 50px auto; padding: 0 40px; }
+  .section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 8px; text-align: center; }
+  .section .subtitle { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 30px; }
+
+  .tag { font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600; display: inline-block; }
+  .tag-gold { background: var(--gold-200); color: var(--gold-600); }
+  .tag-green { background: #D1FAE5; color: #065F46; }
+
+  /* Shared form elements */
+  .f-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-700); margin-bottom: 6px; }
+  .f-input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; transition: all 0.2s; background: white; }
+  .f-input:focus { border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .f-input::placeholder { color: var(--text-300); }
+  .f-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5L6 8L9 5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+  .f-textarea { resize: vertical; min-height: 80px; }
+  .f-btn { padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+  .f-btn-primary { background: var(--forest-700); color: white; }
+  .f-btn-primary:hover { background: var(--forest-900); }
+  .f-btn-secondary { background: white; color: var(--text-700); border: 1px solid var(--border); }
+  .f-btn-secondary:hover { background: var(--forest-50); border-color: var(--forest-300); }
+  .f-btn-gold { background: var(--gold-500); color: var(--forest-900); }
+  .f-btn-gold:hover { background: var(--gold-600); }
+
+  /* ============================================= */
+  /* APPROACH A: Sections en cartes empilées       */
+  /* ============================================= */
+  .approach-card { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 40px; }
+  .approach-header { padding: 20px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .approach-header h3 { font-size: 16px; font-weight: 700; }
+  .approach-desc { padding: 16px 28px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-500); line-height: 1.6; }
+
+  .mockup-frame { background: var(--bg); padding: 30px; }
+  .mockup-inner { max-width: 680px; margin: 0 auto; }
+
+  /* Approach A */
+  .form-section-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .form-section-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .form-section-header h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-900);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .form-section-header .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--forest-700);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .form-section-header .step-num.done {
+    background: var(--success);
+  }
+  .form-section-header .chevron { color: var(--text-300); font-size: 16px; }
+  .form-section-body { padding: 0 20px 20px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-field { margin-bottom: 0; }
+
+  /* Progress bar */
+  .progress-bar-wrap { margin-bottom: 20px; }
+  .progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; color: var(--text-500); }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--forest-500); border-radius: 2px; transition: width 0.3s; }
+
+  /* ============================================= */
+  /* APPROACH B: Stepper wizard                    */
+  /* ============================================= */
+  .wizard-container { display: flex; gap: 0; background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; min-height: 480px; }
+  .wizard-sidebar { width: 220px; background: var(--forest-50); border-right: 1px solid var(--border); padding: 24px 0; }
+  .wizard-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-500);
+    position: relative;
+  }
+  .wizard-step.active { color: var(--forest-900); font-weight: 600; background: white; }
+  .wizard-step.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold-500); border-radius: 0 2px 2px 0; }
+  .wizard-step.done { color: var(--success); }
+  .wizard-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .wizard-step.active .wizard-dot { border-color: var(--forest-700); background: var(--forest-700); color: white; }
+  .wizard-step.done .wizard-dot { border-color: var(--success); background: var(--success); color: white; }
+  .wizard-main { flex: 1; padding: 28px; display: flex; flex-direction: column; }
+  .wizard-title { font-size: 18px; font-weight: 700; color: var(--text-900); }
+  .wizard-subtitle { font-size: 13px; color: var(--text-500); margin-top: 4px; }
+  .wizard-fields { flex: 1; margin-top: 24px; }
+  .wizard-footer { display: flex; justify-content: space-between; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+  /* ============================================= */
+  /* APPROACH C: Floating labels inline            */
+  /* ============================================= */
+  .float-form { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+  .float-form h4 { font-size: 15px; font-weight: 700; margin-bottom: 20px; color: var(--text-900); }
+  .float-group { position: relative; margin-bottom: 18px; }
+  .float-group input, .float-group select, .float-group textarea {
+    width: 100%;
+    padding: 16px 14px 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: all 0.2s;
+    background: white;
+  }
+  .float-group input:focus, .float-group select:focus, .float-group textarea:focus {
+    border-color: var(--forest-500);
+    box-shadow: 0 0 0 3px var(--forest-100);
+  }
+  .float-group label {
+    position: absolute;
+    left: 14px;
+    top: 12px;
+    font-size: 13px;
+    color: var(--text-300);
+    transition: all 0.2s;
+    pointer-events: none;
+    background: white;
+    padding: 0 4px;
+  }
+  .float-group input:focus + label,
+  .float-group input:not(:placeholder-shown) + label,
+  .float-group select:focus + label,
+  .float-group select:valid + label,
+  .float-group textarea:focus + label,
+  .float-group textarea:not(:placeholder-shown) + label {
+    top: -7px;
+    font-size: 11px;
+    color: var(--forest-700);
+    font-weight: 500;
+  }
+  .float-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* ============================================= */
+  /* APPROACH D: Contextual sidebar                */
+  /* ============================================= */
+  .context-container { display: flex; gap: 0; background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; min-height: 480px; }
+  .context-main { flex: 1; padding: 28px; }
+  .context-aside { width: 280px; background: var(--gold-50); border-left: 1px solid var(--gold-200); padding: 24px; }
+  .context-aside h4 { font-size: 13px; font-weight: 700; color: var(--gold-600); margin-bottom: 12px; }
+  .context-tip { background: white; border: 1px solid var(--gold-200); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .context-tip .tip-icon { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--gold-200); align-items: center; justify-content: center; font-size: 11px; margin-bottom: 8px; }
+  .context-tip p { font-size: 12px; color: var(--text-500); line-height: 1.5; }
+  .context-tip .tip-title { font-size: 12px; font-weight: 600; color: var(--text-700); margin-bottom: 4px; }
+
+  /* Dynamic list */
+  .dyn-list { margin-top: 16px; }
+  .dyn-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 10px;
+    align-items: start;
+    padding: 12px;
+    background: var(--forest-50);
+    border: 1px solid var(--forest-100);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .dyn-item input, .dyn-item select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    background: white;
+  }
+  .dyn-item input:focus, .dyn-item select:focus {
+    border-color: var(--forest-500);
+    box-shadow: 0 0 0 2px var(--forest-100);
+  }
+  .dyn-remove {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: none;
+    color: var(--text-300);
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 2px;
+  }
+  .dyn-remove:hover { color: var(--error); background: #FEE2E2; }
+  .dyn-add {
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed var(--forest-300);
+    border-radius: 10px;
+    background: none;
+    color: var(--forest-700);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+  .dyn-add:hover { background: var(--forest-50); border-color: var(--forest-500); }
+
+  /* ============================================= */
+  /* APPROACH E: Two-column split                  */
+  /* ============================================= */
+  .split-form { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .split-section { display: grid; grid-template-columns: 240px 1fr; border-bottom: 1px solid var(--border); }
+  .split-section:last-child { border-bottom: none; }
+  .split-label-area { padding: 24px; background: var(--bg); border-right: 1px solid var(--border); }
+  .split-label-area h4 { font-size: 14px; font-weight: 600; color: var(--text-900); }
+  .split-label-area p { font-size: 12px; color: var(--text-500); margin-top: 4px; line-height: 1.5; }
+  .split-fields { padding: 24px; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu — Propositions UX Formulaires</h1>
+  <p>5 approches modernes pour les formulaires de la plateforme</p>
+</div>
+
+<!-- ====== APPROACH A ====== -->
+<div class="section">
+  <h2>Approche A — Sections en cartes accord&eacute;on</h2>
+  <div class="subtitle">Chaque section est une carte repliable avec un num&eacute;ro d'&eacute;tape et un indicateur de compl&eacute;tion</div>
+
+  <div class="approach-card">
+    <div class="approach-header">
+      <h3>Exemple : Fiche client</h3>
+      <span class="tag tag-gold">Recommand&eacute;</span>
+    </div>
+    <div class="mockup-frame">
+      <div class="mockup-inner">
+        <div class="progress-bar-wrap">
+          <div class="progress-label"><span>Progression</span><span>2/4 sections compl&eacute;t&eacute;es</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 50%;"></div></div>
+        </div>
+
+        <div class="form-section-card">
+          <div class="form-section-header">
+            <h4><span class="step-num done">&#10003;</span>Identit&eacute; du client</h4>
+            <span class="chevron">&#9660;</span>
+          </div>
+        </div>
+
+        <div class="form-section-card">
+          <div class="form-section-header">
+            <h4><span class="step-num done">&#10003;</span>Informations g&eacute;n&eacute;rales</h4>
+            <span class="chevron">&#9660;</span>
+          </div>
+        </div>
+
+        <div class="form-section-card">
+          <div class="form-section-header">
+            <h4><span class="step-num">3</span>Parties int&eacute;ress&eacute;es</h4>
+            <span class="chevron">&#9650;</span>
+          </div>
+          <div class="form-section-body">
+            <div class="dyn-item">
+              <input type="text" value="CNIL" placeholder="Nom">
+              <select><option>Externe</option><option>Interne</option></select>
+              <button class="dyn-remove">&times;</button>
+            </div>
+            <div class="dyn-item">
+              <input type="text" value="Salari&eacute;s" placeholder="Nom">
+              <select><option>Interne</option></select>
+              <button class="dyn-remove">&times;</button>
+            </div>
+            <button class="dyn-add">+ Ajouter une partie int&eacute;ress&eacute;e</button>
+          </div>
+        </div>
+
+        <div class="form-section-card">
+          <div class="form-section-header">
+            <h4><span class="step-num">4</span>Exigences r&eacute;glementaires</h4>
+            <span class="chevron">&#9660;</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
+          <button class="f-btn f-btn-secondary">Annuler</button>
+          <button class="f-btn f-btn-primary">Enregistrer le client</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== APPROACH B ====== -->
+<div class="section">
+  <h2>Approche B — Wizard &agrave; &eacute;tapes</h2>
+  <div class="subtitle">Navigation lat&eacute;rale avec &eacute;tapes num&eacute;rot&eacute;es. Une seule section visible &agrave; la fois. Id&eacute;al pour les formulaires longs.</div>
+
+  <div class="approach-card">
+    <div class="approach-header">
+      <h3>Exemple : Cr&eacute;ation de mission</h3>
+    </div>
+    <div class="mockup-frame">
+      <div class="wizard-container">
+        <div class="wizard-sidebar">
+          <div class="wizard-step done">
+            <div class="wizard-dot">&#10003;</div>
+            <span>Informations</span>
+          </div>
+          <div class="wizard-step active">
+            <div class="wizard-dot">2</div>
+            <span>&Eacute;quipe</span>
+          </div>
+          <div class="wizard-step">
+            <div class="wizard-dot">3</div>
+            <span>P&eacute;rim&egrave;tre</span>
+          </div>
+          <div class="wizard-step">
+            <div class="wizard-dot">4</div>
+            <span>Confirmation</span>
+          </div>
+        </div>
+        <div class="wizard-main">
+          <div class="wizard-title">&Eacute;quipe de mission</div>
+          <div class="wizard-subtitle">D&eacute;signez l'associ&eacute;, le chef de mission et les auditeurs</div>
+
+          <div class="wizard-fields">
+            <div class="form-row">
+              <div class="form-field">
+                <label class="f-label">Associ&eacute;</label>
+                <select class="f-input f-select">
+                  <option>Oumar Gueye</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="f-label">Chef de mission</label>
+                <select class="f-input f-select">
+                  <option>S&eacute;lectionner...</option>
+                  <option>Sadio Man&eacute;</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top: 16px;">
+              <label class="f-label">Auditeurs</label>
+              <div style="background: var(--forest-50); border: 1px solid var(--forest-100); border-radius: 10px; padding: 12px; max-height: 160px; overflow-y: auto;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-700); padding: 6px 0; cursor: pointer;">
+                  <input type="checkbox" checked style="accent-color: var(--forest-700);"> Oumar Gueye <span style="font-size: 11px; color: var(--gold-600); margin-left: auto;">Associ&eacute;</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-700); padding: 6px 0; cursor: pointer;">
+                  <input type="checkbox" checked style="accent-color: var(--forest-700);"> Sadio Man&eacute; <span style="font-size: 11px; color: var(--forest-500); margin-left: auto;">Chef de mission</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-700); padding: 6px 0; cursor: pointer;">
+                  <input type="checkbox" style="accent-color: var(--forest-700);"> Aminata Diallo
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="wizard-footer">
+            <button class="f-btn f-btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+            <button class="f-btn f-btn-primary">Suivant &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== APPROACH C ====== -->
+<div class="section">
+  <h2>Approche C — Labels flottants</h2>
+  <div class="subtitle">Les labels montent au-dessus du champ au focus. Plus compact, plus &eacute;l&eacute;gant. Id&eacute;al pour les formulaires courts.</div>
+
+  <div class="approach-card">
+    <div class="approach-header">
+      <h3>Exemple : Page de connexion / Organisation</h3>
+    </div>
+    <div class="mockup-frame">
+      <div style="max-width: 420px; margin: 0 auto;">
+        <div class="float-form">
+          <h4>Informations de l'organisation</h4>
+
+          <div class="float-group">
+            <input type="text" placeholder=" " value="Cabinet Demo">
+            <label>Nom de l'organisation</label>
+          </div>
+
+          <div class="float-row">
+            <div class="float-group">
+              <input type="text" placeholder=" " value="cabinet-demo">
+              <label>Identifiant (slug)</label>
+            </div>
+            <div class="float-group">
+              <select required>
+                <option value="Conseil">Conseil</option>
+                <option value="Finance">Finance</option>
+              </select>
+              <label>Secteur</label>
+            </div>
+          </div>
+
+          <div class="float-group">
+            <input type="url" placeholder=" " value="">
+            <label>Site web</label>
+          </div>
+
+          <div class="float-row">
+            <div class="float-group">
+              <input type="text" placeholder=" " value="Dakar">
+              <label>Ville</label>
+            </div>
+            <div class="float-group">
+              <select required>
+                <option value="Sénégal">S&eacute;n&eacute;gal</option>
+              </select>
+              <label>Pays</label>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="f-btn f-btn-primary">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== APPROACH D ====== -->
+<div class="section">
+  <h2>Approche D — Formulaire avec aide contextuelle</h2>
+  <div class="subtitle">Un panneau lat&eacute;ral dor&eacute; affiche des conseils et exemples selon la section active. Guide l'utilisateur pas &agrave; pas.</div>
+
+  <div class="approach-card">
+    <div class="approach-header">
+      <h3>Exemple : Fiche client — Exigences r&eacute;glementaires</h3>
+      <span class="tag tag-green">Innovant</span>
+    </div>
+    <div class="mockup-frame">
+      <div class="context-container">
+        <div class="context-main">
+          <div style="font-size: 16px; font-weight: 700; color: var(--text-900);">Exigences r&eacute;glementaires</div>
+          <div style="font-size: 13px; color: var(--text-500); margin-top: 4px;">Ajoutez les exigences l&eacute;gales et contractuelles du client</div>
+
+          <div class="dyn-list">
+            <div class="dyn-item" style="grid-template-columns: 1fr 120px 100px auto;">
+              <input type="text" value="RGPD" placeholder="Nom">
+              <select><option>L&eacute;gale</option></select>
+              <select><option>Fort</option><option>Moyen</option></select>
+              <button class="dyn-remove">&times;</button>
+            </div>
+            <div class="dyn-item" style="grid-template-columns: 1fr 120px 100px auto;">
+              <input type="text" value="NIS2" placeholder="Nom">
+              <select><option>R&eacute;glementaire</option></select>
+              <select><option>Fort</option></select>
+              <button class="dyn-remove">&times;</button>
+            </div>
+            <div class="dyn-item" style="grid-template-columns: 1fr 120px 100px auto;">
+              <input type="text" value="Clauses BCEAO" placeholder="Nom">
+              <select><option>Contractuelle</option></select>
+              <select><option selected>Moyen</option></select>
+              <button class="dyn-remove">&times;</button>
+            </div>
+            <button class="dyn-add">+ Ajouter une exigence</button>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: space-between;">
+            <button class="f-btn f-btn-secondary">&larr; Parties int&eacute;ress&eacute;es</button>
+            <button class="f-btn f-btn-primary">Enregistrer</button>
+          </div>
+        </div>
+        <div class="context-aside">
+          <h4>&#128161; Aide</h4>
+          <div class="context-tip">
+            <div class="tip-title">Types d'exigences</div>
+            <p><strong>L&eacute;gale</strong> : loi applicable (RGPD, LPM)<br>
+            <strong>R&eacute;glementaire</strong> : r&eacute;gulation sectorielle (BCEAO, ACPR)<br>
+            <strong>Contractuelle</strong> : clauses clients/fournisseurs<br>
+            <strong>Normative</strong> : ISO, COBIT, ITIL</p>
+          </div>
+          <div class="context-tip">
+            <div class="tip-title">Impact</div>
+            <p><strong>Fort</strong> : non-conformit&eacute; = sanctions ou perte de licence<br>
+            <strong>Moyen</strong> : risque financier ou r&eacute;putationnel<br>
+            <strong>Faible</strong> : recommandation, pas d'obligation</p>
+          </div>
+          <div class="context-tip">
+            <div class="tip-title">Exemples fr&eacute;quents</div>
+            <p>RGPD, NIS2, LPM, PCI-DSS, SOX, R&egrave;gles BCEAO, HIPAA, ISO 27001</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== APPROACH E ====== -->
+<div class="section">
+  <h2>Approche E — Deux colonnes label/champs</h2>
+  <div class="subtitle">Label et description &agrave; gauche, champs &agrave; droite. Chaque section est s&eacute;par&eacute;e. Tr&egrave;s lisible, tr&egrave;s pro.</div>
+
+  <div class="approach-card">
+    <div class="approach-header">
+      <h3>Exemple : Organisation</h3>
+    </div>
+    <div class="mockup-frame">
+      <div style="max-width: 780px; margin: 0 auto;">
+        <div class="split-form">
+          <div class="split-section">
+            <div class="split-label-area">
+              <h4>Informations</h4>
+              <p>Identit&eacute; de votre organisation sur la plateforme</p>
+            </div>
+            <div class="split-fields">
+              <div class="form-field" style="margin-bottom: 14px;">
+                <label class="f-label">Nom</label>
+                <input class="f-input" value="Cabinet Demo">
+              </div>
+              <div class="form-field" style="margin-bottom: 14px;">
+                <label class="f-label">Identifiant (slug)</label>
+                <input class="f-input" value="cabinet-demo">
+              </div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="f-label">Secteur</label>
+                  <select class="f-input f-select"><option>Conseil</option></select>
+                </div>
+                <div class="form-field">
+                  <label class="f-label">Site web</label>
+                  <input class="f-input" placeholder="https://...">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="split-section">
+            <div class="split-label-area">
+              <h4>Localisation</h4>
+              <p>Adresse et coordonn&eacute;es de contact</p>
+            </div>
+            <div class="split-fields">
+              <div class="form-field" style="margin-bottom: 14px;">
+                <label class="f-label">Adresse</label>
+                <input class="f-input" placeholder="Rue, num&eacute;ro">
+              </div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="f-label">Ville</label>
+                  <input class="f-input" value="Dakar">
+                </div>
+                <div class="form-field">
+                  <label class="f-label">Pays</label>
+                  <select class="f-input f-select"><option>S&eacute;n&eacute;gal</option></select>
+                </div>
+              </div>
+              <div class="form-field" style="margin-top: 14px;">
+                <label class="f-label">T&eacute;l&eacute;phone</label>
+                <input class="f-input" placeholder="+221 ...">
+              </div>
+            </div>
+          </div>
+          <div style="padding: 20px 24px; display: flex; justify-content: flex-end; gap: 12px; background: var(--bg);">
+            <button class="f-btn f-btn-secondary">Annuler</button>
+            <button class="f-btn f-btn-primary">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECOMMENDATION -->
+<div class="section">
+  <h2>Recommandation</h2>
+  <div class="approach-card">
+    <div style="padding: 28px; line-height: 1.8; font-size: 13px; color: var(--text-700);">
+      <p><strong>Combiner les approches selon le contexte :</strong></p>
+      <table style="width: 100%; margin-top: 16px; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+            <th style="padding: 8px 12px; font-weight: 600; color: var(--text-900);">Contexte</th>
+            <th style="padding: 8px 12px; font-weight: 600; color: var(--text-900);">Approche</th>
+            <th style="padding: 8px 12px; font-weight: 600; color: var(--text-900);">Raison</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px;">Fiche client (long, multi-section)</td>
+            <td style="padding: 10px 12px;"><strong>A</strong> + <strong>D</strong></td>
+            <td style="padding: 10px 12px;">Cartes accord&eacute;on avec aide contextuelle pour les PI et exigences</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px;">Cr&eacute;ation de mission (multi-&eacute;tape)</td>
+            <td style="padding: 10px 12px;"><strong>B</strong></td>
+            <td style="padding: 10px 12px;">Wizard guid&eacute; pour ne pas submerger</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px;">Organisation (court)</td>
+            <td style="padding: 10px 12px;"><strong>E</strong></td>
+            <td style="padding: 10px 12px;">Deux colonnes, lisible, professionnel</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px;">Login / formulaires simples</td>
+            <td style="padding: 10px 12px;"><strong>C</strong></td>
+            <td style="padding: 10px 12px;">Labels flottants, compact</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 12px;">Listes dynamiques (PI, exigences)</td>
+            <td style="padding: 10px 12px;"><strong>D</strong></td>
+            <td style="padding: 10px 12px;">Aide contextuelle pour guider le remplissage</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  G&euml;stu ETP — Propositions UX Formulaires v1.0
+</div>
+
+</body>
+</html>

@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { Sparkles, MessageCircle, BarChart3, Paperclip } from 'lucide-react'
 import { SmartPrefilledAnswers } from './SmartPrefilledAnswers'
 import { SmartConversation } from './SmartConversation'
 import { SmartRadar } from './SmartRadar'
 import type { Question } from '../../../types/database.types'
+import type { ReactNode } from 'react'
 
 export interface SmartAnswer {
   questionCode: string
@@ -40,10 +42,10 @@ export function SmartInterviewContainer({
     !initialResponses.has(q.code) && !prefilledAnswers.some((a) => a.questionCode === q.code && a.validated)
   )
 
-  const tabs: { key: SmartTab; label: string; icon: string }[] = [
-    { key: 'prefill', label: 'R\u00e9ponses IA', icon: '\u2728' },
-    { key: 'conversation', label: 'Conversation', icon: '\uD83D\uDCAC' },
-    { key: 'radar', label: 'Mon radar', icon: '\uD83D\uDCCA' },
+  const tabs: { key: SmartTab; label: string; icon: ReactNode }[] = [
+    { key: 'prefill', label: 'R\u00e9ponses IA', icon: <Sparkles size={13} /> },
+    { key: 'conversation', label: 'Conversation', icon: <MessageCircle size={13} /> },
+    { key: 'radar', label: 'Mon radar', icon: <BarChart3 size={13} /> },
   ]
 
   return (
@@ -51,7 +53,7 @@ export function SmartInterviewContainer({
       {/* Document-awareness banner */}
       <div className="flex items-center gap-3 p-3 bg-forest-50 border border-forest-100 rounded-xl mb-4">
         <div className="w-9 h-9 rounded-lg bg-forest-100 flex items-center justify-center shrink-0">
-          <span className="text-base">&#128206;</span>
+          <Paperclip size={16} />
         </div>
         <div className="flex-1">
           <p className="text-xs font-semibold text-forest-900">

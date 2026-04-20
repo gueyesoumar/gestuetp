@@ -1,3 +1,4 @@
+import { Check, AlertTriangle, Play } from 'lucide-react'
 import { Badge } from '../../../../components/ui/Badge'
 import { ASSESSMENT_STATUS_CONFIG } from '../../mission-constants'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
@@ -18,7 +19,7 @@ export function ValidationStep({ assessment, observations, findings, recommendat
   return (
     <div className="space-y-4">
       <h4 className="text-[13px] font-semibold text-gray-900 flex items-center gap-1.5">
-        &#10004; Validation &amp; soumission
+        <Check size={14} /> Validation &amp; soumission
       </h4>
       <p className="text-xs text-gray-300 leading-relaxed -mt-2">
         V&eacute;rifiez le r&eacute;sum&eacute; de vos travaux avant de soumettre au chef de mission.
@@ -40,7 +41,7 @@ export function ValidationStep({ assessment, observations, findings, recommendat
 
       {!canSubmit && (
         <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
-          &#9888; Les constats sont obligatoires pour soumettre ce contr&ocirc;le.
+          <AlertTriangle size={13} className="inline mr-1" />Les constats sont obligatoires pour soumettre ce contr&ocirc;le.
         </p>
       )}
 
@@ -49,7 +50,7 @@ export function ValidationStep({ assessment, observations, findings, recommendat
         disabled={!canSubmit || saving}
         className="w-full bg-forest-700 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
       >
-        &#9654; {saving ? 'Soumission...' : 'Soumettre au chef de mission'}
+        <Play size={14} /> {saving ? 'Soumission...' : 'Soumettre au chef de mission'}
       </button>
     </div>
   )

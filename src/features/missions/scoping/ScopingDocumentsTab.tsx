@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { FileText, BookOpen, Check, BarChart3 } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
 import { useMissionDocuments } from '../useMissionDocuments'
@@ -136,7 +137,7 @@ export function ScopingDocumentsTab({ missionId, domains }: ScopingDocumentsTabP
             <div key={doc.id} className={`flex items-start gap-2.5 p-3 border rounded-lg ${
               doc.status === 'uploaded' ? 'bg-forest-50 border-forest-200' : 'bg-white border-gray-200'
             }`}>
-              <span className="text-sm mt-0.5">{doc.status === 'uploaded' ? '\uD83D\uDCC4' : '\uD83D\uDCD5'}</span>
+              <span className="mt-0.5">{doc.status === 'uploaded' ? <FileText size={16} className="text-forest-700" /> : <BookOpen size={16} className="text-gold-500" />}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-gray-900">{doc.name}</p>
                 {doc.description && <p className="text-[10px] text-gray-400 mt-0.5">{doc.description}</p>}
@@ -147,14 +148,14 @@ export function ScopingDocumentsTab({ missionId, domains }: ScopingDocumentsTabP
                   {doc.controlCodes.length > 5 && <span className="text-[8px] text-gray-300">+{doc.controlCodes.length - 5}</span>}
                 </div>
                 {doc.uploadedFileName && (
-                  <p className="text-[10px] text-green-600 font-medium mt-1.5">&#10003; {doc.uploadedFileName}</p>
+                  <p className="text-[10px] text-green-600 font-medium mt-1.5 flex items-center gap-0.5"><Check size={10} /> {doc.uploadedFileName}</p>
                 )}
               </div>
               <div className="shrink-0 mt-0.5 flex flex-col items-end gap-1">
                 {doc.isRequired && <span className="text-[8px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">Requis</span>}
                 {doc.status === 'uploaded' ? (
                   <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                    <span className="text-white text-[10px] font-bold">&#10003;</span>
+                    <Check size={11} className="text-white" />
                   </div>
                 ) : (
                   <span className="text-[9px] text-gold-600 bg-gold-50 px-2 py-0.5 rounded-full">En attente</span>
@@ -168,7 +169,7 @@ export function ScopingDocumentsTab({ missionId, domains }: ScopingDocumentsTabP
       {/* Summary */}
       {expectedDocs.length > 0 && (
         <div className="flex items-center gap-2 p-2.5 bg-forest-50 border border-forest-100 rounded-lg">
-          <span className="text-xs">&#128202;</span>
+          <BarChart3 size={13} className="text-forest-700" />
           <p className="text-[10px] text-forest-700">
             <b>{expectedDocs.length} documents</b> attendus.
             {uploadedCount > 0 && ` ${uploadedCount} re\u00e7u${uploadedCount > 1 ? 's' : ''}.`}

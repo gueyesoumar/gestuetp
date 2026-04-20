@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Check, X, Sparkles, PartyPopper } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import type { Question } from '../../../types/database.types'
 
@@ -79,7 +80,7 @@ export function SmartConversation({ missionId, questions, instanceId, userId, re
   if (questions.length === 0) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
-        <p className="text-2xl mb-3">&#10003;</p>
+        <div className="flex justify-center mb-3"><Check size={24} className="text-green-600" /></div>
         <p className="text-sm font-semibold">Toutes les questions ont une r&eacute;ponse !</p>
         <p className="text-xs text-gray-400 mt-1">Consultez l&rsquo;onglet &laquo; Mon radar &raquo; pour voir votre maturit&eacute;.</p>
       </div>
@@ -89,7 +90,7 @@ export function SmartConversation({ missionId, questions, instanceId, userId, re
   if (completed) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
-        <p className="text-3xl mb-3">&#127881;</p>
+        <div className="flex justify-center mb-3"><PartyPopper size={28} className="text-gold-500" /></div>
         <p className="text-sm font-semibold mb-1">Questionnaire termin&eacute; !</p>
         <p className="text-xs text-gray-400">Vos r&eacute;ponses ont &eacute;t&eacute; enregistr&eacute;es. L&rsquo;auditeur a &eacute;t&eacute; notifi&eacute;.</p>
       </div>
@@ -104,8 +105,8 @@ export function SmartConversation({ missionId, questions, instanceId, userId, re
     if (qType === 'boolean') {
       return (
         <>
-          <ResponseChip label="&#10003; Oui" onClick={() => handleAnswer('Oui')} disabled={readOnly || saving} active />
-          <ResponseChip label="&#10007; Non" onClick={() => handleAnswer('Non')} disabled={readOnly || saving} />
+          <ResponseChip label="Oui" icon={<Check size={12} />} onClick={() => handleAnswer('Oui')} disabled={readOnly || saving} active />
+          <ResponseChip label="Non" icon={<X size={12} />} onClick={() => handleAnswer('Non')} disabled={readOnly || saving} />
         </>
       )
     }
@@ -132,7 +133,7 @@ export function SmartConversation({ missionId, questions, instanceId, userId, re
           <div key={i} className={`flex gap-2.5 mb-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
             {msg.role === 'ai' && (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-forest-700 to-forest-500 flex items-center justify-center shrink-0">
-                <span className="text-white text-sm">&#10024;</span>
+                <Sparkles size={15} className="text-white" />
               </div>
             )}
             <div className={`max-w-[80%] rounded-xl p-3 text-xs leading-relaxed ${
@@ -187,17 +188,17 @@ export function SmartConversation({ missionId, questions, instanceId, userId, re
   )
 }
 
-function ResponseChip({ label, onClick, disabled, active, skip }: {
-  label: string; onClick: () => void; disabled: boolean; active?: boolean; skip?: boolean
+function ResponseChip({ label, icon, onClick, disabled, active, skip }: {
+  label: string; icon?: React.ReactNode; onClick: () => void; disabled: boolean; active?: boolean; skip?: boolean
 }): JSX.Element {
   return (
     <button onClick={onClick} disabled={disabled}
-      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 ${
+      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 inline-flex items-center gap-1 ${
         skip ? 'border border-dashed border-gray-200 text-gray-300 hover:border-gray-400' :
         active ? 'border-2 border-forest-300 bg-forest-50 text-forest-700 hover:bg-forest-100' :
         'border-2 border-gray-200 text-gray-700 hover:border-forest-300 hover:bg-forest-50'
       }`}>
-      {label}
+      {icon}{label}
     </button>
   )
 }

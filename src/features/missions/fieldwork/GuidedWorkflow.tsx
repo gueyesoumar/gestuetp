@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { GUIDED_STEPS } from '../mission-constants'
 import { ObserverStep } from './steps/ObserverStep'
 import { DocumenterStep } from './steps/DocumenterStep'
@@ -110,7 +111,7 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
 
 function StepDot({ index, current }: { index: number; current: number }){
   const base = 'w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold shrink-0'
-  if (index < current) return <div className={`${base} bg-green-600 text-white`}>&#10003;</div>
+  if (index < current) return <div className={`${base} bg-green-600 text-white`}><Check size={12} /></div>
   if (index === current) return <div className={`${base} bg-forest-700 text-white shadow-[0_0_0_3px_theme(colors.forest.100)]`}>{index + 1}</div>
   return <div className={`${base} bg-white text-gray-300 border-2 border-gray-200`}>{index + 1}</div>
 }

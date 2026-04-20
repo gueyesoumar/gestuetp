@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G&euml;stu Comply &mdash; Smart Interview (Questionnaire Client)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); line-height: 1.5; }
+
+  /* ---- Header ---- */
+  .page-header { background: var(--forest-900); padding: 28px 40px 0; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; max-width: 1300px; margin-left: auto; margin-right: auto; padding-bottom: 20px; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--forest-700), var(--forest-900)); border: 2px solid var(--gold-500); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; }
+  .logo-text { font-size: 18px; font-weight: 800; color: white; }
+  .logo-text .trema { color: var(--gold-500); }
+  .logo-sub { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-500); margin-left: 2px; }
+  .header-meta { display: flex; align-items: center; gap: 16px; }
+  .header-badge { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 99px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+  .header-mission { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  .header-title { text-align: center; max-width: 1300px; margin: 0 auto; padding-bottom: 24px; }
+  .header-title h1 { font-size: 22px; font-weight: 700; color: white; margin-bottom: 6px; }
+  .header-title p { font-size: 13px; color: rgba(255,255,255,0.5); }
+  .header-title .sparkle { color: var(--gold-500); }
+
+  /* ---- Tabs ---- */
+  .tabs-bar { background: var(--forest-900); border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .tabs-inner { max-width: 1300px; margin: 0 auto; display: flex; gap: 0; }
+  .tab-btn { padding: 12px 24px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.45); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .tab-btn:hover { color: rgba(255,255,255,0.7); }
+  .tab-btn.active { color: white; border-bottom-color: var(--gold-500); }
+  .tab-btn .tab-num { font-size: 10px; font-weight: 700; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); }
+  .tab-btn.active .tab-num { background: var(--gold-500); color: var(--forest-900); }
+  .tab-btn.done .tab-num { background: var(--success); color: white; }
+
+  /* ---- Content area ---- */
+  .content { max-width: 1300px; margin: 0 auto; padding: 28px 24px 60px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ---- Sub-tabs (for Level 1) ---- */
+  .sub-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .sub-tab { padding: 8px 16px; font-size: 12px; font-weight: 500; color: var(--text-500); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: white; transition: all 0.15s; }
+  .sub-tab:hover { border-color: var(--forest-300); }
+  .sub-tab.active { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .sub-panel { display: none; }
+  .sub-panel.active { display: block; }
+
+  /* ---- Cards ---- */
+  .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .card-lg { padding: 32px; }
+  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .card-desc { font-size: 12px; color: var(--text-500); line-height: 1.6; }
+
+  /* ---- Upload Zone ---- */
+  .upload-zone { border: 2px dashed var(--forest-300); border-radius: 16px; padding: 48px 32px; text-align: center; background: var(--forest-50); transition: all 0.3s; cursor: pointer; margin-bottom: 24px; }
+  .upload-zone:hover { border-color: var(--forest-500); background: var(--forest-100); }
+  .upload-icon { width: 56px; height: 56px; margin: 0 auto 16px; background: var(--forest-100); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .upload-icon svg { width: 28px; height: 28px; color: var(--forest-700); }
+  .upload-zone h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--forest-900); }
+  .upload-zone p { font-size: 12px; color: var(--text-500); }
+  .upload-zone .formats { font-size: 11px; color: var(--text-300); margin-top: 8px; }
+
+  /* ---- Suggested docs ---- */
+  .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .doc-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: white; cursor: pointer; transition: all 0.2s; }
+  .doc-item:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .doc-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+  .doc-icon.pdf { background: #FEF2F2; color: var(--error); }
+  .doc-icon.doc { background: var(--info-light); color: var(--info); }
+  .doc-icon.xls { background: #F0FDF4; color: var(--success); }
+  .doc-icon.ppt { background: #FFF7ED; color: #EA580C; }
+  .doc-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .doc-info p { font-size: 11px; color: var(--text-300); }
+  .doc-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 50%; margin-left: auto; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .doc-check.checked { border-color: var(--success); background: var(--success); }
+  .doc-check.checked::after { content: "\2713"; color: white; font-size: 11px; font-weight: 700; }
+
+  /* ---- AI Analysis State ---- */
+  .ai-analysis { text-align: center; padding: 40px 24px; }
+  .ai-brain { width: 80px; height: 80px; margin: 0 auto 24px; position: relative; }
+  .ai-brain-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--gold-50); border: 2px solid var(--gold-200); display: flex; align-items: center; justify-content: center; font-size: 36px; animation: pulse-glow 2s ease-in-out infinite; }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,67,0.2); }
+    50% { box-shadow: 0 0 0 16px rgba(212,168,67,0); }
+  }
+  .sparkle-dots { position: absolute; inset: -12px; }
+  .sparkle-dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-500); animation: sparkle 1.5s ease-in-out infinite; }
+  .sparkle-dot:nth-child(1) { top: 0; left: 50%; animation-delay: 0s; }
+  .sparkle-dot:nth-child(2) { top: 20%; right: 0; animation-delay: 0.3s; }
+  .sparkle-dot:nth-child(3) { bottom: 0; left: 50%; animation-delay: 0.6s; }
+  .sparkle-dot:nth-child(4) { top: 20%; left: 0; animation-delay: 0.9s; }
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+
+  .ai-analysis h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .ai-analysis .ai-sub { font-size: 13px; color: var(--text-500); margin-bottom: 28px; }
+
+  .doc-progress-list { max-width: 420px; margin: 0 auto; text-align: left; }
+  .doc-prog { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .doc-prog:last-child { border-bottom: none; }
+  .doc-prog-icon { font-size: 14px; flex-shrink: 0; }
+  .doc-prog-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .doc-prog-status { font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 99px; }
+  .doc-prog-status.done { background: var(--forest-100); color: var(--forest-700); }
+  .doc-prog-status.processing { background: var(--gold-50); color: var(--gold-600); animation: blink-status 1.2s ease-in-out infinite; }
+  .doc-prog-status.waiting { background: #F3F4F6; color: var(--text-300); }
+  @keyframes blink-status {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .overall-bar { max-width: 420px; margin: 24px auto 0; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-500); margin-bottom: 6px; }
+  .bar-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--forest-500), var(--gold-500)); transition: width 0.6s ease; }
+
+  /* ---- Pre-filled results ---- */
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .results-header h3 { font-size: 16px; font-weight: 700; }
+  .progress-ring-wrap { display: flex; align-items: center; gap: 12px; }
+  .progress-ring { position: relative; width: 52px; height: 52px; }
+  .progress-ring svg { transform: rotate(-90deg); }
+  .progress-ring circle { fill: none; stroke-width: 4; }
+  .progress-ring .bg-ring { stroke: var(--border); }
+  .progress-ring .fg-ring { stroke: var(--forest-500); stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+  .progress-ring .ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--forest-700); }
+
+  .result-group { margin-bottom: 24px; }
+  .result-group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--forest-100); }
+  .result-group-icon { font-size: 14px; }
+  .result-group-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--forest-700); }
+  .result-group-count { font-size: 11px; color: var(--text-300); margin-left: auto; }
+
+  .result-item { display: flex; gap: 16px; padding: 16px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; transition: all 0.2s; }
+  .result-item:hover { border-color: var(--forest-300); }
+  .result-item.validated { border-color: var(--success); background: #F0FDF4; }
+  .result-conf { flex-shrink: 0; text-align: center; }
+  .conf-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+  .conf-high { background: var(--forest-100); color: var(--forest-700); }
+  .conf-med { background: var(--gold-50); color: var(--gold-600); }
+  .conf-low { background: #FEF2F2; color: var(--error); }
+  .result-body { flex: 1; min-width: 0; }
+  .result-q { font-size: 12px; font-weight: 600; color: var(--text-700); margin-bottom: 4px; }
+  .result-ref { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-300); margin-bottom: 6px; }
+  .result-answer { font-size: 13px; color: var(--text-900); line-height: 1.5; padding: 8px 12px; background: var(--forest-50); border-radius: 6px; border-left: 3px solid var(--forest-300); }
+  .result-source { font-size: 10px; color: var(--text-300); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .result-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; }
+  .act-btn { padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; border: 1px solid var(--border); background: white; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .act-btn:hover { background: var(--forest-50); border-color: var(--forest-300); }
+  .act-btn.validate { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .act-btn.validate:hover { background: var(--forest-900); }
+  .act-btn.validated { background: var(--success); color: white; border-color: var(--success); }
+
+  /* ---- Conversation (Level 2) ---- */
+  .conversation-layout { display: flex; gap: 24px; }
+  .conv-main { flex: 1; min-width: 0; }
+  .conv-sidebar { width: 320px; flex-shrink: 0; }
+
+  .conv-progress-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .conv-progress-title { font-size: 12px; font-weight: 600; color: var(--text-500); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .conv-topics { list-style: none; }
+  .conv-topic { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .conv-topic:last-child { border-bottom: none; }
+  .topic-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .topic-dot.done { background: var(--success); }
+  .topic-dot.current { background: var(--gold-500); animation: pulse-dot 1.5s ease-in-out infinite; }
+  .topic-dot.pending { background: var(--border); }
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,67,0.4); }
+    50% { box-shadow: 0 0 0 5px rgba(212,168,67,0); }
+  }
+  .topic-name { flex: 1; }
+  .topic-name.done { color: var(--text-300); text-decoration: line-through; }
+  .topic-name.current { font-weight: 600; color: var(--forest-900); }
+  .topic-count { font-size: 11px; color: var(--text-300); }
+
+  .chat-area { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .chat-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .chat-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .chat-avatar.ai { background: var(--gold-50); border: 1.5px solid var(--gold-200); }
+  .chat-avatar.user { background: var(--forest-100); }
+  .chat-header-text h4 { font-size: 13px; font-weight: 600; }
+  .chat-header-text p { font-size: 11px; color: var(--text-300); }
+  .chat-remaining { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--forest-700); background: var(--forest-100); padding: 4px 12px; border-radius: 99px; }
+
+  .chat-body { padding: 20px; max-height: 520px; overflow-y: auto; }
+  .chat-msg { display: flex; gap: 10px; margin-bottom: 16px; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-bubble { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+  .chat-msg.ai .chat-bubble { background: #F3F4F6; color: var(--text-700); border-bottom-left-radius: 4px; }
+  .chat-msg.user .chat-bubble { background: var(--forest-700); color: white; border-bottom-right-radius: 4px; }
+  .chat-bubble .ref-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 4px; margin-right: 4px; }
+  .chat-bubble .doc-ref { font-size: 11px; color: var(--gold-600); font-style: italic; display: block; margin-top: 6px; }
+  .chat-bubble .doc-ref::before { content: "\1F4C4 "; }
+
+  /* Response chips */
+  .response-area { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg); }
+  .response-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .chip { padding: 10px 18px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; background: white; transition: all 0.15s; }
+  .chip:hover { border-color: var(--forest-500); background: var(--forest-50); }
+  .chip.selected { border-color: var(--forest-700); background: var(--forest-100); color: var(--forest-900); }
+  .chip-yes { border-color: var(--forest-300); }
+  .chip-no { border-color: #FCA5A5; }
+  .chip-skip { color: var(--text-300); font-size: 12px; }
+  .chip-scale { width: 44px; text-align: center; }
+
+  .text-input-row { display: flex; gap: 8px; }
+  .text-input-row input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; font-family: inherit; }
+  .text-input-row input:focus { border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .send-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--forest-700); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+  .send-btn:hover { background: var(--forest-900); }
+
+  /* ---- Radar (Level 3) ---- */
+  .radar-layout { display: flex; gap: 24px; }
+  .radar-main { flex: 1; }
+  .radar-side { width: 380px; flex-shrink: 0; }
+
+  .radar-chart-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; text-align: center; margin-bottom: 20px; }
+  .radar-chart-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .radar-chart-card .radar-sub { font-size: 12px; color: var(--text-500); margin-bottom: 20px; }
+  .radar-svg { max-width: 400px; margin: 0 auto; }
+
+  .radar-legend { display: flex; justify-content: center; gap: 20px; margin-top: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-500); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .score-item { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: white; }
+  .score-item-label { font-size: 11px; color: var(--text-500); margin-bottom: 4px; }
+  .score-item-val { font-size: 20px; font-weight: 700; color: var(--forest-700); }
+  .score-item-val .max { font-size: 13px; color: var(--text-300); font-weight: 400; }
+  .score-item-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .score-item-fill { height: 4px; border-radius: 2px; background: var(--forest-500); }
+
+  .insight-card { padding: 16px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 12px; align-items: flex-start; }
+  .insight-card.positive { background: var(--forest-50); border: 1px solid var(--forest-100); }
+  .insight-card.warning { background: #FEF2F2; border: 1px solid #FECACA; }
+  .insight-card.info { background: var(--gold-50); border: 1px solid var(--gold-200); }
+  .insight-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .insight-body h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .insight-body p { font-size: 12px; color: var(--text-500); line-height: 1.5; }
+
+  .benchmark-note { font-size: 11px; color: var(--text-300); text-align: center; padding: 10px; background: #F9FAFB; border-radius: 8px; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .benchmark-note .dash { width: 20px; height: 2px; border-top: 2px dashed var(--gold-500); }
+
+  /* ---- Completion (Level 4) ---- */
+  .completion { text-align: center; }
+  .celebration { position: relative; padding: 40px 24px 32px; }
+  .celebration-icon { width: 80px; height: 80px; margin: 0 auto 20px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; animation: pop 0.5s ease; }
+  @keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    80% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .celebration h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--forest-900); }
+  .celebration p { font-size: 14px; color: var(--text-500); }
+
+  .confetti { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 300px; height: 60px; pointer-events: none; }
+  .confetti span { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: fall 2s ease-in infinite; }
+  @keyframes fall {
+    0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(80px) rotate(360deg); }
+  }
+
+  .stats-row { display: flex; justify-content: center; gap: 32px; margin: 28px 0; }
+  .stat-item { text-align: center; }
+  .stat-val { font-size: 28px; font-weight: 800; color: var(--forest-700); }
+  .stat-label { font-size: 12px; color: var(--text-500); margin-top: 2px; }
+
+  .final-actions { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
+  .btn { padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--forest-700); color: white; }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-gold { background: var(--gold-500); color: var(--forest-900); }
+  .btn-gold:hover { background: var(--gold-600); }
+  .btn-outline { background: white; color: var(--text-700); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--forest-50); border-color: var(--forest-300); }
+
+  .notif-bar { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--forest-50); border: 1px solid var(--forest-100); border-radius: 10px; font-size: 13px; color: var(--forest-700); margin-top: 20px; }
+
+  /* ---- Link at bottom ---- */
+  .bottom-link { text-align: center; margin-top: 16px; font-size: 12px; color: var(--text-300); }
+  .bottom-link a { color: var(--forest-500); text-decoration: none; font-weight: 500; }
+  .bottom-link a:hover { text-decoration: underline; }
+
+  /* Utility */
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-16 { margin-bottom: 16px; }
+  .text-sm { font-size: 12px; }
+  .text-muted { color: var(--text-500); }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+  /* ---- Typing animation ---- */
+  .typing-dots { display: inline-flex; gap: 4px; padding: 4px 0; }
+  .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-300); animation: typing 1.2s ease-in-out infinite; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  /* Scrollbar */
+  .chat-body::-webkit-scrollbar { width: 6px; }
+  .chat-body::-webkit-scrollbar-track { background: transparent; }
+  .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ======== HEADER ======== -->
+<div class="page-header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 3L4 7v6c0 5.25 3.4 10.15 8 11.25 4.6-1.1 8-6 8-11.25V7l-8-4z"/></svg>
+      </div>
+      <div>
+        <span class="logo-text">G<span class="trema">&euml;</span>stu</span>
+        <span class="logo-sub">COMPLY</span>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="header-badge">ISO 27001:2022</span>
+      <span class="header-badge">Mission #AUD-2026-018</span>
+      <span class="header-mission">Cabinet : Deloitte Cyber</span>
+    </div>
+  </div>
+  <div class="header-title">
+    <h1>&#10024; Smart Interview &mdash; Questionnaire Intelligent</h1>
+    <p>R&eacute;pondez en quelques minutes gr&acirc;ce &agrave; l&apos;analyse documentaire et la conversation IA</p>
+  </div>
+</div>
+
+<!-- ======== TABS ======== -->
+<div class="tabs-bar">
+  <div class="tabs-inner">
+    <button class="tab-btn active" data-tab="tab1">
+      <span class="tab-num">1</span> D&eacute;p&ocirc;t documents
+    </button>
+    <button class="tab-btn" data-tab="tab2">
+      <span class="tab-num">2</span> Conversation IA
+    </button>
+    <button class="tab-btn" data-tab="tab3">
+      <span class="tab-num">3</span> Radar &amp; Insights
+    </button>
+    <button class="tab-btn" data-tab="tab4">
+      <span class="tab-num">4</span> Termin&eacute;
+    </button>
+  </div>
+</div>
+
+<!-- ======== CONTENT ======== -->
+<div class="content">
+
+<!-- ============================================================ -->
+<!-- TAB 1 : Document Drop                                         -->
+<!-- ============================================================ -->
+<div class="tab-panel active" id="tab1">
+  <div class="sub-tabs">
+    <button class="sub-tab active" data-sub="sub1a">&#x1F4E4; D&eacute;poser</button>
+    <button class="sub-tab" data-sub="sub1b">&#x2699;&#xFE0F; Analyse IA</button>
+    <button class="sub-tab" data-sub="sub1c">&#x2705; R&eacute;sultats pr&eacute;-remplis</button>
+  </div>
+
+  <!-- Sub 1a : Welcome + Upload -->
+  <div class="sub-panel active" id="sub1a">
+    <div class="card card-lg fade-in">
+      <div style="text-align:center; margin-bottom: 24px;">
+        <div style="font-size: 32px; margin-bottom: 12px;">&#x1F4C2;</div>
+        <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Commencez par d&eacute;poser vos documents cl&eacute;s</h2>
+        <p class="card-desc" style="max-width:520px; margin:0 auto;">Notre IA analysera vos documents et pr&eacute;-remplira automatiquement les r&eacute;ponses du questionnaire. Moins de saisie, plus de pr&eacute;cision.</p>
+      </div>
+
+      <div class="upload-zone">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <h3>Glissez-d&eacute;posez vos fichiers ici</h3>
+        <p>ou <span style="color: var(--forest-700); font-weight: 600; cursor: pointer;">parcourez vos fichiers</span></p>
+        <p class="formats">PDF, DOCX, XLSX, PPTX &mdash; Max 25 Mo par fichier</p>
+      </div>
+
+      <div style="margin-bottom: 8px;">
+        <p style="font-size: 12px; font-weight: 600; color: var(--text-500); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">&#x1F4CB; Documents attendus par les auditeurs</p>
+        <p style="font-size: 11px; color: var(--text-300); margin-bottom: 14px;">G&eacute;n&eacute;r&eacute;s automatiquement &agrave; partir des contr&ocirc;les de votre audit ISO 27001. Chaque document couvre un ou plusieurs contr&ocirc;les.</p>
+      </div>
+      <div class="doc-grid">
+        <div class="doc-item">
+          <div class="doc-icon pdf">&#x1F4D5;</div>
+          <div class="doc-info">
+            <h4>Politique de S&eacute;curit&eacute; (PSSI)</h4>
+            <p style="margin-bottom:3px;">Document fondateur de la SSI</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.1</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.2</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.4</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.10</span>
+              <span style="font-size:9px;color:var(--text-300);">+3 contr&ocirc;les</span>
+            </div>
+          </div>
+          <div class="doc-check checked"></div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon doc">&#x1F4C4;</div>
+          <div class="doc-info">
+            <h4>Organigramme &amp; Fonctions SSI</h4>
+            <p style="margin-bottom:3px;">Structure organisationnelle et r&ocirc;les</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.2</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.3</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.4</span>
+            </div>
+          </div>
+          <div class="doc-check checked"></div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon pdf">&#x1F4D5;</div>
+          <div class="doc-info">
+            <h4>Plan de Continuit&eacute; (PCA/PRA)</h4>
+            <p style="margin-bottom:3px;">Continuit&eacute; et reprise d&apos;activit&eacute;</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.29</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.30</span>
+            </div>
+          </div>
+          <div class="doc-check"></div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon doc">&#x1F4C4;</div>
+          <div class="doc-info">
+            <h4>Politique de contr&ocirc;le d&apos;acc&egrave;s</h4>
+            <p style="margin-bottom:3px;">Gestion des droits et habilitations</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.15</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.16</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.18</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.8.2</span>
+              <span style="font-size:9px;color:var(--text-300);">+2 contr&ocirc;les</span>
+            </div>
+          </div>
+          <div class="doc-check checked"></div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon xls">&#x1F4CA;</div>
+          <div class="doc-info">
+            <h4>Inventaire des actifs informationnels</h4>
+            <p style="margin-bottom:3px;">Mat&eacute;riel, logiciel, donn&eacute;es, r&eacute;seaux</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.9</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.10</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.11</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.12</span>
+            </div>
+          </div>
+          <div class="doc-check"></div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon pdf">&#x1F4D5;</div>
+          <div class="doc-info">
+            <h4>Proc&eacute;dure de gestion des incidents</h4>
+            <p style="margin-bottom:3px;">D&eacute;tection, r&eacute;ponse, notification</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.24</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.25</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.26</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.27</span>
+            </div>
+          </div>
+          <div class="doc-check checked"></div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon ppt">&#x1F4D9;</div>
+          <div class="doc-info">
+            <h4>Programme de sensibilisation</h4>
+            <p style="margin-bottom:3px;">Formation et campagnes awareness</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.6.3</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.4</span>
+            </div>
+          </div>
+          <div class="doc-check"></div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon doc">&#x1F4C4;</div>
+          <div class="doc-info">
+            <h4>Charte informatique</h4>
+            <p style="margin-bottom:3px;">R&egrave;gles d&apos;usage et engagement utilisateurs</p>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.5.10</span>
+              <span style="font-family:'JetBrains Mono';font-size:9px;font-weight:600;background:var(--forest-50);color:var(--forest-700);padding:1px 6px;border-radius:4px;">A.6.2</span>
+            </div>
+          </div>
+          <div class="doc-check"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;padding:12px 16px;background:var(--forest-50);border:1px solid var(--forest-100);border-radius:10px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:14px;">&#x1F4CA;</span>
+        <div style="flex:1;">
+          <p style="font-size:12px;font-weight:600;color:var(--forest-900);">8 documents couvrent 28 contr&ocirc;les sur 93</p>
+          <p style="font-size:10px;color:var(--forest-700);">Les documents prioritaires sont class&eacute;s par nombre de contr&ocirc;les couverts. D&eacute;posez les plus importants en premier.</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn btn-primary" style="margin-right: 12px;">&#x1F680; Analyser les 4 documents s&eacute;lectionn&eacute;s</button>
+        <button class="btn btn-outline">Ajouter d&apos;autres fichiers</button>
+      </div>
+    </div>
+
+    <div class="bottom-link">
+      <a href="#">Ou commencer directement les questions &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Sub 1b : AI Analysis -->
+  <div class="sub-panel" id="sub1b">
+    <div class="card card-lg fade-in">
+      <div class="ai-analysis">
+        <div class="ai-brain">
+          <div class="ai-brain-circle">&#x1F9E0;</div>
+          <div class="sparkle-dots">
+            <div class="sparkle-dot"></div>
+            <div class="sparkle-dot"></div>
+            <div class="sparkle-dot"></div>
+            <div class="sparkle-dot"></div>
+          </div>
+        </div>
+        <h3>Analyse documentaire en cours...</h3>
+        <p class="ai-sub">L&apos;IA parcourt vos documents pour identifier les r&eacute;ponses au questionnaire ISO 27001</p>
+
+        <div class="doc-progress-list">
+          <div class="doc-prog">
+            <span class="doc-prog-icon">&#x1F4D5;</span>
+            <span class="doc-prog-name">PSSI_v3.2_2025.pdf</span>
+            <span class="doc-prog-status done">&#x2713; Analys&eacute;</span>
+          </div>
+          <div class="doc-prog">
+            <span class="doc-prog-icon">&#x1F4C4;</span>
+            <span class="doc-prog-name">Organigramme_DSI_2025.docx</span>
+            <span class="doc-prog-status done">&#x2713; Analys&eacute;</span>
+          </div>
+          <div class="doc-prog">
+            <span class="doc-prog-icon">&#x1F4C4;</span>
+            <span class="doc-prog-name">Politique_acces_v2.1.docx</span>
+            <span class="doc-prog-status processing">&#x23F3; En cours...</span>
+          </div>
+          <div class="doc-prog">
+            <span class="doc-prog-icon">&#x1F4D5;</span>
+            <span class="doc-prog-name">Proc_incidents_SSI.pdf</span>
+            <span class="doc-prog-status waiting">En attente</span>
+          </div>
+        </div>
+
+        <div class="overall-bar">
+          <div class="bar-label">
+            <span>Progression globale</span>
+            <span style="font-weight: 600;">62%</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 62%;"></div>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; padding: 12px 16px; background: var(--gold-50); border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gold-600);">
+          &#x1F4A1; <strong>D&eacute;j&agrave; trouv&eacute; :</strong>&nbsp;5 r&eacute;ponses identifi&eacute;es dans la PSSI
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub 1c : Pre-filled Results -->
+  <div class="sub-panel" id="sub1c">
+    <div class="card fade-in" style="padding: 20px 24px;">
+      <div class="results-header">
+        <div>
+          <h3>R&eacute;ponses extraites de vos documents</h3>
+          <p class="text-sm text-muted mt-8">V&eacute;rifiez et validez chaque r&eacute;ponse. Modifiez si n&eacute;cessaire.</p>
+        </div>
+        <div class="progress-ring-wrap">
+          <div class="progress-ring">
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle class="bg-ring" cx="26" cy="26" r="22"/>
+              <circle class="fg-ring" cx="26" cy="26" r="22" stroke-dasharray="138.2" stroke-dashoffset="39.5"/>
+            </svg>
+            <div class="ring-text">8/14</div>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 600;">8 sur 14</div>
+            <div style="font-size: 11px; color: var(--text-300);">auto-remplies</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group: Gouvernance -->
+    <div class="result-group fade-in">
+      <div class="result-group-header">
+        <span class="result-group-icon">&#x1F3DB;&#xFE0F;</span>
+        <span class="result-group-title">Gouvernance SSI</span>
+        <span class="result-group-count">3/4 pr&eacute;-remplies</span>
+      </div>
+
+      <div class="result-item validated">
+        <div class="result-conf"><span class="conf-badge conf-high">95%</span></div>
+        <div class="result-body">
+          <div class="result-ref"><span class="mono">A.5.1</span> &mdash; Politiques de s&eacute;curit&eacute; de l&apos;information</div>
+          <div class="result-q">Disposez-vous d&apos;une Politique de S&eacute;curit&eacute; des Syst&egrave;mes d&apos;Information (PSSI) valid&eacute;e ?</div>
+          <div class="result-answer">Oui. PSSI version 3.2 approuv&eacute;e par la Direction G&eacute;n&eacute;rale le 15 mars 2025. Revue annuelle pr&eacute;vue, prochaine r&eacute;vision janvier 2026. Diffus&eacute;e &agrave; l&apos;ensemble des collaborateurs via intranet.</div>
+          <div class="result-source">&#x1F4C4; Extrait de : PSSI_v3.2_2025.pdf &mdash; page 3</div>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn validated">&#x2713; Valid&eacute;</button>
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-conf"><span class="conf-badge conf-high">91%</span></div>
+        <div class="result-body">
+          <div class="result-ref"><span class="mono">A.5.2</span> &mdash; R&ocirc;les et responsabilit&eacute;s</div>
+          <div class="result-q">Un RSSI (ou &eacute;quivalent) est-il formellement d&eacute;sign&eacute; ?</div>
+          <div class="result-answer">Oui. M. Laurent Dupont, RSSI rattach&eacute; &agrave; la DSI. En poste depuis 2022. Membre du COMEX s&eacute;curit&eacute; trimestriel.</div>
+          <div class="result-source">&#x1F4C4; Extrait de : Organigramme_DSI_2025.docx &mdash; page 1</div>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn validate">&#x2713; Valider</button>
+          <button class="act-btn">&#x270E; Modifier</button>
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-conf"><span class="conf-badge conf-med">72%</span></div>
+        <div class="result-body">
+          <div class="result-ref"><span class="mono">A.5.4</span> &mdash; Responsabilit&eacute;s de la direction</div>
+          <div class="result-q">La direction effectue-t-elle une revue p&eacute;riodique de la s&eacute;curit&eacute; ?</div>
+          <div class="result-answer">R&eacute;f&eacute;rence &agrave; un &laquo;&nbsp;comit&eacute; de pilotage SSI trimestriel&nbsp;&raquo; mentionn&eacute; dans la PSSI (section 4.2), mais aucun PV de r&eacute;union trouv&eacute; dans les documents fournis.</div>
+          <div class="result-source">&#x1F4C4; Extrait de : PSSI_v3.2_2025.pdf &mdash; section 4.2</div>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn validate">&#x2713; Valider</button>
+          <button class="act-btn">&#x270E; Modifier</button>
+        </div>
+      </div>
+
+      <div class="result-item" style="border-style: dashed; background: #FAFAF8;">
+        <div class="result-conf"><span class="conf-badge" style="background: #F3F4F6; color: var(--text-300);">&mdash;</span></div>
+        <div class="result-body">
+          <div class="result-ref"><span class="mono">A.5.5</span> &mdash; Contact avec les autorit&eacute;s</div>
+          <div class="result-q">Avez-vous identifi&eacute; les autorit&eacute;s comp&eacute;tentes &agrave; contacter en cas d&apos;incident (ANSSI, CNIL) ?</div>
+          <div style="font-size: 12px; color: var(--text-300); font-style: italic; padding: 8px 0;">&#x2753; Non trouv&eacute; dans les documents &mdash; question pos&eacute;e en conversation</div>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn" style="color: var(--forest-700);">&#x1F4AC; R&eacute;pondre</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group: Operations -->
+    <div class="result-group fade-in">
+      <div class="result-group-header">
+        <span class="result-group-icon">&#x2699;&#xFE0F;</span>
+        <span class="result-group-title">Contr&ocirc;le d&apos;acc&egrave;s &amp; Op&eacute;rations</span>
+        <span class="result-group-count">3/5 pr&eacute;-remplies</span>
+      </div>
+
+      <div class="result-item validated">
+        <div class="result-conf"><span class="conf-badge conf-high">88%</span></div>
+        <div class="result-body">
+          <div class="result-ref"><span class="mono">A.8.2</span> &mdash; Droits d&apos;acc&egrave;s privil&eacute;gi&eacute;s</div>
+          <div class="result-q">Les acc&egrave;s privil&eacute;gi&eacute;s (admin) sont-ils restreints et trac&eacute;s ?</div>
+          <div class="result-answer">Oui. Politique de moindre privil&egrave;ge appliqu&eacute;e. Comptes admin nominatifs. Revue trimestrielle des droits par le RSSI. Journalisation via SIEM Splunk.</div>
+          <div class="result-source">&#x1F4C4; Extrait de : Politique_acces_v2.1.docx &mdash; section 3.1</div>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn validated">&#x2713; Valid&eacute;</button>
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-conf"><span class="conf-badge conf-med">68%</span></div>
+        <div class="result-body">
+          <div class="result-ref"><span class="mono">A.8.5</span> &mdash; Authentification s&eacute;curis&eacute;e</div>
+          <div class="result-q">Le MFA (authentification multifacteur) est-il d&eacute;ploy&eacute; ?</div>
+          <div class="result-answer">MFA mentionn&eacute; comme &laquo;&nbsp;obligatoire pour les acc&egrave;s VPN et applications critiques&nbsp;&raquo;. D&eacute;ploiement progressif en cours pour l&apos;ensemble des applications SaaS.</div>
+          <div class="result-source">&#x1F4C4; Extrait de : Politique_acces_v2.1.docx &mdash; section 5</div>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn validate">&#x2713; Valider</button>
+          <button class="act-btn">&#x270E; Modifier</button>
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-conf"><span class="conf-badge conf-high">85%</span></div>
+        <div class="result-body">
+          <div class="result-ref"><span class="mono">A.5.23</span> &mdash; Gestion des incidents</div>
+          <div class="result-q">Disposez-vous d&apos;une proc&eacute;dure formalis&eacute;e de gestion des incidents de s&eacute;curit&eacute; ?</div>
+          <div class="result-answer">Oui. Proc&eacute;dure en 4 phases : D&eacute;tection, Qualification, R&eacute;ponse, Post-mortem. &Eacute;quipe SOC interne (3 analystes). Notification ANSSI sous 72h si incident majeur.</div>
+          <div class="result-source">&#x1F4C4; Extrait de : Proc_incidents_SSI.pdf &mdash; pages 2-5</div>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn validate">&#x2713; Valider</button>
+          <button class="act-btn">&#x270E; Modifier</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="btn btn-primary">&#x1F4AC; Passer aux 6 questions restantes en conversation &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 2 : Smart Conversation                                    -->
+<!-- ============================================================ -->
+<div class="tab-panel" id="tab2">
+  <div class="conversation-layout fade-in">
+    <!-- Left: Chat -->
+    <div class="conv-main">
+      <div class="chat-area">
+        <div class="chat-header">
+          <div class="chat-avatar ai">&#x1F916;</div>
+          <div class="chat-header-text">
+            <h4>Assistant G&euml;stu</h4>
+            <p>Questionnaire adaptatif &mdash; ISO 27001:2022</p>
+          </div>
+          <span class="chat-remaining">3 questions restantes</span>
+        </div>
+
+        <div class="chat-body">
+          <!-- System context message -->
+          <div style="text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 11px; color: var(--text-300); background: #F3F4F6; padding: 4px 12px; border-radius: 99px;">&#x1F4CB; 8 r&eacute;ponses valid&eacute;es via l&apos;analyse documentaire &mdash; 6 questions restantes</span>
+          </div>
+
+          <!-- AI message 1 -->
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai" style="width:28px;height:28px;font-size:12px;">&#x1F916;</div>
+            <div class="chat-bubble">
+              Bonjour ! J&apos;ai analys&eacute; vos 4 documents et pr&eacute;-rempli 8 r&eacute;ponses. Il me reste quelques questions pour compl&eacute;ter votre dossier. On y va ? &#x1F44D;
+            </div>
+          </div>
+
+          <!-- AI message 2 - first question -->
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai" style="width:28px;height:28px;font-size:12px;">&#x1F916;</div>
+            <div class="chat-bubble">
+              <span class="ref-tag">A.5.5</span> D&apos;apr&egrave;s votre PSSI, vous avez un RSSI d&eacute;sign&eacute;. Avez-vous &eacute;galement identifi&eacute; les <strong>autorit&eacute;s comp&eacute;tentes</strong> &agrave; contacter en cas d&apos;incident majeur ?
+              <span class="doc-ref">R&eacute;f&eacute;rence : PSSI_v3.2_2025.pdf &mdash; section 7</span>
+            </div>
+          </div>
+
+          <!-- User answer -->
+          <div class="chat-msg user">
+            <div class="chat-avatar user" style="width:28px;height:28px;font-size:12px;">&#x1F464;</div>
+            <div class="chat-bubble">Oui, l&apos;ANSSI et la CNIL sont identifi&eacute;es. Le RSSI a leurs contacts directs.</div>
+          </div>
+
+          <!-- AI follow-up -->
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai" style="width:28px;height:28px;font-size:12px;">&#x1F916;</div>
+            <div class="chat-bubble">
+              Parfait, not&eacute; &#x2705;. Question suivante :<br><br>
+              <span class="ref-tag">A.6.3</span> Votre PSSI mentionne un <strong>programme de sensibilisation</strong>. &Agrave; quelle fr&eacute;quence vos collaborateurs re&ccedil;oivent-ils une formation s&eacute;curit&eacute; ?
+              <span class="doc-ref">R&eacute;f&eacute;rence : PSSI_v3.2_2025.pdf &mdash; section 6.1</span>
+            </div>
+          </div>
+
+          <!-- User answer with chip selection shown -->
+          <div class="chat-msg user">
+            <div class="chat-avatar user" style="width:28px;height:28px;font-size:12px;">&#x1F464;</div>
+            <div class="chat-bubble">Annuelle, avec des rappels trimestriels par email.</div>
+          </div>
+
+          <!-- AI adaptive follow-up -->
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai" style="width:28px;height:28px;font-size:12px;">&#x1F916;</div>
+            <div class="chat-bubble">
+              Int&eacute;ressant. Une question compl&eacute;mentaire : ces formations incluent-elles des <strong>exercices de phishing simul&eacute;</strong> ?
+            </div>
+          </div>
+
+          <div class="chat-msg user">
+            <div class="chat-avatar user" style="width:28px;height:28px;font-size:12px;">&#x1F464;</div>
+            <div class="chat-bubble">Non, pas encore. C&apos;est pr&eacute;vu pour 2026.</div>
+          </div>
+
+          <!-- AI next question -->
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai" style="width:28px;height:28px;font-size:12px;">&#x1F916;</div>
+            <div class="chat-bubble">
+              Compris, je le note. &#x1F4DD;<br><br>
+              <span class="ref-tag">A.8.8</span> Concernant la <strong>gestion des vuln&eacute;rabilit&eacute;s techniques</strong>, sur une &eacute;chelle de 1 &agrave; 5, comment &eacute;valueriez-vous la maturit&eacute; de votre processus de patch management ?
+            </div>
+          </div>
+        </div>
+
+        <!-- Response area with scale chips -->
+        <div class="response-area">
+          <div style="font-size: 11px; color: var(--text-300); margin-bottom: 8px;">&#x1F3AF; &Eacute;chelle de maturit&eacute; (1 = ad hoc, 5 = optimis&eacute;) :</div>
+          <div class="response-chips" style="margin-bottom: 12px;">
+            <div class="chip chip-scale">1</div>
+            <div class="chip chip-scale">2</div>
+            <div class="chip chip-scale selected" style="border-color: var(--forest-500); background: var(--forest-100);">3</div>
+            <div class="chip chip-scale">4</div>
+            <div class="chip chip-scale">5</div>
+            <div class="chip chip-skip">&#x23ED; Je ne sais pas &rarr; l&apos;auditeur investiguera</div>
+          </div>
+          <div class="text-input-row">
+            <input type="text" placeholder="Pr&eacute;cisez votre r&eacute;ponse (optionnel)..." />
+            <button class="send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example of different question type below -->
+      <div class="card mt-16" style="padding: 16px 20px;">
+        <div style="font-size: 11px; font-weight: 600; color: var(--text-300); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">&#x1F50D; Aper&ccedil;u des types de r&eacute;ponses</div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 140px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+            <div style="font-size: 11px; font-weight: 600; color: var(--forest-700); margin-bottom: 6px;">Binaire (Oui/Non)</div>
+            <div style="display: flex; gap: 6px;">
+              <span class="chip chip-yes" style="padding:6px 14px; font-size:12px; border-color: var(--forest-300); background: var(--forest-50);">&#x2705; Oui</span>
+              <span class="chip chip-no" style="padding:6px 14px; font-size:12px;">&#x274C; Non</span>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 140px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+            <div style="font-size: 11px; font-weight: 600; color: var(--forest-700); margin-bottom: 6px;">Multi-s&eacute;lection</div>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+              <span class="chip" style="padding:4px 10px; font-size:11px; border-color: var(--forest-500); background: var(--forest-100);">Firewall</span>
+              <span class="chip" style="padding:4px 10px; font-size:11px; border-color: var(--forest-500); background: var(--forest-100);">IDS/IPS</span>
+              <span class="chip" style="padding:4px 10px; font-size:11px;">WAF</span>
+              <span class="chip" style="padding:4px 10px; font-size:11px;">SIEM</span>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 140px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+            <div style="font-size: 11px; font-weight: 600; color: var(--forest-700); margin-bottom: 6px;">Texte libre</div>
+            <div style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; color: var(--text-300);">D&eacute;crivez votre architecture...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Sidebar -->
+    <div class="conv-sidebar">
+      <div class="conv-progress-card">
+        <div class="conv-progress-title">&#x1F4CB; Progression</div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 28px; font-weight: 800; color: var(--forest-700);">11<span style="font-size: 16px; color: var(--text-300); font-weight: 400;">/14</span></div>
+          <div style="font-size: 11px; color: var(--text-300);">questions trait&eacute;es</div>
+          <div class="bar-track" style="margin-top: 10px;">
+            <div class="bar-fill" style="width: 78%;"></div>
+          </div>
+        </div>
+        <ul class="conv-topics">
+          <li class="conv-topic">
+            <span class="topic-dot done"></span>
+            <span class="topic-name done">Gouvernance SSI</span>
+            <span class="topic-count">4/4</span>
+          </li>
+          <li class="conv-topic">
+            <span class="topic-dot done"></span>
+            <span class="topic-name done">Contr&ocirc;le d&apos;acc&egrave;s</span>
+            <span class="topic-count">3/3</span>
+          </li>
+          <li class="conv-topic">
+            <span class="topic-dot current"></span>
+            <span class="topic-name current">Op&eacute;rations &amp; Vuln&eacute;rabilit&eacute;s</span>
+            <span class="topic-count">2/3</span>
+          </li>
+          <li class="conv-topic">
+            <span class="topic-dot pending"></span>
+            <span class="topic-name">Sensibilisation</span>
+            <span class="topic-count">1/2</span>
+          </li>
+          <li class="conv-topic">
+            <span class="topic-dot pending"></span>
+            <span class="topic-name">Continuit&eacute; d&apos;activit&eacute;</span>
+            <span class="topic-count">1/2</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Mini radar preview -->
+      <div class="conv-progress-card">
+        <div class="conv-progress-title">&#x1F4CA; Radar en construction</div>
+        <div style="text-align: center;">
+          <svg viewBox="0 0 200 200" width="180" height="180" style="margin: 0 auto;">
+            <!-- Grid -->
+            <polygon points="100,20 168,55 168,145 100,180 32,145 32,55" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+            <polygon points="100,40 152,67 152,133 100,160 48,133 48,67" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+            <polygon points="100,60 136,79 136,121 100,140 64,121 64,79" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+            <polygon points="100,80 120,91 120,109 100,120 80,109 80,91" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+            <!-- Axes -->
+            <line x1="100" y1="20" x2="100" y2="180" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="32" y1="55" x2="168" y2="145" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="168" y1="55" x2="32" y2="145" stroke="#E5E7EB" stroke-width="0.5"/>
+            <!-- Partial data -->
+            <polygon points="100,35 155,70 140,135 100,155 55,120 60,65" fill="rgba(45,106,79,0.15)" stroke="var(--forest-500)" stroke-width="1.5"/>
+            <!-- Points -->
+            <circle cx="100" cy="35" r="3" fill="var(--forest-700)"/>
+            <circle cx="155" cy="70" r="3" fill="var(--forest-700)"/>
+            <circle cx="140" cy="135" r="3" fill="var(--forest-700)"/>
+            <circle cx="100" cy="155" r="3" fill="#E5E7EB"/>
+            <circle cx="55" cy="120" r="3" fill="#E5E7EB"/>
+            <circle cx="60" cy="65" r="3" fill="var(--forest-700)"/>
+            <!-- Labels -->
+            <text x="100" y="14" text-anchor="middle" font-size="8" fill="#6B7280" font-family="Inter">Gouv.</text>
+            <text x="176" y="57" text-anchor="start" font-size="8" fill="#6B7280" font-family="Inter">Op&eacute;r.</text>
+            <text x="176" y="148" text-anchor="start" font-size="8" fill="#6B7280" font-family="Inter">Tech.</text>
+            <text x="100" y="195" text-anchor="middle" font-size="8" fill="#9CA3AF" font-family="Inter">Incidents</text>
+            <text x="20" y="148" text-anchor="end" font-size="8" fill="#9CA3AF" font-family="Inter">Conform.</text>
+            <text x="20" y="57" text-anchor="end" font-size="8" fill="#6B7280" font-family="Inter">Humain</text>
+          </svg>
+          <div style="font-size: 11px; color: var(--text-300); margin-top: 4px;">
+            &#x25CB; Axes gris&eacute;s = pas encore &eacute;valu&eacute;s
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+          <a href="#" style="font-size: 12px; color: var(--forest-500); text-decoration: none; font-weight: 500;">Voir le d&eacute;tail &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 3 : Radar & Insights                                      -->
+<!-- ============================================================ -->
+<div class="tab-panel" id="tab3">
+  <div class="radar-layout fade-in">
+    <div class="radar-main">
+      <div class="radar-chart-card">
+        <h3>Radar de maturit&eacute; SSI</h3>
+        <p class="radar-sub">Bas&eacute; sur vos r&eacute;ponses et l&apos;analyse documentaire &mdash; 14/14 questions trait&eacute;es</p>
+
+        <svg class="radar-svg" viewBox="0 0 400 380" width="400" height="380">
+          <!-- Background grid - 5 levels -->
+          <g transform="translate(200,185)">
+            <!-- Level 5 (outermost) -->
+            <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <!-- Level 4 -->
+            <polygon points="0,-120 104,-60 104,60 0,120 -104,60 -104,-60" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <!-- Level 3 -->
+            <polygon points="0,-90 78,-45 78,45 0,90 -78,45 -78,-45" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <!-- Level 2 -->
+            <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <!-- Level 1 -->
+            <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+
+            <!-- Axes -->
+            <line x1="0" y1="0" x2="0" y2="-150" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="130" y2="-75" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="130" y2="75" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="150" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="-130" y2="75" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="-130" y2="-75" stroke="#E5E7EB" stroke-width="0.5"/>
+
+            <!-- Benchmark (sector median) - dashed -->
+            <polygon points="0,-90 78,-45 65,38 0,72 -52,45 -78,-30" fill="rgba(212,168,67,0.06)" stroke="var(--gold-500)" stroke-width="1.2" stroke-dasharray="6,4"/>
+
+            <!-- User data -->
+            <polygon points="0,-126 110,-52 91,60 0,90 -78,52 -104,-52" fill="rgba(45,106,79,0.15)" stroke="var(--forest-500)" stroke-width="2"/>
+
+            <!-- Data points -->
+            <circle cx="0" cy="-126" r="5" fill="var(--forest-700)" stroke="white" stroke-width="2"/>
+            <circle cx="110" cy="-52" r="5" fill="var(--forest-700)" stroke="white" stroke-width="2"/>
+            <circle cx="91" cy="60" r="5" fill="var(--forest-700)" stroke="white" stroke-width="2"/>
+            <circle cx="0" cy="90" r="5" fill="var(--forest-700)" stroke="white" stroke-width="2"/>
+            <circle cx="-78" cy="52" r="5" fill="var(--forest-700)" stroke="white" stroke-width="2"/>
+            <circle cx="-104" cy="-52" r="5" fill="var(--forest-700)" stroke="white" stroke-width="2"/>
+
+            <!-- Score labels next to points -->
+            <text x="10" y="-130" font-size="12" font-weight="700" fill="var(--forest-700)" font-family="Inter">4.2</text>
+            <text x="116" y="-48" font-size="12" font-weight="700" fill="var(--forest-700)" font-family="Inter">3.7</text>
+            <text x="97" y="64" font-size="12" font-weight="700" fill="var(--forest-700)" font-family="Inter">3.0</text>
+            <text x="10" y="96" font-size="12" font-weight="700" fill="var(--forest-700)" font-family="Inter">3.0</text>
+            <text x="-72" y="60" font-size="12" font-weight="700" fill="var(--forest-700)" font-family="Inter">2.6</text>
+            <text x="-98" y="-56" font-size="12" font-weight="700" fill="var(--forest-700)" font-family="Inter">3.5</text>
+          </g>
+
+          <!-- Axis labels (outside) -->
+          <text x="200" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text-700)" font-family="Inter">Gouvernance</text>
+          <text x="355" y="107" text-anchor="start" font-size="12" font-weight="600" fill="var(--text-700)" font-family="Inter">Op&eacute;rationnel</text>
+          <text x="355" y="267" text-anchor="start" font-size="12" font-weight="600" fill="var(--text-700)" font-family="Inter">Technique</text>
+          <text x="200" y="355" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text-700)" font-family="Inter">Incidents</text>
+          <text x="42" y="267" text-anchor="end" font-size="12" font-weight="600" fill="var(--text-700)" font-family="Inter">Conformit&eacute;</text>
+          <text x="42" y="107" text-anchor="end" font-size="12" font-weight="600" fill="var(--text-700)" font-family="Inter">Humain</text>
+
+          <!-- Scale labels -->
+          <text x="212" y="72" font-size="9" fill="#9CA3AF" font-family="Inter">5</text>
+          <text x="212" y="102" font-size="9" fill="#9CA3AF" font-family="Inter">4</text>
+          <text x="212" y="132" font-size="9" fill="#9CA3AF" font-family="Inter">3</text>
+          <text x="212" y="162" font-size="9" fill="#9CA3AF" font-family="Inter">2</text>
+        </svg>
+
+        <div class="radar-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--forest-500);"></div>
+            <span>Votre organisation</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: transparent; border: 2px dashed var(--gold-500);"></div>
+            <span>M&eacute;diane secteur Finance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="benchmark-note">
+        <span class="dash"></span>
+        Comparaison bas&eacute;e sur 127 organisations du secteur Finance audit&eacute;es en 2025-2026
+      </div>
+    </div>
+
+    <div class="radar-side">
+      <!-- Score breakdown -->
+      <div style="margin-bottom: 20px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-500); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">&#x1F4CA; Scores d&eacute;taill&eacute;s</div>
+        <div class="score-grid">
+          <div class="score-item">
+            <div class="score-item-label">Gouvernance</div>
+            <div class="score-item-val">4.2 <span class="max">/5</span></div>
+            <div class="score-item-bar"><div class="score-item-fill" style="width: 84%; background: var(--forest-500);"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-label">Op&eacute;rationnel</div>
+            <div class="score-item-val">3.7 <span class="max">/5</span></div>
+            <div class="score-item-bar"><div class="score-item-fill" style="width: 74%; background: var(--forest-500);"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-label">Technique</div>
+            <div class="score-item-val">3.0 <span class="max">/5</span></div>
+            <div class="score-item-bar"><div class="score-item-fill" style="width: 60%; background: var(--gold-500);"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-label">Incidents</div>
+            <div class="score-item-val">3.0 <span class="max">/5</span></div>
+            <div class="score-item-bar"><div class="score-item-fill" style="width: 60%; background: var(--gold-500);"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-label">Conformit&eacute;</div>
+            <div class="score-item-val">2.6 <span class="max">/5</span></div>
+            <div class="score-item-bar"><div class="score-item-fill" style="width: 52%; background: var(--error);"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-label">Humain</div>
+            <div class="score-item-val">3.5 <span class="max">/5</span></div>
+            <div class="score-item-bar"><div class="score-item-fill" style="width: 70%; background: var(--forest-500);"></div></div>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 10px 16px; background: var(--forest-50); border-radius: 8px;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--forest-700);">Score global : 3.3/5</span>
+          <span style="font-size: 11px; color: var(--text-500);"> &mdash; Maturit&eacute; &laquo;&nbsp;D&eacute;fini&nbsp;&raquo;</span>
+        </div>
+      </div>
+
+      <!-- Insights -->
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-500); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">&#x1F4A1; Analyse IA</div>
+      </div>
+
+      <div class="insight-card positive">
+        <span class="insight-icon">&#x2705;</span>
+        <div class="insight-body">
+          <h4>Point fort : Gouvernance SSI bien structur&eacute;e</h4>
+          <p>PSSI valid&eacute;e et &agrave; jour, RSSI d&eacute;sign&eacute;, comit&eacute; de pilotage trimestriel. Votre score (4.2) d&eacute;passe la m&eacute;diane sectorielle (3.5).</p>
+        </div>
+      </div>
+
+      <div class="insight-card positive">
+        <span class="insight-icon">&#x2705;</span>
+        <div class="insight-body">
+          <h4>Point fort : Contr&ocirc;le d&apos;acc&egrave;s mature</h4>
+          <p>Moindre privil&egrave;ge appliqu&eacute;, comptes admin nominatifs, MFA en d&eacute;ploiement. Journalisation centralis&eacute;e via SIEM.</p>
+        </div>
+      </div>
+
+      <div class="insight-card warning">
+        <span class="insight-icon">&#x26A0;&#xFE0F;</span>
+        <div class="insight-body">
+          <h4>Attention : Aucun PCA document&eacute; d&eacute;tect&eacute;</h4>
+          <p>Aucun Plan de Continuit&eacute; d&apos;Activit&eacute; n&apos;a &eacute;t&eacute; fourni ou r&eacute;f&eacute;renc&eacute;. Cela repr&eacute;sente un risque critique pour <span class="mono" style="font-size: 11px;">A.5.29</span> et <span class="mono" style="font-size: 11px;">A.5.30</span>.</p>
+        </div>
+      </div>
+
+      <div class="insight-card warning">
+        <span class="insight-icon">&#x26A0;&#xFE0F;</span>
+        <div class="insight-body">
+          <h4>Attention : Pas de tests de phishing simul&eacute;</h4>
+          <p>Le programme de sensibilisation est annuel mais n&apos;inclut pas encore de simulations. Pr&eacute;vu pour 2026.</p>
+        </div>
+      </div>
+
+      <div class="insight-card info">
+        <span class="insight-icon">&#x1F4CA;</span>
+        <div class="insight-body">
+          <h4>Benchmark : Position secteur Finance</h4>
+          <p>Vous &ecirc;tes au-dessus de la m&eacute;diane sur 4/6 axes. Les axes Conformit&eacute; et Incidents sont en dessous &mdash; axes prioritaires pour l&apos;audit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 4 : Completion                                            -->
+<!-- ============================================================ -->
+<div class="tab-panel" id="tab4">
+  <div class="completion fade-in">
+    <div class="card card-lg" style="max-width: 800px; margin: 0 auto;">
+      <div class="celebration">
+        <div class="confetti">
+          <span style="left:10%; background:var(--forest-300); animation-delay:0s;"></span>
+          <span style="left:25%; background:var(--gold-500); animation-delay:0.2s;"></span>
+          <span style="left:40%; background:var(--forest-500); animation-delay:0.4s;"></span>
+          <span style="left:55%; background:var(--gold-400); animation-delay:0.1s;"></span>
+          <span style="left:70%; background:var(--forest-300); animation-delay:0.3s;"></span>
+          <span style="left:85%; background:var(--gold-500); animation-delay:0.5s;"></span>
+          <span style="left:15%; background:var(--forest-700); animation-delay:0.6s;"></span>
+          <span style="left:60%; background:var(--gold-200); animation-delay:0.35s;"></span>
+        </div>
+        <div class="celebration-icon">&#x2713;</div>
+        <h2>Merci ! Votre dossier est complet.</h2>
+        <p>L&apos;ensemble des informations a &eacute;t&eacute; collect&eacute; et pr&eacute;-analys&eacute; pour l&apos;auditeur.</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-val">14<span style="font-size: 16px; color: var(--text-300);">/14</span></div>
+          <div class="stat-label">Questions r&eacute;pondues</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">6</div>
+          <div class="stat-label">Documents analys&eacute;s</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" style="color: var(--gold-600);">45<span style="font-size: 14px;"> min</span></div>
+          <div class="stat-label">Temps &eacute;conomis&eacute;</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">3.3<span style="font-size: 14px; color: var(--text-300);">/5</span></div>
+          <div class="stat-label">Score global</div>
+        </div>
+      </div>
+
+      <!-- Mini final radar -->
+      <div style="text-align: center; margin: 24px 0 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-500); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">&#x1F3AF; Radar final de maturit&eacute;</div>
+        <svg viewBox="0 0 260 250" width="260" height="250" style="margin: 0 auto;">
+          <g transform="translate(130,120)">
+            <polygon points="0,-100 87,-50 87,50 0,100 -87,50 -87,-50" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <polygon points="0,-80 69,-40 69,40 0,80 -69,40 -69,-40" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="none" stroke="#E5E7EB" stroke-width="0.7"/>
+            <line x1="0" y1="0" x2="0" y2="-100" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="87" y2="-50" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="87" y2="50" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="100" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="-87" y2="50" stroke="#E5E7EB" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="-87" y2="-50" stroke="#E5E7EB" stroke-width="0.5"/>
+            <!-- Data filled -->
+            <polygon points="0,-84 74,-35 61,40 0,60 -52,35 -70,-35" fill="rgba(45,106,79,0.18)" stroke="var(--forest-500)" stroke-width="2"/>
+            <circle cx="0" cy="-84" r="4" fill="var(--forest-700)" stroke="white" stroke-width="1.5"/>
+            <circle cx="74" cy="-35" r="4" fill="var(--forest-700)" stroke="white" stroke-width="1.5"/>
+            <circle cx="61" cy="40" r="4" fill="var(--forest-700)" stroke="white" stroke-width="1.5"/>
+            <circle cx="0" cy="60" r="4" fill="var(--forest-700)" stroke="white" stroke-width="1.5"/>
+            <circle cx="-52" cy="35" r="4" fill="var(--forest-700)" stroke="white" stroke-width="1.5"/>
+            <circle cx="-70" cy="-35" r="4" fill="var(--forest-700)" stroke="white" stroke-width="1.5"/>
+          </g>
+          <text x="130" y="10" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-700)" font-family="Inter">Gouv. (4.2)</text>
+          <text x="240" y="68" text-anchor="start" font-size="10" font-weight="600" fill="var(--text-700)" font-family="Inter">Op. (3.7)</text>
+          <text x="240" y="178" text-anchor="start" font-size="10" font-weight="600" fill="var(--text-700)" font-family="Inter">Tech. (3.0)</text>
+          <text x="130" y="242" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-700)" font-family="Inter">Inc. (3.0)</text>
+          <text x="16" y="178" text-anchor="end" font-size="10" font-weight="600" fill="var(--text-700)" font-family="Inter">Conf. (2.6)</text>
+          <text x="16" y="68" text-anchor="end" font-size="10" font-weight="600" fill="var(--text-700)" font-family="Inter">Hum. (3.5)</text>
+        </svg>
+      </div>
+
+      <!-- Summary cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;">
+        <div style="padding: 14px 16px; background: var(--forest-50); border-radius: 10px; border: 1px solid var(--forest-100);">
+          <div style="font-size: 11px; font-weight: 600; color: var(--forest-700); margin-bottom: 4px;">&#x2705; Points forts identifi&eacute;s</div>
+          <div style="font-size: 12px; color: var(--text-700); line-height: 1.5;">Gouvernance SSI, Contr&ocirc;le d&apos;acc&egrave;s, Gestion des incidents</div>
+        </div>
+        <div style="padding: 14px 16px; background: #FEF2F2; border-radius: 10px; border: 1px solid #FECACA;">
+          <div style="font-size: 11px; font-weight: 600; color: var(--error); margin-bottom: 4px;">&#x26A0;&#xFE0F; Points d&apos;attention</div>
+          <div style="font-size: 12px; color: var(--text-700); line-height: 1.5;">PCA/PRA absent, Tests de phishing, Conformit&eacute; r&eacute;glementaire</div>
+        </div>
+      </div>
+
+      <div class="final-actions">
+        <button class="btn btn-gold">&#x1F4E5; T&eacute;l&eacute;charger mon pr&eacute;-diagnostic</button>
+        <button class="btn btn-primary">&#x1F4C4; Voir le rapport d&eacute;taill&eacute;</button>
+        <button class="btn btn-outline">&#x1F4E8; Envoyer &agrave; l&apos;auditeur</button>
+      </div>
+
+      <div class="notif-bar" style="margin-top: 24px;">
+        &#x2705; <strong>L&apos;auditeur a &eacute;t&eacute; notifi&eacute;</strong> &mdash; Deloitte Cyber recevra votre dossier et le pr&eacute;-diagnostic dans les prochaines minutes.
+      </div>
+
+      <div style="margin-top: 24px; padding: 16px; background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">&#x1F4C5;</span>
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--forest-900);">Prochaine &eacute;tape : Audit sur site</div>
+            <div style="font-size: 12px; color: var(--text-500);">Pr&eacute;vu le <strong>12 mai 2026</strong>. L&apos;auditeur utilisera ce pr&eacute;-diagnostic pour cibler ses contr&ocirc;les.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- ======== JavaScript ======== -->
+<script>
+(function() {
+  // Main tabs
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+  tabBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      tabBtns.forEach(function(b) { b.classList.remove('active'); });
+      tabPanels.forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      var target = document.getElementById(btn.getAttribute('data-tab'));
+      if (target) target.classList.add('active');
+    });
+  });
+
+  // Sub-tabs
+  var subBtns = document.querySelectorAll('.sub-tab');
+  var subPanels = document.querySelectorAll('.sub-panel');
+  subBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      subBtns.forEach(function(b) { b.classList.remove('active'); });
+      subPanels.forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      var target = document.getElementById(btn.getAttribute('data-sub'));
+      if (target) target.classList.add('active');
+    });
+  });
+
+  // Chip selection (demo)
+  var chips = document.querySelectorAll('.response-chips .chip');
+  chips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      if (chip.classList.contains('chip-skip')) return;
+      chips.forEach(function(c) { if (!c.classList.contains('chip-skip')) c.classList.remove('selected'); });
+      chip.classList.add('selected');
+      chip.style.borderColor = 'var(--forest-500)';
+      chip.style.background = 'var(--forest-100)';
+    });
+  });
+
+  // Validate buttons (demo)
+  var validateBtns = document.querySelectorAll('.act-btn.validate');
+  validateBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      btn.classList.remove('validate');
+      btn.classList.add('validated');
+      btn.innerHTML = '&#x2713; Valid&eacute;';
+      var item = btn.closest('.result-item');
+      if (item) {
+        item.classList.add('validated');
+      }
+    });
+  });
+
+  // Doc items toggle (demo)
+  var docItems = document.querySelectorAll('.doc-item');
+  docItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      var check = item.querySelector('.doc-check');
+      if (check) check.classList.toggle('checked');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

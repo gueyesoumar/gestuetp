@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { AlertTriangle, FileText, Check, X, Save, Play, ArrowLeft, ArrowRight } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { ASSESSMENT_STATUS_CONFIG, GUIDED_STEPS } from '../mission-constants'
@@ -96,7 +97,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
       {/* Rejected banner */}
       {assessment.status === 'rejected' && (
         <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5">
-          <span className="text-red-600 shrink-0">&#9888;</span>
+          <AlertTriangle size={15} className="text-red-600 shrink-0" />
           <p className="text-xs text-red-600 leading-relaxed">
             <strong>Rejet&eacute;</strong> &mdash; Veuillez corriger et resoumettre.
           </p>
@@ -140,7 +141,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
               <div className="space-y-1">
                 {documents.map((doc) => (
                   <div key={doc.id} className="flex items-center gap-2 px-3 py-2 bg-forest-50 border border-forest-200 rounded-lg">
-                    <span className="text-sm">&#128196;</span>
+                    <FileText size={15} />
                     <span className="text-xs text-gray-700 truncate flex-1">{doc.file_name}</span>
                     <span className="text-[10px] text-gray-300">{doc.file_size ? `${(doc.file_size / 1024).toFixed(0)} Ko` : ''}</span>
                   </div>
@@ -162,7 +163,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Risque identifi&eacute;</p>
               <div className="p-3 bg-orange-50 border-l-2 border-orange-400 rounded-lg text-xs text-orange-700 leading-relaxed">
-                &#9888; {riskNotes}
+                <AlertTriangle size={13} className="inline mr-1" />{riskNotes}
               </div>
             </div>
           )}
@@ -220,7 +221,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
         <div className="px-6 py-4 border-t border-gray-200 bg-[#FAFAFA] sticky bottom-0">
           {waitingForLead && (
             <div className="flex items-center gap-2 p-2.5 mb-3 bg-gold-50 border border-gold-200 rounded-lg">
-              <span className="text-gold-600 text-sm">&#9888;</span>
+              <AlertTriangle size={15} className="text-gold-600" />
               <p className="text-[11px] text-gold-700">En attente de la validation du chef de mission avant votre approbation.</p>
             </div>
           )}
@@ -246,7 +247,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
               disabled={!canAct || reviewAction !== 'idle'}
               className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg text-[13px] font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {reviewAction === 'approving' ? 'Validation...' : '\u2713 Approuver'}
+              {reviewAction === 'approving' ? 'Validation...' : <><Check size={14} className="inline" /> Approuver</>}
             </button>
             <button
               onClick={async () => {
@@ -260,7 +261,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
               disabled={!canAct || reviewAction !== 'idle'}
               className="flex-1 px-4 py-2.5 bg-white text-red-600 border border-red-400 rounded-lg text-[13px] font-semibold hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {reviewAction === 'rejecting' ? 'Rejet...' : '\u2717 Rejeter'}
+              {reviewAction === 'rejecting' ? 'Rejet...' : <><X size={14} className="inline" /> Rejeter</>}
             </button>
           </div>
         </div>
@@ -278,22 +279,22 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
           <div className="flex gap-2.5">
             {mode === 'guided' && canGoPrev && (
               <button onClick={() => onGuidedStepChange(guidedStep - 1)} className="text-xs text-gray-400 hover:text-gray-600">
-                &larr; {GUIDED_STEPS[guidedStep - 1].label}
+                <ArrowLeft size={12} className="inline" /> {GUIDED_STEPS[guidedStep - 1].label}
               </button>
             )}
             {!readOnly && (
               <button onClick={handleSave} disabled={saving} className="px-4 py-2 border border-gray-200 rounded-lg text-[13px] font-medium text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 disabled:opacity-50 transition-colors">
-                &#128190; Enregistrer
+                <Save size={13} className="inline" /> Enregistrer
               </button>
             )}
             {mode === 'guided' && canGoNext && guidedStep < 3 && (
               <button onClick={handleNext} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 transition-colors">
-                {GUIDED_STEPS[guidedStep + 1].label} &rarr;
+                {GUIDED_STEPS[guidedStep + 1].label} <ArrowRight size={12} className="inline" />
               </button>
             )}
             {mode === 'libre' && !readOnly && (
               <button onClick={handleSubmit} disabled={saving || !findings.trim()} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors flex items-center gap-1.5">
-                &#9654; Soumettre
+                <Play size={13} /> Soumettre
               </button>
             )}
           </div>

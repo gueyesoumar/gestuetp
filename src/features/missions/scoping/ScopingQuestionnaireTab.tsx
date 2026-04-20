@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { User, Check, Mail, Sparkles, Send } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
 import { useMissionQuestionnaire } from '../useMissionQuestionnaire'
@@ -95,7 +96,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
 
           {/* Info banner */}
           <div className="flex items-center gap-3 bg-forest-50 border border-forest-200 rounded-xl px-4 py-3">
-            <span className="text-sm">&#128100;</span>
+            <User size={15} className="text-forest-700" />
             <p className="text-xs text-forest-700 flex-1">
               Le client r&eacute;pond via le <b>portail client</b>. Les r&eacute;ponses apparaissent automatiquement ici.
             </p>
@@ -142,8 +143,8 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                       {/* Status */}
                       <div className="shrink-0 mt-0.5">
                         {resp ? (
-                          <span className="text-[9px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                            &#10003; R&eacute;pondu
+                          <span className="text-[9px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">
+                            <Check size={10} /> R&eacute;pondu
                           </span>
                         ) : (
                           <span className="text-[9px] font-medium text-gray-300 bg-gray-50 px-2 py-0.5 rounded-full">
@@ -161,12 +162,12 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
       ) : (
         <div className="space-y-3">
           <div className="bg-gold-50 border border-gold-200 rounded-xl p-5 text-center">
-            <p className="text-3xl mb-3">&#128232;</p>
+            <div className="flex justify-center mb-3"><Send size={28} className="text-gold-500" /></div>
             <h3 className="text-[15px] font-bold text-gray-900 mb-1">Questionnaire non envoy&eacute;</h3>
             <p className="text-[13px] text-gray-400 mb-4">Envoyez le questionnaire pour d&eacute;marrer la collecte d&rsquo;informations aupr&egrave;s du client.</p>
             <button onClick={handleLaunch} disabled={launching}
               className="bg-forest-700 text-white px-6 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors">
-              {launching ? 'Envoi...' : '\u2709 Envoyer le questionnaire'}
+              {launching ? 'Envoi...' : <><Mail size={14} className="inline mr-1" />Envoyer le questionnaire</>}
             </button>
           </div>
         </div>

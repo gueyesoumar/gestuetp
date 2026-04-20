@@ -1,3 +1,4 @@
+import { Eye } from 'lucide-react'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
 
 interface ObserverStepProps {
@@ -11,7 +12,7 @@ export function ObserverStep({ assessment, observations, onObservationsChange, r
   return (
     <div>
       <h4 className="text-[13px] font-semibold text-gray-900 mb-1 flex items-center gap-1.5">
-        &#128065; Observations terrain
+        <Eye size={14} /> Observations terrain
       </h4>
       <p className="text-xs text-gray-300 mb-4 leading-relaxed">
         Notez ce que vous avez vu, entendu, v&eacute;rifi&eacute;. L&apos;IA s&apos;appuiera sur vos observations pour analyser ce contr&ocirc;le.

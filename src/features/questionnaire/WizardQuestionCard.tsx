@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CircleCheck, CircleX } from 'lucide-react'
 import type { Question } from '../../types/database.types'
 
 interface WizardQuestionCardProps {
@@ -65,14 +66,14 @@ function BooleanAnswer({ value, onChange, readOnly }: { value: boolean | null; o
         className={`flex-1 py-4 border-2 rounded-xl text-center transition-all ${
           value === true ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-forest-300 hover:bg-forest-50'
         }`}>
-        <p className="text-2xl mb-1">&#128994;</p>
+        <div className="flex justify-center mb-1"><CircleCheck size={24} className="text-green-500" /></div>
         <p className={`text-[13px] font-semibold ${value === true ? 'text-green-700' : 'text-gray-700'}`}>Oui</p>
       </button>
       <button onClick={() => !readOnly && onChange(false)} disabled={readOnly}
         className={`flex-1 py-4 border-2 rounded-xl text-center transition-all ${
           value === false ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-forest-300 hover:bg-forest-50'
         }`}>
-        <p className="text-2xl mb-1">&#128308;</p>
+        <div className="flex justify-center mb-1"><CircleX size={24} className="text-red-500" /></div>
         <p className={`text-[13px] font-semibold ${value === false ? 'text-red-700' : 'text-gray-700'}`}>Non</p>
       </button>
     </div>

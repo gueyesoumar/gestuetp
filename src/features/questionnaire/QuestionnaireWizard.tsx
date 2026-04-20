@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { WizardProgress } from './WizardProgress'
 import { WizardCompletedSummary } from './WizardCompletedSummary'
 import { WizardQuestionCard } from './WizardQuestionCard'
@@ -34,7 +35,7 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
     return (
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="py-16 px-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-3xl mx-auto mb-5">&#10003;</div>
+          <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-5"><Check size={32} /></div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Questionnaire termin&eacute; !</h2>
           <p className="text-[13px] text-gray-400 mb-6 max-w-md mx-auto leading-relaxed">
             Merci d&apos;avoir compl&eacute;t&eacute; le questionnaire. Vos {answeredCount} r&eacute;ponses ont &eacute;t&eacute; sauvegard&eacute;es automatiquement.
@@ -66,7 +67,7 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
         {state.saving ? (
           <span className="text-[11px] text-gray-300">Sauvegarde...</span>
         ) : (
-          <span className="text-[11px] text-green-600 flex items-center gap-1">&#10003; Sauvegarde auto</span>
+          <span className="text-[11px] text-green-600 flex items-center gap-1"><Check size={11} /> Sauvegarde auto</span>
         )}
       </div>
 
@@ -111,7 +112,7 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
         {state.isLast ? (
           <button onClick={handleComplete}
             className="px-6 py-2.5 bg-green-600 text-white rounded-lg text-[13px] font-semibold hover:bg-green-700 transition-colors flex items-center gap-2">
-            &#10003; Terminer le questionnaire
+            <Check size={14} /> Terminer le questionnaire
           </button>
         ) : (
           <button onClick={state.goNext} disabled={!state.canGoNext}

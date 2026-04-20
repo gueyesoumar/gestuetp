@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Planning Phase Revamp (3 Propositions)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --warning: #E67E22; --warning-light: #FFF3E0;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+
+  .section { max-width: 1200px; margin: 50px auto; padding: 0 30px; }
+  .st { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); text-align: center; margin-bottom: 6px; }
+  .ss { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+
+  .mockup { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 40px; }
+
+  /* ============== Shared ============== */
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge.green { background: #E8F5E8; color: var(--success); }
+  .badge.gray { background: #F3F4F6; color: var(--text-500); }
+  .badge.blue { background: var(--info-light); color: var(--info); }
+  .badge.gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge.red { background: #FDE8E8; color: var(--error); }
+  .badge.purple { background: var(--purple-light); color: var(--purple); }
+
+  .btn-primary { background: var(--forest-700); color: white; border: none; padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-secondary { background: white; color: var(--text-700); border: 1px solid var(--border); padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-secondary:hover { background: var(--forest-50); border-color: var(--forest-300); }
+  .btn-gold { background: var(--gold-500); color: var(--forest-900); border: none; padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-gold:hover { background: var(--gold-600); color: white; }
+
+  .avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: white; flex-shrink: 0; }
+  .avatar.ms { background: var(--info); }
+  .avatar.if { background: #6B7280; }
+  .avatar.fn { background: #E07A5F; }
+  .avatar.ob { background: var(--purple); }
+
+
+  /* ============================================================
+     DIAGNOSTIC : Probl&egrave;mes actuels
+     ============================================================ */
+  .diagnostic { background: white; padding: 32px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 40px; }
+  .diagnostic h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .diag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .diag-item { padding: 14px 18px; border-radius: 10px; border-left: 3px solid; }
+  .diag-item.bad { background: #FEF2F2; border-color: var(--error); }
+  .diag-item.bad .diag-label { color: var(--error); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .diag-item.good { background: #F0FFF4; border-color: var(--success); }
+  .diag-item.good .diag-label { color: var(--success); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .diag-text { font-size: 13px; color: var(--text-700); margin-top: 4px; line-height: 1.5; }
+
+
+  /* ============================================================
+     PROPOSITION A : "Mission Control" — Split Matrice + Timeline
+     ============================================================ */
+
+  .plan-a-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    min-height: 600px;
+  }
+
+  /* Left: matrix */
+  .pa-matrix { border-right: 1px solid var(--border); overflow: auto; }
+  .pa-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: white; z-index: 2;
+  }
+  .pa-toolbar h3 { font-size: 14px; font-weight: 700; }
+
+  .pa-table { width: 100%; border-collapse: collapse; }
+  .pa-table thead th {
+    padding: 10px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-500); text-align: left;
+    background: #FAFAFA; border-bottom: 1px solid var(--border);
+    position: sticky; top: 52px; z-index: 1;
+  }
+  .pa-table tbody td {
+    padding: 10px 14px; font-size: 13px; color: var(--text-700);
+    border-bottom: 1px solid #F9FAFB; vertical-align: middle;
+  }
+  .pa-table tbody tr:hover { background: var(--forest-50); }
+
+  .pa-domain-row td {
+    background: #FAFAFA; font-weight: 600; color: var(--text-900);
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  /* Auditor avatar cell */
+  .pa-auditor-cell {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pa-auditor-select {
+    padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 12px; outline: none; background: white; cursor: pointer;
+    min-width: 140px;
+  }
+  .pa-auditor-select:focus { border-color: var(--forest-500); }
+
+  /* Drag handle */
+  .pa-drag { color: var(--text-300); cursor: grab; font-size: 14px; }
+  .pa-drag:hover { color: var(--text-500); }
+
+  /* Complexity dots */
+  .complexity { display: flex; gap: 3px; }
+  .complexity-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .complexity-dot.filled { background: var(--gold-500); }
+  .complexity-dot.empty { background: var(--border); }
+
+  /* Priority chip */
+  .priority { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+  .priority.high { background: #FDE8E8; color: var(--error); }
+  .priority.medium { background: var(--warning-light); color: var(--warning); }
+  .priority.low { background: #F3F4F6; color: var(--text-500); }
+
+  /* Right: sidebar */
+  .pa-sidebar { background: var(--bg); display: flex; flex-direction: column; }
+  .pa-sidebar-section {
+    padding: 16px 18px; border-bottom: 1px solid var(--border);
+  }
+  .pa-sidebar-section h4 {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-500); margin-bottom: 12px;
+  }
+
+  /* Workload bars */
+  .wl-member { margin-bottom: 12px; }
+  .wl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .wl-name { font-size: 12px; font-weight: 500; color: var(--text-700); display: flex; align-items: center; gap: 6px; }
+  .wl-count { font-size: 11px; font-weight: 600; color: var(--text-500); }
+  .wl-bar { height: 6px; background: var(--border); border-radius: 3px; }
+  .wl-bar-fill { height: 6px; border-radius: 3px; transition: width 0.3s; }
+  .wl-label { font-size: 10px; color: var(--text-300); margin-top: 2px; }
+
+  /* Timeline mini */
+  .timeline-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 0; border-bottom: 1px solid #F3F4F6;
+  }
+  .timeline-row:last-child { border-bottom: none; }
+  .timeline-bar {
+    flex: 1; height: 18px; background: var(--border); border-radius: 4px;
+    position: relative; overflow: hidden;
+  }
+  .timeline-fill {
+    position: absolute; top: 0; height: 100%; border-radius: 4px;
+    display: flex; align-items: center; padding-left: 6px;
+    font-size: 9px; font-weight: 600; color: white;
+  }
+
+  /* AI button */
+  .ai-banner {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px; background: var(--purple-light); border-bottom: 1px solid #DDD6FE;
+  }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .ai-text { font-size: 12px; color: #5B21B6; flex: 1; line-height: 1.4; }
+  .ai-btn { font-size: 11px; color: var(--purple); background: white; border: 1px solid #DDD6FE; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; flex-shrink: 0; }
+
+
+  /* ============================================================
+     PROPOSITION B : "Kanban Planning" — Colonnes par auditeur
+     ============================================================ */
+
+  .plan-b-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+
+  .plan-b-board {
+    display: flex; gap: 0; min-height: 520px; overflow-x: auto;
+  }
+
+  .pb-column {
+    flex: 1; min-width: 220px; border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+  }
+  .pb-column:last-child { border-right: none; }
+
+  .pb-col-header {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    background: #FAFAFA; position: sticky; top: 0;
+  }
+  .pb-col-name { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .pb-col-count { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: #F3F4F6; color: var(--text-500); }
+  .pb-col-bar { flex: 1; }
+  .pb-col-bar-track { height: 4px; background: var(--border); border-radius: 2px; }
+  .pb-col-bar-fill { height: 4px; border-radius: 2px; }
+
+  .pb-col-body { flex: 1; padding: 8px; overflow-y: auto; }
+
+  /* Domain header in column */
+  .pb-domain-header {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-300); padding: 8px 6px 4px; margin-top: 4px;
+  }
+
+  .pb-card {
+    background: white; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 6px; cursor: grab; transition: all 0.15s;
+  }
+  .pb-card:hover { border-color: var(--forest-300); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .pb-card-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; color: var(--forest-700); }
+  .pb-card-name { font-size: 12px; color: var(--text-700); margin-top: 2px; line-height: 1.3; }
+  .pb-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+
+  /* Unassigned column */
+  .pb-column.unassigned { background: #FEF9F0; }
+  .pb-column.unassigned .pb-col-header { background: var(--gold-50); border-bottom-color: var(--gold-200); }
+
+
+  /* ============================================================
+     PROPOSITION C : "Smart Planner" — IA-first avec matrice visuelle
+     ============================================================ */
+
+  .plan-c-hero {
+    padding: 32px 28px;
+    background: linear-gradient(135deg, var(--forest-50), var(--gold-50));
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .plan-c-hero h3 { font-size: 18px; font-weight: 700; color: var(--forest-900); margin-bottom: 6px; }
+  .plan-c-hero p { font-size: 13px; color: var(--text-500); margin-bottom: 20px; }
+
+  .plan-c-criteria {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .pc-criterion {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 16px; background: white; border: 1px solid var(--border);
+    border-radius: 99px; font-size: 12px; color: var(--text-700); cursor: pointer;
+  }
+  .pc-criterion.active { border-color: var(--forest-700); background: var(--forest-50); color: var(--forest-700); font-weight: 600; }
+  .pc-criterion input[type="checkbox"] { accent-color: var(--forest-700); }
+
+  /* Visual grid */
+  .pc-grid {
+    padding: 24px 28px;
+  }
+
+  .pc-matrix-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .pc-matrix-header h4 { font-size: 14px; font-weight: 600; color: var(--text-900); }
+
+  /* Auditor columns header */
+  .pc-cols-header {
+    display: grid; grid-template-columns: 200px repeat(4, 1fr); gap: 0;
+    margin-bottom: 2px;
+  }
+  .pc-col-label {
+    text-align: center; padding: 10px 8px;
+    background: #FAFAFA; border: 1px solid var(--border);
+    font-size: 12px; font-weight: 600; color: var(--text-700);
+  }
+  .pc-col-label:first-child { text-align: left; border-radius: 8px 0 0 0; }
+  .pc-col-label:last-child { border-radius: 0 8px 0 0; }
+  .pc-col-load { font-size: 10px; font-weight: 400; color: var(--text-300); display: block; margin-top: 2px; }
+
+  /* Matrix rows */
+  .pc-row {
+    display: grid; grid-template-columns: 200px repeat(4, 1fr); gap: 0;
+  }
+  .pc-cell {
+    padding: 10px 12px; border: 1px solid var(--border); border-top: none;
+    min-height: 44px; display: flex; align-items: center; justify-content: center;
+    transition: background 0.1s;
+  }
+  .pc-cell:hover { background: var(--forest-50); }
+  .pc-cell.label-cell {
+    justify-content: flex-start; gap: 8px; background: #FAFAFA;
+  }
+  .pc-cell.assigned {
+    background: var(--forest-100);
+  }
+  .pc-cell.ai-suggested {
+    background: var(--purple-light);
+    border: 1px dashed var(--purple);
+  }
+
+  .pc-dot {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .pc-dot:hover { border-color: var(--forest-500); background: var(--forest-100); }
+  .pc-dot.filled { background: var(--forest-700); border-color: var(--forest-700); }
+  .pc-dot.ai { background: var(--purple); border-color: var(--purple); position: relative; }
+  .pc-dot.ai::after { content: '✦'; position: absolute; top: -1px; right: -6px; font-size: 8px; color: var(--purple); }
+
+  /* Domain separator */
+  .pc-domain-sep {
+    grid-column: 1 / -1;
+    padding: 8px 12px;
+    background: var(--gold-50);
+    border: 1px solid var(--border);
+    border-top: none;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--gold-600);
+  }
+
+  /* Stats below */
+  .pc-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    padding: 20px 28px; border-top: 1px solid var(--border); background: #FAFAFA;
+  }
+  .pc-stat-card {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; text-align: center;
+  }
+  .pc-stat-value { font-size: 24px; font-weight: 700; }
+  .pc-stat-label { font-size: 11px; color: var(--text-500); margin-top: 2px; }
+
+
+  /* ============== Demo tabs ============== */
+  .demo-switch {
+    display: flex; gap: 4px; padding: 12px 20px; border-bottom: 1px solid var(--border);
+    background: #FAFAFA;
+  }
+  .demo-btn {
+    padding: 8px 18px; font-size: 12px; font-weight: 500; color: var(--text-500);
+    border: none; background: none; cursor: pointer; border-radius: 8px;
+  }
+  .demo-btn:hover { background: var(--forest-50); color: var(--forest-700); }
+  .demo-btn.active { background: var(--forest-700); color: white; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Revamp Phase Planification (3 Propositions)</h1>
+</div>
+
+<!-- ============================================================
+     DIAGNOSTIC
+     ============================================================ -->
+<div class="section">
+  <p class="st">Diagnostic de l&rsquo;existant</p>
+  <p class="ss">Ce qui manque &agrave; la planification actuelle</p>
+
+  <div class="diagnostic">
+    <h3>Phase actuelle : liste d&rsquo;accordions + selects</h3>
+    <div class="diag-grid">
+      <div class="diag-item bad">
+        <div class="diag-label">&#10007; Pas de vision charge</div>
+        <div class="diag-text">Aucune visibilit&eacute; sur la r&eacute;partition de charge entre auditeurs. On peut surcharger un auditeur sans s&rsquo;en rendre compte.</div>
+      </div>
+      <div class="diag-item bad">
+        <div class="diag-label">&#10007; Pas de priorit&eacute;s</div>
+        <div class="diag-text">Tous les contr&ocirc;les ont le m&ecirc;me poids. Pas de notion de criticit&eacute;, complexit&eacute; ou ordre de passage.</div>
+      </div>
+      <div class="diag-item bad">
+        <div class="diag-label">&#10007; Pas de timeline</div>
+        <div class="diag-text">Aucun calendrier. On ne sait pas quand chaque domaine doit &ecirc;tre termin&eacute;. Pas de jalons.</div>
+      </div>
+      <div class="diag-item bad">
+        <div class="diag-label">&#10007; Affectation fastidieuse</div>
+        <div class="diag-text">Il faut ouvrir chaque domaine et cliquer select + bouton pour chaque contr&ocirc;le. Pas de drag &amp; drop ni d&rsquo;affectation en masse intelligente.</div>
+      </div>
+      <div class="diag-item good">
+        <div class="diag-label">&#10003; &Agrave; conserver</div>
+        <div class="diag-text">L&rsquo;affectation par domaine entier est un bon raccourci. Le compteur affect&eacute;s/total donne un aper&ccedil;u.</div>
+      </div>
+      <div class="diag-item good">
+        <div class="diag-label">&#10003; &Agrave; conserver</div>
+        <div class="diag-text">L&rsquo;Edge Function assign-controls est d&eacute;j&agrave; en place c&ocirc;t&eacute; backend. Pas de changement n&eacute;cessaire.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     3 PROPOSITIONS
+     ============================================================ -->
+<div class="section">
+  <p class="st">3 Propositions</p>
+  <p class="ss">Cliquez pour naviguer entre les propositions</p>
+
+  <div class="mockup">
+    <div class="demo-switch">
+      <button class="demo-btn active" onclick="showPlan('a')">A &mdash; Mission Control</button>
+      <button class="demo-btn" onclick="showPlan('b')">B &mdash; Kanban Planning</button>
+      <button class="demo-btn" onclick="showPlan('c')">C &mdash; Smart Planner (IA)</button>
+    </div>
+
+    <!-- ============================================================
+         PROPOSITION A : Mission Control
+         ============================================================ -->
+    <div class="tab-content active" id="plan-a">
+
+      <!-- AI suggestion banner -->
+      <div class="ai-banner">
+        <div class="ai-icon">&#9733;</div>
+        <div class="ai-text">
+          <strong>SmartAssign :</strong> L&rsquo;IA peut r&eacute;partir les contr&ocirc;les automatiquement en &eacute;quilibrant la charge, les comp&eacute;tences et les priorit&eacute;s.
+        </div>
+        <button class="ai-btn">&#9733; Affecter automatiquement</button>
+      </div>
+
+      <div class="plan-a-layout">
+        <!-- LEFT: Matrix table -->
+        <div class="pa-matrix">
+          <div class="pa-toolbar">
+            <h3>Affectation des contr&ocirc;les</h3>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="badge green">18/32 affect&eacute;s</span>
+              <button class="btn-secondary" style="padding:6px 14px;font-size:12px;">Filtrer par domaine</button>
+            </div>
+          </div>
+
+          <table class="pa-table">
+            <thead>
+              <tr>
+                <th style="width:36px;"></th>
+                <th style="width:70px;">Code</th>
+                <th>Contr&ocirc;le</th>
+                <th style="width:80px;">Priorit&eacute;</th>
+                <th style="width:80px;">Complexit&eacute;</th>
+                <th style="width:200px;">Auditeur</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Domain A.5 -->
+              <tr class="pa-domain-row">
+                <td colspan="6" style="padding:10px 14px;">
+                  <span class="mono" style="color:var(--forest-700);font-size:12px;">A.5</span> &mdash; Politiques de s&eacute;curit&eacute;
+                  <span class="badge green" style="margin-left:8px;">4/4</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pa-drag">&#8942;&#8942;</span></td>
+                <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.5.1</span></td>
+                <td>Politiques de s&eacute;curit&eacute; de l&rsquo;information</td>
+                <td><span class="priority high">Haute</span></td>
+                <td><div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span></div></td>
+                <td>
+                  <div class="pa-auditor-cell">
+                    <div class="avatar ms">MS</div>
+                    <span style="font-size:12px;color:var(--text-700);">Moussa Sarr</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pa-drag">&#8942;&#8942;</span></td>
+                <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.5.2</span></td>
+                <td>Revue des politiques</td>
+                <td><span class="priority medium">Moyenne</span></td>
+                <td><div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span><span class="complexity-dot empty"></span></div></td>
+                <td>
+                  <div class="pa-auditor-cell">
+                    <div class="avatar ms">MS</div>
+                    <span style="font-size:12px;color:var(--text-700);">Moussa Sarr</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pa-drag">&#8942;&#8942;</span></td>
+                <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.5.3</span></td>
+                <td>Communication des politiques</td>
+                <td><span class="priority low">Basse</span></td>
+                <td><div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span><span class="complexity-dot empty"></span></div></td>
+                <td>
+                  <div class="pa-auditor-cell">
+                    <div class="avatar if">IF</div>
+                    <span style="font-size:12px;color:var(--text-700);">Ibrahim Fall</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pa-drag">&#8942;&#8942;</span></td>
+                <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.5.4</span></td>
+                <td>R&ocirc;les et responsabilit&eacute;s</td>
+                <td><span class="priority high">Haute</span></td>
+                <td><div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span></div></td>
+                <td>
+                  <div class="pa-auditor-cell">
+                    <div class="avatar if">IF</div>
+                    <span style="font-size:12px;color:var(--text-700);">Ibrahim Fall</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Domain A.8 — partially assigned -->
+              <tr class="pa-domain-row">
+                <td colspan="6" style="padding:10px 14px;">
+                  <span class="mono" style="color:var(--forest-700);font-size:12px;">A.8</span> &mdash; Gestion des actifs
+                  <span class="badge gold" style="margin-left:8px;">2/8</span>
+                  <button style="float:right;font-size:11px;color:var(--forest-700);background:var(--forest-50);border:1px solid var(--forest-300);padding:3px 10px;border-radius:6px;cursor:pointer;">Affecter tout &agrave;...</button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pa-drag">&#8942;&#8942;</span></td>
+                <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.8.1</span></td>
+                <td>Inventaire des actifs</td>
+                <td><span class="priority high">Haute</span></td>
+                <td><div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span></div></td>
+                <td>
+                  <div class="pa-auditor-cell">
+                    <div class="avatar fn">FN</div>
+                    <span style="font-size:12px;color:var(--text-700);">Fatou Ndiaye</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pa-drag">&#8942;&#8942;</span></td>
+                <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.8.2</span></td>
+                <td>Propri&eacute;t&eacute; des actifs</td>
+                <td><span class="priority medium">Moyenne</span></td>
+                <td><div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span></div></td>
+                <td>
+                  <select class="pa-auditor-select">
+                    <option value="">Non affect&eacute;</option>
+                    <option>Moussa Sarr</option>
+                    <option>Ibrahim Fall</option>
+                    <option selected>Fatou Ndiaye</option>
+                    <option>Oumar Ba</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pa-drag">&#8942;&#8942;</span></td>
+                <td><span class="mono" style="font-size:12px;color:var(--forest-700);">A.8.3</span></td>
+                <td>Utilisation acceptable des actifs</td>
+                <td><span class="priority low">Basse</span></td>
+                <td><div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span><span class="complexity-dot empty"></span></div></td>
+                <td>
+                  <select class="pa-auditor-select">
+                    <option value="" selected>Non affect&eacute;</option>
+                    <option>Moussa Sarr</option>
+                    <option>Ibrahim Fall</option>
+                    <option>Fatou Ndiaye</option>
+                    <option>Oumar Ba</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- RIGHT: Sidebar -->
+        <div class="pa-sidebar">
+          <div class="pa-sidebar-section">
+            <h4>Charge par auditeur</h4>
+            <div class="wl-member">
+              <div class="wl-header"><span class="wl-name"><span class="avatar ms" style="width:20px;height:20px;font-size:8px;">MS</span> Moussa Sarr</span><span class="wl-count">12 ctrl</span></div>
+              <div class="wl-bar"><div class="wl-bar-fill" style="width:75%;background:var(--forest-500);"></div></div>
+              <div class="wl-label">Charge &eacute;lev&eacute;e &mdash; envisager redistribution</div>
+            </div>
+            <div class="wl-member">
+              <div class="wl-header"><span class="wl-name"><span class="avatar if" style="width:20px;height:20px;font-size:8px;">IF</span> Ibrahim Fall</span><span class="wl-count">10 ctrl</span></div>
+              <div class="wl-bar"><div class="wl-bar-fill" style="width:62%;background:var(--forest-500);"></div></div>
+            </div>
+            <div class="wl-member">
+              <div class="wl-header"><span class="wl-name"><span class="avatar fn" style="width:20px;height:20px;font-size:8px;">FN</span> Fatou Ndiaye</span><span class="wl-count">8 ctrl</span></div>
+              <div class="wl-bar"><div class="wl-bar-fill" style="width:50%;background:var(--gold-500);"></div></div>
+            </div>
+            <div class="wl-member">
+              <div class="wl-header"><span class="wl-name"><span class="avatar ob" style="width:20px;height:20px;font-size:8px;">OB</span> Oumar Ba</span><span class="wl-count">2 ctrl</span></div>
+              <div class="wl-bar"><div class="wl-bar-fill" style="width:12%;background:var(--warning);"></div></div>
+              <div class="wl-label" style="color:var(--warning);">Sous-utilis&eacute;</div>
+            </div>
+          </div>
+
+          <div class="pa-sidebar-section">
+            <h4>Calendrier estimatif</h4>
+            <div style="font-size:11px;color:var(--text-300);margin-bottom:10px;">15 mars &rarr; 30 avril 2026 (46 jours)</div>
+
+            <div class="timeline-row">
+              <span style="font-size:11px;color:var(--text-500);width:40px;" class="mono">A.5</span>
+              <div class="timeline-bar">
+                <div class="timeline-fill" style="left:0;width:25%;background:var(--forest-500);">S1-S2</div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span style="font-size:11px;color:var(--text-500);width:40px;" class="mono">A.6</span>
+              <div class="timeline-bar">
+                <div class="timeline-fill" style="left:15%;width:30%;background:var(--info);">S2-S3</div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span style="font-size:11px;color:var(--text-500);width:40px;" class="mono">A.7</span>
+              <div class="timeline-bar">
+                <div class="timeline-fill" style="left:25%;width:35%;background:#E07A5F;">S2-S4</div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span style="font-size:11px;color:var(--text-500);width:40px;" class="mono">A.8</span>
+              <div class="timeline-bar">
+                <div class="timeline-fill" style="left:40%;width:40%;background:var(--purple);">S3-S5</div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span style="font-size:11px;color:var(--text-500);width:40px;" class="mono">A.9</span>
+              <div class="timeline-bar">
+                <div class="timeline-fill" style="left:55%;width:45%;background:var(--gold-500);">S4-S7</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pa-sidebar-section" style="border-bottom:none;">
+            <h4>Actions rapides</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-secondary" style="text-align:left;padding:10px 14px;font-size:12px;">&#127922; R&eacute;partition &eacute;quilibr&eacute;e auto</button>
+              <button class="btn-secondary" style="text-align:left;padding:10px 14px;font-size:12px;">&#128203; Exporter le plan (Excel)</button>
+              <button class="btn-primary" style="text-align:left;padding:10px 14px;font-size:12px;">&#10003; Valider la planification</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         PROPOSITION B : Kanban Planning
+         ============================================================ -->
+    <div class="tab-content" id="plan-b">
+
+      <div class="ai-banner">
+        <div class="ai-icon">&#9733;</div>
+        <div class="ai-text">
+          <strong>Glissez-d&eacute;posez</strong> les contr&ocirc;les de la colonne &laquo; Non affect&eacute;s &raquo; vers les auditeurs. L&rsquo;IA &eacute;quilibre en temps r&eacute;el.
+        </div>
+        <button class="ai-btn">&#9733; Auto-r&eacute;partition</button>
+      </div>
+
+      <div class="plan-b-board">
+        <!-- Unassigned column -->
+        <div class="pb-column unassigned">
+          <div class="pb-col-header">
+            <span style="font-size:18px;">&#128230;</span>
+            <div>
+              <div class="pb-col-name">Non affect&eacute;s</div>
+            </div>
+            <span class="pb-col-count" style="background:var(--gold-200);color:var(--gold-600);">14</span>
+          </div>
+          <div class="pb-col-body">
+            <div class="pb-domain-header">A.8 &mdash; Gestion des actifs</div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.8.2</div>
+              <div class="pb-card-name">Propri&eacute;t&eacute; des actifs</div>
+              <div class="pb-card-footer">
+                <div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span></div>
+                <span class="priority medium">Moyenne</span>
+              </div>
+            </div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.8.3</div>
+              <div class="pb-card-name">Utilisation acceptable</div>
+              <div class="pb-card-footer">
+                <div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span><span class="complexity-dot empty"></span></div>
+                <span class="priority low">Basse</span>
+              </div>
+            </div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.8.4</div>
+              <div class="pb-card-name">Restitution des actifs</div>
+              <div class="pb-card-footer">
+                <div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot empty"></span><span class="complexity-dot empty"></span></div>
+                <span class="priority low">Basse</span>
+              </div>
+            </div>
+            <div class="pb-domain-header">A.9 &mdash; Contr&ocirc;le d&rsquo;acc&egrave;s</div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.9.1</div>
+              <div class="pb-card-name">Politique de contr&ocirc;le d&rsquo;acc&egrave;s</div>
+              <div class="pb-card-footer">
+                <div class="complexity"><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span><span class="complexity-dot filled"></span></div>
+                <span class="priority high">Haute</span>
+              </div>
+            </div>
+            <div class="pb-card" style="opacity:0.5;text-align:center;padding:16px;border-style:dashed;">
+              <div style="font-size:12px;color:var(--text-300);">+ 10 autres contr&ocirc;les</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Moussa Sarr -->
+        <div class="pb-column">
+          <div class="pb-col-header">
+            <div class="avatar ms">MS</div>
+            <div style="flex:1;">
+              <div class="pb-col-name">Moussa Sarr</div>
+              <div style="font-size:10px;color:var(--text-300);">Chef de mission</div>
+            </div>
+            <span class="pb-col-count">12</span>
+          </div>
+          <div style="padding:0 14px 8px;"><div class="pb-col-bar-track"><div class="pb-col-bar-fill" style="width:75%;background:var(--forest-500);"></div></div></div>
+          <div class="pb-col-body">
+            <div class="pb-domain-header">A.5 &mdash; Politiques</div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.5.1</div>
+              <div class="pb-card-name">Politiques de s&eacute;curit&eacute;</div>
+              <div class="pb-card-footer"><span class="priority high">Haute</span><span style="font-size:10px;color:var(--text-300);">&#9733; IA</span></div>
+            </div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.5.2</div>
+              <div class="pb-card-name">Revue des politiques</div>
+              <div class="pb-card-footer"><span class="priority medium">Moyenne</span></div>
+            </div>
+            <div class="pb-card" style="opacity:0.5;text-align:center;padding:12px;border-style:dashed;">
+              <div style="font-size:11px;color:var(--text-300);">+ 10 contr&ocirc;les</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ibrahim Fall -->
+        <div class="pb-column">
+          <div class="pb-col-header">
+            <div class="avatar if">IF</div>
+            <div style="flex:1;">
+              <div class="pb-col-name">Ibrahim Fall</div>
+              <div style="font-size:10px;color:var(--text-300);">Auditeur</div>
+            </div>
+            <span class="pb-col-count">10</span>
+          </div>
+          <div style="padding:0 14px 8px;"><div class="pb-col-bar-track"><div class="pb-col-bar-fill" style="width:62%;background:var(--forest-500);"></div></div></div>
+          <div class="pb-col-body">
+            <div class="pb-domain-header">A.5 &mdash; Politiques</div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.5.3</div>
+              <div class="pb-card-name">Communication des politiques</div>
+              <div class="pb-card-footer"><span class="priority low">Basse</span></div>
+            </div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.5.4</div>
+              <div class="pb-card-name">R&ocirc;les et responsabilit&eacute;s</div>
+              <div class="pb-card-footer"><span class="priority high">Haute</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fatou Ndiaye -->
+        <div class="pb-column">
+          <div class="pb-col-header">
+            <div class="avatar fn">FN</div>
+            <div style="flex:1;">
+              <div class="pb-col-name">Fatou Ndiaye</div>
+              <div style="font-size:10px;color:var(--text-300);">Auditrice</div>
+            </div>
+            <span class="pb-col-count">8</span>
+          </div>
+          <div style="padding:0 14px 8px;"><div class="pb-col-bar-track"><div class="pb-col-bar-fill" style="width:50%;background:var(--gold-500);"></div></div></div>
+          <div class="pb-col-body">
+            <div class="pb-domain-header">A.8 &mdash; Actifs</div>
+            <div class="pb-card">
+              <div class="pb-card-code">A.8.1</div>
+              <div class="pb-card-name">Inventaire des actifs</div>
+              <div class="pb-card-footer"><span class="priority high">Haute</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Oumar Ba -->
+        <div class="pb-column">
+          <div class="pb-col-header">
+            <div class="avatar ob">OB</div>
+            <div style="flex:1;">
+              <div class="pb-col-name">Oumar Ba</div>
+              <div style="font-size:10px;color:var(--text-300);">Auditeur</div>
+            </div>
+            <span class="pb-col-count" style="background:#FDE8E8;color:var(--error);">2</span>
+          </div>
+          <div style="padding:0 14px 8px;"><div class="pb-col-bar-track"><div class="pb-col-bar-fill" style="width:12%;background:var(--warning);"></div></div></div>
+          <div class="pb-col-body">
+            <div style="padding:40px 10px;text-align:center;">
+              <p style="font-size:28px;margin-bottom:8px;">&#128161;</p>
+              <p style="font-size:12px;color:var(--text-300);line-height:1.5;">Sous-utilis&eacute;<br>Glissez des contr&ocirc;les ici</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         PROPOSITION C : Smart Planner (IA-first)
+         ============================================================ -->
+    <div class="tab-content" id="plan-c">
+
+      <div class="plan-c-hero">
+        <h3>&#9733; Planification assist&eacute;e par IA</h3>
+        <p>Laissez l&rsquo;IA proposer une r&eacute;partition optimale, puis ajustez manuellement.</p>
+
+        <div class="plan-c-criteria">
+          <label class="pc-criterion active"><input type="checkbox" checked> &Eacute;quilibrer la charge</label>
+          <label class="pc-criterion active"><input type="checkbox" checked> Respecter les comp&eacute;tences</label>
+          <label class="pc-criterion"><input type="checkbox"> Grouper par domaine</label>
+          <label class="pc-criterion active"><input type="checkbox" checked> Prioriser les contr&ocirc;les critiques</label>
+        </div>
+
+        <button class="btn-gold" style="font-size:14px;padding:12px 32px;">&#9733; G&eacute;n&eacute;rer la planification</button>
+      </div>
+
+      <!-- Visual matrix -->
+      <div class="pc-grid">
+        <div class="pc-matrix-header">
+          <h4>Matrice d&rsquo;affectation</h4>
+          <div style="display:flex;gap:12px;align-items:center;font-size:11px;color:var(--text-500);">
+            <span style="display:flex;align-items:center;gap:4px;"><span class="pc-dot filled" style="width:12px;height:12px;"></span> Affect&eacute;</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span class="pc-dot ai" style="width:12px;height:12px;"></span> Suggestion IA</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span class="pc-dot" style="width:12px;height:12px;"></span> Disponible</span>
+          </div>
+        </div>
+
+        <!-- Column headers -->
+        <div class="pc-cols-header">
+          <div class="pc-col-label">Contr&ocirc;le</div>
+          <div class="pc-col-label">Moussa Sarr<span class="pc-col-load">12 ctrl &mdash; 75%</span></div>
+          <div class="pc-col-label">Ibrahim Fall<span class="pc-col-load">10 ctrl &mdash; 62%</span></div>
+          <div class="pc-col-label">Fatou Ndiaye<span class="pc-col-load">8 ctrl &mdash; 50%</span></div>
+          <div class="pc-col-label">Oumar Ba<span class="pc-col-load">2 ctrl &mdash; 12%</span></div>
+        </div>
+
+        <!-- Domain A.5 -->
+        <div class="pc-row"><div class="pc-domain-sep">A.5 &mdash; Politiques de s&eacute;curit&eacute;</div></div>
+
+        <div class="pc-row">
+          <div class="pc-cell label-cell"><span class="mono" style="font-size:11px;color:var(--forest-700);font-weight:500;">A.5.1</span> <span style="font-size:12px;">Politiques de s&eacute;curit&eacute;</span> <span class="priority high">H</span></div>
+          <div class="pc-cell assigned"><div class="pc-dot filled"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+        </div>
+        <div class="pc-row">
+          <div class="pc-cell label-cell"><span class="mono" style="font-size:11px;color:var(--forest-700);font-weight:500;">A.5.2</span> <span style="font-size:12px;">Revue des politiques</span> <span class="priority medium">M</span></div>
+          <div class="pc-cell assigned"><div class="pc-dot filled"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+        </div>
+        <div class="pc-row">
+          <div class="pc-cell label-cell"><span class="mono" style="font-size:11px;color:var(--forest-700);font-weight:500;">A.5.3</span> <span style="font-size:12px;">Communication</span> <span class="priority low">B</span></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell assigned"><div class="pc-dot filled"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+        </div>
+
+        <!-- Domain A.8 — with AI suggestions -->
+        <div class="pc-row"><div class="pc-domain-sep">A.8 &mdash; Gestion des actifs &mdash; <span style="color:var(--purple);">&#9733; 6 suggestions IA</span></div></div>
+
+        <div class="pc-row">
+          <div class="pc-cell label-cell"><span class="mono" style="font-size:11px;color:var(--forest-700);font-weight:500;">A.8.1</span> <span style="font-size:12px;">Inventaire des actifs</span> <span class="priority high">H</span></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell assigned"><div class="pc-dot filled"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+        </div>
+        <div class="pc-row">
+          <div class="pc-cell label-cell"><span class="mono" style="font-size:11px;color:var(--forest-700);font-weight:500;">A.8.2</span> <span style="font-size:12px;">Propri&eacute;t&eacute; des actifs</span> <span class="priority medium">M</span></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell ai-suggested"><div class="pc-dot ai"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+        </div>
+        <div class="pc-row">
+          <div class="pc-cell label-cell"><span class="mono" style="font-size:11px;color:var(--forest-700);font-weight:500;">A.8.3</span> <span style="font-size:12px;">Utilisation acceptable</span> <span class="priority low">B</span></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell ai-suggested"><div class="pc-dot ai"></div></div>
+        </div>
+        <div class="pc-row">
+          <div class="pc-cell label-cell"><span class="mono" style="font-size:11px;color:var(--forest-700);font-weight:500;">A.8.4</span> <span style="font-size:12px;">Restitution des actifs</span> <span class="priority low">B</span></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell"><div class="pc-dot"></div></div>
+          <div class="pc-cell ai-suggested"><div class="pc-dot ai"></div></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="pc-stats">
+        <div class="pc-stat-card">
+          <div class="pc-stat-value" style="color:var(--forest-700);">56%</div>
+          <div class="pc-stat-label">Affect&eacute;s</div>
+        </div>
+        <div class="pc-stat-card">
+          <div class="pc-stat-value" style="color:var(--purple);">44%</div>
+          <div class="pc-stat-label">Suggestions IA</div>
+        </div>
+        <div class="pc-stat-card">
+          <div class="pc-stat-value" style="color:var(--success);">87%</div>
+          <div class="pc-stat-label">&Eacute;quilibre charge</div>
+        </div>
+        <div class="pc-stat-card">
+          <div class="pc-stat-value" style="color:var(--gold-500);">&#10003;</div>
+          <div class="pc-stat-label">Critiques couverts</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================
+     COMPARATIF
+     ============================================================ -->
+<div class="section">
+  <p class="st">Comparatif</p>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <thead>
+        <tr style="background:#FAFAFA;border-bottom:1px solid var(--border);">
+          <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:var(--text-500);width:180px;">Crit&egrave;re</th>
+          <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--text-500);">A &mdash; Mission Control</th>
+          <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--text-500);">B &mdash; Kanban Planning</th>
+          <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--text-500);">C &mdash; Smart Planner</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #F3F4F6;">
+          <td style="padding:10px 16px;font-size:13px;font-weight:500;">Vision charge</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733;&#9733; Sidebar d&eacute;di&eacute;e</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733;&#9733; Barres par colonne</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733; En-t&ecirc;tes colonnes</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F3F4F6;">
+          <td style="padding:10px 16px;font-size:13px;font-weight:500;">Vitesse d&rsquo;affectation</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733; Select inline</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733;&#9733; Drag &amp; drop</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733;&#9733; 1 clic matrice</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F3F4F6;">
+          <td style="padding:10px 16px;font-size:13px;font-weight:500;">Assistance IA</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733; SmartAssign</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733; Auto-r&eacute;partition</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733;&#9733; Natif, crit&egrave;res</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F3F4F6;">
+          <td style="padding:10px 16px;font-size:13px;font-weight:500;">Calendrier</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733;&#9733;&#9733; Gantt mini</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733; Absent</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&#9733; Absent</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F3F4F6;">
+          <td style="padding:10px 16px;font-size:13px;font-weight:500;">Complexit&eacute; dev</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">Moyenne</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">&Eacute;lev&eacute;e (DnD)</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;">Moyenne</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 16px;font-size:13px;font-weight:500;">Recommandation</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;font-weight:600;color:var(--success);">&#9733; Recommand&eacute;</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;color:var(--text-500);">Alternative</td>
+          <td style="padding:10px 16px;text-align:center;font-size:13px;color:var(--text-500);">Phase 2 (IA)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<script>
+function showPlan(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.getElementById('plan-' + id).classList.add('active');
+  document.querySelectorAll('.demo-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -1,1 +1,19 @@
-/* Styles globaux Gëstu Comply — la majorité est gérée par Tailwind */
+/* Styles globaux Gëstu Comply — la majorite est geree par Tailwind */
+
+/* Vault animations */
+@keyframes scanLine {
+  0%, 100% { top: 20%; opacity: 0; }
+  10% { opacity: 1; }
+  50% { top: 75%; opacity: 1; }
+  60% { opacity: 0; }
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30px) scale(1.1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}

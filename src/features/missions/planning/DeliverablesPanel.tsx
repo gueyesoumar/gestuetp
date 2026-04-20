@@ -1,3 +1,4 @@
+import { Check, Circle } from 'lucide-react'
 import type { MissionStatus } from '../../../types/database.types'
 
 interface DeliverablesPanelProps {
@@ -69,9 +70,9 @@ export function DeliverablesPanel({ missionStatus }: DeliverablesPanelProps) {
 }
 
 function StatusIcon({ done, current }: { done: boolean; current: boolean }) {
-  if (done) return <span className="text-green-600 text-sm">&#10003;</span>
-  if (current) return <span className="text-blue-500 text-sm">&#9679;</span>
-  return <span className="text-gray-300 text-sm">&#9675;</span>
+  if (done) return <Check size={14} className="text-green-600" />
+  if (current) return <Circle size={14} className="text-blue-500 fill-blue-500" />
+  return <Circle size={14} className="text-gray-300" />
 }
 
 function StatusBadge({ done, current }: { done: boolean; current: boolean }) {

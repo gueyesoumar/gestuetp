@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Propositions Sidebar</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-300: #74C69D;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+
+  .section { max-width: 1200px; margin: 40px auto; padding: 0 40px; }
+  .section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 8px; text-align: center; }
+  .section .subtitle { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 30px; }
+
+  .comparison { display: flex; gap: 32px; justify-content: center; align-items: flex-start; }
+
+  .tag { font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600; display: inline-block; margin-bottom: 12px; }
+  .tag-gold { background: var(--gold-200); color: var(--gold-600); }
+
+  /* Shared sidebar styles */
+  .sidebar-frame {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  }
+  .sidebar-label {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-300);
+    margin-top: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Icons (simple SVG placeholders) */
+  .icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .icon svg { width: 18px; height: 18px; }
+
+  /* ===== VARIANT A: Full expanded (current but with icons) ===== */
+  .va-sidebar {
+    width: 240px;
+    background: var(--forest-900);
+    display: flex;
+    flex-direction: column;
+    height: 580px;
+  }
+  .va-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .va-nav { flex: 1; padding: 16px 12px; }
+  .va-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .va-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+  .va-item.active {
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-weight: 600;
+  }
+  .va-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--gold-500);
+    border-radius: 0 2px 2px 0;
+  }
+  .va-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .va-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--forest-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* ===== VARIANT B: Collapsed + Expanded ===== */
+  .vb-wrapper { display: flex; gap: 24px; }
+
+  .vb-collapsed {
+    width: 68px;
+    background: var(--forest-900);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 580px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .vb-collapsed .vb-logo {
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .vb-collapsed .vb-nav { flex: 1; padding: 16px 0; width: 100%; }
+  .vb-collapsed .vb-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    margin: 0 auto 4px;
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .vb-collapsed .vb-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+  .vb-collapsed .vb-item.active {
+    background: rgba(255,255,255,0.12);
+    color: white;
+  }
+  .vb-collapsed .vb-item.active::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--gold-500);
+    border-radius: 0 2px 2px 0;
+  }
+  .vb-collapsed .vb-user {
+    padding: 14px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .vb-expanded {
+    width: 240px;
+    background: var(--forest-900);
+    display: flex;
+    flex-direction: column;
+    height: 580px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* ===== VARIANT C: Light sidebar ===== */
+  .vc-sidebar {
+    width: 240px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 580px;
+  }
+  .vc-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .vc-nav { flex: 1; padding: 16px 12px; }
+  .vc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: var(--text-500);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .vc-item:hover { background: var(--forest-50); color: var(--forest-700); }
+  .vc-item.active {
+    background: var(--forest-50);
+    color: var(--forest-900);
+    font-weight: 600;
+  }
+  .vc-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--gold-500);
+    border-radius: 0 2px 2px 0;
+  }
+  .vc-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .vc-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--forest-100);
+    color: var(--forest-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* Full layout preview */
+  .layout-frame {
+    display: flex;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    height: 500px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .layout-main {
+    flex: 1;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .layout-topbar {
+    height: 52px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 20px;
+    gap: 12px;
+  }
+  .layout-content { flex: 1; padding: 24px; }
+  .layout-content h3 { font-size: 18px; font-weight: 700; color: var(--text-900); }
+  .layout-content p { font-size: 13px; color: var(--text-500); margin-top: 4px; }
+  .layout-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .layout-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .layout-card .lc-label { font-size: 11px; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.5px; }
+  .layout-card .lc-value { font-size: 24px; font-weight: 700; color: var(--forest-700); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu — Propositions Sidebar avec ic&ocirc;nes</h1>
+</div>
+
+<!-- VARIANT A: Full with icons -->
+<div class="section">
+  <h2>Variante A — Compl&egrave;te avec ic&ocirc;nes</h2>
+  <div class="subtitle">Sidebar sombre avec ic&ocirc;nes + texte. Comme l'actuelle mais enrichie.</div>
+
+  <div class="comparison">
+    <div>
+      <div class="sidebar-frame">
+        <div class="va-sidebar">
+          <div class="va-logo">
+            <svg width="22" height="26" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.5"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <div>
+              <div style="color: white; font-size: 17px; font-weight: 800; letter-spacing: -0.5px;">G&euml;stu</div>
+              <div style="color: #D4A843; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Comply</div>
+            </div>
+          </div>
+          <div class="va-nav">
+            <div class="va-item active">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+              Tableau de bord
+            </div>
+            <div class="va-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M7 4V2M13 4V2"/></svg>
+              Organisation
+            </div>
+            <div class="va-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><circle cx="10" cy="7" r="3"/><path d="M4 17C4 13.7 6.7 11 10 11C13.3 11 16 13.7 16 17"/></svg>
+              Membres
+            </div>
+            <div class="va-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M3 10C3 6.1 6.1 3 10 3C13.9 3 17 6.1 17 10C17 13.9 13.9 17 10 17C6.1 17 3 13.9 3 10Z"/><path d="M10 7V10L12.5 12.5"/></svg>
+              Clients
+            </div>
+            <div class="va-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M4 5H16M4 10H16M4 15H10"/></svg>
+              R&eacute;f&eacute;rentiels
+            </div>
+            <div class="va-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M10 3L17 7V13L10 17L3 13V7L10 3Z"/></svg>
+              Missions
+            </div>
+          </div>
+          <div class="va-user">
+            <div class="va-avatar">OG</div>
+            <div>
+              <div style="color: white; font-size: 12px; font-weight: 500;">Oumar Gueye</div>
+              <div style="color: rgba(255,255,255,0.3); font-size: 10px;">admin@gestudemo.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-label">Vert for&ecirc;t + ic&ocirc;nes</div>
+    </div>
+
+    <!-- VARIANT C: Light -->
+    <div>
+      <div class="sidebar-frame">
+        <div class="vc-sidebar">
+          <div class="vc-logo">
+            <svg width="22" height="26" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <div>
+              <div style="color: var(--forest-900); font-size: 17px; font-weight: 800; letter-spacing: -0.5px;">G&euml;stu</div>
+              <div style="color: var(--gold-600); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Comply</div>
+            </div>
+          </div>
+          <div class="vc-nav">
+            <div class="vc-item active">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+              Tableau de bord
+            </div>
+            <div class="vc-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M7 4V2M13 4V2"/></svg>
+              Organisation
+            </div>
+            <div class="vc-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><circle cx="10" cy="7" r="3"/><path d="M4 17C4 13.7 6.7 11 10 11C13.3 11 16 13.7 16 17"/></svg>
+              Membres
+            </div>
+            <div class="vc-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M3 10C3 6.1 6.1 3 10 3C13.9 3 17 6.1 17 10C17 13.9 13.9 17 10 17C6.1 17 3 13.9 3 10Z"/><path d="M10 7V10L12.5 12.5"/></svg>
+              Clients
+            </div>
+            <div class="vc-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M4 5H16M4 10H16M4 15H10"/></svg>
+              R&eacute;f&eacute;rentiels
+            </div>
+            <div class="vc-item">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M10 3L17 7V13L10 17L3 13V7L10 3Z"/></svg>
+              Missions
+            </div>
+          </div>
+          <div class="vc-user">
+            <div class="vc-avatar">OG</div>
+            <div>
+              <div style="font-size: 12px; font-weight: 500; color: var(--text-900);">Oumar Gueye</div>
+              <div style="font-size: 10px; color: var(--text-300);">admin@gestudemo.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-label">Version claire</div>
+    </div>
+  </div>
+</div>
+
+<!-- VARIANT B: Collapsible -->
+<div class="section">
+  <h2>Variante B — R&eacute;ductible (ic&ocirc;nes seules / d&eacute;pli&eacute;e)</h2>
+  <div class="subtitle">Peut se r&eacute;duire en ic&ocirc;nes seules pour gagner de l'espace. Clic pour d&eacute;plier.</div>
+
+  <div class="comparison">
+    <div>
+      <span class="tag tag-gold">Recommand&eacute;</span>
+      <div class="vb-wrapper">
+        <!-- Collapsed -->
+        <div class="sidebar-frame">
+          <div class="vb-collapsed">
+            <div class="vb-logo">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="2"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/></svg>
+            </div>
+            <div class="vb-nav">
+              <div class="vb-item active">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+              </div>
+              <div class="vb-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M7 4V2M13 4V2"/></svg>
+              </div>
+              <div class="vb-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><circle cx="10" cy="7" r="3"/><path d="M4 17C4 13.7 6.7 11 10 11C13.3 11 16 13.7 16 17"/></svg>
+              </div>
+              <div class="vb-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M3 10C3 6.1 6.1 3 10 3C13.9 3 17 6.1 17 10C17 13.9 13.9 17 10 17C6.1 17 3 13.9 3 10Z"/><path d="M10 7V10L12.5 12.5"/></svg>
+              </div>
+              <div class="vb-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M4 5H16M4 10H16M4 15H10"/></svg>
+              </div>
+              <div class="vb-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M10 3L17 7V13L10 17L3 13V7L10 3Z"/></svg>
+              </div>
+            </div>
+            <div class="vb-user">
+              <div class="va-avatar" style="width: 28px; height: 28px; font-size: 10px;">OG</div>
+            </div>
+          </div>
+        </div>
+        <!-- Arrow -->
+        <div style="display: flex; align-items: center; color: var(--text-300); font-size: 20px;">&harr;</div>
+        <!-- Expanded -->
+        <div class="sidebar-frame">
+          <div class="vb-expanded">
+            <div class="va-logo">
+              <svg width="22" height="26" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.5"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/></svg>
+              <div style="flex: 1;">
+                <div style="color: white; font-size: 17px; font-weight: 800; letter-spacing: -0.5px;">G&euml;stu</div>
+                <div style="color: #D4A843; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Comply</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer; opacity: 0.3;"><path d="M10 4L6 8L10 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <div class="va-nav">
+              <div class="va-item active">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+                Tableau de bord
+              </div>
+              <div class="va-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M7 4V2M13 4V2"/></svg>
+                Organisation
+              </div>
+              <div class="va-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><circle cx="10" cy="7" r="3"/><path d="M4 17C4 13.7 6.7 11 10 11C13.3 11 16 13.7 16 17"/></svg>
+                Membres
+              </div>
+              <div class="va-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M3 10C3 6.1 6.1 3 10 3C13.9 3 17 6.1 17 10C17 13.9 13.9 17 10 17C6.1 17 3 13.9 3 10Z"/><path d="M10 7V10L12.5 12.5"/></svg>
+                Clients
+              </div>
+              <div class="va-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M4 5H16M4 10H16M4 15H10"/></svg>
+                R&eacute;f&eacute;rentiels
+              </div>
+              <div class="va-item">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M10 3L17 7V13L10 17L3 13V7L10 3Z"/></svg>
+                Missions
+              </div>
+            </div>
+            <div class="va-user">
+              <div class="va-avatar">OG</div>
+              <div>
+                <div style="color: white; font-size: 12px; font-weight: 500;">Oumar Gueye</div>
+                <div style="color: rgba(255,255,255,0.3); font-size: 10px;">admin@gestudemo.com</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-label">R&eacute;duite &harr; D&eacute;pli&eacute;e</div>
+    </div>
+  </div>
+</div>
+
+<!-- FULL LAYOUT PREVIEW -->
+<div class="section">
+  <h2>Mise en situation — Variante B d&eacute;pli&eacute;e</h2>
+  <div class="subtitle">Vue compl&egrave;te du layout avec la sidebar, la topbar et le contenu</div>
+
+  <div class="layout-frame">
+    <div class="vb-expanded" style="border-radius: 0; height: auto;">
+      <div class="va-logo">
+        <svg width="22" height="26" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(255,255,255,0.08)" stroke="#D4A843" stroke-width="1.5"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div style="flex: 1;">
+          <div style="color: white; font-size: 17px; font-weight: 800; letter-spacing: -0.5px;">G&euml;stu</div>
+          <div style="color: #D4A843; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Comply</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer; opacity: 0.3;"><path d="M10 4L6 8L10 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="va-nav">
+        <div class="va-item active">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+          Tableau de bord
+        </div>
+        <div class="va-item">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M7 4V2M13 4V2"/></svg>
+          Organisation
+        </div>
+        <div class="va-item">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><circle cx="10" cy="7" r="3"/><path d="M4 17C4 13.7 6.7 11 10 11C13.3 11 16 13.7 16 17"/></svg>
+          Membres
+        </div>
+        <div class="va-item">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M3 10C3 6.1 6.1 3 10 3C13.9 3 17 6.1 17 10C17 13.9 13.9 17 10 17C6.1 17 3 13.9 3 10Z"/><path d="M10 7V10L12.5 12.5"/></svg>
+          Clients
+        </div>
+        <div class="va-item">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M4 5H16M4 10H16M4 15H10"/></svg>
+          R&eacute;f&eacute;rentiels
+        </div>
+        <div class="va-item">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M10 3L17 7V13L10 17L3 13V7L10 3Z"/></svg>
+          Missions
+        </div>
+      </div>
+      <div class="va-user">
+        <div class="va-avatar">OG</div>
+        <div>
+          <div style="color: white; font-size: 12px; font-weight: 500;">Oumar Gueye</div>
+          <div style="color: rgba(255,255,255,0.3); font-size: 10px;">admin@gestudemo.com</div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-main">
+      <div class="layout-topbar">
+        <span style="font-size: 13px; color: var(--text-500);">Oumar Gueye</span>
+        <button style="padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; background: white; color: var(--text-500); cursor: pointer;">D&eacute;connexion</button>
+      </div>
+      <div class="layout-content">
+        <h3>Tableau de bord</h3>
+        <p>Bienvenue, Oumar. Votre espace de travail est pr&ecirc;t.</p>
+        <div class="layout-cards">
+          <div class="layout-card">
+            <div class="lc-label">Missions actives</div>
+            <div class="lc-value">3</div>
+          </div>
+          <div class="layout-card">
+            <div class="lc-label">Clients</div>
+            <div class="lc-value">7</div>
+          </div>
+          <div class="layout-card">
+            <div class="lc-label">Contr&ocirc;les en cours</div>
+            <div class="lc-value" style="color: var(--gold-600);">42</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  G&euml;stu ETP — Propositions Sidebar v1.0
+</div>
+
+</body>
+</html>

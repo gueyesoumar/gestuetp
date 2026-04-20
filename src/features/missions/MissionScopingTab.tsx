@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check, Star } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { QuestionnairePreview } from './QuestionnairePreview'
@@ -99,7 +100,7 @@ export function MissionScopingTab({ mission, domains, hasQuestionnaire, onRefetc
         <div className="space-y-4">
           <div className="rounded-lg border border-green-200 bg-green-50 p-4">
             <p className="text-sm font-medium text-green-800">
-              &#10003; Questionnaire envoy&eacute; au client.
+              <Check size={14} className="inline mr-1" />Questionnaire envoy&eacute; au client.
             </p>
           </div>
           {qLoading ? (

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Star } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { useScopingData } from './useScopingData'
@@ -159,9 +160,9 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
       <div className="flex-1 flex flex-col overflow-hidden border-r border-gray-200">
         {/* AI banner */}
         <div className="flex items-center gap-3 px-4 py-2.5 bg-purple-50 border-b border-purple-200">
-          <div className="w-7 h-7 rounded-lg bg-purple-500 text-white flex items-center justify-center text-sm shrink-0">&#9733;</div>
+          <div className="w-7 h-7 rounded-lg bg-purple-500 text-white flex items-center justify-center shrink-0"><Star size={14} /></div>
           <p className="flex-1 text-xs text-purple-800"><strong>SmartScope</strong> peut analyser les documents et r&eacute;ponses pour identifier les risques cl&eacute;s.</p>
-          <button className="text-xs font-semibold text-white bg-purple-500 px-3 py-1.5 rounded-lg hover:bg-purple-600 shrink-0">&#9733; Analyser</button>
+          <button className="text-xs font-semibold text-white bg-purple-500 px-3 py-1.5 rounded-lg hover:bg-purple-600 shrink-0 flex items-center gap-1"><Star size={12} /> Analyser</button>
         </div>
 
         {/* Tabs */}

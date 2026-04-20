@@ -1,0 +1,2732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Mission Detail Redesign V2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-300: #74C69D;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-400: #E2C26B;
+    --gold-200: #F2E2B1;
+    --gold-50: #FDF8E8;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-700: #374151;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+    --success: #27AE60;
+    --success-light: #E8F5E9;
+    --error: #C0392B;
+    --error-light: #FDECEB;
+    --warning: #E67E22;
+    --warning-light: #FFF3E0;
+    --info: #3B82F6;
+    --info-light: #EBF5FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+
+  .section { max-width: 1200px; margin: 50px auto; padding: 0 30px; }
+  .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 6px; text-align: center; }
+  .section-subtitle { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+
+  .mockup-frame {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    margin-bottom: 40px;
+  }
+
+  /* ============================================================
+     A. MISSION HEADER + STEPPER
+     ============================================================ */
+
+  .mission-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px 0;
+  }
+
+  .mission-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .mission-back {
+    font-size: 13px;
+    color: var(--forest-700);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .mission-back:hover { color: var(--forest-900); }
+
+  .mission-title-block h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-900);
+    line-height: 1.3;
+  }
+  .mission-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-500);
+  }
+  .mission-meta span { display: flex; align-items: center; gap: 5px; }
+  .mission-meta .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-300); }
+
+  .mission-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .status-badge.active { background: var(--forest-100); color: var(--forest-700); }
+  .status-badge.active::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--forest-500); animation: pulse 2s infinite; }
+  .status-badge.closed { background: var(--success-light); color: var(--success); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .days-badge {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--warning);
+    background: var(--warning-light);
+    padding: 5px 12px;
+    border-radius: 99px;
+  }
+
+  .cta-primary {
+    background: var(--forest-700);
+    color: white;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+  }
+  .cta-primary:hover { background: var(--forest-900); }
+
+  /* Progress bar under header */
+  .mission-progress-bar {
+    height: 3px;
+    background: var(--border);
+    margin-top: 0;
+  }
+  .mission-progress-fill {
+    height: 3px;
+    background: linear-gradient(90deg, var(--forest-500), var(--gold-500));
+    border-radius: 0 3px 3px 0;
+    transition: width 0.4s ease;
+  }
+
+  /* ============================================================
+     STEPPER PIPELINE
+     ============================================================ */
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 6px;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .step-connector {
+    width: 32px;
+    height: 2px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .step-connector.done { background: var(--success); }
+  .step-connector.active { background: linear-gradient(90deg, var(--success), var(--forest-300)); }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .step.done .step-dot {
+    background: var(--success);
+    color: white;
+    border: 2px solid var(--success);
+  }
+  .step.active .step-dot {
+    background: var(--forest-700);
+    color: white;
+    border: 2px solid var(--forest-700);
+    box-shadow: 0 0 0 4px var(--forest-100);
+  }
+  .step.locked .step-dot {
+    background: var(--white);
+    color: var(--text-300);
+    border: 2px solid var(--border);
+  }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-300);
+  }
+  .step.done .step-label { color: var(--success); }
+  .step.active .step-label { color: var(--forest-700); font-weight: 600; }
+  .step.locked .step-label { color: var(--text-300); }
+
+  .step-sublabel {
+    font-size: 10px;
+    color: var(--text-300);
+    margin-top: 1px;
+  }
+  .step.active .step-sublabel { color: var(--forest-500); }
+
+  .step-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Active step underline */
+  .step.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--forest-700);
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* ============================================================
+     B. CONTENT AREA
+     ============================================================ */
+
+  .content { padding: 24px 28px; }
+
+  /* ============================================================
+     B1. OVERVIEW TAB — Mission Dashboard
+     ============================================================ */
+
+  /* Next action banner */
+  .next-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--gold-50);
+    border: 1px solid var(--gold-200);
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+  .next-action-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .next-action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--gold-500);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .next-action-text { font-size: 13px; color: var(--text-700); }
+  .next-action-text strong { color: var(--text-900); }
+  .next-action-btn {
+    background: var(--gold-500);
+    color: var(--forest-900);
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .next-action-btn:hover { background: var(--gold-600); color: white; }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .stat-card-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-500);
+    margin-bottom: 8px;
+  }
+  .stat-card-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .stat-card-value.forest { color: var(--forest-700); }
+  .stat-card-value.gold { color: var(--gold-500); }
+  .stat-card-value.success { color: var(--success); }
+  .stat-card-value.error { color: var(--error); }
+  .stat-card-sub {
+    font-size: 12px;
+    color: var(--text-300);
+    margin-top: 4px;
+  }
+  .stat-card-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 10px;
+  }
+  .stat-card-bar-fill {
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  /* Two-col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+  }
+
+  /* Domain progress */
+  .domain-progress-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .domain-progress-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .domain-progress-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-900);
+  }
+
+  .domain-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #F9FAFB;
+  }
+  .domain-row:last-child { border-bottom: none; }
+  .domain-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--forest-700);
+    width: 40px;
+    flex-shrink: 0;
+  }
+  .domain-name {
+    font-size: 13px;
+    color: var(--text-700);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .domain-bar-wrap {
+    width: 120px;
+    flex-shrink: 0;
+  }
+  .domain-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+  }
+  .domain-bar-fill {
+    height: 6px;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .domain-pct {
+    font-size: 12px;
+    font-weight: 600;
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .domain-count {
+    font-size: 11px;
+    color: var(--text-300);
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Right sidebar */
+  .side-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+  }
+  .side-card-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-900);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Team mini */
+  .team-member {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #F9FAFB;
+  }
+  .team-member:last-child { border-bottom: none; }
+  .team-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+  .team-avatar.associate { background: var(--forest-700); }
+  .team-avatar.lead { background: var(--info); }
+  .team-avatar.auditor { background: var(--text-500); }
+  .team-name { font-size: 13px; color: var(--text-700); flex: 1; }
+  .team-role {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 99px;
+  }
+  .team-role.associate { background: var(--forest-100); color: var(--forest-700); }
+  .team-role.lead { background: var(--info-light); color: var(--info); }
+  .team-role.auditor { background: #F3F4F6; color: var(--text-500); }
+
+  .team-workload {
+    font-size: 11px;
+    color: var(--text-300);
+    width: 50px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Activity feed */
+  .activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #F9FAFB;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .activity-dot.green { background: var(--success); }
+  .activity-dot.blue { background: var(--info); }
+  .activity-dot.red { background: var(--error); }
+  .activity-dot.gold { background: var(--gold-500); }
+  .activity-text {
+    font-size: 12px;
+    color: var(--text-700);
+    line-height: 1.4;
+  }
+  .activity-text strong { color: var(--text-900); }
+  .activity-time {
+    font-size: 11px;
+    color: var(--text-300);
+    margin-top: 2px;
+  }
+
+  /* Mission info row */
+  .info-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+  .info-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--forest-50);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-700);
+  }
+  .info-pill-icon { color: var(--forest-500); font-size: 13px; }
+
+
+  /* ============================================================
+     B2. FIELDWORK TAB — Split layout (list + work panel)
+     ============================================================ */
+
+  .fw-split {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 0;
+    min-height: 640px;
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL: control list */
+  .fw-left {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+    overflow: hidden;
+  }
+
+  .fw-search {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .fw-search-input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-700);
+    background: var(--bg);
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 24 24'%3E%3Cpath d='M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z' stroke='%239CA3AF' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+  }
+  .fw-search-input:focus { border-color: var(--forest-500); background: var(--white); }
+
+  /* Filter row */
+  .fw-filters {
+    display: flex;
+    padding: 8px 14px;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .fw-filter {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-500);
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .fw-filter.active { background: var(--forest-700); color: white; }
+  .fw-filter .cnt {
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(0,0,0,0.08);
+    padding: 1px 5px;
+    border-radius: 99px;
+  }
+  .fw-filter.active .cnt { background: rgba(255,255,255,0.2); }
+
+  /* Scrollable list */
+  .fw-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Domain group in list */
+  .fw-domain {
+    border-bottom: 1px solid var(--border);
+  }
+  .fw-domain-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+    background: #FAFAFA;
+  }
+  .fw-domain-header:hover { background: var(--forest-50); }
+  .fw-domain-chevron {
+    width: 14px;
+    height: 14px;
+    color: var(--text-300);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .fw-domain.open .fw-domain-chevron { transform: rotate(90deg); }
+  .fw-domain > div:not(.fw-domain-header) { display: none; }
+  .fw-domain.open > div:not(.fw-domain-header) { display: block; }
+  .fw-domain-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-900);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fw-domain-bar {
+    width: 48px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .fw-domain-bar-fill { height: 4px; border-radius: 2px; }
+  .fw-domain-pct {
+    font-size: 11px;
+    font-weight: 600;
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Control row in list */
+  .fw-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px 9px 32px;
+    cursor: pointer;
+    border-bottom: 1px solid #F9FAFB;
+    transition: background 0.1s;
+  }
+  .fw-control:last-child { border-bottom: none; }
+  .fw-control:hover { background: var(--forest-50); }
+  .fw-control.selected { background: var(--forest-100); border-left: 3px solid var(--forest-700); padding-left: 29px; }
+
+  .fw-ctrl-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .fw-ctrl-dot.draft { background: var(--text-300); }
+  .fw-ctrl-dot.submitted { background: var(--info); }
+  .fw-ctrl-dot.approved { background: var(--success); }
+  .fw-ctrl-dot.rejected { background: var(--error); }
+  .fw-ctrl-dot.in-review { background: var(--gold-500); }
+
+  .fw-ctrl-info { flex: 1; min-width: 0; }
+  .fw-ctrl-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--forest-700);
+  }
+  .fw-ctrl-name {
+    font-size: 12px;
+    color: var(--text-700);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fw-ctrl-level {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .fw-ctrl-level.nc { background: var(--error-light); color: var(--error); }
+  .fw-ctrl-level.pc { background: var(--warning-light); color: var(--warning); }
+  .fw-ctrl-level.lc { background: var(--gold-50); color: var(--gold-600); }
+  .fw-ctrl-level.c { background: var(--success-light); color: var(--success); }
+
+  .control-badge {
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .control-badge.draft { background: #F3F4F6; color: var(--text-500); }
+  .control-badge.submitted { background: var(--info-light); color: var(--info); }
+  .control-badge.in-review { background: var(--gold-50); color: var(--gold-600); }
+  .control-badge.approved { background: var(--success-light); color: var(--success); }
+  .control-badge.rejected { background: var(--error-light); color: var(--error); }
+
+
+  /* ===== RIGHT PANEL: work area ===== */
+  .fw-right {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  /* Header bar */
+  .wp-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .wp-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wp-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--forest-700);
+  }
+  .wp-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-900);
+  }
+  .wp-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Mode toggle (Guid&eacute; / Libre) */
+  .mode-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .mode-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-500);
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mode-btn.active {
+    background: var(--forest-700);
+    color: white;
+  }
+
+  /* Control description */
+  .wp-desc {
+    padding: 16px 24px;
+    border-bottom: 1px solid #F3F4F6;
+    background: var(--bg);
+  }
+  .wp-desc-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-900);
+    margin-bottom: 6px;
+  }
+  .wp-desc-text {
+    font-size: 13px;
+    color: var(--text-500);
+    line-height: 1.5;
+  }
+
+  /* ===== GUIDED MODE: Step pipeline ===== */
+  .wp-steps {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 0;
+  }
+  .wp-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wp-step-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .wp-step-dot.done { background: var(--success); color: white; }
+  .wp-step-dot.active { background: var(--forest-700); color: white; box-shadow: 0 0 0 3px var(--forest-100); }
+  .wp-step-dot.pending { background: var(--white); color: var(--text-300); border: 2px solid var(--border); }
+  .wp-step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-300);
+    white-space: nowrap;
+  }
+  .wp-step.done .wp-step-label { color: var(--success); }
+  .wp-step.active .wp-step-label { color: var(--forest-700); font-weight: 600; }
+  .wp-step-line {
+    width: 32px;
+    height: 2px;
+    background: var(--border);
+    margin: 0 6px;
+    flex-shrink: 0;
+  }
+  .wp-step-line.done { background: var(--success); }
+
+  /* Step content area */
+  .wp-step-content {
+    padding: 20px 24px;
+    flex: 1;
+  }
+  .wp-step-heading {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-900);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .wp-step-hint {
+    font-size: 12px;
+    color: var(--text-300);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .wp-textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-700);
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border 0.15s, box-shadow 0.15s;
+  }
+  .wp-textarea:focus { border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .wp-textarea::placeholder { color: var(--text-300); }
+  .wp-textarea.sm { min-height: 90px; }
+
+  /* Score selector */
+  .score-selector {
+    display: flex;
+    gap: 8px;
+  }
+  .score-option {
+    flex: 1;
+    padding: 10px 6px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--white);
+  }
+  .score-option:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .score-option.selected { border-color: var(--forest-700); background: var(--forest-50); }
+  .score-option-value { font-size: 18px; font-weight: 700; line-height: 1; }
+  .score-option-label { font-size: 10px; color: var(--text-500); margin-top: 3px; }
+  .score-option.nc .score-option-value { color: var(--error); }
+  .score-option.nc.selected { border-color: var(--error); background: var(--error-light); }
+  .score-option.pc .score-option-value { color: var(--warning); }
+  .score-option.pc.selected { border-color: var(--warning); background: var(--warning-light); }
+  .score-option.lc .score-option-value { color: var(--gold-500); }
+  .score-option.lc.selected { border-color: var(--gold-500); background: var(--gold-50); }
+  .score-option.c .score-option-value { color: var(--success); }
+  .score-option.c.selected { border-color: var(--success); background: var(--success-light); }
+  .score-option.na .score-option-value { color: var(--text-300); font-size: 13px; }
+
+  /* Evidence zone */
+  .evidence-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .evidence-zone:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .evidence-zone-icon { font-size: 20px; margin-bottom: 4px; color: var(--text-300); }
+  .evidence-zone-text { font-size: 12px; color: var(--text-500); }
+  .evidence-zone-hint { font-size: 11px; color: var(--text-300); margin-top: 3px; }
+
+  .evidence-files {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .evidence-file {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-700);
+  }
+  .evidence-file-icon { color: var(--forest-500); }
+  .evidence-file-remove { color: var(--text-300); cursor: pointer; font-size: 13px; }
+  .evidence-file-remove:hover { color: var(--error); }
+
+  /* AI suggestion */
+  .wp-ai {
+    padding: 12px 16px;
+    background: #F5F0FF;
+    border: 1px solid #DDD6FE;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .wp-ai-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: #7B68EE;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .wp-ai-text { font-size: 12px; color: #5B21B6; line-height: 1.5; flex: 1; }
+  .wp-ai-text strong { display: block; margin-bottom: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .wp-ai-btn {
+    font-size: 11px;
+    color: #7B68EE;
+    background: white;
+    border: 1px solid #DDD6FE;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .wp-ai-btn:hover { background: #F5F0FF; }
+
+  /* Rejected rework banner */
+  .rework-banner {
+    padding: 12px 16px;
+    background: var(--error-light);
+    border: 1px solid #F5C6CB;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .rework-banner-icon { font-size: 16px; color: var(--error); flex-shrink: 0; margin-top: 1px; }
+  .rework-banner-text { font-size: 12px; color: var(--error); line-height: 1.5; }
+  .rework-banner-text strong { display: block; margin-bottom: 2px; }
+
+  /* Footer bar */
+  .wp-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    background: #FAFAFA;
+    position: sticky;
+    bottom: 0;
+  }
+  .wp-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-300);
+  }
+  /* Auto-advance toggle */
+  .auto-advance {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-500);
+  }
+  .toggle-track {
+    width: 32px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--forest-500);
+    position: relative;
+    cursor: pointer;
+  }
+  .toggle-track.off { background: var(--border); }
+  .toggle-knob {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 2px;
+    left: 16px;
+    transition: left 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .toggle-track.off .toggle-knob { left: 2px; }
+
+  .wp-footer-right {
+    display: flex;
+    gap: 10px;
+  }
+  .btn-draft {
+    padding: 9px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-700);
+    background: var(--white);
+    cursor: pointer;
+  }
+  .btn-draft:hover { background: var(--forest-50); border-color: var(--forest-300); }
+  .btn-submit {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    background: var(--forest-700);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-submit:hover { background: var(--forest-900); }
+
+  /* ============================================================
+     B3. VALIDATION PIPELINE (Mini-Kanban)
+     ============================================================ */
+
+  .pipeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .pipeline-title h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-900);
+  }
+  .pipeline-title p {
+    font-size: 13px;
+    color: var(--text-500);
+    margin-top: 2px;
+  }
+
+  .pipeline-stats {
+    display: flex;
+    gap: 8px;
+  }
+  .pipe-stat {
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .pipe-stat.pending { background: var(--info-light); color: var(--info); }
+  .pipe-stat.approved { background: var(--success-light); color: var(--success); }
+  .pipe-stat.rejected { background: var(--error-light); color: var(--error); }
+
+  .pipeline-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    min-height: 400px;
+  }
+
+  .pipe-column {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .pipe-col-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pipe-col-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-700);
+  }
+  .pipe-col-count {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: #F3F4F6;
+    color: var(--text-500);
+  }
+
+  .pipe-col-header.submitted { border-top: 3px solid var(--info); border-radius: 12px 12px 0 0; }
+  .pipe-col-header.lead { border-top: 3px solid var(--gold-500); border-radius: 12px 12px 0 0; }
+  .pipe-col-header.associate { border-top: 3px solid var(--forest-500); border-radius: 12px 12px 0 0; }
+  .pipe-col-header.client { border-top: 3px solid #7B68EE; border-radius: 12px 12px 0 0; }
+  .pipe-col-header.validated { border-top: 3px solid var(--success); border-radius: 12px 12px 0 0; }
+
+  .pipe-col-body {
+    padding: 8px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pipe-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pipe-card:hover {
+    border-color: var(--forest-300);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .pipe-card-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--forest-700);
+  }
+  .pipe-card-name {
+    font-size: 12px;
+    color: var(--text-700);
+    margin-top: 3px;
+    line-height: 1.3;
+  }
+  .pipe-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+  .pipe-card-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--text-300);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 600;
+  }
+  .pipe-card-time {
+    font-size: 10px;
+    color: var(--text-300);
+  }
+
+  /* Rejected card highlight */
+  .pipe-card.rejected {
+    border-color: var(--error);
+    border-left: 3px solid var(--error);
+    background: var(--error-light);
+  }
+
+
+  /* ============================================================
+     B4. REVIEW DETAIL (expanded card)
+     ============================================================ */
+
+  .review-detail-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .review-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .review-detail-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .review-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--forest-700);
+  }
+  .review-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-900);
+  }
+
+  /* Validation timeline in card */
+  .validation-timeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 14px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .vt-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vt-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .vt-dot.done { background: var(--success); color: white; }
+  .vt-dot.current { background: var(--forest-700); color: white; box-shadow: 0 0 0 3px var(--forest-100); }
+  .vt-dot.pending { background: var(--white); color: var(--text-300); border: 2px solid var(--border); }
+  .vt-dot.rejected { background: var(--error); color: white; }
+
+  .vt-label {
+    font-size: 11px;
+    color: var(--text-500);
+  }
+  .vt-label.done { color: var(--success); }
+  .vt-label.current { color: var(--forest-700); font-weight: 600; }
+
+  .vt-line {
+    width: 40px;
+    height: 2px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+  .vt-line.done { background: var(--success); }
+
+  /* Findings / recommendations in review */
+  .review-body {
+    padding: 16px 20px;
+  }
+  .review-section {
+    margin-bottom: 16px;
+  }
+  .review-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-500);
+    margin-bottom: 6px;
+  }
+  .review-section-text {
+    font-size: 13px;
+    color: var(--text-700);
+    line-height: 1.6;
+    background: var(--bg);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #F3F4F6;
+  }
+
+  /* Review actions */
+  .review-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--forest-50);
+  }
+  .review-comment-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    outline: none;
+    background: var(--white);
+  }
+  .review-comment-input:focus { border-color: var(--forest-500); }
+  .btn-approve {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .btn-approve:hover { background: #219150; }
+  .btn-reject {
+    background: var(--white);
+    color: var(--error);
+    border: 1px solid var(--error);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .btn-reject:hover { background: var(--error-light); }
+
+
+  /* ============================================================
+     B5. CLIENT REVIEW TAB
+     ============================================================ */
+
+  .client-review-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--forest-50);
+    border: 1px solid var(--forest-300);
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  .client-review-banner-text {
+    font-size: 14px;
+    color: var(--forest-900);
+    font-weight: 500;
+  }
+  .client-review-banner-text span {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--forest-700);
+    margin-right: 8px;
+  }
+
+  .client-table {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    border-collapse: collapse;
+  }
+  .client-table thead th {
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-500);
+    text-align: left;
+    background: #FAFAFA;
+    border-bottom: 1px solid var(--border);
+  }
+  .client-table tbody td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text-700);
+    border-bottom: 1px solid #F9FAFB;
+  }
+  .client-table tbody tr:last-child td { border-bottom: none; }
+  .client-table tbody tr:hover { background: var(--forest-50); }
+
+  .client-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .client-status.sent { background: var(--info-light); color: var(--info); }
+  .client-status.approved { background: var(--success-light); color: var(--success); }
+  .client-status.rejected { background: var(--error-light); color: var(--error); }
+  .client-status.waiting { background: #F3F4F6; color: var(--text-500); }
+  .client-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+
+  /* ============================================================
+     B6. CLOSURE TAB
+     ============================================================ */
+
+  .closure-score-hero {
+    text-align: center;
+    padding: 40px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .closure-score-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--forest-500), var(--gold-500));
+  }
+  .closure-score-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-500);
+  }
+  .closure-score-value {
+    font-size: 64px;
+    font-weight: 800;
+    margin: 12px 0 8px;
+    line-height: 1;
+  }
+  .closure-score-sub {
+    font-size: 14px;
+    color: var(--text-500);
+  }
+
+  .closure-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .closure-stat {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  .closure-stat-value {
+    font-size: 32px;
+    font-weight: 700;
+  }
+  .closure-stat-label {
+    font-size: 12px;
+    color: var(--text-500);
+    margin-top: 4px;
+  }
+
+  .closure-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .closure-action-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .closure-action-card:hover {
+    border-color: var(--forest-300);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .closure-action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .closure-action-icon.pdf { background: var(--error-light); color: var(--error); }
+  .closure-action-icon.pptx { background: var(--warning-light); color: var(--warning); }
+  .closure-action-icon.plan { background: var(--forest-100); color: var(--forest-700); }
+  .closure-action-icon.archive { background: #F3F4F6; color: var(--text-500); }
+  .closure-action-text h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-900);
+  }
+  .closure-action-text p {
+    font-size: 12px;
+    color: var(--text-500);
+    margin-top: 2px;
+  }
+
+  /* Utility */
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .hidden { display: none; }
+
+  /* Tab switcher for mockup demo */
+  .demo-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--white);
+    padding: 8px 28px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .demo-tab {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-500);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .demo-tab:hover { background: var(--forest-50); color: var(--forest-700); }
+  .demo-tab.active { background: var(--forest-700); color: white; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Mission Detail Redesign V2</h1>
+</div>
+
+<!-- ============================================================
+     SECTION A: HEADER + STEPPER
+     ============================================================ -->
+<div class="section">
+  <p class="section-title">A &mdash; Header enrichi + Stepper Pipeline</p>
+  <p class="section-subtitle">Barre contextuelle avec CTA + pipeline des phases remplace les onglets plats</p>
+
+  <div class="mockup-frame">
+    <!-- Header -->
+    <div class="mission-header">
+      <a class="mission-back" href="#">&larr; Missions</a>
+      <div class="mission-header-top">
+        <div class="mission-title-block">
+          <h2>Audit ISO 27001 &mdash; Sonatel SA</h2>
+          <div class="mission-meta">
+            <span>&#128196; ISO/IEC 27001:2022</span>
+            <span class="dot"></span>
+            <span>&#127970; Sonatel SA</span>
+            <span class="dot"></span>
+            <span>&#128197; 15 mar &rarr; 30 avr 2026</span>
+            <span class="dot"></span>
+            <span>&#128101; 5 membres</span>
+          </div>
+        </div>
+        <div class="mission-header-right">
+          <span class="days-badge">&#9202; 18 jours restants</span>
+          <span class="status-badge active">Travaux terrain</span>
+          <button class="cta-primary">&#9654; Reprendre mes travaux</button>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="mission-progress-bar">
+        <div class="mission-progress-fill" style="width: 55%"></div>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step done">
+        <div class="step-dot">&#10003;</div>
+        <div class="step-info">
+          <span class="step-label">Cadrage</span>
+          <span class="step-sublabel">Termin&eacute;</span>
+        </div>
+      </div>
+      <div class="step-connector done"></div>
+
+      <div class="step done">
+        <div class="step-dot">&#10003;</div>
+        <div class="step-info">
+          <span class="step-label">Planification</span>
+          <span class="step-sublabel">Termin&eacute;</span>
+        </div>
+      </div>
+      <div class="step-connector done"></div>
+
+      <div class="step active">
+        <div class="step-dot">3</div>
+        <div class="step-info">
+          <span class="step-label">Travaux</span>
+          <span class="step-sublabel">18/32 contr&ocirc;les</span>
+        </div>
+      </div>
+      <div class="step-connector active"></div>
+
+      <div class="step locked">
+        <div class="step-dot">4</div>
+        <div class="step-info">
+          <span class="step-label">Revue interne</span>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+
+      <div class="step locked">
+        <div class="step-dot">5</div>
+        <div class="step-info">
+          <span class="step-label">Validation client</span>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+
+      <div class="step locked">
+        <div class="step-dot">6</div>
+        <div class="step-info">
+          <span class="step-label">Cl&ocirc;ture</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo tab switcher -->
+    <div class="demo-tabs">
+      <button class="demo-tab active" onclick="showTab('overview')">Vue d&rsquo;ensemble</button>
+      <button class="demo-tab" onclick="showTab('fieldwork')">Travaux</button>
+      <button class="demo-tab" onclick="showTab('validation')">Validation</button>
+      <button class="demo-tab" onclick="showTab('client-review')">Revue client</button>
+      <button class="demo-tab" onclick="showTab('closure')">Cl&ocirc;ture</button>
+    </div>
+
+    <!-- ============================================================
+         TAB: OVERVIEW
+         ============================================================ -->
+    <div class="content" id="tab-overview">
+
+      <!-- Next action -->
+      <div class="next-action">
+        <div class="next-action-left">
+          <div class="next-action-icon">&#9997;</div>
+          <div class="next-action-text">
+            <strong>Prochaine action :</strong> 14 contr&ocirc;les restent &agrave; r&eacute;diger dans vos travaux de terrain.
+          </div>
+        </div>
+        <button class="next-action-btn">Reprendre les travaux &rarr;</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-label">Progression globale</div>
+          <div class="stat-card-value forest">56%</div>
+          <div class="stat-card-bar">
+            <div class="stat-card-bar-fill" style="width:56%; background: var(--forest-500);"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Contr&ocirc;les &eacute;valu&eacute;s</div>
+          <div class="stat-card-value gold">18<span style="font-size:16px;color:var(--text-300);font-weight:400">/32</span></div>
+          <div class="stat-card-sub">4 soumis &middot; 2 approuv&eacute;s</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Score provisoire</div>
+          <div class="stat-card-value success">72%</div>
+          <div class="stat-card-sub">Bas&eacute; sur les 18 contr&ocirc;les r&eacute;dig&eacute;s</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Preuves collect&eacute;es</div>
+          <div class="stat-card-value" style="color: var(--text-700)">24<span style="font-size:16px;color:var(--text-300);font-weight:400">/38</span></div>
+          <div class="stat-card-bar">
+            <div class="stat-card-bar-fill" style="width:63%; background: var(--gold-500);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two columns -->
+      <div class="two-col">
+        <!-- LEFT: Domain progress -->
+        <div class="domain-progress-card">
+          <div class="domain-progress-header">
+            <h3>Progression par domaine</h3>
+            <span style="font-size:12px; color:var(--text-300)">6 domaines</span>
+          </div>
+          <div>
+            <div class="domain-row">
+              <span class="domain-code">A.5</span>
+              <span class="domain-name">Politiques de s&eacute;curit&eacute;</span>
+              <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:100%; background: var(--success);"></div></div></div>
+              <span class="domain-pct" style="color:var(--success);">100%</span>
+              <span class="domain-count">4/4</span>
+            </div>
+            <div class="domain-row">
+              <span class="domain-code">A.6</span>
+              <span class="domain-name">Organisation de la s&eacute;curit&eacute;</span>
+              <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:80%; background: var(--forest-500);"></div></div></div>
+              <span class="domain-pct" style="color:var(--forest-700);">80%</span>
+              <span class="domain-count">4/5</span>
+            </div>
+            <div class="domain-row">
+              <span class="domain-code">A.7</span>
+              <span class="domain-name">S&eacute;curit&eacute; des ressources humaines</span>
+              <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:67%; background: var(--forest-500);"></div></div></div>
+              <span class="domain-pct" style="color:var(--forest-700);">67%</span>
+              <span class="domain-count">4/6</span>
+            </div>
+            <div class="domain-row">
+              <span class="domain-code">A.8</span>
+              <span class="domain-name">Gestion des actifs</span>
+              <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:50%; background: var(--gold-500);"></div></div></div>
+              <span class="domain-pct" style="color:var(--gold-600);">50%</span>
+              <span class="domain-count">4/8</span>
+            </div>
+            <div class="domain-row">
+              <span class="domain-code">A.9</span>
+              <span class="domain-name">Contr&ocirc;le d&rsquo;acc&egrave;s</span>
+              <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:25%; background: var(--warning);"></div></div></div>
+              <span class="domain-pct" style="color:var(--warning);">25%</span>
+              <span class="domain-count">2/8</span>
+            </div>
+            <div class="domain-row">
+              <span class="domain-code">A.10</span>
+              <span class="domain-name">Cryptographie</span>
+              <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:0%;"></div></div></div>
+              <span class="domain-pct" style="color:var(--text-300);">0%</span>
+              <span class="domain-count">0/1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Team + Activity -->
+        <div>
+          <!-- Team -->
+          <div class="side-card">
+            <div class="side-card-header">
+              &Eacute;quipe
+              <span style="font-size:11px; color:var(--text-300);">5 membres</span>
+            </div>
+            <div>
+              <div class="team-member">
+                <div class="team-avatar associate">AD</div>
+                <span class="team-name">Aminata Diallo</span>
+                <span class="team-role associate">Associ&eacute;e</span>
+              </div>
+              <div class="team-member">
+                <div class="team-avatar lead">MS</div>
+                <span class="team-name">Moussa Sarr</span>
+                <span class="team-role lead">Chef de mission</span>
+                <span class="team-workload">12 ctrl</span>
+              </div>
+              <div class="team-member">
+                <div class="team-avatar auditor">IF</div>
+                <span class="team-name">Ibrahim Fall</span>
+                <span class="team-role auditor">Auditeur</span>
+                <span class="team-workload">10 ctrl</span>
+              </div>
+              <div class="team-member">
+                <div class="team-avatar auditor">FN</div>
+                <span class="team-name">Fatou Ndiaye</span>
+                <span class="team-role auditor">Auditrice</span>
+                <span class="team-workload">10 ctrl</span>
+              </div>
+              <div class="team-member">
+                <div class="team-avatar auditor">OB</div>
+                <span class="team-name">Oumar Ba</span>
+                <span class="team-role auditor">Auditeur</span>
+                <span class="team-workload">0 ctrl</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity -->
+          <div class="side-card">
+            <div class="side-card-header">
+              Activit&eacute; r&eacute;cente
+            </div>
+            <div>
+              <div class="activity-item">
+                <div class="activity-dot green"></div>
+                <div>
+                  <div class="activity-text"><strong>Moussa Sarr</strong> a approuv&eacute; le contr&ocirc;le <span class="mono">A.5.1</span></div>
+                  <div class="activity-time">Il y a 2h</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot blue"></div>
+                <div>
+                  <div class="activity-text"><strong>Ibrahim Fall</strong> a soumis 3 contr&ocirc;les pour revue</div>
+                  <div class="activity-time">Il y a 4h</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot red"></div>
+                <div>
+                  <div class="activity-text"><strong>Moussa Sarr</strong> a rejet&eacute; <span class="mono">A.8.3</span> &mdash; &laquo; Constats insuffisants &raquo;</div>
+                  <div class="activity-time">Hier, 18:30</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot gold"></div>
+                <div>
+                  <div class="activity-text"><strong>Fatou Ndiaye</strong> a ajout&eacute; 5 preuves sur le domaine A.7</div>
+                  <div class="activity-time">Hier, 15:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================
+         TAB: FIELDWORK
+         ============================================================ -->
+    <div class="content hidden" id="tab-fieldwork" style="padding:0;">
+
+      <div class="fw-split">
+        <!-- ===== LEFT: Control list ===== -->
+        <div class="fw-left">
+          <div class="fw-search">
+            <input type="text" class="fw-search-input" placeholder="Rechercher un contr&ocirc;le...">
+          </div>
+          <div class="fw-filters">
+            <button class="fw-filter active">Tous <span class="cnt">32</span></button>
+            <button class="fw-filter">Brouillon <span class="cnt">14</span></button>
+            <button class="fw-filter">Soumis <span class="cnt">4</span></button>
+            <button class="fw-filter">Valid&eacute; <span class="cnt">2</span></button>
+          </div>
+
+          <div class="fw-list">
+            <!-- Domain A.5 -->
+            <div class="fw-domain open">
+              <div class="fw-domain-header">
+                <svg class="fw-domain-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <span class="fw-domain-name">Politiques de s&eacute;curit&eacute;</span>
+                <div class="fw-domain-bar"><div class="fw-domain-bar-fill" style="width:100%; background:var(--success);"></div></div>
+                <span class="fw-domain-pct" style="color:var(--success);">100%</span>
+              </div>
+              <div>
+                <div class="fw-control selected">
+                  <div class="fw-ctrl-dot approved"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.5.1</span>
+                    <div class="fw-ctrl-name">Politiques de s&eacute;...</div>
+                  </div>
+                  <span class="fw-ctrl-level c">Conforme</span>
+                </div>
+                <div class="fw-control">
+                  <div class="fw-ctrl-dot approved"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.5.2</span>
+                    <div class="fw-ctrl-name">Revue des politiques</div>
+                  </div>
+                  <span class="fw-ctrl-level c">Conforme</span>
+                </div>
+                <div class="fw-control">
+                  <div class="fw-ctrl-dot submitted"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.5.3</span>
+                    <div class="fw-ctrl-name">Communication des p...</div>
+                  </div>
+                  <span class="fw-ctrl-level pc">Partiel</span>
+                </div>
+                <div class="fw-control">
+                  <div class="fw-ctrl-dot submitted"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.5.4</span>
+                    <div class="fw-ctrl-name">R&ocirc;les et responsab...</div>
+                  </div>
+                  <span class="fw-ctrl-level pc">Partiel</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Domain A.6 -->
+            <div class="fw-domain open">
+              <div class="fw-domain-header">
+                <svg class="fw-domain-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <span class="fw-domain-name">Organisation de la s&eacute;curit&eacute;</span>
+                <div class="fw-domain-bar"><div class="fw-domain-bar-fill" style="width:44%; background:var(--gold-500);"></div></div>
+                <span class="fw-domain-pct" style="color:var(--gold-600);">44%</span>
+              </div>
+              <div>
+                <div class="fw-control">
+                  <div class="fw-ctrl-dot submitted"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.6.1</span>
+                    <div class="fw-ctrl-name">S&eacute;gr&eacute;gation d...</div>
+                  </div>
+                  <span class="fw-ctrl-level lc">Faible</span>
+                </div>
+                <div class="fw-control">
+                  <div class="fw-ctrl-dot submitted"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.6.2</span>
+                    <div class="fw-ctrl-name">Contact avec...</div>
+                  </div>
+                  <span class="fw-ctrl-level pc">Partiel</span>
+                </div>
+                <div class="fw-control">
+                  <div class="fw-ctrl-dot submitted"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.6.3</span>
+                    <div class="fw-ctrl-name">Contact avec...</div>
+                  </div>
+                  <span class="fw-ctrl-level pc">Partiel</span>
+                </div>
+                <div class="fw-control">
+                  <div class="fw-ctrl-dot submitted"></div>
+                  <div class="fw-ctrl-info">
+                    <span class="fw-ctrl-code">A.6.4</span>
+                    <div class="fw-ctrl-name">S&eacute;curit&eacute; dan...</div>
+                  </div>
+                  <span class="fw-ctrl-level pc">Partiel</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Domain A.7 -->
+            <div class="fw-domain">
+              <div class="fw-domain-header">
+                <svg class="fw-domain-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <span class="fw-domain-name">S&eacute;curit&eacute; des ressources humaines</span>
+                <div class="fw-domain-bar"><div class="fw-domain-bar-fill" style="width:55%; background:var(--gold-500);"></div></div>
+                <span class="fw-domain-pct" style="color:var(--gold-600);">55%</span>
+              </div>
+            </div>
+
+            <!-- Domain A.8 -->
+            <div class="fw-domain">
+              <div class="fw-domain-header">
+                <svg class="fw-domain-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <span class="fw-domain-name">Gestion des actifs</span>
+                <div class="fw-domain-bar"><div class="fw-domain-bar-fill" style="width:15%; background:var(--warning);"></div></div>
+                <span class="fw-domain-pct" style="color:var(--warning);">15%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom bar: SmartQueue + Progress -->
+          <div style="border-top:1px solid var(--border); padding:10px 14px; display:flex; align-items:center; justify-content:space-between; background:#FAFAFA;">
+            <button style="padding:5px 12px; border:1px solid var(--forest-300); border-radius:6px; background:var(--forest-50); color:var(--forest-700); font-size:11px; font-weight:600; cursor:pointer;">SmartQueue</button>
+            <span style="font-size:11px; color:var(--text-300);">Et si..?</span>
+          </div>
+        </div>
+
+        <!-- ===== RIGHT: Work panel (mode Guid&eacute;, &eacute;tape Observer) ===== -->
+        <div class="fw-right">
+          <!-- Top bar -->
+          <div class="wp-topbar">
+            <div class="wp-topbar-left">
+              <span class="wp-code">A.5.1</span>
+              <span class="wp-title">Politiques de s&eacute;curit&eacute; de l&rsquo;information</span>
+              <span class="control-badge approved">Approuv&eacute;</span>
+            </div>
+            <div class="wp-topbar-right">
+              <div class="mode-toggle">
+                <button class="mode-btn active">Guid&eacute;</button>
+                <button class="mode-btn">Libre</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Control description -->
+          <div class="wp-desc">
+            <div class="wp-desc-title">Politiques de s&eacute;curit&eacute; de l&rsquo;information</div>
+            <div class="wp-desc-text">
+              Des politiques de s&eacute;curit&eacute; doivent &ecirc;tre d&eacute;finies, approuv&eacute;es, publi&eacute;es et r&eacute;vis&eacute;es p&eacute;riodiquement.
+            </div>
+          </div>
+
+          <!-- Guided step pipeline -->
+          <div class="wp-steps">
+            <div class="wp-step done">
+              <div class="wp-step-dot done">&#10003;</div>
+              <span class="wp-step-label">Observer</span>
+            </div>
+            <div class="wp-step-line done"></div>
+            <div class="wp-step active">
+              <div class="wp-step-dot active">2</div>
+              <span class="wp-step-label">Documenter</span>
+            </div>
+            <div class="wp-step-line"></div>
+            <div class="wp-step">
+              <div class="wp-step-dot pending">3</div>
+              <span class="wp-step-label">Analyser</span>
+            </div>
+            <div class="wp-step-line"></div>
+            <div class="wp-step">
+              <div class="wp-step-dot pending">4</div>
+              <span class="wp-step-label">Validation</span>
+            </div>
+          </div>
+
+          <!-- Step content: Observer (current) -->
+          <div class="wp-step-content">
+            <div class="wp-step-heading">&#128065; Observations terrain</div>
+            <div class="wp-step-hint">
+              Notez ce que vous avez vu, entendu, v&eacute;rifi&eacute;. L&rsquo;IA s&rsquo;appuiera sur vos observations pour analyser ce contr&ocirc;le.
+            </div>
+
+            <textarea class="wp-textarea" placeholder="Ex : Nous avons re&ccedil;u un document du client pr&eacute;sentant la PSSI. La politique couvre les 14 domaines ISO 27001. Date de derni&egrave;re r&eacute;vision : janvier 2026...">Nous avons re&ccedil;u un document venant du client pr&eacute;sentant la PSSI de ISM. Nous n&rsquo;avons cependant pu recevoir la preuve de la diffusion effective aupr&egrave;s des employ&eacute;s.</textarea>
+          </div>
+
+          <!-- Footer -->
+          <div class="wp-footer">
+            <div class="wp-footer-left">
+              <div class="auto-advance">
+                <div class="toggle-track">
+                  <div class="toggle-knob"></div>
+                </div>
+                Auto-avance
+              </div>
+            </div>
+            <div class="wp-footer-right">
+              <button class="btn-submit">Documenter &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           VARIANTE 2 : &Eacute;tape "Documenter" (avec preuves)
+           ============================================================ -->
+      <div style="margin-top:40px;">
+        <p class="section-title">Variante : &eacute;tape Documenter</p>
+        <p class="section-subtitle">L&rsquo;auditeur ajoute les preuves et pi&egrave;ces justificatives</p>
+      </div>
+
+      <div class="fw-split" style="min-height:500px;">
+        <div class="fw-left" style="opacity:0.4; pointer-events:none;">
+          <div class="fw-search"><input type="text" class="fw-search-input" placeholder="Rechercher..." disabled></div>
+          <div style="padding:40px 14px; text-align:center; color:var(--text-300); font-size:12px;">Liste des contr&ocirc;les (masqu&eacute;e pour la d&eacute;mo)</div>
+        </div>
+        <div class="fw-right">
+          <div class="wp-topbar">
+            <div class="wp-topbar-left">
+              <span class="wp-code">A.8.3</span>
+              <span class="wp-title">Utilisation acceptable des actifs</span>
+              <span class="control-badge rejected">Rejet&eacute;</span>
+            </div>
+            <div class="wp-topbar-right">
+              <div class="mode-toggle">
+                <button class="mode-btn active">Guid&eacute;</button>
+                <button class="mode-btn">Libre</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rework banner -->
+          <div style="padding: 12px 24px 0;">
+            <div class="rework-banner">
+              <div class="rework-banner-icon">&#9888;</div>
+              <div class="rework-banner-text">
+                <strong>Rejet&eacute; par Moussa Sarr &mdash; Il y a 1 jour</strong>
+                &laquo; Constats insuffisants. D&eacute;tailler les &eacute;carts sur la charte d&rsquo;utilisation et fournir les preuves de diffusion. &raquo;
+              </div>
+            </div>
+          </div>
+
+          <!-- Step pipeline -->
+          <div class="wp-steps">
+            <div class="wp-step done">
+              <div class="wp-step-dot done">&#10003;</div>
+              <span class="wp-step-label">Observer</span>
+            </div>
+            <div class="wp-step-line done"></div>
+            <div class="wp-step active">
+              <div class="wp-step-dot active">2</div>
+              <span class="wp-step-label">Documenter</span>
+            </div>
+            <div class="wp-step-line"></div>
+            <div class="wp-step">
+              <div class="wp-step-dot pending">3</div>
+              <span class="wp-step-label">Analyser</span>
+            </div>
+            <div class="wp-step-line"></div>
+            <div class="wp-step">
+              <div class="wp-step-dot pending">4</div>
+              <span class="wp-step-label">Validation</span>
+            </div>
+          </div>
+
+          <div class="wp-step-content">
+            <div class="wp-step-heading">&#128206; Documenter</div>
+            <div class="wp-step-hint">
+              Ajoutez les preuves qui soutiennent vos observations : documents, captures, exports, emails.
+            </div>
+
+            <div class="evidence-files">
+              <div class="evidence-file">
+                <span class="evidence-file-icon">&#128196;</span>
+                Charte_IT_2023.pdf
+                <span class="evidence-file-remove">&times;</span>
+              </div>
+            </div>
+
+            <div class="evidence-zone">
+              <div class="evidence-zone-icon">&#128206;</div>
+              <div class="evidence-zone-text">Glissez-d&eacute;posez vos fichiers ici ou <span style="color:var(--forest-700);font-weight:500;text-decoration:underline;">parcourir</span></div>
+              <div class="evidence-zone-hint">PDF, images, Excel, Word &mdash; 25 Mo max par fichier</div>
+            </div>
+          </div>
+
+          <div class="wp-footer">
+            <div class="wp-footer-left">
+              <div class="auto-advance">
+                <div class="toggle-track">
+                  <div class="toggle-knob"></div>
+                </div>
+                Auto-avance
+              </div>
+            </div>
+            <div class="wp-footer-right">
+              <button class="btn-draft" style="border:none; color:var(--text-300);">&larr; Observer</button>
+              <button class="btn-submit">Analyser &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           VARIANTE 3 : &Eacute;tape "Analyser" (IA + scoring)
+           ============================================================ -->
+      <div style="margin-top:40px;">
+        <p class="section-title">Variante : &eacute;tape Analyser</p>
+        <p class="section-subtitle">L&rsquo;IA propose une analyse. L&rsquo;auditeur ajuste le niveau de conformit&eacute; et r&eacute;dige les recommandations.</p>
+      </div>
+
+      <div class="fw-split" style="min-height:580px;">
+        <div class="fw-left" style="opacity:0.4; pointer-events:none;">
+          <div class="fw-search"><input type="text" class="fw-search-input" placeholder="Rechercher..." disabled></div>
+          <div style="padding:40px 14px; text-align:center; color:var(--text-300); font-size:12px;">Liste des contr&ocirc;les</div>
+        </div>
+        <div class="fw-right">
+          <div class="wp-topbar">
+            <div class="wp-topbar-left">
+              <span class="wp-code">A.8.2</span>
+              <span class="wp-title">Propri&eacute;t&eacute; des actifs</span>
+              <span class="control-badge draft">Brouillon</span>
+            </div>
+            <div class="wp-topbar-right">
+              <div class="mode-toggle">
+                <button class="mode-btn active">Guid&eacute;</button>
+                <button class="mode-btn">Libre</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step pipeline -->
+          <div class="wp-steps">
+            <div class="wp-step done">
+              <div class="wp-step-dot done">&#10003;</div>
+              <span class="wp-step-label">Observer</span>
+            </div>
+            <div class="wp-step-line done"></div>
+            <div class="wp-step done">
+              <div class="wp-step-dot done">&#10003;</div>
+              <span class="wp-step-label">Documenter</span>
+            </div>
+            <div class="wp-step-line done"></div>
+            <div class="wp-step active">
+              <div class="wp-step-dot active">3</div>
+              <span class="wp-step-label">Analyser</span>
+            </div>
+            <div class="wp-step-line"></div>
+            <div class="wp-step">
+              <div class="wp-step-dot pending">4</div>
+              <span class="wp-step-label">Validation</span>
+            </div>
+          </div>
+
+          <div class="wp-step-content">
+            <div class="wp-step-heading">&#128300; Analyser</div>
+            <div class="wp-step-hint">
+              &Eacute;valuez le niveau de conformit&eacute; et r&eacute;digez vos constats et recommandations. L&rsquo;IA vous assiste.
+            </div>
+
+            <!-- AI suggestion -->
+            <div class="wp-ai">
+              <div class="wp-ai-icon">&#9733;</div>
+              <div class="wp-ai-text">
+                <strong>Suggestion IA</strong>
+                Bas&eacute; sur vos observations et les preuves collect&eacute;es, ce contr&ocirc;le semble partiellement conforme. 88% des actifs ont un propri&eacute;taire d&eacute;sign&eacute; dans la CMDB, mais les actifs IoT ne sont pas couverts.
+              </div>
+              <button class="wp-ai-btn">Utiliser</button>
+            </div>
+
+            <!-- Conformity level -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:13px; font-weight:600; color:var(--text-700); margin-bottom:8px;">Niveau de conformit&eacute;</div>
+              <div class="score-selector">
+                <div class="score-option nc"><div class="score-option-value">NC</div><div class="score-option-label">Non conforme</div></div>
+                <div class="score-option pc"><div class="score-option-value">PC</div><div class="score-option-label">Partiellement</div></div>
+                <div class="score-option lc selected"><div class="score-option-value">LC</div><div class="score-option-label">Largement</div></div>
+                <div class="score-option c"><div class="score-option-value">C</div><div class="score-option-label">Conforme</div></div>
+                <div class="score-option na"><div class="score-option-value">N/A</div><div class="score-option-label">Non applicable</div></div>
+              </div>
+            </div>
+
+            <!-- Findings -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:13px; font-weight:600; color:var(--text-700); margin-bottom:6px;">Constats</div>
+              <textarea class="wp-textarea" placeholder="R&eacute;digez vos constats d&eacute;taill&eacute;s...">Un registre des propri&eacute;taires existe dans la CMDB mais 12% des actifs n&rsquo;ont pas de propri&eacute;taire d&eacute;sign&eacute;. Les serveurs de production sont tous attribu&eacute;s. Les actifs IoT ne sont pas couverts par le processus.</textarea>
+            </div>
+
+            <!-- Recommendations -->
+            <div>
+              <div style="font-size:13px; font-weight:600; color:var(--text-700); margin-bottom:6px;">Recommandations</div>
+              <textarea class="wp-textarea sm" placeholder="Proposez des am&eacute;liorations...">1. Compl&eacute;ter l&rsquo;attribution des 12% d&rsquo;actifs orphelins sous 3 mois.
+2. Int&eacute;grer les actifs IoT dans le p&eacute;rim&egrave;tre de gestion.</textarea>
+            </div>
+          </div>
+
+          <div class="wp-footer">
+            <div class="wp-footer-left">
+              <div class="auto-advance">
+                <div class="toggle-track">
+                  <div class="toggle-knob"></div>
+                </div>
+                Auto-avance
+              </div>
+            </div>
+            <div class="wp-footer-right">
+              <button class="btn-draft" style="border:none; color:var(--text-300);">&larr; Documenter</button>
+              <button class="btn-draft">&#128190; Enregistrer</button>
+              <button class="btn-submit">&#9654; Soumettre</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================
+         TAB: VALIDATION PIPELINE
+         ============================================================ -->
+    <div class="content hidden" id="tab-validation">
+      <div class="pipeline-header">
+        <div class="pipeline-title">
+          <h3>Pipeline de validation</h3>
+          <p>Suivez le parcours de chaque contr&ocirc;le &agrave; travers les &eacute;tapes de revue.</p>
+        </div>
+        <div class="pipeline-stats">
+          <span class="pipe-stat pending">6 en cours</span>
+          <span class="pipe-stat approved">2 valid&eacute;s</span>
+          <span class="pipe-stat rejected">1 rejet&eacute;</span>
+        </div>
+      </div>
+
+      <div class="pipeline-board">
+        <!-- Col 1: Soumis -->
+        <div class="pipe-column">
+          <div class="pipe-col-header submitted">
+            <span class="pipe-col-title">Soumis</span>
+            <span class="pipe-col-count">4</span>
+          </div>
+          <div class="pipe-col-body">
+            <div class="pipe-card">
+              <div class="pipe-card-code">A.5.3</div>
+              <div class="pipe-card-name">Communication des politiques</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--text-500)">IF</div>
+                <span class="pipe-card-time">Il y a 4h</span>
+              </div>
+            </div>
+            <div class="pipe-card">
+              <div class="pipe-card-code">A.5.4</div>
+              <div class="pipe-card-name">R&ocirc;les et responsabilit&eacute;s</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--text-500)">IF</div>
+                <span class="pipe-card-time">Il y a 4h</span>
+              </div>
+            </div>
+            <div class="pipe-card">
+              <div class="pipe-card-code">A.8.1</div>
+              <div class="pipe-card-name">Inventaire des actifs</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--text-500)">FN</div>
+                <span class="pipe-card-time">Il y a 6h</span>
+              </div>
+            </div>
+            <div class="pipe-card">
+              <div class="pipe-card-code">A.9.1</div>
+              <div class="pipe-card-name">Politique de contr&ocirc;le d&rsquo;acc&egrave;s</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--text-500)">IF</div>
+                <span class="pipe-card-time">Hier</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 2: Revue Lead -->
+        <div class="pipe-column">
+          <div class="pipe-col-header lead">
+            <span class="pipe-col-title">Revue Lead</span>
+            <span class="pipe-col-count">1</span>
+          </div>
+          <div class="pipe-col-body">
+            <div class="pipe-card">
+              <div class="pipe-card-code">A.7.2</div>
+              <div class="pipe-card-name">Sensibilisation &agrave; la s&eacute;curit&eacute;</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--text-500)">FN</div>
+                <span class="pipe-card-time">Il y a 1j</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 3: Revue Associé -->
+        <div class="pipe-column">
+          <div class="pipe-col-header associate">
+            <span class="pipe-col-title">Revue Associ&eacute;</span>
+            <span class="pipe-col-count">1</span>
+          </div>
+          <div class="pipe-col-body">
+            <div class="pipe-card">
+              <div class="pipe-card-code">A.6.1</div>
+              <div class="pipe-card-name">Organisation interne</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--info)">MS</div>
+                <span class="pipe-card-time">Il y a 2j</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 4: Revue Client -->
+        <div class="pipe-column">
+          <div class="pipe-col-header client">
+            <span class="pipe-col-title">Revue Client</span>
+            <span class="pipe-col-count">0</span>
+          </div>
+          <div class="pipe-col-body" style="display:flex;align-items:center;justify-content:center;">
+            <p style="font-size:12px;color:var(--text-300);text-align:center;padding:20px;">Aucun contr&ocirc;le envoy&eacute; au client</p>
+          </div>
+        </div>
+
+        <!-- Col 5: Validé -->
+        <div class="pipe-column">
+          <div class="pipe-col-header validated">
+            <span class="pipe-col-title">Valid&eacute;</span>
+            <span class="pipe-col-count">2</span>
+          </div>
+          <div class="pipe-col-body">
+            <div class="pipe-card" style="border-left:3px solid var(--success);">
+              <div class="pipe-card-code">A.5.1</div>
+              <div class="pipe-card-name">Politiques de s&eacute;curit&eacute; de l&rsquo;info</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--info)">MS</div>
+                <span class="pipe-card-time">Il y a 2j</span>
+              </div>
+            </div>
+            <div class="pipe-card" style="border-left:3px solid var(--success);">
+              <div class="pipe-card-code">A.5.2</div>
+              <div class="pipe-card-name">Revue des politiques</div>
+              <div class="pipe-card-footer">
+                <div class="pipe-card-avatar" style="background:var(--info)">MS</div>
+                <span class="pipe-card-time">Il y a 2j</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review detail card example -->
+      <div style="margin-top:32px;">
+        <p style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--text-500); margin-bottom:12px;">D&eacute;tail de revue (clic sur une carte)</p>
+
+        <div class="review-detail-card">
+          <div class="review-detail-header">
+            <div class="review-detail-header-left">
+              <span class="review-code">A.7.2</span>
+              <span class="review-name">Sensibilisation &agrave; la s&eacute;curit&eacute; de l&rsquo;information</span>
+            </div>
+            <span class="control-badge in-review">En revue Lead</span>
+          </div>
+
+          <!-- Validation timeline -->
+          <div class="validation-timeline">
+            <div class="vt-step">
+              <div class="vt-dot done">&#10003;</div>
+              <span class="vt-label done">Soumis</span>
+            </div>
+            <div class="vt-line done"></div>
+            <div class="vt-step">
+              <div class="vt-dot current">&#9998;</div>
+              <span class="vt-label current">Revue Lead</span>
+            </div>
+            <div class="vt-line"></div>
+            <div class="vt-step">
+              <div class="vt-dot pending">&middot;</div>
+              <span class="vt-label">Revue Associ&eacute;</span>
+            </div>
+            <div class="vt-line"></div>
+            <div class="vt-step">
+              <div class="vt-dot pending">&middot;</div>
+              <span class="vt-label">Client</span>
+            </div>
+          </div>
+
+          <!-- Findings -->
+          <div class="review-body">
+            <div class="review-section">
+              <div class="review-section-label">Constats &mdash; <span style="font-weight:400;text-transform:none;">par Fatou Ndiaye</span></div>
+              <div class="review-section-text">
+                Un programme de sensibilisation existe et couvre les nouveaux employ&eacute;s. Cependant, la fr&eacute;quence des rappels est insuffisante (annuelle). Pas de campagne de phishing test document&eacute;e. Le taux de participation aux formations est de 72% (cible : 90%).
+              </div>
+            </div>
+            <div class="review-section">
+              <div class="review-section-label">Recommandations</div>
+              <div class="review-section-text">
+                1. Passer &agrave; une fr&eacute;quence trimestrielle pour les campagnes de sensibilisation.<br>
+                2. Mettre en place des tests de phishing simul&eacute;s avec reporting.<br>
+                3. Fixer un objectif de participation &agrave; 90% avec relances automatiques.
+              </div>
+            </div>
+            <div class="review-section">
+              <div class="review-section-label">Preuves jointes</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="info-pill">&#128196; Programme_sensibilisation_2026.pdf</span>
+                <span class="info-pill">&#128202; Rapport_participation_Q1.xlsx</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="review-actions">
+            <input type="text" class="review-comment-input" placeholder="Ajouter un commentaire (obligatoire pour un rejet)...">
+            <button class="btn-approve">&#10003; Approuver</button>
+            <button class="btn-reject">&#10007; Rejeter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TAB: CLIENT REVIEW
+         ============================================================ -->
+    <div class="content hidden" id="tab-client-review">
+      <div class="pipeline-header">
+        <div class="pipeline-title">
+          <h3>Validation client</h3>
+          <p>Envoyez les contr&ocirc;les valid&eacute;s en interne au client pour approbation finale.</p>
+        </div>
+      </div>
+
+      <div class="client-review-banner">
+        <div class="client-review-banner-text">
+          <span>2</span> contr&ocirc;les approuv&eacute;s en interne, pr&ecirc;ts &agrave; &ecirc;tre envoy&eacute;s au client.
+        </div>
+        <button class="cta-primary">&#9993; Envoyer au client</button>
+      </div>
+
+      <table class="client-table">
+        <thead>
+          <tr>
+            <th>Contr&ocirc;le</th>
+            <th>Domaine</th>
+            <th>Auditeur</th>
+            <th>Statut interne</th>
+            <th>Statut client</th>
+            <th>Envoy&eacute; le</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono" style="color:var(--forest-700);font-weight:500;">A.5.1</span> Politiques de s&eacute;curit&eacute;</td>
+            <td style="font-size:12px;color:var(--text-500);">A.5</td>
+            <td>M. Sarr</td>
+            <td><span class="control-badge approved">Approuv&eacute;</span></td>
+            <td><span class="client-status waiting">En attente</span></td>
+            <td style="font-size:12px;color:var(--text-300);">&mdash;</td>
+          </tr>
+          <tr>
+            <td><span class="mono" style="color:var(--forest-700);font-weight:500;">A.5.2</span> Revue des politiques</td>
+            <td style="font-size:12px;color:var(--text-500);">A.5</td>
+            <td>M. Sarr</td>
+            <td><span class="control-badge approved">Approuv&eacute;</span></td>
+            <td><span class="client-status waiting">En attente</span></td>
+            <td style="font-size:12px;color:var(--text-300);">&mdash;</td>
+          </tr>
+          <tr style="opacity:0.5;">
+            <td><span class="mono" style="color:var(--forest-700);font-weight:500;">A.6.1</span> Organisation interne</td>
+            <td style="font-size:12px;color:var(--text-500);">A.6</td>
+            <td>M. Sarr</td>
+            <td><span class="control-badge in-review">En revue</span></td>
+            <td><span class="client-status waiting">En attente</span></td>
+            <td style="font-size:12px;color:var(--text-300);">&mdash;</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================
+         TAB: CLOSURE
+         ============================================================ -->
+    <div class="content hidden" id="tab-closure">
+
+      <div class="closure-score-hero">
+        <div class="closure-score-label">Score de conformit&eacute;</div>
+        <div class="closure-score-value" style="color:var(--success);">78%</div>
+        <div class="closure-score-sub">25 contr&ocirc;les conformes sur 32</div>
+      </div>
+
+      <div class="closure-grid">
+        <div class="closure-stat">
+          <div class="closure-stat-value" style="color:var(--success);">25</div>
+          <div class="closure-stat-label">Conformes</div>
+        </div>
+        <div class="closure-stat">
+          <div class="closure-stat-value" style="color:var(--error);">5</div>
+          <div class="closure-stat-label">Non conformes</div>
+        </div>
+        <div class="closure-stat">
+          <div class="closure-stat-value" style="color:var(--text-300);">2</div>
+          <div class="closure-stat-label">Non applicables</div>
+        </div>
+      </div>
+
+      <!-- Domain scores -->
+      <div class="domain-progress-card" style="margin-bottom:24px;">
+        <div class="domain-progress-header">
+          <h3>Score par domaine</h3>
+        </div>
+        <div>
+          <div class="domain-row">
+            <span class="domain-code">A.5</span>
+            <span class="domain-name">Politiques de s&eacute;curit&eacute;</span>
+            <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:100%; background: var(--success);"></div></div></div>
+            <span class="domain-pct" style="color:var(--success);">100%</span>
+            <span class="domain-count">4/4</span>
+          </div>
+          <div class="domain-row">
+            <span class="domain-code">A.6</span>
+            <span class="domain-name">Organisation de la s&eacute;curit&eacute;</span>
+            <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:80%; background: var(--forest-500);"></div></div></div>
+            <span class="domain-pct" style="color:var(--forest-700);">80%</span>
+            <span class="domain-count">4/5</span>
+          </div>
+          <div class="domain-row">
+            <span class="domain-code">A.7</span>
+            <span class="domain-name">S&eacute;curit&eacute; des RH</span>
+            <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:83%; background: var(--forest-500);"></div></div></div>
+            <span class="domain-pct" style="color:var(--forest-700);">83%</span>
+            <span class="domain-count">5/6</span>
+          </div>
+          <div class="domain-row">
+            <span class="domain-code">A.8</span>
+            <span class="domain-name">Gestion des actifs</span>
+            <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:63%; background: var(--gold-500);"></div></div></div>
+            <span class="domain-pct" style="color:var(--gold-600);">63%</span>
+            <span class="domain-count">5/8</span>
+          </div>
+          <div class="domain-row">
+            <span class="domain-code">A.9</span>
+            <span class="domain-name">Contr&ocirc;le d&rsquo;acc&egrave;s</span>
+            <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:63%; background: var(--gold-500);"></div></div></div>
+            <span class="domain-pct" style="color:var(--gold-600);">63%</span>
+            <span class="domain-count">5/8</span>
+          </div>
+          <div class="domain-row">
+            <span class="domain-code">A.10</span>
+            <span class="domain-name">Cryptographie</span>
+            <div class="domain-bar-wrap"><div class="domain-bar"><div class="domain-bar-fill" style="width:100%; background: var(--success);"></div></div></div>
+            <span class="domain-pct" style="color:var(--success);">100%</span>
+            <span class="domain-count">1/1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="closure-actions">
+        <div class="closure-action-card">
+          <div class="closure-action-icon pdf">&#128196;</div>
+          <div class="closure-action-text">
+            <h4>Rapport PDF</h4>
+            <p>G&eacute;n&eacute;rer le rapport d&rsquo;audit complet</p>
+          </div>
+        </div>
+        <div class="closure-action-card">
+          <div class="closure-action-icon pptx">&#128202;</div>
+          <div class="closure-action-text">
+            <h4>Pr&eacute;sentation PowerPoint</h4>
+            <p>Synth&egrave;se pour le comit&eacute; de direction</p>
+          </div>
+        </div>
+        <div class="closure-action-card">
+          <div class="closure-action-icon plan">&#9745;</div>
+          <div class="closure-action-text">
+            <h4>Plan d&rsquo;action</h4>
+            <p>G&eacute;n&eacute;rer les recommandations prioritaires</p>
+          </div>
+        </div>
+        <div class="closure-action-card">
+          <div class="closure-action-icon archive">&#128451;</div>
+          <div class="closure-action-text">
+            <h4>Archiver la mission</h4>
+            <p>Cl&ocirc;turer et archiver tous les documents</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.content').forEach(el => el.classList.add('hidden'));
+  // Show target
+  const target = document.getElementById('tab-' + tabName);
+  if (target) target.classList.remove('hidden');
+  // Update demo-tab buttons
+  document.querySelectorAll('.demo-tab').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Toggle domain accordions (overview tab)
+document.querySelectorAll('.domain-acc-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.closest('.domain-accordion').classList.toggle('open');
+  });
+});
+
+// Toggle domain groups in fieldwork left panel
+document.querySelectorAll('.fw-domain-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.closest('.fw-domain').classList.toggle('open');
+  });
+});
+
+// Control selection in fieldwork left panel
+document.querySelectorAll('.fw-control').forEach(ctrl => {
+  ctrl.addEventListener('click', () => {
+    document.querySelectorAll('.fw-control.selected').forEach(c => c.classList.remove('selected'));
+    ctrl.classList.add('selected');
+  });
+});
+</script>
+
+</body>
+</html>

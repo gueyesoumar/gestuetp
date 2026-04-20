@@ -1,0 +1,2879 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G&euml;stu Comply &mdash; Redesign UI Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* Forest Green */
+  --forest-900: #1B4332;
+  --forest-800: #234E3E;
+  --forest-700: #2D6A4F;
+  --forest-500: #40916C;
+  --forest-300: #74C69D;
+  --forest-100: #D8F3DC;
+  --forest-50:  #F0FFF4;
+
+  /* Gold */
+  --gold-600: #B8922E;
+  --gold-500: #D4A843;
+  --gold-400: #E2C26B;
+  --gold-200: #F2E2B1;
+  --gold-50:  #FDF8E8;
+
+  /* Neutrals */
+  --bg:       #FAFAF8;
+  --white:    #FFFFFF;
+  --text-900: #1A1A1A;
+  --text-700: #374151;
+  --text-500: #6B7280;
+  --text-300: #9CA3AF;
+  --border:   #E5E7EB;
+
+  /* Semantic */
+  --success: #27AE60;
+  --warning: #F59E0B;
+  --error:   #C0392B;
+  --info:    #3B82F6;
+
+  /* File types */
+  --pdf:   #DC2626;
+  --excel: #16A34A;
+  --word:  #2563EB;
+
+  /* Spacing */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 99px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text-700);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--forest-900);
+  letter-spacing: -0.5px;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-900);
+  margin-bottom: 16px;
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-900);
+  margin-bottom: 12px;
+}
+
+/* Logo header */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 2px solid var(--border);
+}
+
+.logo-mark {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--forest-900);
+  letter-spacing: -0.5px;
+}
+
+.logo-text .trema {
+  color: var(--gold-500);
+}
+
+.logo-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-500);
+}
+
+.page-header-right {
+  margin-left: auto;
+  text-align: right;
+  color: var(--text-500);
+  font-size: 13px;
+}
+
+/* ============================================================
+   SECTION: DESIGN SYSTEM
+   ============================================================ */
+.ds-section {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 40px;
+}
+
+.ds-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--forest-900);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gold-200);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ds-section-title::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 20px;
+  background: var(--gold-500);
+  border-radius: 2px;
+}
+
+/* Colors */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.color-group h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-500);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.swatch:hover {
+  transform: scale(1.12);
+  z-index: 1;
+}
+
+.swatch .swatch-label {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-300);
+  white-space: nowrap;
+}
+
+/* Typography scale */
+.type-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.type-row {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.type-row:last-child { border-bottom: none; }
+
+.type-label {
+  width: 120px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-300);
+}
+
+.type-meta {
+  width: 160px;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-500);
+}
+
+/* Button variants */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--forest-700);
+  color: var(--white);
+}
+.btn-primary:hover {
+  background: var(--forest-900);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27,67,50,0.25);
+}
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--text-700);
+  border-color: var(--border);
+}
+.btn-secondary:hover {
+  background: var(--forest-50);
+  border-color: var(--forest-300);
+}
+
+.btn-accent {
+  background: var(--gold-500);
+  color: var(--forest-900);
+}
+.btn-accent:hover {
+  background: var(--gold-400);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212,168,67,0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-500);
+}
+.btn-ghost:hover {
+  background: var(--forest-50);
+  color: var(--forest-700);
+}
+
+.btn-danger {
+  background: var(--error);
+  color: var(--white);
+}
+.btn-danger:hover {
+  background: #A93226;
+  transform: translateY(-1px);
+}
+
+/* Badge variants */
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-forest {
+  background: var(--forest-100);
+  color: var(--forest-700);
+}
+
+.badge-gold {
+  background: var(--gold-200);
+  color: var(--gold-600);
+}
+
+.badge-success {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-error {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.badge-info {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.badge-gray {
+  background: #F3F4F6;
+  color: var(--text-500);
+}
+
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.badge-count {
+  background: var(--error);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+/* Card variants */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.card-gold {
+  border-left: 4px solid var(--gold-500);
+}
+
+.card-alert {
+  border-left: 4px solid var(--error);
+}
+
+.card-success-border {
+  border-left: 4px solid var(--success);
+}
+
+.card-info-border {
+  border-left: 4px solid var(--info);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-300);
+  margin-bottom: 4px;
+}
+
+.card-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+/* Input variants */
+.input-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.input-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-700);
+}
+
+.input-field {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-900);
+  outline: none;
+  transition: all 0.2s ease;
+  background: var(--white);
+}
+
+.input-field:focus {
+  border-color: var(--forest-500);
+  box-shadow: 0 0 0 3px var(--forest-100);
+}
+
+.input-field::placeholder {
+  color: var(--text-300);
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon .input-field {
+  padding-left: 38px;
+}
+
+.input-with-icon .input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-300);
+}
+
+.floating-label-group {
+  position: relative;
+  min-width: 220px;
+}
+
+.floating-label-group .input-field {
+  padding-top: 18px;
+  padding-bottom: 6px;
+  width: 100%;
+}
+
+.floating-label-group .float-label {
+  position: absolute;
+  left: 14px;
+  top: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--forest-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Icons grid */
+.icon-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 64px;
+}
+
+.icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--forest-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest-700);
+  transition: all 0.2s ease;
+}
+
+.icon-circle:hover {
+  background: var(--forest-100);
+  transform: scale(1.08);
+}
+
+.icon-item span {
+  font-size: 10px;
+  color: var(--text-300);
+  font-weight: 500;
+}
+
+/* Micro-interactions preview */
+.micro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.micro-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+}
+
+.micro-card h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-500);
+  margin-bottom: 12px;
+}
+
+/* Hover lift */
+.hover-lift-demo {
+  width: 80px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--forest-700), var(--forest-500));
+  border-radius: var(--radius-sm);
+  margin: 0 auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.hover-lift-demo:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(27,67,50,0.2);
+}
+
+/* Progress bar animation */
+.progress-demo {
+  height: 6px;
+  background: var(--forest-100);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--forest-700), var(--gold-500));
+  border-radius: 3px;
+  width: 0%;
+  animation: progressFill 2s ease-out forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes progressFill {
+  to { width: 72%; }
+}
+
+/* Pulse */
+.pulse-demo {
+  width: 12px;
+  height: 12px;
+  background: var(--success);
+  border-radius: 50%;
+  margin: 16px auto;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(39,174,96,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(39,174,96,0); }
+}
+
+/* Glow */
+.glow-demo {
+  display: inline-flex;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--gold-200);
+  color: var(--gold-600);
+  font-size: 12px;
+  font-weight: 600;
+  animation: goldGlow 3s ease-in-out infinite;
+}
+
+@keyframes goldGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,67,0); }
+  50% { box-shadow: 0 0 12px 2px rgba(212,168,67,0.25); }
+}
+
+/* Slide in */
+.slide-in-demo {
+  animation: slideIn 0.8s ease-out forwards;
+  animation-delay: 1s;
+  opacity: 0;
+  transform: translateX(-12px);
+}
+
+@keyframes slideIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
+   SCREEN COMPARISONS
+   ============================================================ */
+.screen-section {
+  margin-bottom: 56px;
+}
+
+.screen-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--forest-900);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.screen-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--forest-900);
+  color: var(--gold-500);
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.screen-description {
+  font-size: 13px;
+  color: var(--text-500);
+  margin-bottom: 20px;
+  padding-left: 44px;
+}
+
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.comparison-col {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.comparison-label {
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.label-avant {
+  background: #F3F4F6;
+  color: var(--text-300);
+}
+
+.label-apres {
+  background: linear-gradient(135deg, var(--forest-900), var(--forest-700));
+  color: var(--gold-500);
+}
+
+.comparison-content {
+  padding: 24px;
+}
+
+/* ============================================================
+   AVANT STYLES (deliberately generic/boring)
+   ============================================================ */
+.avant-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.avant-header h3 {
+  font-size: 16px;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.avant-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e5e7eb;
+  color: #6b7280;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.avant-progress {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
+.avant-progress-fill {
+  height: 100%;
+  background: #6b7280;
+  border-radius: 4px;
+  width: 65%;
+}
+
+.avant-steps {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.avant-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.avant-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.avant-step.active .avant-step-dot {
+  background: #6b7280;
+}
+
+.avant-step.active {
+  color: #374151;
+}
+
+.avant-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #6b7280;
+  color: white;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.avant-breadcrumb {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 12px;
+}
+
+/* Generic card for AVANT */
+.avant-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.avant-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.avant-kpi {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+}
+
+.avant-kpi-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.avant-kpi-label {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.avant-emoji {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.avant-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.avant-list-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+  flex-shrink: 0;
+}
+
+.avant-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #6b7280;
+  resize: none;
+  height: 60px;
+  background: #f9fafb;
+}
+
+.avant-tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 16px;
+}
+
+.avant-tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.avant-tab.active {
+  color: #374151;
+  border-bottom: 2px solid #6b7280;
+}
+
+.avant-chat-bubble {
+  background: #f3f4f6;
+  padding: 10px 14px;
+  border-radius: 12px 12px 12px 4px;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 8px;
+  max-width: 85%;
+}
+
+.avant-chat-user {
+  background: #e5e7eb;
+  border-radius: 12px 12px 4px 12px;
+  margin-left: auto;
+}
+
+/* ============================================================
+   APRES STYLES (polished redesign)
+   ============================================================ */
+
+/* Screen 1: Mission Detail Header */
+.apres-header {
+  background: linear-gradient(135deg, var(--forest-900) 0%, var(--forest-700) 100%);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  color: var(--white);
+}
+
+.apres-header::before {
+  content: '';
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 180px;
+  height: 180px;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 5 L90 25 L90 75 Q90 105 50 115 Q10 105 10 75 L10 25 Z' fill='none' stroke='%23D4A843' stroke-width='2'/%3E%3Cpath d='M50 35 Q55 35 58 40 Q60 45 58 50 Q55 55 50 58 Q45 55 42 50 Q40 45 42 40 Q45 35 50 35Z' fill='none' stroke='%23D4A843' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='47' r='18' fill='none' stroke='%23D4A843' stroke-width='1'/%3E%3Ccircle cx='50' cy='47' r='24' fill='none' stroke='%23D4A843' stroke-width='0.8'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.apres-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+}
+
+.apres-breadcrumb span {
+  color: rgba(255,255,255,0.7);
+}
+
+.apres-breadcrumb svg {
+  opacity: 0.3;
+}
+
+.apres-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.apres-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.apres-header .subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+}
+
+.apres-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(212,168,67,0.15);
+  color: var(--gold-400);
+  font-size: 12px;
+  font-weight: 600;
+  animation: goldGlow 3s ease-in-out infinite;
+}
+
+.apres-status-badge .status-dot-glow {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-400);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.apres-progress-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.apres-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-500), var(--gold-400));
+  border-radius: 3px;
+  width: 0%;
+  animation: progressFill 2s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+.apres-progress-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  display: flex;
+  justify-content: space-between;
+}
+
+.apres-progress-label strong {
+  color: var(--gold-400);
+}
+
+/* Stepper */
+.apres-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.apres-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+}
+
+.apres-step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.apres-step.completed .apres-step-dot {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.apres-step.active .apres-step-dot {
+  background: var(--gold-500);
+  border-color: var(--gold-400);
+  box-shadow: 0 0 0 4px rgba(212,168,67,0.2);
+}
+
+.apres-step.active {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.apres-step.completed {
+  color: rgba(255,255,255,0.6);
+}
+
+.apres-step-connector {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  margin: 0 6px;
+  min-width: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.apres-step-connector.done {
+  background: var(--gold-500);
+}
+
+.apres-step-connector.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 60%;
+  background: linear-gradient(90deg, var(--gold-500), transparent);
+  animation: connectorPulse 2s ease-in-out infinite;
+}
+
+@keyframes connectorPulse {
+  0%, 100% { width: 40%; }
+  50% { width: 70%; }
+}
+
+.apres-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--gold-500);
+  color: var(--forest-900);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 2px solid var(--gold-400);
+  margin-top: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apres-cta:hover {
+  background: var(--gold-400);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(212,168,67,0.3);
+}
+
+/* Screen 2: Fieldwork Control */
+.apres-fieldwork {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 320px;
+}
+
+.apres-sidebar-controls {
+  background: var(--forest-900);
+  padding: 16px 0;
+  color: var(--white);
+}
+
+.apres-sidebar-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.4);
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.apres-control-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-left: 3px solid transparent;
+}
+
+.apres-control-item:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.apres-control-item.active {
+  background: rgba(255,255,255,0.1);
+  border-left-color: var(--gold-500);
+}
+
+.apres-control-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.apres-control-icon.conforme {
+  background: rgba(39,174,96,0.15);
+  color: #4ADE80;
+}
+
+.apres-control-icon.partiel {
+  background: rgba(245,158,11,0.15);
+  color: #FBBF24;
+}
+
+.apres-control-icon.non-conforme {
+  background: rgba(192,57,43,0.15);
+  color: #F87171;
+}
+
+.apres-control-icon.en-cours {
+  background: rgba(59,130,246,0.15);
+  color: #60A5FA;
+}
+
+.apres-control-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.apres-control-text .ctrl-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+.apres-control-text .ctrl-name {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apres-domain-progress {
+  margin: 12px 16px;
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.apres-domain-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--forest-300), var(--gold-500));
+}
+
+/* Work area */
+.apres-work-area {
+  padding: 20px;
+  background: var(--bg);
+}
+
+.apres-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--forest-500);
+  margin-bottom: 14px;
+}
+
+.apres-section-header svg {
+  color: var(--forest-500);
+  flex-shrink: 0;
+}
+
+.apres-section-header h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-900);
+}
+
+.apres-floating-textarea {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.apres-floating-textarea label {
+  position: absolute;
+  left: 14px;
+  top: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--forest-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+.apres-floating-textarea textarea {
+  width: 100%;
+  padding: 26px 14px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-700);
+  resize: none;
+  height: 70px;
+  background: var(--white);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.apres-floating-textarea textarea:focus {
+  border-color: var(--forest-500);
+  box-shadow: 0 0 0 3px var(--forest-100);
+}
+
+/* File type icons */
+.apres-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.apres-doc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-700);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.apres-doc-item:hover {
+  border-color: var(--forest-300);
+  transform: translateX(3px);
+}
+
+.apres-file-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.apres-file-icon.pdf {
+  background: #FEE2E2;
+  color: var(--pdf);
+}
+
+.apres-file-icon.xlsx {
+  background: #D1FAE5;
+  color: var(--excel);
+}
+
+.apres-file-icon.docx {
+  background: #DBEAFE;
+  color: var(--word);
+}
+
+.apres-doc-meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-300);
+}
+
+/* Conformity pills */
+.apres-conformity-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.apres-pill {
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.apres-pill.conforme {
+  background: #D1FAE5;
+  color: #065F46;
+  border-color: #A7F3D0;
+}
+
+.apres-pill.conforme:hover, .apres-pill.conforme.selected {
+  background: var(--success);
+  color: white;
+  border-color: var(--success);
+  transform: scale(1.05);
+}
+
+.apres-pill.partiel {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #FDE68A;
+}
+
+.apres-pill.partiel:hover, .apres-pill.partiel.selected {
+  background: var(--warning);
+  color: white;
+  border-color: var(--warning);
+  transform: scale(1.05);
+}
+
+.apres-pill.non-conforme {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-color: #FECACA;
+}
+
+.apres-pill.non-conforme:hover, .apres-pill.non-conforme.selected {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+  transform: scale(1.05);
+}
+
+.apres-pill.na {
+  background: #F3F4F6;
+  color: var(--text-500);
+  border-color: var(--border);
+}
+
+.apres-pill.na:hover, .apres-pill.na.selected {
+  background: var(--text-500);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Screen 3: Dashboard KPIs */
+.apres-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.apres-kpi {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.apres-kpi.progress-kpi {
+  background: linear-gradient(135deg, var(--forest-50), #E8F5E9);
+  border: 1px solid var(--forest-100);
+}
+
+.apres-kpi.pending-kpi {
+  background: linear-gradient(135deg, var(--gold-50), #FFF8E1);
+  border: 1px solid var(--gold-200);
+}
+
+.apres-kpi.alert-kpi {
+  background: linear-gradient(135deg, #FFF5F5, #FEE2E2);
+  border: 1px solid #FECACA;
+}
+
+.apres-kpi.info-kpi {
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  border: 1px solid #BFDBFE;
+}
+
+.apres-kpi-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.apres-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-500);
+}
+
+.apres-kpi-number {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.apres-kpi.progress-kpi .apres-kpi-number { color: var(--forest-700); }
+.apres-kpi.pending-kpi .apres-kpi-number { color: var(--gold-600); }
+.apres-kpi.alert-kpi .apres-kpi-number { color: var(--error); }
+.apres-kpi.info-kpi .apres-kpi-number { color: var(--info); }
+
+/* Sparkline */
+.sparkline {
+  margin-top: 8px;
+}
+
+.sparkline svg {
+  width: 100%;
+  height: 24px;
+}
+
+/* Evidence donut */
+.apres-evidence-tracker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.donut-ring {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+}
+
+.donut-ring svg {
+  transform: rotate(-90deg);
+}
+
+.donut-track {
+  fill: none;
+  stroke: var(--forest-100);
+  stroke-width: 6;
+}
+
+.donut-fill {
+  fill: none;
+  stroke: var(--forest-500);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 157;
+  stroke-dashoffset: 47;
+  transition: stroke-dashoffset 1.5s ease-out;
+}
+
+.donut-gold {
+  stroke: var(--gold-500);
+  stroke-dashoffset: 94;
+}
+
+.evidence-info {
+  flex: 1;
+}
+
+.evidence-info h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-900);
+  margin-bottom: 4px;
+}
+
+.evidence-info p {
+  font-size: 12px;
+  color: var(--text-500);
+}
+
+.evidence-stat {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--forest-700);
+}
+
+/* Team avatars */
+.apres-team {
+  display: flex;
+  gap: -6px;
+}
+
+.apres-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--white);
+  position: relative;
+  margin-left: -6px;
+}
+
+.apres-avatar:first-child { margin-left: 0; }
+
+.apres-avatar .avatar-status {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+}
+
+.avatar-status.online { background: var(--success); }
+.avatar-status.offline { background: var(--text-300); }
+.avatar-status.busy { background: var(--warning); }
+
+/* Pending docs compact list */
+.apres-pending-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.apres-pending-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-700);
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+
+.apres-pending-item .file-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.apres-pending-item .pending-meta {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-300);
+}
+
+/* Screen 4: Smart Interview */
+.apres-interview {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 16px;
+}
+
+.apres-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.apres-chat-msg {
+  display: flex;
+  gap: 10px;
+  max-width: 90%;
+  animation: slideIn 0.4s ease-out forwards;
+}
+
+.apres-chat-msg.ai {
+  align-self: flex-start;
+}
+
+.apres-chat-msg.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.apres-chat-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.apres-chat-avatar.ai-avatar {
+  background: linear-gradient(135deg, var(--forest-700), var(--forest-500));
+  color: var(--gold-400);
+}
+
+.apres-chat-avatar.user-avatar {
+  background: var(--gold-200);
+  color: var(--gold-600);
+}
+
+.apres-chat-bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.apres-chat-msg.ai .apres-chat-bubble {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--text-700);
+  border-bottom-left-radius: 4px;
+}
+
+.apres-chat-msg.user .apres-chat-bubble {
+  background: var(--forest-700);
+  color: var(--white);
+  border-bottom-right-radius: 4px;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 12px 4px;
+  width: fit-content;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-300);
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Response chips */
+.apres-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.apres-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--forest-50);
+  color: var(--forest-700);
+  border: 1px solid var(--forest-100);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apres-chip:hover {
+  background: var(--forest-100);
+  border-color: var(--forest-300);
+  transform: translateY(-1px);
+}
+
+.apres-chip.selected {
+  background: var(--forest-700);
+  color: var(--white);
+  border-color: var(--forest-700);
+}
+
+/* Radar chart area */
+.apres-radar-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.apres-radar-area h4 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Confidence badges */
+.apres-confidence {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.confidence-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-500);
+}
+
+.confidence-ring {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.confidence-ring.high {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 2px solid var(--success);
+}
+
+.confidence-ring.medium {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 2px solid var(--warning);
+}
+
+.confidence-ring.low {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 2px solid var(--error);
+}
+
+/* Pre-filled answer */
+.apres-prefilled {
+  background: var(--gold-50);
+  border: 1px dashed var(--gold-200);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-700);
+  margin-top: 8px;
+  animation: slideIn 0.6s ease-out forwards;
+  animation-delay: 0.5s;
+  opacity: 0;
+}
+
+.apres-prefilled-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gold-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+/* ============================================================
+   AVANT: Fieldwork sidebar (boring list)
+   ============================================================ */
+.avant-fieldwork {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 260px;
+}
+
+.avant-sidebar-list {
+  background: #f9fafb;
+  padding: 12px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.avant-sidebar-list h4 {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+}
+
+.avant-work-area {
+  padding: 16px;
+}
+
+.avant-work-area h4 {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.avant-doc-emoji {
+  margin-bottom: 12px;
+}
+
+.avant-doc-emoji span {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  padding: 4px 0;
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.gap-24 { gap: 24px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.text-center { text-align: center; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 48px 0;
+}
+
+.avant-conformity {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.avant-radio-pill {
+  padding: 4px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #6b7280;
+  background: white;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .comparison {
+    grid-template-columns: 1fr;
+  }
+  .card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ============================================================
+       PAGE HEADER
+       ============================================================ -->
+  <div class="page-header">
+    <svg class="logo-mark" viewBox="0 0 100 120" fill="none">
+      <path d="M50 5 L90 25 L90 75 Q90 105 50 115 Q10 105 10 75 L10 25 Z" fill="#1B4332" stroke="#D4A843" stroke-width="3"/>
+      <path d="M50 40 Q56 40 60 46 Q63 52 60 58 Q56 64 50 67 Q44 64 40 58 Q37 52 40 46 Q44 40 50 40Z" fill="none" stroke="#D4A843" stroke-width="2" opacity="0.7"/>
+      <circle cx="50" cy="53" r="16" fill="none" stroke="#D4A843" stroke-width="1.5" opacity="0.5"/>
+      <circle cx="50" cy="53" r="22" fill="none" stroke="#D4A843" stroke-width="1" opacity="0.3"/>
+    </svg>
+    <div>
+      <div class="logo-text">G<span class="trema">&euml;</span>stu</div>
+      <div class="logo-subtitle">Comply</div>
+    </div>
+    <div class="page-header-right">
+      <strong>Mockup UI Redesign</strong><br>
+      Proposition de refonte visuelle v1.0
+    </div>
+  </div>
+
+  <!-- ============================================================
+       DESIGN SYSTEM
+       ============================================================ -->
+  <h2 style="margin-bottom: 24px; font-size: 22px; color: var(--forest-900);">Syst&egrave;me de Design</h2>
+
+  <!-- Colors -->
+  <div class="ds-section">
+    <div class="ds-section-title">Palette de couleurs</div>
+    <div class="color-grid">
+      <div class="color-group">
+        <h4>For&ecirc;t (Principal)</h4>
+        <div class="color-swatches" style="margin-bottom: 28px;">
+          <div class="swatch" style="background: #1B4332;"><span class="swatch-label">900</span></div>
+          <div class="swatch" style="background: #234E3E;"><span class="swatch-label">800</span></div>
+          <div class="swatch" style="background: #2D6A4F;"><span class="swatch-label">700</span></div>
+          <div class="swatch" style="background: #40916C;"><span class="swatch-label">500</span></div>
+          <div class="swatch" style="background: #74C69D;"><span class="swatch-label">300</span></div>
+          <div class="swatch" style="background: #D8F3DC;"><span class="swatch-label">100</span></div>
+          <div class="swatch" style="background: #F0FFF4;"><span class="swatch-label">50</span></div>
+        </div>
+      </div>
+      <div class="color-group">
+        <h4>Or (Accent)</h4>
+        <div class="color-swatches" style="margin-bottom: 28px;">
+          <div class="swatch" style="background: #B8922E;"><span class="swatch-label">600</span></div>
+          <div class="swatch" style="background: #D4A843;"><span class="swatch-label">500</span></div>
+          <div class="swatch" style="background: #E2C26B;"><span class="swatch-label">400</span></div>
+          <div class="swatch" style="background: #F2E2B1;"><span class="swatch-label">200</span></div>
+          <div class="swatch" style="background: #FDF8E8;"><span class="swatch-label">50</span></div>
+        </div>
+      </div>
+      <div class="color-group">
+        <h4>S&eacute;mantiques</h4>
+        <div class="color-swatches" style="margin-bottom: 28px;">
+          <div class="swatch" style="background: #27AE60;"><span class="swatch-label">Succ&egrave;s</span></div>
+          <div class="swatch" style="background: #F59E0B;"><span class="swatch-label">Alerte</span></div>
+          <div class="swatch" style="background: #C0392B;"><span class="swatch-label">Erreur</span></div>
+          <div class="swatch" style="background: #3B82F6;"><span class="swatch-label">Info</span></div>
+        </div>
+      </div>
+      <div class="color-group">
+        <h4>Fichiers</h4>
+        <div class="color-swatches" style="margin-bottom: 28px;">
+          <div class="swatch" style="background: #DC2626;"><span class="swatch-label">PDF</span></div>
+          <div class="swatch" style="background: #16A34A;"><span class="swatch-label">Excel</span></div>
+          <div class="swatch" style="background: #2563EB;"><span class="swatch-label">Word</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Typography -->
+  <div class="ds-section">
+    <div class="ds-section-title">&Eacute;chelle typographique</div>
+    <div class="type-scale">
+      <div class="type-row">
+        <span class="type-label">Display</span>
+        <span class="type-meta">Inter 700 &middot; 28px</span>
+        <span style="font-size: 28px; font-weight: 700; color: var(--text-900);">Tableau de bord</span>
+      </div>
+      <div class="type-row">
+        <span class="type-label">Heading</span>
+        <span class="type-meta">Inter 600 &middot; 18px</span>
+        <span style="font-size: 18px; font-weight: 600; color: var(--text-900);">D&eacute;tail de la mission</span>
+      </div>
+      <div class="type-row">
+        <span class="type-label">Body</span>
+        <span class="type-meta">Inter 400 &middot; 14px</span>
+        <span style="font-size: 14px; font-weight: 400; color: var(--text-700);">Les contr&ocirc;les sont class&eacute;s par domaine de conformit&eacute;.</span>
+      </div>
+      <div class="type-row">
+        <span class="type-label">Caption</span>
+        <span class="type-meta">Inter 500 &middot; 12px</span>
+        <span style="font-size: 12px; font-weight: 500; color: var(--text-500);">Mis &agrave; jour il y a 3 heures</span>
+      </div>
+      <div class="type-row">
+        <span class="type-label">Micro</span>
+        <span class="type-meta">Inter 500 &middot; 10px</span>
+        <span style="font-size: 10px; font-weight: 500; color: var(--text-300);">ID: MSN-2024-0042</span>
+      </div>
+      <div class="type-row">
+        <span class="type-label">Code</span>
+        <span class="type-meta">JetBrains Mono 500 &middot; 12px</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; color: var(--forest-700);">CTL-SEC-014</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Icons -->
+  <div class="ds-section">
+    <div class="ds-section-title">Ic&ocirc;nes (style Lucide)</div>
+    <div class="icon-grid">
+      <div class="icon-item">
+        <div class="icon-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <span>Document</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <span>T&eacute;l&eacute;verser</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Valider</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle" style="background: #FEF3C7; color: #D97706;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <span>Alerte</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <span>Utilisateur</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <span>Calendrier</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <span>Graphique</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle" style="background: var(--gold-50); color: var(--gold-600);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span>Bouclier</span>
+      </div>
+      <div class="icon-item">
+        <div class="icon-circle" style="background: #FEE2E2; color: #DC2626;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <span>Rejeter</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons & Badges -->
+  <div class="ds-section">
+    <div class="ds-section-title">Boutons &amp; Badges</div>
+    <h4 style="font-size: 12px; color: var(--text-500); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Boutons</h4>
+    <div class="btn-row mb-24">
+      <button class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Primaire
+      </button>
+      <button class="btn btn-secondary">Secondaire</button>
+      <button class="btn btn-accent">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Accent Or
+      </button>
+      <button class="btn btn-ghost">Fant&ocirc;me</button>
+      <button class="btn btn-danger">Danger</button>
+    </div>
+
+    <h4 style="font-size: 12px; color: var(--text-500); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Badges</h4>
+    <div class="badge-row">
+      <span class="badge badge-forest"><span class="badge-dot" style="background: var(--forest-500);"></span> Actif</span>
+      <span class="badge badge-gold"><span class="badge-dot" style="background: var(--gold-500);"></span> En attente</span>
+      <span class="badge badge-success"><span class="badge-dot" style="background: var(--success);"></span> Conforme</span>
+      <span class="badge badge-error"><span class="badge-dot" style="background: var(--error);"></span> Non conforme</span>
+      <span class="badge badge-info">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Info
+      </span>
+      <span class="badge badge-gray">Brouillon</span>
+      <span style="position: relative; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-700);">
+        Notifications <span class="badge-count">7</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="ds-section">
+    <div class="ds-section-title">Variantes de cartes</div>
+    <div class="card-grid">
+      <div class="card card-hover">
+        <div class="card-label">Par d&eacute;faut</div>
+        <div class="card-value">24</div>
+        <p style="font-size: 12px; color: var(--text-500); margin-top: 4px;">Contr&ocirc;les &eacute;valu&eacute;s</p>
+      </div>
+      <div class="card card-hover card-gold">
+        <div class="card-label">Surlign&eacute; or</div>
+        <div class="card-value" style="color: var(--gold-600);">8</div>
+        <p style="font-size: 12px; color: var(--text-500); margin-top: 4px;">En attente de validation</p>
+      </div>
+      <div class="card card-hover card-alert">
+        <div class="card-label">Alerte</div>
+        <div class="card-value" style="color: var(--error);">3</div>
+        <p style="font-size: 12px; color: var(--text-500); margin-top: 4px;">Non-conformit&eacute;s critiques</p>
+      </div>
+      <div class="card card-hover card-success-border">
+        <div class="card-label">Succ&egrave;s</div>
+        <div class="card-value" style="color: var(--success);">92%</div>
+        <p style="font-size: 12px; color: var(--text-500); margin-top: 4px;">Taux de conformit&eacute;</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inputs -->
+  <div class="ds-section">
+    <div class="ds-section-title">Champs de saisie</div>
+    <div class="input-row">
+      <div class="input-group">
+        <label class="input-label">Champ standard</label>
+        <input class="input-field" type="text" placeholder="Saisir une valeur...">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Avec ic&ocirc;ne</label>
+        <div class="input-with-icon">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="input-field" type="text" placeholder="Rechercher...">
+        </div>
+      </div>
+      <div class="floating-label-group">
+        <label class="float-label">Nom du client</label>
+        <input class="input-field" type="text" value="Soci&eacute;t&eacute; G&eacute;n&eacute;rale S&eacute;n&eacute;gal">
+      </div>
+    </div>
+  </div>
+
+  <!-- Micro-interactions -->
+  <div class="ds-section">
+    <div class="ds-section-title">Micro-interactions</div>
+    <div class="micro-grid">
+      <div class="micro-card">
+        <h4>Hover Lift</h4>
+        <div class="hover-lift-demo"></div>
+        <p style="font-size: 11px; color: var(--text-300); margin-top: 12px;">Survolez la carte</p>
+      </div>
+      <div class="micro-card">
+        <h4>Barre de progression</h4>
+        <div class="progress-demo"><div class="progress-fill"></div></div>
+        <p style="font-size: 11px; color: var(--text-300); margin-top: 4px;">Animation au chargement</p>
+      </div>
+      <div class="micro-card">
+        <h4>Pulse actif</h4>
+        <div class="pulse-demo"></div>
+        <p style="font-size: 11px; color: var(--text-300);">Indicateur de statut en ligne</p>
+      </div>
+      <div class="micro-card">
+        <h4>Glow or</h4>
+        <div style="margin: 12px 0;">
+          <span class="glow-demo">En cours</span>
+        </div>
+        <p style="font-size: 11px; color: var(--text-300);">Badge attention</p>
+      </div>
+      <div class="micro-card">
+        <h4>Slide-in</h4>
+        <div class="slide-in-demo" style="font-size: 12px; color: var(--forest-700); background: var(--forest-50); padding: 6px 12px; border-radius: 6px; margin-top: 12px;">
+          &larr; R&eacute;ponse pr&eacute;-remplie
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================================================
+       SCREEN COMPARISONS
+       ============================================================ -->
+  <h2 style="margin-bottom: 32px; font-size: 22px; color: var(--forest-900);">Comparaisons &Eacute;cran par &Eacute;cran</h2>
+
+  <!-- SCREEN 1 -->
+  <div class="screen-section">
+    <div class="screen-title">
+      <span class="screen-number">1</span>
+      En-t&ecirc;te mission &amp; Stepper
+    </div>
+    <p class="screen-description">Le header passe d&rsquo;un bloc texte plat &agrave; un gradient immersif avec watermark bouclier, stepper dor&eacute; et badge anim&eacute;.</p>
+
+    <div class="comparison">
+      <!-- AVANT -->
+      <div class="comparison-col">
+        <div class="comparison-label label-avant">Avant</div>
+        <div class="comparison-content">
+          <div class="avant-breadcrumb">Missions &gt; MSN-2024-0042</div>
+          <div class="avant-header">
+            <h3>Audit ISO 27001 - Soci&eacute;t&eacute; G&eacute;n&eacute;rale</h3>
+            <span class="avant-badge">En cours</span>
+            <div class="avant-progress">
+              <div class="avant-progress-fill"></div>
+            </div>
+            <div style="font-size: 12px; color: #9ca3af;">65% compl&eacute;t&eacute;</div>
+            <div class="avant-steps">
+              <div class="avant-step">
+                <span class="avant-step-dot" style="background: #6b7280;"></span>
+                Cadrage
+              </div>
+              <div class="avant-step">
+                <span class="avant-step-dot" style="background: #6b7280;"></span>
+                Planification
+              </div>
+              <div class="avant-step active">
+                <span class="avant-step-dot"></span>
+                Terrain
+              </div>
+              <div class="avant-step">
+                <span class="avant-step-dot"></span>
+                Rapport
+              </div>
+              <div class="avant-step">
+                <span class="avant-step-dot"></span>
+                Suivi
+              </div>
+            </div>
+            <span class="avant-btn">Continuer</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- APRES -->
+      <div class="comparison-col">
+        <div class="comparison-label label-apres">&nbsp;Apr&egrave;s&nbsp;</div>
+        <div class="comparison-content" style="padding: 16px;">
+          <div class="apres-header">
+            <div class="apres-breadcrumb">
+              <span>Missions</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <span>ISO 27001</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <span style="color: var(--gold-400);">MSN-2024-0042</span>
+            </div>
+            <div class="apres-header-top">
+              <div>
+                <h3>Audit ISO 27001</h3>
+                <span class="subtitle">Soci&eacute;t&eacute; G&eacute;n&eacute;rale S&eacute;n&eacute;gal &middot; Cabinet Deloitte Afrique</span>
+              </div>
+              <span class="apres-status-badge">
+                <span class="status-dot-glow"></span>
+                Travaux en cours
+              </span>
+            </div>
+            <div class="apres-progress-bar">
+              <div class="apres-progress-fill" style="animation-delay: 0.5s;"></div>
+            </div>
+            <div class="apres-progress-label">
+              <span>Progression globale</span>
+              <strong>65%</strong>
+            </div>
+
+            <div class="apres-stepper">
+              <div class="apres-step completed">
+                <div class="apres-step-dot">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                Cadrage
+              </div>
+              <div class="apres-step-connector done"></div>
+              <div class="apres-step completed">
+                <div class="apres-step-dot">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                Planification
+              </div>
+              <div class="apres-step-connector active"></div>
+              <div class="apres-step active">
+                <div class="apres-step-dot">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--forest-900)" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </div>
+                Terrain
+              </div>
+              <div class="apres-step-connector"></div>
+              <div class="apres-step">
+                <div class="apres-step-dot" style="font-size: 10px; color: rgba(255,255,255,0.3);">4</div>
+                Rapport
+              </div>
+              <div class="apres-step-connector"></div>
+              <div class="apres-step">
+                <div class="apres-step-dot" style="font-size: 10px; color: rgba(255,255,255,0.3);">5</div>
+                Suivi
+              </div>
+            </div>
+
+            <span class="apres-cta">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              Continuer les travaux
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div class="screen-section">
+    <div class="screen-title">
+      <span class="screen-number">2</span>
+      Contr&ocirc;le terrain (Sidebar + Zone de travail)
+    </div>
+    <p class="screen-description">Passage d&rsquo;une liste plate avec points gris &agrave; une interface riche : ic&ocirc;nes de statut color&eacute;es, types de fichiers, pills interactives.</p>
+
+    <div class="comparison">
+      <!-- AVANT -->
+      <div class="comparison-col">
+        <div class="comparison-label label-avant">Avant</div>
+        <div class="comparison-content" style="padding: 0;">
+          <div class="avant-fieldwork">
+            <div class="avant-sidebar-list">
+              <h4>Contr&ocirc;les</h4>
+              <div class="avant-list-item"><span class="avant-list-dot"></span> CTL-001 Politique</div>
+              <div class="avant-list-item" style="background: #f3f4f6;"><span class="avant-list-dot" style="background: #6b7280;"></span> CTL-002 Acc&egrave;s</div>
+              <div class="avant-list-item"><span class="avant-list-dot"></span> CTL-003 Chiffrement</div>
+              <div class="avant-list-item"><span class="avant-list-dot"></span> CTL-004 Sauvegardes</div>
+              <div class="avant-list-item"><span class="avant-list-dot"></span> CTL-005 Journaux</div>
+            </div>
+            <div class="avant-work-area">
+              <h4>CTL-002 &mdash; Gestion des acc&egrave;s</h4>
+              <p style="font-size: 12px; color: #9ca3af; margin-bottom: 12px;">Observations</p>
+              <textarea class="avant-textarea" readonly>Les acc&egrave;s sont g&eacute;r&eacute;s par Active Directory...</textarea>
+              <p style="font-size: 12px; color: #9ca3af; margin: 12px 0 4px;">Documents</p>
+              <div class="avant-doc-emoji">
+                <span>&#128196; rapport-acces.pdf</span>
+                <span>&#128196; matrice-droits.xlsx</span>
+                <span>&#128196; procedure-habilitation.docx</span>
+              </div>
+              <p style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">Conformit&eacute;</p>
+              <div class="avant-conformity">
+                <span class="avant-radio-pill">Conforme</span>
+                <span class="avant-radio-pill">Partiel</span>
+                <span class="avant-radio-pill">Non conforme</span>
+                <span class="avant-radio-pill">N/A</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APRES -->
+      <div class="comparison-col">
+        <div class="comparison-label label-apres">&nbsp;Apr&egrave;s&nbsp;</div>
+        <div class="comparison-content" style="padding: 0;">
+          <div class="apres-fieldwork">
+            <div class="apres-sidebar-controls">
+              <div class="apres-sidebar-title">Contr&ocirc;les &middot; S&eacute;curit&eacute;</div>
+              <div class="apres-domain-progress"><div class="apres-domain-fill" style="width: 60%;"></div></div>
+
+              <div class="apres-control-item">
+                <div class="apres-control-icon conforme">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="apres-control-text">
+                  <div class="ctrl-id">CTL-001</div>
+                  <div class="ctrl-name">Politique SMSI</div>
+                </div>
+              </div>
+
+              <div class="apres-control-item active">
+                <div class="apres-control-icon en-cours">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </div>
+                <div class="apres-control-text">
+                  <div class="ctrl-id">CTL-002</div>
+                  <div class="ctrl-name">Gestion des acc&egrave;s</div>
+                </div>
+              </div>
+
+              <div class="apres-control-item">
+                <div class="apres-control-icon partiel">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </div>
+                <div class="apres-control-text">
+                  <div class="ctrl-id">CTL-003</div>
+                  <div class="ctrl-name">Chiffrement</div>
+                </div>
+              </div>
+
+              <div class="apres-control-item">
+                <div class="apres-control-icon non-conforme">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+                <div class="apres-control-text">
+                  <div class="ctrl-id">CTL-004</div>
+                  <div class="ctrl-name">Sauvegardes</div>
+                </div>
+              </div>
+
+              <div class="apres-control-item">
+                <div class="apres-control-icon" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.3);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg>
+                </div>
+                <div class="apres-control-text">
+                  <div class="ctrl-id">CTL-005</div>
+                  <div class="ctrl-name">Journaux d&rsquo;audit</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="apres-work-area">
+              <div class="apres-section-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <h4>Observations &mdash; CTL-002</h4>
+              </div>
+
+              <div class="apres-floating-textarea">
+                <label>Observations de l&rsquo;auditeur</label>
+                <textarea readonly>Les acc&egrave;s sont g&eacute;r&eacute;s par Active Directory avec une revue trimestrielle document&eacute;e. Cependant, les comptes de service ne sont pas inclus dans la revue.</textarea>
+              </div>
+
+              <div class="apres-section-header" style="border-left-color: var(--gold-500);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <h4>Pi&egrave;ces justificatives</h4>
+              </div>
+
+              <div class="apres-doc-list">
+                <div class="apres-doc-item">
+                  <div class="apres-file-icon pdf">PDF</div>
+                  rapport-acces-Q4.pdf
+                  <span class="apres-doc-meta">2.4 Mo</span>
+                </div>
+                <div class="apres-doc-item">
+                  <div class="apres-file-icon xlsx">XLS</div>
+                  matrice-droits-2024.xlsx
+                  <span class="apres-doc-meta">890 Ko</span>
+                </div>
+                <div class="apres-doc-item">
+                  <div class="apres-file-icon docx">DOC</div>
+                  proc-habilitation-v3.docx
+                  <span class="apres-doc-meta">1.1 Mo</span>
+                </div>
+              </div>
+
+              <div class="apres-section-header" style="border-left-color: var(--success);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <h4>Niveau de conformit&eacute;</h4>
+              </div>
+
+              <div class="apres-conformity-pills">
+                <span class="apres-pill conforme">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display: inline; vertical-align: -1px;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Conforme
+                </span>
+                <span class="apres-pill partiel selected">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display: inline; vertical-align: -1px;"><path d="M5 12h14"/></svg>
+                  Partiellement conforme
+                </span>
+                <span class="apres-pill non-conforme">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display: inline; vertical-align: -1px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Non conforme
+                </span>
+                <span class="apres-pill na">N/A</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3 -->
+  <div class="screen-section">
+    <div class="screen-title">
+      <span class="screen-number">3</span>
+      Tableau de bord &mdash; KPIs &amp; Suivi des preuves
+    </div>
+    <p class="screen-description">Des cartes uniformes et vides deviennent des KPIs color&eacute;s avec sparklines, donut SVG de progression et liste compacte de documents.</p>
+
+    <div class="comparison">
+      <!-- AVANT -->
+      <div class="comparison-col">
+        <div class="comparison-label label-avant">Avant</div>
+        <div class="comparison-content">
+          <div class="avant-kpi-grid" style="margin-bottom: 16px;">
+            <div class="avant-kpi">
+              <div class="avant-emoji">&#128202;</div>
+              <div class="avant-kpi-number">65%</div>
+              <div class="avant-kpi-label">Progression</div>
+            </div>
+            <div class="avant-kpi">
+              <div class="avant-emoji">&#9203;</div>
+              <div class="avant-kpi-number">12</div>
+              <div class="avant-kpi-label">En attente</div>
+            </div>
+            <div class="avant-kpi">
+              <div class="avant-emoji">&#9888;&#65039;</div>
+              <div class="avant-kpi-number">3</div>
+              <div class="avant-kpi-label">Non conformes</div>
+            </div>
+            <div class="avant-kpi">
+              <div class="avant-emoji">&#128101;</div>
+              <div class="avant-kpi-number">8</div>
+              <div class="avant-kpi-label">&Eacute;quipe</div>
+            </div>
+          </div>
+          <div class="avant-card">
+            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">Preuves collect&eacute;es</p>
+            <div style="font-size: 24px; font-weight: 700; color: #374151;">34 / 52</div>
+            <div class="avant-progress" style="margin-top: 8px;"><div class="avant-progress-fill" style="width: 65%;"></div></div>
+          </div>
+          <div class="avant-card">
+            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">Documents en attente</p>
+            <div class="avant-list-item"><span class="avant-list-dot"></span> rapport-Q4.pdf</div>
+            <div class="avant-list-item"><span class="avant-list-dot"></span> PV-comite.docx</div>
+            <div class="avant-list-item"><span class="avant-list-dot"></span> logs-access.xlsx</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APRES -->
+      <div class="comparison-col">
+        <div class="comparison-label label-apres">&nbsp;Apr&egrave;s&nbsp;</div>
+        <div class="comparison-content">
+          <div class="apres-kpi-grid">
+            <div class="apres-kpi progress-kpi">
+              <div class="apres-kpi-top">
+                <span class="apres-kpi-label">Progression</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--forest-500)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <div class="apres-kpi-number">65%</div>
+              <div class="sparkline">
+                <svg viewBox="0 0 120 24" preserveAspectRatio="none">
+                  <polyline points="0,20 15,18 30,16 45,14 60,12 75,9 90,7 105,6 120,5" fill="none" stroke="var(--forest-300)" stroke-width="2" stroke-linecap="round"/>
+                  <polyline points="0,20 15,18 30,16 45,14 60,12 75,9 90,7 105,6 120,5" fill="url(#sparkGreen)" stroke="none"/>
+                  <defs>
+                    <linearGradient id="sparkGreen" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--forest-300)" stop-opacity="0.3"/>
+                      <stop offset="100%" stop-color="var(--forest-300)" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+
+            <div class="apres-kpi pending-kpi">
+              <div class="apres-kpi-top">
+                <span class="apres-kpi-label">En attente</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="apres-kpi-number">12</div>
+              <div class="sparkline">
+                <svg viewBox="0 0 120 24" preserveAspectRatio="none">
+                  <polyline points="0,8 15,10 30,12 45,10 60,14 75,12 90,16 105,14 120,12" fill="none" stroke="var(--gold-400)" stroke-width="2" stroke-linecap="round"/>
+                  <polyline points="0,8 15,10 30,12 45,10 60,14 75,12 90,16 105,14 120,12 120,24 0,24" fill="url(#sparkGold)" stroke="none"/>
+                  <defs>
+                    <linearGradient id="sparkGold" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--gold-400)" stop-opacity="0.2"/>
+                      <stop offset="100%" stop-color="var(--gold-400)" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+
+            <div class="apres-kpi alert-kpi">
+              <div class="apres-kpi-top">
+                <span class="apres-kpi-label">Non conformes</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="apres-kpi-number">3</div>
+              <div class="sparkline">
+                <svg viewBox="0 0 120 24" preserveAspectRatio="none">
+                  <polyline points="0,18 15,16 30,14 45,16 60,12 75,10 90,8 105,6 120,8" fill="none" stroke="#F87171" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="apres-kpi info-kpi">
+              <div class="apres-kpi-top">
+                <span class="apres-kpi-label">&Eacute;quipe</span>
+              </div>
+              <div class="apres-kpi-number" style="margin-bottom: 8px;">8</div>
+              <div class="apres-team">
+                <div class="apres-avatar" style="background: var(--forest-700);">AD<span class="avatar-status online"></span></div>
+                <div class="apres-avatar" style="background: var(--gold-500); color: var(--forest-900);">FK<span class="avatar-status online"></span></div>
+                <div class="apres-avatar" style="background: var(--info);">MB<span class="avatar-status busy"></span></div>
+                <div class="apres-avatar" style="background: var(--forest-500);">SN<span class="avatar-status offline"></span></div>
+                <div class="apres-avatar" style="background: var(--text-300); font-size: 9px;">+4</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evidence donut -->
+          <div class="apres-evidence-tracker">
+            <div class="donut-ring">
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <circle class="donut-track" cx="32" cy="32" r="25"/>
+                <circle class="donut-fill" cx="32" cy="32" r="25"/>
+              </svg>
+            </div>
+            <div class="evidence-info">
+              <h4>Preuves collect&eacute;es</h4>
+              <p>34 documents sur 52 requis</p>
+            </div>
+            <div class="evidence-stat">65%</div>
+          </div>
+
+          <!-- Pending docs -->
+          <div style="margin-top: 8px;">
+            <p style="font-size: 11px; font-weight: 600; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Documents en attente</p>
+            <div class="apres-pending-docs">
+              <div class="apres-pending-item">
+                <span class="file-dot" style="background: var(--pdf);"></span>
+                rapport-Q4.pdf
+                <span class="pending-meta">Demand&eacute; il y a 3j</span>
+              </div>
+              <div class="apres-pending-item">
+                <span class="file-dot" style="background: var(--word);"></span>
+                PV-comite-securite.docx
+                <span class="pending-meta">Demand&eacute; il y a 5j</span>
+              </div>
+              <div class="apres-pending-item">
+                <span class="file-dot" style="background: var(--excel);"></span>
+                logs-access-mars.xlsx
+                <span class="pending-meta">Demand&eacute; il y a 7j</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4 -->
+  <div class="screen-section">
+    <div class="screen-title">
+      <span class="screen-number">4</span>
+      Portail client &mdash; Entretien intelligent
+    </div>
+    <p class="screen-description">L&rsquo;interface de chat passe de bulles basiques &agrave; une exp&eacute;rience guid&eacute;e avec indicateur de frappe, chips de r&eacute;ponse et radar de couverture.</p>
+
+    <div class="comparison">
+      <!-- AVANT -->
+      <div class="comparison-col">
+        <div class="comparison-label label-avant">Avant</div>
+        <div class="comparison-content">
+          <div class="avant-tab-bar">
+            <span class="avant-tab active">Entretien</span>
+            <span class="avant-tab">R&eacute;sum&eacute;</span>
+            <span class="avant-tab">Radar</span>
+          </div>
+          <div class="avant-chat-bubble">Bonjour, pouvez-vous d&eacute;crire votre politique de gestion des acc&egrave;s ?</div>
+          <div class="avant-chat-bubble avant-chat-user">Nous utilisons Active Directory avec une revue trimestrielle.</div>
+          <div class="avant-chat-bubble">Merci. Avez-vous un processus de d&eacute;provisionnement des comptes ?</div>
+          <div class="avant-chat-bubble avant-chat-user">Oui, dans les 24h apr&egrave;s le d&eacute;part.</div>
+          <div class="avant-chat-bubble">Bien. Passons au chiffrement des donn&eacute;es...</div>
+          <div style="margin-top: 16px;">
+            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">Niveau de confiance</p>
+            <div class="avant-progress" style="margin: 4px 0;"><div class="avant-progress-fill" style="width: 75%; background: #6b7280;"></div></div>
+            <span style="font-size: 11px; color: #9ca3af;">75%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- APRES -->
+      <div class="comparison-col">
+        <div class="comparison-label label-apres">&nbsp;Apr&egrave;s&nbsp;</div>
+        <div class="comparison-content">
+          <div class="apres-interview">
+            <div class="apres-chat">
+              <div class="apres-chat-msg ai">
+                <div class="apres-chat-avatar ai-avatar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <div class="apres-chat-bubble">
+                    Bonjour ! D&eacute;crivez votre politique de gestion des acc&egrave;s logiques au syst&egrave;me d&rsquo;information.
+                  </div>
+                  <div class="apres-chips">
+                    <span class="apres-chip selected">Active Directory</span>
+                    <span class="apres-chip">IAM cloud</span>
+                    <span class="apres-chip">LDAP</span>
+                    <span class="apres-chip">Autre</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="apres-chat-msg user">
+                <div class="apres-chat-avatar user-avatar">SG</div>
+                <div class="apres-chat-bubble">
+                  Nous utilisons Active Directory avec une revue trimestrielle des droits d&rsquo;acc&egrave;s document&eacute;e.
+                </div>
+              </div>
+
+              <div class="apres-chat-msg ai">
+                <div class="apres-chat-avatar ai-avatar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <div class="apres-chat-bubble">
+                    Parfait. Et concernant le d&eacute;provisionnement des comptes apr&egrave;s un d&eacute;part ?
+                  </div>
+                  <div class="apres-prefilled">
+                    <div class="apres-prefilled-label">R&eacute;ponse sugg&eacute;r&eacute;e</div>
+                    D&eacute;sactivation dans les 24h, suppression sous 30 jours.
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="apres-chat-avatar ai-avatar" style="width: 30px; height: 30px; flex-shrink: 0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="typing-indicator">
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Radar side panel -->
+            <div class="apres-radar-area">
+              <h4>Couverture</h4>
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <!-- Grid -->
+                <polygon points="60,15 95,37 95,83 60,105 25,83 25,37" fill="none" stroke="var(--border)" stroke-width="0.5"/>
+                <polygon points="60,30 82,43 82,77 60,90 38,77 38,43" fill="none" stroke="var(--border)" stroke-width="0.5"/>
+                <polygon points="60,45 71,52 71,68 60,75 49,68 49,52" fill="none" stroke="var(--border)" stroke-width="0.5"/>
+                <!-- Labels -->
+                <text x="60" y="10" text-anchor="middle" font-size="7" fill="var(--text-300)">Acc&egrave;s</text>
+                <text x="102" y="40" text-anchor="start" font-size="7" fill="var(--text-300)">Crypto</text>
+                <text x="102" y="86" text-anchor="start" font-size="7" fill="var(--text-300)">Sauveg.</text>
+                <text x="60" y="115" text-anchor="middle" font-size="7" fill="var(--text-300)">R&eacute;seau</text>
+                <text x="15" y="86" text-anchor="end" font-size="7" fill="var(--text-300)">Logs</text>
+                <text x="15" y="40" text-anchor="end" font-size="7" fill="var(--text-300)">Polit.</text>
+                <!-- Data -->
+                <polygon points="60,22 88,42 82,83 60,95 32,75 30,37" fill="url(#radarGrad)" stroke="var(--forest-500)" stroke-width="1.5" opacity="0.8"/>
+                <defs>
+                  <linearGradient id="radarGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--forest-300)" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="var(--gold-400)" stop-opacity="0.15"/>
+                  </linearGradient>
+                </defs>
+                <!-- Dots -->
+                <circle cx="60" cy="22" r="3" fill="var(--forest-500)"/>
+                <circle cx="88" cy="42" r="3" fill="var(--forest-500)"/>
+                <circle cx="82" cy="83" r="3" fill="var(--forest-500)"/>
+                <circle cx="60" cy="95" r="3" fill="var(--forest-500)"/>
+                <circle cx="32" cy="75" r="3" fill="var(--forest-500)"/>
+                <circle cx="30" cy="37" r="3" fill="var(--forest-500)"/>
+              </svg>
+
+              <div class="apres-confidence" style="margin-top: 8px;">
+                <div class="confidence-item">
+                  <span class="confidence-ring high">H</span>
+                  Acc&egrave;s 92%
+                </div>
+                <div class="confidence-item">
+                  <span class="confidence-ring high">H</span>
+                  Politique 88%
+                </div>
+                <div class="confidence-item">
+                  <span class="confidence-ring medium">M</span>
+                  Crypto 65%
+                </div>
+                <div class="confidence-item">
+                  <span class="confidence-ring low">L</span>
+                  Sauveg. 30%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div style="text-align: center; margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border);">
+    <p style="font-size: 13px; color: var(--text-500);">
+      G<span style="color: var(--gold-500);">&euml;</span>stu Comply &mdash; Proposition de redesign UI v1.0
+    </p>
+    <p style="font-size: 11px; color: var(--text-300); margin-top: 4px;">
+      Professionnel, chaleureux, identitaire. Con&ccedil;u pour les cabinets d&rsquo;audit africains.
+    </p>
+  </div>
+
+</div>
+
+<!-- Pill click interaction -->
+<script>
+document.querySelectorAll('.apres-pill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.apres-pill').forEach(function(p) { p.classList.remove('selected'); });
+    pill.classList.add('selected');
+  });
+});
+
+document.querySelectorAll('.apres-chip').forEach(function(chip) {
+  chip.addEventListener('click', function() {
+    chip.classList.toggle('selected');
+  });
+});
+</script>
+
+</body>
+</html>

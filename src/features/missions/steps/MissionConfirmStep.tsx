@@ -1,3 +1,4 @@
+import { Target } from 'lucide-react'
 import type { Framework, CabinetClient } from '../../../types/database.types'
 import type { MemberWithRoles } from '../../members/types'
 
@@ -43,7 +44,7 @@ export function MissionConfirmStep({
 
       <div className="mt-3 rounded-lg border border-forest-200 bg-forest-50 px-4 py-2.5">
         <p className="text-xs text-forest-700">
-          &#128204; Le p&eacute;rim&egrave;tre d&eacute;taill&eacute; (domaines et contr&ocirc;les) sera d&eacute;fini lors de la phase de cadrage.
+          <Target size={13} className="inline mr-1" />Le p&eacute;rim&egrave;tre d&eacute;taill&eacute; (domaines et contr&ocirc;les) sera d&eacute;fini lors de la phase de cadrage.
         </p>
       </div>
 

@@ -1,12 +1,14 @@
 import { NavLink } from 'react-router-dom'
+import { LayoutDashboard, ClipboardList, Paperclip, CheckCircle, Bell } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
+import type { ReactNode } from 'react'
 
-const NAV_ITEMS = [
-  { to: '/client', label: 'Tableau de bord', icon: '\u2630', end: true },
-  { to: '/client/missions', label: 'Mes missions', icon: '\uD83D\uDCCB', end: false },
-  { to: '/client/documents', label: 'Documents', icon: '\uD83D\uDCCE', end: false },
-  { to: '/client/validations', label: 'Validations', icon: '\u2713', end: false },
-  { to: '/client/notifications', label: 'Notifications', icon: '\uD83D\uDD14', end: false },
+const NAV_ITEMS: { to: string; label: string; icon: ReactNode; end: boolean }[] = [
+  { to: '/client', label: 'Tableau de bord', icon: <LayoutDashboard size={16} />, end: true },
+  { to: '/client/missions', label: 'Mes missions', icon: <ClipboardList size={16} />, end: false },
+  { to: '/client/documents', label: 'Documents', icon: <Paperclip size={16} />, end: false },
+  { to: '/client/validations', label: 'Validations', icon: <CheckCircle size={16} />, end: false },
+  { to: '/client/notifications', label: 'Notifications', icon: <Bell size={16} />, end: false },
 ]
 
 export function ClientSidebar(): JSX.Element {
@@ -45,7 +47,7 @@ export function ClientSidebar(): JSX.Element {
                 {isActive && (
                   <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gold-500" />
                 )}
-                <span className="text-[15px] w-5 text-center">{item.icon}</span>
+                <span className="w-5 text-center flex justify-center">{item.icon}</span>
                 {item.label}
               </>
             )}

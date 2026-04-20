@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Création de Mission (Flow redesigné)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-300: #74C69D;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --gold-50: #FDF8E8;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-700: #374151;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+    --success: #27AE60;
+    --error: #C0392B;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+
+  .section { max-width: 1100px; margin: 50px auto; padding: 0 30px; }
+  .section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 6px; text-align: center; }
+  .section .subtitle { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+
+  /* Wizard frame */
+  .wizard-frame {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    min-height: 560px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    margin-bottom: 40px;
+  }
+
+  /* Sidebar steps */
+  .wiz-sidebar {
+    width: 220px;
+    background: var(--forest-50);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    flex-shrink: 0;
+  }
+  .wiz-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--text-300);
+    position: relative;
+    cursor: pointer;
+  }
+  .wiz-step.active { color: var(--forest-900); font-weight: 600; background: white; }
+  .wiz-step.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold-500); border-radius: 0 2px 2px 0; }
+  .wiz-step.done { color: var(--success); }
+  .wiz-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .wiz-step.active .wiz-dot { border-color: var(--forest-700); background: var(--forest-700); color: white; }
+  .wiz-step.done .wiz-dot { border-color: var(--success); background: var(--success); color: white; }
+
+  /* Main content */
+  .wiz-main { flex: 1; display: flex; flex-direction: column; }
+  .wiz-content { flex: 1; padding: 28px; overflow-y: auto; }
+  .wiz-footer { display: flex; justify-content: space-between; padding: 16px 28px; border-top: 1px solid var(--border); }
+
+  .wiz-title { font-size: 18px; font-weight: 700; }
+  .wiz-subtitle { font-size: 13px; color: var(--text-500); margin-top: 3px; }
+
+  /* Buttons */
+  .btn { padding: 9px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+  .btn-primary { background: var(--forest-700); color: white; }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-secondary { background: white; color: var(--text-500); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--forest-50); border-color: var(--forest-300); color: var(--forest-700); }
+  .btn-disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== STEP 1: Type cards ===== */
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .type-card {
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .type-card:hover { border-color: var(--forest-300); }
+  .type-card.selected { border-color: var(--forest-700); background: var(--forest-50); }
+  .type-card.selected::after { content: '✓'; position: absolute; top: 12px; right: 14px; width: 22px; height: 22px; border-radius: 50%; background: var(--forest-700); color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .type-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; margin-bottom: 10px; }
+  .type-name { font-size: 14px; font-weight: 700; }
+  .type-ref { font-size: 11px; color: var(--text-300); margin-top: 2px; }
+  .type-desc { font-size: 12px; color: var(--text-500); margin-top: 6px; line-height: 1.5; }
+  .type-stats { display: flex; gap: 12px; margin-top: 10px; font-size: 11px; color: var(--text-300); }
+  .type-stat-val { font-weight: 700; color: var(--text-700); }
+
+  /* ===== STEP 2: Client ===== */
+  .client-list { margin-top: 16px; }
+  .client-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 8px; cursor: pointer; transition: all 0.15s;
+  }
+  .client-item:hover { border-color: var(--forest-300); }
+  .client-item.selected { border-color: var(--forest-700); background: var(--forest-50); }
+  .client-avatar { width: 36px; height: 36px; border-radius: 10px; background: var(--forest-100); color: var(--forest-700); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .client-info { flex: 1; }
+  .client-name { font-size: 13px; font-weight: 600; }
+  .client-meta { font-size: 11px; color: var(--text-300); margin-top: 1px; }
+  .client-badges { display: flex; gap: 4px; margin-top: 4px; }
+  .client-badge { font-size: 9px; padding: 1px 6px; border-radius: 99px; font-weight: 600; }
+  .client-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .client-item.selected .client-check { border-color: var(--forest-700); background: var(--forest-700); color: white; font-size: 10px; }
+  .new-client-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border: 1px dashed var(--forest-300); border-radius: 12px; font-size: 13px; color: var(--forest-700); cursor: pointer; margin-top: 8px; transition: all 0.15s; }
+  .new-client-btn:hover { background: var(--forest-50); border-color: var(--forest-500); }
+
+  /* ===== STEP 3: Périmètre ===== */
+  .scope-header { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; margin-bottom: 12px; padding: 10px 14px; background: var(--forest-50); border-radius: 10px; }
+  .scope-header-left { display: flex; align-items: center; gap: 8px; }
+  .scope-fw-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; }
+  .scope-fw-name { font-size: 13px; font-weight: 600; }
+  .scope-count { font-size: 12px; color: var(--forest-700); font-weight: 600; }
+
+  .domain-check-list { }
+  .domain-check {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 6px; cursor: pointer; transition: all 0.1s;
+  }
+  .domain-check:hover { border-color: var(--forest-300); }
+  .domain-check.checked { border-color: var(--forest-500); background: var(--forest-50); }
+  .domain-check input[type="checkbox"] { accent-color: var(--forest-700); width: 16px; height: 16px; }
+  .domain-code { font-size: 12px; font-weight: 700; color: var(--forest-700); font-family: 'JetBrains Mono', monospace; width: 30px; }
+  .domain-name { font-size: 13px; flex: 1; }
+  .domain-controls { font-size: 11px; color: var(--text-300); }
+
+  .scope-summary { margin-top: 14px; padding: 12px 16px; background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; }
+  .scope-summary-text { font-size: 12px; color: var(--gold-600); }
+  .scope-summary-value { font-size: 14px; font-weight: 700; color: var(--gold-600); }
+
+  /* ===== STEP 4: Équipe ===== */
+  .team-section { margin-top: 16px; }
+  .team-role-label { font-size: 12px; font-weight: 600; color: var(--text-700); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .team-role-hint { font-size: 11px; font-weight: 400; color: var(--text-300); }
+  .team-select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; appearance: none; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5L6 8L9 5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; margin-bottom: 14px; }
+  .team-select:focus { border-color: var(--forest-500); box-shadow: 0 0 0 2px var(--forest-100); }
+
+  .team-suggestion { margin-top: 12px; padding: 12px 16px; background: var(--forest-50); border: 1px solid var(--forest-100); border-radius: 10px; font-size: 12px; color: var(--forest-700); display: flex; align-items: center; gap: 8px; }
+  .team-suggestion-icon { font-size: 14px; }
+
+  .auditor-list { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: var(--forest-50); }
+  .auditor-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13px; cursor: pointer; border-radius: 6px; }
+  .auditor-item:hover { background: white; }
+  .auditor-item input { accent-color: var(--forest-700); }
+  .auditor-role-tag { font-size: 10px; color: var(--gold-600); margin-left: auto; }
+
+  /* ===== STEP 5: Calendrier ===== */
+  .cal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .cal-field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-700); margin-bottom: 6px; }
+  .cal-field input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; }
+  .cal-field input:focus { border-color: var(--forest-500); box-shadow: 0 0 0 2px var(--forest-100); }
+
+  .timeline { margin-top: 20px; }
+  .timeline-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .timeline-bar { display: flex; border-radius: 8px; overflow: hidden; height: 28px; }
+  .timeline-segment { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: white; }
+  .timeline-legend { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: var(--text-500); }
+  .timeline-legend-dot { width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; display: inline-block; }
+
+  .cal-estimate { margin-top: 16px; padding: 14px 16px; background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 10px; }
+  .cal-estimate-title { font-size: 12px; font-weight: 600; color: var(--gold-600); margin-bottom: 6px; }
+  .cal-estimate-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .cal-estimate-item { text-align: center; }
+  .cal-estimate-value { font-size: 16px; font-weight: 800; color: var(--gold-600); }
+  .cal-estimate-label { font-size: 10px; color: var(--text-300); }
+
+  /* ===== STEP 6: Confirmation ===== */
+  .confirm-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 16px; }
+  .confirm-section { display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #F5F5F4; }
+  .confirm-section:last-child { border-bottom: none; }
+  .confirm-label { padding: 12px 16px; background: var(--bg); font-size: 12px; font-weight: 500; color: var(--text-500); border-right: 1px solid var(--border); }
+  .confirm-value { padding: 12px 16px; font-size: 13px; font-weight: 600; }
+
+  .confirm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+  .confirm-stat { text-align: center; padding: 14px; background: var(--forest-50); border-radius: 10px; }
+  .confirm-stat-value { font-size: 22px; font-weight: 800; color: var(--forest-700); }
+  .confirm-stat-label { font-size: 10px; color: var(--text-300); margin-top: 2px; }
+
+  .tag { font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600; background: var(--gold-200); color: var(--gold-600); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu — Cr&eacute;ation de Mission (Flow redesign&eacute;)</h1>
+</div>
+
+<!-- ====== ÉTAPE 1: Type de mission ====== -->
+<div class="section">
+  <h2>&Eacute;tape 1 — Type de mission</h2>
+  <div class="subtitle">L'utilisateur choisit le type de mission par une carte visuelle</div>
+
+  <div class="wizard-frame">
+    <div class="wiz-sidebar">
+      <div class="wiz-step active"><div class="wiz-dot">1</div>Type de mission</div>
+      <div class="wiz-step"><div class="wiz-dot">2</div>Client</div>
+      <div class="wiz-step"><div class="wiz-dot">3</div>P&eacute;rim&egrave;tre</div>
+      <div class="wiz-step"><div class="wiz-dot">4</div>&Eacute;quipe</div>
+      <div class="wiz-step"><div class="wiz-dot">5</div>Calendrier</div>
+      <div class="wiz-step"><div class="wiz-dot">6</div>Confirmation</div>
+    </div>
+    <div class="wiz-main">
+      <div class="wiz-content">
+        <div class="wiz-title">Quel type de mission souhaitez-vous cr&eacute;er ?</div>
+        <div class="wiz-subtitle">S&eacute;lectionnez le type qui d&eacute;terminera le r&eacute;f&eacute;rentiel et l'approche</div>
+
+        <div class="type-grid">
+          <div class="type-card selected">
+            <div class="type-icon" style="background: var(--forest-100); color: var(--forest-700);">ISO</div>
+            <div class="type-name">Audit de conformit&eacute;</div>
+            <div class="type-ref">ISO 27001, NIST CSF</div>
+            <div class="type-desc">V&eacute;rifier la conformit&eacute; &agrave; un r&eacute;f&eacute;rentiel standard de s&eacute;curit&eacute; de l'information</div>
+            <div class="type-stats"><span><span class="type-stat-val">93</span> contr&ocirc;les</span><span><span class="type-stat-val">4</span> domaines</span></div>
+          </div>
+          <div class="type-card">
+            <div class="type-icon" style="background: var(--forest-900); color: var(--gold-500);">G&euml;</div>
+            <div class="type-name">Audit SI</div>
+            <div class="type-ref">R&eacute;f&eacute;rentiel G&euml;stu (COBIT + ITIL + ISO)</div>
+            <div class="type-desc">Audit complet du syst&egrave;me d'information : gouvernance, risques, services, s&eacute;curit&eacute;</div>
+            <div class="type-stats"><span><span class="type-stat-val">79</span> contr&ocirc;les</span><span><span class="type-stat-val">6</span> domaines</span></div>
+          </div>
+          <div class="type-card">
+            <div class="type-icon" style="background: var(--forest-900); color: var(--gold-500);">G&euml;</div>
+            <div class="type-name">Due diligence technique</div>
+            <div class="type-ref">R&eacute;f&eacute;rentiel G&euml;stu</div>
+            <div class="type-desc">&Eacute;valuer la maturit&eacute; technique d'une startup/PME pour un investisseur</div>
+            <div class="type-stats"><span><span class="type-stat-val">42</span> contr&ocirc;les</span><span><span class="type-stat-val">5</span> domaines</span></div>
+          </div>
+          <div class="type-card">
+            <div class="type-icon" style="background: var(--forest-900); color: var(--gold-500);">G&euml;</div>
+            <div class="type-name">&Eacute;valuation maturit&eacute; digitale</div>
+            <div class="type-ref">R&eacute;f&eacute;rentiel G&euml;stu</div>
+            <div class="type-desc">Mesurer le niveau de maturit&eacute; num&eacute;rique d'une organisation</div>
+            <div class="type-stats"><span><span class="type-stat-val">46</span> contr&ocirc;les</span><span><span class="type-stat-val">6</span> domaines</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary btn-disabled">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ÉTAPE 2: Client ====== -->
+<div class="section">
+  <h2>&Eacute;tape 2 — Client</h2>
+  <div class="subtitle">S&eacute;lection du client avec aper&ccedil;u de sa fiche</div>
+
+  <div class="wizard-frame">
+    <div class="wiz-sidebar">
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Type de mission</div>
+      <div class="wiz-step active"><div class="wiz-dot">2</div>Client</div>
+      <div class="wiz-step"><div class="wiz-dot">3</div>P&eacute;rim&egrave;tre</div>
+      <div class="wiz-step"><div class="wiz-dot">4</div>&Eacute;quipe</div>
+      <div class="wiz-step"><div class="wiz-dot">5</div>Calendrier</div>
+      <div class="wiz-step"><div class="wiz-dot">6</div>Confirmation</div>
+    </div>
+    <div class="wiz-main">
+      <div class="wiz-content">
+        <div class="wiz-title">Pour quel client ?</div>
+        <div class="wiz-subtitle">S&eacute;lectionnez un client de votre portefeuille</div>
+
+        <div style="margin-top: 14px;"><input type="text" placeholder="Rechercher un client..." style="width: 100%; max-width: 320px; padding: 8px 12px 8px 32px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; background: white url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2214%22 height=%2214%22 viewBox=%220 0 16 16%22 fill=%22none%22 stroke=%22%239CA3AF%22 stroke-width=%221.5%22%3E%3Ccircle cx=%227%22 cy=%227%22 r=%225%22/%3E%3Cpath d=%22M11 11L14 14%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat 10px center;" /></div>
+
+        <div class="client-list">
+          <div class="client-item selected">
+            <div class="client-avatar">CD</div>
+            <div class="client-info">
+              <div class="client-name">Client Demo SA</div>
+              <div class="client-meta">Banque / Finance &middot; Dakar &middot; 250-1 000 employ&eacute;s</div>
+              <div class="client-badges">
+                <span class="client-badge" style="background: var(--forest-100); color: var(--forest-700);">3 exigences</span>
+                <span class="client-badge" style="background: var(--gold-200); color: var(--gold-600);">5 PI</span>
+              </div>
+            </div>
+            <div class="client-check">✓</div>
+          </div>
+          <div class="client-item">
+            <div class="client-avatar">BA</div>
+            <div class="client-info">
+              <div class="client-name">Banque Alpha</div>
+              <div class="client-meta">Banque / Finance &middot; Abidjan &middot; 1 000-5 000</div>
+              <div class="client-badges">
+                <span class="client-badge" style="background: var(--forest-100); color: var(--forest-700);">5 exigences</span>
+              </div>
+            </div>
+            <div class="client-check"></div>
+          </div>
+          <div class="client-item">
+            <div class="client-avatar">TS</div>
+            <div class="client-info">
+              <div class="client-name">TechStart SAS</div>
+              <div class="client-meta">Technologies / IT &middot; Dakar &middot; Moins de 50</div>
+            </div>
+            <div class="client-check"></div>
+          </div>
+          <div class="new-client-btn">+ Enregistrer un nouveau client</div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ÉTAPE 3: Périmètre ====== -->
+<div class="section">
+  <h2>&Eacute;tape 3 — P&eacute;rim&egrave;tre</h2>
+  <div class="subtitle">Choisir les domaines &agrave; auditer avec preview du r&eacute;f&eacute;rentiel</div>
+
+  <div class="wizard-frame">
+    <div class="wiz-sidebar">
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Type de mission</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Client</div>
+      <div class="wiz-step active"><div class="wiz-dot">3</div>P&eacute;rim&egrave;tre</div>
+      <div class="wiz-step"><div class="wiz-dot">4</div>&Eacute;quipe</div>
+      <div class="wiz-step"><div class="wiz-dot">5</div>Calendrier</div>
+      <div class="wiz-step"><div class="wiz-dot">6</div>Confirmation</div>
+    </div>
+    <div class="wiz-main">
+      <div class="wiz-content">
+        <div class="wiz-title">D&eacute;finissez le p&eacute;rim&egrave;tre</div>
+        <div class="wiz-subtitle">S&eacute;lectionnez les domaines &agrave; inclure dans l'audit</div>
+
+        <div style="margin-top: 14px;">
+          <label style="font-size: 12px; font-weight: 500; color: var(--text-700);">Nom de la mission</label>
+          <input type="text" value="Audit ISO 27001 — Client Demo SA" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; margin-top: 4px;" />
+        </div>
+
+        <div class="scope-header">
+          <div class="scope-header-left">
+            <div class="scope-fw-icon" style="background: var(--forest-100); color: var(--forest-700);">ISO</div>
+            <span class="scope-fw-name">ISO/IEC 27001 v2022</span>
+          </div>
+          <span class="scope-count">4/4 domaines s&eacute;lectionn&eacute;s</span>
+        </div>
+
+        <div class="domain-check-list">
+          <label class="domain-check checked">
+            <input type="checkbox" checked>
+            <span class="domain-code">A.5</span>
+            <span class="domain-name">Mesures organisationnelles</span>
+            <span class="domain-controls">37 contr&ocirc;les</span>
+          </label>
+          <label class="domain-check checked">
+            <input type="checkbox" checked>
+            <span class="domain-code">A.6</span>
+            <span class="domain-name">Mesures li&eacute;es aux personnes</span>
+            <span class="domain-controls">8 contr&ocirc;les</span>
+          </label>
+          <label class="domain-check checked">
+            <input type="checkbox" checked>
+            <span class="domain-code">A.7</span>
+            <span class="domain-name">Mesures physiques</span>
+            <span class="domain-controls">14 contr&ocirc;les</span>
+          </label>
+          <label class="domain-check checked">
+            <input type="checkbox" checked>
+            <span class="domain-code">A.8</span>
+            <span class="domain-name">Mesures technologiques</span>
+            <span class="domain-controls">34 contr&ocirc;les</span>
+          </label>
+        </div>
+
+        <div class="scope-summary">
+          <span class="scope-summary-text">Contr&ocirc;les dans le p&eacute;rim&egrave;tre</span>
+          <span class="scope-summary-value">93 contr&ocirc;les &middot; 178 preuves</span>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ÉTAPE 4: Équipe ====== -->
+<div class="section">
+  <h2>&Eacute;tape 4 — &Eacute;quipe</h2>
+  <div class="subtitle">Affecter l'&eacute;quipe avec suggestion automatique</div>
+
+  <div class="wizard-frame">
+    <div class="wiz-sidebar">
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Type de mission</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Client</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>P&eacute;rim&egrave;tre</div>
+      <div class="wiz-step active"><div class="wiz-dot">4</div>&Eacute;quipe</div>
+      <div class="wiz-step"><div class="wiz-dot">5</div>Calendrier</div>
+      <div class="wiz-step"><div class="wiz-dot">6</div>Confirmation</div>
+    </div>
+    <div class="wiz-main">
+      <div class="wiz-content">
+        <div class="wiz-title">Constituez l'&eacute;quipe</div>
+        <div class="wiz-subtitle">D&eacute;signez l'associ&eacute;, le chef de mission et les auditeurs</div>
+
+        <div class="team-suggestion">
+          <span class="team-suggestion-icon">💡</span>
+          Pour 93 contr&ocirc;les, nous recommandons <strong>&nbsp;2 &agrave; 3 auditeurs&nbsp;</strong> sur une dur&eacute;e de 15 &agrave; 20 jours.
+        </div>
+
+        <div class="team-section">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <div class="team-role-label">Associ&eacute; <span class="team-role-hint">Validateur ultime</span></div>
+              <select class="team-select"><option>Oumar Gueye</option></select>
+            </div>
+            <div>
+              <div class="team-role-label">Chef de mission <span class="team-role-hint">Coordonne l'&eacute;quipe</span></div>
+              <select class="team-select"><option>Sadio Man&eacute;</option></select>
+            </div>
+          </div>
+
+          <div class="team-role-label">Auditeurs <span class="team-role-hint">S&eacute;lectionnez les membres de l'&eacute;quipe</span></div>
+          <div class="auditor-list">
+            <label class="auditor-item"><input type="checkbox" checked disabled> Oumar Gueye <span class="auditor-role-tag">Associ&eacute;</span></label>
+            <label class="auditor-item"><input type="checkbox" checked disabled> Sadio Man&eacute; <span class="auditor-role-tag">Chef de mission</span></label>
+            <label class="auditor-item"><input type="checkbox" checked> Aminata Diallo</label>
+            <label class="auditor-item"><input type="checkbox"> Ibrahima Sow</label>
+            <label class="auditor-item"><input type="checkbox"> Fatou Ndiaye</label>
+          </div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ÉTAPE 5: Calendrier ====== -->
+<div class="section">
+  <h2>&Eacute;tape 5 — Calendrier</h2>
+  <div class="subtitle">Dates, estimation de dur&eacute;e et timeline visuelle</div>
+
+  <div class="wizard-frame">
+    <div class="wiz-sidebar">
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Type de mission</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Client</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>P&eacute;rim&egrave;tre</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>&Eacute;quipe</div>
+      <div class="wiz-step active"><div class="wiz-dot">5</div>Calendrier</div>
+      <div class="wiz-step"><div class="wiz-dot">6</div>Confirmation</div>
+    </div>
+    <div class="wiz-main">
+      <div class="wiz-content">
+        <div class="wiz-title">Planifiez le calendrier</div>
+        <div class="wiz-subtitle">D&eacute;finissez les dates et la r&eacute;partition par phase</div>
+
+        <div class="cal-row">
+          <div class="cal-field">
+            <label>Date de d&eacute;but</label>
+            <input type="date" value="2026-04-14" />
+          </div>
+          <div class="cal-field">
+            <label>Date de fin</label>
+            <input type="date" value="2026-05-15" />
+          </div>
+        </div>
+
+        <div class="cal-estimate">
+          <div class="cal-estimate-title">Estimation automatique (93 contr&ocirc;les, 3 auditeurs)</div>
+          <div class="cal-estimate-grid">
+            <div class="cal-estimate-item">
+              <div class="cal-estimate-value">3j</div>
+              <div class="cal-estimate-label">Cadrage</div>
+            </div>
+            <div class="cal-estimate-item">
+              <div class="cal-estimate-value">12j</div>
+              <div class="cal-estimate-label">Travaux</div>
+            </div>
+            <div class="cal-estimate-item">
+              <div class="cal-estimate-value">4j</div>
+              <div class="cal-estimate-label">Revue</div>
+            </div>
+            <div class="cal-estimate-item">
+              <div class="cal-estimate-value">3j</div>
+              <div class="cal-estimate-label">Client</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-title">Timeline pr&eacute;visionnelle</div>
+          <div class="timeline-bar">
+            <div class="timeline-segment" style="flex: 3; background: var(--text-300);">3j</div>
+            <div class="timeline-segment" style="flex: 12; background: var(--forest-500);">12j</div>
+            <div class="timeline-segment" style="flex: 4; background: var(--gold-500);">4j</div>
+            <div class="timeline-segment" style="flex: 3; background: var(--forest-300);">3j</div>
+          </div>
+          <div class="timeline-legend">
+            <span><span class="timeline-legend-dot" style="background: var(--text-300);"></span>Cadrage</span>
+            <span><span class="timeline-legend-dot" style="background: var(--forest-500);"></span>Travaux</span>
+            <span><span class="timeline-legend-dot" style="background: var(--gold-500);"></span>Revue</span>
+            <span><span class="timeline-legend-dot" style="background: var(--forest-300);"></span>Client</span>
+          </div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ÉTAPE 6: Confirmation ====== -->
+<div class="section">
+  <h2>&Eacute;tape 6 — Confirmation</h2>
+  <div class="subtitle">R&eacute;capitulatif complet avant cr&eacute;ation</div>
+
+  <div class="wizard-frame">
+    <div class="wiz-sidebar">
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Type de mission</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Client</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>P&eacute;rim&egrave;tre</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>&Eacute;quipe</div>
+      <div class="wiz-step done"><div class="wiz-dot">✓</div>Calendrier</div>
+      <div class="wiz-step active"><div class="wiz-dot">6</div>Confirmation</div>
+    </div>
+    <div class="wiz-main">
+      <div class="wiz-content">
+        <div class="wiz-title">R&eacute;capitulatif</div>
+        <div class="wiz-subtitle">V&eacute;rifiez les informations avant de cr&eacute;er la mission</div>
+
+        <div class="confirm-stats">
+          <div class="confirm-stat">
+            <div class="confirm-stat-value">93</div>
+            <div class="confirm-stat-label">Contr&ocirc;les</div>
+          </div>
+          <div class="confirm-stat">
+            <div class="confirm-stat-value">3</div>
+            <div class="confirm-stat-label">Auditeurs</div>
+          </div>
+          <div class="confirm-stat">
+            <div class="confirm-stat-value">22j</div>
+            <div class="confirm-stat-label">Dur&eacute;e estim&eacute;e</div>
+          </div>
+          <div class="confirm-stat">
+            <div class="confirm-stat-value">178</div>
+            <div class="confirm-stat-label">Preuves</div>
+          </div>
+        </div>
+
+        <div class="confirm-card">
+          <div class="confirm-section">
+            <div class="confirm-label">Mission</div>
+            <div class="confirm-value">Audit ISO 27001 — Client Demo SA</div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-label">Type</div>
+            <div class="confirm-value">Audit de conformit&eacute;</div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-label">Client</div>
+            <div class="confirm-value">Client Demo SA &middot; Banque / Finance</div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-label">R&eacute;f&eacute;rentiel</div>
+            <div class="confirm-value">ISO/IEC 27001 v2022 &middot; 4 domaines &middot; 93 contr&ocirc;les</div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-label">P&eacute;riode</div>
+            <div class="confirm-value">14 avr. 2026 &rarr; 15 mai 2026</div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-label">Associ&eacute;</div>
+            <div class="confirm-value">Oumar Gueye</div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-label">Chef de mission</div>
+            <div class="confirm-value">Sadio Man&eacute;</div>
+          </div>
+          <div class="confirm-section">
+            <div class="confirm-label">&Eacute;quipe</div>
+            <div class="confirm-value">Oumar Gueye, Sadio Man&eacute;, Aminata Diallo</div>
+          </div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="btn btn-secondary">&larr; Pr&eacute;c&eacute;dent</button>
+        <button class="btn btn-primary" style="background: var(--forest-700);">Cr&eacute;er la mission</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  G&euml;stu Comply — Cr&eacute;ation Mission v2.0
+</div>
+
+</body>
+</html>

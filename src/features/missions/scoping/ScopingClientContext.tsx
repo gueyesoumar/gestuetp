@@ -1,5 +1,5 @@
 interface ScopingClientContextProps {
-  icon: string
+  icon: React.ReactNode
   title: string
   description?: string
   tags?: { label: string; variant?: 'default' | 'reg' | 'risk' }[]

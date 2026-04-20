@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Planification : Mission Control (enrichi)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --warning: #E67E22; --warning-light: #FFF3E0;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .section { max-width: 1400px; margin: 40px auto; padding: 0 30px; }
+  .st { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); text-align: center; margin-bottom: 6px; }
+  .ss { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+  .mockup { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 50px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge.green { background: #E8F5E8; color: var(--success); }
+  .badge.gray { background: #F3F4F6; color: var(--text-500); }
+  .badge.gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge.red { background: #FDE8E8; color: var(--error); }
+  .badge.blue { background: var(--info-light); color: var(--info); }
+  .badge.purple { background: var(--purple-light); color: var(--purple); }
+
+  .avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: white; flex-shrink: 0; }
+  .avatar.ms { background: var(--info); }
+  .avatar.if { background: #6B7280; }
+  .avatar.fn { background: #E07A5F; }
+  .avatar.ob { background: var(--purple); }
+
+  /* ============================================================
+     AI BANNER
+     ============================================================ */
+  .ai-banner { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--purple-light); border-bottom: 1px solid #DDD6FE; }
+  .ai-icon { width: 30px; height: 30px; border-radius: 8px; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .ai-text { font-size: 12px; color: #5B21B6; flex: 1; line-height: 1.4; }
+  .ai-btn { font-size: 12px; color: white; background: var(--purple); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; flex-shrink: 0; }
+  .ai-btn:hover { opacity: 0.9; }
+
+  /* ============================================================
+     LAYOUT : split
+     ============================================================ */
+  .mc-layout { display: grid; grid-template-columns: 1fr 360px; min-height: 700px; }
+
+  /* ============================================================
+     LEFT : Tabs + Programme de travail
+     ============================================================ */
+  .mc-left { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Sub-tabs inside left panel */
+  .mc-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: #FAFAFA; }
+  .mc-tab {
+    padding: 12px 20px; font-size: 12px; font-weight: 500; color: var(--text-500);
+    border: none; background: none; cursor: pointer; position: relative; white-space: nowrap;
+  }
+  .mc-tab:hover { color: var(--forest-700); }
+  .mc-tab.active { color: var(--forest-700); font-weight: 600; }
+  .mc-tab.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--forest-700); }
+  .mc-tab .cnt { font-size: 10px; font-weight: 600; background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 99px; margin-left: 4px; }
+  .mc-tab.active .cnt { background: var(--forest-100); color: var(--forest-700); }
+
+  /* Toolbar */
+  .mc-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .mc-toolbar-left { display: flex; align-items: center; gap: 8px; }
+  .mc-search {
+    padding: 6px 10px 6px 30px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; width: 200px; outline: none; background: var(--bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='none' viewBox='0 0 24 24'%3E%3Cpath d='M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z' stroke='%239CA3AF' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 9px center;
+  }
+  .mc-search:focus { border-color: var(--forest-500); background-color: white; }
+
+  .mc-filter-btn {
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 11px; color: var(--text-500); background: white; cursor: pointer;
+  }
+  .mc-filter-btn:hover { border-color: var(--forest-300); color: var(--forest-700); }
+
+  /* TABLE: Programme de travail */
+  .mc-scroll { flex: 1; overflow: auto; }
+  .wp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .wp-table thead th {
+    padding: 8px 12px; font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-500); text-align: left;
+    background: #FAFAFA; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 1;
+  }
+  .wp-table tbody td {
+    padding: 8px 12px; color: var(--text-700); border-bottom: 1px solid #F5F5F5;
+    vertical-align: middle;
+  }
+  .wp-table tbody tr:hover { background: var(--forest-50); }
+
+  /* Domain row */
+  .wp-domain td {
+    background: #FAFAFA; font-weight: 600; color: var(--text-900); font-size: 12px;
+    border-bottom: 1px solid var(--border) !important; padding: 10px 12px;
+  }
+
+  /* Risk chip */
+  .risk { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+  .risk.critical { background: #FDE8E8; color: var(--error); }
+  .risk.high { background: var(--warning-light); color: var(--warning); }
+  .risk.medium { background: var(--gold-50); color: var(--gold-600); }
+  .risk.low { background: #F3F4F6; color: var(--text-500); }
+
+  /* Technique tags */
+  .tech-tags { display: flex; gap: 3px; flex-wrap: wrap; }
+  .tech-tag {
+    font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap;
+  }
+  .tech-tag.inspection { background: #EBF5FF; color: var(--info); }
+  .tech-tag.entretien { background: var(--forest-50); color: var(--forest-700); }
+  .tech-tag.observation { background: var(--gold-50); color: var(--gold-600); }
+  .tech-tag.reexecution { background: var(--purple-light); color: var(--purple); }
+  .tech-tag.echantillon { background: var(--warning-light); color: var(--warning); }
+  .tech-tag.analytique { background: #F3F4F6; color: var(--text-500); }
+
+  /* Hours */
+  .hours { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text-700); }
+  .hours-total { font-weight: 700; color: var(--forest-700); }
+
+  /* Auditor cell */
+  .auditor-cell { display: flex; align-items: center; gap: 6px; }
+  .auditor-select {
+    padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 11px; outline: none; background: white; cursor: pointer; min-width: 120px;
+  }
+
+  /* Sampling */
+  .sampling { font-size: 10px; color: var(--text-500); display: flex; align-items: center; gap: 3px; }
+  .sampling-bar { width: 30px; height: 4px; background: var(--border); border-radius: 2px; }
+  .sampling-fill { height: 4px; border-radius: 2px; background: var(--info); }
+
+  /* Tab contents */
+  .tab-pane { display: none; }
+  .tab-pane.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+
+  /* ============================================================
+     RIGHT SIDEBAR
+     ============================================================ */
+  .mc-right { display: flex; flex-direction: column; background: var(--bg); overflow-y: auto; }
+  .sb-section { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .sb-section h4 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-500); margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* Budget banner */
+  .budget-banner {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  }
+  .budget-item {
+    flex: 1; padding: 14px 16px; text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .budget-item:last-child { border-right: none; }
+  .budget-value { font-size: 22px; font-weight: 700; }
+  .budget-label { font-size: 10px; color: var(--text-500); margin-top: 2px; }
+
+  /* Workload */
+  .wl { margin-bottom: 14px; }
+  .wl-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .wl-name { font-size: 12px; font-weight: 500; color: var(--text-700); display: flex; align-items: center; gap: 6px; }
+  .wl-hours { font-size: 11px; font-weight: 600; }
+  .wl-bar { height: 6px; background: var(--border); border-radius: 3px; }
+  .wl-fill { height: 6px; border-radius: 3px; }
+  .wl-sub { font-size: 10px; color: var(--text-300); margin-top: 2px; display: flex; justify-content: space-between; }
+  .wl-alert { font-size: 10px; color: var(--warning); margin-top: 2px; }
+
+  /* Gantt mini */
+  .gantt-header { display: flex; padding: 0 0 6px; border-bottom: 1px solid #F3F4F6; margin-bottom: 6px; }
+  .gantt-week { flex: 1; text-align: center; font-size: 9px; font-weight: 600; color: var(--text-300); text-transform: uppercase; }
+  .gantt-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .gantt-label { font-size: 10px; color: var(--text-500); width: 32px; flex-shrink: 0; }
+  .gantt-track { flex: 1; height: 16px; position: relative; background: #F9FAFB; border-radius: 3px; }
+  .gantt-fill {
+    position: absolute; top: 0; height: 100%; border-radius: 3px;
+    font-size: 8px; font-weight: 600; color: white; display: flex; align-items: center; padding-left: 4px;
+    overflow: hidden; white-space: nowrap;
+  }
+
+  /* Interview list */
+  .interview {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #F3F4F6;
+  }
+  .interview:last-child { border-bottom: none; }
+  .interview-date {
+    width: 44px; text-align: center; flex-shrink: 0;
+    background: var(--forest-50); border-radius: 6px; padding: 4px 6px;
+  }
+  .interview-day { font-size: 16px; font-weight: 700; color: var(--forest-700); line-height: 1; }
+  .interview-month { font-size: 9px; font-weight: 500; color: var(--forest-500); text-transform: uppercase; }
+  .interview-body { flex: 1; min-width: 0; }
+  .interview-title { font-size: 12px; font-weight: 600; color: var(--text-900); }
+  .interview-meta { font-size: 10px; color: var(--text-300); margin-top: 2px; line-height: 1.4; }
+  .interview-tags { display: flex; gap: 3px; margin-top: 4px; flex-wrap: wrap; }
+  .interview-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; background: #F3F4F6; color: var(--text-500); }
+
+  /* Actions */
+  .sb-actions { display: flex; flex-direction: column; gap: 8px; }
+  .sb-action {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: white; cursor: pointer; text-align: left; font-size: 12px; color: var(--text-700);
+    transition: all 0.15s;
+  }
+  .sb-action:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .sb-action-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; }
+  .sb-action.primary { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .sb-action.primary:hover { background: var(--forest-900); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Planification Mission Control (enrichi)</h1>
+</div>
+
+<div class="section">
+  <p class="st">Proposition A &mdash; Mission Control (version enrichie)</p>
+  <p class="ss">Programme de travail complet : affectation + techniques + budget temps + entretiens + calendrier</p>
+
+  <div class="mockup">
+
+    <!-- AI Banner -->
+    <div class="ai-banner">
+      <div class="ai-icon">&#9733;</div>
+      <div class="ai-text">
+        <strong>SmartPlan</strong> peut g&eacute;n&eacute;rer le programme de travail complet : affectations, techniques d&rsquo;audit, budget temps et planning entretiens, en &eacute;quilibrant charge et comp&eacute;tences.
+      </div>
+      <button class="ai-btn">&#9733; G&eacute;n&eacute;rer le programme de travail</button>
+    </div>
+
+    <div class="mc-layout">
+
+      <!-- ============================================================
+           LEFT PANEL
+           ============================================================ -->
+      <div class="mc-left">
+
+        <!-- Tabs -->
+        <div class="mc-tabs">
+          <button class="mc-tab active" onclick="showMcTab('programme')">Programme de travail <span class="cnt">32</span></button>
+          <button class="mc-tab" onclick="showMcTab('entretiens')">Entretiens <span class="cnt">8</span></button>
+          <button class="mc-tab" onclick="showMcTab('livrables')">Livrables <span class="cnt">6</span></button>
+        </div>
+
+        <!-- ====== TAB: Programme de travail ====== -->
+        <div class="tab-pane active" id="pane-programme">
+          <div class="mc-toolbar">
+            <div class="mc-toolbar-left">
+              <input type="text" class="mc-search" placeholder="Rechercher...">
+              <button class="mc-filter-btn">&#9662; Domaine</button>
+              <button class="mc-filter-btn">&#9662; Risque</button>
+              <button class="mc-filter-btn">&#9662; Auditeur</button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span class="badge green">18/32 affect&eacute;s</span>
+              <span class="badge blue">92h budget&eacute;es</span>
+            </div>
+          </div>
+
+          <div class="mc-scroll">
+            <table class="wp-table">
+              <thead>
+                <tr>
+                  <th style="width:60px;">Code</th>
+                  <th>Contr&ocirc;le</th>
+                  <th style="width:64px;">Risque</th>
+                  <th style="width:140px;">Techniques</th>
+                  <th style="width:80px;">&Eacute;chantillon</th>
+                  <th style="width:50px;">Heures</th>
+                  <th style="width:150px;">Auditeur</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                <!-- Domain A.5 -->
+                <tr class="wp-domain">
+                  <td colspan="7">
+                    <span class="mono" style="color:var(--forest-700);font-size:11px;">A.5</span> &mdash; Politiques de s&eacute;curit&eacute; de l&rsquo;information
+                    <span class="badge green" style="margin-left:8px;">4/4</span>
+                    <span class="hours-total" style="float:right;">12h</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.5.1</span></td>
+                  <td style="font-size:12px;">Politiques de s&eacute;curit&eacute; de l&rsquo;information</td>
+                  <td><span class="risk critical">Critique</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag inspection">Inspection</span>
+                      <span class="tech-tag entretien">Entretien</span>
+                    </div>
+                  </td>
+                  <td><span style="font-size:10px;color:var(--text-300);">&mdash;</span></td>
+                  <td><span class="hours">4h</span></td>
+                  <td>
+                    <div class="auditor-cell">
+                      <div class="avatar ms">MS</div>
+                      <span style="font-size:11px;">M. Sarr</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.5.2</span></td>
+                  <td style="font-size:12px;">Revue des politiques de s&eacute;curit&eacute;</td>
+                  <td><span class="risk high">&Eacute;lev&eacute;</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag inspection">Inspection</span>
+                    </div>
+                  </td>
+                  <td><span style="font-size:10px;color:var(--text-300);">&mdash;</span></td>
+                  <td><span class="hours">3h</span></td>
+                  <td>
+                    <div class="auditor-cell">
+                      <div class="avatar ms">MS</div>
+                      <span style="font-size:11px;">M. Sarr</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.5.3</span></td>
+                  <td style="font-size:12px;">Communication des politiques</td>
+                  <td><span class="risk medium">Moyen</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag entretien">Entretien</span>
+                      <span class="tech-tag echantillon">&Eacute;chantillon</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="sampling">
+                      20/200
+                      <div class="sampling-bar"><div class="sampling-fill" style="width:10%;"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="hours">3h</span></td>
+                  <td>
+                    <div class="auditor-cell">
+                      <div class="avatar if">IF</div>
+                      <span style="font-size:11px;">I. Fall</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.5.4</span></td>
+                  <td style="font-size:12px;">R&ocirc;les et responsabilit&eacute;s SI</td>
+                  <td><span class="risk high">&Eacute;lev&eacute;</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag inspection">Inspection</span>
+                      <span class="tech-tag entretien">Entretien</span>
+                      <span class="tech-tag analytique">Analytique</span>
+                    </div>
+                  </td>
+                  <td><span style="font-size:10px;color:var(--text-300);">&mdash;</span></td>
+                  <td><span class="hours">2h</span></td>
+                  <td>
+                    <div class="auditor-cell">
+                      <div class="avatar if">IF</div>
+                      <span style="font-size:11px;">I. Fall</span>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Domain A.8 — partially assigned -->
+                <tr class="wp-domain">
+                  <td colspan="7">
+                    <span class="mono" style="color:var(--forest-700);font-size:11px;">A.8</span> &mdash; Gestion des actifs
+                    <span class="badge gold" style="margin-left:8px;">2/8</span>
+                    <span class="hours-total" style="float:right;">28h</span>
+                    <button style="float:right;margin-right:12px;font-size:10px;color:var(--forest-700);background:var(--forest-50);border:1px solid var(--forest-300);padding:2px 10px;border-radius:5px;cursor:pointer;">Affecter tout &agrave;...</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.8.1</span></td>
+                  <td style="font-size:12px;">Inventaire des actifs</td>
+                  <td><span class="risk critical">Critique</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag inspection">Inspection</span>
+                      <span class="tech-tag echantillon">&Eacute;chantillon</span>
+                      <span class="tech-tag reexecution">Re-ex&eacute;cution</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="sampling">
+                      50/500
+                      <div class="sampling-bar"><div class="sampling-fill" style="width:10%;"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="hours">6h</span></td>
+                  <td>
+                    <div class="auditor-cell">
+                      <div class="avatar fn">FN</div>
+                      <span style="font-size:11px;">F. Ndiaye</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.8.2</span></td>
+                  <td style="font-size:12px;">Propri&eacute;t&eacute; des actifs</td>
+                  <td><span class="risk high">&Eacute;lev&eacute;</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag inspection">Inspection</span>
+                      <span class="tech-tag entretien">Entretien</span>
+                    </div>
+                  </td>
+                  <td><span style="font-size:10px;color:var(--text-300);">&mdash;</span></td>
+                  <td><span class="hours">3h</span></td>
+                  <td>
+                    <select class="auditor-select">
+                      <option value="" selected>Non affect&eacute;</option>
+                      <option>Moussa Sarr</option>
+                      <option>Ibrahim Fall</option>
+                      <option>Fatou Ndiaye</option>
+                      <option>Oumar Ba</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr style="background:var(--purple-light);">
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.8.3</span></td>
+                  <td style="font-size:12px;">Utilisation acceptable des actifs <span class="badge purple" style="font-size:9px;">&#9733; Sugg. IA : Oumar Ba</span></td>
+                  <td><span class="risk low">Faible</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag entretien">Entretien</span>
+                      <span class="tech-tag observation">Observation</span>
+                    </div>
+                  </td>
+                  <td><span style="font-size:10px;color:var(--text-300);">&mdash;</span></td>
+                  <td><span class="hours">2h</span></td>
+                  <td>
+                    <select class="auditor-select" style="border-color:var(--purple);">
+                      <option value="">Non affect&eacute;</option>
+                      <option>Moussa Sarr</option>
+                      <option>Ibrahim Fall</option>
+                      <option>Fatou Ndiaye</option>
+                      <option selected>Oumar Ba &#9733;</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.8.4</span></td>
+                  <td style="font-size:12px;">Restitution des actifs</td>
+                  <td><span class="risk low">Faible</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag inspection">Inspection</span>
+                    </div>
+                  </td>
+                  <td><span style="font-size:10px;color:var(--text-300);">&mdash;</span></td>
+                  <td><span class="hours">2h</span></td>
+                  <td>
+                    <select class="auditor-select">
+                      <option value="" selected>Non affect&eacute;</option>
+                      <option>Moussa Sarr</option>
+                      <option>Ibrahim Fall</option>
+                      <option>Fatou Ndiaye</option>
+                      <option>Oumar Ba</option>
+                    </select>
+                  </td>
+                </tr>
+
+                <!-- Domain A.9 -->
+                <tr class="wp-domain">
+                  <td colspan="7">
+                    <span class="mono" style="color:var(--forest-700);font-size:11px;">A.9</span> &mdash; Contr&ocirc;le d&rsquo;acc&egrave;s
+                    <span class="badge gray" style="margin-left:8px;">0/8</span>
+                    <span class="hours-total" style="float:right;">36h</span>
+                    <button style="float:right;margin-right:12px;font-size:10px;color:var(--forest-700);background:var(--forest-50);border:1px solid var(--forest-300);padding:2px 10px;border-radius:5px;cursor:pointer;">Affecter tout &agrave;...</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.9.1</span></td>
+                  <td style="font-size:12px;">Politique de contr&ocirc;le d&rsquo;acc&egrave;s</td>
+                  <td><span class="risk critical">Critique</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag inspection">Inspection</span>
+                      <span class="tech-tag entretien">Entretien</span>
+                      <span class="tech-tag reexecution">Re-ex&eacute;cution</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="sampling">
+                      30/300
+                      <div class="sampling-bar"><div class="sampling-fill" style="width:10%;"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="hours">6h</span></td>
+                  <td>
+                    <select class="auditor-select">
+                      <option value="" selected>Non affect&eacute;</option>
+                      <option>Moussa Sarr</option>
+                      <option>Ibrahim Fall</option>
+                      <option>Fatou Ndiaye</option>
+                      <option>Oumar Ba</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="mono" style="font-size:11px;color:var(--forest-700);">A.9.2</span></td>
+                  <td style="font-size:12px;">Gestion des acc&egrave;s utilisateurs</td>
+                  <td><span class="risk critical">Critique</span></td>
+                  <td>
+                    <div class="tech-tags">
+                      <span class="tech-tag echantillon">&Eacute;chantillon</span>
+                      <span class="tech-tag reexecution">Re-ex&eacute;cution</span>
+                      <span class="tech-tag analytique">Analytique</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="sampling">
+                      40/800
+                      <div class="sampling-bar"><div class="sampling-fill" style="width:5%;"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="hours">8h</span></td>
+                  <td>
+                    <select class="auditor-select">
+                      <option value="" selected>Non affect&eacute;</option>
+                      <option>Moussa Sarr</option>
+                      <option>Ibrahim Fall</option>
+                      <option>Fatou Ndiaye</option>
+                      <option>Oumar Ba</option>
+                    </select>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ====== TAB: Entretiens ====== -->
+        <div class="tab-pane" id="pane-entretiens">
+          <div class="mc-toolbar">
+            <div class="mc-toolbar-left">
+              <span style="font-size:13px;font-weight:600;color:var(--text-900);">Calendrier des entretiens</span>
+            </div>
+            <button class="ai-btn" style="font-size:11px;padding:6px 14px;">+ Planifier un entretien</button>
+          </div>
+          <div class="mc-scroll" style="padding:16px;">
+            <!-- Week 1 -->
+            <div style="font-size:11px;font-weight:600;color:var(--text-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Semaine 1 &mdash; 15-19 mars 2026</div>
+
+            <div class="interview">
+              <div class="interview-date"><div class="interview-day">17</div><div class="interview-month">mars</div></div>
+              <div class="interview-body">
+                <div class="interview-title">RSSI &mdash; Revue politique &amp; gouvernance SI</div>
+                <div class="interview-meta">09:30 &mdash; 11:00 (1h30) &middot; Salle Conf B2 &middot; <strong>Amadou Diop</strong> (RSSI)</div>
+                <div class="interview-tags">
+                  <span class="interview-tag">A.5.1</span>
+                  <span class="interview-tag">A.5.2</span>
+                  <span class="interview-tag">A.5.4</span>
+                  <span class="interview-tag">A.6.1</span>
+                </div>
+                <div class="interview-meta" style="margin-top:4px;">Auditeur : <strong>M. Sarr</strong></div>
+              </div>
+            </div>
+
+            <div class="interview">
+              <div class="interview-date"><div class="interview-day">18</div><div class="interview-month">mars</div></div>
+              <div class="interview-body">
+                <div class="interview-title">DRH &mdash; S&eacute;curit&eacute; RH &amp; sensibilisation</div>
+                <div class="interview-meta">14:00 &mdash; 15:30 (1h30) &middot; Bureau DRH &middot; <strong>Mariama Sow</strong> (DRH)</div>
+                <div class="interview-tags">
+                  <span class="interview-tag">A.7.1</span>
+                  <span class="interview-tag">A.7.2</span>
+                  <span class="interview-tag">A.7.3</span>
+                </div>
+                <div class="interview-meta" style="margin-top:4px;">Auditeur : <strong>I. Fall</strong></div>
+              </div>
+            </div>
+
+            <!-- Week 2 -->
+            <div style="font-size:11px;font-weight:600;color:var(--text-500);text-transform:uppercase;letter-spacing:0.5px;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Semaine 2 &mdash; 22-26 mars 2026</div>
+
+            <div class="interview">
+              <div class="interview-date"><div class="interview-day">22</div><div class="interview-month">mars</div></div>
+              <div class="interview-body">
+                <div class="interview-title">DSI &mdash; Gestion des actifs &amp; CMDB</div>
+                <div class="interview-meta">10:00 &mdash; 12:00 (2h) &middot; Salle IT &middot; <strong>Ibrahima Ka</strong> (DSI)</div>
+                <div class="interview-tags">
+                  <span class="interview-tag">A.8.1</span>
+                  <span class="interview-tag">A.8.2</span>
+                  <span class="interview-tag">A.8.3</span>
+                  <span class="interview-tag">A.8.4</span>
+                </div>
+                <div class="interview-meta" style="margin-top:4px;">Auditeur : <strong>F. Ndiaye</strong></div>
+              </div>
+            </div>
+
+            <div class="interview">
+              <div class="interview-date"><div class="interview-day">24</div><div class="interview-month">mars</div></div>
+              <div class="interview-body">
+                <div class="interview-title">Admin syst&egrave;me &mdash; Contr&ocirc;le d&rsquo;acc&egrave;s &amp; IAM</div>
+                <div class="interview-meta">09:00 &mdash; 11:00 (2h) &middot; Salle Conf A1 &middot; <strong>Papa Ndiaye</strong> (Admin sys)</div>
+                <div class="interview-tags">
+                  <span class="interview-tag">A.9.1</span>
+                  <span class="interview-tag">A.9.2</span>
+                  <span class="interview-tag">A.9.3</span>
+                  <span class="interview-tag">A.9.4</span>
+                </div>
+                <div class="interview-meta" style="margin-top:4px;">Auditeur : <strong>M. Sarr</strong> + <strong>O. Ba</strong></div>
+              </div>
+            </div>
+
+            <div class="interview">
+              <div class="interview-date"><div class="interview-day">26</div><div class="interview-month">mars</div></div>
+              <div class="interview-body">
+                <div class="interview-title">RSSI &mdash; Revue chiffrement &amp; crypto</div>
+                <div class="interview-meta">14:00 &mdash; 15:00 (1h) &middot; Vis&iacute;o &middot; <strong>Amadou Diop</strong> (RSSI)</div>
+                <div class="interview-tags"><span class="interview-tag">A.10.1</span></div>
+                <div class="interview-meta" style="margin-top:4px;">Auditeur : <strong>I. Fall</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== TAB: Livrables ====== -->
+        <div class="tab-pane" id="pane-livrables">
+          <div class="mc-toolbar">
+            <span style="font-size:13px;font-weight:600;color:var(--text-900);">Livrables attendus par phase</span>
+          </div>
+          <div class="mc-scroll" style="padding:16px;">
+            <div style="margin-bottom:20px;">
+              <div style="font-size:11px;font-weight:600;color:var(--text-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Phase Cadrage</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+                <span style="color:var(--success);font-size:14px;">&#10003;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Questionnaire de prise de connaissance</span>
+                <span class="badge green">Termin&eacute;</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+                <span style="color:var(--success);font-size:14px;">&#10003;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Preuves initiales collect&eacute;es</span>
+                <span class="badge green">Termin&eacute;</span>
+              </div>
+            </div>
+            <div style="margin-bottom:20px;">
+              <div style="font-size:11px;font-weight:600;color:var(--text-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Phase Planification</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+                <span style="color:var(--info);font-size:14px;">&#9679;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Programme de travail valid&eacute;</span>
+                <span class="badge blue">En cours</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+                <span style="color:var(--text-300);font-size:14px;">&#9675;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Planning des entretiens confirm&eacute;</span>
+                <span class="badge gray">En attente</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+                <span style="color:var(--text-300);font-size:14px;">&#9675;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Lettre de mission sign&eacute;e</span>
+                <span class="badge gray">En attente</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--text-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Phase Travaux terrain</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+                <span style="color:var(--text-300);font-size:14px;">&#9675;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Feuilles de travail (constats par contr&ocirc;le)</span>
+                <span class="badge gray">Phase suivante</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+                <span style="color:var(--text-300);font-size:14px;">&#9675;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Rapport d&rsquo;audit provisoire</span>
+                <span class="badge gray">Phase suivante</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;">
+                <span style="color:var(--text-300);font-size:14px;">&#9675;</span>
+                <span style="font-size:12px;color:var(--text-700);flex:1;">Rapport final + plan d&rsquo;action</span>
+                <span class="badge gray">Phase suivante</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           RIGHT SIDEBAR
+           ============================================================ -->
+      <div class="mc-right">
+
+        <!-- Budget banner -->
+        <div class="budget-banner">
+          <div class="budget-item">
+            <div class="budget-value" style="color:var(--forest-700);">92h</div>
+            <div class="budget-label">Budget total</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-value" style="color:var(--gold-500);">56h</div>
+            <div class="budget-label">Affect&eacute;es</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-value" style="color:var(--text-300);">36h</div>
+            <div class="budget-label">Restantes</div>
+          </div>
+        </div>
+
+        <!-- Charge par auditeur (en heures) -->
+        <div class="sb-section">
+          <h4>Charge par auditeur <span style="font-size:10px;font-weight:400;color:var(--text-300);text-transform:none;letter-spacing:0;">en heures</span></h4>
+
+          <div class="wl">
+            <div class="wl-head">
+              <span class="wl-name"><span class="avatar ms" style="width:18px;height:18px;font-size:8px;">MS</span> Moussa Sarr</span>
+              <span class="wl-hours" style="color:var(--error);">28h</span>
+            </div>
+            <div class="wl-bar"><div class="wl-fill" style="width:85%;background:var(--error);"></div></div>
+            <div class="wl-sub"><span>12 ctrl &middot; 4 critiques</span><span style="color:var(--error);">Surcharge</span></div>
+          </div>
+
+          <div class="wl">
+            <div class="wl-head">
+              <span class="wl-name"><span class="avatar if" style="width:18px;height:18px;font-size:8px;">IF</span> Ibrahim Fall</span>
+              <span class="wl-hours" style="color:var(--forest-700);">18h</span>
+            </div>
+            <div class="wl-bar"><div class="wl-fill" style="width:55%;background:var(--forest-500);"></div></div>
+            <div class="wl-sub"><span>10 ctrl &middot; 2 critiques</span><span style="color:var(--success);">&Eacute;quilibr&eacute;</span></div>
+          </div>
+
+          <div class="wl">
+            <div class="wl-head">
+              <span class="wl-name"><span class="avatar fn" style="width:18px;height:18px;font-size:8px;">FN</span> Fatou Ndiaye</span>
+              <span class="wl-hours" style="color:var(--forest-700);">16h</span>
+            </div>
+            <div class="wl-bar"><div class="wl-fill" style="width:48%;background:var(--gold-500);"></div></div>
+            <div class="wl-sub"><span>8 ctrl &middot; 1 critique</span><span>&Eacute;quilibr&eacute;</span></div>
+          </div>
+
+          <div class="wl">
+            <div class="wl-head">
+              <span class="wl-name"><span class="avatar ob" style="width:18px;height:18px;font-size:8px;">OB</span> Oumar Ba</span>
+              <span class="wl-hours" style="color:var(--warning);">4h</span>
+            </div>
+            <div class="wl-bar"><div class="wl-fill" style="width:12%;background:var(--warning);"></div></div>
+            <div class="wl-sub"><span>2 ctrl &middot; 0 critique</span><span style="color:var(--warning);">Sous-utilis&eacute;</span></div>
+          </div>
+        </div>
+
+        <!-- Calendrier Gantt -->
+        <div class="sb-section">
+          <h4>Calendrier par domaine</h4>
+          <div class="gantt-header">
+            <div class="gantt-week">S1</div><div class="gantt-week">S2</div><div class="gantt-week">S3</div>
+            <div class="gantt-week">S4</div><div class="gantt-week">S5</div><div class="gantt-week">S6</div><div class="gantt-week">S7</div>
+          </div>
+          <div class="gantt-row">
+            <span class="gantt-label mono">A.5</span>
+            <div class="gantt-track"><div class="gantt-fill" style="left:0;width:28%;background:var(--forest-500);">12h</div></div>
+          </div>
+          <div class="gantt-row">
+            <span class="gantt-label mono">A.6</span>
+            <div class="gantt-track"><div class="gantt-fill" style="left:14%;width:28%;background:var(--info);">10h</div></div>
+          </div>
+          <div class="gantt-row">
+            <span class="gantt-label mono">A.7</span>
+            <div class="gantt-track"><div class="gantt-fill" style="left:28%;width:28%;background:#E07A5F;">14h</div></div>
+          </div>
+          <div class="gantt-row">
+            <span class="gantt-label mono">A.8</span>
+            <div class="gantt-track"><div class="gantt-fill" style="left:42%;width:30%;background:var(--purple);">28h</div></div>
+          </div>
+          <div class="gantt-row">
+            <span class="gantt-label mono">A.9</span>
+            <div class="gantt-track"><div class="gantt-fill" style="left:57%;width:35%;background:var(--gold-500);">36h</div></div>
+          </div>
+          <div class="gantt-row">
+            <span class="gantt-label mono">A.10</span>
+            <div class="gantt-track"><div class="gantt-fill" style="left:71%;width:15%;background:var(--text-500);">4h</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--text-300);">
+            <span>15 mars</span><span>30 avril</span>
+          </div>
+        </div>
+
+        <!-- Prochain entretien -->
+        <div class="sb-section">
+          <h4>Prochain entretien</h4>
+          <div class="interview" style="padding:0;border:none;">
+            <div class="interview-date"><div class="interview-day">17</div><div class="interview-month">mars</div></div>
+            <div class="interview-body">
+              <div class="interview-title">RSSI &mdash; Politique &amp; gouvernance</div>
+              <div class="interview-meta">09:30 &middot; 1h30 &middot; <strong>A. Diop</strong></div>
+              <div class="interview-tags">
+                <span class="interview-tag">A.5.1</span>
+                <span class="interview-tag">A.5.2</span>
+                <span class="interview-tag">+2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="sb-section" style="border-bottom:none;">
+          <h4>Actions</h4>
+          <div class="sb-actions">
+            <button class="sb-action"><span class="sb-action-icon">&#127922;</span> R&eacute;partition &eacute;quilibr&eacute;e auto</button>
+            <button class="sb-action"><span class="sb-action-icon">&#128203;</span> Exporter le programme (Excel)</button>
+            <button class="sb-action"><span class="sb-action-icon">&#128231;</span> Envoyer le planning au client</button>
+            <button class="sb-action primary"><span class="sb-action-icon">&#10003;</span> Valider la planification</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function showMcTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + name).classList.add('active');
+  document.querySelectorAll('.mc-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

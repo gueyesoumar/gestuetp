@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G&euml;stu ETP &mdash; Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif; min-height: 100vh;
+    background: linear-gradient(160deg, #0A1A10 0%, #1B4332 45%, #173D2E 100%);
+    overflow-x: hidden; position: relative;
+  }
+
+  /* ── Animated background ── */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background: url("data:image/svg+xml,%3Csvg width='240' height='240' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M120 24 L192 60 L186 156 L120 204 L54 156 L48 60 Z' fill='none' stroke='rgba(212,168,67,0.025)' stroke-width='1'/%3E%3C/svg%3E");
+    background-size: 240px 240px;
+    animation: drift 40s linear infinite;
+  }
+  @keyframes drift { 0% { transform: translate(0,0); } 100% { transform: translate(-240px,-240px); } }
+
+  /* Orbs */
+  .orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: 0; animation: orb-move 20s ease-in-out infinite; }
+  .orb-1 { width: 500px; height: 500px; background: rgba(212,168,67,0.06); top: -100px; right: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(64,145,108,0.06); bottom: -100px; left: -100px; animation-delay: -7s; }
+  .orb-3 { width: 300px; height: 300px; background: rgba(212,168,67,0.04); top: 50%; left: 40%; animation-delay: -14s; }
+  @keyframes orb-move {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(50px,-40px) scale(1.08); }
+    66% { transform: translate(-30px,30px) scale(0.92); }
+  }
+
+  /* Particles canvas */
+  #particles { position: fixed; inset: 0; z-index: 0; }
+
+  /* ── Content wrapper ── */
+  .page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+
+  /* ── Header / Brand ── */
+  .brand { text-align: center; margin-bottom: 48px; animation: fadeUp 0.8s ease-out; }
+
+  .shield-wrap {
+    width: 80px; height: 96px; margin: 0 auto 24px; position: relative;
+  }
+  .shield-wrap svg { width: 100%; height: 100%; filter: drop-shadow(0 0 40px rgba(212,168,67,0.25)); }
+  .shield-glow {
+    position: absolute; inset: -20px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,168,67,0.12) 0%, transparent 70%);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+  /* Scan line */
+  .shield-scan {
+    position: absolute; left: 22%; right: 22%; height: 2px;
+    background: linear-gradient(90deg, transparent, #D4A843, transparent);
+    box-shadow: 0 0 12px rgba(212,168,67,0.5);
+    animation: scan 3.5s ease-in-out infinite;
+  }
+  @keyframes scan {
+    0% { top: 22%; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { top: 72%; opacity: 0; }
+  }
+
+  .brand-name { font-size: 42px; font-weight: 200; color: white; letter-spacing: 10px; text-transform: uppercase; }
+  .brand-name .gold { color: #D4A843; font-weight: 400; }
+  .brand-tagline { font-size: 11px; letter-spacing: 5px; color: rgba(212,168,67,0.45); text-transform: uppercase; margin-top: 6px; }
+  .brand-welcome { font-size: 17px; color: rgba(255,255,255,0.35); margin-top: 28px; font-weight: 300; }
+  .brand-welcome strong { color: rgba(255,255,255,0.75); font-weight: 600; }
+
+  /* ── Product grid ── */
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 320px); gap: 24px;
+    justify-content: center; margin-bottom: 40px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 24px; padding: 36px 32px; cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative; overflow: hidden; backdrop-filter: blur(12px);
+  }
+  /* Accent glow on hover */
+  .card::after {
+    content: ''; position: absolute; inset: 0; border-radius: 24px;
+    box-shadow: inset 0 1px 0 var(--accent), 0 0 60px var(--glow);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .card:hover {
+    background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  }
+  .card:hover::after { opacity: 1; }
+
+  .card.disabled { opacity: 0.25; cursor: default; }
+  .card.disabled:hover { transform: none; background: rgba(255,255,255,0.04); box-shadow: none; }
+  .card.disabled:hover::after { opacity: 0; }
+
+  /* Staggered entrance */
+  .card { opacity: 0; animation: cardIn 0.6s ease-out forwards; }
+  .card:nth-child(1) { animation-delay: 0.3s; }
+  .card:nth-child(2) { animation-delay: 0.45s; }
+  .card:nth-child(3) { animation-delay: 0.6s; }
+  .card:nth-child(4) { animation-delay: 0.75s; }
+  .card:nth-child(5) { animation-delay: 0.9s; }
+  .card:nth-child(6) { animation-delay: 1.05s; }
+  @keyframes cardIn {
+    0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Card badge */
+  .card-badge {
+    position: absolute; top: 20px; right: 20px; font-size: 9px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 99px;
+  }
+  .badge-active { background: rgba(39,174,96,0.12); color: #27AE60; border: 1px solid rgba(39,174,96,0.2); }
+  .badge-soon { background: rgba(212,168,67,0.08); color: rgba(212,168,67,0.4); border: 1px solid rgba(212,168,67,0.1); }
+  .badge-future { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.15); }
+
+  /* Icon */
+  .card-logo {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    margin-bottom: 24px; transition: transform 0.3s;
+  }
+  .card:hover .card-logo { transform: scale(1.08); }
+  .card-logo-shield { width: 48px; height: 56px; filter: drop-shadow(0 4px 16px var(--glow)); }
+  .card-logo-shield svg { width: 100%; height: 100%; }
+  .card-logo-product { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); }
+
+  .card-name { font-size: 20px; font-weight: 700; color: white; margin-bottom: 8px; letter-spacing: -0.3px; }
+  .card-desc { font-size: 13px; color: rgba(255,255,255,0.3); line-height: 1.7; margin-bottom: 24px; min-height: 48px; }
+
+  .card-stats { display: flex; gap: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .stat-val { font-size: 22px; font-weight: 800; color: var(--accent); }
+  .stat-lbl { font-size: 8px; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 3px; }
+
+  /* ── Morphing shield ── */
+  .morph-shield-wrap { width: 80px; height: 96px; margin: 0 auto; position: relative; }
+  .morph-shield-wrap svg { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(212,168,67,0.15)); }
+  .morph-shield-wrap .m-bg { animation: hub-m-bg 18s ease-in-out infinite; }
+  .morph-shield-wrap .m-stroke { animation: hub-m-stroke 18s ease-in-out infinite; }
+  .morph-shield-wrap .m-fp { animation: hub-m-fp 18s ease-in-out infinite; }
+  .morph-shield-wrap .m-fp-dim { animation: hub-m-fpdim 18s ease-in-out infinite; }
+  @keyframes hub-m-bg {
+    0%,14%{fill:rgba(64,145,108,0.15)}17%,30%{fill:rgba(220,38,38,0.12)}33%,47%{fill:rgba(123,104,238,0.12)}50%,64%{fill:rgba(230,126,34,0.1)}67%,80%{fill:rgba(59,130,246,0.1)}83%,97%{fill:rgba(8,145,178,0.1)}100%{fill:rgba(64,145,108,0.15)}
+  }
+  @keyframes hub-m-stroke {
+    0%,14%{stroke:#40916C}17%,30%{stroke:#DC2626}33%,47%{stroke:#7B68EE}50%,64%{stroke:#E67E22}67%,80%{stroke:#3B82F6}83%,97%{stroke:#0891B2}100%{stroke:#40916C}
+  }
+  @keyframes hub-m-fp {
+    0%,14%{stroke:rgba(64,145,108,0.7)}17%,30%{stroke:rgba(220,38,38,0.7)}33%,47%{stroke:rgba(123,104,238,0.7)}50%,64%{stroke:rgba(230,126,34,0.7)}67%,80%{stroke:rgba(59,130,246,0.7)}83%,97%{stroke:rgba(8,145,178,0.7)}100%{stroke:rgba(64,145,108,0.7)}
+  }
+  @keyframes hub-m-fpdim {
+    0%,14%{stroke:rgba(64,145,108,0.3)}17%,30%{stroke:rgba(220,38,38,0.3)}33%,47%{stroke:rgba(123,104,238,0.3)}50%,64%{stroke:rgba(230,126,34,0.3)}67%,80%{stroke:rgba(59,130,246,0.3)}83%,97%{stroke:rgba(8,145,178,0.3)}100%{stroke:rgba(64,145,108,0.3)}
+  }
+  .morph-scan-hub {
+    position: absolute; left: 16%; right: 16%; height: 2px;
+    animation: hub-scan-pos 3s ease-in-out infinite, hub-scan-color 18s ease-in-out infinite;
+  }
+  @keyframes hub-scan-pos { 0%{top:22%;opacity:0}8%{opacity:1}92%{opacity:1}100%{top:72%;opacity:0} }
+  @keyframes hub-scan-color {
+    0%,14%{background:linear-gradient(90deg,transparent,#40916C,transparent);box-shadow:0 0 10px rgba(64,145,108,0.4)}
+    17%,30%{background:linear-gradient(90deg,transparent,#DC2626,transparent);box-shadow:0 0 10px rgba(220,38,38,0.4)}
+    33%,47%{background:linear-gradient(90deg,transparent,#7B68EE,transparent);box-shadow:0 0 10px rgba(123,104,238,0.4)}
+    50%,64%{background:linear-gradient(90deg,transparent,#E67E22,transparent);box-shadow:0 0 10px rgba(230,126,34,0.4)}
+    67%,80%{background:linear-gradient(90deg,transparent,#3B82F6,transparent);box-shadow:0 0 10px rgba(59,130,246,0.4)}
+    83%,97%{background:linear-gradient(90deg,transparent,#0891B2,transparent);box-shadow:0 0 10px rgba(8,145,178,0.4)}
+  }
+
+  /* ── Footer ── */
+  .footer { animation: fadeUp 0.8s ease-out 1.2s both; }
+  .user-bar {
+    display: inline-flex; align-items: center; gap: 14px; padding: 12px 24px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; backdrop-filter: blur(10px);
+  }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #D4A843, #B8922E);
+    color: #1B4332; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; box-shadow: 0 2px 12px rgba(212,168,67,0.3);
+  }
+  .user-info { text-align: left; }
+  .user-name { font-size: 13px; font-weight: 600; color: white; }
+  .user-role { font-size: 10px; color: rgba(255,255,255,0.3); }
+  .user-logout {
+    font-size: 10px; color: rgba(212,168,67,0.35); text-decoration: none;
+    margin-left: 20px; padding: 6px 14px; border: 1px solid rgba(212,168,67,0.1);
+    border-radius: 8px; transition: all 0.2s;
+  }
+  .user-logout:hover { color: rgba(212,168,67,0.7); border-color: rgba(212,168,67,0.3); background: rgba(212,168,67,0.05); }
+
+  /* ── Responsive ── */
+  @media (max-width: 1080px) { .grid { grid-template-columns: repeat(2, 320px); } }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; max-width: 380px; } }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<canvas id="particles"></canvas>
+
+<div class="page">
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="morph-shield-wrap">
+      <svg viewBox="0 0 44 52" fill="none">
+        <path class="m-bg" d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" stroke-width="1.2"/>
+        <path class="m-stroke" d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="none" stroke-width="1.2"/>
+        <path class="m-fp" d="M22 16C18 16 15 19 15 23" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="m-fp-dim" d="M22 13C16 13 12 17.5 12 23.5" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="m-fp" d="M22 19C20 19 18 20.5 18 23.5V29" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="m-fp" d="M22 16C26 16 29 19 29 23V27" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="m-fp-dim" d="M22 13C28 13 32 17.5 32 23.5V25" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="m-fp" d="M22 23V33" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="m-fp-dim" d="M26 23V31" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <div class="morph-scan-hub"></div>
+    </div>
+    <div class="brand-name">G<span class="gold">&euml;</span>STU</div>
+    <div class="brand-tagline">Enterprise Trust Platform</div>
+    <p class="brand-welcome">Bonjour, <strong>Oumar</strong>. Choisissez votre espace.</p>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="grid">
+    <!-- Comply -->
+    <div class="card" style="--accent: #40916C; --glow: rgba(64,145,108,0.2);">
+      <span class="card-badge badge-active">&#9679; Actif</span>
+      <div class="card-logo">
+        <div class="card-logo-shield"><svg viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(64,145,108,0.15)" stroke="#40916C" stroke-width="1.2"/><path d="M22 16C18 16 15 19 15 23" stroke="#40916C" stroke-width="1.5" stroke-linecap="round"/><path d="M22 13C16 13 12 17.5 12 23.5" stroke="#40916C" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#40916C" stroke-width="1.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#40916C" stroke-width="1.5" stroke-linecap="round"/><path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#40916C" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><path d="M22 23V33" stroke="#40916C" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="card-logo-product">Comply</span>
+      </div>
+      <div class="card-name">G&euml;stu Comply</div>
+      <div class="card-desc">Audit et conformit&eacute; SI. Multi-r&eacute;f&eacute;rentiels, portail client, analyse IA.</div>
+      <div class="card-stats">
+        <div><div class="stat-val">3</div><div class="stat-lbl">Missions</div></div>
+        <div><div class="stat-val">93</div><div class="stat-lbl">Contr&ocirc;les</div></div>
+        <div><div class="stat-val">78%</div><div class="stat-lbl">Score</div></div>
+      </div>
+    </div>
+
+    <!-- Risk -->
+    <div class="card" style="--accent: #DC2626; --glow: rgba(220,38,38,0.15);">
+      <span class="card-badge badge-soon">Bient&ocirc;t</span>
+      <div class="card-logo">
+        <div class="card-logo-shield"><svg viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(220,38,38,0.1)" stroke="#DC2626" stroke-width="1.2"/><path d="M22 16C18 16 15 19 15 23" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round"/><path d="M22 13C16 13 12 17.5 12 23.5" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round"/><path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><path d="M22 23V33" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="card-logo-product">Risk</span>
+      </div>
+      <div class="card-name">G&euml;stu Risk</div>
+      <div class="card-desc">Registre des risques, &eacute;valuation d&rsquo;impact, plans de traitement et suivi.</div>
+      <div class="card-stats">
+        <div><div class="stat-val" style="color:rgba(255,255,255,0.1);">&mdash;</div><div class="stat-lbl">Risques</div></div>
+        <div><div class="stat-val" style="color:rgba(255,255,255,0.1);">&mdash;</div><div class="stat-lbl">Actions</div></div>
+      </div>
+    </div>
+
+    <!-- Policy -->
+    <div class="card" style="--accent: #7B68EE; --glow: rgba(123,104,238,0.15);">
+      <span class="card-badge badge-soon">Bient&ocirc;t</span>
+      <div class="card-logo">
+        <div class="card-logo-shield"><svg viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(123,104,238,0.1)" stroke="#7B68EE" stroke-width="1.2"/><path d="M22 16C18 16 15 19 15 23" stroke="#7B68EE" stroke-width="1.5" stroke-linecap="round"/><path d="M22 13C16 13 12 17.5 12 23.5" stroke="#7B68EE" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#7B68EE" stroke-width="1.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#7B68EE" stroke-width="1.5" stroke-linecap="round"/><path d="M22 13C28 13 32 17.5 32 23.5V25" stroke="#7B68EE" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><path d="M22 23V33" stroke="#7B68EE" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="card-logo-product">Policy</span>
+      </div>
+      <div class="card-name">G&euml;stu Policy</div>
+      <div class="card-desc">Cycle de vie des politiques et proc&eacute;dures SI. Validation, diffusion, versioning.</div>
+      <div class="card-stats">
+        <div><div class="stat-val" style="color:rgba(255,255,255,0.1);">&mdash;</div><div class="stat-lbl">Politiques</div></div>
+        <div><div class="stat-val" style="color:rgba(255,255,255,0.1);">&mdash;</div><div class="stat-lbl">Versions</div></div>
+      </div>
+    </div>
+
+    <!-- Awareness -->
+    <div class="card disabled" style="--accent: #E67E22; --glow: rgba(230,126,34,0.1);">
+      <span class="card-badge badge-future">2027</span>
+      <div class="card-logo">
+        <div class="card-logo-shield"><svg viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(230,126,34,0.08)" stroke="rgba(230,126,34,0.4)" stroke-width="1.2"/><path d="M22 16C18 16 15 19 15 23" stroke="rgba(230,126,34,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="rgba(230,126,34,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="rgba(230,126,34,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 23V33" stroke="rgba(230,126,34,0.4)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="card-logo-product">Awareness</span>
+      </div>
+      <div class="card-name">G&euml;stu Awareness</div>
+      <div class="card-desc">Sensibilisation s&eacute;curit&eacute;. Campagnes phishing, quiz, suivi individuel.</div>
+      <div class="card-stats"></div>
+    </div>
+
+    <!-- Data Privacy -->
+    <div class="card disabled" style="--accent: #3B82F6; --glow: rgba(59,130,246,0.1);">
+      <span class="card-badge badge-future">2027</span>
+      <div class="card-logo">
+        <div class="card-logo-shield"><svg viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(59,130,246,0.08)" stroke="rgba(59,130,246,0.4)" stroke-width="1.2"/><path d="M22 16C18 16 15 19 15 23" stroke="rgba(59,130,246,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="rgba(59,130,246,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="rgba(59,130,246,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 23V33" stroke="rgba(59,130,246,0.4)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="card-logo-product">Data Privacy</span>
+      </div>
+      <div class="card-name">G&euml;stu Data Privacy</div>
+      <div class="card-desc">Conformit&eacute; RGPD et protection des donn&eacute;es. Registre, PIA, droits.</div>
+      <div class="card-stats"></div>
+    </div>
+
+    <!-- Quality -->
+    <div class="card disabled" style="--accent: #0891B2; --glow: rgba(8,145,178,0.1);">
+      <span class="card-badge badge-future">2027</span>
+      <div class="card-logo">
+        <div class="card-logo-shield"><svg viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="rgba(8,145,178,0.08)" stroke="rgba(8,145,178,0.4)" stroke-width="1.2"/><path d="M22 16C18 16 15 19 15 23" stroke="rgba(8,145,178,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="rgba(8,145,178,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="rgba(8,145,178,0.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 23V33" stroke="rgba(8,145,178,0.4)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="card-logo-product">Quality</span>
+      </div>
+      <div class="card-name">G&euml;stu Quality</div>
+      <div class="card-desc">Assurance qualit&eacute; SI. Contr&ocirc;le qualit&eacute;, am&eacute;lioration continue, KPIs.</div>
+      <div class="card-stats"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="user-bar">
+      <div class="user-avatar">OG</div>
+      <div class="user-info">
+        <div class="user-name">Oumar Gueye</div>
+        <div class="user-role">Administrateur &middot; G&euml;stu Group</div>
+      </div>
+      <a href="#" class="user-logout">D&eacute;connexion</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Golden particles
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+const dots = [];
+for (let i = 0; i < 50; i++) {
+  dots.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.2,
+    vy: (Math.random() - 0.5) * 0.2,
+    r: Math.random() * 1.5 + 0.5,
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < dots.length; i++) {
+    for (let j = i + 1; j < dots.length; j++) {
+      const dx = dots[i].x - dots[j].x;
+      const dy = dots[i].y - dots[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 180) {
+        ctx.beginPath();
+        ctx.moveTo(dots[i].x, dots[i].y);
+        ctx.lineTo(dots[j].x, dots[j].y);
+        ctx.strokeStyle = `rgba(212,168,67,${0.04 * (1 - dist / 180)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  for (const d of dots) {
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(212,168,67,${0.08 + d.r * 0.04})`;
+    ctx.fill();
+    d.x += d.vx; d.y += d.vy;
+    if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
+    if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+
+</body>
+</html>

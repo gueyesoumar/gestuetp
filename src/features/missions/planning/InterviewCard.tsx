@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Pencil, Check, RefreshCw, X, FileEdit, Calendar, Trash2 } from 'lucide-react'
 import type { InterviewSchedule, ClientContact, InterviewStatus } from '../../../types/database.types'
 
 interface InterviewCardProps {
@@ -73,22 +74,22 @@ export function InterviewCard({ interview, contact, onEdit, onStatusChange, onDe
           <>
             <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
             <div className="absolute right-0 top-8 z-20 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1">
-              <MenuBtn label={'\u270E Modifier'} onClick={() => { setShowMenu(false); onEdit(interview) }} />
+              <MenuBtn label="Modifier" icon={<Pencil size={12} />} onClick={() => { setShowMenu(false); onEdit(interview) }} />
               {interview.status === 'scheduled' && (
                 <>
-                  <MenuBtn label={'\u2705 Marquer termin\u00e9'} onClick={() => { setShowMenu(false); onStatusChange(interview.id, 'completed') }} />
-                  <MenuBtn label={'\uD83D\uDD04 Reprogrammer'} onClick={() => { setShowMenu(false); onStatusChange(interview.id, 'rescheduled') }} />
-                  <MenuBtn label={'\u274C Annuler'} onClick={() => { setShowMenu(false); onStatusChange(interview.id, 'cancelled') }} danger />
+                  <MenuBtn label={'Marquer termin\u00e9'} icon={<Check size={12} />} onClick={() => { setShowMenu(false); onStatusChange(interview.id, 'completed') }} />
+                  <MenuBtn label="Reprogrammer" icon={<RefreshCw size={12} />} onClick={() => { setShowMenu(false); onStatusChange(interview.id, 'rescheduled') }} />
+                  <MenuBtn label="Annuler" icon={<X size={12} />} onClick={() => { setShowMenu(false); onStatusChange(interview.id, 'cancelled') }} danger />
                 </>
               )}
               {interview.status === 'completed' && (
-                <MenuBtn label={'\uD83D\uDCDD Modifier le compte-rendu'} onClick={() => { setShowMenu(false); onEdit(interview) }} />
+                <MenuBtn label="Modifier le compte-rendu" icon={<FileEdit size={12} />} onClick={() => { setShowMenu(false); onEdit(interview) }} />
               )}
               {interview.status === 'rescheduled' && (
-                <MenuBtn label={'\uD83D\uDCC5 Replanifier'} onClick={() => { setShowMenu(false); onEdit(interview) }} />
+                <MenuBtn label="Replanifier" icon={<Calendar size={12} />} onClick={() => { setShowMenu(false); onEdit(interview) }} />
               )}
               <div className="border-t border-gray-100 my-1" />
-              <MenuBtn label={'\uD83D\uDDD1 Supprimer'} onClick={() => { setShowMenu(false); onDelete(interview.id) }} danger />
+              <MenuBtn label="Supprimer" icon={<Trash2 size={12} />} onClick={() => { setShowMenu(false); onDelete(interview.id) }} danger />
             </div>
           </>
         )}
@@ -97,11 +98,11 @@ export function InterviewCard({ interview, contact, onEdit, onStatusChange, onDe
   )
 }
 
-function MenuBtn({ label, onClick, danger }: { label: string; onClick: () => void; danger?: boolean }) {
+function MenuBtn({ label, icon, onClick, danger }: { label: string; icon?: React.ReactNode; onClick: () => void; danger?: boolean }) {
   return (
     <button onClick={onClick}
-      className={`w-full text-left px-3 py-2 text-xs transition-colors ${danger ? 'text-red-500 hover:bg-red-50' : 'text-gray-700 hover:bg-forest-50'}`}>
-      {label}
+      className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-1.5 ${danger ? 'text-red-500 hover:bg-red-50' : 'text-gray-700 hover:bg-forest-50'}`}>
+      {icon}{label}
     </button>
   )
 }

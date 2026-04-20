@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Filtres Missions</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-500: #D4A843;
+    --gold-600: #B8922E;
+    --gold-200: #F2E2B1;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --text-900: #1A1A1A;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --border: #E5E7EB;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+
+  .section { max-width: 900px; margin: 50px auto; padding: 0 30px; }
+  .section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); margin-bottom: 6px; text-align: center; }
+  .section .subtitle { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+
+  .option-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .option-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .option-header h3 { font-size: 14px; font-weight: 700; }
+  .option-body { padding: 24px; background: var(--bg); }
+  .option-desc { padding: 14px 24px; font-size: 13px; color: var(--text-500); line-height: 1.5; border-top: 1px solid var(--border); }
+
+  .tag { font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600; background: var(--gold-200); color: var(--gold-600); }
+
+  /* ===== OPTION A: Tabs unifiés ===== */
+  .tabs-unified {
+    display: inline-flex;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
+  }
+  .tab-btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    background: transparent;
+    color: var(--text-500);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-btn:hover { color: var(--forest-700); }
+  .tab-btn.active { background: var(--forest-700); color: white; font-weight: 600; }
+  .tab-count { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 99px; }
+  .tab-btn.active .tab-count { background: rgba(255,255,255,0.2); color: white; }
+  .tab-btn:not(.active) .tab-count { background: #F3F4F6; color: var(--text-500); }
+
+  /* ===== OPTION B: Tabs + search inline ===== */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .search-input {
+    padding: 7px 12px 7px 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    width: 200px;
+    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none' stroke='%239CA3AF' stroke-width='1.5'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M11 11L14 14' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 10px center;
+    transition: all 0.15s;
+  }
+  .search-input:focus { border-color: var(--forest-500); box-shadow: 0 0 0 2px var(--forest-100); }
+
+  /* ===== OPTION C: Dropdown select ===== */
+  .select-filter {
+    padding: 7px 32px 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    background: white;
+    color: var(--text-700);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5L6 8L9 5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+  }
+  .select-filter:focus { border-color: var(--forest-500); box-shadow: 0 0 0 2px var(--forest-100); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu — Propositions filtres missions</h1>
+</div>
+
+<!-- OPTION A -->
+<div class="section">
+  <h2>Option A — Tabs group&eacute;s (pill toggle)</h2>
+
+  <div class="option-card">
+    <div class="option-header">
+      <h3>Un seul bloc de filtres</h3>
+      <span class="tag">Recommand&eacute;</span>
+    </div>
+    <div class="option-body">
+      <div class="tabs-unified">
+        <button class="tab-btn active">Toutes <span class="tab-count">6</span></button>
+        <button class="tab-btn">Actives <span class="tab-count">3</span></button>
+        <button class="tab-btn">Cl&ocirc;tur&eacute;es <span class="tab-count">2</span></button>
+      </div>
+    </div>
+    <div class="option-desc">
+      Un groupe de boutons compact. Pas de chips s&eacute;par&eacute;s au-dessus. Les compteurs sont int&eacute;gr&eacute;s dans les boutons. Sobre et align&eacute;.
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <h2>Option B — Tabs + recherche align&eacute;s</h2>
+
+  <div class="option-card">
+    <div class="option-header">
+      <h3>Filtres &agrave; gauche, recherche &agrave; droite</h3>
+    </div>
+    <div class="option-body">
+      <div class="filter-bar">
+        <div class="tabs-unified">
+          <button class="tab-btn active">Toutes <span class="tab-count">6</span></button>
+          <button class="tab-btn">Actives <span class="tab-count">3</span></button>
+          <button class="tab-btn">Cl&ocirc;tur&eacute;es <span class="tab-count">2</span></button>
+        </div>
+        <input class="search-input" placeholder="Rechercher une mission..." />
+      </div>
+    </div>
+    <div class="option-desc">
+      M&ecirc;me tabs group&eacute;s + un champ de recherche &agrave; droite pour filtrer par nom de mission ou client.
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <h2>Option C — Select dropdown + recherche</h2>
+
+  <div class="option-card">
+    <div class="option-header">
+      <h3>Tout en une ligne avec des selects</h3>
+    </div>
+    <div class="option-body">
+      <div class="filter-bar">
+        <div style="display: flex; gap: 8px;">
+          <select class="select-filter">
+            <option>Toutes les phases</option>
+            <option>Cadrage</option>
+            <option>Travaux</option>
+            <option>Revue interne</option>
+            <option>Validation client</option>
+            <option>Cl&ocirc;tur&eacute;e</option>
+          </select>
+          <select class="select-filter">
+            <option>Tous les r&eacute;f&eacute;rentiels</option>
+            <option>ISO 27001</option>
+            <option>NIST CSF</option>
+            <option>COBIT</option>
+            <option>ITIL</option>
+          </select>
+          <select class="select-filter">
+            <option>Tous les chefs de mission</option>
+            <option>Oumar Gueye</option>
+            <option>Sadio Man&eacute;</option>
+            <option>Aminata Diallo</option>
+          </select>
+        </div>
+        <input class="search-input" placeholder="Rechercher..." />
+      </div>
+    </div>
+    <div class="option-desc">
+      Plus de filtres disponibles (phase, r&eacute;f&eacute;rentiel, chef de mission). Plus puissant mais plus charg&eacute;.
+    </div>
+  </div>
+</div>
+
+<div style="padding: 20px 40px 40px; text-align: center; color: var(--text-300); font-size: 11px;">
+  G&euml;stu Comply — Filtres Missions v1.0
+</div>
+
+</body>
+</html>

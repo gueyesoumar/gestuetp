@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check, X, AlertTriangle } from 'lucide-react'
 import { useClientFindings } from './useClientFindings'
 import { useClientActionItems } from './useClientActionItems'
 import { ACTION_PRIORITY_LABELS, ACTION_STATUS_LABELS } from '../../client-constants'
@@ -66,7 +67,7 @@ export function ClientResultsTab({ mission, isContributor }: Props): JSX.Element
                       </button>
                     ) : (
                       <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 ${item.status === 'done' ? 'bg-green-500 border-2 border-green-500' : 'border-2 border-gray-300'}`}>
-                        {item.status === 'done' && <span className="text-white text-[10px] font-bold">&#10003;</span>}
+                        {item.status === 'done' && <Check size={10} className="text-white" />}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -107,14 +108,14 @@ function FindingCard({ finding, isContributor, onSubmit, submitting }: {
         <span className="font-mono text-[11px] font-semibold text-forest-700">{finding.controlCode}</span>
         <span className="text-xs font-semibold flex-1 truncate">{finding.controlName}</span>
         {finding.clientValidation === 'pending' && <span className="text-[10px] font-medium text-gold-600 bg-gold-50 px-2 py-0.5 rounded-full">&Agrave; valider</span>}
-        {finding.clientValidation === 'approved' && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">&#10003; Approuv&eacute;</span>}
-        {finding.clientValidation === 'contested' && <span className="text-[10px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">&#10007; Contest&eacute;</span>}
+        {finding.clientValidation === 'approved' && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5"><Check size={10} /> Approuv&eacute;</span>}
+        {finding.clientValidation === 'contested' && <span className="text-[10px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5"><X size={10} /> Contest&eacute;</span>}
       </div>
       <div className="px-3 py-2.5 text-xs text-gray-700 leading-relaxed">
         {finding.findings}
         {finding.riskNotes && (
           <div className="mt-2 p-2 bg-orange-50 border-l-2 border-orange-400 rounded text-[11px] text-orange-700">
-            &#9888; {finding.riskNotes}
+            <AlertTriangle size={12} className="inline mr-0.5" />{finding.riskNotes}
           </div>
         )}
       </div>
@@ -123,9 +124,9 @@ function FindingCard({ finding, isContributor, onSubmit, submitting }: {
           <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Commentaire (optionnel)..."
             className="flex-1 px-2.5 py-1.5 border border-gray-200 rounded text-[11px] outline-none focus:border-forest-500" />
           <button onClick={() => onSubmit(finding.id, 'approved', comment)} disabled={submitting}
-            className="px-3 py-1.5 bg-green-500 text-white rounded text-[11px] font-semibold hover:bg-green-600 disabled:opacity-50">&#10003; Approuver</button>
+            className="px-3 py-1.5 bg-green-500 text-white rounded text-[11px] font-semibold hover:bg-green-600 disabled:opacity-50 inline-flex items-center gap-0.5"><Check size={11} /> Approuver</button>
           <button onClick={() => onSubmit(finding.id, 'contested', comment)} disabled={submitting}
-            className="px-3 py-1.5 bg-white text-red-500 border border-red-400 rounded text-[11px] font-semibold hover:bg-red-50 disabled:opacity-50">&#10007; Contester</button>
+            className="px-3 py-1.5 bg-white text-red-500 border border-red-400 rounded text-[11px] font-semibold hover:bg-red-50 disabled:opacity-50 inline-flex items-center gap-0.5"><X size={11} /> Contester</button>
         </div>
       )}
       {finding.clientComment && (

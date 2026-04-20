@@ -34,10 +34,10 @@ export const ASSESSMENT_STATUS_CONFIG: Record<AssessmentStatus, { label: string;
 }
 
 export const GUIDED_STEPS = [
-  { key: 'observer', label: 'Observer', icon: '\uD83D\uDC41' },
-  { key: 'documenter', label: 'Documenter', icon: '\uD83D\uDCCE' },
-  { key: 'analyser', label: 'Analyser', icon: '\uD83D\uDD2C' },
-  { key: 'validation', label: 'Validation', icon: '\u2714' },
+  { key: 'observer', label: 'Observer', icon: 'eye' },
+  { key: 'documenter', label: 'Documenter', icon: 'paperclip' },
+  { key: 'analyser', label: 'Analyser', icon: 'search' },
+  { key: 'validation', label: 'Validation', icon: 'check' },
 ] as const
 
 export type GuidedStepKey = typeof GUIDED_STEPS[number]['key']

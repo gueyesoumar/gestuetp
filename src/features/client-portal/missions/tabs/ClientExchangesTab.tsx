@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
+import { Paperclip, Check, Sparkles, FileText, BarChart3, Calendar, BookOpen, Link2, ArrowRight } from 'lucide-react'
 import { useAuth } from '../../../../hooks/useAuth'
 import { supabase } from '../../../../lib/supabase'
 import { useMissionQuestionnaire } from '../../../missions/useMissionQuestionnaire'
@@ -165,7 +166,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
       {/* ═══ SECTION: Documents ═══ */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-sm">&#128206;</span>
+          <Paperclip size={15} className="text-forest-700" />
           <h3 className="text-sm font-bold">Documents</h3>
           {pendingCount > 0 && <span className="text-[10px] font-medium text-gold-600 bg-gold-50 px-2 py-0.5 rounded-full">{pendingCount} en attente</span>}
           {uploadedCount > 0 && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{uploadedCount} d&eacute;pos&eacute;{uploadedCount > 1 ? 's' : ''}</span>}
@@ -174,7 +175,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
         {/* Success */}
         {uploadSuccess && (
           <div className="flex items-center gap-2 p-2.5 mb-3 bg-green-50 border border-green-200 rounded-lg">
-            <span className="text-green-600 text-sm">&#10003;</span>
+            <Check size={15} className="text-green-600" />
             <p className="text-xs text-green-700 font-medium">{uploadSuccess}</p>
           </div>
         )}
@@ -205,7 +206,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
         {/* AI banner */}
         {documents.length > 0 && (
           <div className="flex items-center gap-2 p-2.5 bg-gold-50 border border-gold-200 rounded-lg mb-3">
-            <span className="text-xs">&#10024;</span>
+            <Sparkles size={13} className="text-gold-500" />
             <p className="text-[10px] text-gold-600 flex-1"><b>Analyse IA active</b> &mdash; Les documents d&eacute;pos&eacute;s pr&eacute;-remplissent automatiquement votre questionnaire.</p>
           </div>
         )}
@@ -223,7 +224,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
                   <div className={`flex items-start gap-2.5 p-3 border rounded-lg transition-colors ${
                     doc.status === 'uploaded' ? 'bg-forest-50 border-forest-200' : 'bg-white border-gray-200 hover:border-forest-300'
                   }`}>
-                    <span className="text-sm mt-0.5">{doc.status === 'uploaded' ? '\uD83D\uDCC4' : '\uD83D\uDCD5'}</span>
+                    <span className="mt-0.5">{doc.status === 'uploaded' ? <FileText size={16} className="text-forest-700" /> : <BookOpen size={16} className="text-gold-500" />}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-900">{doc.name}</p>
                       {doc.description && <p className="text-[10px] text-gray-400 mt-0.5">{doc.description}</p>}
@@ -234,13 +235,13 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
                         {doc.controlCodes.length > 4 && <span className="text-[8px] text-gray-300">+{doc.controlCodes.length - 4}</span>}
                       </div>
                       {doc.uploadedFileName && (
-                        <p className="text-[10px] text-green-600 font-medium mt-1.5">&#10003; {doc.uploadedFileName}</p>
+                        <p className="text-[10px] text-green-600 font-medium mt-1.5 flex items-center gap-0.5"><Check size={10} /> {doc.uploadedFileName}</p>
                       )}
                     </div>
                     <div className="shrink-0 mt-0.5 flex flex-col gap-1">
                       {doc.status === 'uploaded' ? (
                         <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">&#10003;</span>
+                          <Check size={13} className="text-white" />
                         </div>
                       ) : isContributor ? (
                         <>
@@ -252,7 +253,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
                             {uploading && pendingDocName === doc.name ? (
                               <span className="w-3 h-3 border-2 border-forest-300 border-t-forest-700 rounded-full animate-spin inline-block" />
                             ) : (
-                              <>&#128206; D&eacute;poser</>
+                              <><Paperclip size={11} /> D&eacute;poser</>
                             )}
                           </button>
                           {documents.length > 0 && (
@@ -260,7 +261,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
                               onClick={() => setLinkingDocName(linkingDocName === doc.name ? null : doc.name)}
                               className="px-3 py-1 border border-gray-200 rounded-lg text-[9px] text-gray-400 hover:text-forest-700 hover:border-forest-300 transition-colors"
                             >
-                              &#128279; Lier existant
+                              <Link2 size={10} /> Lier existant
                             </button>
                           )}
                         </>
@@ -279,9 +280,9 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
                             onClick={() => linkExistingDoc({ file_name: d.file_name, file_path: d.file_path, file_size: d.file_size, mime_type: d.mime_type }, doc.name, doc.controlIds)}
                             className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left hover:bg-forest-50 transition-colors"
                           >
-                            <span className="text-xs">&#128196;</span>
+                            <FileText size={13} />
                             <span className="text-[11px] text-gray-700 truncate flex-1">{d.file_name}</span>
-                            <span className="text-[9px] text-forest-700 font-medium shrink-0">Lier &rarr;</span>
+                            <span className="text-[9px] text-forest-700 font-medium shrink-0 inline-flex items-center gap-0.5">Lier <ArrowRight size={9} /></span>
                           </button>
                         ))}
                       </div>
@@ -292,7 +293,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
               ))}
             </div>
             <div className="flex items-center gap-2 p-2.5 bg-forest-50 border border-forest-100 rounded-lg">
-              <span className="text-xs">&#128202;</span>
+              <BarChart3 size={13} className="text-forest-700" />
               <p className="text-[10px] text-forest-700">
                 <b>{expectedDocs.length} documents</b> couvrent <b>{coveredControls}/{totalControls} contr&ocirc;les</b>.
                 {pendingCount > 0 && ` D\u00e9posez les ${pendingCount} restants pour optimiser l\u2019analyse IA.`}
@@ -303,9 +304,9 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
           <div className="space-y-1.5">
             {documents.map((doc) => (
               <div key={doc.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-forest-50 border border-forest-200">
-                <span className="text-sm">&#128196;</span>
+                <FileText size={15} className="text-forest-700" />
                 <p className="text-xs font-medium text-gray-900 truncate flex-1">{doc.file_name}</p>
-                <span className="text-[10px] text-green-600 font-medium">&#10003; D&eacute;pos&eacute;</span>
+                <span className="text-[10px] text-green-600 font-medium inline-flex items-center gap-0.5"><Check size={10} /> D&eacute;pos&eacute;</span>
               </div>
             ))}
           </div>
@@ -319,7 +320,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
       {/* ═══ SECTION: Questionnaire ═══ */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-sm">&#10024;</span>
+          <Sparkles size={15} className="text-gold-500" />
           <h3 className="text-sm font-bold">Questionnaire intelligent</h3>
         </div>
         {qLoading ? (
@@ -334,7 +335,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
       {/* ═══ SECTION: Entretiens ═══ */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-sm">&#128197;</span>
+          <Calendar size={15} className="text-forest-700" />
           <h3 className="text-sm font-bold">Entretiens</h3>
           {interviews.length > 0 && <span className="text-[10px] font-medium text-forest-700 bg-forest-50 px-2 py-0.5 rounded-full">{interviews.length}</span>}
         </div>
@@ -345,13 +346,13 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
             {interviews.map((iv) => (
               <div key={iv.id} className={`border rounded-lg overflow-hidden ${iv.status === 'scheduled' ? 'border-gold-200 bg-gold-50' : iv.status === 'completed' ? 'border-gray-200 bg-white opacity-60' : 'border-gray-200 bg-white'}`}>
                 <div className="flex items-center gap-2.5 px-3 py-2.5">
-                  <span className="text-sm">&#128197;</span>
+                  <Calendar size={15} />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold">{iv.title}</p>
                     <p className="text-[10px] text-gray-400">{iv.date_label} &middot; {iv.auditor_name}</p>
                   </div>
                   {iv.status === 'scheduled' && <span className="text-[10px] font-medium text-gold-600 bg-gold-100 px-2 py-0.5 rounded-full">Planifi&eacute;</span>}
-                  {iv.status === 'confirmed' && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">&#10003; Confirm&eacute;</span>}
+                  {iv.status === 'confirmed' && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5"><Check size={10} /> Confirm&eacute;</span>}
                   {iv.status === 'completed' && <span className="text-[10px] font-medium text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">Termin&eacute;</span>}
                 </div>
                 {iv.controlCodes.length > 0 && (

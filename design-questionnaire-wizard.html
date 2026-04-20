@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gëstu — Questionnaire Wizard B (revu)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-500: #D4A843; --gold-600: #B8922E; --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --white: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --success: #27AE60; --error: #C0392B;
+    --info: #3B82F6; --info-light: #EBF5FF;
+    --purple: #7B68EE; --purple-light: #F5F0FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); }
+  .page-header { background: var(--forest-900); padding: 40px; text-align: center; }
+  .page-header h1 { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; }
+  .section { max-width: 720px; margin: 40px auto; padding: 0 24px; }
+  .st { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-500); text-align: center; margin-bottom: 6px; }
+  .ss { font-size: 13px; color: var(--text-300); text-align: center; margin-bottom: 28px; }
+
+  /* ============ WIZARD FRAME ============ */
+  .wizard { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+  /* Top bar */
+  .wiz-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+  .wiz-top-left { display: flex; align-items: center; gap: 10px; }
+  .wiz-logo { font-size: 16px; font-weight: 800; color: var(--forest-900); }
+  .wiz-logo span { color: var(--gold-500); }
+  .wiz-mission { font-size: 11px; color: var(--text-300); }
+  .wiz-save { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+
+  /* Progress */
+  .wiz-progress { padding: 16px 24px; border-bottom: 1px solid var(--border); background: #FAFAFA; }
+  .wiz-progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .wiz-progress-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+  .wiz-progress-fill { height: 4px; background: var(--forest-500); border-radius: 2px; transition: width 0.3s; }
+  .wiz-progress-label { font-size: 12px; font-weight: 600; color: var(--forest-700); min-width: 40px; text-align: right; }
+
+  /* Step indicators */
+  .wiz-steps { display: flex; gap: 4px; }
+  .wiz-step-dot { height: 3px; flex: 1; border-radius: 1.5px; background: var(--border); transition: background 0.3s; }
+  .wiz-step-dot.done { background: var(--success); }
+  .wiz-step-dot.active { background: var(--forest-500); }
+
+  /* Completed answers summary */
+  .wiz-completed { padding: 0 24px; }
+  .wiz-completed-item { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #F5F5F5; }
+  .wiz-completed-item:last-child { border-bottom: none; }
+  .wiz-completed-check { width: 18px; height: 18px; border-radius: 50%; background: var(--success); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .wiz-completed-text { font-size: 12px; color: var(--text-500); flex: 1; }
+  .wiz-completed-value { font-size: 12px; font-weight: 500; color: var(--text-900); }
+  .wiz-completed-edit { font-size: 10px; color: var(--forest-700); cursor: pointer; }
+
+  /* Current question */
+  .wiz-current { padding: 28px 24px; }
+  .wiz-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--forest-700); background: var(--forest-100); padding: 3px 10px; border-radius: 99px; display: inline-block; margin-bottom: 14px; }
+  .wiz-question { font-size: 18px; font-weight: 700; color: var(--text-900); margin-bottom: 6px; line-height: 1.4; }
+  .wiz-hint { font-size: 12px; color: var(--text-300); margin-bottom: 20px; line-height: 1.5; }
+
+  /* Answer types */
+
+  /* Binary (Oui/Non) */
+  .answer-binary { display: flex; gap: 10px; }
+  .answer-btn { flex: 1; padding: 16px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .answer-btn:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .answer-btn.selected { border-color: var(--forest-700); background: var(--forest-100); }
+  .answer-btn.selected.yes { border-color: var(--success); background: #E8F5E8; }
+  .answer-btn.selected.no { border-color: var(--error); background: #FDE8E8; }
+  .answer-btn-icon { font-size: 24px; margin-bottom: 4px; }
+  .answer-btn-label { font-size: 13px; font-weight: 600; }
+  .answer-btn-sub { font-size: 10px; color: var(--text-300); margin-top: 2px; }
+
+  /* Triple/Quad choice */
+  .answer-choice { display: flex; gap: 8px; flex-wrap: wrap; }
+  .answer-card { flex: 1; min-width: 130px; padding: 14px 16px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
+  .answer-card:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .answer-card.selected { border-color: var(--forest-700); background: var(--forest-100); }
+  .answer-card-icon { font-size: 22px; margin-bottom: 6px; }
+  .answer-card-label { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .answer-card-sub { font-size: 10px; color: var(--text-300); margin-top: 2px; }
+
+  /* Multi-select chips */
+  .answer-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .answer-chip { padding: 10px 18px; border: 2px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--text-700); cursor: pointer; transition: all 0.15s; user-select: none; }
+  .answer-chip:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .answer-chip.selected { border-color: var(--forest-700); background: var(--forest-100); color: var(--forest-900); font-weight: 500; }
+  .answer-chip.other { border-style: dashed; color: var(--text-300); }
+
+  /* Scale (1-5) */
+  .answer-scale { display: flex; gap: 8px; }
+  .scale-btn { flex: 1; padding: 14px 8px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .scale-btn:hover { border-color: var(--forest-300); }
+  .scale-btn.selected { border-color: var(--forest-700); background: var(--forest-100); }
+  .scale-num { font-size: 20px; font-weight: 700; color: var(--text-700); }
+  .scale-label { font-size: 9px; color: var(--text-300); margin-top: 3px; }
+  .scale-btn.selected .scale-num { color: var(--forest-700); }
+
+  /* Follow-up */
+  .wiz-followup { margin-top: 16px; padding: 16px; background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 10px; }
+  .wiz-followup-label { font-size: 12px; font-weight: 600; color: var(--gold-600); margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+  .wiz-followup input, .wiz-followup select, .wiz-followup textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--gold-200); border-radius: 8px; font-size: 13px; outline: none; font-family: inherit; }
+  .wiz-followup input:focus, .wiz-followup select:focus, .wiz-followup textarea:focus { border-color: var(--forest-500); }
+
+  /* Footer nav */
+  .wiz-footer { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-top: 1px solid var(--border); background: #FAFAFA; }
+  .wiz-prev { padding: 10px 20px; border: 1px solid var(--border); background: white; border-radius: 8px; font-size: 13px; color: var(--text-500); cursor: pointer; }
+  .wiz-prev:hover { border-color: var(--forest-300); }
+  .wiz-next { padding: 10px 24px; background: var(--forest-700); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .wiz-next:hover { background: var(--forest-900); }
+  .wiz-next:disabled { opacity: 0.4; cursor: not-allowed; }
+  .wiz-skip { font-size: 12px; color: var(--text-300); cursor: pointer; }
+  .wiz-skip:hover { color: var(--text-500); }
+
+  /* Demo tabs */
+  .demo-tabs { display: flex; gap: 4px; padding: 16px 0; justify-content: center; }
+  .demo-tab { padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; cursor: pointer; background: white; color: var(--text-500); }
+  .demo-tab.active { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+
+  .demo-pane { display: none; }
+  .demo-pane.active { display: block; }
+
+  /* Section title between mockups */
+  .mockup-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-500); text-align: center; margin: 32px 0 16px; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>G&euml;stu &mdash; Questionnaire Wizard (revu)</h1>
+</div>
+
+<div class="section">
+  <p class="st">Wizard conversationnel &mdash; Questions revis&eacute;es</p>
+  <p class="ss">5 &eacute;tapes &middot; 14 questions &middot; Z&eacute;ro doublon avec la fiche client &middot; Clic &gt; saisie</p>
+
+  <!-- Demo step selector -->
+  <div class="demo-tabs">
+    <button class="demo-tab active" onclick="showStep(1)">1. Gouvernance</button>
+    <button class="demo-tab" onclick="showStep(2)">2. Maturit&eacute;</button>
+    <button class="demo-tab" onclick="showStep(3)">3. Op&eacute;rationnel</button>
+    <button class="demo-tab" onclick="showStep(4)">4. Incidents</button>
+    <button class="demo-tab" onclick="showStep(5)">5. Attentes</button>
+  </div>
+
+  <!-- ============ STEP 1: Gouvernance SSI ============ -->
+  <div class="demo-pane active" id="step-1">
+    <div class="wizard">
+      <div class="wiz-top">
+        <div class="wiz-top-left">
+          <span class="wiz-logo">G&euml;stu<span>.</span></span>
+          <span class="wiz-mission">ISO/IEC 27001 &mdash; Groupe ISM</span>
+        </div>
+        <span class="wiz-save">&#10003; Sauvegarde auto</span>
+      </div>
+
+      <div class="wiz-progress">
+        <div class="wiz-progress-row">
+          <div class="wiz-progress-bar"><div class="wiz-progress-fill" style="width:21%;"></div></div>
+          <span class="wiz-progress-label">3/14</span>
+        </div>
+        <div class="wiz-steps">
+          <div class="wiz-step-dot active"></div>
+          <div class="wiz-step-dot"></div>
+          <div class="wiz-step-dot"></div>
+          <div class="wiz-step-dot"></div>
+          <div class="wiz-step-dot"></div>
+        </div>
+      </div>
+
+      <!-- Previous answers collapsed -->
+      <div class="wiz-completed">
+        <div class="wiz-completed-item">
+          <div class="wiz-completed-check">&#10003;</div>
+          <span class="wiz-completed-text">RSSI ou responsable SSI nomm&eacute;</span>
+          <span class="wiz-completed-value">Oui &mdash; Amadou Diop, rattach&eacute; au DSI</span>
+          <span class="wiz-completed-edit">Modifier</span>
+        </div>
+        <div class="wiz-completed-item">
+          <div class="wiz-completed-check">&#10003;</div>
+          <span class="wiz-completed-text">Politique SSI formalis&eacute;e</span>
+          <span class="wiz-completed-value">Oui</span>
+          <span class="wiz-completed-edit">Modifier</span>
+        </div>
+      </div>
+
+      <!-- Current question -->
+      <div class="wiz-current">
+        <span class="wiz-section-label">&#128218; Gouvernance SSI</span>
+        <div class="wiz-question">Disposez-vous d&rsquo;une certification ISO 27001 ?</div>
+        <div class="wiz-hint">Certification d&eacute;livr&eacute;e par un organisme accr&eacute;dit&eacute;, en cours de validit&eacute; ou en cours d&rsquo;obtention.</div>
+
+        <div class="answer-choice">
+          <div class="answer-card selected">
+            <div class="answer-card-icon">&#9989;</div>
+            <div class="answer-card-label">Oui, certifi&eacute;</div>
+            <div class="answer-card-sub">En cours de validit&eacute;</div>
+          </div>
+          <div class="answer-card">
+            <div class="answer-card-icon">&#128260;</div>
+            <div class="answer-card-label">En cours</div>
+            <div class="answer-card-sub">D&eacute;marche initi&eacute;e</div>
+          </div>
+          <div class="answer-card">
+            <div class="answer-card-icon">&#10060;</div>
+            <div class="answer-card-label">Non</div>
+            <div class="answer-card-sub">Pas de certification</div>
+          </div>
+        </div>
+
+        <!-- Follow-up (conditional) -->
+        <div class="wiz-followup">
+          <div class="wiz-followup-label">&#8618; Date d&rsquo;expiration de la certification</div>
+          <input type="date" value="2026-12-31">
+        </div>
+      </div>
+
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr; Pr&eacute;c&eacute;dent</button>
+        <span class="wiz-skip">Passer cette question</span>
+        <button class="wiz-next">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 2: Maturite ============ -->
+  <div class="demo-pane" id="step-2">
+    <div class="wizard">
+      <div class="wiz-top">
+        <div class="wiz-top-left">
+          <span class="wiz-logo">G&euml;stu<span>.</span></span>
+          <span class="wiz-mission">ISO/IEC 27001 &mdash; Groupe ISM</span>
+        </div>
+        <span class="wiz-save">&#10003; Sauvegarde auto</span>
+      </div>
+      <div class="wiz-progress">
+        <div class="wiz-progress-row">
+          <div class="wiz-progress-bar"><div class="wiz-progress-fill" style="width:43%;"></div></div>
+          <span class="wiz-progress-label">6/14</span>
+        </div>
+        <div class="wiz-steps">
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot active"></div>
+          <div class="wiz-step-dot"></div>
+          <div class="wiz-step-dot"></div>
+          <div class="wiz-step-dot"></div>
+        </div>
+      </div>
+
+      <div class="wiz-current">
+        <span class="wiz-section-label">&#128200; Maturit&eacute; &amp; historique</span>
+        <div class="wiz-question">Comment &eacute;valuez-vous la maturit&eacute; SSI de votre organisation ?</div>
+        <div class="wiz-hint">Auto-&eacute;valuation globale. Il n&rsquo;y a pas de mauvaise r&eacute;ponse &mdash; cela nous aide &agrave; calibrer la mission.</div>
+
+        <div class="answer-scale">
+          <div class="scale-btn">
+            <div class="scale-num">1</div>
+            <div class="scale-label">Inexistant</div>
+          </div>
+          <div class="scale-btn">
+            <div class="scale-num">2</div>
+            <div class="scale-label">Initial</div>
+          </div>
+          <div class="scale-btn selected">
+            <div class="scale-num">3</div>
+            <div class="scale-label">D&eacute;fini</div>
+          </div>
+          <div class="scale-btn">
+            <div class="scale-num">4</div>
+            <div class="scale-label">G&eacute;r&eacute;</div>
+          </div>
+          <div class="scale-btn">
+            <div class="scale-num">5</div>
+            <div class="scale-label">Optimis&eacute;</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr; Pr&eacute;c&eacute;dent</button>
+        <span class="wiz-skip">Passer</span>
+        <button class="wiz-next">Suivant &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Second question of this section -->
+    <div class="mockup-label">Question suivante dans cette section</div>
+    <div class="wizard">
+      <div class="wiz-progress" style="border-top:1px solid var(--border);">
+        <div class="wiz-progress-row">
+          <div class="wiz-progress-bar"><div class="wiz-progress-fill" style="width:50%;"></div></div>
+          <span class="wiz-progress-label">7/14</span>
+        </div>
+      </div>
+      <div class="wiz-current">
+        <span class="wiz-section-label">&#128200; Maturit&eacute; &amp; historique</span>
+        <div class="wiz-question">Votre organisation a-t-elle connu des changements majeurs r&eacute;cemment ?</div>
+        <div class="wiz-hint">S&eacute;lectionnez tous les changements survenus au cours des 12 derniers mois.</div>
+
+        <div class="answer-chips">
+          <div class="answer-chip selected">&#128300; Migration cloud</div>
+          <div class="answer-chip">&#127970; Restructuration</div>
+          <div class="answer-chip">&#129309; Fusion / Acquisition</div>
+          <div class="answer-chip selected">&#128200; Forte croissance</div>
+          <div class="answer-chip">&#9878; Nouvelle r&eacute;glementation</div>
+          <div class="answer-chip">&#128104;&#8205;&#128187; Changement de DSI/RSSI</div>
+          <div class="answer-chip">&#128274; Incident de s&eacute;curit&eacute;</div>
+          <div class="answer-chip">&#10060; Aucun changement majeur</div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr;</button>
+        <span class="wiz-skip">Passer</span>
+        <button class="wiz-next">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 3: Operationnel ============ -->
+  <div class="demo-pane" id="step-3">
+    <div class="wizard">
+      <div class="wiz-progress" style="border-top:1px solid var(--border);">
+        <div class="wiz-progress-row">
+          <div class="wiz-progress-bar"><div class="wiz-progress-fill" style="width:64%;"></div></div>
+          <span class="wiz-progress-label">9/14</span>
+        </div>
+        <div class="wiz-steps">
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot active"></div>
+          <div class="wiz-step-dot"></div>
+          <div class="wiz-step-dot"></div>
+        </div>
+      </div>
+      <div class="wiz-current">
+        <span class="wiz-section-label">&#128736; S&eacute;curit&eacute; op&eacute;rationnelle</span>
+        <div class="wiz-question">Quelles fonctions de s&eacute;curit&eacute; sont en place ?</div>
+        <div class="wiz-hint">S&eacute;lectionnez toutes les fonctions formalis&eacute;es dans votre organisation.</div>
+
+        <div class="answer-chips">
+          <div class="answer-chip selected">&#128274; Gestion des acc&egrave;s (IAM)</div>
+          <div class="answer-chip selected">&#128187; Inventaire des actifs</div>
+          <div class="answer-chip">&#128272; Chiffrement des donn&eacute;es</div>
+          <div class="answer-chip selected">&#128230; Sauvegardes r&eacute;guli&egrave;res</div>
+          <div class="answer-chip">&#128270; Journalisation / SIEM</div>
+          <div class="answer-chip selected">&#128736; Gestion des vuln&eacute;rabilit&eacute;s</div>
+          <div class="answer-chip">&#128272; Tests d&rsquo;intrusion</div>
+          <div class="answer-chip selected">&#128218; Sensibilisation employ&eacute;s</div>
+          <div class="answer-chip">&#128225; Gestion des incidents</div>
+          <div class="answer-chip">&#128203; Classification des donn&eacute;es</div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr;</button>
+        <span class="wiz-skip">Passer</span>
+        <button class="wiz-next">Suivant &rarr;</button>
+      </div>
+    </div>
+
+    <div class="mockup-label">Question suivante</div>
+    <div class="wizard">
+      <div class="wiz-current" style="border-top:1px solid var(--border);">
+        <span class="wiz-section-label">&#128736; S&eacute;curit&eacute; op&eacute;rationnelle</span>
+        <div class="wiz-question">Des services IT sont-ils externalis&eacute;s ?</div>
+        <div class="wiz-hint">S&eacute;lectionnez les domaines confi&eacute;s &agrave; un prestataire externe.</div>
+
+        <div class="answer-chips">
+          <div class="answer-chip selected">&#127760; H&eacute;bergement / Data center</div>
+          <div class="answer-chip">&#128736; Infog&eacute;rance</div>
+          <div class="answer-chip selected">&#128270; SOC / Surveillance</div>
+          <div class="answer-chip">&#128187; D&eacute;veloppement</div>
+          <div class="answer-chip">&#128222; Support utilisateurs</div>
+          <div class="answer-chip">&#10060; Aucune externalisation</div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr;</button>
+        <span class="wiz-skip">Passer</span>
+        <button class="wiz-next">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 4: Incidents ============ -->
+  <div class="demo-pane" id="step-4">
+    <div class="wizard">
+      <div class="wiz-progress" style="border-top:1px solid var(--border);">
+        <div class="wiz-progress-row">
+          <div class="wiz-progress-bar"><div class="wiz-progress-fill" style="width:79%;"></div></div>
+          <span class="wiz-progress-label">11/14</span>
+        </div>
+        <div class="wiz-steps">
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot active"></div>
+          <div class="wiz-step-dot"></div>
+        </div>
+      </div>
+      <div class="wiz-current">
+        <span class="wiz-section-label">&#128680; Incidents &amp; continuit&eacute;</span>
+        <div class="wiz-question">Votre organisation a-t-elle subi des incidents de s&eacute;curit&eacute; au cours des 12 derniers mois ?</div>
+        <div class="wiz-hint">Tout &eacute;v&eacute;nement ayant impact&eacute; la confidentialit&eacute;, l&rsquo;int&eacute;grit&eacute; ou la disponibilit&eacute; des syst&egrave;mes.</div>
+
+        <div class="answer-binary">
+          <div class="answer-btn">
+            <div class="answer-btn-icon">&#128994;</div>
+            <div class="answer-btn-label">Non</div>
+            <div class="answer-btn-sub">Aucun incident majeur</div>
+          </div>
+          <div class="answer-btn selected yes">
+            <div class="answer-btn-icon">&#128308;</div>
+            <div class="answer-btn-label">Oui</div>
+            <div class="answer-btn-sub">Un ou plusieurs incidents</div>
+          </div>
+        </div>
+
+        <div class="wiz-followup">
+          <div class="wiz-followup-label">&#8618; Quel type d&rsquo;incident ?</div>
+          <div class="answer-chips" style="margin-top:8px;">
+            <div class="answer-chip selected" style="font-size:12px;padding:8px 14px;">Phishing</div>
+            <div class="answer-chip" style="font-size:12px;padding:8px 14px;">Ransomware</div>
+            <div class="answer-chip" style="font-size:12px;padding:8px 14px;">Fuite de donn&eacute;es</div>
+            <div class="answer-chip" style="font-size:12px;padding:8px 14px;">Intrusion</div>
+            <div class="answer-chip" style="font-size:12px;padding:8px 14px;">Indisponibilit&eacute;</div>
+            <div class="answer-chip other" style="font-size:12px;padding:8px 14px;">Autre...</div>
+          </div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr;</button>
+        <span class="wiz-skip">Passer</span>
+        <button class="wiz-next">Suivant &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 5: Attentes ============ -->
+  <div class="demo-pane" id="step-5">
+    <div class="wizard">
+      <div class="wiz-progress" style="border-top:1px solid var(--border);">
+        <div class="wiz-progress-row">
+          <div class="wiz-progress-bar"><div class="wiz-progress-fill" style="width:93%;"></div></div>
+          <span class="wiz-progress-label">13/14</span>
+        </div>
+        <div class="wiz-steps">
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot done"></div>
+          <div class="wiz-step-dot active"></div>
+        </div>
+      </div>
+      <div class="wiz-current">
+        <span class="wiz-section-label">&#127919; Attentes &amp; contraintes</span>
+        <div class="wiz-question">Quels sont vos principaux enjeux pour cette mission ?</div>
+        <div class="wiz-hint">S&eacute;lectionnez 1 &agrave; 3 enjeux prioritaires.</div>
+
+        <div class="answer-chips">
+          <div class="answer-chip selected">&#127942; Obtenir la certification</div>
+          <div class="answer-chip selected">&#128269; Identifier les vuln&eacute;rabilit&eacute;s</div>
+          <div class="answer-chip">&#9878; Conformit&eacute; r&eacute;glementaire</div>
+          <div class="answer-chip">&#129309; Rassurer partenaires / clients</div>
+          <div class="answer-chip">&#128200; Am&eacute;liorer la maturit&eacute;</div>
+          <div class="answer-chip">&#128176; Exigence investisseur / maison m&egrave;re</div>
+          <div class="answer-chip">&#128680; Suite &agrave; un incident</div>
+          <div class="answer-chip other">+ Autre enjeu</div>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr;</button>
+        <span></span>
+        <button class="wiz-next">Suivant &rarr;</button>
+      </div>
+    </div>
+
+    <div class="mockup-label">Derni&egrave;re question</div>
+    <div class="wizard">
+      <div class="wiz-progress" style="border-top:1px solid var(--border);">
+        <div class="wiz-progress-row">
+          <div class="wiz-progress-bar"><div class="wiz-progress-fill" style="width:100%;"></div></div>
+          <span class="wiz-progress-label">14/14</span>
+        </div>
+      </div>
+      <div class="wiz-current">
+        <span class="wiz-section-label">&#127919; Attentes &amp; contraintes</span>
+        <div class="wiz-question">Y a-t-il des contraintes de planning &agrave; prendre en compte ?</div>
+        <div class="wiz-hint">P&eacute;riodes &agrave; &eacute;viter, deadlines r&eacute;glementaires, disponibilit&eacute; limit&eacute;e...</div>
+
+        <div class="answer-chips">
+          <div class="answer-chip">&#128197; P&eacute;riode de cl&ocirc;ture comptable</div>
+          <div class="answer-chip selected">&#9202; Deadline r&eacute;glementaire</div>
+          <div class="answer-chip">&#127958; Cong&eacute;s / vacances</div>
+          <div class="answer-chip">&#128187; Migration technique en cours</div>
+          <div class="answer-chip">&#128101; Disponibilit&eacute; limit&eacute;e des &eacute;quipes</div>
+          <div class="answer-chip">&#10060; Aucune contrainte</div>
+        </div>
+
+        <div class="wiz-followup">
+          <div class="wiz-followup-label">&#8618; Pr&eacute;cisez la contrainte (optionnel)</div>
+          <textarea rows="2" placeholder="Ex : La certification doit &ecirc;tre obtenue avant d&eacute;cembre 2026 pour le renouvellement du contrat avec Orange..."></textarea>
+        </div>
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-prev">&larr;</button>
+        <span></span>
+        <button class="wiz-next" style="background:var(--success);">&#10003; Terminer le questionnaire</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RECAP: Questions revues ============ -->
+  <div style="margin-top:40px;background:white;border:1px solid var(--border);border-radius:12px;padding:24px;">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:16px;">R&eacute;capitulatif des 14 questions revis&eacute;es</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left;padding:8px 4px;color:var(--text-500);font-size:10px;text-transform:uppercase;">Section</th>
+          <th style="text-align:left;padding:8px 4px;color:var(--text-500);font-size:10px;text-transform:uppercase;">Question</th>
+          <th style="text-align:center;padding:8px 4px;color:var(--text-500);font-size:10px;text-transform:uppercase;">Type</th>
+          <th style="text-align:center;padding:8px 4px;color:var(--text-500);font-size:10px;text-transform:uppercase;">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;color:var(--forest-700);font-weight:600;" rowspan="4">1. Gouvernance</td>
+          <td style="padding:6px 4px;">RSSI ou responsable SSI nomm&eacute; ?</td>
+          <td style="padding:6px 4px;text-align:center;">Oui/Non + texte</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q06 conserv&eacute;</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">Politique SSI formalis&eacute;e ?</td>
+          <td style="padding:6px 4px;text-align:center;">Oui/Non</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q08 conserv&eacute;</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">Certification ISO 27001 ?</td>
+          <td style="padding:6px 4px;text-align:center;">3 choix + date</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q04+Q05 fusionn&eacute;s</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">Comit&eacute; de s&eacute;curit&eacute; ?</td>
+          <td style="padding:6px 4px;text-align:center;">Oui/Non</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q07 conserv&eacute;</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;color:var(--forest-700);font-weight:600;" rowspan="3">2. Maturit&eacute;</td>
+          <td style="padding:6px 4px;">Analyse de risques r&eacute;cente ?</td>
+          <td style="padding:6px 4px;text-align:center;">Oui/Non</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q12 conserv&eacute;</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">Niveau de maturit&eacute; SSI per&ccedil;u</td>
+          <td style="padding:6px 4px;text-align:center;">&Eacute;chelle 1-5</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--success);font-weight:600;">NOUVEAU</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">Changements majeurs r&eacute;cents</td>
+          <td style="padding:6px 4px;text-align:center;">Multi-select</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--success);font-weight:600;">NOUVEAU</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;color:var(--forest-700);font-weight:600;" rowspan="3">3. Op&eacute;rationnel</td>
+          <td style="padding:6px 4px;">Fonctions de s&eacute;curit&eacute; en place</td>
+          <td style="padding:6px 4px;text-align:center;">Multi-select (10 choix)</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--success);font-weight:600;">NOUVEAU (remplace Q11)</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">Services IT externalis&eacute;s</td>
+          <td style="padding:6px 4px;text-align:center;">Multi-select</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--success);font-weight:600;">NOUVEAU</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">Programme de sensibilisation</td>
+          <td style="padding:6px 4px;text-align:center;">Oui/Non + fr&eacute;quence</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--success);font-weight:600;">NOUVEAU</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;color:var(--forest-700);font-weight:600;" rowspan="2">4. Incidents</td>
+          <td style="padding:6px 4px;">Incidents majeurs &lt; 12 mois ?</td>
+          <td style="padding:6px 4px;text-align:center;">Oui/Non + type</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q13 enrichi</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;">PCA/PRA formalis&eacute; et test&eacute; ?</td>
+          <td style="padding:6px 4px;text-align:center;">3 choix</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q14 enrichi</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F5F5F5;">
+          <td style="padding:6px 4px;color:var(--forest-700);font-weight:600;" rowspan="2">5. Attentes</td>
+          <td style="padding:6px 4px;">Enjeux principaux de la mission</td>
+          <td style="padding:6px 4px;text-align:center;">Multi-select (1-3)</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--text-300);">Q15 restructur&eacute;</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 4px;">Contraintes de planning</td>
+          <td style="padding:6px 4px;text-align:center;">Multi-select + texte opt.</td>
+          <td style="padding:6px 4px;text-align:center;font-size:10px;color:var(--success);font-weight:600;">NOUVEAU</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:16px;padding:12px 16px;background:var(--forest-50);border-radius:8px;">
+      <p style="font-size:12px;color:var(--forest-700);font-weight:600;">R&eacute;sultat</p>
+      <p style="font-size:12px;color:var(--text-500);margin-top:4px;line-height:1.5;">
+        14 questions (vs 15 avant) &middot; <strong>6 questions supprim&eacute;es</strong> (doublons fiche client) &middot;
+        <strong>5 nouvelles</strong> (maturit&eacute;, changements, s&eacute;curit&eacute; op&eacute;rationnelle, externalisation, contraintes) &middot;
+        <strong>0 textarea obligatoire</strong> (tout en clics) &middot; 1 champ texte optionnel en fin
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+function showStep(n) {
+  document.querySelectorAll('.demo-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

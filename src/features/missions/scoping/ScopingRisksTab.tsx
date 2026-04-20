@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Sparkles, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { ScopingRiskCard } from './ScopingRiskCard'
 import { EmptyState } from '../../../components/ui/EmptyState'
@@ -77,7 +78,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
             {generating ? (
               <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Analyse...</>
             ) : (
-              <>&#10024; G&eacute;n&eacute;rer depuis le questionnaire</>
+              <><Sparkles size={13} /> G&eacute;n&eacute;rer depuis le questionnaire</>
             )}
           </button>
           <button onClick={() => setShowForm(!showForm)}
@@ -89,7 +90,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
 
       {genSuccess && (
         <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-200 rounded-lg">
-          <span className="text-green-600 text-sm">&#10003;</span>
+          <Check size={15} className="text-green-600" />
           <p className="text-xs text-green-700 font-medium">{genSuccess}</p>
         </div>
       )}

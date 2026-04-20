@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Menu } from 'lucide-react'
 import { Breadcrumb } from './Breadcrumb'
 import { BellIcon } from '../icons/NavIcons'
 import { Badge } from '../ui/Badge'
@@ -63,7 +64,7 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
         className="rounded-lg p-2 text-gray-500 hover:bg-forest-50 lg:hidden"
         aria-label="Menu"
       >
-        &#9776;
+        <Menu size={20} />
       </button>
 
       {/* Breadcrumb */}

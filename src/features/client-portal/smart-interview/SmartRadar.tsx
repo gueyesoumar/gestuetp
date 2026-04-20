@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Check, AlertTriangle, Square } from 'lucide-react'
 import type { Question } from '../../../types/database.types'
 import type { SmartAnswer } from './SmartInterviewContainer'
 
@@ -119,21 +120,21 @@ export function SmartRadar({ questions, initialResponses, prefilledAnswers }: Pr
       <div className="w-64 shrink-0 space-y-2">
         {strengths.map((s) => (
           <div key={s.label} className="p-3 border border-forest-100 rounded-xl bg-forest-50">
-            <p className="text-[10px] font-semibold text-green-600 mb-1">&#10003; Point fort</p>
+            <p className="text-[10px] font-semibold text-green-600 mb-1 flex items-center gap-0.5"><Check size={10} /> Point fort</p>
             <p className="text-[11px] text-gray-700">{s.label} : score {s.score}/5</p>
           </div>
         ))}
 
         {warnings.map((w) => (
           <div key={w.label} className="p-3 border border-gold-200 rounded-xl bg-gold-50">
-            <p className="text-[10px] font-semibold text-gold-600 mb-1">&#9888; Attention</p>
+            <p className="text-[10px] font-semibold text-gold-600 mb-1 flex items-center gap-0.5"><AlertTriangle size={10} /> Attention</p>
             <p className="text-[11px] text-gray-700">{w.label} : score {w.score}/5</p>
           </div>
         ))}
 
         {notYet.length > 0 && (
           <div className="p-3 border border-gray-200 rounded-xl bg-gray-50">
-            <p className="text-[10px] font-semibold text-gray-400 mb-1">&#9744; Non &eacute;valu&eacute;</p>
+            <p className="text-[10px] font-semibold text-gray-400 mb-1 flex items-center gap-0.5"><Square size={10} /> Non &eacute;valu&eacute;</p>
             <p className="text-[11px] text-gray-400">{notYet.map((n) => n.label).join(', ')}</p>
           </div>
         )}
