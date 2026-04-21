@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Check, X, AlertTriangle } from 'lucide-react'
 import { useClientFindings } from './useClientFindings'
 import { useClientActionItems } from './useClientActionItems'
+import { ClientCARSection } from './ClientCARSection'
 import { ACTION_PRIORITY_LABELS, ACTION_STATUS_LABELS } from '../../client-constants'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
 import type { ActionStatus } from '../../../../types/database.types'
@@ -40,6 +41,12 @@ export function ClientResultsTab({ mission, isContributor }: Props): JSX.Element
             <p className="text-xs text-gray-400">Les constats d&rsquo;audit appara&icirc;tront ici lorsque l&rsquo;auditeur les soumettra.</p>
           </div>
         )}
+      </section>
+
+      {/* ═══ Demandes d'actions correctives ═══ */}
+      <section>
+        <h3 className="text-sm font-bold mb-3">Demandes d&rsquo;actions correctives (CAR)</h3>
+        <ClientCARSection missionId={mission.id} isContributor={isContributor} />
       </section>
 
       {/* ═══ Plan d'action ═══ */}

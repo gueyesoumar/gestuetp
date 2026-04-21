@@ -28,6 +28,8 @@ interface GuidedWorkflowProps {
   onRiskNotesChange: (v: string) => void
   conformityLevel: string | null
   onConformityChange: (v: string) => void
+  findingClassification: string | null
+  onFindingClassificationChange: (v: string | null) => void
   onSubmit: () => void
   saving: boolean
   readOnly: boolean
@@ -91,6 +93,8 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
             onRiskNotesChange={props.onRiskNotesChange}
             conformityLevel={props.conformityLevel as import('../mission-constants').ConformityLevel | null}
             onConformityChange={props.onConformityChange as (v: import('../mission-constants').ConformityLevel) => void}
+            findingClassification={props.findingClassification}
+            onFindingClassificationChange={props.onFindingClassificationChange}
             readOnly={readOnly}
           />
         )}

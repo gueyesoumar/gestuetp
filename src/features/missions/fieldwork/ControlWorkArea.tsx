@@ -21,7 +21,7 @@ interface ControlWorkAreaProps {
   onModeChange: (mode: 'guided' | 'libre') => void
   onGuidedStepChange: (step: number) => void
   onToggleAutoAdvance: () => void
-  onSave: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null }) => Promise<boolean>
+  onSave: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }) => Promise<boolean>
   onSubmit: (id: string) => Promise<boolean>
   onApprove?: (id: string, comment: string, stage?: string) => Promise<boolean>
   onReject?: (id: string, comment: string, stage?: string) => Promise<boolean>
@@ -36,6 +36,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
   const [evidenceNotes, setEvidenceNotes] = useState(assessment.evidence_notes ?? '')
   const [riskNotes, setRiskNotes] = useState(assessment.risk_notes ?? '')
   const [conformityLevel, setConformityLevel] = useState<string | null>(assessment.conformity_level ?? null)
+  const [findingClassification, setFindingClassification] = useState<string | null>(assessment.finding_classification ?? null)
 
   const isSubmittedOrAbove = assessment.status === 'submitted' || assessment.status === 'in_review' || assessment.status === 'approved'
   const readOnly = isSubmittedOrAbove
@@ -54,6 +55,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
     setEvidenceNotes(assessment.evidence_notes ?? '')
     setRiskNotes(assessment.risk_notes ?? '')
     setConformityLevel(assessment.conformity_level ?? null)
+    setFindingClassification(assessment.finding_classification ?? null)
   }, [assessment.id])
 
   const status = ASSESSMENT_STATUS_CONFIG[assessment.status]
@@ -61,11 +63,11 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
   const canGoPrev = guidedStep > 0
 
   const handleSave = useCallback(async () => {
-    await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel })
-  }, [assessment.id, findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, onSave])
+    await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification })
+  }, [assessment.id, findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, findingClassification, onSave])
 
   const handleSubmit = useCallback(async () => {
-    const saved = await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes })
+    const saved = await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification })
     if (saved) await onSubmit(assessment.id)
   }, [assessment.id, findings, recommendations, evidenceNotes, onSave, onSubmit])
 
@@ -122,6 +124,23 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
             }`}>
               {conformityLevel === 'c' ? 'Conforme' : conformityLevel === 'lc' ? 'Largement conforme' : conformityLevel === 'pc' ? 'Partiellement conforme' : conformityLevel === 'nc' ? 'Non conforme' : conformityLevel === 'na' ? 'Non applicable' : 'Non \u00e9valu\u00e9'}
             </span>
+          </div>
+
+          {/* Finding classification */}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Classification du constat</p>
+            <div className="flex gap-2">
+              {[
+                { key: 'major_nc', label: 'NC Majeure', color: 'bg-red-50 text-red-600 border-red-200' },
+                { key: 'minor_nc', label: 'NC Mineure', color: 'bg-orange-50 text-orange-600 border-orange-200' },
+                { key: 'observation', label: 'Observation', color: 'bg-blue-50 text-blue-600 border-blue-200' },
+                { key: 'strength', label: 'Point fort', color: 'bg-green-50 text-green-600 border-green-200' },
+              ].map((cls) => (
+                <span key={cls.key} className={`text-[11px] font-medium px-3 py-1 rounded-full border ${findingClassification === cls.key ? cls.color : 'bg-gray-50 text-gray-300 border-gray-100'}`}>
+                  {cls.label}
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* Observations */}
@@ -196,6 +215,8 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
           onRiskNotesChange={setRiskNotes}
           conformityLevel={conformityLevel}
           onConformityChange={setConformityLevel}
+          findingClassification={findingClassification}
+          onFindingClassificationChange={setFindingClassification}
           onSubmit={handleSubmit}
           saving={saving}
           readOnly={readOnly}

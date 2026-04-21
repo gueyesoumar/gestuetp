@@ -15,6 +15,8 @@ interface AnalyserStepProps {
   recommendations: string
   riskNotes: string
   conformityLevel: ConformityLevel | null
+  findingClassification: string | null
+  onFindingClassificationChange: (value: string | null) => void
   onFindingsChange: (value: string) => void
   onRecommendationsChange: (value: string) => void
   onRiskNotesChange: (value: string) => void
@@ -49,7 +51,21 @@ const MATURITY_LABELS: Record<string, { label: string; color: string }> = {
   non_applicable: { label: 'Non applicable', color: 'text-gray-500 bg-gray-50 border-gray-200' },
 }
 
-export function AnalyserStep({ assessment, observations, evidenceNotes, findings, recommendations, riskNotes, conformityLevel, onFindingsChange, onRecommendationsChange, onRiskNotesChange, onConformityChange, readOnly }: AnalyserStepProps) {
+const FINDING_CLASSIFICATIONS = [
+  { key: 'major_nc', label: 'NC Majeure', color: 'bg-red-50 text-red-600 border-red-200' },
+  { key: 'minor_nc', label: 'NC Mineure', color: 'bg-orange-50 text-orange-600 border-orange-200' },
+  { key: 'observation', label: 'Observation', color: 'bg-blue-50 text-blue-600 border-blue-200' },
+  { key: 'strength', label: 'Point fort', color: 'bg-green-50 text-green-600 border-green-200' },
+] as const
+
+const CONFORMITY_TO_CLASSIFICATION: Record<string, string> = {
+  nc: 'major_nc',
+  pc: 'minor_nc',
+  lc: 'observation',
+  c: 'strength',
+}
+
+export function AnalyserStep({ assessment, observations, evidenceNotes, findings, recommendations, riskNotes, conformityLevel, findingClassification, onFindingClassificationChange, onFindingsChange, onRecommendationsChange, onRiskNotesChange, onConformityChange, readOnly }: AnalyserStepProps) {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(null)
 
@@ -189,7 +205,11 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
                 non_conforme: 'nc', partiel: 'pc', largement_conforme: 'lc', conforme: 'c', non_applicable: 'na'
               }
               const mapped = maturityMap[aiAnalysis.maturity_level]
-              if (mapped) onConformityChange(mapped)
+              if (mapped) {
+                onConformityChange(mapped)
+                const suggestedClassification = CONFORMITY_TO_CLASSIFICATION[mapped]
+                if (suggestedClassification) onFindingClassificationChange(suggestedClassification)
+              }
               setAiAnalysis(null)
             }} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 transition-colors">
               {'\u2713'} Appliquer les suggestions
@@ -228,6 +248,30 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
           })}
         </div>
       </div>
+
+      {/* Finding classification — shown when conformity is set and not N/A */}
+      {conformityLevel && conformityLevel !== 'na' && (
+        <div>
+          <p className="text-[13px] font-semibold text-gray-700 mb-2">Classification du constat</p>
+          <div className="flex gap-2">
+            {FINDING_CLASSIFICATIONS.map((cls) => {
+              const suggested = CONFORMITY_TO_CLASSIFICATION[conformityLevel] === cls.key
+              const isSelected = findingClassification === cls.key
+              return (
+                <button key={cls.key} type="button"
+                  onClick={() => !readOnly && onFindingClassificationChange(isSelected ? null : cls.key)}
+                  disabled={readOnly}
+                  className={`flex-1 py-2 px-2 border-2 rounded-xl text-center text-[11px] font-medium transition-all ${
+                    isSelected ? `${cls.color} border-current ring-2 ring-forest-200` : suggested ? `${cls.color} border-dashed border-gray-300 opacity-70` : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                  } disabled:cursor-not-allowed`}>
+                  {cls.label}
+                  {suggested && !isSelected && <span className="block text-[9px] text-gray-400 mt-0.5">(sugg&eacute;r&eacute;)</span>}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Findings */}
       <div>

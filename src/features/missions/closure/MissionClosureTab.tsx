@@ -4,7 +4,12 @@ import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
 import { ClosureActionCards } from './ClosureActionCards'
+import { FindingSynthesis } from './FindingSynthesis'
+import { CARTracking } from './CARTracking'
+import { AuditConclusion } from './AuditConclusion'
+import { ReportGenerator } from './ReportGenerator'
 import type { MissionDetail } from '../useMissionDetail'
+import type { ControlAssessment } from '../../../types/database.types'
 
 interface DomainScore {
   domain_code: string
@@ -32,7 +37,27 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const [closing, setClosing] = useState(false)
   const [closeError, setCloseError] = useState<string | null>(null)
   const [scoring, setScoring] = useState<ScoringData | null>(null)
+  const [assessments, setAssessments] = useState<ControlAssessment[]>([])
   const isClosed = mission.status === 'closure'
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const load = async (): Promise<void> => {
+      const session = await supabase.auth.getSession()
+      const token = session.data.session?.access_token
+      if (!token) return
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL
+      const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      const res = await fetch(
+        `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${mission.id}&select=id,mission_id,control_id,auditor_id,status,findings,recommendations,ai_draft,evidence_notes,observations,risk_notes,conformity_level,finding_classification,created_at,updated_at`,
+        { headers: { 'apikey': apikey, 'Authorization': `Bearer ${token}` }, signal: controller.signal }
+      )
+      if (controller.signal.aborted) return
+      if (res.ok) setAssessments((await res.json()) as ControlAssessment[])
+    }
+    load()
+    return () => controller.abort()
+  }, [mission.id])
 
   const handleClose = useCallback(async () => {
     setClosing(true)
@@ -88,6 +113,20 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       )}
 
       {isClosed && !scoring && <ScoringLoader missionId={mission.id} />}
+
+      {/* ISO 27001 closure enrichments */}
+      {(isClosed || scoring) && (
+        <>
+          <FindingSynthesis assessments={assessments} />
+          <CARTracking missionId={mission.id} />
+          <AuditConclusion
+            missionId={mission.id}
+            initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}
+            initialComment={(mission as unknown as Record<string, unknown>).audit_conclusion_comment as string | null ?? null}
+          />
+          <ReportGenerator missionId={mission.id} missionName={mission.name} />
+        </>
+      )}
     </div>
   )
 }

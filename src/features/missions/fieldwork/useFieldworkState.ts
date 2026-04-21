@@ -15,7 +15,7 @@ interface FieldworkState {
   setMode: (mode: WorkMode) => void
   setGuidedStep: (step: number) => void
   toggleAutoAdvance: () => void
-  saveAssessment: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null }) => Promise<boolean>
+  saveAssessment: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }) => Promise<boolean>
   submitAssessment: (id: string) => Promise<boolean>
   approveAssessment: (id: string, comment: string, stage?: string) => Promise<boolean>
   rejectAssessment: (id: string, comment: string, stage?: string) => Promise<boolean>
@@ -76,7 +76,7 @@ export function useFieldworkState(
     }
   }, [autoAdvance, assessments, selectedId])
 
-  const saveAssessment = useCallback(async (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null }): Promise<boolean> => {
+  const saveAssessment = useCallback(async (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }): Promise<boolean> => {
     setSaving(true)
     setSaveError(null)
     // Cast needed: Supabase generated types resolve to `never` for update on this table
@@ -89,6 +89,7 @@ export function useFieldworkState(
         observations: data.observations || null,
         risk_notes: data.risk_notes || null,
         conformity_level: data.conformity_level || null,
+        finding_classification: data.finding_classification || null,
       })
       .eq('id', id)
     if (error) {

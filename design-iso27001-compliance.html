@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G&euml;stu Comply &mdash; ISO 27001 Improvements</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --forest-900: #1B4332;
+  --forest-800: #234E3E;
+  --forest-700: #2D6A4F;
+  --forest-500: #40916C;
+  --forest-300: #74C69D;
+  --forest-100: #D8F3DC;
+  --forest-50: #F0FFF4;
+  --gold-600: #B8922E;
+  --gold-500: #D4A843;
+  --gold-400: #E2C26B;
+  --gold-200: #F2E2B1;
+  --gold-50: #FDF8E8;
+  --bg: #FAFAF8;
+  --white: #FFFFFF;
+  --text-900: #1A1A1A;
+  --text-700: #374151;
+  --text-500: #6B7280;
+  --text-300: #9CA3AF;
+  --border: #E5E7EB;
+  --success: #27AE60;
+  --success-light: #E8F5E9;
+  --error: #C0392B;
+  --error-light: #FDECEB;
+  --warning: #E67E22;
+  --warning-light: #FFF3E0;
+  --info: #3B82F6;
+  --info-light: #EBF5FF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text-700);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   TOP TAB SWITCHER
+   ============================================================ */
+.tab-switcher {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--forest-900);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 52px;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.tab-switcher .logo {
+  font-weight: 800;
+  font-size: 17px;
+  color: #fff;
+  margin-right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab-switcher .logo .trema { color: var(--gold-500); }
+.tab-switcher .logo .subtitle {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  color: var(--gold-500);
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+.tab-btn {
+  padding: 7px 18px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+.tab-btn.active {
+  background: var(--gold-500);
+  color: var(--forest-900);
+  border-color: var(--gold-500);
+}
+.tab-hint {
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  margin-left: auto;
+  font-style: italic;
+}
+
+/* ============================================================
+   TAB PANES
+   ============================================================ */
+.tab-pane { display: none; padding-top: 52px; }
+.tab-pane.active { display: block; }
+
+/* ============================================================
+   PLATFORM FRAME (Sidebar + Content)
+   ============================================================ */
+.platform {
+  display: flex;
+  min-height: calc(100vh - 52px);
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: 240px;
+  background: var(--forest-900);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.sb-logo {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sb-logo-text {
+  font-size: 17px;
+  font-weight: 800;
+  color: white;
+}
+.sb-logo-text .trema { color: var(--gold-500); }
+.sb-logo-sub {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold-500);
+  margin-top: 2px;
+}
+.sb-nav { flex: 1; padding-top: 8px; }
+.sb-section {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.25);
+  padding: 16px 20px 6px;
+}
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  text-decoration: none;
+}
+.sb-item:hover {
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.05);
+}
+.sb-item.active {
+  color: white;
+  background: rgba(255,255,255,0.1);
+}
+.sb-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gold-500);
+}
+.sb-icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.sb-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--gold-500);
+  color: var(--forest-900);
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+.sb-user {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sb-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gold-500);
+  color: var(--forest-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.sb-user-name { font-size: 12px; color: white; font-weight: 500; }
+.sb-user-role { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.main-content {
+  flex: 1;
+  background: var(--bg);
+  overflow-y: auto;
+  min-height: calc(100vh - 52px);
+}
+
+/* ---- Topbar inside content ---- */
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-back {
+  font-size: 13px;
+  color: var(--forest-700);
+  text-decoration: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.topbar-back:hover { color: var(--forest-900); }
+.topbar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+.topbar-meta {
+  font-size: 12px;
+  color: var(--text-300);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 12px;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-pill.active { background: var(--forest-100); color: var(--forest-700); }
+.status-pill.active::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--forest-500);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ============================================================
+   COMMON UI COMPONENTS
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge.green { background: var(--success-light); color: var(--success); }
+.badge.gold { background: var(--gold-50); color: var(--gold-600); }
+.badge.gray { background: #F3F4F6; color: var(--text-500); }
+.badge.blue { background: var(--info-light); color: var(--info); }
+.badge.red { background: var(--error-light); color: var(--error); }
+.badge.orange { background: var(--warning-light); color: var(--warning); }
+
+.btn-primary {
+  background: var(--forest-700);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary:hover { background: var(--forest-900); }
+
+.btn-secondary {
+  background: white;
+  color: var(--text-700);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-secondary:hover { border-color: var(--forest-300); }
+
+.btn-gold {
+  background: var(--gold-500);
+  color: var(--forest-900);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-gold:hover { background: var(--gold-600); }
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.nouveau-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gold-600);
+  background: var(--gold-50);
+  border: 1px solid var(--gold-200);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.gold-border-left {
+  border-left: 3px solid var(--gold-500) !important;
+  background: var(--gold-50) !important;
+}
+
+/* ============================================================
+   TAB 1: FIELDWORK SPLIT LAYOUT
+   ============================================================ */
+.fieldwork-split {
+  display: flex;
+  flex: 1;
+}
+.fw-sidebar {
+  width: 300px;
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  max-height: calc(100vh - 52px - 52px);
+}
+.fw-sidebar-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fw-sidebar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+.fw-sidebar-count {
+  font-size: 11px;
+  color: var(--text-300);
+}
+.fw-search {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.fw-search input {
+  width: 100%;
+  padding: 7px 10px 7px 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cline x1='9.5' y1='9.5' x2='13' y2='13'/%3E%3C/svg%3E") 8px center no-repeat;
+}
+.fw-search input:focus { border-color: var(--forest-500); }
+
+.fw-domain {
+  border-bottom: 1px solid var(--border);
+}
+.fw-domain-header {
+  padding: 10px 18px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #FAFAFA;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.fw-domain-count {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-300);
+  background: #F3F4F6;
+  padding: 1px 7px;
+  border-radius: 99px;
+}
+.fw-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px 10px 28px;
+  cursor: pointer;
+  transition: all 0.12s;
+  border-left: 3px solid transparent;
+}
+.fw-control:hover { background: var(--forest-50); }
+.fw-control.active {
+  background: var(--forest-50);
+  border-left-color: var(--gold-500);
+}
+.fw-control-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--forest-700);
+  flex-shrink: 0;
+  width: 36px;
+}
+.fw-control-name {
+  font-size: 12px;
+  color: var(--text-700);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fw-control-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.fw-control-status.done { background: var(--success); }
+.fw-control-status.partial { background: var(--warning); }
+.fw-control-status.pending { background: var(--border); }
+
+/* ---- Right work area ---- */
+.fw-work {
+  flex: 1;
+  padding: 24px 28px;
+  overflow-y: auto;
+  max-height: calc(100vh - 52px - 52px);
+}
+.fw-work-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.fw-work-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-900);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fw-work-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--forest-700);
+  background: var(--forest-50);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.fw-work-sub {
+  font-size: 13px;
+  color: var(--text-300);
+  margin-top: 4px;
+}
+
+/* Workflow stepper (mini) */
+.fw-steps {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+.fw-step {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-300);
+  background: #F9F9F9;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.fw-step.done {
+  background: var(--success-light);
+  color: var(--success);
+  border-color: transparent;
+}
+.fw-step.active {
+  background: var(--forest-700);
+  color: white;
+  border-color: var(--forest-700);
+}
+
+/* Form sections */
+.form-section {
+  margin-bottom: 20px;
+}
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-700);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.form-hint {
+  font-size: 11px;
+  color: var(--text-300);
+  margin-bottom: 8px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Radio buttons styled */
+.radio-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.radio-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-500);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.radio-btn:hover {
+  border-color: var(--forest-300);
+  background: var(--forest-50);
+}
+.radio-btn.selected {
+  border-color: var(--forest-700);
+  background: var(--forest-100);
+  color: var(--forest-900);
+  font-weight: 600;
+}
+.radio-btn.selected-warning {
+  border-color: var(--warning);
+  background: var(--warning-light);
+  color: #92400E;
+  font-weight: 600;
+}
+.radio-btn.selected-error {
+  border-color: var(--error);
+  background: var(--error-light);
+  color: var(--error);
+  font-weight: 600;
+}
+.radio-btn.selected-success {
+  border-color: var(--success);
+  background: var(--success-light);
+  color: #166534;
+  font-weight: 600;
+}
+
+textarea.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+  color: var(--text-700);
+  min-height: 80px;
+}
+textarea.form-textarea:focus { border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-50); }
+
+/* File attachments */
+.file-list { display: flex; flex-direction: column; gap: 6px; }
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #FAFAFA;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-700);
+}
+.file-icon { font-size: 16px; flex-shrink: 0; }
+.file-name { flex: 1; font-weight: 500; }
+.file-size { color: var(--text-300); font-size: 11px; }
+
+/* Risk callout */
+.risk-callout {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.risk-callout.warning {
+  background: var(--warning-light);
+  border-left: 3px solid var(--warning);
+  color: #92400E;
+}
+
+/* Criterion auto-filled box */
+.criterion-box {
+  background: #FAFAFA;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.criterion-ref {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--forest-700);
+  margin-bottom: 6px;
+}
+.criterion-text {
+  font-size: 13px;
+  color: var(--text-700);
+  line-height: 1.6;
+  font-style: italic;
+}
+.criterion-auto {
+  font-size: 10px;
+  color: var(--text-300);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Separator */
+.form-separator {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 24px 0;
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+/* Auto-suggest line */
+.auto-suggest {
+  font-size: 11px;
+  color: var(--forest-700);
+  background: var(--forest-50);
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ============================================================
+   TAB 2: CLIENT PORTAL
+   ============================================================ */
+.portal-content { padding: 24px 28px; }
+
+/* Inner tabs */
+.inner-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+.inner-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-500);
+  cursor: pointer;
+  font-family: inherit;
+}
+.inner-tab.active {
+  background: var(--forest-700);
+  color: white;
+  border-color: var(--forest-700);
+}
+.inner-tab .cnt {
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+  background: rgba(0,0,0,0.1);
+  padding: 0 5px;
+  border-radius: 99px;
+}
+.inner-tab.active .cnt {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Section headers in results */
+.results-section {
+  margin-bottom: 28px;
+}
+.results-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-900);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.results-section-sub {
+  font-size: 12px;
+  color: var(--text-300);
+  margin-bottom: 14px;
+}
+
+/* Finding card */
+.finding-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  margin-bottom: 10px;
+}
+.finding-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.finding-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--forest-700);
+}
+.finding-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-900);
+  flex: 1;
+}
+.finding-body {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-700);
+  line-height: 1.6;
+}
+.finding-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: #FAFAFA;
+  align-items: center;
+}
+.finding-comment {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+.finding-comment:focus { border-color: var(--forest-500); }
+.btn-approve {
+  padding: 8px 16px;
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-reject {
+  padding: 8px 16px;
+  background: white;
+  color: var(--error);
+  border: 1px solid var(--error);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* CAR card */
+.car-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  margin-bottom: 14px;
+}
+.car-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.car-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-900);
+}
+.car-ref {
+  font-size: 12px;
+  color: var(--text-500);
+  margin-top: 2px;
+}
+.car-deadline {
+  font-size: 12px;
+  color: var(--text-500);
+  margin-top: 2px;
+}
+.car-body {
+  padding: 18px;
+}
+.car-toggle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-900);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.car-field {
+  margin-bottom: 14px;
+}
+.car-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-700);
+  margin-bottom: 6px;
+}
+.car-field label .req { color: var(--error); }
+.car-field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  color: var(--text-300);
+}
+.car-field textarea:focus { border-color: var(--forest-500); }
+.car-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.car-field select,
+.car-field input[type="date"] {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  color: var(--text-300);
+  background: white;
+}
+.car-field select:focus,
+.car-field input[type="date"]:focus { border-color: var(--forest-500); }
+
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-300);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.upload-zone:hover {
+  border-color: var(--forest-300);
+  background: var(--forest-50);
+}
+.upload-zone-icon { font-size: 24px; margin-bottom: 6px; }
+
+.car-submit {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+/* ============================================================
+   TAB 3: CLOSURE / REPORT
+   ============================================================ */
+.closure-content { padding: 24px 28px; }
+
+/* Mission stepper (top) */
+.mission-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 16px 28px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+.ms-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-300);
+  white-space: nowrap;
+}
+.ms-step.done { color: var(--success); }
+.ms-step.active { color: var(--forest-700); font-weight: 700; }
+.ms-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  color: var(--text-300);
+  flex-shrink: 0;
+}
+.ms-step.done .ms-dot {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+.ms-step.active .ms-dot {
+  background: var(--forest-700);
+  border-color: var(--forest-700);
+  color: white;
+}
+.ms-line {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin: 0 8px;
+  min-width: 20px;
+}
+.ms-line.done { background: var(--success); }
+
+/* Score donut */
+.score-section {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.score-donut {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  flex-shrink: 0;
+}
+.score-donut svg { transform: rotate(-90deg); }
+.score-donut-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-900);
+}
+.score-donut-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% + 18px));
+  font-size: 10px;
+  color: var(--text-300);
+}
+.score-detail { flex: 1; }
+.score-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.score-bar-label {
+  font-size: 12px;
+  color: var(--text-500);
+  width: 160px;
+  flex-shrink: 0;
+}
+.score-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+}
+.score-bar-fill {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--forest-500);
+}
+.score-bar-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-700);
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Findings summary grid */
+.findings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.findings-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+}
+.findings-count {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.findings-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-500);
+}
+.findings-icon {
+  font-size: 18px;
+  margin-top: 4px;
+}
+
+/* CAR tracking */
+.car-progress { margin-bottom: 16px; }
+.car-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.car-progress-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-700);
+}
+.car-progress-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--forest-700);
+}
+.car-progress-bar {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.car-progress-fill {
+  height: 8px;
+  background: var(--forest-500);
+  border-radius: 4px;
+}
+
+/* Mini table */
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.mini-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: var(--text-500);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid var(--border);
+}
+.mini-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-700);
+}
+.mini-table tr:last-child td { border-bottom: none; }
+
+/* Audit conclusion */
+.conclusion-options { display: flex; flex-direction: column; gap: 8px; }
+.conclusion-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.conclusion-option:hover { border-color: var(--forest-300); background: var(--forest-50); }
+.conclusion-option.selected {
+  border-color: var(--forest-700);
+  background: var(--forest-100);
+}
+.conclusion-radio {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.conclusion-option.selected .conclusion-radio {
+  border-color: var(--forest-700);
+}
+.conclusion-option.selected .conclusion-radio::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--forest-700);
+}
+.conclusion-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-700);
+}
+.conclusion-option.selected .conclusion-text {
+  color: var(--forest-900);
+  font-weight: 600;
+}
+
+/* Report generation */
+.report-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.report-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.report-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-700);
+  min-width: 130px;
+  flex-shrink: 0;
+}
+.format-group { display: flex; gap: 8px; }
+.format-btn {
+  padding: 8px 18px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-500);
+  cursor: pointer;
+  background: white;
+  font-family: inherit;
+}
+.format-btn.selected {
+  border-color: var(--forest-700);
+  background: var(--forest-100);
+  color: var(--forest-900);
+  font-weight: 600;
+}
+.checkbox-list { display: flex; flex-direction: column; gap: 6px; }
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-700);
+  cursor: pointer;
+}
+.checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+.checkbox-box.checked {
+  background: var(--forest-700);
+  border-color: var(--forest-700);
+  color: white;
+}
+.report-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Section title within closure */
+.closure-section { margin-bottom: 28px; }
+.closure-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-900);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.closure-section-sub {
+  font-size: 12px;
+  color: var(--text-300);
+  margin-bottom: 14px;
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.mt-2 { margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOP TAB SWITCHER
+     ============================================================ -->
+<div class="tab-switcher">
+  <div class="logo">
+    G<span class="trema">&euml;</span>stu
+    <span class="subtitle">COMPLY</span>
+  </div>
+  <button class="tab-btn active" onclick="showTab(1)">1. Travaux &mdash; &Eacute;valuation</button>
+  <button class="tab-btn" onclick="showTab(2)">2. Portail Client &mdash; R&eacute;sultats</button>
+  <button class="tab-btn" onclick="showTab(3)">3. Cl&ocirc;ture &mdash; Rapport</button>
+  <span class="tab-hint">3 am&eacute;liorations ISO 27001 int&eacute;gr&eacute;es dans l&apos;interface existante</span>
+</div>
+
+
+<!-- ============================================================
+     TAB 1 : TRAVAUX
+     ============================================================ -->
+<div id="tab1" class="tab-pane active">
+  <div class="platform">
+
+    <!-- Platform sidebar -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-text">G<span class="trema">&euml;</span>stu</div>
+        <div class="sb-logo-sub">COMPLY</div>
+      </div>
+      <div class="sb-nav">
+        <div class="sb-section">Navigation</div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9633;</span> Tableau de bord
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9776;</span> Missions
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128196;</span> Clients
+        </div>
+        <div class="sb-item active">
+          <span class="sb-icon">&#9997;</span> Travaux
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128200;</span> R&eacute;f&eacute;rentiels
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128101;</span> &Eacute;quipe
+        </div>
+        <div class="sb-section">Param&egrave;tres</div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9881;</span> Organisation
+        </div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-avatar">SG</div>
+        <div>
+          <div class="sb-user-name">Seydina O. Gueye</div>
+          <div class="sb-user-role">Chef de mission</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main-content">
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-back">&larr; Missions</span>
+          <span class="topbar-title">Audit ISO 27001 &mdash; TechCorp SAS</span>
+          <span class="topbar-meta">
+            <span>Phase : Travaux</span>
+            <span>&bull;</span>
+            <span>114 contr&ocirc;les</span>
+          </span>
+        </div>
+        <div class="topbar-right">
+          <span class="status-pill active">En cours</span>
+        </div>
+      </div>
+
+      <!-- Split: domain list + work area -->
+      <div class="fieldwork-split">
+
+        <!-- LEFT: Domain / Control list -->
+        <div class="fw-sidebar">
+          <div class="fw-sidebar-header">
+            <span class="fw-sidebar-title">Contr&ocirc;les ISO 27001</span>
+            <span class="fw-sidebar-count">42/114</span>
+          </div>
+          <div class="fw-search">
+            <input type="text" placeholder="Rechercher un contr&ocirc;le...">
+          </div>
+
+          <!-- Domain A.5 -->
+          <div class="fw-domain">
+            <div class="fw-domain-header">
+              A.5 &mdash; Mesures organisationnelles
+              <span class="fw-domain-count">8</span>
+            </div>
+            <div class="fw-control active">
+              <span class="fw-control-code">A.5.1</span>
+              <span class="fw-control-name">Politiques de s&eacute;curit&eacute;</span>
+              <span class="fw-control-status partial"></span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.5.2</span>
+              <span class="fw-control-name">R&ocirc;les et responsabilit&eacute;s</span>
+              <span class="fw-control-status done"></span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.5.3</span>
+              <span class="fw-control-name">S&eacute;paration des fonctions</span>
+              <span class="fw-control-status done"></span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.5.4</span>
+              <span class="fw-control-name">Responsabilit&eacute;s direction</span>
+              <span class="fw-control-status pending"></span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.5.5</span>
+              <span class="fw-control-name">Relations avec autorit&eacute;s</span>
+              <span class="fw-control-status pending"></span>
+            </div>
+          </div>
+
+          <!-- Domain A.6 -->
+          <div class="fw-domain">
+            <div class="fw-domain-header">
+              A.6 &mdash; Mesures li&eacute;es aux personnes
+              <span class="fw-domain-count">8</span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.6.1</span>
+              <span class="fw-control-name">S&eacute;lection des candidats</span>
+              <span class="fw-control-status done"></span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.6.2</span>
+              <span class="fw-control-name">Conditions d&apos;emploi</span>
+              <span class="fw-control-status done"></span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.6.3</span>
+              <span class="fw-control-name">Sensibilisation</span>
+              <span class="fw-control-status pending"></span>
+            </div>
+          </div>
+
+          <!-- Domain A.7 -->
+          <div class="fw-domain">
+            <div class="fw-domain-header">
+              A.7 &mdash; Mesures physiques
+              <span class="fw-domain-count">14</span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.7.1</span>
+              <span class="fw-control-name">P&eacute;rim&egrave;tres physiques</span>
+              <span class="fw-control-status done"></span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.7.2</span>
+              <span class="fw-control-name">Contr&ocirc;les d&apos;acc&egrave;s</span>
+              <span class="fw-control-status pending"></span>
+            </div>
+          </div>
+
+          <!-- Domain A.8 -->
+          <div class="fw-domain">
+            <div class="fw-domain-header">
+              A.8 &mdash; Mesures technologiques
+              <span class="fw-domain-count">34</span>
+            </div>
+            <div class="fw-control">
+              <span class="fw-control-code">A.8.1</span>
+              <span class="fw-control-name">Terminaux utilisateurs</span>
+              <span class="fw-control-status pending"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Work area -->
+        <div class="fw-work">
+          <!-- Header -->
+          <div class="fw-work-header">
+            <div>
+              <div class="fw-work-title">
+                <span class="fw-work-code">A.5.1</span>
+                Politiques de s&eacute;curit&eacute; de l&apos;information
+              </div>
+              <div class="fw-work-sub">&Eacute;tape de validation &mdash; &Eacute;valuation du contr&ocirc;le</div>
+            </div>
+            <span class="badge gold">Soumis</span>
+          </div>
+
+          <!-- Mini workflow stepper -->
+          <div class="fw-steps">
+            <div class="fw-step done">Pr&eacute;paration</div>
+            <div class="fw-step done">Collecte</div>
+            <div class="fw-step done">Analyse</div>
+            <div class="fw-step active">Validation</div>
+          </div>
+
+          <!-- FORM: Niveau de conformite (existing) -->
+          <div class="form-section">
+            <div class="form-label">Niveau de conformit&eacute;</div>
+            <div class="radio-group">
+              <span class="radio-btn">NC</span>
+              <span class="radio-btn selected-warning">PC</span>
+              <span class="radio-btn">LC</span>
+              <span class="radio-btn">C</span>
+              <span class="radio-btn">NA</span>
+            </div>
+          </div>
+
+          <!-- FORM: Classification du constat (NEW) -->
+          <div class="form-section gold-border-left" style="padding: 16px; border-radius: 10px; border: 1px solid var(--gold-200);">
+            <div class="form-label">
+              Classification du constat
+              <span class="nouveau-tag">NOUVEAU</span>
+            </div>
+            <div class="radio-group">
+              <span class="radio-btn">NC Majeure</span>
+              <span class="radio-btn selected-warning">NC Mineure</span>
+              <span class="radio-btn">Observation</span>
+              <span class="radio-btn">Point fort</span>
+            </div>
+            <div class="auto-suggest mt-2">
+              &#9432; Sugg&eacute;r&eacute; automatiquement : conformit&eacute; PC &rarr; NC Mineure
+            </div>
+            <div class="form-hint mt-2">
+              NC Mineure : &eacute;cart isol&eacute;, processus existant mais incomplet
+            </div>
+          </div>
+
+          <!-- Mapping legend -->
+          <div style="margin-bottom: 20px; padding: 12px 16px; background: #FAFAFA; border-radius: 8px; border: 1px solid var(--border);">
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-500); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px;">Correspondance conformit&eacute; &rarr; classification</div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--text-500);">
+              <span><span style="color: var(--error); font-weight: 600;">NC</span> &rarr; NC Majeure</span>
+              <span><span style="color: var(--warning); font-weight: 600;">PC</span> &rarr; NC Mineure</span>
+              <span><span style="color: var(--info); font-weight: 600;">LC</span> &rarr; Observation</span>
+              <span><span style="color: var(--success); font-weight: 600;">C</span> &rarr; Point fort</span>
+            </div>
+          </div>
+
+          <!-- FORM: Critere d'audit (NEW) -->
+          <div class="form-section gold-border-left" style="padding: 16px; border-radius: 10px; border: 1px solid var(--gold-200);">
+            <div class="form-label">
+              Crit&egrave;re d&apos;audit
+              <span class="nouveau-tag">NOUVEAU</span>
+            </div>
+            <div class="criterion-box">
+              <div class="criterion-ref">ISO/IEC 27001:2022 &mdash; A.5.1</div>
+              <div class="criterion-text">
+                &laquo; Des politiques de s&eacute;curit&eacute; de l&apos;information doivent &ecirc;tre d&eacute;finies,
+                approuv&eacute;es par la direction, publi&eacute;es et communiqu&eacute;es. &raquo;
+              </div>
+              <div class="criterion-auto">
+                &#128279; Auto-rempli depuis le r&eacute;f&eacute;rentiel ISO 27001:2022
+              </div>
+            </div>
+          </div>
+
+          <hr class="form-separator">
+
+          <!-- FORM: Constats (existing) -->
+          <div class="form-section">
+            <div class="form-label">Constats</div>
+            <textarea class="form-textarea">La PSSI v3.2 couvre 14 domaines mais la diffusion n&apos;atteint que 85% des collaborateurs. Les 15% non couverts sont des nouveaux employ&eacute;s depuis Q3 2025.</textarea>
+          </div>
+
+          <!-- FORM: Preuves jointes (existing) -->
+          <div class="form-section">
+            <div class="form-label">Preuves jointes</div>
+            <div class="file-list">
+              <div class="file-item">
+                <span class="file-icon">&#128196;</span>
+                <span class="file-name">PSSI_v3.2.pdf</span>
+                <span class="file-size">2.3 Mo</span>
+              </div>
+              <div class="file-item">
+                <span class="file-icon">&#128202;</span>
+                <span class="file-name">Registre_diffusion.xlsx</span>
+                <span class="file-size">450 Ko</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FORM: Recommandations (existing) -->
+          <div class="form-section">
+            <div class="form-label">Recommandations</div>
+            <textarea class="form-textarea">Int&eacute;grer la diffusion PSSI dans le processus d&apos;onboarding. Mettre en place un contr&ocirc;le trimestriel de diffusion avec notification automatique pour les collaborateurs n&apos;ayant pas accus&eacute; r&eacute;ception.</textarea>
+          </div>
+
+          <!-- FORM: Risque identifie (existing) -->
+          <div class="form-section">
+            <div class="form-label">Risque identifi&eacute;</div>
+            <div class="risk-callout warning">
+              <span>&#9888;</span>
+              <span>Non-conformit&eacute; partielle &agrave; l&apos;exigence de diffusion &mdash; risque de m&eacute;connaissance des r&egrave;gles SSI par les nouveaux collaborateurs.</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button class="btn-secondary">&#128190; Enregistrer</button>
+            <button class="btn-primary">&#9654; Soumettre au chef de mission</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     TAB 2 : PORTAIL CLIENT
+     ============================================================ -->
+<div id="tab2" class="tab-pane">
+  <div class="platform">
+
+    <!-- Client sidebar -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-text">G<span class="trema">&euml;</span>stu</div>
+        <div class="sb-logo-sub">PORTAIL CLIENT</div>
+      </div>
+      <div class="sb-nav">
+        <div class="sb-section">Menu</div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9633;</span> Tableau de bord
+        </div>
+        <div class="sb-item active">
+          <span class="sb-icon">&#128203;</span> Mes missions
+          <span class="sb-badge">2</span>
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128196;</span> Documents
+          <span class="sb-badge">5</span>
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9745;</span> Validations
+          <span class="sb-badge">3</span>
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128276;</span> Notifications
+          <span class="sb-badge">4</span>
+        </div>
+        <div class="sb-section">Compte</div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9881;</span> Param&egrave;tres
+        </div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-avatar">ML</div>
+        <div>
+          <div class="sb-user-name">Marie Laurent</div>
+          <div class="sb-user-role">RSSI &mdash; TechCorp SAS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main-content">
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-back">&larr; Mes missions</span>
+          <span class="topbar-title">Audit ISO 27001 &mdash; TechCorp SAS</span>
+          <span class="topbar-meta">
+            <span>Cabinet : G&euml;stu Audit</span>
+            <span>&bull;</span>
+            <span>Phase : Travaux</span>
+          </span>
+        </div>
+        <div class="topbar-right">
+          <span class="status-pill active">En cours</span>
+        </div>
+      </div>
+
+      <div class="portal-content">
+        <!-- Inner tabs -->
+        <div class="inner-tabs">
+          <button class="inner-tab">Synth&egrave;se</button>
+          <button class="inner-tab active">R&eacute;sultats <span class="cnt">6</span></button>
+          <button class="inner-tab">Documents <span class="cnt">12</span></button>
+          <button class="inner-tab">Questionnaires <span class="cnt">2</span></button>
+          <button class="inner-tab">Plan d&apos;action</button>
+        </div>
+
+        <!-- Section 1: Constats a valider (existing, enriched) -->
+        <div class="results-section">
+          <div class="results-section-title">
+            Constats &agrave; valider
+            <span class="badge orange">3 en attente</span>
+          </div>
+          <div class="results-section-sub">Examinez et validez les constats de l&apos;auditeur</div>
+
+          <!-- Finding 1 -->
+          <div class="finding-card">
+            <div class="finding-top">
+              <span class="finding-code">A.5.1</span>
+              <span class="finding-name">Politiques SSI</span>
+              <span class="badge orange">NC Mineure</span>
+              <span class="badge gold">&Agrave; valider</span>
+            </div>
+            <div class="finding-body">
+              La PSSI v3.2 couvre 14 domaines mais la diffusion n&apos;atteint que 85% des collaborateurs. Les 15% non couverts sont des nouveaux employ&eacute;s depuis Q3 2025.
+              <div class="risk-callout warning" style="margin-top: 10px;">
+                <span>&#9888;</span>
+                <span>Non-conformit&eacute; partielle &agrave; l&apos;exigence de diffusion</span>
+              </div>
+            </div>
+            <div class="finding-actions">
+              <input class="finding-comment" type="text" placeholder="Commentaire...">
+              <button class="btn-approve">&#10003; Approuver</button>
+              <button class="btn-reject">&#10007; Contester</button>
+            </div>
+          </div>
+
+          <!-- Finding 2 -->
+          <div class="finding-card">
+            <div class="finding-top">
+              <span class="finding-code">A.8.9</span>
+              <span class="finding-name">Gestion des configurations</span>
+              <span class="badge red">NC Majeure</span>
+              <span class="badge gold">&Agrave; valider</span>
+            </div>
+            <div class="finding-body">
+              Aucune base de donn&eacute;es de configuration (CMDB) formalis&eacute;e. Les configurations des serveurs de production sont document&eacute;es de mani&egrave;re informelle.
+            </div>
+            <div class="finding-actions">
+              <input class="finding-comment" type="text" placeholder="Commentaire...">
+              <button class="btn-approve">&#10003; Approuver</button>
+              <button class="btn-reject">&#10007; Contester</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Actions correctives (CAR) — NEW -->
+        <div class="results-section">
+          <div class="results-section-title" style="border-left: 3px solid var(--gold-500); padding-left: 12px;">
+            Demandes d&apos;actions correctives (CAR)
+            <span class="nouveau-tag">NOUVEAU</span>
+          </div>
+          <div class="results-section-sub">R&eacute;pondez aux CAR pour les non-conformit&eacute;s identifi&eacute;es</div>
+
+          <!-- CAR 1 -->
+          <div class="car-card">
+            <div class="car-header">
+              <div>
+                <div class="car-id">CAR-2026-001</div>
+                <div class="car-ref">NC Mineure &mdash; A.5.1 Politiques SSI</div>
+              </div>
+              <div style="text-align: right;">
+                <span class="badge orange">En attente de r&eacute;ponse</span>
+                <div class="car-deadline">&Eacute;ch&eacute;ance : 15 juin 2026 (dans 55 jours)</div>
+              </div>
+            </div>
+            <div class="car-body">
+              <div class="car-toggle">&#9660; Votre r&eacute;ponse</div>
+
+              <div class="car-field">
+                <label>Analyse de cause racine <span class="req">*</span></label>
+                <textarea placeholder="Pourquoi cette non-conformit&eacute; existe-t-elle ? Identifiez la cause profonde..."></textarea>
+              </div>
+
+              <div class="car-field">
+                <label>Action corrective propos&eacute;e <span class="req">*</span></label>
+                <textarea placeholder="Mesures que vous allez mettre en place pour corriger cette non-conformit&eacute;..."></textarea>
+              </div>
+
+              <div class="car-row">
+                <div class="car-field">
+                  <label>Responsable</label>
+                  <select>
+                    <option value="">S&eacute;lectionner un contact...</option>
+                    <option>Marie Laurent (RSSI)</option>
+                    <option>Jean Dupont (DSI)</option>
+                    <option>Anne Martin (DPO)</option>
+                  </select>
+                </div>
+                <div class="car-field">
+                  <label>Date pr&eacute;vue</label>
+                  <input type="date" value="">
+                </div>
+              </div>
+
+              <div class="car-field">
+                <label>Preuves de correction</label>
+                <div class="upload-zone">
+                  <div class="upload-zone-icon">&#128228;</div>
+                  Glissez-d&eacute;posez vos fichiers ou <strong>cliquez pour parcourir</strong>
+                </div>
+              </div>
+            </div>
+            <div class="car-submit">
+              <button class="btn-primary">Soumettre la r&eacute;ponse</button>
+            </div>
+          </div>
+
+          <!-- CAR 2 -->
+          <div class="car-card">
+            <div class="car-header">
+              <div>
+                <div class="car-id">CAR-2026-002</div>
+                <div class="car-ref">NC Majeure &mdash; A.8.9 Gestion des configurations</div>
+              </div>
+              <div style="text-align: right;">
+                <span class="badge orange">En attente de r&eacute;ponse</span>
+                <div class="car-deadline">&Eacute;ch&eacute;ance : 30 mai 2026 (dans 39 jours)</div>
+              </div>
+            </div>
+            <div class="car-body">
+              <div class="car-toggle">&#9654; Votre r&eacute;ponse</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Plan d'action (existing, unchanged) -->
+        <div class="results-section">
+          <div class="results-section-title">
+            Plan d&apos;action
+          </div>
+          <div class="results-section-sub">Actions d&eacute;finies suite aux constats d&apos;audit</div>
+
+          <div class="card" style="padding: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <span class="badge green">3 termin&eacute;es</span>
+              <span class="badge orange">2 en cours</span>
+              <span class="badge gray">1 planifi&eacute;e</span>
+            </div>
+            <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+              <div style="height: 6px; width: 50%; background: var(--success); border-radius: 3px;"></div>
+            </div>
+            <div style="font-size: 11px; color: var(--text-300); margin-top: 6px;">3/6 actions compl&eacute;t&eacute;es</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     TAB 3 : CLOTURE
+     ============================================================ -->
+<div id="tab3" class="tab-pane">
+  <div class="platform">
+
+    <!-- Platform sidebar -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-text">G<span class="trema">&euml;</span>stu</div>
+        <div class="sb-logo-sub">COMPLY</div>
+      </div>
+      <div class="sb-nav">
+        <div class="sb-section">Navigation</div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9633;</span> Tableau de bord
+        </div>
+        <div class="sb-item active">
+          <span class="sb-icon">&#9776;</span> Missions
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128196;</span> Clients
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9997;</span> Travaux
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128200;</span> R&eacute;f&eacute;rentiels
+        </div>
+        <div class="sb-item">
+          <span class="sb-icon">&#128101;</span> &Eacute;quipe
+        </div>
+        <div class="sb-section">Param&egrave;tres</div>
+        <div class="sb-item">
+          <span class="sb-icon">&#9881;</span> Organisation
+        </div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-avatar">SG</div>
+        <div>
+          <div class="sb-user-name">Seydina O. Gueye</div>
+          <div class="sb-user-role">Directeur d&apos;audit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main-content">
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-back">&larr; Missions</span>
+          <span class="topbar-title">Audit ISO 27001 &mdash; TechCorp SAS</span>
+        </div>
+        <div class="topbar-right">
+          <span class="status-pill active">En cours</span>
+        </div>
+      </div>
+
+      <!-- Mission stepper -->
+      <div class="mission-stepper">
+        <div class="ms-step done"><span class="ms-dot">&#10003;</span> Cadrage</div>
+        <div class="ms-line done"></div>
+        <div class="ms-step done"><span class="ms-dot">&#10003;</span> Planification</div>
+        <div class="ms-line done"></div>
+        <div class="ms-step done"><span class="ms-dot">&#10003;</span> Travaux</div>
+        <div class="ms-line done"></div>
+        <div class="ms-step done"><span class="ms-dot">&#10003;</span> Revue</div>
+        <div class="ms-line done"></div>
+        <div class="ms-step done"><span class="ms-dot">&#10003;</span> Validation</div>
+        <div class="ms-line"></div>
+        <div class="ms-step active"><span class="ms-dot">6</span> Cl&ocirc;ture</div>
+      </div>
+
+      <div class="closure-content">
+
+        <!-- Section 1: Score de conformite (existing) -->
+        <div class="closure-section">
+          <div class="closure-section-title">Score de conformit&eacute;</div>
+          <div class="closure-section-sub">Score global calcul&eacute; sur l&apos;ensemble des contr&ocirc;les &eacute;valu&eacute;s</div>
+
+          <div class="card">
+            <div class="score-section">
+              <div class="score-donut">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#E5E7EB" stroke-width="12"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#D4A843" stroke-width="12"
+                    stroke-dasharray="232.5 314.16" stroke-linecap="round"/>
+                </svg>
+                <div class="score-donut-value">74%</div>
+                <div class="score-donut-label">Conformit&eacute;</div>
+              </div>
+              <div class="score-detail">
+                <div class="score-bar-row">
+                  <span class="score-bar-label">Mesures organisationnelles</span>
+                  <div class="score-bar-track"><div class="score-bar-fill" style="width: 82%;"></div></div>
+                  <span class="score-bar-value">82%</span>
+                </div>
+                <div class="score-bar-row">
+                  <span class="score-bar-label">Mesures li&eacute;es aux personnes</span>
+                  <div class="score-bar-track"><div class="score-bar-fill" style="width: 70%;"></div></div>
+                  <span class="score-bar-value">70%</span>
+                </div>
+                <div class="score-bar-row">
+                  <span class="score-bar-label">Mesures physiques</span>
+                  <div class="score-bar-track"><div class="score-bar-fill" style="width: 88%;"></div></div>
+                  <span class="score-bar-value">88%</span>
+                </div>
+                <div class="score-bar-row">
+                  <span class="score-bar-label">Mesures technologiques</span>
+                  <div class="score-bar-track"><div class="score-bar-fill" style="width: 62%;"></div></div>
+                  <span class="score-bar-value">62%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Synthese des constats (NEW) -->
+        <div class="closure-section">
+          <div class="closure-section-title" style="border-left: 3px solid var(--gold-500); padding-left: 12px;">
+            Synth&egrave;se des constats
+            <span class="nouveau-tag">NOUVEAU</span>
+          </div>
+          <div class="closure-section-sub">R&eacute;partition des constats par classification</div>
+
+          <div class="findings-grid">
+            <div class="findings-card" style="border-top: 3px solid var(--error);">
+              <div class="findings-count" style="color: var(--error);">2</div>
+              <div class="findings-label">NC Majeures</div>
+              <div class="findings-icon" style="color: var(--error);">&#9679;</div>
+            </div>
+            <div class="findings-card" style="border-top: 3px solid var(--warning);">
+              <div class="findings-count" style="color: var(--warning);">4</div>
+              <div class="findings-label">NC Mineures</div>
+              <div class="findings-icon" style="color: var(--warning);">&#9679;</div>
+            </div>
+            <div class="findings-card" style="border-top: 3px solid var(--info);">
+              <div class="findings-count" style="color: var(--info);">6</div>
+              <div class="findings-label">Observations</div>
+              <div class="findings-icon" style="color: var(--info);">&#9679;</div>
+            </div>
+            <div class="findings-card" style="border-top: 3px solid var(--success);">
+              <div class="findings-count" style="color: var(--success);">3</div>
+              <div class="findings-label">Points forts</div>
+              <div class="findings-icon" style="color: var(--success);">&#9679;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Suivi des CAR (NEW) -->
+        <div class="closure-section">
+          <div class="closure-section-title" style="border-left: 3px solid var(--gold-500); padding-left: 12px;">
+            Suivi des CAR
+            <span class="nouveau-tag">NOUVEAU</span>
+          </div>
+          <div class="closure-section-sub">Progression du traitement des demandes d&apos;actions correctives</div>
+
+          <div class="card">
+            <div class="car-progress">
+              <div class="car-progress-header">
+                <span class="car-progress-label">CAR trait&eacute;es</span>
+                <span class="car-progress-value">4/6 (67%)</span>
+              </div>
+              <div class="car-progress-bar">
+                <div class="car-progress-fill" style="width: 67%;"></div>
+              </div>
+            </div>
+
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>R&eacute;f&eacute;rence</th>
+                  <th>Contr&ocirc;le</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; color: var(--forest-700);">CAR-001</span></td>
+                  <td>A.5.1 Politiques SSI</td>
+                  <td><span class="badge green">&#10003; Accept&eacute;e</span></td>
+                </tr>
+                <tr>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; color: var(--forest-700);">CAR-002</span></td>
+                  <td>A.5.7 Renseignement sur les menaces</td>
+                  <td><span class="badge green">&#10003; Accept&eacute;e</span></td>
+                </tr>
+                <tr>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; color: var(--forest-700);">CAR-003</span></td>
+                  <td>A.8.9 Gestion des configurations</td>
+                  <td><span class="badge blue">En cours</span></td>
+                </tr>
+                <tr>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; color: var(--forest-700);">CAR-004</span></td>
+                  <td>A.6.3 Sensibilisation</td>
+                  <td><span class="badge green">&#10003; Accept&eacute;e</span></td>
+                </tr>
+                <tr>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; color: var(--forest-700);">CAR-005</span></td>
+                  <td>A.8.15 Journalisation</td>
+                  <td><span class="badge gray">En attente</span></td>
+                </tr>
+                <tr>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; color: var(--forest-700);">CAR-006</span></td>
+                  <td>A.8.28 Codage s&eacute;curis&eacute;</td>
+                  <td><span class="badge green">&#10003; Accept&eacute;e</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 4: Conclusion d'audit (NEW) -->
+        <div class="closure-section">
+          <div class="closure-section-title" style="border-left: 3px solid var(--gold-500); padding-left: 12px;">
+            Conclusion d&apos;audit
+            <span class="nouveau-tag">NOUVEAU</span>
+          </div>
+          <div class="closure-section-sub">Sur la base des constats, l&apos;auditeur recommande :</div>
+
+          <div class="card">
+            <div class="conclusion-options">
+              <div class="conclusion-option">
+                <div class="conclusion-radio"></div>
+                <div class="conclusion-text">Conforme &mdash; certification recommand&eacute;e</div>
+              </div>
+              <div class="conclusion-option selected">
+                <div class="conclusion-radio"></div>
+                <div class="conclusion-text">Partiellement conforme &mdash; sous r&eacute;serve de correction des NC majeures</div>
+              </div>
+              <div class="conclusion-option">
+                <div class="conclusion-radio"></div>
+                <div class="conclusion-text">Non conforme &mdash; certification non recommand&eacute;e</div>
+              </div>
+            </div>
+            <div style="margin-top: 16px;">
+              <label style="font-size: 12px; font-weight: 600; color: var(--text-700); display: block; margin-bottom: 6px;">Commentaire de conclusion</label>
+              <textarea class="form-textarea" placeholder="Justification de la recommandation d&apos;audit...">L&apos;organisation d&eacute;montre une maturit&eacute; globale satisfaisante (74%) mais deux NC majeures (A.8.9, A.8.15) n&eacute;cessitent une correction pr&eacute;alable &agrave; la recommandation de certification. Les 4 NC mineures disposent d&eacute;j&agrave; de plans d&apos;actions correctives accept&eacute;s.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Generation du rapport (existing, enriched) -->
+        <div class="closure-section">
+          <div class="closure-section-title" style="border-left: 3px solid var(--gold-500); padding-left: 12px;">
+            G&eacute;n&eacute;ration du rapport
+            <span class="nouveau-tag">ENRICHI</span>
+          </div>
+          <div class="closure-section-sub">Configurez et g&eacute;n&eacute;rez le rapport d&apos;audit final</div>
+
+          <div class="report-card">
+            <div class="report-row">
+              <span class="report-label">Format :</span>
+              <div class="format-group">
+                <button class="format-btn selected">PDF</button>
+                <button class="format-btn">PPTX</button>
+                <button class="format-btn">Word</button>
+              </div>
+            </div>
+
+            <div class="report-row">
+              <span class="report-label">Contenu :</span>
+              <div class="checkbox-list">
+                <div class="checkbox-item">
+                  <div class="checkbox-box checked">&#10003;</div>
+                  Synth&egrave;se des constats
+                </div>
+                <div class="checkbox-item">
+                  <div class="checkbox-box checked">&#10003;</div>
+                  D&eacute;tail par contr&ocirc;le
+                </div>
+                <div class="checkbox-item">
+                  <div class="checkbox-box checked">&#10003;</div>
+                  Radar de conformit&eacute; par domaine
+                </div>
+                <div class="checkbox-item">
+                  <div class="checkbox-box checked">&#10003;</div>
+                  Plan d&apos;actions correctives
+                </div>
+                <div class="checkbox-item">
+                  <div class="checkbox-box checked">&#10003;</div>
+                  D&eacute;claration d&apos;applicabilit&eacute; (SoA)
+                </div>
+                <div class="checkbox-item">
+                  <div class="checkbox-box"></div>
+                  Annexes (preuves documentaires)
+                </div>
+              </div>
+            </div>
+
+            <div class="report-row">
+              <span class="report-label">Personnalisation :</span>
+              <div class="checkbox-list">
+                <div class="checkbox-item">
+                  <div class="checkbox-box checked">&#10003;</div>
+                  Utiliser le logo du client
+                </div>
+                <div class="checkbox-item">
+                  <div class="checkbox-box checked">&#10003;</div>
+                  Appliquer la charte graphique du client
+                </div>
+              </div>
+            </div>
+
+            <div class="report-actions">
+              <button class="btn-primary">&#128229; G&eacute;n&eacute;rer le rapport d&apos;audit</button>
+              <button class="btn-gold">&#128202; G&eacute;n&eacute;rer la synth&egrave;se COMEX</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     TAB SWITCHING JS
+     ============================================================ -->
+<script>
+function showTab(n) {
+  document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('tab' + n).classList.add('active');
+  document.querySelectorAll('.tab-btn')[n - 1].classList.add('active');
+}
+</script>
+
+</body>
+</html>

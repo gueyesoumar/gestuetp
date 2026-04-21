@@ -492,6 +492,7 @@ export interface ControlAssessment {
   observations: string | null
   risk_notes: string | null
   conformity_level: string | null
+  finding_classification: string | null
   created_at: string
   updated_at: string
 }
@@ -510,6 +511,11 @@ export interface ControlAssessmentInsert {
   updated_at?: string
 }
 
+export type FindingClassification = 'major_nc' | 'minor_nc' | 'observation' | 'strength'
+export type CARStatus = 'open' | 'client_responded' | 'verified' | 'closed'
+export type CARVerification = 'pending' | 'accepted' | 'rejected'
+export type AuditConclusion = 'conformant' | 'partially_conformant' | 'non_conformant'
+
 export interface ControlAssessmentUpdate {
   status?: AssessmentStatus
   findings?: string | null
@@ -519,6 +525,33 @@ export interface ControlAssessmentUpdate {
   observations?: string | null
   risk_notes?: string | null
   conformity_level?: string | null
+  finding_classification?: FindingClassification | null
+}
+
+export interface CorrectiveActionRequest {
+  id: string
+  mission_id: string
+  assessment_id: string
+  code: string
+  finding_classification: string
+  control_code: string | null
+  control_name: string | null
+  description: string
+  normative_reference: string | null
+  deadline: string | null
+  client_root_cause: string | null
+  client_action: string | null
+  client_responsible_id: string | null
+  client_target_date: string | null
+  client_proof_path: string | null
+  verification_status: CARVerification
+  verification_comment: string | null
+  verified_by: string | null
+  verified_at: string | null
+  status: CARStatus
+  created_by: string
+  created_at: string
+  updated_at: string
 }
 
 export interface AssessmentValidation {
