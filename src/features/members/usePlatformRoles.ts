@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import type { PlatformRole } from '../../types/database.types'
@@ -7,6 +7,7 @@ interface UsePlatformRolesResult {
   roles: PlatformRole[]
   loading: boolean
   error: string | null
+  refetch: () => void
 }
 
 export function usePlatformRoles(): UsePlatformRolesResult {
@@ -14,6 +15,9 @@ export function usePlatformRoles(): UsePlatformRolesResult {
   const [roles, setRoles] = useState<PlatformRole[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
 
   useEffect(() => {
     if (!profile?.organization_id) {
@@ -41,7 +45,7 @@ export function usePlatformRoles(): UsePlatformRolesResult {
       })
 
     return () => abortController.abort()
-  }, [profile?.organization_id])
+  }, [profile?.organization_id, refreshKey])
 
-  return { roles, loading, error }
+  return { roles, loading, error, refetch }
 }

@@ -61,20 +61,20 @@ export function WorkProgramControlRow({ control, planning, assignment, auditors,
 
         {/* Auditeur */}
         <td className="pl-2 pr-4 py-2.5 align-top">
-          {assignment ? (
-            <div className="flex items-center gap-1.5">
-              <span className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-[9px] font-semibold shrink-0">
-                {assignment.auditor.first_name[0]}{assignment.auditor.last_name[0]}
-              </span>
-              <span className="text-[11px] text-gray-600 truncate">{assignment.auditor.first_name[0]}. {assignment.auditor.last_name}</span>
-            </div>
-          ) : (
-            <select onChange={(e) => { if (e.target.value) onAssign(control.id, e.target.value) }} defaultValue=""
-              className="text-[11px] border border-gray-200 rounded px-1.5 py-1 outline-none focus:border-forest-500 w-full max-w-[130px] bg-transparent">
-              <option value="">Affecter...</option>
-              {auditors.map((a) => <option key={a.user_id} value={a.user_id}>{a.user.first_name[0]}. {a.user.last_name}</option>)}
-            </select>
-          )}
+          <select
+            value={assignment?.auditor_id ?? ''}
+            onChange={(e) => { if (e.target.value) onAssign(control.id, e.target.value) }}
+            className={`text-[11px] border rounded px-1.5 py-1 outline-none focus:border-forest-500 w-full max-w-[130px] bg-transparent ${
+              assignment ? 'border-transparent hover:border-gray-200' : 'border-gray-200'
+            }`}
+          >
+            <option value="">Affecter...</option>
+            {auditors.map((a) => (
+              <option key={a.user_id} value={a.user_id}>
+                {a.user.first_name[0]}. {a.user.last_name}
+              </option>
+            ))}
+          </select>
         </td>
       </tr>
 

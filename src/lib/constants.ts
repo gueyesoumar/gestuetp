@@ -89,3 +89,19 @@ export const ORG_TYPE_OPTIONS = [
   { value: 'groupe', label: 'Groupe / Holding' },
   { value: 'fonds', label: 'Fonds d\'investissement' },
 ] as const
+
+export const PERMISSION_LABELS: Record<string, string> = {
+  can_create_mission: 'Créer des missions',
+  can_assign_team: 'Assigner des équipes',
+  can_be_lead: 'Être auditeur principal',
+  can_designate_lead: 'Désigner un auditeur principal',
+} as const
+
+export const MEMBER_AUDIT_ACTION_LABELS: Record<string, string> = {
+  invited: 'Invitation envoyée',
+  role_assigned: 'Rôle attribué',
+  role_removed: 'Rôle retiré',
+  deactivated: 'Compte désactivé',
+  reactivated: 'Compte réactivé',
+  invitation_resent: 'Invitation renvoyée',
+} as const

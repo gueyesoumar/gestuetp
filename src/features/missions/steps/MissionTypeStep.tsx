@@ -6,19 +6,30 @@ interface MissionTypeStepProps {
   onSelect: (id: string) => void
 }
 
-const typeCards: { category: string; label: string; description: string; icon: { abbr: string; bg: string } }[] = [
-  { category: 'conformite', label: 'Audit de conformité', description: 'Vérifier la conformité à un référentiel standard de sécurité de l\'information', icon: { abbr: 'ISO', bg: 'bg-forest-100 text-forest-700' } },
-  { category: 'audit-si', label: 'Audit SI', description: 'Audit complet du système d\'information : gouvernance, risques, services, sécurité', icon: { abbr: 'Gë', bg: 'bg-forest-900 text-gold-500' } },
-  { category: 'due-diligence', label: 'Due diligence technique', description: 'Évaluer la maturité technique d\'une startup/PME pour un investisseur', icon: { abbr: 'Gë', bg: 'bg-forest-900 text-gold-500' } },
-  { category: 'evaluation', label: 'Évaluation maturité digitale', description: 'Mesurer le niveau de maturité numérique d\'une organisation', icon: { abbr: 'Gë', bg: 'bg-forest-900 text-gold-500' } },
+const typeCards: { category: string; label: string; description: string }[] = [
+  { category: 'conformite', label: 'Audit de conformit\u00e9', description: 'V\u00e9rifier la conformit\u00e9 \u00e0 un r\u00e9f\u00e9rentiel standard de s\u00e9curit\u00e9 de l\'information' },
+  { category: 'audit-si', label: 'Audit SI', description: 'Audit complet du syst\u00e8me d\'information : gouvernance, risques, services, s\u00e9curit\u00e9' },
+  { category: 'due-diligence', label: 'Due diligence technique', description: '\u00c9valuer la maturit\u00e9 technique d\'une startup/PME pour un investisseur' },
+  { category: 'evaluation', label: '\u00c9valuation maturit\u00e9 digitale', description: 'Mesurer le niveau de maturit\u00e9 num\u00e9rique d\'une organisation' },
 ]
 
 const frameworkByCategory: Record<string, string[]> = {
-  'conformite': ['iso-27001', 'nist-csf'],
+  'conformite': ['iso-27001', 'nist-csf', 'pssi-es'],
   'audit-si': ['audit-si'],
   'due-diligence': ['due-diligence-tech'],
   'evaluation': ['maturite-digitale'],
 }
+
+const frameworkIcons: Record<string, { abbr: string; bg: string }> = {
+  'iso-27001': { abbr: 'ISO', bg: 'bg-forest-100 text-forest-700' },
+  'nist-csf': { abbr: 'NIST', bg: 'bg-blue-100 text-blue-700' },
+  'pssi-es': { abbr: 'SN', bg: 'bg-emerald-100 text-emerald-700' },
+  'audit-si': { abbr: 'G\u00eb', bg: 'bg-forest-900 text-gold-500' },
+  'due-diligence-tech': { abbr: 'G\u00eb', bg: 'bg-forest-900 text-gold-500' },
+  'maturite-digitale': { abbr: 'G\u00eb', bg: 'bg-forest-900 text-gold-500' },
+}
+
+const defaultIcon = { abbr: 'G\u00eb', bg: 'bg-forest-900 text-gold-500' }
 
 export function MissionTypeStep({ frameworks, selectedFrameworkId, onSelect }: MissionTypeStepProps) {
   const getFrameworksForCategory = (category: string) => {
@@ -75,6 +86,8 @@ function TypeCard({ card, framework, selected, onClick }: {
   selected: boolean
   onClick: () => void
 }) {
+  const icon = frameworkIcons[framework.slug] ?? defaultIcon
+
   return (
     <button
       onClick={onClick}
@@ -85,10 +98,10 @@ function TypeCard({ card, framework, selected, onClick }: {
       }`}
     >
       {selected && (
-        <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-forest-700 text-[10px] text-white">✓</span>
+        <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-forest-700 text-[10px] text-white">{'\u2713'}</span>
       )}
-      <div className={`flex h-9 w-9 items-center justify-center rounded-[10px] text-[12px] font-extrabold ${card.icon.bg}`}>
-        {card.icon.abbr}
+      <div className={`flex h-9 w-9 items-center justify-center rounded-[10px] text-[12px] font-extrabold ${icon.bg}`}>
+        {icon.abbr}
       </div>
       <div className="mt-2.5 text-[14px] font-bold text-gray-900">{card.label}</div>
       <div className="mt-0.5 text-[11px] text-gray-300">
