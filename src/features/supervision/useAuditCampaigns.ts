@@ -156,12 +156,12 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
 
     const campaignId = campaign.id
 
-    // 2. Create missions for each entity
+    // 2. Create missions for each entity (direct INSERT, requires policy 00060)
     const missions = entityIds.map((entityId) => ({
       cabinet_id: profile.organization_id,
       client_id: entityId,
       framework_id: data.framework_id,
-      name: `${data.name}`,
+      name: data.name,
       status: 'initialization' as const,
       campaign_id: campaignId,
       start_date: data.period_start,
