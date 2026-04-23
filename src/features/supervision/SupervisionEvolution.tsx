@@ -115,7 +115,7 @@ export function SupervisionEvolution({ entities }: SupervisionEvolutionProps): J
           <p className="text-xs text-gray-400">Chargement...</p>
         ) : periods.length === 0 ? (
           <>
-            <PeriodBar label="P\u00e9riode actuelle" score={currentAvg} count={entities.length} active />
+            <PeriodBar label={`P\u00e9riode actuelle`} score={currentAvg} count={entities.length} active />
             <p className="text-[12px] text-gray-400 italic mt-4">
               L{'\u2019'}{'\u00e9'}volution historique sera disponible d{'\u00e8'}s que des campagnes d{'\u2019'}audit seront termin{'\u00e9'}es.
             </p>

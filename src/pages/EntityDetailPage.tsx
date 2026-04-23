@@ -12,7 +12,7 @@ export function EntityDetailPage(): JSX.Element {
 
   if (data.loading) return <LoadingSpinner />
   if (data.error) return <ErrorAlert message={data.error} />
-  if (!data.entityName) return <ErrorAlert message="Entit\u00e9 introuvable." />
+  if (!data.entityName) return <ErrorAlert message={`Entit\u00e9 introuvable.`} />
 
   const scoreColor = data.globalScore >= 80 ? 'text-green-600' : data.globalScore >= 60 ? 'text-forest-700' : data.globalScore >= 40 ? 'text-gold-600' : 'text-red-500'
 
@@ -134,7 +134,7 @@ export function EntityDetailPage(): JSX.Element {
                             <ExternalLink size={13} />
                           </Link>
                         ) : (
-                          <span className="text-gray-200 cursor-default" title="Audit r\u00e9alis\u00e9 par un cabinet externe">
+                          <span className="text-gray-200 cursor-default" title={`Audit r\u00e9alis\u00e9 par un cabinet externe`}>
                             <ExternalLink size={13} />
                           </span>
                         )}

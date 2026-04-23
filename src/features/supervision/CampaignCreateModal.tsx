@@ -103,9 +103,9 @@ export function CampaignCreateModal({ frameworks, onCreate, creating, onClose }:
 
         {/* Steps indicator */}
         <div className="flex items-center gap-2 px-6 py-3 border-b border-gray-100">
-          <StepDot active={step === 1} done={step > 1} label="1. Param\u00e8tres" />
+          <StepDot active={step === 1} done={step > 1} label={`1. Param\u00e8tres`} />
           <div className="flex-1 h-px bg-gray-200" />
-          <StepDot active={step === 2} done={success} label="2. Entit\u00e9s" />
+          <StepDot active={step === 2} done={success} label={`2. Entit\u00e9s`} />
         </div>
 
         {/* Content */}
