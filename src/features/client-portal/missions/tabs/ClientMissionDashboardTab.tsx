@@ -1,134 +1,142 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../../../../lib/supabase'
+import { Layers, Clock, FileText, CalendarDays } from 'lucide-react'
+import { useClientDashboardData } from './useClientDashboardData'
+import { ClientActionsList } from './ClientActionsList'
+import { ClientMissionTimeline } from './ClientMissionTimeline'
+import { ClientTeamCard } from './ClientTeamCard'
+import { ClientUpcomingDeadlines } from './ClientUpcomingDeadlines'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
 
 interface Props {
   mission: ClientMissionDetail
+  onTabChange?: (tab: string) => void
 }
 
-interface TeamMember {
-  id: string
-  first_name: string
-  last_name: string
-  job_title: string | null
-  role_label: string
+const PHASE_LABELS: Record<string, string> = {
+  initialization: 'Initialisation',
+  scoping: 'Cadrage',
+  planning: 'Planification',
+  fieldwork: 'Travaux terrain',
+  internal_review: 'Revue interne',
+  client_review: 'Validation client',
+  closure: 'Restitution',
 }
 
-const PHASES = [
-  { key: 'scoping', label: 'Cadrage' },
-  { key: 'planning', label: 'Planification' },
-  { key: 'fieldwork', label: 'Travaux terrain' },
-  { key: 'internal_review', label: 'Revue interne' },
-  { key: 'client_review', label: 'Validation client' },
-  { key: 'closure', label: 'Restitution' },
-]
+export function ClientMissionDashboardTab({ mission, onTabChange }: Props): JSX.Element {
+  const data = useClientDashboardData(mission)
 
-const PHASE_ORDER = ['scoping', 'planning', 'fieldwork', 'internal_review', 'client_review', 'closure']
+  const handleNavigate = (tab: string): void => {
+    if (onTabChange) onTabChange(tab)
+  }
 
-export function ClientMissionDashboardTab({ mission }: Props): JSX.Element {
-  const currentIdx = PHASE_ORDER.indexOf(mission.status)
-  const [team, setTeam] = useState<TeamMember[]>([])
-
-  useEffect(() => {
-    const fetchTeam = async (): Promise<void> => {
-      const session = await supabase.auth.getSession()
-      const token = session.data.session?.access_token
-      if (!token) return
-
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL
-      const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
-      const headers = { 'apikey': apikey, 'Authorization': `Bearer ${token}` }
-
-      const res = await fetch(
-        `${baseUrl}/rest/v1/mission_members?mission_id=eq.${mission.id}&select=role,user:users(id,first_name,last_name,job_title)`,
-        { headers }
-      )
-
-      if (!res.ok) return
-
-      const data = await res.json() as { role: string; user: { id: string; first_name: string; last_name: string; job_title: string | null } }[]
-      const roleLabels: Record<string, string> = {
-        associate: 'Associ\u00e9',
-        lead_auditor: 'Chef de mission',
-        auditor: 'Auditeur',
-      }
-
-      setTeam(data.map((m) => ({
-        id: m.user.id,
-        first_name: m.user.first_name,
-        last_name: m.user.last_name,
-        job_title: m.user.job_title,
-        role_label: roleLabels[m.role] ?? m.role,
-      })))
-    }
-
-    fetchTeam()
-  }, [mission.id])
+  if (data.loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-6 h-6 border-2 border-forest-300 border-t-forest-700 rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
-    <div className="flex gap-4">
-      {/* Timeline */}
-      <div className="flex-1 bg-white border border-gray-200 rounded-xl p-5">
-        <p className="text-sm font-bold mb-4">Timeline de la mission</p>
-        <div className="relative pl-5">
-          <div className="absolute left-[7px] top-1 bottom-1 w-0.5 bg-gray-200" />
-          {PHASES.map((phase, i) => {
-            const isDone = i < currentIdx
-            const isActive = i === currentIdx
-            return (
-              <div key={phase.key} className={`relative mb-4 last:mb-0 ${!isDone && !isActive ? 'opacity-40' : ''}`}>
-                <div className={`absolute -left-5 top-0.5 w-2.5 h-2.5 rounded-full border-2 ${
-                  isDone ? 'bg-green-500 border-green-500' :
-                  isActive ? 'bg-forest-500 border-forest-700' :
-                  'bg-white border-gray-300'
-                }`} />
-                <div className={isActive ? 'bg-forest-50 -mx-2 px-2 py-1.5 rounded-lg border border-forest-100' : ''}>
-                  <p className={`text-xs font-semibold ${isActive ? 'text-forest-900' : 'text-gray-700'}`}>
-                    {phase.label}
-                  </p>
-                  {isDone && <p className="text-[10px] text-green-500">Termin&eacute;</p>}
-                  {isActive && <p className="text-[10px] text-forest-700 font-medium">En cours</p>}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+    <div>
+      {/* KPI Row */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <KpiCard
+          icon={<div className="w-6 h-6 rounded-lg bg-forest-50 flex items-center justify-center"><Layers size={13} className="text-forest-700" /></div>}
+          label="Avancement mission"
+          value={`${data.overallPercent}%`}
+          color="var(--color-forest-700)"
+          bar={data.overallPercent}
+          barColor="var(--color-forest-500)"
+        />
+        <KpiCard
+          icon={<div className="w-6 h-6 rounded-lg bg-forest-50 flex items-center justify-center"><Clock size={13} className="text-forest-700" /></div>}
+          label="Phase actuelle"
+          value={PHASE_LABELS[mission.status] ?? mission.status}
+          color="var(--color-forest-700)"
+          sub={`\u00c9tape ${data.currentPhaseIndex + 1} sur ${data.totalPhases}`}
+          smallValue
+        />
+        <KpiCard
+          icon={<div className="w-6 h-6 rounded-lg bg-gold-50 flex items-center justify-center"><FileText size={13} className="text-gold-500" /></div>}
+          label={`Documents demand\u00e9s`}
+          value={`${data.docsUploaded}`}
+          color="var(--color-gold-500)"
+          sub={data.docsPending > 0 ? `${data.docsPending} en attente de votre part` : 'Tous fournis'}
+          suffix={data.docsExpected > 0 ? ` / ${data.docsExpected}` : ''}
+        />
+        <KpiCard
+          icon={<div className="w-6 h-6 rounded-lg bg-forest-50 flex items-center justify-center"><CalendarDays size={13} className="text-forest-700" /></div>}
+          label="Jours restants"
+          value={data.daysRemaining !== null ? `${data.daysRemaining}` : '\u2014'}
+          color="var(--color-forest-700)"
+          sub={mission.end_date ? `Fin pr\u00e9vue le ${formatDate(mission.end_date)}` : undefined}
+        />
       </div>
 
-      {/* Right column */}
-      <div className="w-72 shrink-0 space-y-3">
-        {/* Next actions */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <p className="text-xs font-bold mb-3">Prochaines &eacute;ch&eacute;ances</p>
-          <div className="text-xs text-gray-400 text-center py-4">
-            Les &eacute;ch&eacute;ances appara&icirc;tront ici
-          </div>
+      {/* Two columns */}
+      <div className="grid grid-cols-[1fr_320px] gap-6">
+        {/* Left column */}
+        <div className="flex flex-col gap-6">
+          <ClientActionsList
+            docsPending={data.docsPending}
+            findingsPending={data.findingsPendingValidation}
+            interviewsPending={data.upcomingInterviewCount}
+            carsPending={data.carsPendingCount}
+            totalPending={data.totalPendingActions}
+            onNavigate={handleNavigate}
+          />
+          <ClientMissionTimeline
+            status={mission.status}
+            startDate={mission.start_date}
+            endDate={mission.end_date}
+          />
         </div>
 
-        {/* Team */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <p className="text-xs font-bold mb-3">&Eacute;quipe d&rsquo;audit</p>
-          {team.length === 0 ? (
-            <div className="text-xs text-gray-400 text-center py-4">
-              Aucun membre visible
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {team.map((m) => (
-                <div key={m.id} className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-forest-700 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {m.first_name.charAt(0)}{m.last_name.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold truncate">{m.first_name} {m.last_name}</p>
-                    <p className="text-[10px] text-gray-300">{m.role_label}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Right column */}
+        <div className="flex flex-col gap-6">
+          <ClientTeamCard missionId={mission.id} />
+          <ClientUpcomingDeadlines
+            missionId={mission.id}
+            endDate={mission.end_date}
+            status={mission.status}
+          />
         </div>
       </div>
     </div>
   )
+}
+
+function KpiCard({ icon, label, value, color, sub, bar, barColor, suffix, smallValue }: {
+  icon: JSX.Element
+  label: string
+  value: string
+  color: string
+  sub?: string
+  bar?: number
+  barColor?: string
+  suffix?: string
+  smallValue?: boolean
+}): JSX.Element {
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl px-4 py-3.5">
+      <div className="flex items-center gap-2 mb-2">
+        {icon}
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+      </div>
+      <p className={`font-bold leading-none ${smallValue ? 'text-[15px] mt-1' : 'text-[22px]'}`} style={{ color }}>
+        {value}
+        {suffix && <span className="text-[13px] text-gray-300">{suffix}</span>}
+      </p>
+      {sub && <p className="text-[11px] text-gray-400 mt-1">{sub}</p>}
+      {bar !== undefined && (
+        <div className="h-1 bg-gray-100 rounded-full mt-2.5">
+          <div className="h-1 rounded-full transition-all" style={{ width: `${bar}%`, background: barColor }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }

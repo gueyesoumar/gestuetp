@@ -1,3 +1,5 @@
+import { InfoPopover } from '../../components/ui/InfoPopover'
+
 type KpiVariant = 'forest' | 'gold' | 'error' | 'neutral'
 
 const barColors: Record<KpiVariant, string> = {
@@ -19,13 +21,17 @@ interface KpiCardProps {
   value: number | string
   sub?: string
   variant?: KpiVariant
+  info?: string
 }
 
-export function KpiCard({ label, value, sub, variant = 'forest' }: KpiCardProps) {
+export function KpiCard({ label, value, sub, variant = 'forest', info }: KpiCardProps) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5">
       <div className={`absolute top-0 left-0 right-0 h-[3px] ${barColors[variant]}`} />
-      <div className="text-[12px] font-medium text-gray-500">{label}</div>
+      <div className="flex items-start justify-between">
+        <div className="text-[12px] font-medium text-gray-500">{label}</div>
+        {info && <InfoPopover text={info} />}
+      </div>
       <div className={`mt-1 text-[26px] font-extrabold tracking-tight ${valueColors[variant]}`}>{value}</div>
       {sub && <div className="mt-0.5 text-[11px] text-gray-300">{sub}</div>}
     </div>

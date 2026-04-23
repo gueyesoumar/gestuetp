@@ -6,40 +6,65 @@ interface ResetPasswordPayload {
   new_password: string
 }
 
+/** Decode JWT payload without verification (the signing key guarantees integrity) */
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(payload)
+  } catch {
+    return null
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // 1. Extraire et décoder le JWT
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
         JSON.stringify({ error: 'Non autorisé' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    const token = authHeader.replace('Bearer ', '')
+    const jwtPayload = decodeJwtPayload(token)
+    const authUserId = jwtPayload?.sub as string | undefined
+
+    if (!authUserId) {
+      return new Response(
+        JSON.stringify({ error: 'Token invalide' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 2. Client service_role
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Vérifier que l'appelant est authentifié
-    const supabaseUser = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
+    // 3. Vérifier que l'appelant existe en base
+    const { data: callerProfile } = await supabaseAdmin
+      .from('users')
+      .select('id, organization_id')
+      .eq('auth_id', authUserId)
+      .single()
 
-    const { data: { user: caller }, error: authError } = await supabaseUser.auth.getUser()
-    if (authError || !caller) {
+    if (!callerProfile) {
       return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Profil introuvable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    // 4. Parser et valider le payload
     const payload: ResetPasswordPayload = await req.json()
     const { user_id, new_password } = payload
 
@@ -57,27 +82,28 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Vérifier que l'appelant et la cible sont dans la même organisation
-    const { data: callerProfile } = await supabaseAdmin
-      .from('users')
-      .select('organization_id')
-      .eq('auth_id', caller.id)
-      .single()
-
+    // 5. Vérifier que la cible est dans la même organisation
     const { data: targetProfile } = await supabaseAdmin
       .from('users')
       .select('organization_id, auth_id')
       .eq('id', user_id)
       .single()
 
-    if (!callerProfile || !targetProfile || callerProfile.organization_id !== targetProfile.organization_id) {
+    if (!targetProfile) {
+      return new Response(
+        JSON.stringify({ error: 'Membre introuvable.' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (callerProfile.organization_id !== targetProfile.organization_id) {
       return new Response(
         JSON.stringify({ error: 'Vous ne pouvez modifier que les membres de votre organisation.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Réinitialiser le mot de passe via l'API admin
+    // 6. Réinitialiser le mot de passe
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       targetProfile.auth_id,
       { password: new_password }

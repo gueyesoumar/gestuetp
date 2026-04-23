@@ -6,7 +6,10 @@ import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { PermissionBadges } from './PermissionBadges'
 import { usePlatformRoles } from './usePlatformRoles'
 import { useRoleCrud } from './useRoleCrud'
-import type { PlatformRole, PlatformRolePermissions } from '../../types/database.types'
+import { useAuth } from '../../hooks/useAuth'
+import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
+import { DASHBOARD_VIEW_LABELS, DASHBOARD_VIEW_DESCRIPTIONS } from '../../lib/constants'
+import type { PlatformRole, PlatformRolePermissions, DashboardView } from '../../types/database.types'
 
 interface RoleManagementModalProps {
   open: boolean
@@ -23,6 +26,8 @@ const EMPTY_PERMISSIONS: PlatformRolePermissions = {
 type ViewMode = 'list' | 'form'
 
 export function RoleManagementModal({ open, onClose }: RoleManagementModalProps) {
+  const { profile } = useAuth()
+  const { isGroup } = useOrganizationHierarchy(profile?.organization_id)
   const { roles, loading, refetch } = usePlatformRoles()
   const { createRole, updateRole, deleteRole, saving, deleting, error } = useRoleCrud(refetch)
 
@@ -153,9 +158,11 @@ export function RoleManagementModal({ open, onClose }: RoleManagementModalProps)
           isDefault={isDefault}
           isEditing={!!editingRole}
           saving={saving}
+          isGroupOrg={isGroup}
           onNameChange={setName}
           onDescriptionChange={setDescription}
           onTogglePermission={togglePermission}
+          onPermissionsChange={setPermissions}
           onIsDefaultChange={setIsDefault}
           onSubmit={handleSubmit}
           onCancel={resetForm}
@@ -174,9 +181,11 @@ interface RoleFormProps {
   isDefault: boolean
   isEditing: boolean
   saving: boolean
+  isGroupOrg: boolean
   onNameChange: (v: string) => void
   onDescriptionChange: (v: string) => void
   onTogglePermission: (key: keyof PlatformRolePermissions) => void
+  onPermissionsChange: (p: PlatformRolePermissions) => void
   onIsDefaultChange: (v: boolean) => void
   onSubmit: (e: FormEvent) => void
   onCancel: () => void
@@ -189,9 +198,16 @@ const PERMISSION_KEYS: { key: keyof PlatformRolePermissions; label: string }[] =
   { key: 'can_designate_lead', label: 'Désigner un auditeur principal' },
 ]
 
+const GROUP_PERMISSION_KEYS: { key: keyof PlatformRolePermissions; label: string; description: string }[] = [
+  { key: 'can_view_supervision', label: 'Voir la supervision consolid\u00e9e', description: 'Acc\u00e8s \u00e0 la page Supervision et aux scores des entit\u00e9s' },
+  { key: 'can_create_campaign', label: 'Cr\u00e9er des campagnes d\u2019audit', description: 'Lancer des campagnes d\u2019audit sur plusieurs entit\u00e9s' },
+  { key: 'can_manage_subsidiaries', label: 'G\u00e9rer les entit\u00e9s supervis\u00e9es', description: 'Ajouter ou retirer des entit\u00e9s du groupe' },
+  { key: 'can_view_entity_detail', label: 'Voir le d\u00e9tail des entit\u00e9s', description: 'Naviguer vers les missions et scores de chaque entit\u00e9' },
+]
+
 function RoleForm({
-  name, description, permissions, isDefault, isEditing, saving,
-  onNameChange, onDescriptionChange, onTogglePermission, onIsDefaultChange,
+  name, description, permissions, isDefault, isEditing, saving, isGroupOrg,
+  onNameChange, onDescriptionChange, onTogglePermission, onPermissionsChange, onIsDefaultChange,
   onSubmit, onCancel,
 }: RoleFormProps) {
   return (
@@ -238,6 +254,77 @@ function RoleForm({
           ))}
         </div>
       </fieldset>
+
+      <fieldset>
+        <legend className="text-sm font-medium text-gray-700 mb-2">Vues du tableau de bord</legend>
+        <div className="space-y-2">
+          {(Object.keys(DASHBOARD_VIEW_LABELS) as DashboardView[]).map((view) => {
+            const checked = permissions.dashboard_views?.includes(view) ?? false
+            return (
+              <label key={view} className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => {
+                    const current = permissions.dashboard_views ?? []
+                    const next = checked ? current.filter((v) => v !== view) : [...current, view]
+                    const def = permissions.default_dashboard_view
+                    const newDefault = next.length > 0 && (!def || !next.includes(def)) ? next[0] : def
+                    onPermissionsChange({ ...permissions, dashboard_views: next, default_dashboard_view: newDefault })
+                  }}
+                  className="rounded border-gray-300 text-forest-600 focus:ring-forest-500 mt-0.5"
+                  disabled={saving}
+                />
+                <div>
+                  <span className="text-[13px] text-gray-700 font-medium">{DASHBOARD_VIEW_LABELS[view]}</span>
+                  <span className="block text-[11px] text-gray-400">{DASHBOARD_VIEW_DESCRIPTIONS[view]}</span>
+                </div>
+              </label>
+            )
+          })}
+        </div>
+        {(permissions.dashboard_views?.length ?? 0) > 1 && (
+          <div className="mt-3">
+            <label className="block text-[12px] font-medium text-gray-500 mb-1">Vue par d&eacute;faut</label>
+            <select
+              value={permissions.default_dashboard_view ?? ''}
+              onChange={(e) => onPermissionsChange({ ...permissions, default_dashboard_view: e.target.value as DashboardView })}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] outline-none focus:border-forest-500"
+              disabled={saving}
+            >
+              {(permissions.dashboard_views ?? []).map((v) => (
+                <option key={v} value={v}>{DASHBOARD_VIEW_LABELS[v]}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </fieldset>
+
+      {isGroupOrg && (
+        <fieldset>
+          <legend className="text-sm font-medium text-gray-700 mb-2">Permissions groupe</legend>
+          <div className="space-y-2">
+            {GROUP_PERMISSION_KEYS.map(({ key, label, description: desc }) => {
+              const checked = permissions[key] === true
+              return (
+                <label key={key} className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onTogglePermission(key)}
+                    className="rounded border-gray-300 text-forest-600 focus:ring-forest-500 mt-0.5"
+                    disabled={saving}
+                  />
+                  <div>
+                    <span className="text-[13px] text-gray-700 font-medium">{label}</span>
+                    <span className="block text-[11px] text-gray-400">{desc}</span>
+                  </div>
+                </label>
+              )
+            })}
+          </div>
+        </fieldset>
+      )}
 
       <label className="flex items-center gap-2.5 cursor-pointer">
         <input

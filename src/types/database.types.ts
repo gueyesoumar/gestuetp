@@ -243,11 +243,20 @@ export interface ClientActionItem {
   updated_at: string
 }
 
+export type DashboardView = 'executive' | 'pilotage' | 'operationnel'
+
 export interface PlatformRolePermissions {
   can_create_mission: boolean
   can_assign_team: boolean
   can_be_lead: boolean
   can_designate_lead: boolean
+  dashboard_views?: DashboardView[]
+  default_dashboard_view?: DashboardView
+  /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
+  can_view_supervision?: boolean
+  can_create_campaign?: boolean
+  can_manage_subsidiaries?: boolean
+  can_view_entity_detail?: boolean
 }
 
 export interface PlatformRole {
@@ -415,6 +424,7 @@ export interface Mission {
   audit_objectives: string | null
   audit_criteria: string | null
   scoping_notes: string | null
+  campaign_id: string | null
   created_at: string
   updated_at: string
 }
@@ -432,6 +442,7 @@ export interface MissionInsert {
   start_date?: string | null
   end_date?: string | null
   is_active?: boolean
+  campaign_id?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -719,6 +730,8 @@ export interface Document {
   file_size: number | null
   mime_type: string | null
   description: string | null
+  anthropic_file_id: string | null
+  anthropic_file_uploaded_at: string | null
   created_at: string
 }
 
@@ -1193,6 +1206,44 @@ export interface Database {
       risk_level: RiskLevel
       audit_technique: AuditTechnique
       interview_status: InterviewStatus
+      campaign_status: CampaignStatus
     }
   }
+}
+
+// ============================================================
+// Audit Campaigns (migration 00059)
+// ============================================================
+
+export type CampaignStatus = 'draft' | 'active' | 'completed'
+
+export interface AuditCampaign {
+  id: string
+  organization_id: string
+  framework_id: string
+  name: string
+  period_label: string
+  period_start: string
+  period_end: string
+  status: CampaignStatus
+  created_at: string
+}
+
+export interface AuditCampaignInsert {
+  id?: string
+  organization_id: string
+  framework_id: string
+  name: string
+  period_label: string
+  period_start: string
+  period_end: string
+  status?: CampaignStatus
+}
+
+export interface AuditCampaignUpdate {
+  name?: string
+  period_label?: string
+  period_start?: string
+  period_end?: string
+  status?: CampaignStatus
 }

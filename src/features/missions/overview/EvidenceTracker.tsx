@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Paperclip, Check, Circle } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Paperclip, Check, Circle, ChevronDown, ChevronRight, Send, Search } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
+import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
+import { useEvidenceCatalog } from '../useEvidenceCatalog'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { Document } from '../../../types/database.types'
 
@@ -11,156 +13,368 @@ interface EvidenceTrackerProps {
   documents: Document[]
 }
 
-interface TrackedEvidence {
+type FilterKey = 'requested' | 'all' | 'received' | 'pending'
+
+interface CatalogRow {
+  evidenceId: string
   name: string
-  controlCodes: string[]
+  description: string | null
   isRequired: boolean
-  status: 'uploaded' | 'pending'
+  controlCode: string
+  domainCode: string
+  domainName: string
+  requested: boolean
+  received: boolean
   fileName: string | null
 }
 
 export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrackerProps): JSX.Element {
-  const [evidences, setEvidences] = useState<TrackedEvidence[]>([])
-  const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState(false)
+  const { evidenceByControl, loading: catLoading } = useEvidenceCatalog(domains)
+  const { requests, requestedIds, requestEvidence, requesting, refetch: refetchRequests } = useMissionEvidenceRequests(missionId)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [filter, setFilter] = useState<FilterKey>('requested')
+  const [search, setSearch] = useState('')
+  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set())
 
-  const fetchData = useCallback(async (): Promise<void> => {
-    setLoading(true)
-    const controlIds = domains.flatMap((d) => d.controls.map((c) => c.id))
-    if (controlIds.length === 0) { setLoading(false); return }
-
-    const controlCodeMap = Object.fromEntries(
-      domains.flatMap((d) => d.controls.map((c) => [c.id, c.code]))
-    )
-
-    const { data: catalogItems } = await supabase
-      .from('evidence_catalog')
-      .select('id, name, is_required, control_id')
-      .in('control_id', controlIds)
-      .order('sort_order')
-
-    if (!catalogItems || catalogItems.length === 0) { setEvidences([]); setLoading(false); return }
-
-    // Matching
-    const uploadedEvidenceNames = new Set<string>()
-    const uploadedFileMap = new Map<string, string>()
+  // Build uploaded evidence names from documents
+  const uploadedNames = useMemo(() => {
+    const names = new Set<string>()
     for (const doc of documents) {
-      if (doc.description) {
-        const match = doc.description.match(/\[EVIDENCE:(.+?)\]/)
-        if (match) {
-          uploadedEvidenceNames.add(match[1])
-          uploadedFileMap.set(match[1], doc.file_name)
-        }
-      }
+      const match = doc.description?.match(/\[EVIDENCE:(.+?)\]/)
+      if (match) names.add(match[1])
     }
-    const uploadedControlIds = new Set(documents.filter((d) => d.control_id).map((d) => d.control_id))
+    return names
+  }, [documents])
 
-    // Group by name
-    const groups = new Map<string, { name: string; isRequired: boolean; controlCodes: string[]; controlIds: string[] }>()
-    for (const cat of catalogItems) {
-      const code = controlCodeMap[cat.control_id] ?? ''
-      const existing = groups.get(cat.name)
-      if (existing) {
-        if (code && !existing.controlCodes.includes(code)) existing.controlCodes.push(code)
-        if (!existing.controlIds.includes(cat.control_id)) existing.controlIds.push(cat.control_id)
-        if (cat.is_required) existing.isRequired = true
-      } else {
-        groups.set(cat.name, {
-          name: cat.name, isRequired: cat.is_required,
-          controlCodes: code ? [code] : [], controlIds: [cat.control_id],
+  const fileByEvidence = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const doc of documents) {
+      const match = doc.description?.match(/\[EVIDENCE:(.+?)\]/)
+      if (match) map.set(match[1], doc.file_name)
+    }
+    return map
+  }, [documents])
+
+  // Build flat rows
+  const allRows: CatalogRow[] = useMemo(() => {
+    const rows: CatalogRow[] = []
+    for (const item of evidenceByControl) {
+      for (const ev of item.evidences) {
+        rows.push({
+          evidenceId: ev.id,
+          name: ev.name,
+          description: ev.description,
+          isRequired: ev.is_required,
+          controlCode: item.control.code,
+          domainCode: item.domainCode,
+          domainName: item.domainName,
+          requested: requestedIds.has(ev.id),
+          received: uploadedNames.has(ev.name),
+          fileName: fileByEvidence.get(ev.name) ?? null,
         })
       }
     }
+    return rows
+  }, [evidenceByControl, requestedIds, uploadedNames, fileByEvidence])
 
-    const result: TrackedEvidence[] = []
-    for (const [, g] of groups) {
-      const isUploaded = uploadedEvidenceNames.has(g.name) || g.controlIds.some((cid) => uploadedControlIds.has(cid))
-      result.push({
-        name: g.name,
-        controlCodes: g.controlCodes.sort(),
-        isRequired: g.isRequired,
-        status: isUploaded ? 'uploaded' : 'pending',
-        fileName: uploadedFileMap.get(g.name) ?? (isUploaded ? documents.find((d) => g.controlIds.includes(d.control_id ?? ''))?.file_name ?? null : null),
-      })
+  // Counts
+  const requestedCount = allRows.filter((r) => r.requested).length
+  const receivedCount = allRows.filter((r) => r.requested && r.received).length
+  const pendingCount = allRows.filter((r) => r.requested && !r.received).length
+  const notRequestedCount = allRows.filter((r) => !r.requested).length
+
+  // Filter + search
+  const filteredRows = useMemo(() => {
+    let rows = allRows
+    if (filter === 'requested') rows = rows.filter((r) => r.requested)
+    else if (filter === 'received') rows = rows.filter((r) => r.requested && r.received)
+    else if (filter === 'pending') rows = rows.filter((r) => r.requested && !r.received)
+    // 'all' shows everything
+
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      rows = rows.filter((r) =>
+        r.name.toLowerCase().includes(q) ||
+        (r.description ?? '').toLowerCase().includes(q) ||
+        r.controlCode.toLowerCase().includes(q)
+      )
     }
+    return rows
+  }, [allRows, filter, search])
 
-    result.sort((a, b) => {
-      if (a.status !== b.status) return a.status === 'pending' ? -1 : 1
-      if (a.isRequired !== b.isRequired) return a.isRequired ? -1 : 1
-      return b.controlCodes.length - a.controlCodes.length
+  // Group by domain
+  const domainGroups = useMemo(() => {
+    const groups = new Map<string, { code: string; name: string; rows: CatalogRow[] }>()
+    for (const row of filteredRows) {
+      const existing = groups.get(row.domainCode)
+      if (existing) {
+        existing.rows.push(row)
+      } else {
+        groups.set(row.domainCode, { code: row.domainCode, name: row.domainName, rows: [row] })
+      }
+    }
+    return [...groups.values()].sort((a, b) => a.code.localeCompare(b.code))
+  }, [filteredRows])
+
+  // Auto-expand domains that have requested items
+  useEffect(() => {
+    if (filter === 'requested' || filter === 'pending' || filter === 'received') {
+      setExpandedDomains(new Set(domainGroups.map((g) => g.code)))
+    }
+  }, [filter])
+
+  const toggleDomain = (code: string): void => {
+    setExpandedDomains((prev) => {
+      const next = new Set(prev)
+      if (next.has(code)) next.delete(code)
+      else next.add(code)
+      return next
     })
+  }
 
-    setEvidences(result)
-    setLoading(false)
-  }, [domains, documents])
+  const toggleSelect = (evidenceId: string): void => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(evidenceId)) next.delete(evidenceId)
+      else next.add(evidenceId)
+      return next
+    })
+  }
 
-  useEffect(() => { fetchData() }, [fetchData])
+  const handleSubmitRequest = async (): Promise<void> => {
+    if (selected.size === 0) return
+    const ok = await requestEvidence(missionId, Array.from(selected))
+    if (ok) {
+      setSelected(new Set())
+      refetchRequests()
+    }
+  }
 
-  const pendingCount = evidences.filter((e) => e.status === 'pending').length
-  const uploadedCount = evidences.filter((e) => e.status === 'uploaded').length
-  const total = evidences.length
-  const pct = total > 0 ? Math.round((uploadedCount / total) * 100) : 0
+  if (catLoading) return <></>
+  if (allRows.length === 0) return <></>
 
-  if (loading || total === 0) return <></>
-
-  const pendingRequired = evidences.filter((e) => e.status === 'pending' && e.isRequired)
-  const pendingOther = evidences.filter((e) => e.status === 'pending' && !e.isRequired)
-  const displayList = expanded ? evidences : [...pendingRequired.slice(0, 3), ...pendingOther.slice(0, 2)]
+  const FILTERS: { key: FilterKey; label: string; count: number }[] = [
+    { key: 'requested', label: 'Demand\u00e9es', count: requestedCount },
+    { key: 'all', label: 'Catalogue complet', count: allRows.length },
+    { key: 'received', label: 'Re\u00e7ues', count: receivedCount },
+    { key: 'pending', label: 'En attente', count: pendingCount },
+  ]
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Paperclip size={15} className="text-forest-700" />
-          <h3 className="text-sm font-bold">Suivi des preuves</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge label={`${uploadedCount} re\u00e7us`} variant="green" />
+      <div className="px-5 py-3.5 border-b border-gray-200 flex items-center gap-2 flex-wrap">
+        <Paperclip size={15} className="text-forest-700" />
+        <span className="text-[13px] font-semibold text-gray-900">Suivi des preuves</span>
+        <div className="flex gap-1.5 ml-auto flex-wrap">
+          <Badge label={`${requestedCount} demand\u00e9es`} variant="blue" />
+          <Badge label={`${receivedCount} re\u00e7ues`} variant="green" />
           {pendingCount > 0 && <Badge label={`${pendingCount} en attente`} variant="gold" />}
+          {filter === 'all' && <Badge label={`${notRequestedCount} non demand\u00e9es`} variant="gray" />}
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-2 bg-forest-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
-        </div>
-        <span className="text-xs font-semibold text-forest-700">{pct}%</span>
-        <span className="text-[10px] text-gray-300">{uploadedCount}/{total}</span>
-      </div>
-
-      {/* Document list */}
-      <div className="space-y-1.5">
-        {displayList.map((ev) => (
-          <div key={ev.name} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${
-            ev.status === 'uploaded' ? 'bg-green-50' : 'bg-white'
-          }`}>
-            {ev.status === 'uploaded' ? (
-              <Check size={13} className="text-green-600" />
-            ) : (
-              <Circle size={13} className="text-gold-500" />
-            )}
-            <span className={`text-[11px] flex-1 truncate ${ev.status === 'uploaded' ? 'text-green-800' : 'text-gray-700'}`}>
-              {ev.name}
-            </span>
-            <div className="flex gap-1 shrink-0">
-              {ev.controlCodes.slice(0, 2).map((c) => (
-                <span key={c} className="font-mono text-[7px] font-semibold bg-forest-50 text-forest-700 px-1 py-0.5 rounded">{c}</span>
-              ))}
-              {ev.controlCodes.length > 2 && <span className="text-[7px] text-gray-300">+{ev.controlCodes.length - 2}</span>}
-            </div>
-            {ev.isRequired && ev.status === 'pending' && <span className="text-[7px] font-semibold text-red-500 bg-red-50 px-1 py-0.5 rounded">Requis</span>}
-          </div>
+      {/* Filters + search */}
+      <div className="px-5 py-2.5 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`flex items-center gap-1 px-3 py-1.5 text-[11px] font-medium rounded-lg transition-colors ${
+              filter === f.key
+                ? 'bg-forest-700 text-white'
+                : 'text-gray-500 bg-white border border-gray-200 hover:bg-forest-50'
+            }`}
+          >
+            {f.label}
+            <span className={`text-[10px] font-semibold px-1 rounded-full ${
+              filter === f.key ? 'bg-white/20' : 'bg-gray-100'
+            }`}>{f.count}</span>
+          </button>
         ))}
+
+        {filter === 'all' && (
+          <div className="ml-auto relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-300" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher..."
+              className="pl-7 pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] outline-none focus:border-forest-500 w-52"
+            />
+          </div>
+        )}
+
+        {filter !== 'all' && (
+          <button
+            onClick={() => setFilter('all')}
+            className="ml-auto text-[11px] text-forest-700 font-medium hover:underline flex items-center gap-1"
+          >
+            + Demander des preuves
+          </button>
+        )}
       </div>
 
-      {/* Show more/less */}
-      {total > 5 && (
-        <button onClick={() => setExpanded(!expanded)} className="mt-2 w-full text-center text-[11px] text-forest-700 font-medium hover:underline">
-          {expanded ? 'R\u00e9duire' : `Voir les ${total} documents \u2192`}
-        </button>
+      {/* Domain accordion list */}
+      <div className="max-h-[500px] overflow-y-auto">
+        {domainGroups.length === 0 ? (
+          <div className="px-5 py-8 text-center text-xs text-gray-300">
+            Aucune preuve correspondante.
+          </div>
+        ) : (
+          domainGroups.map((group) => {
+            const isOpen = expandedDomains.has(group.code)
+            const groupRequested = group.rows.filter((r) => r.requested)
+            const groupReceived = group.rows.filter((r) => r.requested && r.received)
+            const groupNotRequested = group.rows.filter((r) => !r.requested)
+
+            return (
+              <div key={group.code} className="border-b border-gray-100 last:border-b-0">
+                {/* Domain header */}
+                <button
+                  onClick={() => toggleDomain(group.code)}
+                  className="w-full flex items-center gap-2.5 px-5 py-2.5 bg-forest-50/50 hover:bg-forest-50 transition-colors text-left"
+                >
+                  {isOpen ? <ChevronDown size={14} className="text-forest-700" /> : <ChevronRight size={14} className="text-forest-700" />}
+                  <span className="font-mono text-[11px] font-semibold text-forest-700">{group.code}</span>
+                  <span className="text-[12px] font-semibold text-gray-700 flex-1">{group.name}</span>
+                  <div className="flex gap-1.5">
+                    {groupRequested.length > 0 && (
+                      <span className="text-[9px] font-medium text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full">
+                        {groupRequested.length} demand{groupRequested.length > 1 ? '\u00e9es' : '\u00e9e'}
+                      </span>
+                    )}
+                    {groupReceived.length > 0 && (
+                      <span className="text-[9px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                        {groupReceived.length} re\u00e7u{groupReceived.length > 1 ? 'es' : 'e'}
+                      </span>
+                    )}
+                    {filter === 'all' && groupNotRequested.length > 0 && (
+                      <span className="text-[9px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                        {groupNotRequested.length} non demand{groupNotRequested.length > 1 ? '\u00e9es' : '\u00e9e'}
+                      </span>
+                    )}
+                  </div>
+                </button>
+
+                {/* Rows */}
+                {isOpen && (
+                  <div>
+                    {/* Requested rows first */}
+                    {group.rows.filter((r) => r.requested).map((row) => (
+                      <EvidenceRow key={row.evidenceId} row={row} showCheckbox={false} checked={false} onToggle={() => {}} />
+                    ))}
+
+                    {/* Separator if showing non-requested */}
+                    {filter === 'all' && groupNotRequested.length > 0 && groupRequested.length > 0 && (
+                      <div className="px-5 py-1.5 bg-gray-50 border-t border-b border-gray-100">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-300">Non demand{'\u00e9'}es &mdash; catalogue</span>
+                      </div>
+                    )}
+
+                    {/* Not-requested rows (only in 'all' view) */}
+                    {filter === 'all' && groupNotRequested.map((row) => (
+                      <EvidenceRow
+                        key={row.evidenceId}
+                        row={row}
+                        showCheckbox
+                        checked={selected.has(row.evidenceId)}
+                        onToggle={() => toggleSelect(row.evidenceId)}
+                        dimmed
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      {/* Floating action bar */}
+      {selected.size > 0 && (
+        <div className="sticky bottom-0 px-5 py-3 bg-white border-t border-gray-200 flex items-center gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+          <span className="text-[12px] text-gray-500">
+            <span className="font-bold text-forest-700">{selected.size}</span> preuve{selected.size > 1 ? 's' : ''} s{'\u00e9'}lectionn{'\u00e9'}e{selected.size > 1 ? 's' : ''}
+          </span>
+          <button
+            onClick={handleSubmitRequest}
+            disabled={requesting}
+            className="flex items-center gap-1.5 px-4 py-2 bg-forest-700 text-white rounded-lg text-[12px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors"
+          >
+            <Send size={12} />
+            {requesting ? 'Envoi...' : 'Demander au client'}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="px-3 py-2 text-[12px] text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+        </div>
       )}
+    </div>
+  )
+}
+
+function EvidenceRow({ row, showCheckbox, checked, onToggle, dimmed }: {
+  row: CatalogRow
+  showCheckbox: boolean
+  checked: boolean
+  onToggle: () => void
+  dimmed?: boolean
+}): JSX.Element {
+  return (
+    <div className={`flex items-center gap-2.5 px-5 py-2 border-b border-gray-50 last:border-b-0 ${
+      row.received ? 'bg-green-50/40' : dimmed ? 'opacity-50' : ''
+    }`}>
+      {showCheckbox ? (
+        <button
+          onClick={onToggle}
+          className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+            checked ? 'bg-forest-700 border-forest-700' : 'border-gray-200 hover:border-forest-300'
+          }`}
+        >
+          {checked && <Check size={10} className="text-white" strokeWidth={3} />}
+        </button>
+      ) : (
+        <div className="w-4 shrink-0" />
+      )}
+
+      {/* Status icon */}
+      {row.received ? (
+        <div className="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+          <Check size={10} className="text-white" strokeWidth={3} />
+        </div>
+      ) : row.requested ? (
+        <Circle size={14} className="text-gold-500 shrink-0" />
+      ) : (
+        <div className="w-4 shrink-0" />
+      )}
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <span className={`text-[12px] font-medium ${dimmed ? 'text-gray-300' : 'text-gray-900'}`}>{row.name}</span>
+        {row.description && (
+          <span className={`text-[10px] ml-2 ${dimmed ? 'text-gray-200' : 'text-gray-400'}`}>{row.description}</span>
+        )}
+      </div>
+
+      {/* Control code */}
+      <span className={`font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+        dimmed ? 'bg-gray-100 text-gray-300' : 'bg-forest-50 text-forest-700'
+      }`}>{row.controlCode}</span>
+
+      {/* File name if received */}
+      {row.received && row.fileName && (
+        <span className="text-[10px] font-medium text-green-600 truncate max-w-[120px]">{row.fileName}</span>
+      )}
+
+      {/* Status badge */}
+      {row.received && <span className="text-[9px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full shrink-0">Re\u00e7u</span>}
+      {row.requested && !row.received && <span className="text-[9px] font-medium text-gold-600 bg-gold-50 px-2 py-0.5 rounded-full shrink-0">En attente</span>}
+      {row.isRequired && !row.received && <span className="text-[8px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded shrink-0">Requis</span>}
     </div>
   )
 }

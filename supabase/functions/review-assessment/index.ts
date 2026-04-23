@@ -97,7 +97,21 @@ Deno.serve(async (req) => {
 
     if (!isLead && !isAssociate) {
       return new Response(
-        JSON.stringify({ error: 'Seuls le chef de mission et l\'associé peuvent valider' }),
+        JSON.stringify({ error: 'Seuls le chef de mission et l\'associ\u00e9 peuvent valider' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 4b. Check if the reviewer is the one who submitted — prevent self-review
+    const { data: assessmentFull } = await supabaseAdmin
+      .from('control_assessments')
+      .select('auditor_id')
+      .eq('id', assessment_id)
+      .single()
+
+    if (isLead && assessmentFull?.auditor_id === callerProfile.id && assessment.status === 'submitted') {
+      return new Response(
+        JSON.stringify({ error: 'Vous ne pouvez pas valider un contr\u00f4le que vous avez vous-m\u00eame soumis. Ce constat doit \u00eatre valid\u00e9 par l\'associ\u00e9.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -107,23 +121,24 @@ Deno.serve(async (req) => {
     let newStatus: string
 
     if (isLead && assessment.status === 'submitted') {
+      // Lead reviews auditor's work (not his own — checked above)
       stage = 'lead_review'
       if (decision === 'approved') {
-        // Si la mission a un associe, passer en in_review pour sa validation
         newStatus = mission.associate_id ? 'in_review' : 'approved'
       } else {
         newStatus = 'rejected'
       }
     } else if (isAssociate && assessment.status === 'in_review') {
+      // Associate reviews after lead approval (or after lead's own submission skip)
       stage = 'associate_review'
       newStatus = decision === 'approved' ? 'approved' : 'rejected'
     } else if (isAssociate && assessment.status === 'submitted' && mission.lead_auditor_id === mission.associate_id) {
-      // Cas ou l'associe est aussi chef de mission
+      // Edge case: associate is also lead (should be avoided but handle gracefully)
       stage = 'associate_review'
       newStatus = decision === 'approved' ? 'approved' : 'rejected'
     } else {
       return new Response(
-        JSON.stringify({ error: 'Ce contrôle n\'est pas en attente de votre validation' }),
+        JSON.stringify({ error: 'Ce contr\u00f4le n\'est pas en attente de votre validation' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

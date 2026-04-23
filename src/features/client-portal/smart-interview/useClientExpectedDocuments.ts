@@ -22,6 +22,10 @@ interface UseClientExpectedDocumentsReturn {
   refetch: () => void
 }
 
+/**
+ * Only returns documents that have been explicitly requested by the auditor
+ * via mission_evidence_requests. The client never sees the full catalog.
+ */
 export function useClientExpectedDocuments(missionId: string): UseClientExpectedDocumentsReturn {
   const [expectedDocs, setExpectedDocs] = useState<ExpectedDocument[]>([])
   const [coveredControls, setCoveredControls] = useState(0)
@@ -31,6 +35,8 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
 
   useEffect(() => {
+    const controller = new AbortController()
+
     const fetchData = async (): Promise<void> => {
       setLoading(true)
 
@@ -42,125 +48,134 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
       const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
       const headers = { 'apikey': apikey, 'Authorization': `Bearer ${token}` }
 
-      // 1. Get the mission's framework_id
-      const missionRes = await fetch(
-        `${baseUrl}/rest/v1/missions?id=eq.${missionId}&select=framework_id`,
-        { headers }
+      // 1. Get evidence requests for this mission (only what auditor demanded)
+      const reqRes = await fetch(
+        `${baseUrl}/rest/v1/mission_evidence_requests?mission_id=eq.${missionId}&select=evidence_catalog_id`,
+        { headers, signal: controller.signal }
       )
-      if (!missionRes.ok) { setLoading(false); return }
-      const missions = await missionRes.json() as { framework_id: string }[]
-      if (!missions.length) { setLoading(false); return }
-      const frameworkId = missions[0].framework_id
+      if (controller.signal.aborted) return
+      if (!reqRes.ok) { setLoading(false); return }
+      const requestRows = await reqRes.json() as { evidence_catalog_id: string }[]
 
-      // 2. Get all controls for this framework (via domains)
-      const domainRes = await fetch(
-        `${baseUrl}/rest/v1/domains?framework_id=eq.${frameworkId}&select=id`,
-        { headers }
+      if (requestRows.length === 0) {
+        setExpectedDocs([])
+        setCoveredControls(0)
+        setTotalControls(0)
+        setLoading(false)
+        return
+      }
+
+      const requestedCatalogIds = requestRows.map((r) => r.evidence_catalog_id)
+
+      // 2. Fetch the catalog items for these IDs
+      const catRes = await fetch(
+        `${baseUrl}/rest/v1/evidence_catalog?id=in.(${requestedCatalogIds.join(',')})&select=id,name,description,is_required,control_id&order=sort_order`,
+        { headers, signal: controller.signal }
       )
-      if (!domainRes.ok) { setLoading(false); return }
-      const domains = await domainRes.json() as { id: string }[]
-      const domainIds = domains.map((d) => d.id)
+      if (controller.signal.aborted) return
+      if (!catRes.ok) { setLoading(false); return }
+      const catalogItems = await catRes.json() as {
+        id: string; name: string; description: string | null; is_required: boolean; control_id: string
+      }[]
 
-      if (domainIds.length === 0) { setLoading(false); return }
+      if (catalogItems.length === 0) { setExpectedDocs([]); setLoading(false); return }
 
-      const ctrlRes = await fetch(
-        `${baseUrl}/rest/v1/controls?domain_id=in.(${domainIds.join(',')})&select=id,code`,
-        { headers }
-      )
-      if (!ctrlRes.ok) { setLoading(false); return }
-      const controls = await ctrlRes.json() as { id: string; code: string }[]
-      const controlIds = controls.map((c) => c.id)
-      const controlCodeMap = Object.fromEntries(controls.map((c) => [c.id, c.code]))
-      setTotalControls(controlIds.length)
-
-      if (controlIds.length === 0) { setLoading(false); return }
-
-      // 3. Get evidence catalog items for these controls
-      // Split into chunks to avoid URL too long
-      const chunkSize = 50
-      const allCatalogItems: { id: string; name: string; description: string | null; is_required: boolean; control_id: string }[] = []
-
-      for (let i = 0; i < controlIds.length; i += chunkSize) {
-        const chunk = controlIds.slice(i, i + chunkSize)
-        const catRes = await fetch(
-          `${baseUrl}/rest/v1/evidence_catalog?control_id=in.(${chunk.join(',')})&select=id,name,description,is_required,control_id&order=sort_order`,
-          { headers }
+      // 3. Fetch control codes for display
+      const controlIds = [...new Set(catalogItems.map((c) => c.control_id))]
+      let controlCodeMap: Record<string, string> = {}
+      if (controlIds.length > 0) {
+        const ctrlRes = await fetch(
+          `${baseUrl}/rest/v1/controls?id=in.(${controlIds.join(',')})&select=id,code`,
+          { headers, signal: controller.signal }
         )
-        if (catRes.ok) {
-          const items = await catRes.json() as typeof allCatalogItems
-          allCatalogItems.push(...items)
+        if (controller.signal.aborted) return
+        if (ctrlRes.ok) {
+          const controls = await ctrlRes.json() as { id: string; code: string }[]
+          controlCodeMap = Object.fromEntries(controls.map((c) => [c.id, c.code]))
         }
       }
 
-      if (allCatalogItems.length === 0) { setExpectedDocs([]); setLoading(false); return }
+      // 4. Get total controls for this mission (for coverage stat)
+      const mRes = await fetch(`${baseUrl}/rest/v1/missions?id=eq.${missionId}&select=framework_id`, { headers, signal: controller.signal })
+      if (controller.signal.aborted) return
+      let totalCtrlCount = 0
+      if (mRes.ok) {
+        const missions = await mRes.json() as { framework_id: string }[]
+        if (missions.length > 0) {
+          const domRes = await fetch(`${baseUrl}/rest/v1/domains?framework_id=eq.${missions[0].framework_id}&select=id`, { headers, signal: controller.signal })
+          if (controller.signal.aborted) return
+          if (domRes.ok) {
+            const doms = await domRes.json() as { id: string }[]
+            if (doms.length > 0) {
+              const cRes = await fetch(
+                `${baseUrl}/rest/v1/controls?domain_id=in.(${doms.map((d) => d.id).join(',')})&select=id`,
+                { headers, signal: controller.signal, method: 'HEAD' }
+              )
+              if (controller.signal.aborted) return
+              // Use count header or fallback
+              const countHeader = cRes.headers.get('content-range')
+              if (countHeader) {
+                const match = countHeader.match(/\/(\d+)/)
+                if (match) totalCtrlCount = parseInt(match[1], 10)
+              }
+            }
+          }
+        }
+      }
+      setTotalControls(totalCtrlCount)
 
-      // 4. Get uploaded documents for this mission (include description for matching)
+      // 5. Check which have been uploaded
       const docRes = await fetch(
-        `${baseUrl}/rest/v1/documents?mission_id=eq.${missionId}&select=id,file_name,description`,
-        { headers }
+        `${baseUrl}/rest/v1/documents?mission_id=eq.${missionId}&select=file_name,description`,
+        { headers, signal: controller.signal }
       )
+      if (controller.signal.aborted) return
       const uploadedDocs = docRes.ok
-        ? await docRes.json() as { id: string; file_name: string; description: string | null }[]
+        ? await docRes.json() as { file_name: string; description: string | null }[]
         : []
 
-      // Build a set of evidence names that have been uploaded (via [EVIDENCE:xxx] tag)
       const uploadedEvidenceNames = new Set<string>()
+      const uploadedFileMap = new Map<string, string>()
       for (const doc of uploadedDocs) {
-        if (doc.description) {
-          const match = doc.description.match(/\[EVIDENCE:(.+?)\]/)
-          if (match) uploadedEvidenceNames.add(match[1])
+        const match = doc.description?.match(/\[EVIDENCE:(.+?)\]/)
+        if (match) {
+          uploadedEvidenceNames.add(match[1])
+          uploadedFileMap.set(match[1], doc.file_name)
         }
       }
 
-      // 5. Group by document name (deduplicate), collect control codes + IDs
+      // 6. Group by name (deduplicate), collect control codes
       const docGroups = new Map<string, {
-        id: string
-        name: string
-        description: string | null
-        isRequired: boolean
-        controlCodes: string[]
-        controlIds: string[]
+        id: string; name: string; description: string | null
+        isRequired: boolean; controlCodes: string[]; controlIds: string[]
       }>()
 
-      for (const cat of allCatalogItems) {
+      for (const cat of catalogItems) {
         const code = controlCodeMap[cat.control_id] ?? ''
         const existing = docGroups.get(cat.name)
         if (existing) {
-          if (code && !existing.controlCodes.includes(code)) {
-            existing.controlCodes.push(code)
-          }
-          if (cat.control_id && !existing.controlIds.includes(cat.control_id)) {
-            existing.controlIds.push(cat.control_id)
-          }
+          if (code && !existing.controlCodes.includes(code)) existing.controlCodes.push(code)
+          if (!existing.controlIds.includes(cat.control_id)) existing.controlIds.push(cat.control_id)
           if (cat.is_required) existing.isRequired = true
         } else {
           docGroups.set(cat.name, {
-            id: cat.id,
-            name: cat.name,
-            description: cat.description,
+            id: cat.id, name: cat.name, description: cat.description,
             isRequired: cat.is_required,
             controlCodes: code ? [code] : [],
-            controlIds: cat.control_id ? [cat.control_id] : [],
+            controlIds: [cat.control_id],
           })
         }
       }
 
-      // 6. Build result
+      // 7. Build result
       const result: ExpectedDocument[] = []
       const coveredControlSet = new Set<string>()
 
       for (const [, group] of docGroups) {
-        // Check if uploaded via [EVIDENCE:xxx] tag in description
         const isUploaded = uploadedEvidenceNames.has(group.name)
-
-        const matchedFile = isUploaded
-          ? uploadedDocs.find((d) => d.description?.includes(`[EVIDENCE:${group.name}]`))?.file_name ?? null
-          : null
-
         if (isUploaded) {
           group.controlCodes.forEach((c) => coveredControlSet.add(c))
         }
-
         result.push({
           id: group.id,
           name: group.name,
@@ -169,15 +184,15 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
           controlCodes: group.controlCodes.sort(),
           controlIds: group.controlIds,
           status: isUploaded ? 'uploaded' : 'pending',
-          uploadedFileName: matchedFile,
+          uploadedFileName: uploadedFileMap.get(group.name) ?? null,
         })
       }
 
-      // Sort: required first, then pending, then by control count
+      // Sort: required first, then pending, then by name
       result.sort((a, b) => {
         if (a.isRequired !== b.isRequired) return a.isRequired ? -1 : 1
         if (a.status !== b.status) return a.status === 'pending' ? -1 : 1
-        return b.controlCodes.length - a.controlCodes.length
+        return a.name.localeCompare(b.name)
       })
 
       setCoveredControls(coveredControlSet.size)
@@ -186,6 +201,7 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
     }
 
     fetchData()
+    return () => controller.abort()
   }, [missionId, refreshKey])
 
   const pendingCount = expectedDocs.filter((d) => d.status === 'pending').length

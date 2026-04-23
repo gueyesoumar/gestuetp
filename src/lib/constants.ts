@@ -97,6 +97,18 @@ export const PERMISSION_LABELS: Record<string, string> = {
   can_designate_lead: 'Désigner un auditeur principal',
 } as const
 
+export const DASHBOARD_VIEW_LABELS: Record<string, string> = {
+  executive: 'Executive',
+  pilotage: 'Pilotage',
+  operationnel: 'Opérationnel',
+} as const
+
+export const DASHBOARD_VIEW_DESCRIPTIONS: Record<string, string> = {
+  executive: 'Vue d\'ensemble : portefeuille clients, pipeline, respect des délais, charge équipe',
+  pilotage: 'Suivi des missions : progression, pipeline de revue, rejets, charge de l\'équipe',
+  operationnel: 'Mes tâches : contrôles à traiter, entretiens, progression personnelle',
+} as const
+
 export const MEMBER_AUDIT_ACTION_LABELS: Record<string, string> = {
   invited: 'Invitation envoyée',
   role_assigned: 'Rôle attribué',

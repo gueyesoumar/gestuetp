@@ -12,13 +12,14 @@ import { MissionScopingTab } from '../features/missions/scoping/MissionScopingTa
 import { MissionPlanningTab } from '../features/missions/planning/MissionPlanningTab'
 import { MissionFieldworkTab } from '../features/missions/fieldwork/MissionFieldworkTab'
 import { MissionReviewTab } from '../features/missions/review/MissionReviewTab'
+import { MissionInternalReviewTab } from '../features/missions/internal-review/MissionInternalReviewTab'
 import { MissionClientReviewTab } from '../features/missions/client-review/MissionClientReviewTab'
 import { MissionClosureTab } from '../features/missions/closure/MissionClosureTab'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import type { CabinetClient } from '../types/database.types'
 
-type TabKey = 'overview' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'client_review' | 'closure'
+type TabKey = 'overview' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure'
 
 export function MissionDetailPage(){
   const { id } = useParams<{ id: string }>()
@@ -80,6 +81,9 @@ export function MissionDetailPage(){
         )}
         {activeTab === 'review' && (
           <MissionReviewTab mission={mission} />
+        )}
+        {activeTab === 'internal_review' && (
+          <MissionInternalReviewTab mission={mission} onStatusChange={refetch} />
         )}
         {activeTab === 'client_review' && (
           <MissionClientReviewTab mission={mission} />

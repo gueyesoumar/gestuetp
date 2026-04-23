@@ -1,37 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
-function bufferToBase64(buffer: ArrayBuffer): string {
-  // Use standard base64 encoding available in Deno
-  const bytes = new Uint8Array(buffer)
-  // Build binary string without spread operator (safe for large files)
-  const parts: string[] = []
-  const chunkSize = 4096
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const end = Math.min(i + chunkSize, bytes.length)
-    let s = ''
-    for (let j = i; j < end; j++) {
-      s += String.fromCharCode(bytes[j])
-    }
-    parts.push(s)
-  }
-  return btoa(parts.join(''))
-}
-
-function detectMediaType(filename: string): string | null {
-  const ext = filename.split('.').pop()?.toLowerCase()
-  switch (ext) {
-    case 'jpg': case 'jpeg': return 'image/jpeg'
-    case 'png': return 'image/png'
-    case 'gif': return 'image/gif'
-    case 'webp': return 'image/webp'
-    case 'pdf': return 'application/pdf'
-    default: return null
-  }
-}
-
-const MAX_DOCS = 3
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -57,7 +26,6 @@ Deno.serve(async (req) => {
 
     // ── 1. Fetch client context ──────────────────────────────────────────────
     let clientContext = ''
-    let documentEntries: { file_name: string; file_path: string; mime_type: string | null; file_size: number | null; description: string | null }[] = []
 
     if (mission_id) {
       const { data: m } = await admin.from('missions').select('client_id, framework:frameworks(name)').eq('id', mission_id).single()
@@ -80,10 +48,9 @@ Deno.serve(async (req) => {
           if (qResps?.length) {
             const relevant = qResps
               .filter((r: { question_code: string }) => {
-                // Match by domain prefix if possible
                 const prefix = domain?.substring(0, 3)?.toUpperCase()
                 const qPrefix = r.question_code.split('-')[0]?.toUpperCase()
-                return !prefix || qPrefix === prefix || qPrefix === 'GOV' // always include governance
+                return !prefix || qPrefix === prefix || qPrefix === 'GOV'
               })
               .slice(0, 5)
               .map((r: { question_code: string; response: Record<string, unknown> }) => {
@@ -91,84 +58,96 @@ Deno.serve(async (req) => {
                 return `${r.question_code}: ${String(val ?? '')}`
               })
             if (relevant.length > 0) {
-              clientContext += `. Réponses questionnaire client: ${relevant.join('; ')}`
+              clientContext += `. R\u00e9ponses questionnaire client: ${relevant.join('; ')}`
             }
           }
         }
-
-        // Fetch document entries
-        const { data: docs } = await admin.from('documents')
-          .select('file_name, file_path, mime_type, file_size, description')
-          .eq('mission_id', mission_id)
-          .order('created_at', { ascending: false }).limit(10)
-        if (docs) documentEntries = docs as typeof documentEntries
       }
     }
 
-    // ── 2. Download documents via signed URL + encode base64 (like SENCOMPLY) ─
-    type ContentBlock =
-      | { type: 'text'; text: string }
-      | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
-      | { type: 'document'; source: { type: 'base64'; media_type: 'application/pdf'; data: string } }
+    // ── 2. Fetch documents and generate signed URLs (no memory load) ─────────
+    // deno-lint-ignore no-explicit-any
+    type ContentBlock = any
 
     const contentParts: ContentBlock[] = []
     const docDescriptions: string[] = []
-    let hasPdf = false
+    const MAX_DOCS = 5
+    let pdfCount = 0
+    let useFilesApi = false
+    const MAX_PDFS = 1 // Claude Sonnet via URL: max 100 pages, limit to 1 PDF
 
-    for (const doc of documentEntries.slice(0, MAX_DOCS)) {
-      const mediaType = detectMediaType(doc.file_name)
-      if (!mediaType) {
-        docDescriptions.push(`[${doc.file_name}] (format non support\u00e9)`)
-        continue
-      }
+    if (mission_id) {
+      const { data: docs } = await admin.from('documents')
+        .select('file_name, file_path, mime_type, file_size, anthropic_file_id')
+        .eq('mission_id', mission_id)
+        .order('created_at', { ascending: false }).limit(10)
 
-      try {
-        // Get public URL (bucket must be public — like SENCOMPLY's 'attachments' bucket)
-        const { data: urlData } = admin.storage.from('documents').getPublicUrl(doc.file_path)
-        const fileUrl = urlData?.publicUrl
-        if (!fileUrl) {
-          docDescriptions.push(`[${doc.file_name}] (erreur URL)`)
-          continue
+      if (docs?.length) {
+        for (const doc of docs.slice(0, MAX_DOCS)) {
+          const ext = doc.file_name.split('.').pop()?.toLowerCase()
+          const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext ?? '')
+          const isPdf = ext === 'pdf'
+
+          if (!isImage && !isPdf) {
+            docDescriptions.push(`[${doc.file_name}] (format non support\u00e9)`)
+            continue
+          }
+
+          // Strategy: prefer Files API (file_id) > signed URL fallback
+          if (doc.anthropic_file_id) {
+            // Files API — no memory, no page limit concern
+            contentParts.push({
+              type: 'document',
+              source: { type: 'file', file_id: doc.anthropic_file_id },
+            })
+            useFilesApi = true
+            const sizeMb = doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)}Mo` : '?'
+            docDescriptions.push(`[${doc.file_name}] \u2713 via Files API (${sizeMb})`)
+            console.log(`[smart-analyse] Using file_id ${doc.anthropic_file_id} for ${doc.file_name}`)
+          } else if (isPdf) {
+            // URL fallback for PDFs — limited to 1 PDF, max 10MB
+            if (pdfCount >= MAX_PDFS) {
+              docDescriptions.push(`[${doc.file_name}] (limit\u00e9 \u00e0 ${MAX_PDFS} PDF par analyse en mode URL. Utilisez l'upload IA pour les gros documents.)`)
+              continue
+            }
+            if (doc.file_size && doc.file_size > 10 * 1024 * 1024) {
+              docDescriptions.push(`[${doc.file_name}] (trop volumineux pour le mode URL : ${(doc.file_size / 1024 / 1024).toFixed(1)}Mo. Utilisez l'upload IA.)`)
+              continue
+            }
+            const { data: signedData, error: signErr } = await admin.storage
+              .from('documents')
+              .createSignedUrl(doc.file_path, 3600)
+            if (signErr || !signedData?.signedUrl) {
+              docDescriptions.push(`[${doc.file_name}] (erreur URL)`)
+              continue
+            }
+            contentParts.push({
+              type: 'document',
+              source: { type: 'url', url: signedData.signedUrl },
+            })
+            pdfCount++
+            docDescriptions.push(`[${doc.file_name}] \u2713 via URL`)
+          } else {
+            // Images via URL
+            const { data: signedData, error: signErr } = await admin.storage
+              .from('documents')
+              .createSignedUrl(doc.file_path, 3600)
+            if (signErr || !signedData?.signedUrl) {
+              docDescriptions.push(`[${doc.file_name}] (erreur URL)`)
+              continue
+            }
+            const mediaTypes: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp' }
+            contentParts.push({
+              type: 'image',
+              source: { type: 'url', url: signedData.signedUrl, media_type: mediaTypes[ext ?? ''] ?? 'image/jpeg' },
+            })
+            docDescriptions.push(`[${doc.file_name}] \u2713 image`)
+          }
+
+          const sizeMb = doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)}Mo` : '?'
+          docDescriptions.push(`[${doc.file_name}] \u2713 (${sizeMb})`)
+          console.log(`[smart-analyse] Added ${doc.file_name} via signed URL (${sizeMb})`)
         }
-
-        // Download via fetch (streaming — like SENCOMPLY)
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 30_000)
-        let fileRes: Response
-        try {
-          fileRes = await fetch(fileUrl, { signal: controller.signal })
-        } finally {
-          clearTimeout(timeout)
-        }
-
-        if (!fileRes.ok) {
-          docDescriptions.push(`[${doc.file_name}] (t\u00e9l\u00e9chargement \u00e9chou\u00e9)`)
-          continue
-        }
-
-        const buffer = await fileRes.arrayBuffer()
-        const base64 = bufferToBase64(buffer)
-
-        if (mediaType === 'application/pdf') {
-          contentParts.push({
-            type: 'document',
-            source: { type: 'base64', media_type: 'application/pdf', data: base64 },
-          })
-          hasPdf = true
-        } else {
-          contentParts.push({
-            type: 'image',
-            source: { type: 'base64', media_type: mediaType, data: base64 },
-          })
-        }
-
-        docDescriptions.push(`[${doc.file_name}] \u2713 analys\u00e9 (${(buffer.byteLength / 1024 / 1024).toFixed(1)}Mo)`)
-        console.log(`[smart-analyse] Encoded ${doc.file_name}: ${(buffer.byteLength / 1024 / 1024).toFixed(1)}Mo`)
-
-      } catch (err) {
-        const isAbort = err instanceof Error && err.name === 'AbortError'
-        docDescriptions.push(`[${doc.file_name}] (${isAbort ? 'timeout' : 'erreur'})`)
-        console.error(`[smart-analyse] Error for ${doc.file_name}:`, err)
       }
     }
 
@@ -183,7 +162,7 @@ Domaine: ${domain ?? 'N/A'}
 Description: ${control_description ?? 'N/A'}
 ${observations ? `OBSERVATIONS: ${observations}` : ''}${evidCtx}${docsCtx}
 
-${contentParts.length > 0 ? `Tu as re\u00e7u ${contentParts.length} document(s). ANALYSE-LES EN D\u00c9TAIL : sections, pages, chiffres, lacunes.` : ''}
+${contentParts.length > 0 ? `Tu as re\u00e7u ${contentParts.length} document(s) via URL. ANALYSE-LES EN D\u00c9TAIL : sections, pages, chiffres, lacunes.` : ''}
 
 G\u00e9n\u00e8re un JSON avec :
 1. "analysis_summary": ce que tu as analys\u00e9, sections identifi\u00e9es, \u00e9l\u00e9ments cl\u00e9s trouv\u00e9s. 5-8 phrases.
@@ -198,23 +177,26 @@ JSON uniquement, en fran\u00e7ais.`
 
     contentParts.push({ type: 'text', text: prompt })
 
-    // ── 4. Call Claude with PDF beta header ──────────────────────────────────
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-    }
-    // CRITICAL: required for PDF analysis
-    if (hasPdf) headers['anthropic-beta'] = 'pdfs-2024-09-25'
+    console.log('[smart-analyse] Content blocks:', contentParts.map((p: { type: string }) => p.type).join(', '))
 
+    // ── 4. Call Claude API ───────────────────────────────────────────────────
     const claudeController = new AbortController()
     const claudeTimeout = setTimeout(() => claudeController.abort(), 120_000)
 
     let claudeRes: Response
     try {
+      const claudeHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      }
+      if (useFilesApi) {
+        claudeHeaders['anthropic-beta'] = 'files-api-2025-04-14'
+      }
+
       claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers,
+        headers: claudeHeaders,
         signal: claudeController.signal,
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
@@ -228,8 +210,19 @@ JSON uniquement, en fran\u00e7ais.`
 
     if (!claudeRes.ok) {
       const errText = await claudeRes.text()
-      console.error('[smart-analyse] Claude error:', claudeRes.status, errText.slice(0, 500))
-      return new Response(JSON.stringify({ error: `Erreur Claude: ${claudeRes.status}` }),
+      console.error('[smart-analyse] Claude error:', claudeRes.status, errText)
+
+      // Handle specific Claude errors with user-friendly messages
+      let userMessage = `Erreur d'analyse (${claudeRes.status})`
+      if (errText.includes('PDF pages')) {
+        userMessage = 'Un des PDF d\u00e9passe la limite de 100 pages. Veuillez fournir des documents plus courts ou extraire les pages pertinentes.'
+      } else if (errText.includes('Could not process')) {
+        userMessage = 'Un des documents n\u2019a pas pu \u00eatre lu. V\u00e9rifiez qu\u2019il n\u2019est pas prot\u00e9g\u00e9 par mot de passe.'
+      } else if (errText.includes('too large')) {
+        userMessage = 'Les documents fournis sont trop volumineux. Limite : 32 Mo par requ\u00eate.'
+      }
+
+      return new Response(JSON.stringify({ error: userMessage }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -242,7 +235,6 @@ JSON uniquement, en fran\u00e7ais.`
     try {
       parsed = JSON.parse(clean)
     } catch {
-      // Try to extract JSON from mixed content
       const match = clean.match(/\{[\s\S]*\}/)
       if (match) {
         try { parsed = JSON.parse(match[0]) } catch {
@@ -264,7 +256,7 @@ JSON uniquement, en fran\u00e7ais.`
       findings: parsed.findings ?? '',
       recommendations: parsed.recommendations ?? '',
       risk: parsed.risk ?? '',
-      docs_analyzed: contentParts.length - 1, // minus the text prompt
+      docs_analyzed: contentParts.length - 1,
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
   } catch (err) {

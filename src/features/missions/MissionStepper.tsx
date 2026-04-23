@@ -11,7 +11,7 @@ const PHASE_TO_TAB: Record<string, string> = {
   scoping: 'scoping',
   planning: 'planning',
   fieldwork: 'fieldwork',
-  internal_review: 'review',
+  internal_review: 'internal_review',
   client_review: 'client_review',
   closure: 'closure',
 }

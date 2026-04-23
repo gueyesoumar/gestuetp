@@ -1,4 +1,5 @@
 import { AlertTriangle, BarChart3, Calendar, Activity, ArrowRight } from 'lucide-react'
+import { InfoPopover } from '../../components/ui/InfoPopover'
 import type { DashboardStats, NearestDeadline, PriorityMission } from './useDashboardStats'
 
 interface SmartCardsProps {
@@ -39,9 +40,12 @@ export function SmartCards({ stats, nearestDeadline, priorityMission }: SmartCar
 
 function PriorityCard({ mission }: { mission: PriorityMission | null }): JSX.Element {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow group border-l-4 border-l-gold-500">
-      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg mb-3 ${iconBgClass('gold')}`}>
-        <AlertTriangle className="h-4 w-4" />
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3.5 hover:shadow-md transition-shadow group border-l-4 border-l-gold-500">
+      <div className="flex items-start justify-between">
+        <div className={`inline-flex items-center justify-center w-6 h-6 rounded-md mb-2 ${iconBgClass('gold')}`}>
+          <AlertTriangle className="h-4 w-4" />
+        </div>
+        <InfoPopover text="La mission prioritaire est celle qui a le plus de rejets client. S&rsquo;il n&rsquo;y a aucun rejet, c&rsquo;est la mission avec la progression la plus faible qui est affich&eacute;e." />
       </div>
       <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
         Mission prioritaire
@@ -63,14 +67,17 @@ function PriorityCard({ mission }: { mission: PriorityMission | null }): JSX.Ele
 function ScoreCard({ score }: { score: number }): JSX.Element {
   const colorClass = scoreColorClass(score)
   return (
-    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow">
-      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg mb-3 ${iconBgClass('forest')}`}>
-        <BarChart3 className="h-4 w-4" />
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3.5 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div className={`inline-flex items-center justify-center w-6 h-6 rounded-md mb-2 ${iconBgClass('forest')}`}>
+          <BarChart3 className="h-4 w-4" />
+        </div>
+        <InfoPopover text="Pourcentage moyen de contr&ocirc;les &eacute;valu&eacute;s (hors brouillons) par rapport au total des contr&ocirc;les sur l&rsquo;ensemble des missions actives." />
       </div>
       <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
         Score moyen
       </div>
-      <div className={`mt-1 text-[28px] font-extrabold tracking-tight ${colorClass}`}>
+      <div className={`mt-1 text-[22px] font-extrabold tracking-tight ${colorClass}`}>
         {score}%
       </div>
       <div className="text-[11px] text-gray-300">Conformit&eacute; globale</div>
@@ -81,16 +88,19 @@ function ScoreCard({ score }: { score: number }): JSX.Element {
 function DeadlineCard({ deadline }: { deadline: NearestDeadline | null }): JSX.Element {
   const isUrgent = deadline !== null && deadline.daysRemaining <= 7
   return (
-    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow">
-      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg mb-3 ${iconBgClass(isUrgent ? 'red' : 'forest')}`}>
-        <Calendar className="h-4 w-4" />
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3.5 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div className={`inline-flex items-center justify-center w-6 h-6 rounded-md mb-2 ${iconBgClass(isUrgent ? 'red' : 'forest')}`}>
+          <Calendar className="h-4 w-4" />
+        </div>
+        <InfoPopover text="Nombre de jours restants avant la date de fin de la mission active la plus proche de son &eacute;ch&eacute;ance. Passe en rouge quand il reste 7 jours ou moins." />
       </div>
       <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
         Prochaine &eacute;ch&eacute;ance
       </div>
       {deadline ? (
         <>
-          <div className={`mt-1 text-[28px] font-extrabold tracking-tight ${isUrgent ? 'text-error' : 'text-forest-700'}`}>
+          <div className={`mt-1 text-[22px] font-extrabold tracking-tight ${isUrgent ? 'text-error' : 'text-forest-700'}`}>
             {deadline.daysRemaining}j
           </div>
           <div className="text-[11px] text-gray-300 truncate">{deadline.missionName}</div>
@@ -104,14 +114,17 @@ function DeadlineCard({ deadline }: { deadline: NearestDeadline | null }): JSX.E
 
 function ActivityCard({ totalAssessments, totalDocuments }: { totalAssessments: number; totalDocuments: number }): JSX.Element {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow">
-      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg mb-3 ${iconBgClass('blue')}`}>
-        <Activity className="h-4 w-4" />
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3.5 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div className={`inline-flex items-center justify-center w-6 h-6 rounded-md mb-2 ${iconBgClass('blue')}`}>
+          <Activity className="h-4 w-4" />
+        </div>
+        <InfoPopover text="Total des &eacute;valuations en attente de revue ou rejet&eacute;es, plus le nombre de documents collect&eacute;s sur l&rsquo;ensemble des missions actives." />
       </div>
       <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
         Activit&eacute;
       </div>
-      <div className="mt-1 text-[28px] font-extrabold tracking-tight text-forest-700">
+      <div className="mt-1 text-[22px] font-extrabold tracking-tight text-forest-700">
         {totalAssessments + totalDocuments}
       </div>
       <div className="text-[11px] text-gray-300">

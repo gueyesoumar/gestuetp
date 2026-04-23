@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, ShieldCheck } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
   ProfileIcon, OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
   CollapseIcon, ExpandIcon, ChevronUpIcon,
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
+import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useNotifications } from '../../features/notifications/useNotifications'
 import type { User } from '../../types/database.types'
 import type { ReactNode } from 'react'
@@ -18,8 +19,16 @@ interface SidebarProps {
   onClose: () => void
 }
 
-const navItems: { to: string; label: string; icon: ReactNode }[] = [
+interface NavItem {
+  to: string
+  label: string
+  icon: ReactNode
+  permissionKey?: 'supervision'
+}
+
+const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Tableau de bord', icon: <DashboardIcon /> },
+  { to: '/supervision', label: 'Supervision', icon: <ShieldCheck size={20} strokeWidth={1.5} />, permissionKey: 'supervision' },
   { to: '/clients', label: 'Clients', icon: <ClientsIcon /> },
   { to: '/referentiels', label: 'R\u00e9f\u00e9rentiels', icon: <FrameworksIcon /> },
   { to: '/missions', label: 'Missions', icon: <MissionsIcon /> },
@@ -34,6 +43,7 @@ const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
 
 export function Sidebar({ profile, open, onClose }: SidebarProps) {
   const { signOut } = useAuth()
+  const { canViewSupervision } = useGroupPermissions()
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
@@ -109,7 +119,10 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
 
         {/* Navigation principale */}
         <nav className={`flex-1 py-3 ${collapsed ? 'px-2' : 'px-3'}`}>
-          {navItems.map((item) => (
+          {NAV_ITEMS.filter((item) => {
+            if (item.permissionKey === 'supervision' && !canViewSupervision) return false
+            return true
+          }).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

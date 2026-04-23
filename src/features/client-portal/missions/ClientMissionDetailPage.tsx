@@ -63,7 +63,7 @@ export function ClientMissionDetailPage(): JSX.Element {
 
       {/* Tab content */}
       {activeTab === 'dashboard' && (
-        <ClientMissionDashboardTab mission={mission} />
+        <ClientMissionDashboardTab mission={mission} onTabChange={(t) => setActiveTab(t as ClientTabKey)} />
       )}
       {activeTab === 'exchanges' && (
         <ClientExchangesTab mission={mission} isContributor={isContributor} onRefetch={refetch} />

@@ -6,6 +6,7 @@ export interface DashboardStats {
   activeMissions: number
   totalClients: number
   pendingReviews: number
+  approvedCount: number
   clientRejections: number
   missionsByStatus: Record<string, number>
   averageScore: number
@@ -67,6 +68,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
     activeMissions: 0,
     totalClients: 0,
     pendingReviews: 0,
+    approvedCount: 0,
     clientRejections: 0,
     missionsByStatus: {},
     averageScore: 0,
@@ -124,6 +126,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
       // 3. Controles en attente de revue
       const missionIds = missionsList.map((m) => m.id)
       let pendingReviews = 0
+      let approvedCount = 0
       let clientRejections = 0
       const rejectionsByMission: Record<string, number> = {}
 
@@ -138,6 +141,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
 
         if (assessments) {
           pendingReviews = assessments.filter((a) => a.status === 'submitted').length
+          approvedCount = assessments.filter((a) => a.status === 'approved').length
           clientRejections = assessments.filter((a) => a.status === 'rejected').length
           for (const a of assessments.filter((a) => a.status === 'rejected')) {
             rejectionsByMission[a.mission_id] = (rejectionsByMission[a.mission_id] ?? 0) + 1
@@ -247,6 +251,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         activeMissions,
         totalClients: clientsData?.length ?? 0,
         pendingReviews,
+        approvedCount,
         clientRejections,
         missionsByStatus,
         averageScore,

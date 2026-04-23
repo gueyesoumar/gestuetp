@@ -28,6 +28,9 @@ import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPag
 import { ClientValidationsPage } from './features/client-portal/ClientValidationsPage'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
+import { SupervisionPage } from './pages/SupervisionPage'
+import { EntityDetailPage } from './pages/EntityDetailPage'
+import { CampaignDetailPage } from './pages/CampaignDetailPage'
 
 function App() {
   return (
@@ -63,6 +66,9 @@ function App() {
             <Route path="referentiels" element={<FrameworksPage />} />
             <Route path="referentiels/comparer" element={<FrameworkComparisonPage />} />
             <Route path="referentiels/:slug" element={<FrameworkDetailPage />} />
+            <Route path="supervision" element={<SupervisionPage />} />
+            <Route path="supervision/entites/:id" element={<EntityDetailPage />} />
+            <Route path="supervision/campagnes/:id" element={<CampaignDetailPage />} />
             <Route path="clients" element={<ClientsListPage />} />
             <Route path="clients/nouveau" element={<ClientCreatePage />} />
             <Route path="clients/:id" element={<ClientDetailPage />} />

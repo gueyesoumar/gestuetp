@@ -90,10 +90,37 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 7. Mettre a jour le statut
+    // 7. Check if submitter is the lead auditor → skip lead_review
+    const { data: mission } = await supabaseAdmin
+      .from('missions')
+      .select('lead_auditor_id, associate_id')
+      .eq('id', assessment.mission_id)
+      .single()
+
+    const isLead = mission?.lead_auditor_id === callerProfile.id
+    const hasAssociate = !!mission?.associate_id
+
+    // If lead submits his own work:
+    //   - skip lead_review (can't review yourself)
+    //   - go directly to in_review (associate review)
+    //   - if no associate exists, this is a problem (minimum 2 people required)
+    let newStatus = 'submitted'
+    let stage: string = 'auditor_submitted'
+
+    if (isLead && hasAssociate) {
+      newStatus = 'in_review' // skip lead_review → straight to associate
+      stage = 'auditor_submitted'
+      console.log(`[submit-assessment] Lead auditor submitted → skipping lead_review, going to associate_review`)
+    } else if (isLead && !hasAssociate) {
+      // Lead is alone — no one to review. Flag but allow submission.
+      newStatus = 'submitted'
+      console.warn(`[submit-assessment] Lead auditor submitted but no associate assigned. Review will require self-validation.`)
+    }
+
+    // 8. Mettre a jour le statut
     const { error: updateError } = await supabaseAdmin
       .from('control_assessments')
-      .update({ status: 'submitted' })
+      .update({ status: newStatus })
       .eq('id', assessment_id)
 
     if (updateError) {
@@ -104,16 +131,29 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 8. Creer une entree dans assessment_validations
+    // 9. Creer une entree dans assessment_validations
     const { error: valError } = await supabaseAdmin
       .from('assessment_validations')
       .insert({
         assessment_id,
-        stage: 'auditor_submitted',
+        stage,
         decision: 'approved',
-        comment: null,
+        comment: isLead ? 'Soumis par le chef de mission — revue lead saut\u00e9e' : null,
         validated_by: callerProfile.id,
       })
+
+    // If lead submitted, also create automatic lead_review entry
+    if (isLead && hasAssociate) {
+      await supabaseAdmin
+        .from('assessment_validations')
+        .insert({
+          assessment_id,
+          stage: 'lead_review',
+          decision: 'approved',
+          comment: 'Validation automatique — constat soumis par le chef de mission lui-m\u00eame',
+          validated_by: callerProfile.id,
+        })
+    }
 
     if (valError) {
       console.error('submit-assessment validation:', valError.message)

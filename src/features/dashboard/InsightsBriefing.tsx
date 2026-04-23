@@ -15,10 +15,10 @@ export function InsightsBriefing({ name, stats }: InsightsBriefingProps): JSX.El
   })
 
   const rejectionNote = stats.clientRejections > 0
-    ? ` Attention\u00a0: ${stats.clientRejections} rejet${stats.clientRejections > 1 ? 's' : ''} client \u00e0 traiter.`
+    ? ` Attention : ${stats.clientRejections} rejet${stats.clientRejections > 1 ? 's' : ''} client à traiter.`
     : ' Aucun rejet client.'
 
-  const briefing = `${stats.activeMissions} mission${stats.activeMissions > 1 ? 's' : ''} en cours, ${stats.pendingReviews} contr\u00f4le${stats.pendingReviews > 1 ? 's' : ''} en attente de revue.${rejectionNote}`
+  const briefing = `${stats.activeMissions} mission${stats.activeMissions > 1 ? 's' : ''} en cours, ${stats.pendingReviews} contrôle${stats.pendingReviews > 1 ? 's' : ''} en attente de revue.${rejectionNote}`
 
   return (
     <div className="rounded-2xl bg-gradient-to-r from-forest-900 to-forest-700 px-7 py-6">
@@ -39,7 +39,7 @@ export function InsightsBriefing({ name, stats }: InsightsBriefingProps): JSX.El
           {stats.averageScore >= 60 && (
             <div className="mt-3 flex items-center gap-1.5 text-[12px] text-forest-300">
               <TrendingUp className="h-3.5 w-3.5" />
-              <span>Score moyen de conformit&eacute;\u00a0: {stats.averageScore}%</span>
+              <span>Score moyen de conformit&eacute;&nbsp;: {stats.averageScore}%</span>
             </div>
           )}
         </div>

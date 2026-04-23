@@ -27,7 +27,7 @@ function buildActions(stats: DashboardStats, missions: MissionSummary[]): Record
       id: 'rej-global',
       icon: CheckCircle,
       dotColor: 'bg-error',
-      description: `${stats.clientRejections} contr\u00f4le${stats.clientRejections > 1 ? 's' : ''} rejet\u00e9${stats.clientRejections > 1 ? 's' : ''} \u00e0 corriger`,
+      description: `${stats.clientRejections} contrôle${stats.clientRejections > 1 ? 's' : ''} rejeté${stats.clientRejections > 1 ? 's' : ''} à corriger`,
       missionTag: 'Toutes missions',
     })
   }
@@ -37,7 +37,7 @@ function buildActions(stats: DashboardStats, missions: MissionSummary[]): Record
       id: 'rev-global',
       icon: CheckCircle,
       dotColor: 'bg-gold-500',
-      description: `${stats.pendingReviews} contr\u00f4le${stats.pendingReviews > 1 ? 's' : ''} soumis en attente de revue`,
+      description: `${stats.pendingReviews} contrôle${stats.pendingReviews > 1 ? 's' : ''} soumis en attente de revue`,
       missionTag: 'Toutes missions',
     })
   }
@@ -47,7 +47,7 @@ function buildActions(stats: DashboardStats, missions: MissionSummary[]): Record
       id: `plan-${m.id}`,
       icon: Mail,
       dotColor: 'bg-forest-500',
-      description: `Affecter les contr\u00f4les de la mission`,
+      description: `Affecter les contrôles de la mission`,
       missionTag: m.name,
     })
   }
@@ -57,7 +57,7 @@ function buildActions(stats: DashboardStats, missions: MissionSummary[]): Record
       id: 'doc-missing',
       icon: Paperclip,
       dotColor: 'bg-gold-500',
-      description: 'Aucun document collect\u00e9 sur les missions actives',
+      description: 'Aucun document collecté sur les missions actives',
       missionTag: 'Toutes missions',
     })
   }
@@ -69,7 +69,7 @@ function buildActions(stats: DashboardStats, missions: MissionSummary[]): Record
         id: `low-${m.id}`,
         icon: Mail,
         dotColor: 'bg-gold-500',
-        description: `Progression faible (${pct}%), relancer l\u2019\u00e9quipe`,
+        description: `Progression faible (${pct}%), relancer l'équipe`,
         missionTag: m.name,
       })
     }
