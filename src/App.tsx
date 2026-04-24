@@ -25,7 +25,6 @@ import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDa
 import { ClientMissionsPage } from './features/client-portal/missions/ClientMissionsPage'
 import { ClientMissionDetailPage } from './features/client-portal/missions/ClientMissionDetailPage'
 import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
-import { ClientValidationsPage } from './features/client-portal/ClientValidationsPage'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
 import { SupervisionPage } from './pages/SupervisionPage'
@@ -91,7 +90,6 @@ function App() {
             <Route path="missions" element={<ClientMissionsPage />} />
             <Route path="missions/:id" element={<ClientMissionDetailPage />} />
             <Route path="documents" element={<ClientDocumentsPage />} />
-            <Route path="validations" element={<ClientValidationsPage />} />
             <Route path="notifications" element={<ClientNotificationsPage />} />
           </Route>
         </Routes>

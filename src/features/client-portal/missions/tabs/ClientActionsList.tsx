@@ -28,13 +28,7 @@ export function ClientActionsList({
       sublabel: 'Documents demand\u00e9s par les auditeurs',
     })
   }
-  if (findingsPending > 0) {
-    actions.push({
-      type: 'validation',
-      label: `Valider ${findingsPending} constat${findingsPending > 1 ? 's' : ''} en revue client`,
-      sublabel: 'Constats soumis pour votre validation',
-    })
-  }
+  // Observations are optional for the client - not shown as required action
   if (carsPending > 0) {
     actions.push({
       type: 'car',

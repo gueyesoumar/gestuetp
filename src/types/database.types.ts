@@ -1207,8 +1207,43 @@ export interface Database {
       audit_technique: AuditTechnique
       interview_status: InterviewStatus
       campaign_status: CampaignStatus
+      observation_response_action: ObservationResponseAction
     }
   }
+}
+
+// ============================================================
+// Assessment Observations (migration 00061)
+// ============================================================
+
+export type ObservationResponseAction = 'modified' | 'kept'
+
+export interface AssessmentObservation {
+  id: string
+  assessment_id: string
+  observation_text: string
+  observation_by: string
+  observation_at: string
+  response_text: string | null
+  response_action: ObservationResponseAction | null
+  response_by: string | null
+  response_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AssessmentObservationInsert {
+  id?: string
+  assessment_id: string
+  observation_text: string
+  observation_by: string
+}
+
+export interface AssessmentObservationUpdate {
+  response_text?: string
+  response_action?: ObservationResponseAction
+  response_by?: string
+  response_at?: string
 }
 
 // ============================================================

@@ -12,8 +12,8 @@ export interface ClientDashboardData {
   docsExpected: number
   docsUploaded: number
   docsPending: number
-  /** Findings / validations */
-  findingsPendingValidation: number
+  /** Observations posées par le client, en attente de réponse de l'auditeur (info, pas action) */
+  observationsAwaitingResponse: number
   /** Interviews */
   upcomingInterviewCount: number
   /** CARs */
@@ -30,7 +30,7 @@ export function useClientDashboardData(mission: ClientMissionDetail): ClientDash
     currentPhaseIndex: 0, totalPhases: 6, overallPercent: 0,
     daysRemaining: null,
     docsExpected: 0, docsUploaded: 0, docsPending: 0,
-    findingsPendingValidation: 0,
+    observationsAwaitingResponse: 0,
     upcomingInterviewCount: 0, carsPendingCount: 0,
     totalPendingActions: 0,
   })
@@ -66,12 +66,13 @@ export function useClientDashboardData(mission: ClientMissionDetail): ClientDash
       fetchPendingCARs(mission.id, headers, baseUrl),
     ])
 
-    const totalPendingActions = docsResult.pending + findingsResult + interviewsResult + carsResult
+    // Observations are non-blocking info, NOT counted in pending actions
+    const totalPendingActions = docsResult.pending + interviewsResult + carsResult
 
     setData({
       currentPhaseIndex, totalPhases: 6, overallPercent, daysRemaining,
       docsExpected: docsResult.expected, docsUploaded: docsResult.uploaded, docsPending: docsResult.pending,
-      findingsPendingValidation: findingsResult,
+      observationsAwaitingResponse: findingsResult,
       upcomingInterviewCount: interviewsResult,
       carsPendingCount: carsResult,
       totalPendingActions,
@@ -128,9 +129,10 @@ async function fetchDocsCounts(missionId: string, headers: Headers, baseUrl: str
 }
 
 async function fetchPendingFindings(missionId: string, headers: Headers, baseUrl: string): Promise<number> {
-  // Count assessments in client_review stage without client validation
+  // Count observations posted by client that haven't been responded to yet.
+  // Replaces the old "pending validations" concept.
   const res = await fetch(
-    `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${missionId}&status=in.(submitted,in_review,approved)&select=id`,
+    `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${missionId}&select=id`,
     { headers }
   )
   if (!res.ok) return 0
@@ -138,14 +140,13 @@ async function fetchPendingFindings(missionId: string, headers: Headers, baseUrl
   if (!assessments.length) return 0
 
   const ids = assessments.map((a) => a.id)
-  const valRes = await fetch(
-    `${baseUrl}/rest/v1/assessment_validations?assessment_id=in.(${ids.join(',')})&stage=eq.client_review&select=assessment_id`,
+  const obsRes = await fetch(
+    `${baseUrl}/rest/v1/assessment_observations?assessment_id=in.(${ids.join(',')})&response_text=is.null&select=id`,
     { headers }
   )
-  const validated = valRes.ok ? (await valRes.json() as { assessment_id: string }[]).map((v) => v.assessment_id) : []
-  const validatedSet = new Set(validated)
-
-  return assessments.filter((a) => !validatedSet.has(a.id)).length
+  if (!obsRes.ok) return 0
+  const pendingObs = await obsRes.json() as { id: string }[]
+  return pendingObs.length
 }
 
 async function fetchUpcomingInterviews(missionId: string, headers: Headers, baseUrl: string): Promise<number> {
