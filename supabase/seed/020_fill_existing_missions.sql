@@ -260,11 +260,11 @@ BEGIN
 
     -- Statut mission selon le profil
     UPDATE public.missions
-    SET status = CASE
-      WHEN v_seed % 3 = 1 THEN 'closure'          -- Mission mature : terminée
-      WHEN v_seed % 3 = 2 THEN 'client_review'     -- Mission moyenne : en validation client
-      ELSE 'internal_review'                         -- Mission immature : en revue interne
-    END
+    SET status = (CASE
+      WHEN v_seed % 3 = 1 THEN 'closure'
+      WHEN v_seed % 3 = 2 THEN 'client_review'
+      ELSE 'internal_review'
+    END)::public.mission_status
     WHERE id = v_mission.id;
 
     v_mission_count := v_mission_count + 1;
