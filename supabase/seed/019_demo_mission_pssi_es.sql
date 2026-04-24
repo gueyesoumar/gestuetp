@@ -146,15 +146,15 @@ BEGIN
   END LOOP;
 
   -- 7. Créer des CARs pour les NC majeures
-  INSERT INTO public.corrective_action_requests (mission_id, assessment_id, control_code, control_name, finding_classification, finding_text, recommendation_text, status, created_by)
+  INSERT INTO public.corrective_action_requests (mission_id, assessment_id, code, control_code, control_name, finding_classification, description, status, created_by)
   SELECT
     v_mission_id,
     ca.id,
+    'CAR-' || c.code,
     c.code,
     c.name,
     'major_nc',
-    ca.findings,
-    ca.recommendations,
+    ca.findings || E'\n\nRecommandation : ' || COALESCE(ca.recommendations, ''),
     CASE
       WHEN c.sort_order % 3 = 0 THEN 'client_responded'
       WHEN c.sort_order % 3 = 1 THEN 'verified'
