@@ -130,7 +130,7 @@ BEGIN
       v_mission_id,
       v_control.control_id,
       v_lead_id,
-      v_status,
+      v_status::public.assessment_status,
       v_findings,
       v_recommendations,
       v_classification
@@ -157,8 +157,8 @@ BEGIN
     ca.recommendations,
     CASE
       WHEN c.sort_order % 3 = 0 THEN 'client_responded'
-      WHEN c.sort_order % 3 = 1 THEN 'validated'
-      ELSE 'sent_to_client'
+      WHEN c.sort_order % 3 = 1 THEN 'verified'
+      ELSE 'open'
     END,
     v_lead_id
   FROM public.control_assessments ca
@@ -173,7 +173,7 @@ BEGIN
     client_action = 'Plan d''action : formalisation de la procédure, désignation d''un responsable, formation du personnel. Échéance : 3 mois.',
     client_target_date = '2026-03-31'
   WHERE mission_id = v_mission_id
-    AND status IN ('client_responded', 'validated');
+    AND status IN ('client_responded', 'verified');
 
   RAISE NOTICE 'Mission de démo créée avec succès. ID: %, % contrôles évalués', v_mission_id, v_counter;
 
