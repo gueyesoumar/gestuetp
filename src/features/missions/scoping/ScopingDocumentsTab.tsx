@@ -3,6 +3,7 @@ import { Sparkles, FileText, Send, ChevronDown, ChevronRight, Check, Circle, Sta
 import { useEvidenceCatalog } from '../useEvidenceCatalog'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
+import { useMissionEvidenceOverrides } from '../useMissionEvidenceOverrides'
 import { supabase } from '../../../lib/supabase'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionExclusion } from '../../../types/database.types'
@@ -17,6 +18,7 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
   const { evidenceByControl, loading: catLoading } = useEvidenceCatalog(domains)
   const { requestedIds, requestEvidence, requesting, refetch } = useMissionEvidenceRequests(missionId)
   const { documents } = useMissionDocuments(missionId)
+  const { isEssential, toggleOverride, saving: savingOverride } = useMissionEvidenceOverrides(missionId)
 
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set())
@@ -31,28 +33,33 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
       .filter((e) => !excludedControlIds.has(e.control.id))
   }, [evidenceByControl, excludedControlIds])
 
-  // Essential evidence (is_required = true), deduplicated by name
+  // Essential evidence (effective is_essential = catalog default OR mission override)
+  // Deduplicated by name
   const essentialEvidence = useMemo(() => {
-    const map = new Map<string, { ids: string[]; name: string; description: string | null; controls: string[] }>()
+    const map = new Map<string, { ids: string[]; name: string; description: string | null; controls: string[]; catalogIsRequired: boolean }>()
     for (const item of evidenceInScope) {
       for (const ev of item.evidences) {
-        if (!ev.is_required) continue
         const existing = map.get(ev.name)
         if (existing) {
           existing.ids.push(ev.id)
           if (!existing.controls.includes(item.control.code)) existing.controls.push(item.control.code)
+          if (ev.is_required) existing.catalogIsRequired = true
         } else {
           map.set(ev.name, {
             ids: [ev.id],
             name: ev.name,
             description: ev.description,
             controls: [item.control.code],
+            catalogIsRequired: ev.is_required,
           })
         }
       }
     }
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name))
-  }, [evidenceInScope])
+    // Filter to only effective-essential
+    return [...map.values()]
+      .filter((e) => isEssential(e.name, e.catalogIsRequired))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [evidenceInScope, isEssential])
 
   // Catalog grouped by domain — deduplicated by (domain, name) to avoid duplicates
   // when the same evidence is referenced by multiple controls.
@@ -295,12 +302,11 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
                         })
                       }
                       return (
-                        <button
+                        <div
                           key={ev.ids.join(',')}
-                          onClick={toggleAll}
-                          disabled={isRequested}
-                          className={`w-full flex items-start gap-3 px-5 py-2.5 border-b border-gray-50 last:border-b-0 text-left transition-colors ${
-                            isRequested ? 'bg-green-50/30 cursor-default' : 'hover:bg-forest-50/30 cursor-pointer'
+                          onClick={isRequested ? undefined : toggleAll}
+                          className={`w-full flex items-start gap-3 px-5 py-2.5 border-b border-gray-50 last:border-b-0 transition-colors ${
+                            isRequested ? 'bg-green-50/30' : 'hover:bg-forest-50/30 cursor-pointer'
                           }`}
                         >
                           {isRequested ? (
@@ -325,9 +331,6 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
                               {ev.controlCodes.length > 3 && (
                                 <span className="text-[9px] text-gray-400">+{ev.controlCodes.length - 3}</span>
                               )}
-                              {ev.isRequired && !isRequested && (
-                                <span className="text-[8px] font-semibold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded">Essentiel</span>
-                              )}
                               {isRequested && (
                                 <span className="text-[9px] font-medium text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full ml-auto">
                                   {isReceived ? `Re${'ç'}ue` : `Demand${'é'}e`}
@@ -336,7 +339,20 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
                             </div>
                             {ev.description && <p className="text-[10px] text-gray-400 mt-0.5">{ev.description}</p>}
                           </div>
-                        </button>
+                          {/* Star toggle for "essentielle" */}
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleOverride(ev.name, ev.isRequired) }}
+                            disabled={savingOverride}
+                            className={`p-1.5 rounded transition-colors shrink-0 disabled:opacity-50 ${
+                              isEssential(ev.name, ev.isRequired)
+                                ? 'text-gold-500 hover:bg-gold-50'
+                                : 'text-gray-200 hover:text-gold-400 hover:bg-gold-50'
+                            }`}
+                            title={isEssential(ev.name, ev.isRequired) ? `Essentielle (cliquez pour retirer)` : `Marquer comme essentielle`}
+                          >
+                            <Star size={14} fill={isEssential(ev.name, ev.isRequired) ? 'currentColor' : 'none'} />
+                          </button>
+                        </div>
                       )
                     })}
                   </div>

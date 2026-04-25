@@ -1247,6 +1247,28 @@ export interface AssessmentObservationUpdate {
 }
 
 // ============================================================
+// Mission Evidence Overrides (migration 00062)
+// ============================================================
+
+export interface MissionEvidenceOverride {
+  id: string
+  mission_id: string
+  evidence_name: string
+  is_essential: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface MissionEvidenceOverrideInsert {
+  id?: string
+  mission_id: string
+  evidence_name: string
+  is_essential: boolean
+  created_by?: string | null
+}
+
+// ============================================================
 // Audit Campaigns (migration 00059)
 // ============================================================
 

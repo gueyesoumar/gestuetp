@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Paperclip, Check, Circle, ChevronDown, ChevronRight, Send, Search } from 'lucide-react'
+import { Paperclip, Check, Circle, ChevronDown, ChevronRight, Send, Search, Star } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useEvidenceCatalog } from '../useEvidenceCatalog'
+import { useMissionEvidenceOverrides } from '../useMissionEvidenceOverrides'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { Document } from '../../../types/database.types'
 
@@ -33,6 +34,7 @@ interface CatalogRow {
 export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrackerProps): JSX.Element {
   const { evidenceByControl, loading: catLoading } = useEvidenceCatalog(domains)
   const { requests, requestedIds, requestEvidence, requesting, refetch: refetchRequests } = useMissionEvidenceRequests(missionId)
+  const { isEssential, toggleOverride, saving: savingOverride } = useMissionEvidenceOverrides(missionId)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState<FilterKey>('requested')
   const [search, setSearch] = useState('')
@@ -75,7 +77,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
             evidenceIds: [ev.id],
             name: ev.name,
             description: ev.description,
-            isRequired: ev.is_required,
+            isRequired: ev.is_required, // catalog default — overrides applied at render time
             controlCodes: [item.control.code],
             domainCode: item.domainCode,
             domainName: item.domainName,
@@ -86,12 +88,25 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
         }
       }
     }
-    // Sort control codes within each row for stable display
+    // Apply mission-level override on isRequired
     for (const row of groups.values()) {
+      row.isRequired = isEssential(row.name, row.isRequired)
       row.controlCodes.sort()
     }
     return [...groups.values()]
-  }, [evidenceByControl, requestedIds, uploadedNames, fileByEvidence])
+  }, [evidenceByControl, requestedIds, uploadedNames, fileByEvidence, isEssential])
+
+  // Catalog default `is_required` value per evidence name (any catalog entry that is required → true)
+  const catalogIsRequiredByName = useMemo(() => {
+    const map = new Map<string, boolean>()
+    for (const item of evidenceByControl) {
+      for (const ev of item.evidences) {
+        if (ev.is_required) map.set(ev.name, true)
+        else if (!map.has(ev.name)) map.set(ev.name, false)
+      }
+    }
+    return map
+  }, [evidenceByControl])
 
   // Counts
   const requestedCount = allRows.filter((r) => r.requested).length
@@ -284,7 +299,15 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
                   <div>
                     {/* Requested rows first */}
                     {group.rows.filter((r) => r.requested).map((row) => (
-                      <EvidenceRow key={row.evidenceIds.join(',')} row={row} showCheckbox={false} checked={false} onToggle={() => {}} />
+                      <EvidenceRow
+                        key={row.evidenceIds.join(',')}
+                        row={row}
+                        showCheckbox={false}
+                        checked={false}
+                        onToggle={() => {}}
+                        onToggleEssential={() => toggleOverride(row.name, catalogIsRequiredByName.get(row.name) ?? false)}
+                        savingOverride={savingOverride}
+                      />
                     ))}
 
                     {/* Separator if showing non-requested */}
@@ -302,6 +325,8 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
                         showCheckbox
                         checked={row.evidenceIds.some((id) => selected.has(id))}
                         onToggle={() => toggleSelect(row.evidenceIds)}
+                        onToggleEssential={() => toggleOverride(row.name, catalogIsRequiredByName.get(row.name) ?? false)}
+                        savingOverride={savingOverride}
                         dimmed
                       />
                     ))}
@@ -339,12 +364,14 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
   )
 }
 
-function EvidenceRow({ row, showCheckbox, checked, onToggle, dimmed }: {
+function EvidenceRow({ row, showCheckbox, checked, onToggle, dimmed, onToggleEssential, savingOverride }: {
   row: CatalogRow
   showCheckbox: boolean
   checked: boolean
   onToggle: () => void
   dimmed?: boolean
+  onToggleEssential?: () => void
+  savingOverride?: boolean
 }): JSX.Element {
   return (
     <div className={`flex items-center gap-2.5 px-5 py-2 border-b border-gray-50 last:border-b-0 ${
@@ -402,9 +429,28 @@ function EvidenceRow({ row, showCheckbox, checked, onToggle, dimmed }: {
       )}
 
       {/* Status badge */}
-      {row.received && <span className="text-[9px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full shrink-0">Re\u00e7u</span>}
+      {row.received && <span className="text-[9px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full shrink-0">Re&ccedil;u</span>}
       {row.requested && !row.received && <span className="text-[9px] font-medium text-gold-600 bg-gold-50 px-2 py-0.5 rounded-full shrink-0">En attente</span>}
-      {row.isRequired && !row.received && <span className="text-[8px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded shrink-0">Requis</span>}
+
+      {/* Essential star (toggle for cabinet, info-only otherwise) */}
+      {onToggleEssential ? (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleEssential() }}
+          disabled={savingOverride}
+          className={`p-1 rounded transition-colors shrink-0 disabled:opacity-50 ${
+            row.isRequired
+              ? 'text-gold-500 hover:bg-gold-50'
+              : 'text-gray-200 hover:text-gold-400 hover:bg-gold-50'
+          }`}
+          title={row.isRequired ? 'Marqu&eacute;e comme essentielle (cliquez pour retirer)' : 'Marquer comme essentielle pour cette mission'}
+        >
+          <Star size={14} fill={row.isRequired ? 'currentColor' : 'none'} />
+        </button>
+      ) : (
+        row.isRequired && !row.received && (
+          <span className="text-[8px] font-semibold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded shrink-0">Essentielle</span>
+        )
+      )}
     </div>
   )
 }
