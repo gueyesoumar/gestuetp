@@ -43,7 +43,7 @@ export function ClientUpcomingDeadlines({ missionId, endDate, status }: ClientUp
 
       // Fetch upcoming interviews
       const res = await fetch(
-        `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&status=in.(scheduled,confirmed)&scheduled_date=gte.${today}&select=id,title,scheduled_date&order=scheduled_date&limit=4`,
+        `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&status=eq.scheduled&scheduled_date=gte.${today}&select=id,title,scheduled_date&order=scheduled_date&limit=4`,
         {
           headers: { 'apikey': apikey, 'Authorization': `Bearer ${token}` },
           signal: controller.signal,

@@ -1,5 +1,7 @@
-import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+
+type SupabaseAdmin = ReturnType<typeof createClient>
 
 interface QuestionInput {
   code: string
@@ -48,7 +50,7 @@ const IMAGE_MEDIA_TYPES: Record<string, string> = {
  * Returns the parts + names of docs successfully prepared + immediate failures.
  */
 async function prepareDocs(
-  admin: SupabaseClient,
+  admin: SupabaseAdmin,
   docs: DocEntry[],
 ): Promise<{ parts: ContentBlock[]; names: string[]; failed: { name: string; reason: string }[]; hasPdf: boolean; useFilesApi: boolean }> {
   const parts: ContentBlock[] = []
@@ -109,7 +111,7 @@ async function prepareDocs(
  * Returns success or failure with reason.
  */
 async function analyzeBatch(
-  admin: SupabaseClient,
+  admin: SupabaseAdmin,
   docs: DocEntry[],
   anthropicKey: string,
   clientContext: string,
@@ -170,7 +172,7 @@ JSON uniquement, en français.`
       headers,
       signal: controller.signal,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 4000,
         messages: [{ role: 'user', content: parts }],
       }),

@@ -152,7 +152,7 @@ async function fetchPendingFindings(missionId: string, headers: Headers, baseUrl
 async function fetchUpcomingInterviews(missionId: string, headers: Headers, baseUrl: string): Promise<number> {
   const today = new Date().toISOString().split('T')[0]
   const res = await fetch(
-    `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&status=in.(scheduled,confirmed)&scheduled_date=gte.${today}&select=id`,
+    `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&status=eq.scheduled&scheduled_date=gte.${today}&select=id`,
     { headers }
   )
   if (!res.ok) return 0
