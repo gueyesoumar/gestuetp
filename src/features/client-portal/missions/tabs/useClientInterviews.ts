@@ -31,7 +31,7 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
       const headers = { 'apikey': apikey, 'Authorization': `Bearer ${token}` }
 
       const res = await fetch(
-        `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&select=id,title,scheduled_date,scheduled_time,location,status,auditor_id,control_codes&order=scheduled_date`,
+        `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&select=id,title,scheduled_date,scheduled_time,location,status,auditor_id,control_ids&order=scheduled_date`,
         { headers }
       )
 
@@ -52,6 +52,20 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
         }
       }
 
+      // Resolve control_ids \u2192 codes
+      const allControlIds = [...new Set(data.flatMap((d) => (d.control_ids as string[]) ?? []))]
+      let controlCodeMap: Record<string, string> = {}
+      if (allControlIds.length > 0) {
+        const ctrlRes = await fetch(
+          `${baseUrl}/rest/v1/controls?id=in.(${allControlIds.join(',')})&select=id,code`,
+          { headers }
+        )
+        if (ctrlRes.ok) {
+          const ctrls = await ctrlRes.json() as { id: string; code: string }[]
+          controlCodeMap = Object.fromEntries(ctrls.map((c) => [c.id, c.code]))
+        }
+      }
+
       const mapped: ClientInterview[] = data.map((d) => {
         const date = d.scheduled_date as string | null
         const time = d.scheduled_time as string | null
@@ -59,13 +73,16 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
           ? `${new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}${time ? ` \u00e0 ${time}` : ''}`
           : 'Date \u00e0 d\u00e9finir'
 
+        const ctrlIds = (d.control_ids as string[]) ?? []
+        const controlCodes = ctrlIds.map((id) => controlCodeMap[id]).filter(Boolean)
+
         return {
           id: d.id as string,
           title: (d.title as string) ?? 'Entretien',
           date_label: dateLabel,
           auditor_name: auditorMap[d.auditor_id as string] ?? 'Auditeur',
           status: (d.status as string) ?? 'scheduled',
-          controlCodes: (d.control_codes as string[]) ?? [],
+          controlCodes,
         }
       })
 

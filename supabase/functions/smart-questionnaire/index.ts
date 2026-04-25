@@ -1,41 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
-function bufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
-  const parts: string[] = []
-  const chunkSize = 4096
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const end = Math.min(i + chunkSize, bytes.length)
-    let s = ''
-    for (let j = i; j < end; j++) {
-      s += String.fromCharCode(bytes[j])
-    }
-    parts.push(s)
-  }
-  return btoa(parts.join(''))
-}
-
-function detectMediaType(filename: string): string | null {
-  const ext = filename.split('.').pop()?.toLowerCase()
-  switch (ext) {
-    case 'jpg': case 'jpeg': return 'image/jpeg'
-    case 'png': return 'image/png'
-    case 'gif': return 'image/gif'
-    case 'webp': return 'image/webp'
-    case 'pdf': return 'application/pdf'
-    default: return null
-  }
-}
-
 interface QuestionInput {
   code: string
   label: string
   description: string | null
 }
 
-const MAX_DOCS = 3
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 Mo
+const MAX_DOCS = 5
+const MAX_PDFS = 1 // Anthropic URL mode limit per request
+const MAX_PDF_SIZE = 10 * 1024 * 1024 // 10 Mo
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -45,13 +19,13 @@ Deno.serve(async (req) => {
   try {
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') ?? Deno.env.get('ANTHROPIC_KEY')
     if (!anthropicKey) {
-      return new Response(JSON.stringify({ error: 'Cl\u00e9 API IA non configur\u00e9e' }),
+      return new Response(JSON.stringify({ error: 'Clé API IA non configurée' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Non autoris\u00e9' }),
+      return new Response(JSON.stringify({ error: 'Non autorisé' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -60,7 +34,7 @@ Deno.serve(async (req) => {
     const token = authHeader.replace('Bearer ', '')
     const { data: { user: caller } } = await admin.auth.getUser(token)
     if (!caller) {
-      return new Response(JSON.stringify({ error: 'Non autoris\u00e9' }),
+      return new Response(JSON.stringify({ error: 'Non autorisé' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -85,125 +59,133 @@ Deno.serve(async (req) => {
       const cc = clients?.[0]
       if (cc) {
         const regs = (cc.exigences_reglementaires ?? []).map((r: { nom: string }) => r.nom).join(', ')
-        clientContext = `Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}, IT: ${(cc.it_systems ?? []).join(', ')}, Environnement: ${(cc.it_environment ?? []).join(', ')}, R\u00e9glementations: ${regs || 'aucune'}, R\u00e9f\u00e9rentiel: ${mission.framework?.name ?? '?'}`
+        clientContext = `Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}, IT: ${(cc.it_systems ?? []).join(', ')}, Environnement: ${(cc.it_environment ?? []).join(', ')}, Réglementations: ${regs || 'aucune'}, Référentiel: ${mission.framework?.name ?? '?'}`
       }
     }
 
-    // ── 2. T\u00e9l\u00e9charger et encoder les documents ─────────────────────
+    // ── 2. Récupérer les documents via URL signée (pas de base64 inline) ──
     const { data: docEntries } = await admin.from('documents')
-      .select('file_name, file_path, mime_type, file_size, description')
+      .select('file_name, file_path, mime_type, file_size, anthropic_file_id')
       .eq('mission_id', mission_id)
       .order('created_at', { ascending: false })
       .limit(10)
 
     type ContentBlock =
       | { type: 'text'; text: string }
-      | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
-      | { type: 'document'; source: { type: 'base64'; media_type: 'application/pdf'; data: string } }
+      | { type: 'image'; source: { type: 'url'; url: string; media_type: string } }
+      | { type: 'document'; source: { type: 'url'; url: string } | { type: 'file'; file_id: string } }
 
     const contentParts: ContentBlock[] = []
     const docDescriptions: string[] = []
     let hasPdf = false
+    let useFilesApi = false
+    let pdfCount = 0
+    const imageMediaTypes: Record<string, string> = {
+      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
+    }
 
     for (const doc of (docEntries ?? []).slice(0, MAX_DOCS)) {
-      // Skip files too large
-      if (doc.file_size && doc.file_size > MAX_FILE_SIZE) {
-        docDescriptions.push(`[${doc.file_name}] (${(doc.file_size / 1024 / 1024).toFixed(1)} Mo \u2014 trop volumineux pour l'analyse)`)
+      const ext = doc.file_name.split('.').pop()?.toLowerCase() ?? ''
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+      const isPdf = ext === 'pdf'
+
+      if (!isImage && !isPdf) {
+        docDescriptions.push(`[${doc.file_name}] (format non supporté)`)
         continue
       }
 
-      const mediaType = detectMediaType(doc.file_name)
-      if (!mediaType) {
-        docDescriptions.push(`[${doc.file_name}] (format non support\u00e9 pour l'analyse)`)
+      // Strategy: prefer Files API (file_id) > signed URL fallback
+      if (isPdf && doc.anthropic_file_id) {
+        contentParts.push({
+          type: 'document',
+          source: { type: 'file', file_id: doc.anthropic_file_id },
+        })
+        hasPdf = true
+        useFilesApi = true
+        pdfCount++
+        const sizeMb = doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)}Mo` : '?'
+        docDescriptions.push(`[${doc.file_name}] ✓ via Files API (${sizeMb})`)
         continue
       }
 
-      try {
-        const { data: urlData } = admin.storage.from('documents').getPublicUrl(doc.file_path)
-        const fileUrl = urlData?.publicUrl
-        if (!fileUrl) {
-          docDescriptions.push(`[${doc.file_name}] (erreur URL)`)
+      if (isPdf) {
+        if (pdfCount >= MAX_PDFS) {
+          docDescriptions.push(`[${doc.file_name}] (limité à ${MAX_PDFS} PDF par analyse en mode URL)`)
           continue
         }
-
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 30_000)
-        let fileRes: Response
-        try {
-          fileRes = await fetch(fileUrl, { signal: controller.signal })
-        } finally {
-          clearTimeout(timeout)
-        }
-
-        if (!fileRes.ok) {
-          docDescriptions.push(`[${doc.file_name}] (t\u00e9l\u00e9chargement \u00e9chou\u00e9)`)
+        if (doc.file_size && doc.file_size > MAX_PDF_SIZE) {
+          docDescriptions.push(`[${doc.file_name}] (trop volumineux : ${(doc.file_size / 1024 / 1024).toFixed(1)}Mo)`)
           continue
         }
-
-        const buffer = await fileRes.arrayBuffer()
-        const base64 = bufferToBase64(buffer)
-
-        if (mediaType === 'application/pdf') {
-          contentParts.push({
-            type: 'document',
-            source: { type: 'base64', media_type: 'application/pdf', data: base64 },
-          })
-          hasPdf = true
-        } else {
-          contentParts.push({
-            type: 'image',
-            source: { type: 'base64', media_type: mediaType, data: base64 },
-          })
-        }
-
-        docDescriptions.push(`[${doc.file_name}] \u2713 analys\u00e9 (${(buffer.byteLength / 1024 / 1024).toFixed(1)} Mo)`)
-        console.log(`[smart-questionnaire] Encoded ${doc.file_name}: ${(buffer.byteLength / 1024 / 1024).toFixed(1)} Mo`)
-      } catch (err) {
-        const isAbort = err instanceof Error && err.name === 'AbortError'
-        docDescriptions.push(`[${doc.file_name}] (${isAbort ? 'timeout' : 'erreur'})`)
-        console.error(`[smart-questionnaire] Error for ${doc.file_name}:`, err)
       }
+
+      const { data: signedData, error: signErr } = await admin.storage
+        .from('documents')
+        .createSignedUrl(doc.file_path, 3600)
+
+      if (signErr || !signedData?.signedUrl) {
+        docDescriptions.push(`[${doc.file_name}] (erreur URL signée)`)
+        continue
+      }
+
+      if (isPdf) {
+        contentParts.push({
+          type: 'document',
+          source: { type: 'url', url: signedData.signedUrl },
+        })
+        hasPdf = true
+        pdfCount++
+      } else {
+        contentParts.push({
+          type: 'image',
+          source: { type: 'url', url: signedData.signedUrl, media_type: imageMediaTypes[ext] ?? 'image/jpeg' },
+        })
+      }
+
+      const sizeMb = doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)}Mo` : '?'
+      docDescriptions.push(`[${doc.file_name}] ✓ (${sizeMb})`)
+      console.log(`[smart-questionnaire] Added ${doc.file_name} via signed URL (${sizeMb})`)
     }
 
     // ── 3. Construire le prompt ──────────────────────────────────────
     const docsCtx = docDescriptions.length > 0 ? `\nDOCUMENTS: ${docDescriptions.join('; ')}` : ''
     const questionsText = questions.map(q => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
 
-    const prompt = `Tu es un auditeur SI senior rigoureux. Tu analyses UNIQUEMENT les documents fournis en pi\u00e8ces jointes pour pr\u00e9-remplir un questionnaire de prise de connaissance.
+    const prompt = `Tu es un auditeur SI senior rigoureux. Tu analyses UNIQUEMENT les documents fournis en pièces jointes pour pré-remplir un questionnaire de prise de connaissance.
 
 ${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}${docsCtx}
 
-${contentParts.length > 0 ? `Tu as re\u00e7u ${contentParts.length} document(s) en pi\u00e8ces jointes. Analyse-les en d\u00e9tail.` : 'Aucun document n\'a pu \u00eatre charg\u00e9.'}
+${contentParts.length > 0 ? `Tu as reçu ${contentParts.length} document(s) en pièces jointes. Analyse-les en détail.` : 'Aucun document n\'a pu être chargé.'}
 
 QUESTIONS DU QUESTIONNAIRE:
 ${questionsText}
 
-R\u00c8GLES STRICTES D'\u00c9VALUATION DES PREUVES:
+RÈGLES STRICTES D'ÉVALUATION DES PREUVES:
 
 1. PREUVE DIRECTE (confiance 75-95%) : Le document joint traite directement du sujet.
-   Exemple : La PSSI est jointe \u2192 on peut confirmer son existence et analyser son contenu.
+   Exemple : La PSSI est jointe → on peut confirmer son existence et analyser son contenu.
 
-2. D\u00c9CLARATION SANS PREUVE (confiance 25-40%) : Un document MENTIONNE l'existence d'un autre document/processus, mais ce document/processus n'est PAS joint.
+2. DÉCLARATION SANS PREUVE (confiance 25-40%) : Un document MENTIONNE l'existence d'un autre document/processus, mais ce document/processus n'est PAS joint.
    Exemple : La PSSI mentionne "un PCA est en place" mais le PCA n'est pas parmi les documents joints.
-   \u2192 R\u00e9ponse : "La PSSI (section X) mentionne l'existence d'un PCA, mais le document PCA n'a pas \u00e9t\u00e9 fourni. \u00c0 confirmer."
+   → Réponse : "La PSSI (section X) mentionne l'existence d'un PCA, mais le document PCA n'a pas été fourni. À confirmer."
 
-3. AUCUNE INFORMATION (ne pas r\u00e9pondre) : Aucun document ne mentionne le sujet.
+3. AUCUNE INFORMATION (ne pas répondre) : Aucun document ne mentionne le sujet.
 
 IMPORTANT:
-- Ne confonds JAMAIS une d\u00e9claration dans un document avec une preuve concr\u00e8te.
-- Si la PSSI dit "nous avons un PCA", ce n'est PAS une preuve que le PCA existe r\u00e9ellement.
-- Pr\u00e9cise toujours si ta r\u00e9ponse est bas\u00e9e sur une preuve directe ou une simple d\u00e9claration.
-- Liste des documents effectivement joints : ${docDescriptions.filter(d => d.includes('\u2713')).map(d => d.split(']')[0].replace('[', '')).join(', ') || 'aucun'}
+- Ne confonds JAMAIS une déclaration dans un document avec une preuve concrète.
+- Si la PSSI dit "nous avons un PCA", ce n'est PAS une preuve que le PCA existe réellement.
+- Précise toujours si ta réponse est basée sur une preuve directe ou une simple déclaration.
+- Liste des documents effectivement joints : ${docDescriptions.filter(d => d.includes('✓')).map(d => d.split(']')[0].replace('[', '')).join(', ') || 'aucun'}
 
-G\u00e9n\u00e8re un JSON avec un tableau "answers" contenant pour chaque question r\u00e9pondue :
+Génère un JSON avec un tableau "answers" contenant pour chaque question répondue :
 - "questionCode": le code de la question (ex: "GOV-01")
-- "questionLabel": le libell\u00e9 de la question
-- "answer": la r\u00e9ponse, EN PR\u00c9CISANT si c'est une preuve directe ou une d\u00e9claration non v\u00e9rifi\u00e9e (2-4 phrases)
-- "confidence": 0-100 (STRICT : 75-95 pour preuve directe, 25-40 pour d\u00e9claration sans preuve, jamais plus de 50 sans le document concern\u00e9)
+- "questionLabel": le libellé de la question
+- "answer": la réponse, EN PRÉCISANT si c'est une preuve directe ou une déclaration non vérifiée (2-4 phrases)
+- "confidence": 0-100 (STRICT : 75-95 pour preuve directe, 25-40 pour déclaration sans preuve, jamais plus de 50 sans le document concerné)
 - "sourceDoc": nom du document source principal ou null
 
-Ne r\u00e9ponds PAS aux questions o\u00f9 tu n'as AUCUNE information.
-JSON uniquement, en fran\u00e7ais.`
+Ne réponds PAS aux questions où tu n'as AUCUNE information.
+JSON uniquement, en français.`
 
     contentParts.push({ type: 'text', text: prompt })
 
@@ -213,7 +195,10 @@ JSON uniquement, en fran\u00e7ais.`
       'x-api-key': anthropicKey,
       'anthropic-version': '2023-06-01',
     }
-    if (hasPdf) headers['anthropic-beta'] = 'pdfs-2024-09-25'
+    const betaFlags: string[] = []
+    if (hasPdf) betaFlags.push('pdfs-2024-09-25')
+    if (useFilesApi) betaFlags.push('files-api-2025-04-14')
+    if (betaFlags.length > 0) headers['anthropic-beta'] = betaFlags.join(',')
 
     const claudeController = new AbortController()
     const claudeTimeout = setTimeout(() => claudeController.abort(), 120_000)
@@ -241,7 +226,7 @@ JSON uniquement, en fran\u00e7ais.`
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // ── 5. Parser la r\u00e9ponse ────────────────────────────────────────
+    // ── 5. Parser la réponse ────────────────────────────────────────
     const claudeData = await claudeRes.json()
     const rawText = claudeData.content?.[0]?.text ?? ''
     const clean = rawText.replace(/```json|```/g, '').trim()
@@ -275,7 +260,7 @@ JSON uniquement, en fran\u00e7ais.`
     const isAbort = err instanceof Error && err.name === 'AbortError'
     console.error('[smart-questionnaire] Error:', message)
     return new Response(
-      JSON.stringify({ error: isAbort ? 'D\u00e9lai d\u00e9pass\u00e9 \u2014 r\u00e9essayez' : 'Erreur interne' }),
+      JSON.stringify({ error: isAbort ? 'Délai dépassé — réessayez' : 'Erreur interne' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })
