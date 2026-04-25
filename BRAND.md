@@ -241,7 +241,33 @@ Deux patterns selon le contexte :
 
 ---
 
-## 10. Règles d'application
+## 10. Templates email (Resend)
+
+**Provider** : Resend, helper `supabase/functions/_shared/resend.ts`. Sender par défaut `noreply@gestucomply.com`.
+
+**Charpente commune (table-based pour compatibilité Outlook / Gmail / Apple Mail)** :
+
+| Bloc | Style |
+|------|-------|
+| Header | Fond `#1B4332` · pavé or 36×36 · titre Gëstu (« ë » or) + sous-titre produit en majuscules |
+| Body | Fond blanc · padding 28 px · titre 18 px gras forest-900 · corps 14 px lh 1.65 |
+| Card de contexte | Fond `#FAFAF8` · bordure `#E5E7EB` · radius 10 px · meta en 12 px gris |
+| Stripe ton | Bordure gauche 3 px colorée selon palier (bleu / ambre / rouge) |
+| CTA principal | Bouton plein vert forêt (J+3 et J+7) ou or (J+14 urgence) |
+| Footer | Fond `#FAFAF8` · 11 px · lien désabonnement obligatoire |
+
+**Règles :**
+1. **Échappement obligatoire** : tout contenu utilisateur (mission name, evidence name, etc.) passe par `escapeHtml()`. Aucun `dangerouslySetInnerHTML`-équivalent en email.
+2. **Lien de désabonnement** : présent dans CHAQUE email automatique (relance, digest). Pointe vers `/unsubscribe?token=...`.
+3. **Ton qui escalade** : J+3 courtois, J+7 ferme, J+14 final (mention escalade direction).
+4. **Largeur max 600 px** : conforme aux clients mail. Pas de CSS Grid / Flexbox dans les emails — `<table>` uniquement.
+5. **Pas de JS** : les clients mail ne l'exécutent pas.
+6. **Idempotence** : un envoi est tracé dans `email_log(user_id, type, related_id)` avec un UNIQUE pour empêcher tout doublon.
+7. **Anti-XSS** : un email reçu et affiché ne doit jamais permettre l'exécution de code chez le destinataire (les clients mail bloquent le JS, mais on échappe quand même par défense en profondeur).
+
+---
+
+## 11. Règles d'application
 
 1. **Ne jamais modifier les couleurs du bouclier** — toujours vert forêt + or
 2. **Le tréma doré est obligatoire** sur le "e" de Gëstu dans tous les contextes

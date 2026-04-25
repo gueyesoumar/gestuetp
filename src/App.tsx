@@ -28,6 +28,7 @@ import { ClientMissionDetailPage } from './features/client-portal/missions/Clien
 import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
+import { UnsubscribePage } from './pages/UnsubscribePage'
 import { SupervisionPage } from './pages/SupervisionPage'
 import { EntityDetailPage } from './pages/EntityDetailPage'
 import { CampaignDetailPage } from './pages/CampaignDetailPage'
@@ -53,6 +54,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/set-password" element={<SetPasswordPage />} />
+          <Route path="/unsubscribe" element={<UnsubscribePage />} />
 
           {/* Hub — product selection (auditors only) */}
           <Route

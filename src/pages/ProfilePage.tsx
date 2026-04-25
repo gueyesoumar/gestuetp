@@ -9,6 +9,7 @@ import { FormField } from '../components/ui/FormField'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import { Badge } from '../components/ui/Badge'
 import { useFieldValidation, required, phone as phoneValidator, minLength } from '../hooks/useFieldValidation'
+import { EmailPreferencesSection } from '../features/profile/EmailPreferencesSection'
 
 export function ProfilePage() {
   const { profile, session, signOut } = useAuth()
@@ -140,6 +141,9 @@ export function ProfilePage() {
             </div>
           </SplitFormSection>
         </SplitForm>
+
+        {/* Préférences email */}
+        <EmailPreferencesSection userId={profile.id} />
 
         {/* Session */}
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
