@@ -229,8 +229,16 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
           </button>
         ))}
 
-        {filter === 'all' && (
-          <div className="ml-auto relative">
+        <div className="ml-auto flex items-center gap-2">
+          {filter !== 'all' && (
+            <button
+              onClick={() => setFilter('all')}
+              className="text-[11px] text-forest-700 font-medium hover:underline flex items-center gap-1"
+            >
+              + Demander des preuves
+            </button>
+          )}
+          <div className="relative">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-300" />
             <input
               type="text"
@@ -240,16 +248,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
               className="pl-7 pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] outline-none focus:border-forest-500 w-52"
             />
           </div>
-        )}
-
-        {filter !== 'all' && (
-          <button
-            onClick={() => setFilter('all')}
-            className="ml-auto text-[11px] text-forest-700 font-medium hover:underline flex items-center gap-1"
-          >
-            + Demander des preuves
-          </button>
-        )}
+        </div>
       </div>
 
       {/* Domain accordion list */}

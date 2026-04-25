@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Sparkles, FileText, Send, ChevronDown, ChevronRight, Check, Circle, Star, Paperclip } from 'lucide-react'
+import { Sparkles, FileText, Send, ChevronDown, ChevronRight, Check, Circle, Star, Paperclip, Search } from 'lucide-react'
 import { useEvidenceCatalog } from '../useEvidenceCatalog'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
@@ -21,8 +21,12 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
   const { isEssential, toggleOverride, saving: savingOverride } = useMissionEvidenceOverrides(missionId)
 
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set())
+  const [expandedDomainsState, setExpandedDomainsState] = useState<Set<string>>(new Set())
   const [requestedNames, setRequestedNames] = useState<Set<string>>(new Set())
+  const [search, setSearch] = useState('')
+
+  // When search is active, expand all domains automatically
+  const expandedDomains = search.trim() ? null : expandedDomainsState
 
   // Excluded control IDs
   const excludedControlIds = useMemo(() => new Set(exclusions.map((e) => e.control_id)), [exclusions])
@@ -94,14 +98,30 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
       }
       groups.set(item.domainCode, existing)
     }
-    return [...groups.values()]
+    let result = [...groups.values()]
       .map((g) => ({
         domainCode: g.domainCode,
         domainName: g.domainName,
         evidences: [...g.evidences.values()].sort((a, b) => a.name.localeCompare(b.name)),
       }))
-      .sort((a, b) => a.domainCode.localeCompare(b.domainCode))
-  }, [evidenceInScope])
+
+    // Apply search filter
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      result = result
+        .map((g) => ({
+          ...g,
+          evidences: g.evidences.filter((e) =>
+            e.name.toLowerCase().includes(q) ||
+            (e.description ?? '').toLowerCase().includes(q) ||
+            e.controlCodes.some((c) => c.toLowerCase().includes(q))
+          ),
+        }))
+        .filter((g) => g.evidences.length > 0)
+    }
+
+    return result.sort((a, b) => a.domainCode.localeCompare(b.domainCode))
+  }, [evidenceInScope, search])
 
   // Resolve catalog IDs → names for matching against uploaded docs
   useEffect(() => {
@@ -147,7 +167,7 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
   }
 
   const toggleDomain = (code: string): void => {
-    setExpandedDomains((prev) => {
+    setExpandedDomainsState((prev) => {
       const next = new Set(prev)
       if (next.has(code)) next.delete(code)
       else next.add(code)
@@ -266,11 +286,26 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
         <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
           <FileText size={14} className="text-gray-500" />
           <span className="text-[13px] font-semibold text-gray-700">Catalogue complet (par domaine)</span>
+          <div className="ml-auto relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-300" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher une preuve, un contr&ocirc;le..."
+              className="pl-7 pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] outline-none focus:border-forest-500 w-64"
+            />
+          </div>
         </div>
 
         <div className="max-h-[480px] overflow-y-auto">
+          {domainGroups.length === 0 && search.trim() && (
+            <div className="px-5 py-8 text-center">
+              <p className="text-[12px] text-gray-400">Aucune preuve ne correspond {'à'} &laquo; {search} &raquo;</p>
+            </div>
+          )}
           {domainGroups.map((group) => {
-            const isOpen = expandedDomains.has(group.domainCode)
+            const isOpen = expandedDomains === null ? true : expandedDomains.has(group.domainCode)
             const totalInDomain = group.evidences.length
             const requestedInDomain = group.evidences.filter((e) => e.ids.some((id) => requestedIds.has(id))).length
 
