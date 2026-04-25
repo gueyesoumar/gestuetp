@@ -12,6 +12,7 @@ import { MissionConfirmStep } from '../features/missions/steps/MissionConfirmSte
 import { FormWizard } from '../components/ui/FormWizard'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
+import { useFieldValidation, required } from '../hooks/useFieldValidation'
 
 export function MissionCreatePage() {
   const navigate = useNavigate()
@@ -27,8 +28,12 @@ export function MissionCreatePage() {
   const [associateId, setAssociateId] = useState('')
   const [leadAuditorId, setLeadAuditorId] = useState('')
   const [memberIds, setMemberIds] = useState<string[]>([])
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const startDate = useFieldValidation('', required('Date de début requise.'))
+  const endDate = useFieldValidation('', (v) => {
+    if (!v) return 'Date de fin requise.'
+    if (startDate.value && v < startDate.value) return 'La date de fin doit être postérieure à la date de début.'
+    return null
+  })
 
   const loading = fwLoading || clientsLoading || membersLoading
   if (loading) return <LoadingSpinner />
@@ -57,8 +62,8 @@ export function MissionCreatePage() {
       framework_id: frameworkId,
       lead_auditor_id: leadAuditorId,
       associate_id: associateId,
-      start_date: startDate,
-      end_date: endDate,
+      start_date: startDate.value,
+      end_date: endDate.value,
       member_ids: allMemberIds,
     })
     if (ok) {
@@ -129,14 +134,23 @@ export function MissionCreatePage() {
             {
               key: 'calendar',
               label: 'Calendrier',
+              validate: () => {
+                startDate.forceShow()
+                endDate.forceShow()
+                return startDate.isValid && endDate.isValid
+              },
               content: (
                 <MissionCalendarStep
-                  startDate={startDate}
-                  endDate={endDate}
+                  startDate={startDate.value}
+                  endDate={endDate.value}
+                  startDateError={startDate.error}
+                  endDateError={endDate.error}
                   totalControls={0}
                   teamSize={teamSize}
-                  onStartDate={setStartDate}
-                  onEndDate={setEndDate}
+                  onStartDate={startDate.onChange}
+                  onEndDate={endDate.onChange}
+                  onStartBlur={startDate.onBlur}
+                  onEndBlur={endDate.onBlur}
                 />
               ),
             },
@@ -151,8 +165,8 @@ export function MissionCreatePage() {
                   associateId={associateId}
                   leadAuditorId={leadAuditorId}
                   teamSize={teamSize}
-                  startDate={startDate}
-                  endDate={endDate}
+                  startDate={startDate.value}
+                  endDate={endDate.value}
                   members={members}
                 />
               ),

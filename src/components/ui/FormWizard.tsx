@@ -5,6 +5,12 @@ export interface WizardStep {
   key: string
   label: string
   content: ReactNode
+  /**
+   * Optional per-step validator. Returns true when the step is valid.
+   * When false, the wizard refuses to advance and the caller is expected to
+   * surface inline errors (e.g. via `forceShow()` on field hooks inside the validator).
+   */
+  validate?: () => boolean
 }
 
 interface FormWizardProps {
@@ -17,10 +23,17 @@ interface FormWizardProps {
 export function FormWizard({ steps, onSubmit, submitLabel = 'Valider', submitting = false }: FormWizardProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [visited, setVisited] = useState<Set<number>>(new Set([0]))
+  const [stepInvalid, setStepInvalid] = useState(false)
 
   const isLast = currentIndex === steps.length - 1
 
   const goNext = () => {
+    const validator = steps[currentIndex].validate
+    if (validator && !validator()) {
+      setStepInvalid(true)
+      return
+    }
+    setStepInvalid(false)
     if (isLast) {
       onSubmit()
       return
@@ -31,12 +44,16 @@ export function FormWizard({ steps, onSubmit, submitLabel = 'Valider', submittin
   }
 
   const goPrev = () => {
-    if (currentIndex > 0) setCurrentIndex(currentIndex - 1)
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1)
+      setStepInvalid(false)
+    }
   }
 
   const goTo = (index: number) => {
     if (visited.has(index) || index <= currentIndex) {
       setCurrentIndex(index)
+      setStepInvalid(false)
     }
   }
 
@@ -65,6 +82,7 @@ export function FormWizard({ steps, onSubmit, submitLabel = 'Valider', submittin
               const isActive = idx === currentIndex
               const isDone = idx < currentIndex
               const isVisited = visited.has(idx)
+              const isInvalid = isActive && stepInvalid
 
               return (
                 <button
@@ -75,24 +93,28 @@ export function FormWizard({ steps, onSubmit, submitLabel = 'Valider', submittin
                 >
                   <span
                     className={`relative z-10 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[11px] font-bold flex-shrink-0 transition-all duration-200 ${
-                      isActive
-                        ? 'bg-forest-700 text-white shadow-[0_0_0_4px_rgba(216,243,220,1)]'
-                        : isDone
-                          ? 'bg-success text-white'
-                          : 'bg-white border-2 border-gray-200 text-gray-300'
+                      isInvalid
+                        ? 'bg-red-600 text-white shadow-[0_0_0_4px_rgba(254,226,226,1)]'
+                        : isActive
+                          ? 'bg-forest-700 text-white shadow-[0_0_0_4px_rgba(216,243,220,1)]'
+                          : isDone
+                            ? 'bg-success text-white'
+                            : 'bg-white border-2 border-gray-200 text-gray-300'
                     }`}
                   >
-                    {isDone ? '\u2713' : idx + 1}
+                    {isInvalid ? '!' : isDone ? '\u2713' : idx + 1}
                   </span>
                   <span
                     className={`text-[13px] transition-colors ${
-                      isActive
-                        ? 'font-semibold text-forest-900'
-                        : isDone
-                          ? 'font-medium text-success'
-                          : isVisited
-                            ? 'text-gray-600'
-                            : 'text-gray-300'
+                      isInvalid
+                        ? 'font-semibold text-red-600'
+                        : isActive
+                          ? 'font-semibold text-forest-900'
+                          : isDone
+                            ? 'font-medium text-success'
+                            : isVisited
+                              ? 'text-gray-600'
+                              : 'text-gray-300'
                     }`}
                   >
                     {step.label}
@@ -118,17 +140,22 @@ export function FormWizard({ steps, onSubmit, submitLabel = 'Valider', submittin
           >
             ← Précédent
           </button>
-          <button
-            onClick={goNext}
-            disabled={submitting}
-            className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors disabled:opacity-50"
-          >
-            {submitting
-              ? 'Enregistrement...'
-              : isLast
-                ? submitLabel
-                : 'Suivant →'}
-          </button>
+          <div className="flex items-center gap-3">
+            {stepInvalid && (
+              <span className="text-[12px] font-medium text-red-600">Champs à corriger avant de poursuivre.</span>
+            )}
+            <button
+              onClick={goNext}
+              disabled={submitting}
+              className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors disabled:opacity-50"
+            >
+              {submitting
+                ? 'Enregistrement...'
+                : isLast
+                  ? submitLabel
+                  : 'Suivant →'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

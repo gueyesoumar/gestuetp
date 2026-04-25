@@ -7,21 +7,25 @@ import { PartiesInteresseesSection } from '../features/clients/PartiesInteressee
 import { ExigencesSection } from '../features/clients/ExigencesSection'
 import { FormWizard } from '../components/ui/FormWizard'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
+import { useFieldValidation, required, url, phone as phoneValidator } from '../hooks/useFieldValidation'
 import type { PartieInteressee, ExigenceReglementaire } from '../types/database.types'
 
 export function ClientCreatePage() {
   const navigate = useNavigate()
   const { createClient, creating, error } = useCreateCabinetClient(() => navigate('/clients'))
 
-  const [clientName, setClientName] = useState('')
-  const [emailDomain, setEmailDomain] = useState('')
+  const clientName = useFieldValidation('', required('Le nom du client est requis.'))
+  const emailDomain = useFieldValidation('', (v) => {
+    if (v === '') return null
+    return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(v) ? null : 'Domaine invalide (ex. entreprise.com).'
+  })
   const [registrationNumber, setRegistrationNumber] = useState('')
   const [sector, setSector] = useState('')
   const [address, setAddress] = useState('')
   const [city, setCity] = useState('')
   const [country, setCountry] = useState('S\u00e9n\u00e9gal')
-  const [website, setWebsite] = useState('')
-  const [phone, setPhone] = useState('')
+  const website = useFieldValidation('', url())
+  const phone = useFieldValidation('', phoneValidator())
   const [effectifs, setEffectifs] = useState('')
   const [ca, setCa] = useState('')
   const [sites, setSites] = useState('')
@@ -32,15 +36,15 @@ export function ClientCreatePage() {
 
   const handleSubmit = async () => {
     await createClient({
-      client_name: clientName,
-      client_email_domain: emailDomain || null,
+      client_name: clientName.value,
+      client_email_domain: emailDomain.value || null,
       client_registration_number: registrationNumber || null,
       client_sector: sector || null,
       client_address: address || null,
       client_city: city || null,
       client_country: country || null,
-      client_website: website || null,
-      client_phone: phone || null,
+      client_website: website.value || null,
+      client_phone: phone.value || null,
       effectifs: effectifs || null,
       chiffre_affaires: ca || null,
       nombre_sites: sites ? parseInt(sites, 10) : null,
@@ -71,18 +75,40 @@ export function ClientCreatePage() {
             {
               key: 'identity',
               label: 'Identit\u00e9',
+              validate: () => {
+                clientName.forceShow()
+                emailDomain.forceShow()
+                website.forceShow()
+                phone.forceShow()
+                return clientName.isValid && emailDomain.isValid && website.isValid && phone.isValid
+              },
               content: (
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Identit&eacute; du client</h3>
                   <p className="text-[13px] text-gray-500 mt-1">Nom, coordonn&eacute;es et immatriculation</p>
                   <div className="mt-5">
                     <ClientIdentitySection
-                      clientName={clientName} emailDomain={emailDomain} registrationNumber={registrationNumber}
-                      sector={sector} address={address} city={city} country={country} website={website} phone={phone}
+                      clientName={clientName.value}
+                      clientNameError={clientName.error}
+                      onClientNameBlur={clientName.onBlur}
+                      emailDomain={emailDomain.value}
+                      emailDomainError={emailDomain.error}
+                      onEmailDomainBlur={emailDomain.onBlur}
+                      registrationNumber={registrationNumber}
+                      sector={sector} address={address} city={city} country={country}
+                      website={website.value}
+                      websiteError={website.error}
+                      onWebsiteBlur={website.onBlur}
+                      phone={phone.value}
+                      phoneError={phone.error}
+                      onPhoneBlur={phone.onBlur}
                       disabled={creating}
-                      onClientName={setClientName} onEmailDomain={setEmailDomain} onRegistrationNumber={setRegistrationNumber}
+                      onClientName={clientName.onChange}
+                      onEmailDomain={emailDomain.onChange}
+                      onRegistrationNumber={setRegistrationNumber}
                       onSector={setSector} onAddress={setAddress} onCity={setCity} onCountry={setCountry}
-                      onWebsite={setWebsite} onPhone={setPhone}
+                      onWebsite={website.onChange}
+                      onPhone={phone.onChange}
                     />
                   </div>
                 </div>

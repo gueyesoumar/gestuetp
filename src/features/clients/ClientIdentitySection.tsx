@@ -5,14 +5,22 @@ const selectClass = 'mt-1 block w-full rounded-lg border border-gray-200 px-3 py
 
 interface ClientIdentitySectionProps {
   clientName: string
+  clientNameError?: string | null
+  onClientNameBlur?: () => void
   emailDomain: string
+  emailDomainError?: string | null
+  onEmailDomainBlur?: () => void
   registrationNumber: string
   sector: string
   address: string
   city: string
   country: string
   website: string
+  websiteError?: string | null
+  onWebsiteBlur?: () => void
   phone: string
+  phoneError?: string | null
+  onPhoneBlur?: () => void
   disabled: boolean
   onClientName: (v: string) => void
   onEmailDomain: (v: string) => void
@@ -26,18 +34,23 @@ interface ClientIdentitySectionProps {
 }
 
 export function ClientIdentitySection({
-  clientName, emailDomain, registrationNumber, sector, address, city, country, website, phone,
-  disabled, onClientName, onEmailDomain, onRegistrationNumber, onSector, onAddress, onCity, onCountry, onWebsite, onPhone,
+  clientName, clientNameError, onClientNameBlur,
+  emailDomain, emailDomainError, onEmailDomainBlur,
+  registrationNumber, sector, address, city, country,
+  website, websiteError, onWebsiteBlur,
+  phone, phoneError, onPhoneBlur,
+  disabled,
+  onClientName, onEmailDomain, onRegistrationNumber, onSector, onAddress, onCity, onCountry, onWebsite, onPhone,
 }: ClientIdentitySectionProps) {
   return (
     <fieldset className="space-y-4">
       <legend className="text-sm font-semibold text-gray-900">Identit&eacute; du client</legend>
 
-      <FormField id="client-name" label="Nom du client" value={clientName} onChange={onClientName} required disabled={disabled} />
+      <FormField id="client-name" label="Nom du client" value={clientName} onChange={onClientName} onBlur={onClientNameBlur} error={clientNameError} required disabled={disabled} />
 
       <div className="grid grid-cols-2 gap-3">
         <FormField id="client-registration" label="N&deg; d&apos;immatriculation (NINEA, SIRET)" value={registrationNumber} onChange={onRegistrationNumber} disabled={disabled} />
-        <FormField id="client-email-domain" label="Domaine email" value={emailDomain} onChange={onEmailDomain} placeholder="ex : entreprise.com" disabled={disabled} />
+        <FormField id="client-email-domain" label="Domaine email" value={emailDomain} onChange={onEmailDomain} onBlur={onEmailDomainBlur} error={emailDomainError} placeholder="ex : entreprise.com" disabled={disabled} />
       </div>
 
       <div>
@@ -47,8 +60,8 @@ export function ClientIdentitySection({
           {SECTEURS_OPTIONS.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
         </select>
       </div>
-      <FormField id="client-phone" label="T&eacute;l&eacute;phone" type="tel" value={phone} onChange={onPhone} disabled={disabled} />
-      <FormField id="client-website" label="Site web" type="url" value={website} onChange={onWebsite} placeholder="https://..." disabled={disabled} />
+      <FormField id="client-phone" label="T&eacute;l&eacute;phone" type="tel" value={phone} onChange={onPhone} onBlur={onPhoneBlur} error={phoneError} disabled={disabled} placeholder="+221 77 123 45 67" />
+      <FormField id="client-website" label="Site web" type="url" value={website} onChange={onWebsite} onBlur={onWebsiteBlur} error={websiteError} placeholder="https://..." disabled={disabled} />
       <FormField id="client-address" label="Adresse" value={address} onChange={onAddress} disabled={disabled} />
 
       <div className="grid grid-cols-2 gap-3">

@@ -194,7 +194,30 @@ Deux patterns selon le contexte :
 
 ---
 
-## 8. Règles d'application
+## 8. Validation de formulaire (inline)
+
+**Hook** : `useFieldValidation()` dans `src/hooks/useFieldValidation.ts` (validateurs livrés : `required`, `email`, `url`, `phone`, `minLength`, `compose`).
+**Composant** : `FormField` accepte les props `error?: string | null`, `onBlur?: () => void`.
+**Wizard** : chaque `WizardStep` peut déclarer un `validate?: () => boolean` qui bloque « Suivant » et déclenche l'affichage des erreurs.
+
+**États visuels :**
+
+| État | Déclencheur | Visuel | a11y |
+|------|-------------|--------|------|
+| repos | Champ jamais touché | Bordure grise · pas de message | `aria-invalid="false"` |
+| focus | Curseur dans le champ | Bordure verte + halo `forest-100` | `aria-invalid="false"` |
+| erreur | Blur sur valeur invalide ou tentative de submit | Bordure rouge · message rouge sous le champ · icône `!` | `aria-invalid="true"` + `aria-describedby` |
+
+**Règles :**
+1. **Pas d'erreur à la frappe** : on n'affiche jamais d'erreur tant que l'utilisateur n'a pas blurré le champ ou tenté de submit. Évite les faux positifs.
+2. **Validation côté serveur obligatoire** : la validation inline est une couche UX, jamais une couche de sécurité. Toute donnée doit être re-validée côté serveur (Edge Function, contrainte DB, RLS) — cf. CLAUDE.md §3.
+3. **Messages génériques** : les messages d'erreur sont des strings statiques fournis par les validateurs. Pas d'interpolation depuis du contenu utilisateur non échappé (anti-XSS).
+4. **Astérisque rouge** : les champs requis affichent un `*` rouge à côté du label.
+5. **Compteur en pied de wizard** : quand une étape est invalide, le wizard affiche « Champs à corriger avant de poursuivre. » et le pastille de l'étape passe en rouge avec un `!`.
+
+---
+
+## 9. Règles d'application
 
 1. **Ne jamais modifier les couleurs du bouclier** — toujours vert forêt + or
 2. **Le tréma doré est obligatoire** sur le "e" de Gëstu dans tous les contextes

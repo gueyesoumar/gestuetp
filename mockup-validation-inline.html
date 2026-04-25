@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Validation inline — Gestu Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#FAFAF8;--white:#fff;
+  --t9:#1A1A1A;--t7:#374151;--t5:#6B7280;--t3:#9CA3AF;--t1:#D1D5DB;
+  --border:#E5E7EB;--border2:#D1D5DB;
+  --f9:#1B4332;--f7:#2D6A4F;--f5:#52B788;--f1:#D8F3DC;--f0:#F0FFF4;
+  --gold:#D4A843;--g2:#F2E2B1;--g0:#FDF8E8;
+  --ok:#27AE60;--ok-bg:#ECFDF5;--ok-bd:#A7F3D0;
+  --err:#C0392B;--err-bg:#FEF2F2;--err-bd:#FECACA;
+  --warn:#B45309;--warn-bg:#FFFBEB;
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--t9); -webkit-font-smoothing:antialiased; padding:32px 24px 64px }
+.mono { font-family:'JetBrains Mono',monospace }
+
+.wrap { max-width:1280px; margin:0 auto }
+.hero { margin-bottom:36px }
+.hero-tag { display:inline-block; padding:4px 12px; background:var(--g0); color:var(--gold); border:1px solid var(--g2); border-radius:99px; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:12px }
+.hero h1 { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px }
+.hero p { font-size:15px; color:var(--t5); max-width:760px; line-height:1.6 }
+
+.section { margin-bottom:48px }
+.section-h { display:flex; align-items:baseline; gap:12px; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--f9) }
+.section-h h2 { font-size:20px; font-weight:700; color:var(--f9) }
+.section-h .num { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--gold); font-weight:700 }
+.section-desc { font-size:13px; color:var(--t5); margin-bottom:20px; max-width:780px; line-height:1.6 }
+
+/* Form field states ──────────────────────────────────── */
+.fieldgrid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px }
+.fdemo { background:white; border:1px solid var(--border); border-radius:14px; padding:18px 20px 16px; box-shadow:0 4px 12px rgba(27,67,50,.04) }
+.fdemo .label { font-size:11px; font-weight:600; color:var(--t3); letter-spacing:.5px; text-transform:uppercase; margin-bottom:14px }
+
+.field { margin-bottom:0 }
+.field .lab { display:block; font-size:11px; font-weight:600; color:var(--t7); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px }
+.field .lab .req { color:var(--err); margin-left:2px }
+.field .input {
+  display:flex; align-items:center; gap:8px;
+  width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px;
+  font-size:13px; background:white; color:var(--t9); transition:all .15s;
+  cursor:text;
+}
+.field .input.ph { color:var(--t3) }
+.field .input.focus { border-color:var(--f5); box-shadow:0 0 0 3px var(--f1); }
+.field .input.err { border-color:var(--err); box-shadow:0 0 0 3px rgba(192,57,43,.10); background:#FFFBFB }
+.field .input.ok { border-color:var(--ok); background:white }
+.field .input .caret { width:1px; height:14px; background:var(--t9); animation:blink 1s steps(2) infinite }
+.field .input .ic-end { margin-left:auto; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px }
+.field .input .ic-end.ok { color:var(--ok) }
+.field .input .ic-end.err { color:var(--err) }
+.field .hint { display:flex; align-items:flex-start; gap:6px; margin-top:6px; font-size:11.5px; line-height:1.4 }
+.field .hint.err { color:var(--err) }
+.field .hint.ok { color:var(--ok) }
+.field .hint.help { color:var(--t5) }
+.field .hint .dot { flex-shrink:0; margin-top:2px; width:14px; height:14px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:white }
+.field .hint.err .dot { background:var(--err) }
+.field .hint.ok .dot { background:var(--ok) }
+
+@keyframes blink { 50% { opacity:0 } }
+
+/* Spec table */
+.spec { background:white; border:1px solid var(--border); border-radius:12px; overflow:hidden }
+.spec table { width:100%; border-collapse:collapse }
+.spec th { text-align:left; font-size:11px; font-weight:600; color:var(--t5); text-transform:uppercase; letter-spacing:.5px; padding:12px 16px; background:#FAFAF8; border-bottom:1px solid var(--border) }
+.spec td { padding:12px 16px; font-size:13px; border-bottom:1px solid var(--border) }
+.spec tr:last-child td { border-bottom:none }
+.spec td .pill { display:inline-block; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600 }
+.pill-rest { background:#F3F4F6; color:var(--t5) }
+.pill-focus { background:var(--f1); color:var(--f9) }
+.pill-err { background:var(--err-bg); color:var(--err) }
+.pill-ok { background:var(--ok-bg); color:var(--ok) }
+
+/* Scenes ─────────────────────────────────────────────── */
+.scene { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 4px 12px rgba(27,67,50,.04) }
+.scene-h { padding:14px 18px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px }
+.scene-h .dot { width:10px; height:10px; border-radius:50%; background:#E5E7EB }
+.scene-h .dot.r { background:#FCA5A5 }
+.scene-h .dot.y { background:#FDE68A }
+.scene-h .dot.g { background:#A7F3D0 }
+.scene-h .url { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--t5); margin-left:8px }
+.scene-h .ctx { margin-left:auto; font-size:11px; color:var(--t3); font-weight:500 }
+.scene-body { padding:24px; min-height:280px }
+.scene-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px }
+.scene-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px }
+
+.crumb { font-size:11px; color:var(--t5); margin-bottom:12px }
+.crumb b { color:var(--f9); font-weight:600 }
+.crumb i { color:var(--t3); font-style:normal; margin:0 6px }
+.scene-title { font-size:16px; font-weight:700; color:var(--t9); margin-bottom:3px }
+.scene-sub { font-size:12px; color:var(--t5); margin-bottom:18px }
+
+/* Wizard sidebar mini */
+.wiz { display:flex; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:white }
+.wiz-side { width:180px; padding:18px 14px; border-right:1px solid var(--border); background:#FAFAF8 }
+.wiz-step { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12px; color:var(--t3) }
+.wiz-step.active { color:var(--f9); font-weight:600 }
+.wiz-step.done { color:var(--ok) }
+.wiz-step.err { color:var(--err); font-weight:600 }
+.wiz-step .stepd { width:22px; height:22px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; background:white; border:2px solid var(--t1); color:var(--t3) }
+.wiz-step.active .stepd { background:var(--f9); color:white; border-color:var(--f9) }
+.wiz-step.done .stepd { background:var(--ok); color:white; border-color:var(--ok) }
+.wiz-step.err .stepd { background:var(--err); color:white; border-color:var(--err) }
+.wiz-body { flex:1; padding:22px 24px }
+.wiz-foot { display:flex; justify-content:space-between; padding:14px 24px; border-top:1px solid var(--border); background:white }
+
+/* Buttons */
+.btn { padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:600; border:1px solid transparent; cursor:pointer; display:inline-flex; align-items:center; gap:6px }
+.btn-pri { background:var(--f9); color:white; border-color:var(--f9) }
+.btn-pri:disabled, .btn-pri.disabled { background:var(--t1); color:white; border-color:var(--t1); cursor:not-allowed }
+.btn-sec { background:white; color:var(--t7); border-color:var(--border2) }
+.btn-pri.gold { background:var(--gold); color:var(--f9); border-color:var(--gold) }
+
+/* Compare ─────────────────────────────────────── */
+.compare { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start }
+.compare .col-l, .compare .col-r { position:relative; padding-top:20px }
+.compare .col-l::before, .compare .col-r::before {
+  content:''; position:absolute; top:0; left:14px;
+  padding:3px 10px; border-radius:99px; font-size:10px; font-weight:600; letter-spacing:.5px; text-transform:uppercase;
+}
+.compare .col-l::before { content:'avant'; background:#374151; color:white }
+.compare .col-r::before { content:'après'; background:var(--gold); color:var(--f9); font-weight:700 }
+
+/* Native browser bubble (fake) */
+.native-bubble {
+  position:absolute; top:42px; left:6px; padding:7px 12px; background:#FCFCFC; border:1px solid #B0B0B0;
+  border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,.18); font-size:11.5px; color:#222;
+  display:flex; align-items:flex-start; gap:6px; max-width:240px;
+}
+.native-bubble::before { content:''; position:absolute; top:-7px; left:14px; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:7px solid #B0B0B0 }
+.native-bubble::after { content:''; position:absolute; top:-6px; left:14px; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:7px solid #FCFCFC }
+.native-bubble .ic { color:var(--err); font-weight:700; flex-shrink:0 }
+
+/* Code block */
+.code { background:#1A1A1A; color:#A7F3D0; padding:18px 22px; border-radius:12px; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7; overflow-x:auto; margin-top:16px }
+.code .kw { color:#FCD34D }
+.code .str { color:#86EFAC }
+.code .com { color:#6B7280 }
+.code .fn { color:#93C5FD }
+.code .ty { color:#F472B6 }
+
+.note { background:var(--g0); border:1px solid var(--g2); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:14px 16px; font-size:13px; color:var(--t7); line-height:1.6; margin-top:16px }
+.note b { color:var(--f9) }
+
+.flow-row { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:14px; align-items:center; margin-bottom:18px }
+.flow-step { background:white; border:1px solid var(--border); border-radius:10px; padding:14px 16px; font-size:12.5px; color:var(--t7); line-height:1.5 }
+.flow-step b { color:var(--f9); display:block; margin-bottom:4px; font-size:11px; text-transform:uppercase; letter-spacing:.4px }
+.flow-arrow { color:var(--t3); font-size:18px; font-weight:300 }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- Hero ─────────────────────────────────────────────── -->
+  <div class="hero">
+    <div class="hero-tag">Chantier UX #2 · Mockup d'impact</div>
+    <h1>Validation inline — l'erreur s'affiche sous le champ, pas après le submit</h1>
+    <p>
+      Aujourd'hui, l'utilisateur soumet, attend, voit une bulle navigateur ou un encart rouge en haut.
+      Avec la validation inline, chaque champ se déclare invalide dès qu'il quitte le focus —
+      message en rouge sous le label, bordure rouge, icône, et <span class="mono">aria-invalid</span> pour les lecteurs d'écran.
+      Le wizard bloque « Suivant » tant que l'étape n'est pas valide et défile vers le premier champ en erreur.
+    </p>
+  </div>
+
+  <!-- Section 1 — États du champ ─────────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">01</span>
+      <h2>États visuels du champ</h2>
+    </div>
+    <div class="section-desc">
+      Quatre états cohérents avec la charte (vert forêt + or + sémantique standard).
+      Le passage en erreur ne se déclenche qu'après le premier blur du champ ou une tentative de submit — jamais à la frappe.
+    </div>
+
+    <div class="fieldgrid">
+      <!-- Rest -->
+      <div class="fdemo">
+        <div class="label">Repos · pas encore touché</div>
+        <div class="field">
+          <label class="lab">Email professionnel <span class="req">*</span></label>
+          <div class="input ph">jean.diop@cabinet.sn</div>
+          <div class="hint help"><span style="opacity:.4">ⓘ</span> Utilisé pour vous notifier des actions à mener.</div>
+        </div>
+      </div>
+
+      <!-- Focused -->
+      <div class="fdemo">
+        <div class="label">Focus · saisie en cours</div>
+        <div class="field">
+          <label class="lab">Email professionnel <span class="req">*</span></label>
+          <div class="input focus">jean.diop@cabinet<span class="caret"></span></div>
+          <div class="hint help"><span style="opacity:.4">ⓘ</span> Utilisé pour vous notifier des actions à mener.</div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="fdemo">
+        <div class="label">Erreur · après blur ou submit</div>
+        <div class="field">
+          <label class="lab">Email professionnel <span class="req">*</span></label>
+          <div class="input err">
+            jean.diop@cabinet
+            <span class="ic-end err">!</span>
+          </div>
+          <div class="hint err"><span class="dot">!</span> Format d'adresse email invalide.</div>
+        </div>
+      </div>
+
+      <!-- Valid -->
+      <div class="fdemo">
+        <div class="label">Validé · après blur réussi</div>
+        <div class="field">
+          <label class="lab">Email professionnel <span class="req">*</span></label>
+          <div class="input ok">
+            jean.diop@cabinet.sn
+            <span class="ic-end ok">✓</span>
+          </div>
+          <div class="hint ok"><span class="dot">✓</span> Email valide.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec" style="margin-top:24px">
+      <table>
+        <thead>
+          <tr><th>État</th><th>Déclencheur</th><th>Visuel</th><th>a11y</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="pill pill-rest">repos</span></td><td>Champ jamais touché</td><td>Bordure grise · pas de message</td><td><span class="mono">aria-invalid="false"</span></td></tr>
+          <tr><td><span class="pill pill-focus">focus</span></td><td>Curseur dans le champ</td><td>Bordure verte · halo <span class="mono">forest-100</span></td><td><span class="mono">aria-invalid="false"</span></td></tr>
+          <tr><td><span class="pill pill-err">erreur</span></td><td>Blur sur valeur invalide ou tentative de submit</td><td>Bordure rouge · icône · message rouge sous le champ</td><td><span class="mono">aria-invalid="true"</span> + <span class="mono">aria-describedby</span></td></tr>
+          <tr><td><span class="pill pill-ok">validé</span></td><td>Blur sur valeur valide (champ requis ou avec validateur)</td><td>Bordure verte · check vert · message court</td><td><span class="mono">aria-invalid="false"</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 2 — Quand l'erreur apparaît ────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">02</span>
+      <h2>Quand l'erreur apparaît · règle « touched »</h2>
+    </div>
+    <div class="section-desc">
+      Évite les faux positifs : on n'agresse pas l'utilisateur dès la première frappe.
+      L'erreur apparaît au premier blur du champ, ou immédiatement sur tous les champs invalides
+      à la première tentative de submit. Une fois en erreur, elle se met à jour à la frappe (pour disparaître dès que la valeur devient valide).
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-step"><b>1 · Repos</b>Champ vide. Aucune erreur affichée même s'il est requis.</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>2 · Focus + frappe</b>L'utilisateur tape. Bordure verte. Pas d'erreur affichée.</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>3 · Blur</b>Quitte le champ. Si invalide → erreur affichée. Si valide → check vert.</div>
+    </div>
+    <div class="flow-row" style="grid-template-columns:1fr auto 1fr">
+      <div class="flow-step"><b>4 · Re-focus + frappe</b>Erreur déjà affichée → mise à jour temps réel.<br>Dès que la valeur devient valide → erreur disparaît.</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><b>Submit malgré tout</b>Tous les champs invalides passent en erreur d'un coup.<br>Auto-scroll + focus sur le premier.</div>
+    </div>
+  </div>
+
+  <!-- Section 3 — Mises en situation ─────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">03</span>
+      <h2>Mises en situation sur la plateforme</h2>
+    </div>
+    <div class="section-desc">
+      Trois écrans réels : profil utilisateur, étape calendrier du wizard mission (validation cross-field), et création client multi-section.
+    </div>
+
+    <div class="scene-grid">
+
+      <!-- Scene 1 — ProfilePage email -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">/profil</span>
+          <span class="ctx">Profil utilisateur</span>
+        </div>
+        <div class="scene-body">
+          <div class="crumb">Compte<i>›</i><b>Profil</b></div>
+          <div class="scene-title">Mes informations</div>
+          <div class="scene-sub">Modifiez vos coordonnées professionnelles.</div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label class="lab">Nom complet <span class="req">*</span></label>
+            <div class="input ok">Oumar Gueye <span class="ic-end ok">✓</span></div>
+          </div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label class="lab">Email professionnel <span class="req">*</span></label>
+            <div class="input err">oumar@gestu <span class="ic-end err">!</span></div>
+            <div class="hint err"><span class="dot">!</span> Format d'adresse email invalide.</div>
+          </div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label class="lab">Téléphone</label>
+            <div class="input err">+221 77 12 <span class="ic-end err">!</span></div>
+            <div class="hint err"><span class="dot">!</span> Numéro incomplet (9 chiffres après l'indicatif).</div>
+          </div>
+
+          <div style="margin-top:18px">
+            <button class="btn btn-pri disabled">Enregistrer</button>
+            <span style="margin-left:12px; font-size:11.5px; color:var(--err)">2 champs à corriger</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 2 — Mission wizard calendar (cross-field) -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">/missions/nouvelle</span>
+          <span class="ctx">Wizard · Étape 4/5 · Calendrier</span>
+        </div>
+        <div class="scene-body">
+          <div class="crumb">Missions<i>›</i><b>Nouvelle mission</b></div>
+          <div class="scene-title">Calendrier de la mission</div>
+          <div class="scene-sub">Définissez la période d'exécution.</div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:6px">
+            <div class="field">
+              <label class="lab">Date de début <span class="req">*</span></label>
+              <div class="input ok">15 mai 2026 <span class="ic-end ok">✓</span></div>
+            </div>
+            <div class="field">
+              <label class="lab">Date de fin <span class="req">*</span></label>
+              <div class="input err">10 mai 2026 <span class="ic-end err">!</span></div>
+            </div>
+          </div>
+
+          <div class="hint err" style="margin-bottom:12px"><span class="dot">!</span> La date de fin doit être postérieure à la date de début.</div>
+
+          <div style="padding:10px 12px; background:var(--warn-bg); border:1px solid #FDE68A; border-radius:8px; font-size:11.5px; color:var(--warn); margin-top:14px">
+            ⓘ Charge prévisionnelle : 4 auditeurs sur 0 jours → impossible de planifier.
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:24px">
+            <button class="btn btn-sec">← Précédent</button>
+            <button class="btn btn-pri disabled">Suivant →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Scene 3 — ClientCreatePage with multi-section -->
+    <div class="scene" style="margin-top:20px">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">/clients/nouveau</span>
+        <span class="ctx">Création client · multi-section</span>
+      </div>
+      <div class="scene-body" style="min-height:auto">
+        <div class="crumb">Clients<i>›</i><b>Nouveau client</b></div>
+        <div class="scene-title">Banque Nationale du Sénégal</div>
+        <div class="scene-sub">Identité, taille et contacts du client.</div>
+
+        <div class="scene-grid-3">
+          <div class="field">
+            <label class="lab">Raison sociale <span class="req">*</span></label>
+            <div class="input ok">Banque Nationale du Sénégal <span class="ic-end ok">✓</span></div>
+          </div>
+          <div class="field">
+            <label class="lab">SIREN / NINEA <span class="req">*</span></label>
+            <div class="input err">12345 <span class="ic-end err">!</span></div>
+            <div class="hint err"><span class="dot">!</span> 9 chiffres requis (NINEA).</div>
+          </div>
+          <div class="field">
+            <label class="lab">Secteur</label>
+            <div class="input ph">Choisir un secteur…</div>
+          </div>
+          <div class="field">
+            <label class="lab">Effectifs <span class="req">*</span></label>
+            <div class="input ok">500 — 2000 <span class="ic-end ok">✓</span></div>
+          </div>
+          <div class="field">
+            <label class="lab">Email du référent <span class="req">*</span></label>
+            <div class="input err">contact@bns <span class="ic-end err">!</span></div>
+            <div class="hint err"><span class="dot">!</span> Format d'adresse email invalide.</div>
+          </div>
+          <div class="field">
+            <label class="lab">Pays</label>
+            <div class="input ok">Sénégal <span class="ic-end ok">✓</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px; display:flex; justify-content:space-between; align-items:center">
+          <span style="font-size:11.5px; color:var(--err)">2 champs à corriger avant de poursuivre</span>
+          <button class="btn btn-pri disabled">Créer le client</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Section 4 — Wizard step blocked ────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">04</span>
+      <h2>Wizard · « Suivant » bloqué tant que l'étape est invalide</h2>
+    </div>
+    <div class="section-desc">
+      Le bouton « Suivant » désactivé visuellement, et au clic forcé : tous les champs invalides de l'étape passent en erreur d'un coup, scroll vers le premier, focus posé.
+      L'étape concernée passe en rouge dans la sidebar.
+    </div>
+
+    <div class="wiz">
+      <div class="wiz-side">
+        <div class="wiz-step done"><span class="stepd">✓</span> Type de mission</div>
+        <div class="wiz-step done"><span class="stepd">✓</span> Client</div>
+        <div class="wiz-step done"><span class="stepd">✓</span> Équipe</div>
+        <div class="wiz-step err"><span class="stepd">!</span> Calendrier</div>
+        <div class="wiz-step"><span class="stepd">5</span> Confirmation</div>
+      </div>
+      <div class="wiz-body" style="position:relative">
+        <div class="scene-title">Calendrier de la mission</div>
+        <div class="scene-sub">Définissez la période d'exécution.</div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:6px; margin-top:14px">
+          <div class="field">
+            <label class="lab">Date de début <span class="req">*</span></label>
+            <div class="input err" style="position:relative">jj/mm/aaaa <span class="ic-end err">!</span>
+              <!-- arrow indicator showing scroll target -->
+              <span style="position:absolute; left:-22px; top:9px; color:var(--err); font-size:18px">▶</span>
+            </div>
+            <div class="hint err"><span class="dot">!</span> Date requise.</div>
+          </div>
+          <div class="field">
+            <label class="lab">Date de fin <span class="req">*</span></label>
+            <div class="input err">jj/mm/aaaa <span class="ic-end err">!</span></div>
+            <div class="hint err"><span class="dot">!</span> Date requise.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wiz-foot" style="border:1px solid var(--border); border-top:none; border-radius:0 0 12px 12px; background:white">
+      <button class="btn btn-sec">← Précédent</button>
+      <div style="display:flex; gap:14px; align-items:center">
+        <span style="font-size:11.5px; color:var(--err); font-weight:500">2 champs requis manquants</span>
+        <button class="btn btn-pri disabled">Suivant →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5 — Avant / Après ──────────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">05</span>
+      <h2>Comparaison avant / après</h2>
+    </div>
+    <div class="section-desc">
+      Aujourd'hui : la validation HTML5 native déclenche une bulle navigateur grise et plate, hors charte, fermée dès la frappe suivante.
+      Demain : message inline cohérent, persistant tant que l'erreur existe, et accessible aux lecteurs d'écran.
+    </div>
+
+    <div class="compare">
+      <!-- BEFORE -->
+      <div class="col-l">
+        <div class="scene">
+          <div class="scene-h">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="url">/profil</span>
+          </div>
+          <div class="scene-body" style="min-height:300px; position:relative">
+            <div class="scene-title" style="margin-bottom:18px">Mes informations</div>
+
+            <div class="field" style="margin-bottom:14px">
+              <label class="lab">Nom complet <span class="req">*</span></label>
+              <div class="input">Oumar Gueye</div>
+            </div>
+
+            <div class="field" style="margin-bottom:14px; position:relative">
+              <label class="lab">Email professionnel <span class="req">*</span></label>
+              <div class="input" style="border-color:var(--err)">oumar@gestu</div>
+              <div class="native-bubble">
+                <span class="ic">⚠</span>
+                <span>Veuillez inclure un signe « @ » dans l'adresse e-mail. Il manque un signe « @ » dans « oumar@gestu ».</span>
+              </div>
+            </div>
+
+            <button class="btn btn-pri" style="margin-top:60px">Enregistrer</button>
+            <div style="margin-top:18px; padding:10px 12px; background:#FEF2F2; border-radius:6px; font-size:11.5px; color:var(--err)">
+              ⚠ Bulle navigateur hors charte · disparaît à la frappe · pas accessible aux lecteurs d'écran · placement aléatoire selon l'OS
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AFTER -->
+      <div class="col-r">
+        <div class="scene">
+          <div class="scene-h">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="url">/profil</span>
+          </div>
+          <div class="scene-body" style="min-height:300px">
+            <div class="scene-title" style="margin-bottom:18px">Mes informations</div>
+
+            <div class="field" style="margin-bottom:14px">
+              <label class="lab">Nom complet <span class="req">*</span></label>
+              <div class="input ok">Oumar Gueye <span class="ic-end ok">✓</span></div>
+            </div>
+
+            <div class="field" style="margin-bottom:14px">
+              <label class="lab">Email professionnel <span class="req">*</span></label>
+              <div class="input err">oumar@gestu <span class="ic-end err">!</span></div>
+              <div class="hint err"><span class="dot">!</span> Format d'adresse email invalide.</div>
+            </div>
+
+            <button class="btn btn-pri disabled" style="margin-top:60px">Enregistrer</button>
+            <span style="margin-left:12px; font-size:11.5px; color:var(--err)">1 champ à corriger</span>
+            <div style="margin-top:18px; padding:10px 12px; background:var(--ok-bg); border-radius:6px; font-size:11.5px; color:var(--ok)">
+              ✓ Message dans la charte · persistant tant que l'erreur existe · <span class="mono">aria-invalid</span> + <span class="mono">aria-describedby</span> · placement déterministe sous le champ
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 6 — API ────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">06</span>
+      <h2>API attendue · <span class="mono" style="font-size:14px;color:var(--gold)">FormField</span> + <span class="mono" style="font-size:14px;color:var(--gold)">useFieldValidation()</span></h2>
+    </div>
+    <div class="section-desc">
+      Extension a minima : <span class="mono">FormField</span> reçoit <span class="mono">error</span> et <span class="mono">onBlur</span> ;
+      <span class="mono">useFieldValidation</span> isole la logique touched/error par champ. Aucune dépendance ajoutée.
+    </div>
+
+<div class="code">
+<span class="com">// src/components/ui/FormField.tsx — props ajoutées</span>
+<span class="kw">interface</span> <span class="ty">FormFieldProps</span> {
+  id: string
+  label: string
+  value: string
+  onChange: (v: string) =&gt; <span class="ty">void</span>
+  <span class="kw">onBlur</span>?: () =&gt; <span class="ty">void</span>          <span class="com">// nouveau</span>
+  <span class="kw">error</span>?: string | null         <span class="com">// nouveau · si présent → état erreur</span>
+  required?: boolean
+  ...
+}
+
+<span class="com">// src/hooks/useFieldValidation.ts — mini-hook par champ</span>
+<span class="kw">export function</span> <span class="fn">useFieldValidation</span>&lt;<span class="ty">T</span>&gt;(
+  initial: <span class="ty">T</span>,
+  validate: (v: <span class="ty">T</span>) =&gt; string | null,
+) {
+  <span class="kw">const</span> [value, setValue] = <span class="fn">useState</span>(initial)
+  <span class="kw">const</span> [touched, setTouched] = <span class="fn">useState</span>(<span class="kw">false</span>)
+  <span class="kw">const</span> error = touched ? <span class="fn">validate</span>(value) : <span class="kw">null</span>
+
+  <span class="kw">return</span> {
+    value, error,
+    onChange: setValue,
+    onBlur: () =&gt; <span class="fn">setTouched</span>(<span class="kw">true</span>),
+    forceShow: () =&gt; <span class="fn">setTouched</span>(<span class="kw">true</span>),  <span class="com">// déclenché au submit</span>
+    isValid: <span class="fn">validate</span>(value) === <span class="kw">null</span>,
+  }
+}
+
+<span class="com">// Usage typique</span>
+<span class="kw">const</span> email = <span class="fn">useFieldValidation</span>(<span class="str">''</span>, (v) =&gt;
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.<span class="fn">test</span>(v) ? <span class="kw">null</span> : <span class="str">'Format d\'adresse email invalide.'</span>
+)
+
+&lt;<span class="fn">FormField</span> id=<span class="str">"email"</span> label=<span class="str">"Email"</span> required {...email} /&gt;
+</div>
+
+    <div class="note">
+      <b>Garde-fou sécurité</b> — la validation inline n'est jamais une garantie de validité.
+      Toute donnée doit être re-validée côté serveur (Edge Function, contrainte DB, RLS).
+      Les messages d'erreur affichés sont des strings statiques (pas d'interpolation depuis du contenu utilisateur non échappé) — pas de surface XSS.
+    </div>
+  </div>
+
+  <!-- Footer ─────────────────────────────────────────────── -->
+  <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:14px; font-size:12px; color:var(--t5)">
+    <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--f9)">Gestu Comply</div>
+    <div>·</div>
+    <div>Mockup chantier UX #2 · Validation inline</div>
+    <div style="margin-left:auto">Couleurs : Vert forêt #1B4332 · Or #D4A843 · Police : Inter</div>
+  </div>
+
+</div>
+
+</body>
+</html>

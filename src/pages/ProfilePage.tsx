@@ -8,14 +8,15 @@ import { SplitFormSection } from '../components/ui/SplitFormSection'
 import { FormField } from '../components/ui/FormField'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import { Badge } from '../components/ui/Badge'
+import { useFieldValidation, required, phone as phoneValidator, minLength } from '../hooks/useFieldValidation'
 
 export function ProfilePage() {
   const { profile, session, signOut } = useAuth()
 
   // Profile form state
-  const [firstName, setFirstName] = useState(profile?.first_name ?? '')
-  const [lastName, setLastName] = useState(profile?.last_name ?? '')
-  const [phone, setPhone] = useState(profile?.phone ?? '')
+  const firstName = useFieldValidation(profile?.first_name ?? '', required('Le prénom est requis.'))
+  const lastName = useFieldValidation(profile?.last_name ?? '', required('Le nom est requis.'))
+  const phone = useFieldValidation(profile?.phone ?? '', phoneValidator())
   const [jobTitle, setJobTitle] = useState(profile?.job_title ?? '')
   const [profileSuccess, setProfileSuccess] = useState(false)
 
@@ -24,10 +25,14 @@ export function ProfilePage() {
   })
 
   // Password form state
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const newPassword = useFieldValidation('', minLength(8, 'Le mot de passe doit contenir au moins 8 caractères.'))
+  const confirmPassword = useFieldValidation('', () => null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
-  const [passwordMismatch, setPasswordMismatch] = useState(false)
+
+  // Cross-field check : confirm = newPassword
+  const confirmError = confirmPassword.touched && confirmPassword.value !== newPassword.value
+    ? 'Les mots de passe ne correspondent pas.'
+    : null
 
   const { changePassword, changing, error: passwordError } = useChangePassword()
 
@@ -38,10 +43,14 @@ export function ProfilePage() {
   const handleProfileSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setProfileSuccess(false)
+    firstName.forceShow()
+    lastName.forceShow()
+    phone.forceShow()
+    if (!firstName.isValid || !lastName.isValid || !phone.isValid) return
     await updateProfile(profile.id, {
-      first_name: firstName,
-      last_name: lastName,
-      phone: phone || null,
+      first_name: firstName.value,
+      last_name: lastName.value,
+      phone: phone.value || null,
       job_title: jobTitle || null,
     })
   }
@@ -49,18 +58,16 @@ export function ProfilePage() {
   const handlePasswordSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setPasswordSuccess(false)
-    setPasswordMismatch(false)
+    newPassword.forceShow()
+    confirmPassword.forceShow()
+    if (!newPassword.isValid) return
+    if (confirmPassword.value !== newPassword.value) return
 
-    if (newPassword !== confirmPassword) {
-      setPasswordMismatch(true)
-      return
-    }
-
-    const ok = await changePassword(newPassword)
+    const ok = await changePassword(newPassword.value)
     if (ok) {
       setPasswordSuccess(true)
-      setNewPassword('')
-      setConfirmPassword('')
+      newPassword.reset('')
+      confirmPassword.reset('')
     }
   }
 
@@ -103,15 +110,14 @@ export function ProfilePage() {
           <SplitFormSection title="Informations" description="Votre nom et vos coordonn&eacute;es">
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <FormField id="prof-first" label="Pr&eacute;nom" value={firstName} onChange={setFirstName} required disabled={updating} />
-                <FormField id="prof-last" label="Nom" value={lastName} onChange={setLastName} required disabled={updating} />
+                <FormField id="prof-first" label="Pr&eacute;nom" value={firstName.value} onChange={firstName.onChange} onBlur={firstName.onBlur} error={firstName.error} required disabled={updating} />
+                <FormField id="prof-last" label="Nom" value={lastName.value} onChange={lastName.onChange} onBlur={lastName.onBlur} error={lastName.error} required disabled={updating} />
               </div>
               <div>
-                <FormField id="prof-email" label="Email" value={profile.email} onChange={() => {}} disabled />
-                <p className="mt-1 text-[10px] text-gray-300">L&rsquo;email ne peut pas &ecirc;tre modifi&eacute;. Contactez un administrateur.</p>
+                <FormField id="prof-email" label="Email" value={profile.email} onChange={() => {}} disabled hint="L'email ne peut pas être modifié. Contactez un administrateur." />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <FormField id="prof-phone" label="T&eacute;l&eacute;phone" type="tel" value={phone} onChange={setPhone} disabled={updating} />
+                <FormField id="prof-phone" label="T&eacute;l&eacute;phone" type="tel" value={phone.value} onChange={phone.onChange} onBlur={phone.onBlur} error={phone.error} disabled={updating} placeholder="+221 77 123 45 67" />
                 <FormField id="prof-job" label="Poste / Fonction" value={jobTitle} onChange={setJobTitle} disabled={updating} placeholder="Ex : Associ&eacute;, Manager..." />
               </div>
             </div>
@@ -120,7 +126,6 @@ export function ProfilePage() {
 
         {/* Securite */}
         {passwordError && <ErrorAlert message={passwordError} />}
-        {passwordMismatch && <ErrorAlert message="Les mots de passe ne correspondent pas." />}
         {passwordSuccess && (
           <div className="rounded-lg bg-green-50 p-3 text-[13px] text-green-700">
             Mot de passe modifi&eacute;.
@@ -130,8 +135,8 @@ export function ProfilePage() {
         <SplitForm onSubmit={handlePasswordSubmit} submitting={changing} submitLabel="Changer le mot de passe">
           <SplitFormSection title="S&eacute;curit&eacute;" description="Modifiez votre mot de passe">
             <div className="space-y-4">
-              <FormField id="prof-newpw" label="Nouveau mot de passe" type="password" value={newPassword} onChange={setNewPassword} required disabled={changing} placeholder="8 caract&egrave;res minimum" />
-              <FormField id="prof-confirm" label="Confirmer le mot de passe" type="password" value={confirmPassword} onChange={setConfirmPassword} required disabled={changing} />
+              <FormField id="prof-newpw" label="Nouveau mot de passe" type="password" value={newPassword.value} onChange={newPassword.onChange} onBlur={newPassword.onBlur} error={newPassword.error} required disabled={changing} placeholder="8 caract&egrave;res minimum" />
+              <FormField id="prof-confirm" label="Confirmer le mot de passe" type="password" value={confirmPassword.value} onChange={confirmPassword.onChange} onBlur={confirmPassword.onBlur} error={confirmError} required disabled={changing} />
             </div>
           </SplitFormSection>
         </SplitForm>
