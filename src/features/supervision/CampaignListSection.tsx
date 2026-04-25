@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Calendar, ChevronRight, Target } from 'lucide-react'
+import { Plus, Calendar, ChevronRight, Target, Trash2 } from 'lucide-react'
 import { useAuditCampaigns } from './useAuditCampaigns'
 import { CampaignCreateModal } from './CampaignCreateModal'
+import { CampaignDeleteModal } from './CampaignDeleteModal'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import type { Framework } from '../../types/database.types'
+import type { CampaignSummary } from './useAuditCampaigns'
 
 interface CampaignListSectionProps {
   frameworks: Framework[]
@@ -19,8 +21,9 @@ const STATUS_STYLES: Record<string, { label: string; style: string }> = {
 }
 
 export function CampaignListSection({ frameworks, isGroup, canCreate = true }: CampaignListSectionProps): JSX.Element {
-  const { campaigns, loading, createCampaign, creating, refetch } = useAuditCampaigns()
+  const { campaigns, loading, createCampaign, creating, deleteCampaign, deleting, refetch } = useAuditCampaigns()
   const [showCreate, setShowCreate] = useState(false)
+  const [campaignToDelete, setCampaignToDelete] = useState<CampaignSummary | null>(null)
 
   if (loading) return <LoadingSpinner />
 
@@ -65,11 +68,20 @@ export function CampaignListSection({ frameworks, isGroup, canCreate = true }: C
             const pct = c.totalEntities > 0 ? Math.round((c.completedEntities / c.totalEntities) * 100) : 0
 
             return (
-              <Link
-                key={c.id}
-                to={`/supervision/campagnes/${c.id}`}
-                className="bg-white border border-gray-200 rounded-xl p-5 hover:border-forest-300 hover:shadow-md transition-all group"
-              >
+              <div key={c.id} className="relative group">
+                {isGroup && canCreate && (
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCampaignToDelete(c) }}
+                    className="absolute top-3 right-3 z-10 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                    title="Supprimer la campagne"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+                <Link
+                  to={`/supervision/campagnes/${c.id}`}
+                  className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-forest-300 hover:shadow-md transition-all"
+                >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-[14px] font-bold text-gray-900 group-hover:text-forest-700 transition-colors">{c.name}</h3>
@@ -99,10 +111,25 @@ export function CampaignListSection({ frameworks, isGroup, canCreate = true }: C
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-              </Link>
+                </Link>
+              </div>
             )
           })}
         </div>
+      )}
+
+      {/* Delete modal */}
+      {campaignToDelete && (
+        <CampaignDeleteModal
+          campaign={campaignToDelete}
+          onClose={() => setCampaignToDelete(null)}
+          onConfirm={async (deleteMissions) => {
+            const ok = await deleteCampaign(campaignToDelete.id, deleteMissions)
+            if (ok) setCampaignToDelete(null)
+            return ok
+          }}
+          deleting={deleting}
+        />
       )}
 
       {/* Create modal */}

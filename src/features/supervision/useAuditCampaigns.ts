@@ -17,6 +17,8 @@ interface UseAuditCampaignsReturn {
   createCampaign: (data: AuditCampaignInsert, entityIds: string[]) => Promise<string | null>
   creating: boolean
   updateStatus: (campaignId: string, status: CampaignStatus) => Promise<boolean>
+  deleteCampaign: (campaignId: string, deleteMissions: boolean) => Promise<boolean>
+  deleting: boolean
   refetch: () => void
 }
 
@@ -201,5 +203,51 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
     return true
   }, [refetch])
 
-  return { campaigns, loading, error, createCampaign, creating, updateStatus, refetch }
+  const [deleting, setDeleting] = useState(false)
+
+  const deleteCampaign = useCallback(async (campaignId: string, deleteMissions: boolean): Promise<boolean> => {
+    setDeleting(true)
+
+    if (deleteMissions) {
+      // Delete the missions linked to this campaign first (cascade will clean up assessments etc.)
+      const { error: mErr } = await supabase
+        .from('missions')
+        .delete()
+        .eq('campaign_id', campaignId)
+
+      if (mErr) {
+        console.error('deleteCampaign missions:', mErr.message)
+        setDeleting(false)
+        return false
+      }
+    } else {
+      // Detach missions from the campaign (keep them as standalone)
+      const { error: detachErr } = await supabase
+        .from('missions')
+        .update({ campaign_id: null })
+        .eq('campaign_id', campaignId)
+
+      if (detachErr) {
+        console.error('detachCampaignMissions:', detachErr.message)
+        setDeleting(false)
+        return false
+      }
+    }
+
+    // Delete the campaign itself
+    const { error: err } = await supabase
+      .from('audit_campaigns')
+      .delete()
+      .eq('id', campaignId)
+
+    setDeleting(false)
+    if (err) {
+      console.error('deleteCampaign:', err.message)
+      return false
+    }
+    refetch()
+    return true
+  }, [refetch])
+
+  return { campaigns, loading, error, createCampaign, creating, updateStatus, deleteCampaign, deleting, refetch }
 }
