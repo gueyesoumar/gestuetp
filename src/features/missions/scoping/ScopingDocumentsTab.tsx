@@ -292,8 +292,9 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher une preuve, un contr&ocirc;le..."
-              className="pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] outline-none focus:border-forest-500 w-64"
+              placeholder="Rechercher..."
+              style={{ paddingLeft: '32px' }}
+              className="pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] outline-none focus:border-forest-500 w-64"
             />
           </div>
         </div>
