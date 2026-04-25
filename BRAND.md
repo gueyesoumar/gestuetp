@@ -267,7 +267,27 @@ Deux patterns selon le contexte :
 
 ---
 
-## 11. Règles d'application
+## 11. Console super-admin (`/admin`)
+
+La console Gëstu Admin est **distincte visuellement** de l'app cabinet pour qu'on ne confonde jamais les deux.
+
+| Élément | App cabinet | Console admin |
+|---------|-------------|---------------|
+| Sidebar | Vert forêt clair `#1B4332` | Vert forêt nuit `#0F2A22` |
+| Highlight item actif | Halo vert clair | Halo or `#D4A843` à 15 % d'opacité |
+| Mode-bar haut d'écran | Aucune | **Bande or persistante** « Admin mode » |
+| Identifiant utilisateur | Avatar + nom + rôle cabinet | Avatar + nom + « Platform owner » |
+
+**Règles :**
+1. **Mode-bar non masquable** : la bande or est visible sur toutes les pages `/admin/*`. Elle rappelle que les actions sont tracées et offre un retour direct vers `/`.
+2. **Pas de mélange visuel** : aucun élément de la console admin ne doit apparaître dans l'app cabinet, et inversement. Le passage se fait par la mode-bar (admin → cabinet) ou par lien direct (cabinet → `/admin`).
+3. **Motif obligatoire** : toute action sensible (suspendre, réactiver, exporter, reset password, désactiver user) déclenche une modale de motif. Le motif est tracé dans `admin_audit_log` et conservé indéfiniment.
+4. **Garde-fou immuabilité du flag** : le flag `is_platform_owner` n'est éditable QUE via SQL Editor. Aucune Edge Function ni UI ne le manipule. Ce garde-fou est **critique en sécurité** — un compte compromis ne peut pas s'auto-promouvoir ni promouvoir un complice.
+5. **Distinction logo** : sous le bouclier, le sous-titre passe à `Admin` en or majuscules. Le reste du logo reste identique.
+
+---
+
+## 12. Règles d'application
 
 1. **Ne jamais modifier les couleurs du bouclier** — toujours vert forêt + or
 2. **Le tréma doré est obligatoire** sur le "e" de Gëstu dans tous les contextes

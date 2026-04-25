@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
+import { AdminProtectedRoute } from './components/AdminProtectedRoute'
 import { AppLayout } from './components/layout/AppLayout'
 import { ClientLayout } from './features/client-portal/layout/ClientLayout'
 import { LoginPage } from './pages/LoginPage'
@@ -29,6 +30,12 @@ import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPag
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
 import { UnsubscribePage } from './pages/UnsubscribePage'
+import { AdminLayout } from './features/admin/AdminLayout'
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
+import { CabinetsListPage } from './pages/admin/CabinetsListPage'
+import { CabinetDetailPage } from './pages/admin/CabinetDetailPage'
+import { UsersSearchPage } from './pages/admin/UsersSearchPage'
+import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
 import { SupervisionPage } from './pages/SupervisionPage'
 import { EntityDetailPage } from './pages/EntityDetailPage'
 import { CampaignDetailPage } from './pages/CampaignDetailPage'
@@ -92,6 +99,22 @@ function App() {
             <Route path="missions/nouvelle" element={<MissionCreatePage />} />
             <Route path="missions/:id" element={<MissionDetailPage />} />
             <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
+          </Route>
+
+          {/* Super-admin routes (Gëstu platform owner) */}
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminLayout />
+              </AdminProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="cabinets" element={<CabinetsListPage />} />
+            <Route path="cabinets/:id" element={<CabinetDetailPage />} />
+            <Route path="utilisateurs" element={<UsersSearchPage />} />
+            <Route path="audit-log" element={<AdminAuditLogPage />} />
           </Route>
 
           {/* Client portal routes */}

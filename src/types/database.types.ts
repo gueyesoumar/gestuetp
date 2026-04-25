@@ -160,6 +160,7 @@ export interface User {
   last_sign_in_at: string | null
   role: UserRole
   client_org_id: string | null
+  is_platform_owner: boolean
   created_at: string
   updated_at: string
 }
