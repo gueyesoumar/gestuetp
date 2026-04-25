@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Calendar, ChevronRight, Target, Trash2 } from 'lucide-react'
+import { Plus, Calendar, Target, Trash2 } from 'lucide-react'
 import { useAuditCampaigns } from './useAuditCampaigns'
 import { CampaignCreateModal } from './CampaignCreateModal'
 import { CampaignDeleteModal } from './CampaignDeleteModal'
@@ -69,28 +69,16 @@ export function CampaignListSection({ frameworks, isGroup, canCreate = true }: C
 
             return (
               <div key={c.id} className="relative group">
-                {isGroup && canCreate && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCampaignToDelete(c) }}
-                    className="absolute top-3 right-3 z-10 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                    title="Supprimer la campagne"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
                 <Link
                   to={`/supervision/campagnes/${c.id}`}
                   className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-forest-300 hover:shadow-md transition-all"
                 >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="text-[14px] font-bold text-gray-900 group-hover:text-forest-700 transition-colors">{c.name}</h3>
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-[14px] font-bold text-gray-900 group-hover:text-forest-700 transition-colors truncate">{c.name}</h3>
                     <p className="text-[11px] text-gray-400 mt-0.5">{c.frameworkName}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${status.style}`}>{status.label}</span>
-                    <ChevronRight size={14} className="text-gray-300 group-hover:text-forest-500 transition-colors" />
-                  </div>
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${status.style}`}>{status.label}</span>
                 </div>
 
                 {/* Stats */}
@@ -112,6 +100,17 @@ export function CampaignListSection({ frameworks, isGroup, canCreate = true }: C
                   />
                 </div>
                 </Link>
+
+                {/* Delete button — bottom-right, absolute */}
+                {isGroup && canCreate && (
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCampaignToDelete(c) }}
+                    className="absolute bottom-3 right-3 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all bg-white"
+                    title="Supprimer la campagne"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
             )
           })}
