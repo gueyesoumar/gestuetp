@@ -16,16 +16,13 @@ export interface CreateMissionPayload {
 interface UseCreateMissionResult {
   createMission: (payload: CreateMissionPayload) => Promise<boolean>
   creating: boolean
-  error: string | null
 }
 
-export function useCreateMission(onSuccess?: () => void): UseCreateMissionResult {
+export function useCreateMission(): UseCreateMissionResult {
   const [creating, setCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const createMission = useCallback(async (payload: CreateMissionPayload): Promise<boolean> => {
     setCreating(true)
-    setError(null)
 
     const { data, error: fnError } = await supabase.functions.invoke('create-mission', {
       body: payload,
@@ -43,21 +40,19 @@ export function useCreateMission(onSuccess?: () => void): UseCreateMissionResult
         // pas de body json
       }
       console.error('useCreateMission:', detail)
-      setError(detail)
       setCreating(false)
       return false
     }
 
     if (data?.error) {
-      setError(data.error)
+      console.error('useCreateMission:', data.error)
       setCreating(false)
       return false
     }
 
     setCreating(false)
-    onSuccess?.()
     return true
-  }, [onSuccess])
+  }, [])
 
-  return { createMission, creating, error }
+  return { createMission, creating }
 }

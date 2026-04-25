@@ -112,3 +112,48 @@ input[type="radio"] {
 ::placeholder {
   color: #9CA3AF;
 }
+
+/* Sonner toasts — Gestu brand override */
+[data-sonner-toaster] {
+  --normal-bg: white;
+  --normal-border: #E5E7EB;
+  --normal-text: #1A1A1A;
+  font-family: var(--font-sans);
+}
+[data-sonner-toast] {
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(27, 67, 50, 0.10), 0 2px 4px rgba(27, 67, 50, 0.04);
+}
+[data-sonner-toast] .gestu-toast-title {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+[data-sonner-toast] .gestu-toast-desc {
+  font-size: 12.5px;
+  color: #6B7280;
+  line-height: 1.5;
+}
+[data-sonner-toast] .gestu-toast-action {
+  background: var(--color-forest-900) !important;
+  color: white !important;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+[data-sonner-toast][data-type="success"] {
+  background: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+}
+[data-sonner-toast][data-type="error"] {
+  background: #FEF2F2 !important;
+  border-color: #FECACA !important;
+}
+[data-sonner-toast][data-type="info"] {
+  background: #EFF6FF !important;
+  border-color: #BFDBFE !important;
+}
+[data-sonner-toast][data-type="warning"] {
+  background: #FFFBEB !important;
+  border-color: #FDE68A !important;
+}

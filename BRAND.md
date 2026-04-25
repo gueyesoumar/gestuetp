@@ -169,7 +169,32 @@ Deux patterns selon le contexte :
 
 ---
 
-## 7. Règles d'application
+## 7. Toasts (feedback transient)
+
+**Lib** : `sonner` — wrapper `useToast()` dans `src/hooks/useToast.ts`.
+
+**Position** : `bottom-right`, empilement vertical, expand au survol.
+
+**Variantes et durées :**
+
+| Variante | Usage | Durée | Couleur |
+|----------|-------|-------|---------|
+| `success` | Sauvegarde, soumission, suppression réussies | 4 s | Vert #27AE60 sur #ECFDF5 |
+| `error` | Échec d'une opération · message générique uniquement | 6 s + dismissable | Rouge #C0392B sur #FEF2F2 |
+| `info` | Événement neutre, notification d'état | 4 s | Bleu #1D4ED8 sur #EFF6FF |
+| `warn` | Action permise mais à surveiller | 5 s | Ambre #B45309 sur #FFFBEB |
+| `loading` (`promise`) | Upload, analyse IA, etc. — mute en succès/erreur à la fin | jusqu'à résolution | Vert forêt |
+
+**Règles :**
+1. **Toast vs ErrorAlert** : toast pour le feedback transient post-action ; `ErrorAlert` pour les erreurs persistantes/bloquantes (ex. chargement initial échoué).
+2. **Sécurité** : le wrapper `useToast().error()` impose un message générique côté UI. Le détail technique (message Supabase, stack) est loggé via `console.error()`, jamais affiché. Cohérent avec CLAUDE.md §3.
+3. **Pas de HTML brut** : passer uniquement des strings dans les toasts. Pas de `dangerouslySetInnerHTML`.
+4. **CTA optionnel** : pour les toasts post-action, proposer une action contextuelle (« Voir le suivi », « Réessayer ») — limite à 1 action.
+5. **Accessibilité** : `aria-live="polite"` géré par sonner. Bouton de fermeture visible.
+
+---
+
+## 8. Règles d'application
 
 1. **Ne jamais modifier les couleurs du bouclier** — toujours vert forêt + or
 2. **Le tréma doré est obligatoire** sur le "e" de Gëstu dans tous les contextes

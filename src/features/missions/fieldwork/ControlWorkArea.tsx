@@ -6,6 +6,7 @@ import { ASSESSMENT_STATUS_CONFIG, GUIDED_STEPS } from '../mission-constants'
 import { GuidedWorkflow } from './GuidedWorkflow'
 import { FreeWorkForm } from './FreeWorkForm'
 import { useMissionDocuments } from '../useMissionDocuments'
+import { useToast } from '../../../hooks/useToast'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
 interface ControlWorkAreaProps {
@@ -28,6 +29,7 @@ interface ControlWorkAreaProps {
 }
 
 export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, saving, saveError, isReviewer, reviewerRole, leadApproved, onModeChange, onGuidedStepChange, onToggleAutoAdvance, onSave, onSubmit, onApprove, onReject }: ControlWorkAreaProps){
+  const toast = useToast()
   const [reviewComment, setReviewComment] = useState('')
   const [reviewAction, setReviewAction] = useState<'idle' | 'approving' | 'rejecting'>('idle')
   const [observations, setObservations] = useState(assessment.observations ?? '')
@@ -63,13 +65,21 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
   const canGoPrev = guidedStep > 0
 
   const handleSave = useCallback(async () => {
-    await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification })
-  }, [assessment.id, findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, findingClassification, onSave])
+    const ok = await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification })
+    if (ok) {
+      toast.success('Travaux enregistrés', { description: assessment.control.code })
+    }
+  }, [assessment.id, assessment.control.code, findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, findingClassification, onSave, toast])
 
   const handleSubmit = useCallback(async () => {
     const saved = await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification })
-    if (saved) await onSubmit(assessment.id)
-  }, [assessment.id, findings, recommendations, evidenceNotes, onSave, onSubmit])
+    if (saved) {
+      const submitted = await onSubmit(assessment.id)
+      if (submitted) {
+        toast.success('Travaux soumis pour revue', { description: `${assessment.control.code} · transmis au lead` })
+      }
+    }
+  }, [assessment.id, assessment.control.code, findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, findingClassification, onSave, onSubmit, toast])
 
   const handleNext = useCallback(() => {
     if (canGoNext) onGuidedStepChange(guidedStep + 1)
@@ -261,9 +271,10 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
                 if (!onApprove || !canAct) return
                 setReviewAction('approving')
                 const stage = reviewerRole === 'associate' ? 'associate_review' : 'lead_review'
-                await onApprove(assessment.id, reviewComment, stage)
+                const ok = await onApprove(assessment.id, reviewComment, stage)
                 setReviewComment('')
                 setReviewAction('idle')
+                if (ok) toast.success('Validation enregistrée', { description: assessment.control.code })
               }}
               disabled={!canAct || reviewAction !== 'idle'}
               className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg text-[13px] font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -275,9 +286,10 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
                 if (!onReject || !canAct) return
                 setReviewAction('rejecting')
                 const stage = reviewerRole === 'associate' ? 'associate_review' : 'lead_review'
-                await onReject(assessment.id, reviewComment, stage)
+                const ok = await onReject(assessment.id, reviewComment, stage)
                 setReviewComment('')
                 setReviewAction('idle')
+                if (ok) toast.warn('Constat rejeté', { description: `${assessment.control.code} · renvoyé à l'auditeur` })
               }}
               disabled={!canAct || reviewAction !== 'idle'}
               className="flex-1 px-4 py-2.5 bg-white text-red-600 border border-red-400 rounded-lg text-[13px] font-semibold hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

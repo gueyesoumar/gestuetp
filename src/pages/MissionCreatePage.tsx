@@ -11,14 +11,15 @@ import { MissionCalendarStep } from '../features/missions/steps/MissionCalendarS
 import { MissionConfirmStep } from '../features/missions/steps/MissionConfirmStep'
 import { FormWizard } from '../components/ui/FormWizard'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { ErrorAlert } from '../components/ui/ErrorAlert'
+import { useToast } from '../hooks/useToast'
 
 export function MissionCreatePage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { frameworks, loading: fwLoading } = useFrameworks()
   const { clients, loading: clientsLoading } = useCabinetClients()
   const { members, loading: membersLoading } = useMembers()
-  const { createMission, creating, error } = useCreateMission(() => navigate('/missions'))
+  const { createMission, creating } = useCreateMission()
 
   const [frameworkId, setFrameworkId] = useState('')
   const [clientId, setClientId] = useState('')
@@ -49,7 +50,7 @@ export function MissionCreatePage() {
   }
 
   const handleSubmit = async () => {
-    await createMission({
+    const ok = await createMission({
       name: missionName,
       description: '',
       cabinet_client_id: clientId,
@@ -60,6 +61,15 @@ export function MissionCreatePage() {
       end_date: endDate,
       member_ids: allMemberIds,
     })
+    if (ok) {
+      toast.success('Mission créée', {
+        description: missionName,
+        action: { label: 'Voir', onClick: () => navigate('/missions') },
+      })
+      navigate('/missions')
+    } else {
+      toast.error('Création impossible')
+    }
   }
 
   return (
@@ -70,8 +80,6 @@ export function MissionCreatePage() {
 
       <h2 className="mt-4 text-xl font-semibold text-gray-900">Nouvelle mission</h2>
       <p className="mt-1 text-[13px] text-gray-500">Cr&eacute;ez une mission en 5 &eacute;tapes guid&eacute;es.</p>
-
-      {error && <div className="mt-4"><ErrorAlert message={error} /></div>}
 
       <div className="mt-6">
         <FormWizard

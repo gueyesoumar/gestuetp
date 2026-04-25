@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Système de toasts — Gestu Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#FAFAF8;--white:#fff;
+  --t9:#1A1A1A;--t7:#374151;--t5:#6B7280;--t3:#9CA3AF;
+  --border:#E5E7EB;--border2:#D1D5DB;
+  --f9:#1B4332;--f7:#2D6A4F;--f5:#52B788;--f1:#D8F3DC;--f0:#F0FFF4;
+  --gold:#D4A843;--g2:#F2E2B1;--g0:#FDF8E8;
+  --ok:#27AE60;--ok-bg:#ECFDF5;
+  --err:#C0392B;--err-bg:#FEF2F2;
+  --info:#1D4ED8;--info-bg:#EFF6FF;
+  --warn:#B45309;--warn-bg:#FFFBEB;
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--t9); -webkit-font-smoothing:antialiased; padding:32px 24px 64px }
+.mono { font-family:'JetBrains Mono',monospace }
+
+.wrap { max-width:1280px; margin:0 auto }
+.hero { margin-bottom:36px }
+.hero-tag { display:inline-block; padding:4px 12px; background:var(--g0); color:var(--gold); border:1px solid var(--g2); border-radius:99px; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:12px }
+.hero h1 { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px }
+.hero p { font-size:15px; color:var(--t5); max-width:720px; line-height:1.6 }
+
+.section { margin-bottom:48px }
+.section-h { display:flex; align-items:baseline; gap:12px; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--f9) }
+.section-h h2 { font-size:20px; font-weight:700; color:var(--f9) }
+.section-h .num { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--gold); font-weight:700 }
+.section-desc { font-size:13px; color:var(--t5); margin-bottom:20px }
+
+/* Toast anatomy ─────────────────────────────────────── */
+.toasts-row { display:grid; grid-template-columns:repeat(2,1fr); gap:16px }
+.toast-demo { background:white; border:1px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 4px 12px rgba(27,67,50,.06) }
+.toast-demo .label { font-size:11px; font-weight:600; color:var(--t3); letter-spacing:.5px; text-transform:uppercase; margin-bottom:12px }
+
+.toast { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:10px; border:1px solid transparent; box-shadow:0 8px 24px rgba(27,67,50,.10), 0 2px 4px rgba(27,67,50,.04); background:white; min-width:320px; max-width:420px; position:relative }
+.toast .ic { width:20px; height:20px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:white; margin-top:1px }
+.toast .body { flex:1; min-width:0 }
+.toast .title { font-size:13.5px; font-weight:600; color:var(--t9); line-height:1.35 }
+.toast .desc { font-size:12.5px; color:var(--t5); margin-top:3px; line-height:1.5 }
+.toast .close { color:var(--t3); cursor:pointer; font-size:14px; line-height:1; padding:2px; flex-shrink:0 }
+.toast .actions { display:flex; gap:8px; margin-top:10px }
+.toast .a-link { font-size:12px; font-weight:600; color:var(--f9); cursor:pointer; padding:0; border:none; background:none; text-decoration:underline; text-underline-offset:2px }
+.toast .a-link.muted { color:var(--t5); text-decoration:none }
+
+.toast.t-success { background:var(--ok-bg); border-color:#A7F3D0 }
+.toast.t-success .ic { background:var(--ok) }
+.toast.t-error { background:var(--err-bg); border-color:#FECACA }
+.toast.t-error .ic { background:var(--err) }
+.toast.t-info { background:var(--info-bg); border-color:#BFDBFE }
+.toast.t-info .ic { background:var(--info) }
+.toast.t-warn { background:var(--warn-bg); border-color:#FDE68A }
+.toast.t-warn .ic { background:var(--warn) }
+.toast.t-loading { background:white; border-color:var(--border) }
+.toast.t-loading .ic { background:var(--f9); animation:spin 1s linear infinite }
+.toast.t-brand { background:var(--f9); border-color:var(--f9) }
+.toast.t-brand .title { color:white }
+.toast.t-brand .desc { color:rgba(255,255,255,.8) }
+.toast.t-brand .ic { background:var(--gold); color:var(--f9) }
+.toast.t-brand .close { color:rgba(255,255,255,.6) }
+.toast.t-brand .a-link { color:var(--gold) }
+
+@keyframes spin { from { transform:rotate(0) } to { transform:rotate(360deg) } }
+
+/* Spec table */
+.spec { background:white; border:1px solid var(--border); border-radius:12px; overflow:hidden }
+.spec table { width:100%; border-collapse:collapse }
+.spec th { text-align:left; font-size:11px; font-weight:600; color:var(--t5); text-transform:uppercase; letter-spacing:.5px; padding:12px 16px; background:#FAFAF8; border-bottom:1px solid var(--border) }
+.spec td { padding:12px 16px; font-size:13px; border-bottom:1px solid var(--border) }
+.spec tr:last-child td { border-bottom:none }
+.spec td .pill { display:inline-block; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600 }
+.pill-success { background:var(--ok-bg); color:var(--ok) }
+.pill-error { background:var(--err-bg); color:var(--err) }
+.pill-info { background:var(--info-bg); color:var(--info) }
+.pill-warn { background:var(--warn-bg); color:var(--warn) }
+.pill-loading { background:#F3F4F6; color:var(--t5) }
+.pill-brand { background:var(--f9); color:white }
+
+/* Scenarios — fake screens ──────────────────────────── */
+.scene { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; position:relative; box-shadow:0 4px 12px rgba(27,67,50,.04) }
+.scene-h { padding:14px 18px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px }
+.scene-h .dot { width:10px; height:10px; border-radius:50%; background:#E5E7EB }
+.scene-h .dot.r { background:#FCA5A5 }
+.scene-h .dot.y { background:#FDE68A }
+.scene-h .dot.g { background:#A7F3D0 }
+.scene-h .url { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--t5); margin-left:8px }
+.scene-h .ctx { margin-left:auto; font-size:11px; color:var(--t3); font-weight:500 }
+.scene-body { padding:24px; min-height:280px; position:relative }
+
+/* Toast viewport (sonner default = bottom-right) */
+.viewport { position:absolute; bottom:18px; right:18px; display:flex; flex-direction:column; gap:8px; z-index:10 }
+
+/* Mini-UI inside scenes */
+.mini-h { display:flex; align-items:center; gap:10px; margin-bottom:14px }
+.mini-h .crumb { font-size:11px; color:var(--t5) }
+.mini-h .crumb b { color:var(--f9); font-weight:600 }
+.mini-h .crumb i { color:var(--t3); font-style:normal; margin:0 6px }
+.mini-title { font-size:18px; font-weight:700; color:var(--t9); margin-bottom:4px }
+.mini-sub { font-size:12px; color:var(--t5); margin-bottom:18px }
+.field { margin-bottom:12px }
+.field label { display:block; font-size:11px; font-weight:600; color:var(--t7); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px }
+.input { width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:7px; font-size:13px; background:white; color:var(--t9) }
+.input.lg { height:80px }
+.btn-row { display:flex; gap:10px; margin-top:6px }
+.btn { padding:9px 16px; border-radius:8px; font-size:13px; font-weight:600; border:1px solid transparent; cursor:pointer; display:inline-flex; align-items:center; gap:6px }
+.btn-pri { background:var(--f9); color:white; border-color:var(--f9) }
+.btn-sec { background:white; color:var(--t7); border-color:var(--border2) }
+.btn-pri.gold { background:var(--gold); color:var(--f9); border-color:var(--gold) }
+
+/* Comparison ─ before / after ───────────────────────── */
+.compare { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start }
+.compare .col-l { position:relative }
+.compare .col-l::after { content:'avant'; position:absolute; top:-12px; right:14px; padding:3px 10px; background:#374151; color:white; border-radius:99px; font-size:10px; font-weight:600; letter-spacing:.5px; text-transform:uppercase }
+.compare .col-r { position:relative }
+.compare .col-r::after { content:'après'; position:absolute; top:-12px; right:14px; padding:3px 10px; background:var(--gold); color:var(--f9); border-radius:99px; font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase }
+
+/* Old ErrorAlert pattern */
+.err-alert { background:var(--err-bg); border:1px solid #FECACA; border-radius:8px; padding:12px 14px; display:flex; gap:10px; margin-bottom:12px }
+.err-alert .ic { width:18px; height:18px; flex-shrink:0; border-radius:50%; background:var(--err); color:white; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px }
+.err-alert .txt { font-size:13px; color:var(--err) }
+
+/* Card layout */
+.card-row { display:grid; grid-template-columns:repeat(2,1fr); gap:18px }
+.scene-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px }
+
+/* Code block */
+.code { background:#1A1A1A; color:#A7F3D0; padding:18px 22px; border-radius:12px; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7; overflow-x:auto; margin-top:16px }
+.code .kw { color:#FCD34D }
+.code .str { color:#86EFAC }
+.code .com { color:#6B7280 }
+.code .fn { color:#93C5FD }
+
+/* Notes */
+.note { background:var(--g0); border:1px solid var(--g2); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:14px 16px; font-size:13px; color:var(--t7); line-height:1.6; margin-top:16px }
+.note b { color:var(--f9) }
+
+/* Topbar mini for scenes */
+.tbar { display:flex; align-items:center; padding:10px 14px; background:var(--f9); color:white; border-radius:8px; margin-bottom:14px; font-size:12px; gap:10px }
+.tbar .logo { font-weight:700; font-size:13px }
+.tbar .logo span { color:var(--gold) }
+.tbar .right { margin-left:auto; display:flex; gap:14px; align-items:center }
+.tbar .bell { position:relative; cursor:pointer }
+.tbar .bell .b { position:absolute; top:-4px; right:-4px; background:var(--gold); color:var(--f9); font-size:9px; font-weight:700; border-radius:99px; padding:1px 5px }
+
+/* Tag pills inside scene */
+.chip { display:inline-flex; align-items:center; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600; gap:4px }
+.chip-progress { background:var(--info-bg); color:var(--info) }
+.chip-done { background:var(--ok-bg); color:var(--ok) }
+
+/* Doc list */
+.doclist { background:#F9FAFB; border:1px solid var(--border); border-radius:8px; padding:8px }
+.docitem { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:6px; font-size:12.5px }
+.docitem:hover { background:white }
+.docitem .ic { width:28px; height:28px; border-radius:6px; background:var(--err-bg); color:var(--err); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700 }
+.docitem .name { flex:1; color:var(--t9) }
+.docitem .meta { font-size:11px; color:var(--t3) }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- Hero ─────────────────────────────────────────────── -->
+  <div class="hero">
+    <div class="hero-tag">Chantier UX #1 · Mockup d'impact</div>
+    <h1>Système de toasts — feedback visuel sur chaque action</h1>
+    <p>
+      Aujourd'hui, sauvegarder un travail terrain, soumettre une validation ou uploader un document
+      ne déclenche aucune confirmation. L'utilisateur doute. Avec un système de toasts cohérent
+      (succès, erreur, info, chargement asynchrone), chaque action génère un retour immédiat,
+      éphémère et accessible — sans alourdir l'écran.
+    </p>
+  </div>
+
+  <!-- Section 1 — Anatomie ──────────────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">01</span>
+      <h2>Anatomie d'un toast Gestu</h2>
+    </div>
+    <div class="section-desc">
+      Six variantes alignées sur la charte (vert forêt + or). Affichage en bas-droite, durée 4 s par défaut,
+      empilement vertical, bouton de fermeture optionnel, accessible via <span class="mono">aria-live="polite"</span>.
+    </div>
+
+    <div class="toasts-row">
+      <!-- Success -->
+      <div class="toast-demo">
+        <div class="label">Succès — action validée</div>
+        <div class="toast t-success">
+          <div class="ic">✓</div>
+          <div class="body">
+            <div class="title">Constat enregistré</div>
+            <div class="desc">REG 30-1 · Politique de gestion des accès</div>
+          </div>
+          <div class="close">×</div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="toast-demo">
+        <div class="label">Erreur — action échouée</div>
+        <div class="toast t-error">
+          <div class="ic">!</div>
+          <div class="body">
+            <div class="title">Impossible d'enregistrer</div>
+            <div class="desc">Vérifiez votre connexion puis réessayez.</div>
+            <div class="actions">
+              <button class="a-link">Réessayer</button>
+            </div>
+          </div>
+          <div class="close">×</div>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="toast-demo">
+        <div class="label">Info — événement neutre</div>
+        <div class="toast t-info">
+          <div class="ic">i</div>
+          <div class="body">
+            <div class="title">Document partagé avec le client</div>
+            <div class="desc">Disponible dans l'espace référent métier.</div>
+          </div>
+          <div class="close">×</div>
+        </div>
+      </div>
+
+      <!-- Warn -->
+      <div class="toast-demo">
+        <div class="label">Avertissement — attention requise</div>
+        <div class="toast t-warn">
+          <div class="ic">⚠</div>
+          <div class="body">
+            <div class="title">3 contrôles non évalués</div>
+            <div class="desc">La phase ne pourra pas être clôturée tant qu'ils ne sont pas traités.</div>
+          </div>
+          <div class="close">×</div>
+        </div>
+      </div>
+
+      <!-- Loading / Promise -->
+      <div class="toast-demo">
+        <div class="label">Chargement — opération asynchrone</div>
+        <div class="toast t-loading">
+          <div class="ic">⟳</div>
+          <div class="body">
+            <div class="title">Analyse IA en cours…</div>
+            <div class="desc">Lecture de 4 documents · ~30 s</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand action -->
+      <div class="toast-demo">
+        <div class="label">Branded — action contextuelle</div>
+        <div class="toast t-brand">
+          <div class="ic">★</div>
+          <div class="body">
+            <div class="title">Mission créée avec succès</div>
+            <div class="desc">Audit ISO 27001 · Banque Nationale</div>
+            <div class="actions">
+              <button class="a-link">Ouvrir la mission</button>
+              <button class="a-link muted">Plus tard</button>
+            </div>
+          </div>
+          <div class="close">×</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec" style="margin-top:24px">
+      <table>
+        <thead>
+          <tr><th>Variante</th><th>Usage</th><th>Durée</th><th>Couleur</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="pill pill-success">success</span></td><td>Sauvegarde, soumission, suppression réussies</td><td>4 s</td><td>Vert #27AE60</td></tr>
+          <tr><td><span class="pill pill-error">error</span></td><td>Échec d'une opération · message générique + log technique</td><td>6 s + dismissable</td><td>Rouge #C0392B</td></tr>
+          <tr><td><span class="pill pill-info">info</span></td><td>Événement neutre, notification d'état</td><td>4 s</td><td>Bleu #1D4ED8</td></tr>
+          <tr><td><span class="pill pill-warn">warn</span></td><td>Action permise mais à surveiller (quotas, échéances)</td><td>5 s</td><td>Ambre #B45309</td></tr>
+          <tr><td><span class="pill pill-loading">loading</span></td><td>Promise (upload, analyse IA) → mute en succès/erreur à la fin</td><td>jusqu'à résolution</td><td>Vert forêt</td></tr>
+          <tr><td><span class="pill pill-brand">brand</span></td><td>Action majeure avec CTA contextuel (mission créée, rapport publié)</td><td>6 s</td><td>Vert forêt + or</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 2 — Mises en situation ────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">02</span>
+      <h2>Mises en situation sur la plateforme</h2>
+    </div>
+    <div class="section-desc">
+      Quatre écrans réels Gestu Comply, avec le toast attendu après l'action. Le viewport toast est en bas-droite.
+    </div>
+
+    <div class="scene-grid">
+
+      <!-- Scene 1 — Save fieldwork -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">/missions/{id}/fieldwork/REG-30-1</span>
+          <span class="ctx">Auditeur · ControlWorkArea</span>
+        </div>
+        <div class="scene-body">
+          <div class="mini-h">
+            <div class="crumb"><b>BNS · Audit ISO 27001</b><i>›</i>Travaux<i>›</i><b>REG 30-1</b></div>
+          </div>
+          <div class="mini-title">Politique de gestion des accès</div>
+          <div class="mini-sub">Domaine A.9 · Maturité évaluée 3/5</div>
+          <div class="field">
+            <label>Constats de l'auditeur</label>
+            <div class="input lg">La politique d'accès est documentée et appliquée pour la majorité des comptes. Les comptes à privilèges ne sont pas revus mensuellement comme prévu par la procédure interne.</div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-pri">✓ Enregistrer</button>
+            <button class="btn btn-sec">Annuler</button>
+          </div>
+
+          <div class="viewport">
+            <div class="toast t-success">
+              <div class="ic">✓</div>
+              <div class="body">
+                <div class="title">Constat enregistré</div>
+                <div class="desc">Prochaine étape : assigner une action corrective.</div>
+                <div class="actions">
+                  <button class="a-link">Créer une action</button>
+                </div>
+              </div>
+              <div class="close">×</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 2 — Upload document with promise toast -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">/client/missions/{id}/exchanges</span>
+          <span class="ctx">Référent métier · ClientExchangesTab</span>
+        </div>
+        <div class="scene-body">
+          <div class="mini-h">
+            <div class="crumb"><b>BNS</b><i>›</i>Mes demandes<i>›</i><b>Politique d'accès v3</b></div>
+          </div>
+          <div class="mini-title">Documents partagés</div>
+          <div class="mini-sub">Ajoutez les preuves demandées par votre auditeur.</div>
+          <div class="doclist">
+            <div class="docitem">
+              <div class="ic">PDF</div>
+              <div class="name">politique_acces_v3_2026.pdf</div>
+              <span class="chip chip-progress">⟳ Analyse IA</span>
+              <div class="meta">2,1 Mo</div>
+            </div>
+            <div class="docitem">
+              <div class="ic">PDF</div>
+              <div class="name">procédure_revue_comptes.pdf</div>
+              <span class="chip chip-done">✓ Indexé</span>
+              <div class="meta">680 Ko</div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:14px">
+            <button class="btn btn-pri">+ Ajouter un document</button>
+          </div>
+
+          <div class="viewport">
+            <div class="toast t-loading">
+              <div class="ic">⟳</div>
+              <div class="body">
+                <div class="title">Indexation IA en cours…</div>
+                <div class="desc">politique_acces_v3_2026.pdf · ~10 s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 3 — Validation submitted -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">/missions/{id}/internal-review</span>
+          <span class="ctx">Lead Auditor · ValidationDetailPanel</span>
+        </div>
+        <div class="scene-body">
+          <div class="mini-h">
+            <div class="crumb"><b>Hôpital Principal</b><i>›</i>Revue interne<i>›</i><b>Domaine A.12</b></div>
+          </div>
+          <div class="mini-title">Validation des travaux — Sécurité physique</div>
+          <div class="mini-sub">8 contrôles évalués · Maturité moyenne 3,2/5</div>
+          <div class="field">
+            <label>Commentaire du lead</label>
+            <div class="input lg">Travaux conformes. Approbation sans réserve. Recommander la transmission au client en l'état.</div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-pri">✓ Approuver</button>
+            <button class="btn btn-sec">Demander des compléments</button>
+          </div>
+
+          <div class="viewport">
+            <div class="toast t-brand">
+              <div class="ic">★</div>
+              <div class="body">
+                <div class="title">Domaine A.12 approuvé</div>
+                <div class="desc">L'auditeur a été notifié. Prochaine étape : revue client.</div>
+                <div class="actions">
+                  <button class="a-link">Voir le suivi</button>
+                  <button class="a-link muted">OK</button>
+                </div>
+              </div>
+              <div class="close">×</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 4 — Error case -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">/missions/create</span>
+          <span class="ctx">Auditeur · MissionCreatePage</span>
+        </div>
+        <div class="scene-body">
+          <div class="mini-h">
+            <div class="crumb">Missions<i>›</i><b>Nouvelle mission</b><i>›</i>Étape 5/5</div>
+          </div>
+          <div class="mini-title">Confirmer la création</div>
+          <div class="mini-sub">Audit ISO 27001 · Banque Nationale Sénégal · 4 auditeurs</div>
+          <div class="field">
+            <label>Période</label>
+            <div class="input">28 avril 2026 → 30 juin 2026</div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-pri gold">★ Créer la mission</button>
+            <button class="btn btn-sec">Précédent</button>
+          </div>
+
+          <div class="viewport">
+            <div class="toast t-error">
+              <div class="ic">!</div>
+              <div class="body">
+                <div class="title">Création impossible</div>
+                <div class="desc">Le serveur n'a pas répondu. Vos données sont conservées.</div>
+                <div class="actions">
+                  <button class="a-link">Réessayer</button>
+                  <button class="a-link muted">Voir les détails</button>
+                </div>
+              </div>
+              <div class="close">×</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Section 3 — Avant / Après ─────────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">03</span>
+      <h2>Comparaison avant / après</h2>
+    </div>
+    <div class="section-desc">
+      Aujourd'hui, le bouton « Enregistrer » revient à son état initial sans confirmation visible. En cas d'erreur,
+      un encart rouge persistant s'affiche en haut du formulaire. Les toasts remplacent ce pattern pour le feedback
+      transient ; <span class="mono">ErrorAlert</span> reste utilisé uniquement pour les erreurs bloquantes (ex. chargement initial échoué).
+    </div>
+
+    <div class="compare">
+
+      <!-- BEFORE -->
+      <div class="col-l">
+        <div class="scene">
+          <div class="scene-h">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="url">/missions/{id}/fieldwork/REG-30-1</span>
+          </div>
+          <div class="scene-body" style="min-height:340px">
+            <div class="err-alert">
+              <div class="ic">!</div>
+              <div class="txt">Erreur lors de la sauvegarde : duplicate key value violates unique constraint "fieldwork_pkey"</div>
+            </div>
+            <div class="mini-title">Politique de gestion des accès</div>
+            <div class="mini-sub">Domaine A.9 · Maturité 3/5</div>
+            <div class="field">
+              <label>Constats</label>
+              <div class="input lg">…</div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-pri">Enregistrer</button>
+            </div>
+            <div style="margin-top:18px; padding:10px 12px; background:#FEF2F2; border-radius:6px; font-size:11.5px; color:var(--err)">
+              ⚠ Détail technique exposé · pas de confirmation succès · alerte persistante qui pollue l'écran
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AFTER -->
+      <div class="col-r">
+        <div class="scene">
+          <div class="scene-h">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="url">/missions/{id}/fieldwork/REG-30-1</span>
+          </div>
+          <div class="scene-body" style="min-height:340px">
+            <div class="mini-title">Politique de gestion des accès</div>
+            <div class="mini-sub">Domaine A.9 · Maturité 3/5</div>
+            <div class="field">
+              <label>Constats</label>
+              <div class="input lg">…</div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-pri">Enregistrer</button>
+            </div>
+
+            <div class="viewport">
+              <div class="toast t-error">
+                <div class="ic">!</div>
+                <div class="body">
+                  <div class="title">Impossible d'enregistrer</div>
+                  <div class="desc">Une autre personne a modifié ce contrôle. Rechargez la page.</div>
+                  <div class="actions">
+                    <button class="a-link">Recharger</button>
+                  </div>
+                </div>
+                <div class="close">×</div>
+              </div>
+            </div>
+            <div style="margin-top:18px; padding:10px 12px; background:var(--ok-bg); border-radius:6px; font-size:11.5px; color:var(--ok)">
+              ✓ Message générique côté UI · détail loggé en console · disparait après 6 s · CTA contextuel
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <b>Garde-fou sécurité (CLAUDE.md §3)</b> — le wrapper <span class="mono">useToast()</span> impose un message
+      générique pour les erreurs. Le détail technique (message Supabase, stack) est loggé en console
+      via <span class="mono">console.error()</span>, jamais affiché à l'utilisateur. Cette séparation
+      empêche la fuite d'informations internes (noms de tables, contraintes, schémas) qui pourraient
+      faciliter la reconnaissance d'attaque.
+    </div>
+  </div>
+
+  <!-- Section 4 — API du wrapper ─────────────────────────── -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">04</span>
+      <h2>API attendue · <span class="mono" style="font-size:14px;color:var(--gold)">useToast()</span></h2>
+    </div>
+    <div class="section-desc">
+      Wrapper minimal au-dessus de Sonner — impose la sémantique Gestu et masque les détails techniques en cas d'erreur.
+    </div>
+
+<div class="code">
+<span class="com">// src/hooks/useToast.ts</span>
+<span class="kw">export function</span> <span class="fn">useToast</span>() {
+  <span class="kw">return</span> {
+    <span class="fn">success</span>: (title: string, opts?: ToastOpts) =&gt; sonner.success(title, opts),
+    <span class="fn">error</span>:   (title: string, err?: unknown) =&gt; {
+      <span class="kw">if</span> (err) <span class="fn">console.error</span>(<span class="str">'[toast]'</span>, err)  <span class="com">// log technique uniquement</span>
+      sonner.<span class="fn">error</span>(title)                       <span class="com">// message générique côté UI</span>
+    },
+    <span class="fn">info</span>:    (title: string, opts?: ToastOpts) =&gt; sonner.info(title, opts),
+    <span class="fn">warn</span>:    (title: string, opts?: ToastOpts) =&gt; sonner.warning(title, opts),
+    <span class="fn">promise</span>: &lt;T&gt;(p: <span class="kw">Promise</span>&lt;T&gt;, m: PromiseMessages) =&gt; sonner.promise(p, m),
+  }
+}
+
+<span class="com">// Usage typique</span>
+<span class="kw">const</span> toast = <span class="fn">useToast</span>()
+
+<span class="kw">try</span> {
+  <span class="kw">await</span> <span class="fn">saveControl</span>()
+  toast.<span class="fn">success</span>(<span class="str">'Constat enregistré'</span>, { description: <span class="str">'Prochaine étape : action corrective.'</span> })
+} <span class="kw">catch</span> (err) {
+  toast.<span class="fn">error</span>(<span class="str">'Impossible d\'enregistrer'</span>, err)  <span class="com">// err loggé, pas affiché</span>
+}
+</div>
+  </div>
+
+  <!-- Footer ─────────────────────────────────────────────── -->
+  <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:14px; font-size:12px; color:var(--t5)">
+    <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--f9)">Gestu Comply</div>
+    <div>·</div>
+    <div>Mockup chantier UX #1 · Système de toasts</div>
+    <div style="margin-left:auto">Couleurs : Vert forêt #1B4332 · Or #D4A843 · Police : Inter</div>
+  </div>
+
+</div>
+
+</body>
+</html>

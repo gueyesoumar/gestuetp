@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
@@ -35,6 +36,20 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Toaster
+          position="bottom-right"
+          richColors
+          closeButton
+          expand={false}
+          toastOptions={{
+            classNames: {
+              toast: 'gestu-toast',
+              title: 'gestu-toast-title',
+              description: 'gestu-toast-desc',
+              actionButton: 'gestu-toast-action',
+            },
+          }}
+        />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/set-password" element={<SetPasswordPage />} />

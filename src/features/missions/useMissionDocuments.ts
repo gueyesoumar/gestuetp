@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../hooks/useToast'
 import { registerDocumentForAI } from './registerDocumentForAI'
 import type { Document } from '../../types/database.types'
 
@@ -17,6 +18,7 @@ interface UseMissionDocumentsResult {
 
 export function useMissionDocuments(missionId: string | undefined, controlId?: string): UseMissionDocumentsResult {
   const { profile } = useAuth()
+  const toast = useToast()
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -75,50 +77,60 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
       .replace(/_+/g, '_') // collapse multiple _
     const filePath = `missions/${missionId}/${Date.now()}_${safeName}`
 
-    // 1. Upload vers Supabase Storage
-    const { error: storageError } = await supabase.storage
-      .from('documents')
-      .upload(filePath, file)
+    const upload = async (): Promise<string> => {
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file)
+      if (storageError) {
+        console.error('useMissionDocuments STORAGE error:', storageError.message, storageError)
+        throw new Error(storageError.message)
+      }
 
-    if (storageError) {
-      console.error('useMissionDocuments STORAGE error:', storageError.message, storageError)
-      setUploadError(`Erreur Storage : ${storageError.message}`)
+      const { data: insertedDoc, error: insertError } = await supabase
+        .from('documents')
+        .insert({
+          mission_id: missionId,
+          control_id: controlId || null,
+          uploaded_by: profile.id,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          mime_type: file.type || null,
+          description: description || null,
+        })
+        .select('id')
+        .single()
+
+      if (insertError) {
+        console.error('useMissionDocuments TABLE INSERT error:', insertError.message, insertError)
+        throw new Error(insertError.message)
+      }
+
+      if (insertedDoc?.id) {
+        registerDocumentForAI(insertedDoc.id, file.name)
+      }
+
+      return file.name
+    }
+
+    const promise = upload()
+    toast.promise(promise, {
+      loading: `Envoi de ${file.name}\u2026`,
+      success: (name) => `${name} ajout\u00e9 \u00b7 indexation IA en cours`,
+      error: 'Impossible d\'envoyer le document',
+    })
+
+    try {
+      await promise
+      setUploading(false)
+      refetch()
+      return true
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Erreur inconnue')
       setUploading(false)
       return false
     }
-
-    // 2. Inserer dans la table documents
-    const { data: insertedDoc, error: insertError } = await supabase
-      .from('documents')
-      .insert({
-        mission_id: missionId,
-        control_id: controlId || null,
-        uploaded_by: profile.id,
-        file_name: file.name,
-        file_path: filePath,
-        file_size: file.size,
-        mime_type: file.type || null,
-        description: description || null,
-      })
-      .select('id')
-      .single()
-
-    if (insertError) {
-      console.error('useMissionDocuments TABLE INSERT error:', insertError.message, insertError)
-      setUploadError(`Fichier upload\u00e9 mais erreur table : ${insertError.message}`)
-      setUploading(false)
-      return false
-    }
-
-    // 3. Trigger background Anthropic Files API upload (non-blocking)
-    if (insertedDoc?.id) {
-      registerDocumentForAI(insertedDoc.id, file.name)
-    }
-
-    setUploading(false)
-    refetch()
-    return true
-  }, [missionId, profile, refetch])
+  }, [missionId, controlId, profile, refetch, toast])
 
   const deleteDocument = useCallback(async (docId: string, filePath: string): Promise<boolean> => {
     // 1. Delete from Storage
@@ -138,13 +150,16 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
     })
 
     if (!res.ok) {
-      console.error('deleteDocument table:', await res.text())
+      const detail = await res.text()
+      console.error('deleteDocument table:', detail)
+      toast.error('Impossible de supprimer le document')
       return false
     }
 
+    toast.success('Document supprimé')
     refetch()
     return true
-  }, [refetch])
+  }, [refetch, toast])
 
   return { documents, loading, error, uploading, uploadError, uploadDocument, deleteDocument, refetch }
 }

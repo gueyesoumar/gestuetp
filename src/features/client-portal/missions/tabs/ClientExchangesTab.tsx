@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { Paperclip, Check, Sparkles, FileText, BarChart3, Calendar, BookOpen, Link2, ArrowRight } from 'lucide-react'
 import { useAuth } from '../../../../hooks/useAuth'
+import { useToast } from '../../../../hooks/useToast'
 import { supabase } from '../../../../lib/supabase'
 import { useMissionQuestionnaire } from '../../../missions/useMissionQuestionnaire'
 import { useMissionDocuments } from '../../../missions/useMissionDocuments'
@@ -18,15 +19,14 @@ interface Props {
 
 export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Element {
   const { profile } = useAuth()
+  const toast = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [pendingDocName, setPendingDocName] = useState<string | null>(null)
   const [pendingControlIds, setPendingControlIds] = useState<string[]>([])
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
-  const [localUploadError, setLocalUploadError] = useState<string | null>(null)
   const [linkingDocName, setLinkingDocName] = useState<string | null>(null)
 
   const { instance, questions, responses, loading: qLoading } = useMissionQuestionnaire(mission.id)
-  const { documents, uploading, uploadError, uploadDocument, refetch: refetchDocs } = useMissionDocuments(mission.id)
+  const { documents, uploading, uploadDocument, refetch: refetchDocs } = useMissionDocuments(mission.id)
   const { expectedDocs, pendingCount, uploadedCount, coveredControls, totalControls, loading: edLoading, refetch: refetchExpected } = useClientExpectedDocuments(mission.id)
   const { interviews, loading: intLoading } = useClientInterviews(mission.id)
 
@@ -51,77 +51,88 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
     const file = fileInputRef.current?.files?.[0]
     if (!file || !profile) return
 
-    // Use [EVIDENCE:xxx] prefix in description for matching
     const description = pendingDocName ? `[EVIDENCE:${pendingDocName}]` : ''
+    const evidenceLabel = pendingDocName ?? file.name
 
-    // Upload file to storage
     const safeName = file.name
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9._-]/g, '_')
       .replace(/_+/g, '_')
     const filePath = `missions/${mission.id}/${Date.now()}_${safeName}`
-
-    const { error: storageError } = await supabase.storage.from('documents').upload(filePath, file)
-    if (storageError) {
-      setUploadSuccess(null)
-      setLocalUploadError(`Erreur lors de l\u2019upload : ${storageError.message}`)
-      setPendingDocName(null)
-      setPendingControlIds([])
-      return
-    }
-
-    // Insert document record with control_id from the expected document
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    if (!token) { setPendingDocName(null); setPendingControlIds([]); return }
-
     const controlId = pendingControlIds.length > 0 ? pendingControlIds[0] : null
 
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/documents`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Prefer': 'return=representation',
-      },
-      body: JSON.stringify({
-        mission_id: mission.id,
-        control_id: controlId,
-        uploaded_by: profile.id,
-        file_name: file.name,
-        file_path: filePath,
-        file_size: file.size,
-        mime_type: file.type || null,
-        description,
-      }),
-    })
+    const upload = async (): Promise<string> => {
+      const { error: storageError } = await supabase.storage.from('documents').upload(filePath, file)
+      if (storageError) {
+        console.error('ClientExchangesTab storage:', storageError.message)
+        throw new Error(storageError.message)
+      }
 
-    if (res.ok) {
-      // Trigger background Anthropic Files API upload (non-blocking)
+      const session = await supabase.auth.getSession()
+      const token = session.data.session?.access_token
+      if (!token) throw new Error('Session expir\u00e9e')
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/documents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
+          mission_id: mission.id,
+          control_id: controlId,
+          uploaded_by: profile.id,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          mime_type: file.type || null,
+          description,
+        }),
+      })
+
+      if (!res.ok) {
+        const detail = await res.text()
+        console.error('ClientExchangesTab insert:', detail)
+        throw new Error('insert failed')
+      }
+
       try {
         const inserted = await res.json() as { id: string }[]
         const docId = inserted?.[0]?.id
         if (docId) registerDocumentForAI(docId, file.name)
-      } catch { /* ignore \u2014 upload still succeeded */ }
+      } catch { /* upload succeeded; AI registration is fire-and-forget */ }
 
-      setUploadSuccess(pendingDocName ? `\u00ab ${pendingDocName} \u00bb d\u00e9pos\u00e9 avec succ\u00e8s` : `\u00ab ${file.name} \u00bb d\u00e9pos\u00e9 avec succ\u00e8s`)
-      setTimeout(() => setUploadSuccess(null), 4000)
+      return evidenceLabel
+    }
+
+    const promise = upload()
+    toast.promise(promise, {
+      loading: `Envoi de ${file.name}\u2026`,
+      success: (label) => `\u00ab ${label} \u00bb d\u00e9pos\u00e9`,
+      error: 'Impossible d\'envoyer le document',
+    })
+
+    try {
+      await promise
       refetchDocs()
       setTimeout(() => refetchExpected(), 500)
+    } catch {
+      // toast already informed the user
+    } finally {
+      setPendingDocName(null)
+      setPendingControlIds([])
     }
-    setPendingDocName(null)
-    setPendingControlIds([])
-  }, [mission.id, profile, pendingDocName, pendingControlIds, refetchDocs, refetchExpected])
+  }, [mission.id, profile, pendingDocName, pendingControlIds, refetchDocs, refetchExpected, toast])
 
   const handleDrop = useCallback(async (e: React.DragEvent): Promise<void> => {
     e.preventDefault()
     const file = e.dataTransfer.files[0]
     if (!file) return
+    // useMissionDocuments fires its own toast.promise \u2014 no double feedback
     const ok = await uploadDocument(file, '')
     if (ok) {
-      setUploadSuccess(`\u00ab ${file.name} \u00bb d\u00e9pos\u00e9 avec succ\u00e8s`)
-      setTimeout(() => setUploadSuccess(null), 4000)
       refetchDocs()
       setTimeout(() => refetchExpected(), 500)
     }
@@ -129,46 +140,66 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
 
   const linkExistingDoc = useCallback(async (existingDoc: { file_name: string; file_path: string; file_size: number | null; mime_type: string | null }, evidenceName: string, controlIds?: string[]): Promise<void> => {
     if (!profile) return
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    if (!token) return
 
     const controlId = controlIds && controlIds.length > 0 ? controlIds[0] : null
 
-    const linkRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/documents`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Prefer': 'return=representation',
-      },
-      body: JSON.stringify({
-        mission_id: mission.id,
-        control_id: controlId,
-        uploaded_by: profile.id,
-        file_name: existingDoc.file_name,
-        file_path: existingDoc.file_path,
-        file_size: existingDoc.file_size,
-        mime_type: existingDoc.mime_type,
-        description: `[EVIDENCE:${evidenceName}]`,
-      }),
-    })
+    const link = async (): Promise<string> => {
+      const session = await supabase.auth.getSession()
+      const token = session.data.session?.access_token
+      if (!token) throw new Error('Session expir\u00e9e')
 
-    if (linkRes.ok) {
+      const linkRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/documents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
+          mission_id: mission.id,
+          control_id: controlId,
+          uploaded_by: profile.id,
+          file_name: existingDoc.file_name,
+          file_path: existingDoc.file_path,
+          file_size: existingDoc.file_size,
+          mime_type: existingDoc.mime_type,
+          description: `[EVIDENCE:${evidenceName}]`,
+        }),
+      })
+
+      if (!linkRes.ok) {
+        const detail = await linkRes.text()
+        console.error('ClientExchangesTab link:', detail)
+        throw new Error('link failed')
+      }
+
       try {
         const inserted = await linkRes.json() as { id: string }[]
         const docId = inserted?.[0]?.id
         if (docId) registerDocumentForAI(docId, existingDoc.file_name)
       } catch { /* ignore */ }
+
+      return existingDoc.file_name
     }
 
-    setUploadSuccess(`\u00ab ${existingDoc.file_name} \u00bb li\u00e9 \u00e0 \u00ab ${evidenceName} \u00bb`)
-    setTimeout(() => setUploadSuccess(null), 4000)
-    setLinkingDocName(null)
-    refetchDocs()
-    setTimeout(() => refetchExpected(), 500)
-  }, [mission.id, profile, refetchDocs, refetchExpected])
+    const promise = link()
+    toast.promise(promise, {
+      loading: 'Liaison du document\u2026',
+      success: (name) => `\u00ab ${name} \u00bb li\u00e9 \u00e0 \u00ab ${evidenceName} \u00bb`,
+      error: 'Impossible de lier le document',
+    })
+
+    try {
+      await promise
+      refetchDocs()
+      setTimeout(() => refetchExpected(), 500)
+    } catch {
+      // toast already informed the user
+    } finally {
+      setLinkingDocName(null)
+    }
+  }, [mission.id, profile, refetchDocs, refetchExpected, toast])
 
   // Documents available for linking (already uploaded, not yet linked to the current evidence)
   const availableForLinking = documents.filter((d) => {
@@ -192,14 +223,6 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
           {uploadedCount > 0 && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{uploadedCount} d&eacute;pos&eacute;{uploadedCount > 1 ? 's' : ''}</span>}
         </div>
 
-        {/* Success */}
-        {uploadSuccess && (
-          <div className="flex items-center gap-2 p-2.5 mb-3 bg-green-50 border border-green-200 rounded-lg">
-            <Check size={15} className="text-green-600" />
-            <p className="text-xs text-green-700 font-medium">{uploadSuccess}</p>
-          </div>
-        )}
-
         {/* Upload zone */}
         {isContributor && (
           <div
@@ -221,7 +244,6 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
             )}
           </div>
         )}
-        {(uploadError || localUploadError) && <p className="text-xs text-red-500 mb-2">{uploadError ?? localUploadError}</p>}
 
         {/* AI banner */}
         {documents.length > 0 && (
