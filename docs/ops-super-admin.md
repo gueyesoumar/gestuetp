@@ -24,21 +24,70 @@ SELECT slug, monthly_price_eur FROM public.plans;     -- 3 plans seedés
 **Sécurité critique** : `is_platform_owner` est volontairement non éditable via UI.
 La nomination se fait au SQL Editor par un compte ayant l'accès admin Supabase.
 
+### Cas A — l'utilisateur a déjà un profil dans `public.users`
+
+(C'est-à-dire : il a déjà été invité comme membre d'un cabinet, il s'est connecté au moins une fois, etc.)
+
 ```sql
 UPDATE public.users
 SET is_platform_owner = true
 WHERE email = 'oumar@gestucomply.com';
 ```
 
-Vérifier la liste des owners :
+### Cas B — l'utilisateur vient juste d'être créé dans Supabase Auth (`auth.users` uniquement)
+
+Créer un compte dans **Supabase Dashboard → Authentication → Users → Add user** ne crée
+PAS de ligne `public.users`. L'`UPDATE` ci-dessus retourne alors « 0 rows updated » sans erreur.
+
+Il faut d'abord créer la ligne `public.users` rattachée à une organisation (par exemple
+une organisation « Gëstu Group » dédiée à l'éditeur). Le bloc ci-dessous est idempotent —
+on peut le rejouer sans casser quoi que ce soit :
 
 ```sql
-SELECT email, first_name, last_name, is_active, is_platform_owner
-FROM public.users
-WHERE is_platform_owner = true;
+DO $$
+DECLARE
+  v_auth_id uuid;
+  v_org_id  uuid;
+BEGIN
+  -- Récupérer l'auth_id depuis l'email
+  SELECT id INTO v_auth_id FROM auth.users WHERE email = 'oumar@gestugroup.com';
+  IF v_auth_id IS NULL THEN
+    RAISE EXCEPTION 'auth.users introuvable — créer d''abord le compte dans Supabase Auth';
+  END IF;
+
+  -- Créer (ou récupérer) l'organisation Gëstu Group
+  SELECT id INTO v_org_id FROM public.organizations WHERE slug = 'gestu-group';
+  IF v_org_id IS NULL THEN
+    INSERT INTO public.organizations (name, slug, types, is_active)
+    VALUES ('Gëstu Group', 'gestu-group', ARRAY['platform']::text[], true)
+    RETURNING id INTO v_org_id;
+  END IF;
+
+  -- Insérer le public.users avec le flag, ou le mettre à jour s'il existe
+  INSERT INTO public.users (
+    auth_id, organization_id, email, first_name, last_name,
+    is_active, is_platform_owner, role
+  )
+  VALUES (
+    v_auth_id, v_org_id, 'oumar@gestugroup.com', 'Oumar', 'Gueye',
+    true, true, 'auditor'
+  )
+  ON CONFLICT (auth_id) DO UPDATE
+    SET is_platform_owner = true,
+        is_active = true;
+END $$;
 ```
 
-Pour ajouter un second owner, répéter la requête `UPDATE` avec un autre email.
+### Vérification
+
+```sql
+SELECT u.email, u.first_name, u.last_name, u.is_active, u.is_platform_owner, o.name AS organization
+FROM public.users u
+JOIN public.organizations o ON o.id = u.organization_id
+WHERE u.is_platform_owner = true;
+```
+
+Pour ajouter un second owner, répéter le bloc B avec un autre email/auth_id.
 
 Pour retirer le flag :
 
@@ -48,6 +97,10 @@ UPDATE public.users SET is_platform_owner = false WHERE email = 'ancien@gestucom
 
 ⚠️ Garder une trace papier / Notion de qui est owner et pourquoi. La table `admin_audit_log`
 ne capture que les actions effectuées via la console — pas les `UPDATE` SQL directs.
+
+⚠️ Après nomination, **se déconnecter / reconnecter** pour rafraîchir le profil chargé côté
+client — sinon `useAuth().profile.is_platform_owner` reste à `false` jusqu'à la prochaine
+session.
 
 ## 3. Déploiement des Edge Functions
 
