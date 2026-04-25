@@ -157,7 +157,8 @@ JSON uniquement, en français.`
     'x-api-key': anthropicKey,
     'anthropic-version': '2023-06-01',
   }
-  const betaFlags: string[] = ['context-1m-2025-08-07'] // 1M context window for Sonnet 4.6
+  // 1M context flag included — silently ignored if API tier doesn't support it
+  const betaFlags: string[] = ['context-1m-2025-08-07']
   if (hasPdf) betaFlags.push('pdfs-2024-09-25')
   if (useFilesApi) betaFlags.push('files-api-2025-04-14')
   headers['anthropic-beta'] = betaFlags.join(',')
@@ -172,7 +173,7 @@ JSON uniquement, en français.`
       headers,
       signal: controller.signal,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [{ role: 'user', content: parts }],
       }),

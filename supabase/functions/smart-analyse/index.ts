@@ -199,7 +199,7 @@ JSON uniquement, en fran\u00e7ais.`
         headers: claudeHeaders,
         signal: claudeController.signal,
         body: JSON.stringify({
-          model: 'claude-sonnet-4-5-20250929',
+          model: 'claude-sonnet-4-20250514',
           max_tokens: 4000,
           messages: [{ role: 'user', content: contentParts }],
         }),

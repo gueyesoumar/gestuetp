@@ -233,7 +233,7 @@ async function handleAnalyze(
 
   content.push({ type: 'text', text: enrichedPrompt })
 
-  console.log(`[ai-documents] Analyzing ${file_ids.length} file(s) with ${model ?? 'claude-sonnet-4-5-20250929'}`)
+  console.log(`[ai-documents] Analyzing ${file_ids.length} file(s) with ${model ?? 'claude-sonnet-4-20250514'}`)
 
   // Call Claude
   const claudeController = new AbortController()
@@ -251,7 +251,7 @@ async function handleAnalyze(
       },
       signal: claudeController.signal,
       body: JSON.stringify({
-        model: model ?? 'claude-sonnet-4-5-20250929',
+        model: model ?? 'claude-sonnet-4-20250514',
         max_tokens: max_tokens ?? 4096,
         messages: [{ role: 'user', content }],
       }),
