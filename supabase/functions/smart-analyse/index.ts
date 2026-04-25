@@ -190,16 +190,16 @@ JSON uniquement, en fran\u00e7ais.`
         'x-api-key': anthropicKey,
         'anthropic-version': '2023-06-01',
       }
-      if (useFilesApi) {
-        claudeHeaders['anthropic-beta'] = 'files-api-2025-04-14'
-      }
+      const betaFlags: string[] = ['context-1m-2025-08-07'] // 1M context window for Sonnet 4.6
+      if (useFilesApi) betaFlags.push('files-api-2025-04-14')
+      claudeHeaders['anthropic-beta'] = betaFlags.join(',')
 
       claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: claudeHeaders,
         signal: claudeController.signal,
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 4000,
           messages: [{ role: 'user', content: contentParts }],
         }),

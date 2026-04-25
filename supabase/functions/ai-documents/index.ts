@@ -11,7 +11,7 @@ import { corsHeaders } from '../_shared/cors.ts'
  */
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
-const ANTHROPIC_BETA = 'files-api-2025-04-14'
+const ANTHROPIC_BETA = 'files-api-2025-04-14,context-1m-2025-08-07'
 const SUPPORTED_TYPES = ['application/pdf', 'text/plain', 'text/csv', 'text/html']
 const MAX_FILE_SIZE = 32 * 1024 * 1024 // 32 MB (Anthropic limit)
 
@@ -233,7 +233,7 @@ async function handleAnalyze(
 
   content.push({ type: 'text', text: enrichedPrompt })
 
-  console.log(`[ai-documents] Analyzing ${file_ids.length} file(s) with ${model ?? 'claude-sonnet-4-20250514'}`)
+  console.log(`[ai-documents] Analyzing ${file_ids.length} file(s) with ${model ?? 'claude-sonnet-4-6'}`)
 
   // Call Claude
   const claudeController = new AbortController()
@@ -251,7 +251,7 @@ async function handleAnalyze(
       },
       signal: claudeController.signal,
       body: JSON.stringify({
-        model: model ?? 'claude-sonnet-4-20250514',
+        model: model ?? 'claude-sonnet-4-6',
         max_tokens: max_tokens ?? 4096,
         messages: [{ role: 'user', content }],
       }),
