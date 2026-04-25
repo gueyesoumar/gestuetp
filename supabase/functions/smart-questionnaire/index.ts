@@ -7,9 +7,9 @@ interface QuestionInput {
   description: string | null
 }
 
-const MAX_DOCS = 5
-const MAX_PDFS = 1 // Anthropic URL mode limit per request
-const MAX_PDF_SIZE = 10 * 1024 * 1024 // 10 Mo
+const MAX_DOCS = 8
+const MAX_PDFS = 8 // Anthropic supports multiple PDFs per request
+const MAX_PDF_SIZE = 32 * 1024 * 1024 // 32 Mo (Anthropic limit per PDF)
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
