@@ -217,7 +217,31 @@ Deux patterns selon le contexte :
 
 ---
 
-## 9. Règles d'application
+## 9. Autosave (sauvegarde automatique)
+
+**Hook** : `useAutosave()` dans `src/hooks/useAutosave.ts` — gère le cycle modified/saving/saved/error, le debounce, l'abort des cycles obsolètes et un `flush()` impératif.
+**Composant** : `AutosaveIndicator` (`src/components/ui/AutosaveIndicator.tsx`) — pastille discrète à placer en pied de zone de saisie.
+
+**États visuels :**
+
+| Statut | Apparence | Quand |
+|--------|-----------|-------|
+| `modified` | Cercle gris · « Modifications non enregistrées » | Frappe en cours, débounce pas encore écoulé |
+| `saving` | Spinner vert forêt · « Enregistrement… » | Appel réseau en cours |
+| `saved` | Check vert · « Enregistré il y a Xs » (rafraîchi 30 s) | Dernier save réussi |
+| `error` | Icône rouge · « Échec d'enregistrement » + lien « Réessayer » | Échec réseau ou serveur |
+
+**Règles :**
+1. **Délai de debounce** : 1 500 ms par défaut. Modifiable via `delayMs` quand le contexte le justifie.
+2. **Save silencieux** : l'autosave appelle le saver avec `{ silent: true }` — pas de toast succès/erreur, pas de refetch global. Seuls les saves manuels et les soumissions toastent.
+3. **Désactivation** : `disabled={true}` quand le contenu est en lecture seule (assessment soumis, mode revue). Tout pending save est flushé avant désactivation effective.
+4. **Flush impératif** : appeler `autosave.flush()` avant changement de contexte (switch d'item, soumission, navigation) pour ne perdre aucune saisie.
+5. **Validation côté serveur reste obligatoire** : l'autosave ne contourne aucune RLS ni contrainte. La couche est purement UX (CLAUDE.md §3).
+6. **Bouton « Enregistrer » manuel conservé** : utile pour forcer un save immédiat (ex : avant de fermer l'onglet) et pour les utilisateurs qui ont besoin du repère visuel.
+
+---
+
+## 10. Règles d'application
 
 1. **Ne jamais modifier les couleurs du bouclier** — toujours vert forêt + or
 2. **Le tréma doré est obligatoire** sur le "e" de Gëstu dans tous les contextes

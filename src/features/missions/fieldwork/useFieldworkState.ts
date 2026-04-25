@@ -15,7 +15,7 @@ interface FieldworkState {
   setMode: (mode: WorkMode) => void
   setGuidedStep: (step: number) => void
   toggleAutoAdvance: () => void
-  saveAssessment: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }) => Promise<boolean>
+  saveAssessment: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }, opts?: { silent?: boolean }) => Promise<boolean>
   submitAssessment: (id: string) => Promise<boolean>
   approveAssessment: (id: string, comment: string, stage?: string) => Promise<boolean>
   rejectAssessment: (id: string, comment: string, stage?: string) => Promise<boolean>
@@ -76,9 +76,12 @@ export function useFieldworkState(
     }
   }, [autoAdvance, assessments, selectedId])
 
-  const saveAssessment = useCallback(async (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }): Promise<boolean> => {
-    setSaving(true)
-    setSaveError(null)
+  const saveAssessment = useCallback(async (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }, opts?: { silent?: boolean }): Promise<boolean> => {
+    const silent = opts?.silent === true
+    if (!silent) {
+      setSaving(true)
+      setSaveError(null)
+    }
     // Cast needed: Supabase generated types resolve to `never` for update on this table
     const { error } = await (supabase
       .from('control_assessments') as unknown as { update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } })
@@ -94,12 +97,16 @@ export function useFieldworkState(
       .eq('id', id)
     if (error) {
       console.error('save assessment:', error.message)
-      setSaveError('Erreur lors de l\u2019enregistrement.')
-      setSaving(false)
+      if (!silent) {
+        setSaveError('Erreur lors de l\u2019enregistrement.')
+        setSaving(false)
+      }
       return false
     }
-    setSaving(false)
-    refetch()
+    if (!silent) {
+      setSaving(false)
+      refetch()
+    }
     return true
   }, [refetch])
 

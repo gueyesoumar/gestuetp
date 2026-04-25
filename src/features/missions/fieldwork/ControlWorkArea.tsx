@@ -1,12 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { AlertTriangle, FileText, Check, X, Save, Play, ArrowLeft, ArrowRight } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { AutosaveIndicator } from '../../../components/ui/AutosaveIndicator'
 import { ASSESSMENT_STATUS_CONFIG, GUIDED_STEPS } from '../mission-constants'
 import { GuidedWorkflow } from './GuidedWorkflow'
 import { FreeWorkForm } from './FreeWorkForm'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useToast } from '../../../hooks/useToast'
+import { useAutosave } from '../../../hooks/useAutosave'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
 interface ControlWorkAreaProps {
@@ -22,7 +24,7 @@ interface ControlWorkAreaProps {
   onModeChange: (mode: 'guided' | 'libre') => void
   onGuidedStepChange: (step: number) => void
   onToggleAutoAdvance: () => void
-  onSave: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }) => Promise<boolean>
+  onSave: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }, opts?: { silent?: boolean }) => Promise<boolean>
   onSubmit: (id: string) => Promise<boolean>
   onApprove?: (id: string, comment: string, stage?: string) => Promise<boolean>
   onReject?: (id: string, comment: string, stage?: string) => Promise<boolean>
@@ -64,22 +66,45 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
   const canGoNext = guidedStep < GUIDED_STEPS.length - 1
   const canGoPrev = guidedStep > 0
 
+  const formData = useMemo(() => ({
+    findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification,
+  }), [findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, findingClassification])
+
+  // Autosave fires 1.5 s after the last change — silent (no refetch, no toast).
+  // Disabled when the assessment is read-only or when the user is in review mode.
+  const autosaveSave = useCallback(
+    (data: typeof formData) => onSave(assessment.id, data, { silent: true }),
+    [assessment.id, onSave],
+  )
+  const autosave = useAutosave({
+    value: formData,
+    onSave: autosaveSave,
+    disabled: readOnly || canReview,
+  })
+
+  // Flush any pending autosave when the assessment changes or the component unmounts.
+  const flushRef = useRef(autosave.flush)
+  useEffect(() => { flushRef.current = autosave.flush }, [autosave.flush])
+  useEffect(() => {
+    return () => { void flushRef.current() }
+  }, [assessment.id])
+
   const handleSave = useCallback(async () => {
-    const ok = await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification })
+    const ok = await onSave(assessment.id, formData)
     if (ok) {
       toast.success('Travaux enregistrés', { description: assessment.control.code })
     }
-  }, [assessment.id, assessment.control.code, findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, findingClassification, onSave, toast])
+  }, [assessment.id, assessment.control.code, formData, onSave, toast])
 
   const handleSubmit = useCallback(async () => {
-    const saved = await onSave(assessment.id, { findings, recommendations, evidence_notes: evidenceNotes, observations, risk_notes: riskNotes, conformity_level: conformityLevel, finding_classification: findingClassification })
+    const saved = await onSave(assessment.id, formData)
     if (saved) {
       const submitted = await onSubmit(assessment.id)
       if (submitted) {
         toast.success('Travaux soumis pour revue', { description: `${assessment.control.code} · transmis au lead` })
       }
     }
-  }, [assessment.id, assessment.control.code, findings, recommendations, evidenceNotes, observations, riskNotes, conformityLevel, findingClassification, onSave, onSubmit, toast])
+  }, [assessment.id, assessment.control.code, formData, onSave, onSubmit, toast])
 
   const handleNext = useCallback(() => {
     if (canGoNext) onGuidedStepChange(guidedStep + 1)
@@ -301,13 +326,16 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
       ) : (
         /* Normal footer for auditor */
         <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-[#FAFAFA] sticky bottom-0">
-          <div className="flex items-center gap-3 text-xs text-gray-500">
+          <div className="flex items-center gap-4 text-xs text-gray-500">
             <label className="flex items-center gap-1.5 cursor-pointer">
               <div onClick={onToggleAutoAdvance} className={`w-8 h-[18px] rounded-full relative cursor-pointer transition-colors ${autoAdvance ? 'bg-forest-500' : 'bg-gray-200'}`}>
                 <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-[2px] shadow-sm transition-all ${autoAdvance ? 'left-[18px]' : 'left-[2px]'}`} />
               </div>
               Auto-avance
             </label>
+            {!readOnly && (
+              <AutosaveIndicator status={autosave.status} lastSavedAt={autosave.lastSavedAt} onRetry={() => { void autosave.flush() }} />
+            )}
           </div>
           <div className="flex gap-2.5">
             {mode === 'guided' && canGoPrev && (
