@@ -33,16 +33,17 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
 
   // Essential evidence (is_required = true), deduplicated by name
   const essentialEvidence = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; description: string | null; controls: string[] }>()
+    const map = new Map<string, { ids: string[]; name: string; description: string | null; controls: string[] }>()
     for (const item of evidenceInScope) {
       for (const ev of item.evidences) {
         if (!ev.is_required) continue
         const existing = map.get(ev.name)
         if (existing) {
+          existing.ids.push(ev.id)
           if (!existing.controls.includes(item.control.code)) existing.controls.push(item.control.code)
         } else {
           map.set(ev.name, {
-            id: ev.id,
+            ids: [ev.id],
             name: ev.name,
             description: ev.description,
             controls: [item.control.code],
@@ -53,15 +54,46 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [evidenceInScope])
 
-  // Catalog grouped by domain
+  // Catalog grouped by domain — deduplicated by (domain, name) to avoid duplicates
+  // when the same evidence is referenced by multiple controls.
+  interface DedupEvidence {
+    ids: string[]
+    name: string
+    description: string | null
+    isRequired: boolean
+    controlCodes: string[]
+  }
   const domainGroups = useMemo(() => {
-    const groups = new Map<string, { domainCode: string; domainName: string; items: typeof evidenceInScope }>()
+    const groups = new Map<string, { domainCode: string; domainName: string; evidences: Map<string, DedupEvidence> }>()
     for (const item of evidenceInScope) {
-      const existing = groups.get(item.domainCode)
-      if (existing) existing.items.push(item)
-      else groups.set(item.domainCode, { domainCode: item.domainCode, domainName: item.domainName, items: [item] })
+      const existing = groups.get(item.domainCode) ?? {
+        domainCode: item.domainCode, domainName: item.domainName, evidences: new Map<string, DedupEvidence>(),
+      }
+      for (const ev of item.evidences) {
+        const cur = existing.evidences.get(ev.name)
+        if (cur) {
+          cur.ids.push(ev.id)
+          if (!cur.controlCodes.includes(item.control.code)) cur.controlCodes.push(item.control.code)
+          if (ev.is_required) cur.isRequired = true
+        } else {
+          existing.evidences.set(ev.name, {
+            ids: [ev.id],
+            name: ev.name,
+            description: ev.description,
+            isRequired: ev.is_required,
+            controlCodes: [item.control.code],
+          })
+        }
+      }
+      groups.set(item.domainCode, existing)
     }
-    return [...groups.values()].sort((a, b) => a.domainCode.localeCompare(b.domainCode))
+    return [...groups.values()]
+      .map((g) => ({
+        domainCode: g.domainCode,
+        domainName: g.domainName,
+        evidences: [...g.evidences.values()].sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .sort((a, b) => a.domainCode.localeCompare(b.domainCode))
   }, [evidenceInScope])
 
   // Resolve catalog IDs → names for matching against uploaded docs
@@ -91,19 +123,20 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
   const requestedCount = requestedNames.size
   const receivedCount = [...requestedNames].filter((n) => uploadedNames.has(n)).length
   const pendingCount = requestedCount - receivedCount
-  const essentialNotRequested = essentialEvidence.filter((e) => !requestedIds.has(e.id))
+  const essentialNotRequested = essentialEvidence.filter((e) => !e.ids.some((id) => requestedIds.has(id)))
 
-  const toggleSelected = (id: string): void => {
+  const toggleSelected = (ids: string[]): void => {
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      const anySelected = ids.some((id) => next.has(id))
+      if (anySelected) ids.forEach((id) => next.delete(id))
+      else ids.forEach((id) => next.add(id))
       return next
     })
   }
 
   const selectAllEssential = (): void => {
-    setSelected(new Set(essentialNotRequested.map((e) => e.id)))
+    setSelected(new Set(essentialNotRequested.flatMap((e) => e.ids)))
   }
 
   const toggleDomain = (code: string): void => {
@@ -183,11 +216,11 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
 
           <div>
             {essentialNotRequested.map((ev) => {
-              const isSelected = selected.has(ev.id)
+              const isSelected = ev.ids.some((id) => selected.has(id))
               return (
                 <button
-                  key={ev.id}
-                  onClick={() => toggleSelected(ev.id)}
+                  key={ev.ids.join(',')}
+                  onClick={() => toggleSelected(ev.ids)}
                   className="w-full flex items-start gap-3 px-5 py-3 hover:bg-gold-50/40 border-b border-gray-50 last:border-b-0 text-left transition-colors"
                 >
                   <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
@@ -231,10 +264,8 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
         <div className="max-h-[480px] overflow-y-auto">
           {domainGroups.map((group) => {
             const isOpen = expandedDomains.has(group.domainCode)
-            const totalInDomain = group.items.reduce((s, i) => s + i.evidences.length, 0)
-            const requestedInDomain = group.items.reduce(
-              (s, i) => s + i.evidences.filter((e) => requestedIds.has(e.id)).length, 0
-            )
+            const totalInDomain = group.evidences.length
+            const requestedInDomain = group.evidences.filter((e) => e.ids.some((id) => requestedIds.has(id))).length
 
             return (
               <div key={group.domainCode} className="border-b border-gray-100 last:border-b-0">
@@ -250,57 +281,64 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
 
                 {isOpen && (
                   <div className="bg-white">
-                    {group.items.map((item) => (
-                      <div key={item.control.id}>
-                        <div className="px-5 py-2 bg-gray-50 border-b border-gray-100">
-                          <span className="font-mono text-[10px] font-semibold text-forest-700">{item.control.code}</span>
-                          <span className="ml-2 text-[11px] text-gray-500">{item.control.name}</span>
-                        </div>
-                        {item.evidences.map((ev) => {
-                          const isRequested = requestedIds.has(ev.id)
-                          const isSelected = selected.has(ev.id)
-                          const isReceived = uploadedNames.has(ev.name)
-                          return (
-                            <button
-                              key={ev.id}
-                              onClick={() => !isRequested && toggleSelected(ev.id)}
-                              disabled={isRequested}
-                              className={`w-full flex items-start gap-3 px-5 py-2.5 border-b border-gray-50 last:border-b-0 text-left transition-colors ${
-                                isRequested ? 'bg-green-50/30 cursor-default' : 'hover:bg-forest-50/30 cursor-pointer'
-                              }`}
-                            >
-                              {isRequested ? (
-                                isReceived ? (
-                                  <Check size={14} className="text-green-600 shrink-0 mt-0.5" />
-                                ) : (
-                                  <Circle size={14} className="text-gold-500 shrink-0 mt-0.5" />
-                                )
-                              ) : (
-                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                                  isSelected ? 'bg-forest-700 border-forest-700' : 'border-gray-300'
-                                }`}>
-                                  {isSelected && <Check size={10} className="text-white" strokeWidth={3} />}
-                                </div>
+                    {group.evidences.map((ev) => {
+                      const isRequested = ev.ids.some((id) => requestedIds.has(id))
+                      const isSelected = ev.ids.some((id) => selected.has(id))
+                      const isReceived = uploadedNames.has(ev.name)
+                      const toggleAll = (): void => {
+                        if (isRequested) return
+                        setSelected((prev) => {
+                          const next = new Set(prev)
+                          if (isSelected) ev.ids.forEach((id) => next.delete(id))
+                          else ev.ids.forEach((id) => next.add(id))
+                          return next
+                        })
+                      }
+                      return (
+                        <button
+                          key={ev.ids.join(',')}
+                          onClick={toggleAll}
+                          disabled={isRequested}
+                          className={`w-full flex items-start gap-3 px-5 py-2.5 border-b border-gray-50 last:border-b-0 text-left transition-colors ${
+                            isRequested ? 'bg-green-50/30 cursor-default' : 'hover:bg-forest-50/30 cursor-pointer'
+                          }`}
+                        >
+                          {isRequested ? (
+                            isReceived ? (
+                              <Check size={14} className="text-green-600 shrink-0 mt-0.5" />
+                            ) : (
+                              <Circle size={14} className="text-gold-500 shrink-0 mt-0.5" />
+                            )
+                          ) : (
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                              isSelected ? 'bg-forest-700 border-forest-700' : 'border-gray-300'
+                            }`}>
+                              {isSelected && <Check size={10} className="text-white" strokeWidth={3} />}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-[12px] ${isRequested ? 'text-gray-500' : 'text-gray-900'}`}>{ev.name}</span>
+                              {ev.controlCodes.slice(0, 3).map((code) => (
+                                <span key={code} className="font-mono text-[8px] font-semibold bg-forest-50 text-forest-700 px-1 py-0.5 rounded">{code}</span>
+                              ))}
+                              {ev.controlCodes.length > 3 && (
+                                <span className="text-[9px] text-gray-400">+{ev.controlCodes.length - 3}</span>
                               )}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`text-[12px] ${isRequested ? 'text-gray-500' : 'text-gray-900'}`}>{ev.name}</span>
-                                  {ev.is_required && !isRequested && (
-                                    <span className="text-[8px] font-semibold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded">Essentiel</span>
-                                  )}
-                                  {isRequested && (
-                                    <span className="text-[9px] font-medium text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full ml-auto">
-                                      {isReceived ? `Re${'ç'}ue` : `Demand${'é'}e`}
-                                    </span>
-                                  )}
-                                </div>
-                                {ev.description && <p className="text-[10px] text-gray-400 mt-0.5">{ev.description}</p>}
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ))}
+                              {ev.isRequired && !isRequested && (
+                                <span className="text-[8px] font-semibold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded">Essentiel</span>
+                              )}
+                              {isRequested && (
+                                <span className="text-[9px] font-medium text-forest-700 bg-forest-100 px-2 py-0.5 rounded-full ml-auto">
+                                  {isReceived ? `Re${'ç'}ue` : `Demand${'é'}e`}
+                                </span>
+                              )}
+                            </div>
+                            {ev.description && <p className="text-[10px] text-gray-400 mt-0.5">{ev.description}</p>}
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>

@@ -16,11 +16,13 @@ interface EvidenceTrackerProps {
 type FilterKey = 'requested' | 'all' | 'received' | 'pending'
 
 interface CatalogRow {
-  evidenceId: string
+  /** All evidence_catalog IDs that share this (domain, name) — for bulk operations */
+  evidenceIds: string[]
   name: string
   description: string | null
   isRequired: boolean
-  controlCode: string
+  /** All control codes referencing this evidence within the domain */
+  controlCodes: string[]
   domainCode: string
   domainName: string
   requested: boolean
@@ -55,26 +57,40 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
     return map
   }, [documents])
 
-  // Build flat rows
+  // Build flat rows — deduplicated by (domainCode, name) to avoid showing
+  // the same evidence multiple times when it's referenced by several controls.
   const allRows: CatalogRow[] = useMemo(() => {
-    const rows: CatalogRow[] = []
+    const groups = new Map<string, CatalogRow>()
     for (const item of evidenceByControl) {
       for (const ev of item.evidences) {
-        rows.push({
-          evidenceId: ev.id,
-          name: ev.name,
-          description: ev.description,
-          isRequired: ev.is_required,
-          controlCode: item.control.code,
-          domainCode: item.domainCode,
-          domainName: item.domainName,
-          requested: requestedIds.has(ev.id),
-          received: uploadedNames.has(ev.name),
-          fileName: fileByEvidence.get(ev.name) ?? null,
-        })
+        const key = `${item.domainCode}::${ev.name}`
+        const existing = groups.get(key)
+        if (existing) {
+          existing.evidenceIds.push(ev.id)
+          if (!existing.controlCodes.includes(item.control.code)) existing.controlCodes.push(item.control.code)
+          if (ev.is_required) existing.isRequired = true
+          if (requestedIds.has(ev.id)) existing.requested = true
+        } else {
+          groups.set(key, {
+            evidenceIds: [ev.id],
+            name: ev.name,
+            description: ev.description,
+            isRequired: ev.is_required,
+            controlCodes: [item.control.code],
+            domainCode: item.domainCode,
+            domainName: item.domainName,
+            requested: requestedIds.has(ev.id),
+            received: uploadedNames.has(ev.name),
+            fileName: fileByEvidence.get(ev.name) ?? null,
+          })
+        }
       }
     }
-    return rows
+    // Sort control codes within each row for stable display
+    for (const row of groups.values()) {
+      row.controlCodes.sort()
+    }
+    return [...groups.values()]
   }, [evidenceByControl, requestedIds, uploadedNames, fileByEvidence])
 
   // Counts
@@ -96,7 +112,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
       rows = rows.filter((r) =>
         r.name.toLowerCase().includes(q) ||
         (r.description ?? '').toLowerCase().includes(q) ||
-        r.controlCode.toLowerCase().includes(q)
+        r.controlCodes.some((c) => c.toLowerCase().includes(q))
       )
     }
     return rows
@@ -132,11 +148,16 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
     })
   }
 
-  const toggleSelect = (evidenceId: string): void => {
+  /** Toggle selection for a deduplicated row — adds/removes all underlying evidence IDs together */
+  const toggleSelect = (evidenceIds: string[]): void => {
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(evidenceId)) next.delete(evidenceId)
-      else next.add(evidenceId)
+      const anySelected = evidenceIds.some((id) => next.has(id))
+      if (anySelected) {
+        evidenceIds.forEach((id) => next.delete(id))
+      } else {
+        evidenceIds.forEach((id) => next.add(id))
+      }
       return next
     })
   }
@@ -263,7 +284,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
                   <div>
                     {/* Requested rows first */}
                     {group.rows.filter((r) => r.requested).map((row) => (
-                      <EvidenceRow key={row.evidenceId} row={row} showCheckbox={false} checked={false} onToggle={() => {}} />
+                      <EvidenceRow key={row.evidenceIds.join(',')} row={row} showCheckbox={false} checked={false} onToggle={() => {}} />
                     ))}
 
                     {/* Separator if showing non-requested */}
@@ -276,11 +297,11 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
                     {/* Not-requested rows (only in 'all' view) */}
                     {filter === 'all' && groupNotRequested.map((row) => (
                       <EvidenceRow
-                        key={row.evidenceId}
+                        key={row.evidenceIds.join(',')}
                         row={row}
                         showCheckbox
-                        checked={selected.has(row.evidenceId)}
-                        onToggle={() => toggleSelect(row.evidenceId)}
+                        checked={row.evidenceIds.some((id) => selected.has(id))}
+                        onToggle={() => toggleSelect(row.evidenceIds)}
                         dimmed
                       />
                     ))}
@@ -361,10 +382,19 @@ function EvidenceRow({ row, showCheckbox, checked, onToggle, dimmed }: {
         )}
       </div>
 
-      {/* Control code */}
-      <span className={`font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded ${
-        dimmed ? 'bg-gray-100 text-gray-300' : 'bg-forest-50 text-forest-700'
-      }`}>{row.controlCode}</span>
+      {/* Control codes (showing first 2, +N if more) */}
+      <div className="flex gap-1 shrink-0">
+        {row.controlCodes.slice(0, 2).map((code) => (
+          <span key={code} className={`font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+            dimmed ? 'bg-gray-100 text-gray-300' : 'bg-forest-50 text-forest-700'
+          }`}>{code}</span>
+        ))}
+        {row.controlCodes.length > 2 && (
+          <span className={`text-[9px] font-medium ${dimmed ? 'text-gray-300' : 'text-gray-400'}`}>
+            +{row.controlCodes.length - 2}
+          </span>
+        )}
+      </div>
 
       {/* File name if received */}
       {row.received && row.fileName && (
