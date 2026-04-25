@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Star } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
@@ -43,8 +43,46 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const [showPortalModal, setShowPortalModal] = useState(false)
 
   const questProgress = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0
-  const docsReceived = documents.length
-  const docsExpected = requests.length || 1
+
+  // Compute documents received vs expected based on mission_evidence_requests
+  // - docsExpected: number of unique evidence names requested by the auditor
+  // - docsReceived: number of those evidence names that have at least one matching document
+  //   (matched via [EVIDENCE:name] tag in document.description)
+  const [docsExpected, setDocsExpected] = useState(0)
+  const [docsReceived, setDocsReceived] = useState(0)
+
+  useEffect(() => {
+    if (requests.length === 0) {
+      setDocsExpected(0)
+      setDocsReceived(0)
+      return
+    }
+
+    const controller = new AbortController()
+    const fetchEvidenceNames = async (): Promise<void> => {
+      const catalogIds = requests.map((r) => r.evidence_catalog_id)
+      const { data: catalogItems } = await supabase
+        .from('evidence_catalog')
+        .select('name')
+        .in('id', catalogIds)
+        .abortSignal(controller.signal)
+
+      if (controller.signal.aborted) return
+
+      const expectedNames = new Set((catalogItems ?? []).map((c) => c.name))
+      const uploadedNames = new Set<string>()
+      for (const doc of documents) {
+        const match = doc.description?.match(/\[EVIDENCE:(.+?)\]/)
+        if (match && expectedNames.has(match[1])) uploadedNames.add(match[1])
+      }
+
+      setDocsExpected(expectedNames.size)
+      setDocsReceived(uploadedNames.size)
+    }
+
+    fetchEvidenceNames()
+    return () => controller.abort()
+  }, [requests, documents])
 
   const handleAddExclusion = useCallback((controlId: string, reason: string) => {
     addExclusion({ mission_id: mission.id, control_id: controlId, reason })

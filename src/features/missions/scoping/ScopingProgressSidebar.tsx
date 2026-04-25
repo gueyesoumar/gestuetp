@@ -36,7 +36,13 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
       { label: 'P\u00e9rim\u00e8tre d\u00e9fini', done: hasScope, active: hasClient && !hasScope },
       { label: 'Questionnaire envoy\u00e9', done: questSent, active: hasScope && !questSent },
       { label: `Questionnaire compl\u00e9t\u00e9 (${questionnaireProgress}%)`, done: questDone, active: questSent && !questDone },
-      { label: `Documents re\u00e7us (${documentsReceived}/${documentsExpected})`, done: docsDone, active: questSent && !docsDone },
+      {
+        label: documentsExpected === 0
+          ? 'Documents demand\u00e9s au client'
+          : `Documents re\u00e7us (${documentsReceived}/${documentsExpected})`,
+        done: docsDone,
+        active: questSent && !docsDone,
+      },
       { label: 'Risques initiaux valid\u00e9s', done: risksValidated, active: !risksValidated },
       { label: 'Note de cadrage valid\u00e9e', done: false, active: false },
     ]
