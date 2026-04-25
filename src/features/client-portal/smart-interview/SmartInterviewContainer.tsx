@@ -86,7 +86,7 @@ export function SmartInterviewContainer({
           <div className="flex items-center gap-2 mb-2">
             <Sparkles size={13} className="text-gold-600" />
             <span className="text-[12px] font-semibold text-gold-600">
-              {analysisStatus.docsAnalyzed}/{analysisStatus.docsTotal} document{analysisStatus.docsTotal > 1 ? 's' : ''} analys{analysisStatus.docsAnalyzed > 1 ? '\u00e9' : '\u00e9'}{analysisStatus.docsAnalyzed > 1 ? 's' : ''}
+              {`${analysisStatus.docsAnalyzed}/${analysisStatus.docsTotal} document${analysisStatus.docsTotal > 1 ? 's' : ''} analys${analysisStatus.docsAnalyzed > 1 ? '\u00e9s' : '\u00e9'}`}
             </span>
             {analysisStatus.batches > 1 && (
               <span className="text-[10px] text-gold-600 bg-white px-2 py-0.5 rounded-full">
@@ -96,12 +96,12 @@ export function SmartInterviewContainer({
           </div>
           {analysisStatus.docsSkipped.length > 0 && (
             <p className="text-[11px] text-gold-700 mb-1">
-              <b>{analysisStatus.docsSkipped.length} document(s) ignor\u00e9(s)</b> (limite de 24 documents par analyse) : {analysisStatus.docsSkipped.slice(0, 3).join(', ')}{analysisStatus.docsSkipped.length > 3 ? `, +${analysisStatus.docsSkipped.length - 3}` : ''}
+              <b>{`${analysisStatus.docsSkipped.length} document(s) ignor\u00e9(s)`}</b> {' (limite de 24 documents par analyse) : '}{analysisStatus.docsSkipped.slice(0, 3).join(', ')}{analysisStatus.docsSkipped.length > 3 ? `, +${analysisStatus.docsSkipped.length - 3}` : ''}
             </p>
           )}
           {analysisStatus.docsFailed.length > 0 && (
             <p className="text-[11px] text-red-600">
-              <b>{analysisStatus.docsFailed.length} \u00e9chec(s)</b> : {analysisStatus.docsFailed.slice(0, 3).map((d) => `${d.name} (${d.reason})`).join(', ')}{analysisStatus.docsFailed.length > 3 ? `, +${analysisStatus.docsFailed.length - 3}` : ''}
+              <b>{`${analysisStatus.docsFailed.length} \u00e9chec(s)`}</b>{' : '}{analysisStatus.docsFailed.slice(0, 3).map((d) => `${d.name} (${d.reason})`).join(', ')}{analysisStatus.docsFailed.length > 3 ? `, +${analysisStatus.docsFailed.length - 3}` : ''}
             </p>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 interface QuestionInput {
@@ -15,8 +15,8 @@ interface AIAnswer {
   sourceDoc: string | null
 }
 
-const BATCH_SIZE = 8 // PDFs per Claude call
-const MAX_BATCHES = 3 // Up to 24 docs total
+const BATCH_SIZE = 4 // PDFs per Claude call (smaller = more reliable for big docs)
+const MAX_BATCHES = 6 // Up to 24 docs total
 const MAX_PDF_SIZE = 32 * 1024 * 1024 // 32 Mo (Anthropic limit per PDF)
 const CLAUDE_TIMEOUT_MS = 90_000 // 90s per call
 
@@ -33,8 +33,188 @@ interface DocEntry {
   anthropic_file_id: string | null
 }
 
+interface BatchResult {
+  answers: AIAnswer[]
+  analyzed: string[]
+  failed: { name: string; reason: string }[]
+}
+
 const IMAGE_MEDIA_TYPES: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
+}
+
+/**
+ * Build content blocks for a list of documents (resolves URLs / Files API).
+ * Returns the parts + names of docs successfully prepared + immediate failures.
+ */
+async function prepareDocs(
+  admin: SupabaseClient,
+  docs: DocEntry[],
+): Promise<{ parts: ContentBlock[]; names: string[]; failed: { name: string; reason: string }[]; hasPdf: boolean; useFilesApi: boolean }> {
+  const parts: ContentBlock[] = []
+  const names: string[] = []
+  const failed: { name: string; reason: string }[] = []
+  let hasPdf = false
+  let useFilesApi = false
+
+  for (const doc of docs) {
+    const ext = doc.file_name.split('.').pop()?.toLowerCase() ?? ''
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+    const isPdf = ext === 'pdf'
+
+    if (!isImage && !isPdf) {
+      failed.push({ name: doc.file_name, reason: 'format non supporté' })
+      continue
+    }
+
+    if (isPdf && doc.anthropic_file_id) {
+      parts.push({ type: 'document', source: { type: 'file', file_id: doc.anthropic_file_id } })
+      hasPdf = true
+      useFilesApi = true
+      names.push(doc.file_name)
+      continue
+    }
+
+    if (isPdf && doc.file_size && doc.file_size > MAX_PDF_SIZE) {
+      failed.push({ name: doc.file_name, reason: `trop volumineux (${(doc.file_size / 1024 / 1024).toFixed(1)} Mo)` })
+      continue
+    }
+
+    const { data: signedData, error: signErr } = await admin.storage
+      .from('documents')
+      .createSignedUrl(doc.file_path, 3600)
+
+    if (signErr || !signedData?.signedUrl) {
+      failed.push({ name: doc.file_name, reason: 'erreur URL signée' })
+      continue
+    }
+
+    if (isPdf) {
+      parts.push({ type: 'document', source: { type: 'url', url: signedData.signedUrl } })
+      hasPdf = true
+    } else {
+      parts.push({
+        type: 'image',
+        source: { type: 'url', url: signedData.signedUrl, media_type: IMAGE_MEDIA_TYPES[ext] ?? 'image/jpeg' },
+      })
+    }
+    names.push(doc.file_name)
+  }
+
+  return { parts, names, failed, hasPdf, useFilesApi }
+}
+
+/**
+ * Try to analyze a list of documents in one Claude call.
+ * Returns success or failure with reason.
+ */
+async function analyzeBatch(
+  admin: SupabaseClient,
+  docs: DocEntry[],
+  anthropicKey: string,
+  clientContext: string,
+  questionsText: string,
+  batchLabel: string,
+): Promise<BatchResult> {
+  const { parts, names, failed, hasPdf, useFilesApi } = await prepareDocs(admin, docs)
+
+  if (parts.length === 0) {
+    return { answers: [], analyzed: [], failed }
+  }
+
+  const docsListed = names.map((n) => `[${n}]`).join('; ')
+  const prompt = `Tu es un auditeur SI senior rigoureux. Tu analyses UNIQUEMENT les documents fournis en pièces jointes pour pré-remplir un questionnaire de prise de connaissance.
+
+${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
+DOCUMENTS DE CE LOT (${batchLabel}): ${docsListed}
+
+QUESTIONS DU QUESTIONNAIRE:
+${questionsText}
+
+RÈGLES STRICTES D'ÉVALUATION DES PREUVES:
+
+1. PREUVE DIRECTE (confiance 75-95%) : Le document joint traite directement du sujet.
+2. DÉCLARATION SANS PREUVE (confiance 25-40%) : Mention sans document joint.
+3. AUCUNE INFORMATION (ne pas répondre) : Aucun document ne mentionne le sujet.
+
+Ne réponds qu'aux questions où tu trouves une information dans CES documents.
+
+Génère un JSON avec un tableau "answers" contenant pour chaque question répondue :
+- "questionCode": code de la question
+- "questionLabel": libellé de la question
+- "answer": réponse précise (2-4 phrases)
+- "confidence": 0-100 (75-95 preuve directe, 25-40 déclaration)
+- "sourceDoc": nom du document source ou null
+
+JSON uniquement, en français.`
+
+  parts.push({ type: 'text', text: prompt })
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-api-key': anthropicKey,
+    'anthropic-version': '2023-06-01',
+  }
+  const betaFlags: string[] = []
+  if (hasPdf) betaFlags.push('pdfs-2024-09-25')
+  if (useFilesApi) betaFlags.push('files-api-2025-04-14')
+  if (betaFlags.length > 0) headers['anthropic-beta'] = betaFlags.join(',')
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS)
+
+  let claudeRes: Response
+  try {
+    claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers,
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: parts }],
+      }),
+    })
+  } catch (err) {
+    clearTimeout(timeout)
+    const isAbort = err instanceof Error && err.name === 'AbortError'
+    console.error(`[smart-questionnaire] ${batchLabel} ${isAbort ? 'timeout' : 'fetch error'}:`, err)
+    return { answers: [], analyzed: [], failed: [...failed, ...names.map((n) => ({ name: n, reason: isAbort ? 'timeout IA' : 'erreur réseau IA' }))] }
+  }
+  clearTimeout(timeout)
+
+  if (!claudeRes.ok) {
+    const errText = await claudeRes.text()
+    console.error(`[smart-questionnaire] ${batchLabel} Claude ${claudeRes.status}:`, errText.slice(0, 800))
+
+    let reason = `Claude ${claudeRes.status}`
+    try {
+      const errJson = JSON.parse(errText)
+      const msg = errJson?.error?.message ?? ''
+      if (msg.toLowerCase().includes('page')) reason = 'PDF > 100 pages'
+      else if (msg.toLowerCase().includes('token')) reason = 'trop volumineux pour le contexte IA'
+      else if (msg.toLowerCase().includes('size')) reason = 'document trop volumineux'
+      else if (msg) reason = `IA: ${msg.slice(0, 80)}`
+    } catch { /* keep default */ }
+
+    return { answers: [], analyzed: [], failed: [...failed, ...names.map((n) => ({ name: n, reason }))] }
+  }
+
+  const claudeData = await claudeRes.json()
+  const rawText = claudeData.content?.[0]?.text ?? ''
+  const clean = rawText.replace(/```json|```/g, '').trim()
+
+  let parsed: { answers?: AIAnswer[] } = {}
+  try {
+    parsed = JSON.parse(clean)
+  } catch {
+    const match = clean.match(/\{[\s\S]*\}/)
+    if (match) {
+      try { parsed = JSON.parse(match[0]) } catch { /* parsed stays empty */ }
+    }
+  }
+
+  return { answers: parsed.answers ?? [], analyzed: names, failed }
 }
 
 Deno.serve(async (req) => {
@@ -85,215 +265,83 @@ Deno.serve(async (req) => {
       const cc = clients?.[0]
       if (cc) {
         const regs = (cc.exigences_reglementaires ?? []).map((r: { nom: string }) => r.nom).join(', ')
-        clientContext = `Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}, IT: ${(cc.it_systems ?? []).join(', ')}, Environnement: ${(cc.it_environment ?? []).join(', ')}, Réglementations: ${regs || 'aucune'}, Référentiel: ${mission.framework?.name ?? '?'}`
+        clientContext = `Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}, IT: ${(cc.it_systems ?? []).join(', ')}, Réglementations: ${regs || 'aucune'}, Référentiel: ${mission.framework?.name ?? '?'}`
       }
     }
 
-    // ── 2. Récupérer tous les documents (max BATCH_SIZE * MAX_BATCHES) ──
+    // ── 2. Récupérer les documents ─────────────────────────────────
     const totalCap = BATCH_SIZE * MAX_BATCHES
     const { data: allDocs } = await admin.from('documents')
       .select('file_name, file_path, mime_type, file_size, anthropic_file_id')
       .eq('mission_id', mission_id)
       .order('created_at', { ascending: false })
-      .limit(totalCap + 5) // +5 to know if there are more being skipped
+      .limit(totalCap + 5)
 
     const docList = (allDocs ?? []) as DocEntry[]
     const docsToProcess = docList.slice(0, totalCap)
-    const docsSkipped = docList.length > totalCap
-      ? docList.slice(totalCap).map((d) => d.file_name)
-      : []
+    const docsSkipped = docList.length > totalCap ? docList.slice(totalCap).map((d) => d.file_name) : []
 
-    // Split into batches of BATCH_SIZE
+    // Split into batches
     const batches: DocEntry[][] = []
     for (let i = 0; i < docsToProcess.length; i += BATCH_SIZE) {
       batches.push(docsToProcess.slice(i, i + BATCH_SIZE))
     }
 
     if (batches.length === 0) {
-      return new Response(JSON.stringify({ answers: [], docs_analyzed: 0, docs_total: 0, docs_skipped: [] }),
+      return new Response(JSON.stringify({ answers: [], docs_analyzed: 0, docs_total: 0, docs_skipped: [], docs_failed: [] }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // ── 3. Process each batch sequentially ────────────────────────────
+    // ── 3. Process batches with single-doc fallback on failure ─────
     const mergedAnswers = new Map<string, AIAnswer>()
     const analyzedDocNames: string[] = []
     const failedDocs: { name: string; reason: string }[] = []
     const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
 
-    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
-      const batch = batches[batchIdx]
-      const contentParts: ContentBlock[] = []
-      const batchDescriptions: string[] = []
-      let hasPdf = false
-      let useFilesApi = false
-
-      for (const doc of batch) {
-        const ext = doc.file_name.split('.').pop()?.toLowerCase() ?? ''
-        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
-        const isPdf = ext === 'pdf'
-
-        if (!isImage && !isPdf) {
-          failedDocs.push({ name: doc.file_name, reason: 'format non supporté' })
-          continue
-        }
-
-        // Prefer Files API
-        if (isPdf && doc.anthropic_file_id) {
-          contentParts.push({
-            type: 'document',
-            source: { type: 'file', file_id: doc.anthropic_file_id },
-          })
-          hasPdf = true
-          useFilesApi = true
-          analyzedDocNames.push(doc.file_name)
-          batchDescriptions.push(`[${doc.file_name}] ✓ Files API`)
-          continue
-        }
-
-        if (isPdf && doc.file_size && doc.file_size > MAX_PDF_SIZE) {
-          failedDocs.push({ name: doc.file_name, reason: `trop volumineux (${(doc.file_size / 1024 / 1024).toFixed(1)} Mo)` })
-          continue
-        }
-
-        const { data: signedData, error: signErr } = await admin.storage
-          .from('documents')
-          .createSignedUrl(doc.file_path, 3600)
-
-        if (signErr || !signedData?.signedUrl) {
-          failedDocs.push({ name: doc.file_name, reason: 'erreur URL signée' })
-          continue
-        }
-
-        if (isPdf) {
-          contentParts.push({
-            type: 'document',
-            source: { type: 'url', url: signedData.signedUrl },
-          })
-          hasPdf = true
-        } else {
-          contentParts.push({
-            type: 'image',
-            source: { type: 'url', url: signedData.signedUrl, media_type: IMAGE_MEDIA_TYPES[ext] ?? 'image/jpeg' },
-          })
-        }
-
-        analyzedDocNames.push(doc.file_name)
-        batchDescriptions.push(`[${doc.file_name}] ✓`)
-      }
-
-      if (contentParts.length === 0) {
-        console.log(`[smart-questionnaire] Batch ${batchIdx + 1}/${batches.length}: no usable docs, skipping`)
-        continue
-      }
-
-      // Build prompt for this batch
-      const docsCtx = batchDescriptions.join('; ')
-      const prompt = `Tu es un auditeur SI senior rigoureux. Tu analyses UNIQUEMENT les documents fournis en pièces jointes pour pré-remplir un questionnaire de prise de connaissance.
-
-${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
-DOCUMENTS DE CE LOT (${batchIdx + 1}/${batches.length}): ${docsCtx}
-
-QUESTIONS DU QUESTIONNAIRE:
-${questionsText}
-
-RÈGLES STRICTES D'ÉVALUATION DES PREUVES:
-
-1. PREUVE DIRECTE (confiance 75-95%) : Le document joint traite directement du sujet.
-   Exemple : La PSSI est jointe → on peut confirmer son existence et analyser son contenu.
-
-2. DÉCLARATION SANS PREUVE (confiance 25-40%) : Un document MENTIONNE l'existence d'un autre document/processus, mais ce document/processus n'est PAS joint.
-
-3. AUCUNE INFORMATION (ne pas répondre) : Aucun document ne mentionne le sujet.
-
-IMPORTANT:
-- Ne réponds qu'aux questions où tu trouves une information dans CES documents.
-- Ne réponds PAS aux questions où tu n'as AUCUNE information dans ce lot.
-- Ne confonds JAMAIS une déclaration avec une preuve concrète.
-
-Génère un JSON avec un tableau "answers" contenant pour chaque question répondue :
-- "questionCode": le code de la question (ex: "ORG-01")
-- "questionLabel": le libellé de la question
-- "answer": la réponse, EN PRÉCISANT si c'est une preuve directe ou une déclaration non vérifiée (2-4 phrases)
-- "confidence": 0-100 (STRICT : 75-95 pour preuve directe, 25-40 pour déclaration sans preuve)
-- "sourceDoc": nom du document source principal ou null
-
-JSON uniquement, en français.`
-
-      contentParts.push({ type: 'text', text: prompt })
-
-      // Call Claude
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-      }
-      const betaFlags: string[] = []
-      if (hasPdf) betaFlags.push('pdfs-2024-09-25')
-      if (useFilesApi) betaFlags.push('files-api-2025-04-14')
-      if (betaFlags.length > 0) headers['anthropic-beta'] = betaFlags.join(',')
-
-      const claudeController = new AbortController()
-      const claudeTimeout = setTimeout(() => claudeController.abort(), CLAUDE_TIMEOUT_MS)
-
-      let claudeRes: Response
-      try {
-        claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers,
-          signal: claudeController.signal,
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 4000,
-            messages: [{ role: 'user', content: contentParts }],
-          }),
-        })
-      } catch (err) {
-        clearTimeout(claudeTimeout)
-        const isAbort = err instanceof Error && err.name === 'AbortError'
-        console.error(`[smart-questionnaire] Batch ${batchIdx + 1} ${isAbort ? 'timeout' : 'error'}:`, err)
-        for (const doc of batch) failedDocs.push({ name: doc.file_name, reason: isAbort ? 'timeout IA' : 'erreur IA' })
-        continue
-      }
-      clearTimeout(claudeTimeout)
-
-      if (!claudeRes.ok) {
-        const errText = await claudeRes.text()
-        console.error(`[smart-questionnaire] Batch ${batchIdx + 1} Claude error:`, claudeRes.status, errText.slice(0, 500))
-        for (const doc of batch) failedDocs.push({ name: doc.file_name, reason: `Claude ${claudeRes.status}` })
-        continue
-      }
-
-      // Parse response
-      const claudeData = await claudeRes.json()
-      const rawText = claudeData.content?.[0]?.text ?? ''
-      const clean = rawText.replace(/```json|```/g, '').trim()
-
-      let parsed: { answers?: AIAnswer[] } = {}
-      try {
-        parsed = JSON.parse(clean)
-      } catch {
-        const match = clean.match(/\{[\s\S]*\}/)
-        if (match) {
-          try { parsed = JSON.parse(match[0]) } catch {
-            console.error(`[smart-questionnaire] Batch ${batchIdx + 1} parse failed`)
-          }
-        }
-      }
-
-      // Merge: keep highest confidence per questionCode
-      for (const a of parsed.answers ?? []) {
+    const mergeAnswers = (answers: AIAnswer[]): void => {
+      for (const a of answers) {
         const existing = mergedAnswers.get(a.questionCode)
         if (!existing || a.confidence > existing.confidence) {
           mergedAnswers.set(a.questionCode, a)
         }
       }
+    }
 
-      console.log(`[smart-questionnaire] Batch ${batchIdx + 1}/${batches.length} done: ${parsed.answers?.length ?? 0} answers`)
+    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+      const batch = batches[batchIdx]
+      const batchLabel = `${batchIdx + 1}/${batches.length}`
+
+      // Try the full batch first
+      const batchResult = await analyzeBatch(admin, batch, anthropicKey, clientContext, questionsText, batchLabel)
+
+      if (batchResult.answers.length > 0 || batchResult.failed.length === 0) {
+        // Success or no failures
+        mergeAnswers(batchResult.answers)
+        analyzedDocNames.push(...batchResult.analyzed)
+        failedDocs.push(...batchResult.failed)
+        console.log(`[smart-questionnaire] Batch ${batchLabel}: ${batchResult.answers.length} answers, ${batchResult.analyzed.length} docs analyzed`)
+        continue
+      }
+
+      // Batch failed entirely. If batch has > 1 doc, retry each individually.
+      if (batch.length > 1) {
+        console.log(`[smart-questionnaire] Batch ${batchLabel} failed, retrying each doc individually`)
+        for (let i = 0; i < batch.length; i++) {
+          const singleLabel = `${batchLabel} retry ${i + 1}/${batch.length}`
+          const singleResult = await analyzeBatch(admin, [batch[i]], anthropicKey, clientContext, questionsText, singleLabel)
+          mergeAnswers(singleResult.answers)
+          analyzedDocNames.push(...singleResult.analyzed)
+          failedDocs.push(...singleResult.failed)
+        }
+      } else {
+        // Already a singleton — just record the failure
+        failedDocs.push(...batchResult.failed)
+      }
     }
 
     const answers = [...mergedAnswers.values()].map((a) => ({ ...a, validated: false }))
 
-    console.log(`[smart-questionnaire] Total: ${analyzedDocNames.length}/${docList.length} docs analyzed, ${answers.length} answers, ${batches.length} batch(es)`)
+    console.log(`[smart-questionnaire] Total: ${analyzedDocNames.length}/${docList.length} docs analyzed, ${answers.length} answers, ${failedDocs.length} failed`)
 
     return new Response(JSON.stringify({
       answers,
