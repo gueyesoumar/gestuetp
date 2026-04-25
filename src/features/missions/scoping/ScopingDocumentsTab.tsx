@@ -287,13 +287,13 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
           <FileText size={14} className="text-gray-500" />
           <span className="text-[13px] font-semibold text-gray-700">Catalogue complet (par domaine)</span>
           <div className="ml-auto relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-300" />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher une preuve, un contr&ocirc;le..."
-              className="pl-7 pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] outline-none focus:border-forest-500 w-64"
+              className="pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] outline-none focus:border-forest-500 w-64"
             />
           </div>
         </div>
