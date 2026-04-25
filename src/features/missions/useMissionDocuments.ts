@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { registerDocumentForAI } from './registerDocumentForAI'
 import type { Document } from '../../types/database.types'
 
 interface UseMissionDocumentsResult {
@@ -87,7 +88,7 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
     }
 
     // 2. Inserer dans la table documents
-    const { error: insertError } = await supabase
+    const { data: insertedDoc, error: insertError } = await supabase
       .from('documents')
       .insert({
         mission_id: missionId,
@@ -99,12 +100,19 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
         mime_type: file.type || null,
         description: description || null,
       })
+      .select('id')
+      .single()
 
     if (insertError) {
       console.error('useMissionDocuments TABLE INSERT error:', insertError.message, insertError)
       setUploadError(`Fichier upload\u00e9 mais erreur table : ${insertError.message}`)
       setUploading(false)
       return false
+    }
+
+    // 3. Trigger background Anthropic Files API upload (non-blocking)
+    if (insertedDoc?.id) {
+      registerDocumentForAI(insertedDoc.id, file.name)
     }
 
     setUploading(false)

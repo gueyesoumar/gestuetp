@@ -4,6 +4,7 @@ import { useAuth } from '../../../../hooks/useAuth'
 import { supabase } from '../../../../lib/supabase'
 import { useMissionQuestionnaire } from '../../../missions/useMissionQuestionnaire'
 import { useMissionDocuments } from '../../../missions/useMissionDocuments'
+import { registerDocumentForAI } from '../../../missions/registerDocumentForAI'
 import { useClientExpectedDocuments } from '../../smart-interview/useClientExpectedDocuments'
 import { useClientInterviews } from './useClientInterviews'
 import { SmartInterviewContainer } from '../../smart-interview/SmartInterviewContainer'
@@ -82,6 +83,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
         'Content-Type': 'application/json',
         'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${token}`,
+        'Prefer': 'return=representation',
       },
       body: JSON.stringify({
         mission_id: mission.id,
@@ -96,6 +98,13 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
     })
 
     if (res.ok) {
+      // Trigger background Anthropic Files API upload (non-blocking)
+      try {
+        const inserted = await res.json() as { id: string }[]
+        const docId = inserted?.[0]?.id
+        if (docId) registerDocumentForAI(docId, file.name)
+      } catch { /* ignore \u2014 upload still succeeded */ }
+
       setUploadSuccess(pendingDocName ? `\u00ab ${pendingDocName} \u00bb d\u00e9pos\u00e9 avec succ\u00e8s` : `\u00ab ${file.name} \u00bb d\u00e9pos\u00e9 avec succ\u00e8s`)
       setTimeout(() => setUploadSuccess(null), 4000)
       refetchDocs()
@@ -126,12 +135,13 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
 
     const controlId = controlIds && controlIds.length > 0 ? controlIds[0] : null
 
-    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/documents`, {
+    const linkRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/documents`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${token}`,
+        'Prefer': 'return=representation',
       },
       body: JSON.stringify({
         mission_id: mission.id,
@@ -144,6 +154,14 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
         description: `[EVIDENCE:${evidenceName}]`,
       }),
     })
+
+    if (linkRes.ok) {
+      try {
+        const inserted = await linkRes.json() as { id: string }[]
+        const docId = inserted?.[0]?.id
+        if (docId) registerDocumentForAI(docId, existingDoc.file_name)
+      } catch { /* ignore */ }
+    }
 
     setUploadSuccess(`\u00ab ${existingDoc.file_name} \u00bb li\u00e9 \u00e0 \u00ab ${evidenceName} \u00bb`)
     setTimeout(() => setUploadSuccess(null), 4000)
