@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { Sparkles, Check, Pencil, MessageCircle, Brain, Square } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import type { Question } from '../../../types/database.types'
-import type { SmartAnswer } from './SmartInterviewContainer'
+import type { SmartAnswer, AnalysisStatus } from './SmartInterviewContainer'
 
 function EditableAnswer({ answer, onSave, onCancel }: { answer: SmartAnswer; onSave: (text: string) => void; onCancel: () => void }): JSX.Element {
   const [text, setText] = useState(answer.answer)
@@ -33,6 +33,7 @@ interface Props {
   initialResponses: Map<string, unknown>
   prefilledAnswers: SmartAnswer[]
   onPrefilledAnswersChange: (answers: SmartAnswer[]) => void
+  onAnalysisStatusChange: (status: AnalysisStatus) => void
   analyzing: boolean
   onAnalyzingChange: (v: boolean) => void
   readOnly: boolean
@@ -41,7 +42,8 @@ interface Props {
 
 export function SmartPrefilledAnswers({
   missionId, questions, instanceId, userId, initialResponses,
-  prefilledAnswers, onPrefilledAnswersChange, analyzing, onAnalyzingChange,
+  prefilledAnswers, onPrefilledAnswersChange, onAnalysisStatusChange,
+  analyzing, onAnalyzingChange,
   readOnly, onGoToConversation,
 }: Props): JSX.Element {
   const [error, setError] = useState<string | null>(null)
@@ -75,10 +77,26 @@ export function SmartPrefilledAnswers({
       return
     }
 
-    const data = await res.json() as { answers: SmartAnswer[] }
+    const data = await res.json() as {
+      answers: SmartAnswer[]
+      docs_analyzed?: number
+      docs_total?: number
+      docs_analyzed_names?: string[]
+      docs_skipped?: string[]
+      docs_failed?: { name: string; reason: string }[]
+      batches?: number
+    }
     onPrefilledAnswersChange(data.answers ?? [])
+    onAnalysisStatusChange({
+      docsAnalyzed: data.docs_analyzed ?? 0,
+      docsTotal: data.docs_total ?? 0,
+      docsAnalyzedNames: data.docs_analyzed_names ?? [],
+      docsSkipped: data.docs_skipped ?? [],
+      docsFailed: data.docs_failed ?? [],
+      batches: data.batches ?? 1,
+    })
     onAnalyzingChange(false)
-  }, [missionId, questions, onPrefilledAnswersChange, onAnalyzingChange])
+  }, [missionId, questions, onPrefilledAnswersChange, onAnalysisStatusChange, onAnalyzingChange])
 
   const handleValidate = useCallback(async (questionCode: string): Promise<void> => {
     const answer = prefilledAnswers.find((a) => a.questionCode === questionCode)

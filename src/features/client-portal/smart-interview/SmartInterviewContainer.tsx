@@ -15,6 +15,15 @@ export interface SmartAnswer {
   validated: boolean
 }
 
+export interface AnalysisStatus {
+  docsAnalyzed: number
+  docsTotal: number
+  docsAnalyzedNames: string[]
+  docsSkipped: string[]
+  docsFailed: { name: string; reason: string }[]
+  batches: number
+}
+
 interface SmartInterviewContainerProps {
   missionId: string
   missionName: string
@@ -35,6 +44,7 @@ export function SmartInterviewContainer({
   const [activeTab, setActiveTab] = useState<SmartTab>('prefill')
   const [prefilledAnswers, setPrefilledAnswers] = useState<SmartAnswer[]>([])
   const [analyzing, setAnalyzing] = useState(false)
+  const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null)
 
   const answeredCount = initialResponses.size + prefilledAnswers.filter((a) => a.validated).length
   const totalCount = questions.length
@@ -70,6 +80,33 @@ export function SmartInterviewContainer({
         </div>
       </div>
 
+      {/* Analysis status \u2014 visible after first analysis */}
+      {analysisStatus && (analysisStatus.docsSkipped.length > 0 || analysisStatus.docsFailed.length > 0 || analysisStatus.batches > 1) && (
+        <div className="p-3 mb-4 bg-gold-50 border border-gold-200 rounded-xl">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles size={13} className="text-gold-600" />
+            <span className="text-[12px] font-semibold text-gold-600">
+              {analysisStatus.docsAnalyzed}/{analysisStatus.docsTotal} document{analysisStatus.docsTotal > 1 ? 's' : ''} analys{analysisStatus.docsAnalyzed > 1 ? '\u00e9' : '\u00e9'}{analysisStatus.docsAnalyzed > 1 ? 's' : ''}
+            </span>
+            {analysisStatus.batches > 1 && (
+              <span className="text-[10px] text-gold-600 bg-white px-2 py-0.5 rounded-full">
+                en {analysisStatus.batches} lots
+              </span>
+            )}
+          </div>
+          {analysisStatus.docsSkipped.length > 0 && (
+            <p className="text-[11px] text-gold-700 mb-1">
+              <b>{analysisStatus.docsSkipped.length} document(s) ignor\u00e9(s)</b> (limite de 24 documents par analyse) : {analysisStatus.docsSkipped.slice(0, 3).join(', ')}{analysisStatus.docsSkipped.length > 3 ? `, +${analysisStatus.docsSkipped.length - 3}` : ''}
+            </p>
+          )}
+          {analysisStatus.docsFailed.length > 0 && (
+            <p className="text-[11px] text-red-600">
+              <b>{analysisStatus.docsFailed.length} \u00e9chec(s)</b> : {analysisStatus.docsFailed.slice(0, 3).map((d) => `${d.name} (${d.reason})`).join(', ')}{analysisStatus.docsFailed.length > 3 ? `, +${analysisStatus.docsFailed.length - 3}` : ''}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-1 mb-4">
         {tabs.map((tab) => (
@@ -97,6 +134,7 @@ export function SmartInterviewContainer({
           initialResponses={initialResponses}
           prefilledAnswers={prefilledAnswers}
           onPrefilledAnswersChange={setPrefilledAnswers}
+          onAnalysisStatusChange={setAnalysisStatus}
           analyzing={analyzing}
           onAnalyzingChange={setAnalyzing}
           readOnly={readOnly}

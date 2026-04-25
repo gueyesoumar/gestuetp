@@ -7,9 +7,35 @@ interface QuestionInput {
   description: string | null
 }
 
-const MAX_DOCS = 8
-const MAX_PDFS = 8 // Anthropic supports multiple PDFs per request
+interface AIAnswer {
+  questionCode: string
+  questionLabel: string
+  answer: string
+  confidence: number
+  sourceDoc: string | null
+}
+
+const BATCH_SIZE = 8 // PDFs per Claude call
+const MAX_BATCHES = 3 // Up to 24 docs total
 const MAX_PDF_SIZE = 32 * 1024 * 1024 // 32 Mo (Anthropic limit per PDF)
+const CLAUDE_TIMEOUT_MS = 90_000 // 90s per call
+
+type ContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; source: { type: 'url'; url: string; media_type: string } }
+  | { type: 'document'; source: { type: 'url'; url: string } | { type: 'file'; file_id: string } }
+
+interface DocEntry {
+  file_name: string
+  file_path: string
+  mime_type: string | null
+  file_size: number | null
+  anthropic_file_id: string | null
+}
+
+const IMAGE_MEDIA_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -63,99 +89,109 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 2. Récupérer les documents via URL signée (pas de base64 inline) ──
-    const { data: docEntries } = await admin.from('documents')
+    // ── 2. Récupérer tous les documents (max BATCH_SIZE * MAX_BATCHES) ──
+    const totalCap = BATCH_SIZE * MAX_BATCHES
+    const { data: allDocs } = await admin.from('documents')
       .select('file_name, file_path, mime_type, file_size, anthropic_file_id')
       .eq('mission_id', mission_id)
       .order('created_at', { ascending: false })
-      .limit(10)
+      .limit(totalCap + 5) // +5 to know if there are more being skipped
 
-    type ContentBlock =
-      | { type: 'text'; text: string }
-      | { type: 'image'; source: { type: 'url'; url: string; media_type: string } }
-      | { type: 'document'; source: { type: 'url'; url: string } | { type: 'file'; file_id: string } }
+    const docList = (allDocs ?? []) as DocEntry[]
+    const docsToProcess = docList.slice(0, totalCap)
+    const docsSkipped = docList.length > totalCap
+      ? docList.slice(totalCap).map((d) => d.file_name)
+      : []
 
-    const contentParts: ContentBlock[] = []
-    const docDescriptions: string[] = []
-    let hasPdf = false
-    let useFilesApi = false
-    let pdfCount = 0
-    const imageMediaTypes: Record<string, string> = {
-      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
+    // Split into batches of BATCH_SIZE
+    const batches: DocEntry[][] = []
+    for (let i = 0; i < docsToProcess.length; i += BATCH_SIZE) {
+      batches.push(docsToProcess.slice(i, i + BATCH_SIZE))
     }
 
-    for (const doc of (docEntries ?? []).slice(0, MAX_DOCS)) {
-      const ext = doc.file_name.split('.').pop()?.toLowerCase() ?? ''
-      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
-      const isPdf = ext === 'pdf'
-
-      if (!isImage && !isPdf) {
-        docDescriptions.push(`[${doc.file_name}] (format non supporté)`)
-        continue
-      }
-
-      // Strategy: prefer Files API (file_id) > signed URL fallback
-      if (isPdf && doc.anthropic_file_id) {
-        contentParts.push({
-          type: 'document',
-          source: { type: 'file', file_id: doc.anthropic_file_id },
-        })
-        hasPdf = true
-        useFilesApi = true
-        pdfCount++
-        const sizeMb = doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)}Mo` : '?'
-        docDescriptions.push(`[${doc.file_name}] ✓ via Files API (${sizeMb})`)
-        continue
-      }
-
-      if (isPdf) {
-        if (pdfCount >= MAX_PDFS) {
-          docDescriptions.push(`[${doc.file_name}] (limité à ${MAX_PDFS} PDF par analyse en mode URL)`)
-          continue
-        }
-        if (doc.file_size && doc.file_size > MAX_PDF_SIZE) {
-          docDescriptions.push(`[${doc.file_name}] (trop volumineux : ${(doc.file_size / 1024 / 1024).toFixed(1)}Mo)`)
-          continue
-        }
-      }
-
-      const { data: signedData, error: signErr } = await admin.storage
-        .from('documents')
-        .createSignedUrl(doc.file_path, 3600)
-
-      if (signErr || !signedData?.signedUrl) {
-        docDescriptions.push(`[${doc.file_name}] (erreur URL signée)`)
-        continue
-      }
-
-      if (isPdf) {
-        contentParts.push({
-          type: 'document',
-          source: { type: 'url', url: signedData.signedUrl },
-        })
-        hasPdf = true
-        pdfCount++
-      } else {
-        contentParts.push({
-          type: 'image',
-          source: { type: 'url', url: signedData.signedUrl, media_type: imageMediaTypes[ext] ?? 'image/jpeg' },
-        })
-      }
-
-      const sizeMb = doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)}Mo` : '?'
-      docDescriptions.push(`[${doc.file_name}] ✓ (${sizeMb})`)
-      console.log(`[smart-questionnaire] Added ${doc.file_name} via signed URL (${sizeMb})`)
+    if (batches.length === 0) {
+      return new Response(JSON.stringify({ answers: [], docs_analyzed: 0, docs_total: 0, docs_skipped: [] }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // ── 3. Construire le prompt ──────────────────────────────────────
-    const docsCtx = docDescriptions.length > 0 ? `\nDOCUMENTS: ${docDescriptions.join('; ')}` : ''
-    const questionsText = questions.map(q => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
+    // ── 3. Process each batch sequentially ────────────────────────────
+    const mergedAnswers = new Map<string, AIAnswer>()
+    const analyzedDocNames: string[] = []
+    const failedDocs: { name: string; reason: string }[] = []
+    const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
 
-    const prompt = `Tu es un auditeur SI senior rigoureux. Tu analyses UNIQUEMENT les documents fournis en pièces jointes pour pré-remplir un questionnaire de prise de connaissance.
+    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+      const batch = batches[batchIdx]
+      const contentParts: ContentBlock[] = []
+      const batchDescriptions: string[] = []
+      let hasPdf = false
+      let useFilesApi = false
 
-${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}${docsCtx}
+      for (const doc of batch) {
+        const ext = doc.file_name.split('.').pop()?.toLowerCase() ?? ''
+        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+        const isPdf = ext === 'pdf'
 
-${contentParts.length > 0 ? `Tu as reçu ${contentParts.length} document(s) en pièces jointes. Analyse-les en détail.` : 'Aucun document n\'a pu être chargé.'}
+        if (!isImage && !isPdf) {
+          failedDocs.push({ name: doc.file_name, reason: 'format non supporté' })
+          continue
+        }
+
+        // Prefer Files API
+        if (isPdf && doc.anthropic_file_id) {
+          contentParts.push({
+            type: 'document',
+            source: { type: 'file', file_id: doc.anthropic_file_id },
+          })
+          hasPdf = true
+          useFilesApi = true
+          analyzedDocNames.push(doc.file_name)
+          batchDescriptions.push(`[${doc.file_name}] ✓ Files API`)
+          continue
+        }
+
+        if (isPdf && doc.file_size && doc.file_size > MAX_PDF_SIZE) {
+          failedDocs.push({ name: doc.file_name, reason: `trop volumineux (${(doc.file_size / 1024 / 1024).toFixed(1)} Mo)` })
+          continue
+        }
+
+        const { data: signedData, error: signErr } = await admin.storage
+          .from('documents')
+          .createSignedUrl(doc.file_path, 3600)
+
+        if (signErr || !signedData?.signedUrl) {
+          failedDocs.push({ name: doc.file_name, reason: 'erreur URL signée' })
+          continue
+        }
+
+        if (isPdf) {
+          contentParts.push({
+            type: 'document',
+            source: { type: 'url', url: signedData.signedUrl },
+          })
+          hasPdf = true
+        } else {
+          contentParts.push({
+            type: 'image',
+            source: { type: 'url', url: signedData.signedUrl, media_type: IMAGE_MEDIA_TYPES[ext] ?? 'image/jpeg' },
+          })
+        }
+
+        analyzedDocNames.push(doc.file_name)
+        batchDescriptions.push(`[${doc.file_name}] ✓`)
+      }
+
+      if (contentParts.length === 0) {
+        console.log(`[smart-questionnaire] Batch ${batchIdx + 1}/${batches.length}: no usable docs, skipping`)
+        continue
+      }
+
+      // Build prompt for this batch
+      const docsCtx = batchDescriptions.join('; ')
+      const prompt = `Tu es un auditeur SI senior rigoureux. Tu analyses UNIQUEMENT les documents fournis en pièces jointes pour pré-remplir un questionnaire de prise de connaissance.
+
+${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
+DOCUMENTS DE CE LOT (${batchIdx + 1}/${batches.length}): ${docsCtx}
 
 QUESTIONS DU QUESTIONNAIRE:
 ${questionsText}
@@ -166,101 +202,115 @@ RÈGLES STRICTES D'ÉVALUATION DES PREUVES:
    Exemple : La PSSI est jointe → on peut confirmer son existence et analyser son contenu.
 
 2. DÉCLARATION SANS PREUVE (confiance 25-40%) : Un document MENTIONNE l'existence d'un autre document/processus, mais ce document/processus n'est PAS joint.
-   Exemple : La PSSI mentionne "un PCA est en place" mais le PCA n'est pas parmi les documents joints.
-   → Réponse : "La PSSI (section X) mentionne l'existence d'un PCA, mais le document PCA n'a pas été fourni. À confirmer."
 
 3. AUCUNE INFORMATION (ne pas répondre) : Aucun document ne mentionne le sujet.
 
 IMPORTANT:
-- Ne confonds JAMAIS une déclaration dans un document avec une preuve concrète.
-- Si la PSSI dit "nous avons un PCA", ce n'est PAS une preuve que le PCA existe réellement.
-- Précise toujours si ta réponse est basée sur une preuve directe ou une simple déclaration.
-- Liste des documents effectivement joints : ${docDescriptions.filter(d => d.includes('✓')).map(d => d.split(']')[0].replace('[', '')).join(', ') || 'aucun'}
+- Ne réponds qu'aux questions où tu trouves une information dans CES documents.
+- Ne réponds PAS aux questions où tu n'as AUCUNE information dans ce lot.
+- Ne confonds JAMAIS une déclaration avec une preuve concrète.
 
 Génère un JSON avec un tableau "answers" contenant pour chaque question répondue :
-- "questionCode": le code de la question (ex: "GOV-01")
+- "questionCode": le code de la question (ex: "ORG-01")
 - "questionLabel": le libellé de la question
 - "answer": la réponse, EN PRÉCISANT si c'est une preuve directe ou une déclaration non vérifiée (2-4 phrases)
-- "confidence": 0-100 (STRICT : 75-95 pour preuve directe, 25-40 pour déclaration sans preuve, jamais plus de 50 sans le document concerné)
+- "confidence": 0-100 (STRICT : 75-95 pour preuve directe, 25-40 pour déclaration sans preuve)
 - "sourceDoc": nom du document source principal ou null
 
-Ne réponds PAS aux questions où tu n'as AUCUNE information.
 JSON uniquement, en français.`
 
-    contentParts.push({ type: 'text', text: prompt })
+      contentParts.push({ type: 'text', text: prompt })
 
-    // ── 4. Appeler Claude ───────────────────────────────────────────
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-    }
-    const betaFlags: string[] = []
-    if (hasPdf) betaFlags.push('pdfs-2024-09-25')
-    if (useFilesApi) betaFlags.push('files-api-2025-04-14')
-    if (betaFlags.length > 0) headers['anthropic-beta'] = betaFlags.join(',')
-
-    const claudeController = new AbortController()
-    const claudeTimeout = setTimeout(() => claudeController.abort(), 120_000)
-
-    let claudeRes: Response
-    try {
-      claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers,
-        signal: claudeController.signal,
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          messages: [{ role: 'user', content: contentParts }],
-        }),
-      })
-    } finally {
-      clearTimeout(claudeTimeout)
-    }
-
-    if (!claudeRes.ok) {
-      const errText = await claudeRes.text()
-      console.error('[smart-questionnaire] Claude error:', claudeRes.status, errText.slice(0, 500))
-      return new Response(JSON.stringify({ error: `Erreur IA: ${claudeRes.status}` }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
-
-    // ── 5. Parser la réponse ────────────────────────────────────────
-    const claudeData = await claudeRes.json()
-    const rawText = claudeData.content?.[0]?.text ?? ''
-    const clean = rawText.replace(/```json|```/g, '').trim()
-
-    let parsed: { answers: { questionCode: string; questionLabel: string; answer: string; confidence: number; sourceDoc: string | null }[] }
-    try {
-      parsed = JSON.parse(clean)
-    } catch {
-      const match = clean.match(/\{[\s\S]*\}/)
-      if (match) {
-        try { parsed = JSON.parse(match[0]) } catch {
-          console.error('[smart-questionnaire] Parse failed:', clean.slice(0, 300))
-          return new Response(JSON.stringify({ answers: [], docs_analyzed: contentParts.length - 1 }),
-            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-        }
-      } else {
-        return new Response(JSON.stringify({ answers: [], docs_analyzed: contentParts.length - 1 }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      // Call Claude
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
       }
+      const betaFlags: string[] = []
+      if (hasPdf) betaFlags.push('pdfs-2024-09-25')
+      if (useFilesApi) betaFlags.push('files-api-2025-04-14')
+      if (betaFlags.length > 0) headers['anthropic-beta'] = betaFlags.join(',')
+
+      const claudeController = new AbortController()
+      const claudeTimeout = setTimeout(() => claudeController.abort(), CLAUDE_TIMEOUT_MS)
+
+      let claudeRes: Response
+      try {
+        claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers,
+          signal: claudeController.signal,
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 4000,
+            messages: [{ role: 'user', content: contentParts }],
+          }),
+        })
+      } catch (err) {
+        clearTimeout(claudeTimeout)
+        const isAbort = err instanceof Error && err.name === 'AbortError'
+        console.error(`[smart-questionnaire] Batch ${batchIdx + 1} ${isAbort ? 'timeout' : 'error'}:`, err)
+        for (const doc of batch) failedDocs.push({ name: doc.file_name, reason: isAbort ? 'timeout IA' : 'erreur IA' })
+        continue
+      }
+      clearTimeout(claudeTimeout)
+
+      if (!claudeRes.ok) {
+        const errText = await claudeRes.text()
+        console.error(`[smart-questionnaire] Batch ${batchIdx + 1} Claude error:`, claudeRes.status, errText.slice(0, 500))
+        for (const doc of batch) failedDocs.push({ name: doc.file_name, reason: `Claude ${claudeRes.status}` })
+        continue
+      }
+
+      // Parse response
+      const claudeData = await claudeRes.json()
+      const rawText = claudeData.content?.[0]?.text ?? ''
+      const clean = rawText.replace(/```json|```/g, '').trim()
+
+      let parsed: { answers?: AIAnswer[] } = {}
+      try {
+        parsed = JSON.parse(clean)
+      } catch {
+        const match = clean.match(/\{[\s\S]*\}/)
+        if (match) {
+          try { parsed = JSON.parse(match[0]) } catch {
+            console.error(`[smart-questionnaire] Batch ${batchIdx + 1} parse failed`)
+          }
+        }
+      }
+
+      // Merge: keep highest confidence per questionCode
+      for (const a of parsed.answers ?? []) {
+        const existing = mergedAnswers.get(a.questionCode)
+        if (!existing || a.confidence > existing.confidence) {
+          mergedAnswers.set(a.questionCode, a)
+        }
+      }
+
+      console.log(`[smart-questionnaire] Batch ${batchIdx + 1}/${batches.length} done: ${parsed.answers?.length ?? 0} answers`)
     }
 
-    const answers = (parsed.answers ?? []).map(a => ({ ...a, validated: false }))
+    const answers = [...mergedAnswers.values()].map((a) => ({ ...a, validated: false }))
 
-    console.log(`[smart-questionnaire] ${contentParts.length - 1} docs analyzed, ${answers.length} answers generated`)
+    console.log(`[smart-questionnaire] Total: ${analyzedDocNames.length}/${docList.length} docs analyzed, ${answers.length} answers, ${batches.length} batch(es)`)
 
-    return new Response(JSON.stringify({ answers, docs_analyzed: contentParts.length - 1 }),
+    return new Response(JSON.stringify({
+      answers,
+      docs_analyzed: analyzedDocNames.length,
+      docs_total: docList.length,
+      docs_analyzed_names: analyzedDocNames,
+      docs_skipped: docsSkipped,
+      docs_failed: failedDocs,
+      batches: batches.length,
+    }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
-    const isAbort = err instanceof Error && err.name === 'AbortError'
     console.error('[smart-questionnaire] Error:', message)
     return new Response(
-      JSON.stringify({ error: isAbort ? 'Délai dépassé — réessayez' : 'Erreur interne' }),
+      JSON.stringify({ error: 'Erreur interne' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })
