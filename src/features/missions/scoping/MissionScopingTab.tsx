@@ -11,6 +11,7 @@ import { useMissionQuestionnaire } from '../useMissionQuestionnaire'
 import { ScopingClientTab } from './ScopingClientTab'
 import { ScopingScopeTab } from './ScopingScopeTab'
 import { ScopingQuestionnaireTab } from './ScopingQuestionnaireTab'
+import { ScopingDocumentsTab } from './ScopingDocumentsTab'
 import { ScopingRisksTab } from './ScopingRisksTab'
 import { ScopingProgressSidebar } from './ScopingProgressSidebar'
 import { PortalInviteModal } from './PortalInviteModal'
@@ -28,7 +29,7 @@ interface MissionScopingTabProps {
   onRefetch: () => void
 }
 
-type ScopingTab = 'client' | 'scope' | 'questionnaire' | 'risks'
+type ScopingTab = 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks'
 
 export function MissionScopingTab({ mission, members, domains, client, onRefetch }: MissionScopingTabProps) {
   const { profile } = useAuth()
@@ -208,6 +209,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           <TabBtn label="Fiche client" active={activeTab === 'client'} onClick={() => setActiveTab('client')} />
           <TabBtn label="P&eacute;rim&egrave;tre" count={domains.length} active={activeTab === 'scope'} onClick={() => setActiveTab('scope')} />
           <TabBtn label="Questionnaire" count={`${answeredCount}/${totalCount}`} active={activeTab === 'questionnaire'} onClick={() => setActiveTab('questionnaire')} />
+          <TabBtn label="Documents" count={docsExpected > 0 ? `${docsReceived}/${docsExpected}` : undefined} active={activeTab === 'documents'} onClick={() => setActiveTab('documents')} />
           <TabBtn label="Risques" count={risks.length} active={activeTab === 'risks'} onClick={() => setActiveTab('risks')} />
         </div>
 
@@ -219,6 +221,11 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           <ScopingScopeTab mission={mission} domains={domains} exclusions={exclusions} client={client} onAddExclusion={handleAddExclusion} onRemoveExclusion={removeExclusion} saving={saving} />
         )}
         {activeTab === 'questionnaire' && <ScopingQuestionnaireTab mission={mission} onRefetch={onRefetch} />}
+        {activeTab === 'documents' && (
+          <div className="flex-1 overflow-y-auto p-4">
+            <ScopingDocumentsTab missionId={mission.id} domains={domains} exclusions={exclusions} />
+          </div>
+        )}
         {activeTab === 'risks' && (
           <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} saving={saving} error={saveError} />
         )}
@@ -239,6 +246,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           onGenerateNote={handleGenerateNote}
           onValidateScoping={handleValidateScoping}
           onInvitePortal={() => setShowPortalModal(true)}
+          onNavigate={(tab) => setActiveTab(tab)}
           actionLoading={actionLoading}
           actionSuccess={actionSuccess}
         />

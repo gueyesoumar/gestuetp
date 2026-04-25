@@ -17,13 +17,15 @@ interface ScopingProgressSidebarProps {
   onGenerateNote: () => void
   onValidateScoping: () => void
   onInvitePortal: () => void
+  onNavigate: (tab: 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks') => void
   actionLoading: boolean
   actionSuccess: string | null
 }
 
-interface CheckItem { label: string; done: boolean; active: boolean }
+type ChecklistTab = 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks'
+interface CheckItem { label: string; done: boolean; active: boolean; tab?: ChecklistTab }
 
-export function ScopingProgressSidebar({ mission, client, risks, questionnaireProgress, documentsReceived, documentsExpected, onRemindClient, onGenerateNote, onValidateScoping, onInvitePortal, actionLoading, actionSuccess }: ScopingProgressSidebarProps) {
+export function ScopingProgressSidebar({ mission, client, risks, questionnaireProgress, documentsReceived, documentsExpected, onRemindClient, onGenerateNote, onValidateScoping, onInvitePortal, onNavigate, actionLoading, actionSuccess }: ScopingProgressSidebarProps) {
   const checklist = useMemo((): CheckItem[] => {
     const hasClient = !!client
     const hasScope = mission.status !== 'initialization'
@@ -32,18 +34,19 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
     const docsDone = documentsExpected > 0 && documentsReceived >= documentsExpected
     const risksValidated = risks.length > 0
     return [
-      { label: 'Fiche client compl\u00e9t\u00e9e', done: hasClient, active: !hasClient },
-      { label: 'P\u00e9rim\u00e8tre d\u00e9fini', done: hasScope, active: hasClient && !hasScope },
-      { label: 'Questionnaire envoy\u00e9', done: questSent, active: hasScope && !questSent },
-      { label: `Questionnaire compl\u00e9t\u00e9 (${questionnaireProgress}%)`, done: questDone, active: questSent && !questDone },
+      { label: 'Fiche client compl\u00e9t\u00e9e', done: hasClient, active: !hasClient, tab: 'client' },
+      { label: 'P\u00e9rim\u00e8tre d\u00e9fini', done: hasScope, active: hasClient && !hasScope, tab: 'scope' },
+      { label: 'Questionnaire envoy\u00e9', done: questSent, active: hasScope && !questSent, tab: 'questionnaire' },
+      { label: `Questionnaire compl\u00e9t\u00e9 (${questionnaireProgress}%)`, done: questDone, active: questSent && !questDone, tab: 'questionnaire' },
       {
         label: documentsExpected === 0
           ? 'Documents demand\u00e9s au client'
           : `Documents re\u00e7us (${documentsReceived}/${documentsExpected})`,
         done: docsDone,
         active: questSent && !docsDone,
+        tab: 'documents',
       },
-      { label: 'Risques initiaux valid\u00e9s', done: risksValidated, active: !risksValidated },
+      { label: 'Risques initiaux valid\u00e9s', done: risksValidated, active: !risksValidated, tab: 'risks' },
       { label: 'Note de cadrage valid\u00e9e', done: false, active: false },
     ]
   }, [mission, client, questionnaireProgress, documentsReceived, documentsExpected, risks])
@@ -65,12 +68,21 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
       {/* Checklist */}
       <div className="p-4 border-b border-gray-200">
         <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Checklist de cadrage</h4>
-        {checklist.map((item, i) => (
-          <div key={i} className="flex items-center gap-2.5 py-2 border-b border-gray-50 last:border-b-0">
-            <CheckIcon done={item.done} active={item.active} />
-            <span className={`text-xs ${item.done ? 'text-gray-300 line-through' : 'text-gray-700'}`}>{item.label}</span>
-          </div>
-        ))}
+        {checklist.map((item, i) => {
+          const isClickable = !!item.tab
+          return (
+            <div
+              key={i}
+              onClick={isClickable ? () => onNavigate(item.tab!) : undefined}
+              className={`flex items-center gap-2.5 py-2 border-b border-gray-50 last:border-b-0 -mx-2 px-2 rounded ${
+                isClickable ? 'cursor-pointer hover:bg-forest-50/50 transition-colors' : ''
+              }`}
+            >
+              <CheckIcon done={item.done} active={item.active} />
+              <span className={`text-xs ${item.done ? 'text-gray-300 line-through' : 'text-gray-700'}`}>{item.label}</span>
+            </div>
+          )
+        })}
       </div>
 
 
