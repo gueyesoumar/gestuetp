@@ -12,8 +12,9 @@ import { CabinetMembersTab } from '../../features/admin/CabinetMembersTab'
 import { CabinetMissionsTab } from '../../features/admin/CabinetMissionsTab'
 import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
+import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
 
-type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'flags' | 'audit'
+type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -100,6 +101,7 @@ export function CabinetDetailPage() {
         <TabBtn k="members" label={`Membres · ${cabinet.members.length}`} active={activeTab === 'members'} onClick={setActiveTab} />
         <TabBtn k="missions" label={`Missions · ${cabinet.missions.length}`} active={activeTab === 'missions'} onClick={setActiveTab} />
         <TabBtn k="billing" label="Facturation" active={activeTab === 'billing'} onClick={setActiveTab} />
+        <TabBtn k="whitelabel" label="Marque blanche" active={activeTab === 'whitelabel'} onClick={setActiveTab} />
         <TabBtn k="flags" label="Feature flags" active={activeTab === 'flags'} onClick={setActiveTab} />
         <TabBtn k="audit" label="Audit log" active={activeTab === 'audit'} onClick={setActiveTab} />
       </div>
@@ -145,6 +147,7 @@ export function CabinetDetailPage() {
       {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}
       {activeTab === 'missions' && <CabinetMissionsTab cabinetId={cabinet.id} />}
       {activeTab === 'billing' && <CabinetBillingTab cabinet={cabinet} />}
+      {activeTab === 'whitelabel' && <CabinetWhiteLabelTab cabinetId={cabinet.id} />}
       {activeTab === 'flags' && <CabinetFeatureFlagsTab cabinetId={cabinet.id} />}
       {activeTab === 'audit' && <CabinetAuditLogTab cabinetId={cabinet.id} />}
 
