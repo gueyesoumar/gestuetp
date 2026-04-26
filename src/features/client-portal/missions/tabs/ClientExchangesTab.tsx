@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react'
 import { Paperclip, Check, Sparkles, FileText, BarChart3, Calendar, BookOpen, Link2, ArrowRight } from 'lucide-react'
 import { useAuth } from '../../../../hooks/useAuth'
 import { useToast } from '../../../../hooks/useToast'
+import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
 import { supabase } from '../../../../lib/supabase'
 import { useMissionQuestionnaire } from '../../../missions/useMissionQuestionnaire'
 import { useMissionDocuments } from '../../../missions/useMissionDocuments'
@@ -20,6 +21,8 @@ interface Props {
 export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Element {
   const { profile } = useAuth()
   const toast = useToast()
+  const filesApiFlag = useFeatureFlag('documents_anthropic_files')
+  const smartInterviewFlag = useFeatureFlag('smart_interview_portal')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [pendingDocName, setPendingDocName] = useState<string | null>(null)
   const [pendingControlIds, setPendingControlIds] = useState<string[]>([])
@@ -101,7 +104,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
       try {
         const inserted = await res.json() as { id: string }[]
         const docId = inserted?.[0]?.id
-        if (docId) registerDocumentForAI(docId, file.name)
+        if (docId && filesApiFlag.enabled) registerDocumentForAI(docId, file.name)
       } catch { /* upload succeeded; AI registration is fire-and-forget */ }
 
       return evidenceLabel
@@ -177,7 +180,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
       try {
         const inserted = await linkRes.json() as { id: string }[]
         const docId = inserted?.[0]?.id
-        if (docId) registerDocumentForAI(docId, existingDoc.file_name)
+        if (docId && filesApiFlag.enabled) registerDocumentForAI(docId, existingDoc.file_name)
       } catch { /* ignore */ }
 
       return existingDoc.file_name
@@ -360,19 +363,21 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
       </section>
 
       {/* ═══ SECTION: Questionnaire ═══ */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={15} className="text-gold-500" />
-          <h3 className="text-sm font-bold">Questionnaire intelligent</h3>
-        </div>
-        {qLoading ? (
-          <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Chargement...</p></div>
-        ) : instance && questions.length > 0 ? (
-          <SmartInterviewContainer missionId={mission.id} missionName={mission.name} questions={questions} instanceId={instance.id} userId={profile?.id ?? null} initialResponses={initialResponses} readOnly={!isContributor} documentsCount={documents.length} />
-        ) : (
-          <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Aucun questionnaire pour cette mission.</p></div>
-        )}
-      </section>
+      {!smartInterviewFlag.loading && smartInterviewFlag.enabled && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={15} className="text-gold-500" />
+            <h3 className="text-sm font-bold">Questionnaire intelligent</h3>
+          </div>
+          {qLoading ? (
+            <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Chargement...</p></div>
+          ) : instance && questions.length > 0 ? (
+            <SmartInterviewContainer missionId={mission.id} missionName={mission.name} questions={questions} instanceId={instance.id} userId={profile?.id ?? null} initialResponses={initialResponses} readOnly={!isContributor} documentsCount={documents.length} />
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Aucun questionnaire pour cette mission.</p></div>
+          )}
+        </section>
+      )}
 
       {/* ═══ SECTION: Entretiens ═══ */}
       <section>

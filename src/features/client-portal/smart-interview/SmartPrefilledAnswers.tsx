@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Sparkles, Check, Pencil, MessageCircle, Brain, Square } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import type { Question } from '../../../types/database.types'
 import type { SmartAnswer, AnalysisStatus } from './SmartInterviewContainer'
 
@@ -48,6 +49,7 @@ export function SmartPrefilledAnswers({
 }: Props): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [editingCode, setEditingCode] = useState<string | null>(null)
+  const aiFlag = useFeatureFlag('smart_questionnaire_ai')
 
   const alreadyAnswered = questions.filter((q) => initialResponses.has(q.code))
   const aiPrefilled = questions.filter((q) =>
@@ -170,7 +172,7 @@ export function SmartPrefilledAnswers({
       )}
 
       {/* Analyze button if no prefilled answers yet */}
-      {prefilledAnswers.length === 0 && !analyzing && (
+      {prefilledAnswers.length === 0 && !analyzing && !aiFlag.loading && aiFlag.enabled && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 text-center mb-4">
           <div className="flex justify-center mb-3"><Sparkles size={24} className="text-gold-500" /></div>
           <p className="text-sm font-semibold mb-1">Analyse IA des documents</p>
@@ -181,6 +183,11 @@ export function SmartPrefilledAnswers({
             className="px-6 py-2.5 bg-forest-700 text-white rounded-lg text-sm font-semibold hover:bg-forest-900 transition-colors disabled:opacity-50">
             <Sparkles size={15} className="inline mr-1" />Analyser et pr&eacute;-remplir
           </button>
+        </div>
+      )}
+      {prefilledAnswers.length === 0 && !analyzing && !aiFlag.loading && !aiFlag.enabled && (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center mb-4 text-[12px] text-gray-500">
+          L&apos;analyse IA est temporairement indisponible. R&eacute;pondez aux questions manuellement.
         </div>
       )}
 

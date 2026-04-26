@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useFeatureFlag } from '../hooks/useFeatureFlag'
 import { CabinetDashboard } from '../features/dashboard/CabinetDashboard'
 import { GroupeDashboard } from '../features/dashboard/GroupeDashboard'
 
@@ -10,6 +11,9 @@ export function DashboardPage() {
   const { profile } = useAuth()
   const [view, setView] = useState<DashboardView>('cabinet')
   const [hasGroupeRole, setHasGroupeRole] = useState(false)
+  const groupModeFlag = useFeatureFlag('supervision_group_mode')
+  const groupVisible = hasGroupeRole && !groupModeFlag.loading && groupModeFlag.enabled
+  const effectiveView = groupVisible ? view : 'cabinet'
 
   useEffect(() => {
     if (!profile?.organization_id) return
@@ -33,7 +37,7 @@ export function DashboardPage() {
 
   return (
     <div>
-      {hasGroupeRole && (
+      {groupVisible && (
         <div className="flex justify-end mb-4">
           <div className="inline-flex bg-white border border-gray-200 rounded-[10px] p-[3px] gap-[2px]">
             <button
@@ -60,7 +64,7 @@ export function DashboardPage() {
         </div>
       )}
 
-      {view === 'cabinet' ? <CabinetDashboard /> : <GroupeDashboard />}
+      {effectiveView === 'cabinet' ? <CabinetDashboard /> : <GroupeDashboard />}
     </div>
   )
 }

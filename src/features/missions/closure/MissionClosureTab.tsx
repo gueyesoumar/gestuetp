@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
 import { ClosureActionCards } from './ClosureActionCards'
@@ -39,6 +40,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const [scoring, setScoring] = useState<ScoringData | null>(null)
   const [assessments, setAssessments] = useState<ControlAssessment[]>([])
   const isClosed = mission.status === 'closure'
+  const reportFlag = useFeatureFlag('report_generator_advanced')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -124,7 +126,9 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}
             initialComment={(mission as unknown as Record<string, unknown>).audit_conclusion_comment as string | null ?? null}
           />
-          <ReportGenerator missionId={mission.id} missionName={mission.name} />
+          {!reportFlag.loading && reportFlag.enabled && (
+            <ReportGenerator missionId={mission.id} missionName={mission.name} />
+          )}
         </>
       )}
     </div>

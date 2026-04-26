@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { useFeatureFlag } from '../hooks/useFeatureFlag'
 import { useFrameworks } from '../features/frameworks/useFrameworks'
 import { FrameworkCard } from '../features/frameworks/FrameworkCard'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -27,6 +28,8 @@ const categoryOrder: FrameworkCategory[] = ['conformite', 'gouvernance', 'evalua
 export function FrameworksPage() {
   const { frameworks, loading, error } = useFrameworks()
   const [filter, setFilter] = useState<FilterKey>('all')
+  const compareFlag = useFeatureFlag('multi_framework_dashboard')
+  const compareVisible = !compareFlag.loading && compareFlag.enabled
 
   const countByCategory = useMemo(() => {
     const counts: Record<string, number> = { all: frameworks.length }
@@ -71,7 +74,7 @@ export function FrameworksPage() {
             R&eacute;f&eacute;rentiels de conformit&eacute;, d&apos;audit et d&apos;&eacute;valuation disponibles sur la plateforme.
           </p>
         </div>
-        {frameworks.length >= 2 && (
+        {compareVisible && frameworks.length >= 2 && (
           <Link
             to="/referentiels/comparer"
             className="rounded-lg border border-gray-200 px-4 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-forest-50 hover:border-forest-300 transition-colors"
@@ -140,7 +143,7 @@ export function FrameworksPage() {
       </div>
 
       {/* Compare link */}
-      {frameworks.length >= 2 && (
+      {compareVisible && frameworks.length >= 2 && (
         <Link
           to="/referentiels/comparer"
           className="inline-flex items-center gap-2 mt-6 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-[13px] text-gray-500 hover:border-forest-300 hover:text-forest-700 hover:bg-forest-50 transition-colors"

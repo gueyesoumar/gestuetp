@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { FileText, Presentation, FileSpreadsheet } from 'lucide-react'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 
 const FORMATS = [
-  { key: 'pdf', label: 'PDF', icon: FileText },
-  { key: 'pptx', label: 'PPTX', icon: Presentation },
-  { key: 'word', label: 'Word', icon: FileSpreadsheet },
+  { key: 'pdf', label: 'PDF', icon: FileText, premium: false },
+  { key: 'pptx', label: 'PPTX', icon: Presentation, premium: true },
+  { key: 'word', label: 'Word', icon: FileSpreadsheet, premium: true },
 ] as const
 
 const CONTENT_OPTIONS = [
@@ -30,6 +31,8 @@ export function ReportGenerator({ missionId, missionName }: Props): JSX.Element 
   const [format, setFormat] = useState<string>('pdf')
   const [content, setContent] = useState<Set<string>>(new Set(['synthese', 'detail', 'radar', 'plan_actions']))
   const [personalization, setPersonalization] = useState<Set<string>>(new Set(['client_logo']))
+  const formatsFlag = useFeatureFlag('export_report_formats')
+  const availableFormats = FORMATS.filter((f) => !f.premium || (!formatsFlag.loading && formatsFlag.enabled))
 
   const toggleContent = (key: string): void => {
     setContent((prev) => {
@@ -65,7 +68,7 @@ export function ReportGenerator({ missionId, missionName }: Props): JSX.Element 
       <div className="mb-4">
         <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Format</p>
         <div className="flex gap-2">
-          {FORMATS.map((f) => {
+          {availableFormats.map((f) => {
             const Icon = f.icon
             return (
               <button key={f.key} type="button" onClick={() => setFormat(f.key)}

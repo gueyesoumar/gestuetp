@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../../../lib/supabase'
+import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
 import { CONFORMITY_LEVELS } from '../../mission-constants'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
 import type { Document } from '../../../../types/database.types'
@@ -68,6 +69,7 @@ const CONFORMITY_TO_CLASSIFICATION: Record<string, string> = {
 export function AnalyserStep({ assessment, observations, evidenceNotes, findings, recommendations, riskNotes, conformityLevel, findingClassification, onFindingClassificationChange, onFindingsChange, onRecommendationsChange, onRiskNotesChange, onConformityChange, readOnly }: AnalyserStepProps) {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(null)
+  const aiFlag = useFeatureFlag('smart_analyse_control')
 
   const handleAiSuggest = async () => {
     setAiLoading(true)
@@ -123,7 +125,7 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
           <h4 className="text-[13px] font-semibold text-gray-900">{'\uD83D\uDD2C'} Analyser</h4>
           <p className="text-xs text-gray-300 mt-0.5">{'\u00c9'}valuez le contr{'\u00f4'}le et r{'\u00e9'}digez vos constats.</p>
         </div>
-        {!readOnly && (
+        {!readOnly && !aiFlag.loading && aiFlag.enabled && (
           <button onClick={handleAiSuggest} disabled={aiLoading}
             className="text-[11px] font-semibold text-white bg-purple-500 px-3 py-1.5 rounded-lg hover:bg-purple-600 disabled:opacity-50 flex items-center gap-1.5 shrink-0">
             {aiLoading && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}

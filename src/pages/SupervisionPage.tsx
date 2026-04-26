@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Download, FileText } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useFeatureFlag } from '../hooks/useFeatureFlag'
 import { useOrganizationHierarchy } from '../hooks/useOrganizationHierarchy'
 import { useGroupPermissions } from '../hooks/useGroupPermissions'
 import { useSupervisionData } from '../features/supervision/useSupervisionData'
@@ -25,10 +26,13 @@ export function SupervisionPage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<Tab>('classement')
   const [sectorFilter, setSectorFilter] = useState('')
 
+  const groupModeFlag = useFeatureFlag('supervision_group_mode')
+
   // Determine available modes based on organization type
-  const hasGroupMode = isGroup
+  // Le mode groupe est gated par le feature flag — si désactivé, on tombe sur cabinet
+  const hasGroupMode = isGroup && !groupModeFlag.loading && groupModeFlag.enabled
   const hasCabinetMode = isCabinet
-  const hasBothModes = isGroup && isCabinet
+  const hasBothModes = hasGroupMode && isCabinet
 
   // Default mode: group if group-only, cabinet if cabinet-only, group if both
   const defaultMode: SupervisionMode = hasGroupMode ? 'group' : 'cabinet'

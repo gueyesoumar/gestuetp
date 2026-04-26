@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Sparkles, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { ScopingRiskCard } from './ScopingRiskCard'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
@@ -24,6 +25,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
   const [source, setSource] = useState('')
   const [generating, setGenerating] = useState(false)
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
+  const risksFlag = useFeatureFlag('smart_risks_ai')
 
   const handleSubmit = async (): Promise<void> => {
     if (!title.trim()) return
@@ -73,14 +75,16 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
       <div className="flex items-center justify-between mb-2">
         <span className="text-[13px] font-semibold text-gray-900">Risques initiaux identifi&eacute;s</span>
         <div className="flex gap-2">
-          <button onClick={handleGenerateFromQuestionnaire} disabled={generating || saving}
-            className="text-xs font-semibold text-white bg-gold-500 hover:bg-gold-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5">
-            {generating ? (
-              <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Analyse...</>
-            ) : (
-              <><Sparkles size={13} /> G&eacute;n&eacute;rer depuis le questionnaire</>
-            )}
-          </button>
+          {!risksFlag.loading && risksFlag.enabled && (
+            <button onClick={handleGenerateFromQuestionnaire} disabled={generating || saving}
+              className="text-xs font-semibold text-white bg-gold-500 hover:bg-gold-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5">
+              {generating ? (
+                <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Analyse...</>
+              ) : (
+                <><Sparkles size={13} /> G&eacute;n&eacute;rer depuis le questionnaire</>
+              )}
+            </button>
+          )}
           <button onClick={() => setShowForm(!showForm)}
             className="text-xs font-semibold text-white bg-purple-500 hover:bg-purple-600 px-3 py-1.5 rounded-lg transition-colors">
             {showForm ? 'Annuler' : '+ Ajouter manuellement'}

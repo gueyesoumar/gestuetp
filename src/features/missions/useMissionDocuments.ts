@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
+import { useFeatureFlag } from '../../hooks/useFeatureFlag'
 import { registerDocumentForAI } from './registerDocumentForAI'
 import type { Document } from '../../types/database.types'
 
@@ -19,6 +20,7 @@ interface UseMissionDocumentsResult {
 export function useMissionDocuments(missionId: string | undefined, controlId?: string): UseMissionDocumentsResult {
   const { profile } = useAuth()
   const toast = useToast()
+  const filesApiFlag = useFeatureFlag('documents_anthropic_files')
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -106,7 +108,7 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
         throw new Error(insertError.message)
       }
 
-      if (insertedDoc?.id) {
+      if (insertedDoc?.id && filesApiFlag.enabled) {
         registerDocumentForAI(insertedDoc.id, file.name)
       }
 
@@ -130,7 +132,7 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
       setUploading(false)
       return false
     }
-  }, [missionId, controlId, profile, refetch, toast])
+  }, [missionId, controlId, profile, refetch, toast, filesApiFlag.enabled])
 
   const deleteDocument = useCallback(async (docId: string, filePath: string): Promise<boolean> => {
     // 1. Delete from Storage

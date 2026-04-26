@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { usePlanningData } from './usePlanningData'
 import { useSavePlanning } from './useSavePlanning'
 import { useAssignControls } from '../useAssignControls'
@@ -41,6 +42,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [editingInterview, setEditingInterview] = useState<import('../../../types/database.types').InterviewSchedule | null>(null)
   const [generatingInterviews, setGeneratingInterviews] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const planFlag = useFeatureFlag('smart_plan_mission')
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -162,11 +164,13 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           <div className="flex-1">
             <p className="text-xs text-purple-800"><strong>SmartPlan</strong> peut g{'\u00e9'}n{'\u00e9'}rer le programme de travail complet.</p>
           </div>
-          <button onClick={handleGenerate} disabled={generating}
-            className="text-xs font-semibold text-white bg-purple-500 px-3 py-1.5 rounded-lg hover:bg-purple-600 disabled:opacity-50 shrink-0 flex items-center gap-1.5">
-            {generating && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-            {generating ? 'Analyse IA en cours...' : '\u2733 G\u00e9n\u00e9rer'}
-          </button>
+          {!planFlag.loading && planFlag.enabled && (
+            <button onClick={handleGenerate} disabled={generating}
+              className="text-xs font-semibold text-white bg-purple-500 px-3 py-1.5 rounded-lg hover:bg-purple-600 disabled:opacity-50 shrink-0 flex items-center gap-1.5">
+              {generating && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {generating ? 'Analyse IA en cours...' : '\u2733 G\u00e9n\u00e9rer'}
+            </button>
+          )}
 
           {/* Sidebar toggle */}
           <button onClick={() => setSidebarOpen(!sidebarOpen)}
