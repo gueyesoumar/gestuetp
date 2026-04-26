@@ -1,5 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
+import { sendEmail } from '../_shared/resend.ts'
+import { cabinetOwnerInviteTemplate } from '../_shared/email-templates/auth.ts'
 
 /**
  * Edge Function : admin-create-cabinet
@@ -158,14 +160,33 @@ Deno.serve(async (req) => {
       assigned_by: owner.id,
     })
 
-    // 8. Envoyer un lien de définition de mot de passe à l'owner
-    const { error: linkError } = await admin.auth.admin.generateLink({
+    // 8. Générer le lien de définition de mot de passe et l'envoyer via Resend
+    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://app.gestugroup.com'
+    let invitationSent = false
+    // deno-lint-ignore no-explicit-any
+    const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
       type: 'recovery',
       email: body.owner_email.trim().toLowerCase(),
+      options: { redirectTo: `${siteUrl}/set-password` },
     })
-    if (linkError) {
-      console.warn('[admin-create-cabinet] link warning:', linkError.message)
-      // Non-bloquant : le compte est créé, on peut renvoyer le lien après
+    const link = (linkData as { properties?: { action_link?: string } } | null)?.properties?.action_link ?? null
+    if (linkError || !link) {
+      console.warn('[admin-create-cabinet] generateLink warning:', linkError?.message ?? 'no link returned')
+    } else {
+      const sendResult = await sendEmail({
+        to: body.owner_email.trim().toLowerCase(),
+        subject: `Bienvenue sur Gëstu Comply — ${body.name}`,
+        html: cabinetOwnerInviteTemplate({
+          firstName: body.owner_first_name.trim(),
+          cabinetName: body.name,
+          link,
+        }),
+      })
+      if (sendResult.error) {
+        console.warn('[admin-create-cabinet] sendEmail warning:', sendResult.error)
+      } else {
+        invitationSent = true
+      }
     }
 
     // 9. Audit log
@@ -181,7 +202,7 @@ Deno.serve(async (req) => {
       success: true,
       cabinet_id: orgId,
       owner_user_id: ownerProfileId,
-      invitation_sent: !linkError,
+      invitation_sent: invitationSent,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'

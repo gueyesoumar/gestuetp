@@ -1,5 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
+import { sendEmail } from '../_shared/resend.ts'
+import { passwordResetTemplate } from '../_shared/email-templates/auth.ts'
 
 /**
  * Edge Function : admin-user
@@ -49,15 +51,33 @@ Deno.serve(async (req) => {
     const u = target as { id: string; auth_id: string; email: string; first_name: string; last_name: string; is_active: boolean; organization_id: string; is_platform_owner: boolean }
 
     if (body.action === 'reset_password') {
-      const { error: linkError } = await admin.auth.admin.generateLink({
+      const siteUrl = Deno.env.get('SITE_URL') ?? 'https://app.gestugroup.com'
+      // deno-lint-ignore no-explicit-any
+      const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
         type: 'recovery',
         email: u.email,
+        options: { redirectTo: `${siteUrl}/set-password` },
       })
-      if (linkError) {
-        console.error('[admin-user] reset_password error:', linkError.message)
-        return jsonResponse({ error: 'Envoi du lien de réinitialisation impossible' }, 500)
+      const link = (linkData as { properties?: { action_link?: string } } | null)?.properties?.action_link ?? null
+      if (linkError || !link) {
+        console.error('[admin-user] reset_password generateLink error:', linkError?.message ?? 'no link returned')
+        return jsonResponse({ error: 'Génération du lien de réinitialisation impossible' }, 500)
       }
-      await logAdminAction(admin, owner.id, 'reset_user_password', 'user', u.id, body.reason, { email: u.email })
+
+      const result = await sendEmail({
+        to: u.email,
+        subject: 'Réinitialisation de votre mot de passe — Gëstu Comply',
+        html: passwordResetTemplate({ firstName: u.first_name || u.email, link }),
+      })
+      if (result.error) {
+        console.error('[admin-user] reset_password sendEmail error:', result.error)
+        return jsonResponse({ error: 'Envoi de l\'email impossible' }, 500)
+      }
+
+      await logAdminAction(admin, owner.id, 'reset_user_password', 'user', u.id, body.reason, {
+        email: u.email,
+        resend_id: result.id ?? null,
+      })
       return jsonResponse({ success: true })
     }
 
