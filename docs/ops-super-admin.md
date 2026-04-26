@@ -126,6 +126,10 @@ supabase functions deploy smart-analyse
 supabase functions deploy smart-plan
 supabase functions deploy smart-risks
 supabase functions deploy ai-documents
+
+# Phase 4 — frameworks management UI
+supabase functions deploy admin-framework
+supabase functions deploy admin-framework-ai-draft
 ```
 
 Variables d'environnement à vérifier :
@@ -200,12 +204,41 @@ appel à Anthropic. Le calcul utilise des constantes hardcodées dans
 **Données rétroactives** : la table `ai_calls_log` ne capture que les appels postérieurs
 au déploiement de la migration 00074. Pas d'historique antérieur.
 
+## 6ter. Frameworks management UI
+
+Page `/admin/frameworks` permet de créer / éditer les référentiels et leurs contrôles
+sans passer par SQL.
+
+**Deux modes de création** :
+- **Manuel** (bouton « Nouveau (manuel) ») → formulaire vide, à compléter à la main
+- **IA-assisted** (bouton « Générer avec IA ») → wizard 3 étapes :
+  1. Identité du référentiel (nom, slug, version, publisher, catégorie)
+  2. PDFs joints (0-5, ≤ 32 Mo chacun) + instructions libres
+  3. Aperçu du brouillon généré → création en chaîne (framework + domains + controls)
+
+**Édition** sur `/admin/frameworks/:slug` :
+- Métadonnées éditables inline (nom, version, publisher, description, catégorie)
+- Domaines en accordéon avec drag-handle ↑↓ (boutons), édition inline, ajout/suppression
+- Contrôles inline : code, name, description, guidance — édition rapide
+- Toggle « Désactivé » (soft-delete) sur framework / domaine / contrôle
+
+**Garde-fous** :
+- Hard-delete d'un framework refusé si missions actives référencent → utiliser le soft-delete
+- Hard-delete d'un domaine refusé si `control_assessments` existent
+- Hard-delete d'un contrôle refusé si `control_assessments` existent
+- Soft-delete (`is_active = false`) toujours possible — invisible côté cabinet, données existantes intactes
+
+**Brouillon IA** : badge `was_ai_generated` reste affiché jusqu'à ce que l'admin le retire
+manuellement (« Marquer comme publié »). Toujours **relire les contrôles** avant publication —
+Claude peut halluciner sur des codes ou descriptions.
+
 ## 7. Limites restantes (Phase 3 si besoin)
 
 - ❌ **Stripe** : MRR reste placeholder. Pas demandé pour l'instant.
 - ❌ **Impersonation full** : voir l'app comme un autre utilisateur en mode mutation. Risques d'audit. Non livré.
-- ❌ **Per-cabinet feature flags** : Phase 2 = global on/off uniquement.
 - ❌ **Tickets support** : besoin pas cadré (Linear ? Notion ? in-app ?).
+- ❌ **Bulk import CSV des frameworks** : actuellement IA ou saisie inline. CSV en Phase 4 si besoin.
+- ❌ **Versioning frameworks** : pas de snapshot historique. Phase 4.
 
 ## 7. Tests manuels recommandés
 

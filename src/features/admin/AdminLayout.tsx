@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Building2, Users, ClipboardList, Flag, Activity, ChevronLeft } from 'lucide-react'
+import { LayoutDashboard, Building2, Users, ClipboardList, Flag, Activity, BookMarked, ChevronLeft } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 interface NavItem {
@@ -12,6 +12,7 @@ const NAV: NavItem[] = [
   { to: '/admin', label: 'Tableau de bord', icon: <LayoutDashboard size={16} strokeWidth={1.5} /> },
   { to: '/admin/cabinets', label: 'Cabinets', icon: <Building2 size={16} strokeWidth={1.5} /> },
   { to: '/admin/utilisateurs', label: 'Utilisateurs', icon: <Users size={16} strokeWidth={1.5} /> },
+  { to: '/admin/frameworks', label: 'Référentiels', icon: <BookMarked size={16} strokeWidth={1.5} /> },
   { to: '/admin/feature-flags', label: 'Feature flags', icon: <Flag size={16} strokeWidth={1.5} /> },
   { to: '/admin/monitoring', label: 'Santé / Monitoring', icon: <Activity size={16} strokeWidth={1.5} /> },
   { to: '/admin/audit-log', label: 'Audit log', icon: <ClipboardList size={16} strokeWidth={1.5} /> },
