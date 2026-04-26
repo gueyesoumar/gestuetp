@@ -1,6 +1,9 @@
 /**
- * VaultBackground — dark forest green gradient with hex grid pattern.
- * Shared between LoginPage, SetPasswordPage, and HubPage.
+ * VaultBackground — fond dégradé sombre pour login / hub / set-password.
+ * Utilise les CSS variables --brand-primary et --brand-accent injectées
+ * par BrandingProvider. Sur le domaine Gëstu ces variables valent
+ * #1B4332 / #D4A843 ; sur un domaine cabinet personnalisé, elles prennent
+ * les couleurs du branding.
  */
 
 import type { ReactNode } from 'react'
@@ -12,12 +15,12 @@ interface VaultBackgroundProps {
 const HEX_GRID_CSS = `
   radial-gradient(
     ellipse 80px 80px at 40px 46px,
-    rgba(212, 168, 67, 0.03) 0%,
+    color-mix(in srgb, var(--brand-accent) 3%, transparent) 0%,
     transparent 70%
   ),
   radial-gradient(
     ellipse 80px 80px at 120px 46px,
-    rgba(212, 168, 67, 0.02) 0%,
+    color-mix(in srgb, var(--brand-accent) 2%, transparent) 0%,
     transparent 70%
   )
 `
@@ -27,10 +30,10 @@ export function VaultBackground({ children }: VaultBackgroundProps): JSX.Element
     <div
       className="relative min-h-screen overflow-hidden"
       style={{
-        background: 'linear-gradient(160deg, #0D1F15 0%, #1B4332 45%, #173D2E 100%)',
+        background:
+          'linear-gradient(160deg, color-mix(in srgb, var(--brand-primary, #1B4332) 35%, black) 0%, var(--brand-primary, #1B4332) 50%, color-mix(in srgb, var(--brand-primary, #1B4332) 80%, black) 100%)',
       }}
     >
-      {/* Hex grid overlay */}
       <div
         className="pointer-events-none absolute inset-0 opacity-60"
         style={{
@@ -38,7 +41,6 @@ export function VaultBackground({ children }: VaultBackgroundProps): JSX.Element
           backgroundSize: '160px 92px',
         }}
       />
-      {/* Vignette edges */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{

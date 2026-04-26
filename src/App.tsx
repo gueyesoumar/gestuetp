@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
+import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
@@ -49,6 +50,7 @@ import { CampaignDetailPage } from './pages/CampaignDetailPage'
 function App() {
   return (
     <BrowserRouter>
+      <BrandingProvider>
       <AuthProvider>
         <Toaster
           position="bottom-right"
@@ -146,6 +148,7 @@ function App() {
           </Route>
         </Routes>
       </AuthProvider>
+      </BrandingProvider>
     </BrowserRouter>
   )
 }
