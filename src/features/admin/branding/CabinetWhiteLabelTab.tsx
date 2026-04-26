@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useCabinetBrandingAdmin } from './useCabinetBrandingAdmin'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
@@ -5,6 +6,7 @@ import { LogoUploadField } from './LogoUploadField'
 import { BrandingFormSection } from './BrandingFormSection'
 import { DomainsSection } from './DomainsSection'
 import { Info } from 'lucide-react'
+import type { ExtractedColors } from '../../branding/extractColorsFromImage'
 
 interface Props {
   cabinetId: string
@@ -23,9 +25,15 @@ interface Props {
  */
 export function CabinetWhiteLabelTab({ cabinetId }: Props): JSX.Element {
   const { branding, domains, loading, error, refetch } = useCabinetBrandingAdmin(cabinetId)
+  const [suggestedColors, setSuggestedColors] = useState<ExtractedColors | null>(null)
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
+
+  const handleLightUploaded = (colors?: ExtractedColors | null) => {
+    if (colors) setSuggestedColors(colors)
+    refetch()
+  }
 
   return (
     <div className="space-y-5">
@@ -48,13 +56,18 @@ export function CabinetWhiteLabelTab({ cabinetId }: Props): JSX.Element {
           pastille blanche automatique &mdash; lisibilité garantie sur tous les écrans.
         </p>
         <div className="grid grid-cols-2 gap-4">
-          <LogoUploadField cabinetId={cabinetId} variant="light" currentUrl={branding?.logo_light_url ?? null} onUploaded={refetch} />
-          <LogoUploadField cabinetId={cabinetId} variant="dark" currentUrl={branding?.logo_dark_url ?? null} onUploaded={refetch} />
+          <LogoUploadField cabinetId={cabinetId} variant="light" currentUrl={branding?.logo_light_url ?? null} onUploaded={handleLightUploaded} />
+          <LogoUploadField cabinetId={cabinetId} variant="dark" currentUrl={branding?.logo_dark_url ?? null} onUploaded={() => refetch()} />
         </div>
       </section>
 
       <section>
-        <BrandingFormSection cabinetId={cabinetId} branding={branding} onSaved={refetch} />
+        <BrandingFormSection
+          cabinetId={cabinetId}
+          branding={branding}
+          suggestedColors={suggestedColors}
+          onSaved={() => { setSuggestedColors(null); refetch() }}
+        />
       </section>
 
       <section>

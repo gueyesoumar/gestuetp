@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
+import { Sparkles, X } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
+import type { ExtractedColors } from '../../branding/extractColorsFromImage'
 
 interface Props {
   cabinetId: string
   branding: CabinetBrandingRow | null
+  /** Couleurs déduites côté client après upload du logo light */
+  suggestedColors?: ExtractedColors | null
   onSaved: () => void
 }
 
 const HEX_COLOR_RE = /^#[0-9A-Fa-f]{6}$/
 
-export function BrandingFormSection({ cabinetId, branding, onSaved }: Props): JSX.Element {
+export function BrandingFormSection({ cabinetId, branding, suggestedColors, onSaved }: Props): JSX.Element {
   const [primary, setPrimary] = useState(branding?.primary_color ?? '')
   const [accent, setAccent] = useState(branding?.accent_color ?? '')
   const [supportEmail, setSupportEmail] = useState(branding?.support_email ?? '')
@@ -20,6 +24,7 @@ export function BrandingFormSection({ cabinetId, branding, onSaved }: Props): JS
   const [showReason, setShowReason] = useState(false)
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [appliedSuggestion, setAppliedSuggestion] = useState(false)
   const toast = useToast()
 
   useEffect(() => {
@@ -28,7 +33,24 @@ export function BrandingFormSection({ cabinetId, branding, onSaved }: Props): JS
     setSupportEmail(branding?.support_email ?? '')
     setEmailFromName(branding?.email_from_name ?? '')
     setFooterText(branding?.footer_text ?? '')
+    setAppliedSuggestion(false)
   }, [branding])
+
+  // Auto-applique les couleurs déduites du logo si les deux champs sont vides
+  useEffect(() => {
+    if (!suggestedColors) return
+    if (primary || accent) return
+    setPrimary(suggestedColors.primary)
+    setAccent(suggestedColors.accent)
+    setAppliedSuggestion(true)
+  }, [suggestedColors, primary, accent])
+
+  const applySuggestionExplicit = () => {
+    if (!suggestedColors) return
+    setPrimary(suggestedColors.primary)
+    setAccent(suggestedColors.accent)
+    setAppliedSuggestion(true)
+  }
 
   const validate = (): string | null => {
     if (primary && !HEX_COLOR_RE.test(primary)) return 'Couleur primaire au format #RRGGBB'
@@ -74,9 +96,38 @@ export function BrandingFormSection({ cabinetId, branding, onSaved }: Props): JS
       <header className="px-4 py-3 border-b border-gray-100">
         <span className="text-[13px] font-bold text-gray-900">Couleurs &amp; emails</span>
       </header>
+
+      {suggestedColors && !appliedSuggestion && (primary || accent) && (
+        <div className="px-4 py-2.5 bg-amber-50 border-b border-amber-200 flex items-center gap-3 text-[12px] text-amber-900">
+          <Sparkles size={14} className="flex-shrink-0" />
+          <span>Couleurs déduites du logo disponibles :</span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded border border-amber-300" style={{ background: suggestedColors.primary }} />
+            <code className="font-mono text-[11.5px]">{suggestedColors.primary}</code>
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded border border-amber-300" style={{ background: suggestedColors.accent }} />
+            <code className="font-mono text-[11.5px]">{suggestedColors.accent}</code>
+          </span>
+          <button type="button" onClick={applySuggestionExplicit} className="ml-auto px-2 py-1 bg-forest-700 text-white rounded text-[11px] font-semibold hover:bg-forest-900">
+            Remplacer par ces couleurs
+          </button>
+        </div>
+      )}
+
+      {appliedSuggestion && suggestedColors && (
+        <div className="px-4 py-2 bg-blue-50 border-b border-blue-200 flex items-center gap-2 text-[11.5px] text-blue-900">
+          <Sparkles size={13} className="flex-shrink-0" />
+          <span>Couleurs déduites du logo &mdash; modifiables avant enregistrement.</span>
+          <button type="button" onClick={() => setAppliedSuggestion(false)} className="ml-auto text-blue-700 hover:text-blue-900" title="Masquer cette mention">
+            <X size={13} />
+          </button>
+        </div>
+      )}
+
       <div className="px-4 py-4 grid grid-cols-2 gap-4">
-        <ColorField label="Couleur primaire" value={primary} onChange={setPrimary} placeholder="#1B4332" />
-        <ColorField label="Couleur accent" value={accent} onChange={setAccent} placeholder="#D4A843" />
+        <ColorField label="Couleur primaire" value={primary} onChange={(v) => { setPrimary(v); setAppliedSuggestion(false) }} placeholder="#1B4332" />
+        <ColorField label="Couleur accent" value={accent} onChange={(v) => { setAccent(v); setAppliedSuggestion(false) }} placeholder="#D4A843" />
         <FieldText label="Email de support" value={supportEmail} onChange={setSupportEmail} placeholder="support@auditco.sn" />
         <FieldText label="Nom expéditeur (emails)" value={emailFromName} onChange={setEmailFromName} placeholder="Audit&Co Sénégal via Gëstu" maxLength={80} />
         <div className="col-span-2">

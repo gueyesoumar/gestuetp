@@ -2,12 +2,14 @@ import { useRef, useState } from 'react'
 import { Upload, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { extractColorsFromImage, type ExtractedColors } from '../../branding/extractColorsFromImage'
 
 interface Props {
   cabinetId: string
   variant: 'light' | 'dark'
   currentUrl: string | null
-  onUploaded: () => void
+  /** colors est défini quand on a pu déduire des couleurs depuis le logo light. */
+  onUploaded: (colors?: ExtractedColors | null) => void
 }
 
 const ACCEPT = 'image/png,image/svg+xml'
@@ -42,6 +44,11 @@ export function LogoUploadField({ cabinetId, variant, currentUrl, onUploaded }: 
     if (!pendingFile || !reason.trim()) return
     setSubmitting(true)
     try {
+      // Lance l'upload et l'extraction de couleurs en parallèle
+      // (extraction ignorée pour la variante dark qui est typiquement monochrome blanche).
+      const colorsPromise: Promise<ExtractedColors | null> =
+        variant === 'light' ? extractColorsFromImage(pendingFile) : Promise.resolve(null)
+
       const { data: { session } } = await supabase.auth.getSession()
       const form = new FormData()
       form.append('cabinet_id', cabinetId)
@@ -56,10 +63,12 @@ export function LogoUploadField({ cabinetId, variant, currentUrl, onUploaded }: 
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error ?? 'Upload impossible')
+
+      const colors = await colorsPromise
       toast.success('Logo téléversé', { description: variant === 'light' ? 'Variante fond clair' : 'Variante fond sombre' })
       setPendingFile(null)
       setReason('')
-      onUploaded()
+      onUploaded(colors)
     } catch (err) {
       toast.error('Upload impossible', err)
     } finally {
