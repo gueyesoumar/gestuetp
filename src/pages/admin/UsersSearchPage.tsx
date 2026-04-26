@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { useAdminUsers, type AdminUserRow } from '../../features/admin/useAdminUsers'
@@ -128,13 +129,31 @@ export function UsersSearchPage() {
 
 function UserMenu({ user, onPickAction }: { user: AdminUserRow; onPickAction: (action: 'reset_password' | 'toggle_active') => void }) {
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  const toggle = () => {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect()
+      setPos({ top: r.bottom + 4, right: window.innerWidth - r.right })
+    }
+    setOpen((v) => !v)
+  }
+
   return (
-    <div className="relative inline-block">
-      <button onClick={() => setOpen((v) => !v)} className="w-7 h-7 rounded-md border border-gray-200 bg-white hover:bg-page-bg text-gray-500 inline-flex items-center justify-center font-bold">⋯</button>
-      {open && (
+    <>
+      <button
+        ref={btnRef}
+        onClick={toggle}
+        className="w-7 h-7 rounded-md border border-gray-200 bg-white hover:bg-page-bg text-gray-500 inline-flex items-center justify-center font-bold"
+      >⋯</button>
+      {open && pos && createPortal(
         <>
-          <div onClick={() => setOpen(false)} className="fixed inset-0 z-40" />
-          <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+          <div onClick={() => setOpen(false)} className="fixed inset-0 z-[60]" />
+          <div
+            style={{ position: 'fixed', top: pos.top, right: pos.right }}
+            className="w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-[70] overflow-hidden"
+          >
             <Link
               to={`/admin/utilisateurs/${user.id}`}
               onClick={() => setOpen(false)}
@@ -158,9 +177,10 @@ function UserMenu({ user, onPickAction }: { user: AdminUserRow; onPickAction: (a
               </button>
             )}
           </div>
-        </>
+        </>,
+        document.body,
       )}
-    </div>
+    </>
   )
 }
 
