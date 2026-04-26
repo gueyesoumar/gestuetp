@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { reminderHtml, reminderSubject, type Palier, type ReminderContext } from '../_shared/email-templates/reminder.ts'
+import { buildEmailFrom, loadCabinetEmailBranding, type CabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
  * Edge Function : evidence-reminders
@@ -33,6 +34,7 @@ interface EvidenceRequestRow {
   mission: {
     name: string
     client_id: string
+    cabinet_id: string
     cabinet_clients: { client_name: string } | null
   } | null
 }
@@ -86,7 +88,7 @@ Deno.serve(async (req) => {
       due_date,
       created_at,
       evidence_catalog:evidence_catalog!inner(name, control_id),
-      mission:missions!inner(name, client_id, cabinet_clients:cabinet_clients!missions_client_id_fkey(client_name))
+      mission:missions!inner(name, client_id, cabinet_id, cabinet_clients:cabinet_clients!missions_client_id_fkey(client_name))
     `)
     .eq('status', 'pending')
 
@@ -100,6 +102,15 @@ Deno.serve(async (req) => {
   let sent = 0
   let skipped = 0
   let failed = 0
+
+  // Cache du branding par cabinet pour éviter de re-lire la table à chaque ligne
+  const brandingCache = new Map<string, CabinetEmailBranding | null>()
+  const getBranding = async (cabinetId: string): Promise<CabinetEmailBranding | null> => {
+    if (!brandingCache.has(cabinetId)) {
+      brandingCache.set(cabinetId, await loadCabinetEmailBranding(admin, cabinetId))
+    }
+    return brandingCache.get(cabinetId) ?? null
+  }
 
   for (const row of rows) {
     const reference = row.due_date ? new Date(row.due_date) : new Date(row.created_at)
@@ -149,10 +160,19 @@ Deno.serve(async (req) => {
       unsubscribeUrl: `${appBaseUrl}/unsubscribe?token=${encodeURIComponent(recipient.email_preferences.unsubscribe_token)}`,
     }
 
-    const subject = reminderSubject(palier, ctx)
-    const html = reminderHtml(palier, ctx)
+    const cabinetId = row.mission?.cabinet_id ?? null
+    const branding = cabinetId ? await getBranding(cabinetId) : null
 
-    const result = await sendEmail({ to: recipient.email, subject, html })
+    const subject = reminderSubject(palier, ctx)
+    const html = reminderHtml(palier, ctx, { branding })
+
+    const result = await sendEmail({
+      to: recipient.email,
+      subject,
+      html,
+      from: buildEmailFrom(branding),
+      replyTo: branding?.supportEmail ?? undefined,
+    })
     if (result.error) {
       console.error(`[evidence-reminders] resend failed for ${recipient.email}:`, result.error)
       failed++

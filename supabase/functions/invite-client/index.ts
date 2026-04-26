@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
+import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 interface InvitePayload {
   cabinet_client_id: string
@@ -268,15 +269,22 @@ Deno.serve(async (req) => {
       const { data: missionData } = await admin.from('missions').select('name').eq('id', mission_id).single()
       const { data: cabinetData } = await admin.from('organizations').select('name').eq('id', callerProfile.organization_id).single()
 
+      const branding = await loadCabinetEmailBranding(admin, callerProfile.organization_id)
+      const cabinetName = (cabinetData?.name as string) ?? 'Cabinet d\'audit'
+      const missionTitle = (missionData?.name as string) ?? 'Mission d\'audit'
+
       const emailResult = await sendEmail({
         to: email,
-        subject: `Invitation au portail client — ${(missionData?.name as string) ?? 'Mission d\'audit'}`,
+        subject: `Invitation au portail client — ${missionTitle}`,
         html: clientInviteTemplate({
           contactName: contact_name,
-          cabinetName: (cabinetData?.name as string) ?? 'Cabinet d\'audit',
-          missionTitle: (missionData?.name as string) ?? 'Mission d\'audit',
+          cabinetName,
+          missionTitle,
           inviteLink,
+          branding,
         }),
+        from: buildEmailFrom(branding),
+        replyTo: branding?.supportEmail ?? undefined,
       })
 
       if (emailResult.error) {

@@ -4,7 +4,10 @@ interface SendEmailParams {
   to: string
   subject: string
   html: string
+  /** "Audit&Co Sénégal via Gëstu <noreply@gestucomply.com>" ou défaut Gëstu */
   from?: string
+  /** Reply-To pour rediriger les réponses vers le support cabinet */
+  replyTo?: string
 }
 
 interface ResendResponse {
@@ -12,7 +15,7 @@ interface ResendResponse {
   error?: string
 }
 
-export async function sendEmail({ to, subject, html, from }: SendEmailParams): Promise<ResendResponse> {
+export async function sendEmail({ to, subject, html, from, replyTo }: SendEmailParams): Promise<ResendResponse> {
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) {
     console.error('[resend] RESEND_API_KEY non configurée')
@@ -21,13 +24,23 @@ export async function sendEmail({ to, subject, html, from }: SendEmailParams): P
 
   const senderEmail = from ?? Deno.env.get('RESEND_FROM_EMAIL') ?? 'Gëstu Comply <noreply@gestucomply.com>'
 
+  const payload: Record<string, unknown> = {
+    from: senderEmail,
+    to: [to],
+    subject,
+    html,
+  }
+  if (replyTo) {
+    payload.reply_to = [replyTo]
+  }
+
   const res = await fetch(RESEND_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ from: senderEmail, to: [to], subject, html }),
+    body: JSON.stringify(payload),
   })
 
   if (!res.ok) {
