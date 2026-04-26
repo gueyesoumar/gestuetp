@@ -10,7 +10,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: '/admin', label: 'Tableau de bord', icon: <LayoutDashboard size={16} strokeWidth={1.5} /> },
-  { to: '/admin/cabinets', label: 'Cabinets', icon: <Building2 size={16} strokeWidth={1.5} /> },
+  { to: '/admin/cabinets', label: 'Organisations', icon: <Building2 size={16} strokeWidth={1.5} /> },
   { to: '/admin/utilisateurs', label: 'Utilisateurs', icon: <Users size={16} strokeWidth={1.5} /> },
   { to: '/admin/frameworks', label: 'Référentiels', icon: <BookMarked size={16} strokeWidth={1.5} /> },
   { to: '/admin/feature-flags', label: 'Feature flags', icon: <Flag size={16} strokeWidth={1.5} /> },

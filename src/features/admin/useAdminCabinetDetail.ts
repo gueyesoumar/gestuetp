@@ -5,6 +5,7 @@ export interface CabinetDetail {
   id: string
   name: string
   slug: string
+  types: string[]
   is_active: boolean
   created_at: string
   plan_name: string | null
@@ -40,13 +41,13 @@ export function useAdminCabinetDetail(cabinetId: string | undefined): Result {
       try {
         const { data: org, error: orgError } = await supabase
           .from('organizations')
-          .select('id, name, slug, is_active, created_at, plans(name, monthly_price_eur)')
+          .select('id, name, slug, types, is_active, created_at, plans(name, monthly_price_eur)')
           .eq('id', cabinetId)
           .abortSignal(abort.signal)
           .single()
 
-        if (orgError || !org) throw orgError ?? new Error('Cabinet introuvable')
-        const o = org as { id: string; name: string; slug: string; is_active: boolean; created_at: string; plans: { name: string; monthly_price_eur: number } | null }
+        if (orgError || !org) throw orgError ?? new Error('Organisation introuvable')
+        const o = org as { id: string; name: string; slug: string; types: string[]; is_active: boolean; created_at: string; plans: { name: string; monthly_price_eur: number } | null }
 
         const { data: members } = await supabase
           .from('users')
@@ -69,6 +70,7 @@ export function useAdminCabinetDetail(cabinetId: string | undefined): Result {
           id: o.id,
           name: o.name,
           slug: o.slug,
+          types: o.types ?? [],
           is_active: o.is_active,
           created_at: o.created_at,
           plan_name: o.plans?.name ?? null,

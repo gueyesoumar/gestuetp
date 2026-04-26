@@ -49,7 +49,7 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
       console.error('admin-delete-cabinet:', data.error)
       return
     }
-    toast.success('Cabinet supprimé', { description: cabinetName })
+    toast.success('Organisation supprimée', { description: cabinetName })
     onClose()
     navigate('/admin/cabinets')
   }
@@ -62,7 +62,7 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
           <div>
             <h3 className="text-[14.5px] font-bold text-red-700">Suppression définitive</h3>
             <p className="text-[12px] text-red-700 mt-0.5 leading-relaxed">
-              Cette action efface le cabinet <b>{cabinetName}</b>, toutes ses missions, contrôles, documents et utilisateurs.
+              Cette action efface l&apos;organisation <b>{cabinetName}</b>, toutes ses missions, contrôles, documents et utilisateurs.
               <b> Irréversible.</b> Un snapshot léger est conservé dans l&apos;audit log.
             </p>
           </div>
@@ -71,7 +71,7 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
         <div className="px-5 py-4 space-y-3">
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">
-              Tapez le nom exact du cabinet : <code className="font-mono text-gray-700">{cabinetName}</code>
+              Tapez le nom exact de l&apos;organisation : <code className="font-mono text-gray-700">{cabinetName}</code>
             </label>
             <input type="text" value={nameConfirm} onChange={(e) => setNameConfirm(e.target.value)} disabled={submitting} placeholder={cabinetName} />
           </div>
@@ -90,7 +90,7 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
             <label className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer">
               <input type="checkbox" checked={forceDelete} onChange={(e) => setForceDelete(e.target.checked)} className="mt-0.5" disabled={submitting} style={{ width: 'auto' }} />
               <span className="text-[12px] text-amber-800">
-                Ce cabinet a <b>{activeMissionsBlocking} mission(s) active(s) non clôturée(s)</b>. Cocher pour forcer la suppression — toutes ces missions seront détruites.
+                Cette organisation a <b>{activeMissionsBlocking} mission(s) active(s) non clôturée(s)</b>. Cocher pour forcer la suppression — toutes ces missions seront détruites.
               </span>
             </label>
           )}

@@ -5,6 +5,7 @@ export interface AdminCabinet {
   id: string
   name: string
   slug: string
+  types: string[]
   is_active: boolean
   created_at: string
   plan_name: string | null
@@ -34,26 +35,26 @@ export function useAdminCabinets(): Result {
 
     void (async () => {
       try {
-        // Charge tous les cabinets (organisations avec type 'cabinet')
+        // Charge TOUTES les organisations (cabinets, clients, groupes, plateforme...)
         const { data: orgs, error: orgError } = await supabase
           .from('organizations')
-          .select('id, name, slug, is_active, types, created_at, plans(name, monthly_price_eur)')
+          .select('id, name, slug, types, is_active, created_at, plans(name, monthly_price_eur)')
           .order('created_at', { ascending: false })
           .abortSignal(abort.signal)
 
         if (orgError) throw orgError
-        const cabs = (orgs ?? []).filter((o) => (o as { types: string[] }).types.includes('cabinet')) as Array<{
-          id: string; name: string; slug: string; is_active: boolean; created_at: string; plans: { name: string; monthly_price_eur: number } | null
+        const allOrgs = (orgs ?? []) as Array<{
+          id: string; name: string; slug: string; types: string[]; is_active: boolean; created_at: string; plans: { name: string; monthly_price_eur: number } | null
         }>
 
-        const ids = cabs.map((c) => c.id)
+        const ids = allOrgs.map((o) => o.id)
         if (ids.length === 0) {
           setCabinets([])
           setLoading(false)
           return
         }
 
-        // Compter les membres par cabinet
+        // Compter les membres par organisation
         const { data: usersData } = await supabase
           .from('users')
           .select('organization_id')
@@ -61,7 +62,8 @@ export function useAdminCabinets(): Result {
           .abortSignal(abort.signal)
         const memberCounts = countBy((usersData ?? []) as Array<{ organization_id: string }>, 'organization_id')
 
-        // Compter les missions par cabinet et trouver la dernière activité
+        // Compter les missions où l'organisation est CABINET et trouver la dernière activité
+        // Pour les organisations clients, on n'a pas de count missions en tant que cabinet — c'est OK
         const { data: missionsData } = await supabase
           .from('missions')
           .select('cabinet_id, updated_at')
@@ -70,17 +72,18 @@ export function useAdminCabinets(): Result {
         const missionCounts = countBy((missionsData ?? []) as Array<{ cabinet_id: string }>, 'cabinet_id')
         const lastActivity = lastBy((missionsData ?? []) as Array<{ cabinet_id: string; updated_at: string }>, 'cabinet_id', 'updated_at')
 
-        const enriched: AdminCabinet[] = cabs.map((c) => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          is_active: c.is_active,
-          created_at: c.created_at,
-          plan_name: c.plans?.name ?? null,
-          plan_price: c.plans?.monthly_price_eur ?? null,
-          members_count: memberCounts[c.id] ?? 0,
-          missions_count: missionCounts[c.id] ?? 0,
-          last_activity_at: lastActivity[c.id] ?? null,
+        const enriched: AdminCabinet[] = allOrgs.map((o) => ({
+          id: o.id,
+          name: o.name,
+          slug: o.slug,
+          types: o.types ?? [],
+          is_active: o.is_active,
+          created_at: o.created_at,
+          plan_name: o.plans?.name ?? null,
+          plan_price: o.plans?.monthly_price_eur ?? null,
+          members_count: memberCounts[o.id] ?? 0,
+          missions_count: missionCounts[o.id] ?? 0,
+          last_activity_at: lastActivity[o.id] ?? null,
         }))
 
         setCabinets(enriched)

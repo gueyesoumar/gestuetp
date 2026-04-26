@@ -33,16 +33,16 @@ Deno.serve(async (req) => {
   const { admin } = guard
 
   try {
-    // Cabinets actifs / suspendus
-    const { data: cabinets } = await admin
+    // Toutes les organisations (cabinets, clients, groupes, plateforme)
+    const { data: orgs } = await admin
       .from('organizations')
       .select('id, is_active, types, plan_id, plans(monthly_price_eur)')
 
-    const allCabs = (cabinets ?? []) as Array<{ id: string; is_active: boolean; types: string[]; plans: { monthly_price_eur: number } | null }>
-    const filtered = allCabs.filter((c) => c.types.includes('cabinet'))
-    const active = filtered.filter((c) => c.is_active)
+    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[]; plans: { monthly_price_eur: number } | null }>
+    const active = allOrgs.filter((o) => o.is_active)
 
-    const mrr = active.reduce((sum, c) => sum + Number(c.plans?.monthly_price_eur ?? 0), 0)
+    // MRR : Σ (orgs actives × tarif du plan, si plan)
+    const mrr = active.reduce((sum, o) => sum + Number(o.plans?.monthly_price_eur ?? 0), 0)
 
     // Utilisateurs actifs sur 30 jours (last_sign_in_at)
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString()
@@ -70,18 +70,14 @@ Deno.serve(async (req) => {
 
     // Alertes
     const alerts: StatsResponse['alerts'] = []
-    const inactive60d = filtered.filter((c) => c.is_active && !active.some((a) => a.id === c.id)).length
-    if (inactive60d > 0) {
-      alerts.push({ kind: 'warn', message: `${inactive60d} cabinet(s) sans activité depuis 60 j` })
-    }
-    const suspended = filtered.filter((c) => !c.is_active).length
+    const suspended = allOrgs.filter((o) => !o.is_active).length
     if (suspended > 0) {
-      alerts.push({ kind: 'info', message: `${suspended} cabinet(s) actuellement suspendu(s)` })
+      alerts.push({ kind: 'info', message: `${suspended} organisation(s) actuellement suspendue(s)` })
     }
 
     const resp: StatsResponse = {
       cabinets_active: active.length,
-      cabinets_total: filtered.length,
+      cabinets_total: allOrgs.length,
       cabinets_suspended: suspended,
       users_active_30d: usersActive30d ?? 0,
       missions_in_progress: missionsInProgress ?? 0,

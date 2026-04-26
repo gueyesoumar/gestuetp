@@ -7,7 +7,7 @@ interface Props {
 
 /**
  * Onglet Facturation — placeholder en attendant Stripe.
- * Affiche le plan, le tarif mensuel, l'estimation MRR (1 cabinet × tarif),
+ * Affiche le plan, le tarif mensuel, l'estimation MRR (1 organisation × tarif),
  * et un avertissement sur l'absence d'intégration paiement.
  */
 export function CabinetBillingTab({ cabinet }: Props) {
@@ -60,10 +60,10 @@ export function CabinetBillingTab({ cabinet }: Props) {
             <li>Suivi des factures et des paiements (facture #X-YYYY-NNN, état)</li>
             <li>MRR réel basé sur les abonnements actifs</li>
             <li>Détection des paiements en échec et relance auto</li>
-            <li>Changement de plan en self-service côté cabinet</li>
+            <li>Changement de plan en self-service côté organisation</li>
             <li>Métriques business : churn, LTV, NPS</li>
           </ul>
-          <p className="mt-3 text-[11.5px] text-gray-400 italic">À planifier quand le besoin commercial sera cadré (combien de cabinets, abonnement mensuel/annuel, paliers de prix).</p>
+          <p className="mt-3 text-[11.5px] text-gray-400 italic">À planifier quand le besoin commercial sera cadré (combien d&apos;organisations payantes, abonnement mensuel/annuel, paliers de prix).</p>
         </div>
       </section>
     </div>

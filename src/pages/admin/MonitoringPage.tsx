@@ -93,10 +93,10 @@ function RightColumn({ stats }: { stats: AdminMonitoringStats }) {
     <div className="space-y-4">
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <header className="px-4 py-3 border-b border-gray-200">
-          <span className="text-[13px] font-bold text-gray-900">Top cabinets · coût IA</span>
+          <span className="text-[13px] font-bold text-gray-900">Top organisations · coût IA</span>
         </header>
         {stats.ai_per_cabinet.length === 0 ? (
-          <div className="px-4 py-6 text-center text-[12px] text-gray-300">Aucun appel attribué à un cabinet.</div>
+          <div className="px-4 py-6 text-center text-[12px] text-gray-300">Aucun appel attribué à une organisation.</div>
         ) : (
           <ul>
             {stats.ai_per_cabinet.map((c) => (
@@ -112,7 +112,7 @@ function RightColumn({ stats }: { stats: AdminMonitoringStats }) {
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <header className="flex items-center px-4 py-3 border-b border-gray-200">
-          <span className="text-[13px] font-bold text-gray-900">Storage par cabinet</span>
+          <span className="text-[13px] font-bold text-gray-900">Storage par organisation</span>
           <span className="ml-auto text-[10.5px] text-gray-300">Total : {stats.storage_total_mb.toFixed(1)} Mo</span>
         </header>
         {stats.storage_per_cabinet.length === 0 ? (
@@ -172,7 +172,7 @@ function FailuresList({ stats }: { stats: AdminMonitoringStats }) {
             <th className="text-left px-4 py-2 border-b border-gray-100">Quand</th>
             <th className="text-left px-4 py-2 border-b border-gray-100">Fonction</th>
             <th className="text-left px-4 py-2 border-b border-gray-100">Modèle</th>
-            <th className="text-left px-4 py-2 border-b border-gray-100">Cabinet</th>
+            <th className="text-left px-4 py-2 border-b border-gray-100">Organisation</th>
             <th className="text-left px-4 py-2 border-b border-gray-100">Erreur</th>
           </tr>
         </thead>

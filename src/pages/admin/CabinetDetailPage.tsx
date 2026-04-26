@@ -27,7 +27,7 @@ export function CabinetDetailPage() {
   const [reason, setReason] = useState('')
 
   if (loading) return <div className="p-8"><LoadingSpinner /></div>
-  if (error || !cabinet) return <div className="p-8"><ErrorAlert message={error ?? 'Cabinet introuvable'} /></div>
+  if (error || !cabinet) return <div className="p-8"><ErrorAlert message={error ?? 'Organisation introuvable'} /></div>
 
   const initials = cabinet.name.charAt(0).toUpperCase()
 
@@ -60,7 +60,7 @@ export function CabinetDetailPage() {
         })
         if (fnError) throw new Error(fnError.message)
         if (data?.error) throw new Error(data.error)
-        toast.success(reasonModal === 'suspend' ? 'Cabinet suspendu' : 'Cabinet réactivé', { description: cabinet.name })
+        toast.success(reasonModal === 'suspend' ? 'Organisation suspendue' : 'Organisation réactivée', { description: cabinet.name })
         refetch()
       }
       setReasonModal(null)
@@ -76,7 +76,7 @@ export function CabinetDetailPage() {
     <div className="px-7 py-6">
       <div className="flex items-center gap-3 mb-1">
         <button onClick={() => navigate('/admin/cabinets')} className="text-[12px] text-forest-700 font-semibold hover:text-forest-900 inline-flex items-center gap-1">
-          <ChevronLeft size={14} /> Retour aux cabinets
+          <ChevronLeft size={14} /> Retour aux organisations
         </button>
       </div>
 
@@ -84,7 +84,7 @@ export function CabinetDetailPage() {
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[14px] font-extrabold ${cabinet.is_active ? 'bg-forest-100 text-forest-700' : 'bg-red-50 text-red-600'}`}>{initials}</div>
         <div>
           <h1 className="text-[18px] font-bold text-gray-900">{cabinet.name}</h1>
-          <div className="text-[11.5px] text-gray-500">Cabinet · onboardé le {new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+          <div className="text-[11.5px] text-gray-500">{labelType(cabinet.types)} · onboardé le {new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
         </div>
         <div className="ml-auto flex items-center gap-2">
           {cabinet.is_active ? (
@@ -218,4 +218,13 @@ function TabBtn({ k, label, active, onClick }: { k: TabKey; label: string; activ
       {label}
     </button>
   )
+}
+
+function labelType(types: string[]): string {
+  if (types.includes('cabinet') && types.includes('client')) return 'Cabinet · Client'
+  if (types.includes('cabinet')) return 'Cabinet'
+  if (types.includes('client')) return 'Client'
+  if (types.includes('groupe')) return 'Groupe'
+  if (types.includes('platform')) return 'Plateforme'
+  return 'Organisation'
 }

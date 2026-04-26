@@ -21,15 +21,15 @@ export function AdminDashboardPage() {
       <p className="text-[12.5px] text-gray-500 mb-6">Cumul de toutes les organisations Gëstu &mdash; chiffres en lecture seule.</p>
 
       <div className="grid grid-cols-4 gap-3.5 mb-6">
-        <KpiCard label="Cabinets actifs" value={stats.cabinets_active.toString()} sub={`/ ${stats.cabinets_total} total · ${stats.cabinets_suspended} suspendu(s)`} accent="gold" />
+        <KpiCard label="Organisations actives" value={stats.cabinets_active.toString()} sub={`/ ${stats.cabinets_total} total · ${stats.cabinets_suspended} suspendue(s)`} accent="gold" />
         <KpiCard label="Utilisateurs actifs · 30j" value={stats.users_active_30d.toString()} sub="connectés au moins 1 fois" accent="green" />
-        <KpiCard label="Missions en cours" value={stats.missions_in_progress.toString()} sub="tous cabinets confondus" accent="blue" />
+        <KpiCard label="Missions en cours" value={stats.missions_in_progress.toString()} sub="toutes organisations confondues" accent="blue" />
         <KpiCard
           label="MRR estimé"
           value={`${stats.mrr_eur_estimated.toLocaleString('fr-FR')} €`}
           sub="placeholder · Stripe en Phase 2"
           accent="gold"
-          tooltip="Calcul naïf : Σ (cabinets actifs × tarif du plan). Pas un chiffre comptable."
+          tooltip="Calcul naïf : Σ (organisations actives avec plan × tarif). Pas un chiffre comptable."
         />
       </div>
 
@@ -75,7 +75,7 @@ export function AdminDashboardPage() {
       <section className="mt-6 bg-white border border-gray-200 rounded-xl px-5 py-5">
         <h3 className="text-[13px] font-bold text-gray-900 mb-3">Raccourcis</h3>
         <div className="flex gap-2.5 flex-wrap">
-          <Link to="/admin/cabinets" className="px-3.5 py-2 bg-forest-900 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-700">Voir tous les cabinets &rarr;</Link>
+          <Link to="/admin/cabinets" className="px-3.5 py-2 bg-forest-900 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-700">Voir toutes les organisations &rarr;</Link>
           <Link to="/admin/utilisateurs" className="px-3.5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12.5px] font-semibold hover:bg-forest-50">Rechercher un utilisateur</Link>
           <Link to="/admin/audit-log" className="px-3.5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12.5px] font-semibold hover:bg-forest-50">Audit log</Link>
         </div>
