@@ -5,17 +5,27 @@ import { useToast } from '../../../hooks/useToast'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
 import type { ExtractedColors } from '../../branding/extractColorsFromImage'
 
+export interface BrandingDraft {
+  primary: string
+  accent: string
+  supportEmail: string
+  emailFromName: string
+  footerText: string
+}
+
 interface Props {
   cabinetId: string
   branding: CabinetBrandingRow | null
   /** Couleurs déduites côté client après upload du logo light */
   suggestedColors?: ExtractedColors | null
+  /** Callback live à chaque changement, pour la prévisualisation parent */
+  onDraftChange?: (draft: BrandingDraft) => void
   onSaved: () => void
 }
 
 const HEX_COLOR_RE = /^#[0-9A-Fa-f]{6}$/
 
-export function BrandingFormSection({ cabinetId, branding, suggestedColors, onSaved }: Props): JSX.Element {
+export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDraftChange, onSaved }: Props): JSX.Element {
   const [primary, setPrimary] = useState(branding?.primary_color ?? '')
   const [accent, setAccent] = useState(branding?.accent_color ?? '')
   const [supportEmail, setSupportEmail] = useState(branding?.support_email ?? '')
@@ -44,6 +54,11 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onSa
     setAccent(suggestedColors.accent)
     setAppliedSuggestion(true)
   }, [suggestedColors, primary, accent])
+
+  // Live emission du draft pour la prévisualisation
+  useEffect(() => {
+    onDraftChange?.({ primary, accent, supportEmail, emailFromName, footerText })
+  }, [primary, accent, supportEmail, emailFromName, footerText, onDraftChange])
 
   const applySuggestionExplicit = () => {
     if (!suggestedColors) return

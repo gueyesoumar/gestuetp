@@ -3,13 +3,23 @@ import { useCabinetBrandingAdmin } from './useCabinetBrandingAdmin'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { LogoUploadField } from './LogoUploadField'
-import { BrandingFormSection } from './BrandingFormSection'
+import { BrandingFormSection, type BrandingDraft } from './BrandingFormSection'
 import { DomainsSection } from './DomainsSection'
+import { BrandingPreview } from './BrandingPreview'
 import { Info } from 'lucide-react'
 import type { ExtractedColors } from '../../branding/extractColorsFromImage'
 
 interface Props {
   cabinetId: string
+  cabinetName: string
+}
+
+const EMPTY_DRAFT: BrandingDraft = {
+  primary: '',
+  accent: '',
+  supportEmail: '',
+  emailFromName: '',
+  footerText: '',
 }
 
 /**
@@ -23,9 +33,10 @@ interface Props {
  * L'activation effective passe par le flag white_label_branding (onglet Feature
  * flags). Cet onglet ne fait que persister la config.
  */
-export function CabinetWhiteLabelTab({ cabinetId }: Props): JSX.Element {
+export function CabinetWhiteLabelTab({ cabinetId, cabinetName }: Props): JSX.Element {
   const { branding, domains, loading, error, refetch } = useCabinetBrandingAdmin(cabinetId)
   const [suggestedColors, setSuggestedColors] = useState<ExtractedColors | null>(null)
+  const [draft, setDraft] = useState<BrandingDraft>(EMPTY_DRAFT)
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
@@ -66,8 +77,13 @@ export function CabinetWhiteLabelTab({ cabinetId }: Props): JSX.Element {
           cabinetId={cabinetId}
           branding={branding}
           suggestedColors={suggestedColors}
+          onDraftChange={setDraft}
           onSaved={() => { setSuggestedColors(null); refetch() }}
         />
+      </section>
+
+      <section>
+        <BrandingPreview cabinetName={cabinetName} branding={branding} draft={draft} />
       </section>
 
       <section>

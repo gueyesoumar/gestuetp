@@ -147,7 +147,7 @@ export function CabinetDetailPage() {
       {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}
       {activeTab === 'missions' && <CabinetMissionsTab cabinetId={cabinet.id} />}
       {activeTab === 'billing' && <CabinetBillingTab cabinet={cabinet} />}
-      {activeTab === 'whitelabel' && <CabinetWhiteLabelTab cabinetId={cabinet.id} />}
+      {activeTab === 'whitelabel' && <CabinetWhiteLabelTab cabinetId={cabinet.id} cabinetName={cabinet.name} />}
       {activeTab === 'flags' && <CabinetFeatureFlagsTab cabinetId={cabinet.id} />}
       {activeTab === 'audit' && <CabinetAuditLogTab cabinetId={cabinet.id} />}
 
