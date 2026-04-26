@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const admin = createClient(supabaseUrl, serviceKey)
-  const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? 'https://app.gestucomply.com'
+  const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? 'https://app.gestugroup.com'
 
   // 1. Récupérer toutes les demandes en attente
   const { data: requests, error: reqError } = await admin

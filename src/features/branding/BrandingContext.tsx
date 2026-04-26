@@ -36,9 +36,9 @@ export interface BrandingState {
 }
 
 const NEUTRAL_HOSTNAMES = new Set([
-  'app.gestucomply.com',
-  'gestucomply.com',
-  'www.gestucomply.com',
+  'app.gestugroup.com',
+  'gestugroup.com',
+  'www.gestugroup.com',
   'localhost',
   '127.0.0.1',
 ])

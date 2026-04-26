@@ -14,7 +14,7 @@ import { corsHeaders } from '../_shared/cors.ts'
  *   - organizations (nom, slug)
  *
  * Si le flag est OFF pour le cabinet → on renvoie null (le client doit alors
- * rediriger vers app.gestucomply.com côté frontend).
+ * rediriger vers app.gestugroup.com côté frontend).
  *
  * Anti-énumération : limite 30 req/min/IP via Cloudflare/Vercel rate limiting
  * (à brancher au niveau infra, pas dans la function). Réponse mise en cache

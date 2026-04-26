@@ -4,7 +4,7 @@ interface SendEmailParams {
   to: string
   subject: string
   html: string
-  /** "Audit&Co Sénégal via Gëstu <noreply@gestucomply.com>" ou défaut Gëstu */
+  /** "Audit&Co Sénégal via Gëstu <noreply@gestugroup.com>" ou défaut Gëstu */
   from?: string
   /** Reply-To pour rediriger les réponses vers le support cabinet */
   replyTo?: string
@@ -22,7 +22,7 @@ export async function sendEmail({ to, subject, html, from, replyTo }: SendEmailP
     return { error: 'RESEND_API_KEY manquante' }
   }
 
-  const senderEmail = from ?? Deno.env.get('RESEND_FROM_EMAIL') ?? 'Gëstu Comply <noreply@gestucomply.com>'
+  const senderEmail = from ?? Deno.env.get('RESEND_FROM_EMAIL') ?? 'Gëstu Comply <noreply@gestugroup.com>'
 
   const payload: Record<string, unknown> = {
     from: senderEmail,

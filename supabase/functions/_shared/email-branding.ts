@@ -106,12 +106,12 @@ export async function loadCabinetEmailBranding(
 
 /**
  * Calcule le from-name à utiliser dans l'enveloppe Resend.
- *  - Si branding.emailFromName défini → "Audit&Co Sénégal via Gëstu <noreply@gestucomply.com>"
- *  - Sinon → "Gëstu Comply <noreply@gestucomply.com>" (default Resend)
+ *  - Si branding.emailFromName défini → "Audit&Co Sénégal via Gëstu <noreply@gestugroup.com>"
+ *  - Sinon → "Gëstu Comply <noreply@gestugroup.com>" (default Resend)
  */
 export function buildEmailFrom(branding: CabinetEmailBranding | null): string | undefined {
   if (!branding?.emailFromName) return undefined
-  const sender = Deno.env.get('RESEND_FROM_EMAIL_ADDRESS') ?? 'noreply@gestucomply.com'
+  const sender = Deno.env.get('RESEND_FROM_EMAIL_ADDRESS') ?? 'noreply@gestugroup.com'
   // Quote le display name si caractères spéciaux
   const safeName = branding.emailFromName.replace(/"/g, '\\"')
   return `"${safeName}" <${sender}>`
@@ -195,7 +195,7 @@ export function renderEmailFooter(
 
   const technicalLine = isWhiteLabel
     ? `<p style="margin:0; color:#9CA3AF; font-size:11px;">${safeName} · Powered by Gëstu</p>`
-    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">Gëstu Comply · noreply@gestucomply.com</p>`
+    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">Gëstu Comply · noreply@gestugroup.com</p>`
 
   return `
     <tr>

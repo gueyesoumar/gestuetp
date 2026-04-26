@@ -4,7 +4,7 @@
  * Tourne sur l'edge V8 avant de servir l'app. Pour les hostnames neutres
  * (Gëstu, vercel preview, localhost), laisse passer. Pour les hostnames
  * custom, vérifie via resolve-tenant-by-hostname qu'ils sont déclarés et
- * vérifiés dans cabinet_domains. Si non → redirige vers app.gestucomply.com.
+ * vérifiés dans cabinet_domains. Si non → redirige vers app.gestugroup.com.
  *
  * Note : la BrandingProvider côté client refait la résolution pour récupérer
  * logos/couleurs. Ce middleware sert de garde-fou + permet de couper rapidement
@@ -13,7 +13,7 @@
  * Variables d'env requises sur Vercel :
  *   VITE_SUPABASE_URL  (ou SUPABASE_URL)   — URL projet Supabase
  *   VITE_SUPABASE_ANON_KEY  (ou SUPABASE_ANON_KEY) — anon key publique
- *   APP_PRIMARY_HOSTNAME (optionnel) — défaut app.gestucomply.com
+ *   APP_PRIMARY_HOSTNAME (optionnel) — défaut app.gestugroup.com
  */
 
 export const config = {
@@ -22,9 +22,9 @@ export const config = {
 }
 
 const NEUTRAL_HOSTNAMES = new Set([
-  'app.gestucomply.com',
-  'gestucomply.com',
-  'www.gestucomply.com',
+  'app.gestugroup.com',
+  'gestugroup.com',
+  'www.gestugroup.com',
   'localhost',
   '127.0.0.1',
 ])
@@ -69,7 +69,7 @@ export default async function middleware(request: Request): Promise<Response> {
   // Hostname inconnu → redirect vers le domaine principal
   const primaryHostname =
     (globalThis as { process?: { env?: Record<string, string> } }).process?.env?.APP_PRIMARY_HOSTNAME ??
-    'app.gestucomply.com'
+    'app.gestugroup.com'
   return Response.redirect(`https://${primaryHostname}${url.pathname}${url.search}`, 302)
 }
 

@@ -81,7 +81,7 @@ function PreviewEmail({ cabinetName, primary, accent, fromName, supportEmail, fo
       <div style={{ background: 'white', minHeight: 240, display: 'flex', flexDirection: 'column' }}>
         <div style={{ background: '#FAFAF8', padding: '6px 10px', fontSize: 9, color: '#6B7280', borderBottom: '1px solid #E5E7EB' }}>
           <div style={{ fontWeight: 700, color: '#1A1A1A', fontSize: 9.5 }}>{fromName}</div>
-          <div>noreply@gestucomply.com</div>
+          <div>noreply@gestugroup.com</div>
         </div>
         <div style={{ background: primary, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           {logoLight ? (

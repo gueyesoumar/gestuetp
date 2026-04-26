@@ -11,7 +11,7 @@ interface Props {
 }
 
 const HOSTNAME_RE = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/
-const TENANT_TARGET = (import.meta.env.VITE_TENANT_CNAME_TARGET as string | undefined) ?? 'tenants.gestucomply.com'
+const TENANT_TARGET = (import.meta.env.VITE_TENANT_CNAME_TARGET as string | undefined) ?? 'tenants.gestugroup.com'
 
 export function DomainsSection({ cabinetId, domains, onChanged }: Props): JSX.Element {
   const [adding, setAdding] = useState(false)
@@ -92,7 +92,7 @@ export function DomainsSection({ cabinetId, domains, onChanged }: Props): JSX.El
 
       {domains.length === 0 ? (
         <div className="px-4 py-6 text-center text-[12.5px] text-gray-500">
-          Aucun domaine configuré. Le portail client reste sur <span className="font-mono">app.gestucomply.com</span>.
+          Aucun domaine configuré. Le portail client reste sur <span className="font-mono">app.gestugroup.com</span>.
         </div>
       ) : (
         <div>

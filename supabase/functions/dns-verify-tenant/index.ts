@@ -5,7 +5,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
  * Edge Function : dns-verify-tenant
  *
  * Vérifie qu'un domaine custom satisfait à 2 conditions DNS :
- *   1. CNAME du hostname pointe vers tenants.gestucomply.com (ou la cible Vercel)
+ *   1. CNAME du hostname pointe vers tenants.gestugroup.com (ou la cible Vercel)
  *   2. TXT de _gestu-verify.<hostname> contient le verification_token attendu
  *
  * Si tout est OK → marque is_verified = true, ssl_status = 'issued' (Vercel
@@ -18,7 +18,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
  * timeout fetch 5s pour éviter blocage. Re-vérification possible à tout moment.
  */
 
-const EXPECTED_CNAME_TARGET = Deno.env.get('TENANT_CNAME_TARGET') ?? 'tenants.gestucomply.com'
+const EXPECTED_CNAME_TARGET = Deno.env.get('TENANT_CNAME_TARGET') ?? 'tenants.gestugroup.com'
 const DOH_URL = 'https://cloudflare-dns.com/dns-query'
 const DNS_TIMEOUT_MS = 5_000
 

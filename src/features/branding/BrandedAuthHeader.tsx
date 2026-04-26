@@ -6,7 +6,7 @@ import { useBranding } from './useBranding'
  * (audit.auditco.sn, etc.). Affiche le logo cabinet en variante fond sombre,
  * son nom, et un sous-titre court.
  *
- * Sur le domaine Gëstu (app.gestucomply.com), useBranding retourne null —
+ * Sur le domaine Gëstu (app.gestugroup.com), useBranding retourne null —
  * dans ce cas le composant renvoie null et le caller utilise les composants
  * Vault standards.
  */

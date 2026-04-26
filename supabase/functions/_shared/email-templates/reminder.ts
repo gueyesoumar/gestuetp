@@ -140,7 +140,7 @@ export function reminderHtml(palier: Palier, ctx: ReminderContext, options: Remi
     : ''
   const technicalLine = isWhiteLabel
     ? `<p style="margin:0; color:#9CA3AF; font-size:11px;">${safe.cabinetName} · Powered by Gëstu</p>`
-    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">Gëstu Comply · noreply@gestucomply.com</p>`
+    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">Gëstu Comply · noreply@gestugroup.com</p>`
 
   const ctaBg = cfg.useAccentForCta ? safe.accentColor : safe.primaryColor
   const ctaText = cfg.useAccentForCta ? safe.primaryColor : '#FFFFFF'
