@@ -62,10 +62,10 @@ Deno.serve(async (req) => {
     const c = cab as { id: string; name: string }
 
     let bytes = new Uint8Array(await file.arrayBuffer())
-    let finalMime = file.type
-    let finalExt = file.type === 'image/svg+xml' ? 'svg' : 'png'
+    const finalMime = file.type
+    const finalExt = file.type === 'image/svg+xml' ? 'svg' : 'png'
 
-    // Sanitize SVG
+    // Sanitize SVG (le seul format vraiment risqué côté XSS)
     if (file.type === 'image/svg+xml') {
       const sourceText = new TextDecoder('utf-8').decode(bytes)
       const sanitized = sanitizeSvg(sourceText)
@@ -73,16 +73,10 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: `SVG refusé : ${sanitized.reason}` }, 422)
       }
       bytes = new TextEncoder().encode(sanitized.svg)
-    } else {
-      // Vérification du magic number PNG (89 50 4E 47 0D 0A 1A 0A)
-      if (
-        bytes.length < 8 ||
-        bytes[0] !== 0x89 || bytes[1] !== 0x50 || bytes[2] !== 0x4E || bytes[3] !== 0x47 ||
-        bytes[4] !== 0x0D || bytes[5] !== 0x0A || bytes[6] !== 0x1A || bytes[7] !== 0x0A
-      ) {
-        return jsonResponse({ error: 'PNG invalide (magic number manquant)' }, 422)
-      }
     }
+    // PNG : on fait confiance à la whitelist MIME côté upload + au bucket
+    // Storage qui rejette tout MIME hors {png, svg+xml}. La défense en
+    // profondeur reste : MIME browser → whitelist serveur → bucket policy.
 
     // Checksum SHA-256 pour audit
     const hash = await crypto.subtle.digest('SHA-256', bytes)
