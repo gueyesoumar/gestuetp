@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Overrides feature flags par cabinet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#FAFAF8;--white:#fff;
+  --t9:#1A1A1A;--t7:#374151;--t5:#6B7280;--t3:#9CA3AF;--t1:#D1D5DB;
+  --border:#E5E7EB;--border2:#D1D5DB;
+  --f9:#1B4332;--f7:#2D6A4F;--f5:#52B788;--f3:#74C69D;--f1:#D8F3DC;--f0:#F0FFF4;
+  --gold:#D4A843;--g6:#B8922E;--g4:#E2C26B;--g2:#F2E2B1;--g0:#FDF8E8;
+  --ok:#27AE60;--ok-bg:#ECFDF5;
+  --err:#C0392B;--err-bg:#FEF2F2;--err-bd:#FECACA;
+  --warn:#B45309;--warn-bg:#FFFBEB;--warn-bd:#FDE68A;
+  --info:#1D4ED8;--info-bg:#EFF6FF;
+  --night:#0F2A22;
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--t9); -webkit-font-smoothing:antialiased; padding:32px 24px 64px }
+.mono { font-family:'JetBrains Mono',monospace }
+
+.wrap { max-width:1280px; margin:0 auto }
+.hero { margin-bottom:36px }
+.hero-tag { display:inline-block; padding:4px 12px; background:var(--g0); color:var(--gold); border:1px solid var(--g2); border-radius:99px; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:12px }
+.hero h1 { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px }
+.hero p { font-size:15px; color:var(--t5); max-width:780px; line-height:1.6 }
+
+.section { margin-bottom:48px }
+.section-h { display:flex; align-items:baseline; gap:12px; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--f9) }
+.section-h h2 { font-size:20px; font-weight:700; color:var(--f9) }
+.section-h .num { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--gold); font-weight:700 }
+.section-desc { font-size:13px; color:var(--t5); margin-bottom:20px; max-width:880px; line-height:1.6 }
+
+/* Browser scene shell */
+.scene { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(15,42,34,.08) }
+.scene-h { padding:12px 18px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px }
+.scene-h .dot { width:10px; height:10px; border-radius:50%; background:#E5E7EB }
+.scene-h .dot.r { background:#FCA5A5 }
+.scene-h .dot.y { background:#FDE68A }
+.scene-h .dot.g { background:#A7F3D0 }
+.scene-h .url { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--t5); margin-left:8px }
+.scene-h .ctx { margin-left:auto; font-size:11px; color:var(--t3); font-weight:500 }
+
+/* Mode bar (gold admin) */
+.mode-bar { background:var(--gold); color:var(--f9); padding:8px 18px; font-size:12px; display:flex; align-items:center; gap:10px; font-weight:600 }
+.mode-bar .pill { padding:1px 8px; border:1px solid var(--f9); border-radius:99px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px }
+
+/* Cabinet detail header */
+.cab-h { display:flex; align-items:center; gap:14px; padding:24px 28px 0 28px }
+.cab-h .av { width:42px; height:42px; border-radius:12px; background:var(--f1); color:var(--f9); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px }
+.cab-h h1 { font-size:18px; font-weight:700; color:var(--t9); line-height:1.2 }
+.cab-h .meta { font-size:11.5px; color:var(--t5); margin-top:2px }
+.cab-h .right { margin-left:auto; display:flex; gap:8px }
+.cab-h .pill-active { padding:5px 11px; background:var(--ok-bg); color:var(--ok); border-radius:99px; font-size:11px; font-weight:700 }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; padding:0 28px; margin-top:18px; border-bottom:1px solid var(--border) }
+.tab { padding:9px 14px; font-size:12.5px; color:var(--t5); cursor:pointer; border-bottom:2px solid transparent; font-weight:500; margin-bottom:-1px }
+.tab:hover { color:var(--t7) }
+.tab.active { color:var(--f9); border-color:var(--gold); font-weight:700 }
+.tab .count { display:inline-block; margin-left:4px; padding:1px 6px; background:#F3F4F6; color:var(--t5); border-radius:99px; font-size:9.5px; font-weight:600 }
+.tab.active .count { background:var(--g0); color:var(--g6) }
+.tab.gold { color:var(--g6) }
+
+/* Tab body */
+.tab-body { padding:20px 28px 28px }
+
+.summary-bar {
+  background:var(--g0); border:1px solid var(--g2); border-left:3px solid var(--gold);
+  border-radius:0 10px 10px 0; padding:12px 14px; margin-bottom:18px;
+  font-size:12.5px; color:var(--t7); display:flex; gap:14px; align-items:center;
+}
+.summary-bar b { color:var(--f9) }
+.summary-bar .stat { display:flex; align-items:center; gap:6px }
+
+/* Flag rows */
+.flag-list { background:white; border:1px solid var(--border); border-radius:12px; overflow:hidden }
+.flag-row { display:grid; grid-template-columns:1fr auto auto; gap:18px; align-items:center; padding:14px 18px; border-bottom:1px solid var(--border) }
+.flag-row:last-child { border-bottom:none }
+.flag-row .info { min-width:0 }
+.flag-row .slug { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--f9); font-weight:700 }
+.flag-row .name { font-size:13px; font-weight:700; color:var(--t9); margin-top:2px }
+.flag-row .desc { font-size:11.5px; color:var(--t5); margin-top:2px; line-height:1.5 }
+.flag-row .desc .global-hint { color:var(--t3); font-style:italic }
+
+/* Effective state pill (right side) */
+.state-pill {
+  padding:4px 10px; border-radius:99px; font-size:11px; font-weight:700;
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+}
+.state-pill.on { background:var(--ok-bg); color:var(--ok) }
+.state-pill.off { background:#F3F4F6; color:var(--t5) }
+.state-pill .src {
+  font-size:9.5px; font-weight:600; padding:1px 6px; border-radius:99px; text-transform:uppercase; letter-spacing:.4px;
+}
+.state-pill.on .src.inherited { background:var(--ok); color:white; opacity:.55 }
+.state-pill.off .src.inherited { background:var(--t5); color:white; opacity:.55 }
+.state-pill.on .src.forced { background:var(--gold); color:var(--f9) }
+.state-pill.off .src.forced { background:var(--gold); color:var(--f9) }
+
+/* 3-state segmented control */
+.segctrl {
+  display:inline-flex; background:#F3F4F6; border:1px solid var(--border); border-radius:8px; padding:2px;
+  gap:1px;
+}
+.seg {
+  padding:5px 10px; font-size:10.5px; font-weight:700; color:var(--t5); cursor:pointer;
+  border-radius:6px; text-transform:uppercase; letter-spacing:.4px; line-height:1;
+  display:flex; align-items:center; gap:5px; white-space:nowrap;
+}
+.seg:hover { background:white; color:var(--t7) }
+.seg.active.inherit { background:white; color:var(--f9); box-shadow:0 1px 2px rgba(0,0,0,.06) }
+.seg.active.on { background:var(--ok); color:white }
+.seg.active.off { background:var(--err); color:white }
+.seg .dot { width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.7 }
+
+/* Modal */
+.modal-bg { position:absolute; inset:0; background:rgba(15,42,34,.45); display:flex; align-items:center; justify-content:center; z-index:30 }
+.modal { background:white; max-width:480px; width:calc(100% - 40px); border-radius:14px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,.2) }
+.modal-h { padding:16px 18px; border-bottom:1px solid var(--border) }
+.modal-h h3 { font-size:14px; font-weight:700; color:var(--t9) }
+.modal-h .sub { font-size:11.5px; color:var(--t5); margin-top:2px }
+.modal-body { padding:16px 18px }
+.modal-body label { display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--t5); font-weight:600; margin-bottom:5px }
+.modal-body label .req { color:var(--err); margin-left:2px }
+.modal-body textarea { width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px; font-size:13px; resize:vertical; font-family:inherit }
+.modal-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; background:var(--bg); border-top:1px solid var(--border) }
+.btn { padding:7px 14px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid transparent; cursor:pointer }
+.btn-pri { background:var(--f9); color:white; border-color:var(--f9) }
+.btn-sec { background:white; color:var(--t7); border-color:var(--border2) }
+
+/* Audit log preview */
+.log { background:white; border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-top:24px }
+.log h3 { font-size:13px; font-weight:700; color:var(--t9); margin-bottom:12px }
+.log-row { display:grid; grid-template-columns:90px 28px 1fr auto; gap:14px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--border); font-size:12px }
+.log-row:last-child { border-bottom:none }
+.log-row .time { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--t3); padding-top:4px }
+.log-row .ic { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800 }
+.log-row .ic.on { background:var(--ok-bg); color:var(--ok) }
+.log-row .ic.off { background:var(--err-bg); color:var(--err) }
+.log-row .ic.reset { background:#F3F4F6; color:var(--t5) }
+.log-row .desc { color:var(--t7); line-height:1.5 }
+.log-row .desc b { color:var(--t9) }
+.log-row .desc i { color:var(--t5); font-style:italic; font-weight:400 }
+.log-row .who { font-size:11px; color:var(--t3); padding-top:4px; white-space:nowrap }
+
+/* Code */
+.code { background:#1A1A1A; color:#A7F3D0; padding:18px 22px; border-radius:12px; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7; overflow-x:auto; margin-top:16px }
+.code .kw { color:#FCD34D }
+.code .str { color:#86EFAC }
+.code .com { color:#6B7280 }
+.code .fn { color:#93C5FD }
+.code .ty { color:#F472B6 }
+
+.note { background:var(--g0); border:1px solid var(--g2); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:14px 16px; font-size:13px; color:var(--t7); line-height:1.6; margin-top:16px }
+.note b { color:var(--f9) }
+
+/* Comparison */
+.compare { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:8px }
+.compare-card { background:white; border:1px solid var(--border); border-radius:12px; padding:14px 16px }
+.compare-card h4 { font-size:12px; font-weight:700; color:var(--f9); margin-bottom:8px }
+.compare-card .ex { font-size:12px; color:var(--t7); line-height:1.55 }
+.compare-card .ex code { background:var(--g0); padding:1px 5px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--g6) }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-tag">Feature flags · overrides par cabinet · mockup</div>
+    <h1>Onglet « Feature flags » dans la fiche cabinet</h1>
+    <p>
+      Chaque cabinet voit la liste complète des flags avec 3 états : <b>Hérite</b> du global, <b>Forcé ON</b>, ou <b>Forcé OFF</b>.
+      Toute modification exige un motif texte et apparaît dans l'audit log. La résolution se fait à 2 niveaux côté <span class="mono">useFeatureFlag()</span> :
+      override cabinet d'abord, fallback global ensuite.
+    </p>
+  </div>
+
+  <!-- Section 1 — État vide / cabinet sans aucun override -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">01</span>
+      <h2>Onglet en état initial — tout hérite du global</h2>
+    </div>
+    <div class="section-desc">
+      Cabinet récemment onboardé : aucun override. Tous les flags suivent la valeur globale (badge gris « hérité »).
+      L'opérateur voit d'un coup d'œil l'état effectif et clique sur le segmented control pour personnaliser.
+    </div>
+
+    <div class="scene">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">/admin/cabinets/audit-co-senegal</span>
+        <span class="ctx">Cabinet · Feature flags</span>
+      </div>
+      <div class="mode-bar"><span class="pill">Admin mode</span> Console super-admin Gëstu — vos actions sont tracées.</div>
+
+      <!-- Cabinet header -->
+      <div class="cab-h">
+        <div class="av">A</div>
+        <div>
+          <h1>Audit&Co Sénégal</h1>
+          <div class="meta">Cabinet · Dakar · onboardé le 14 février 2026 · plan Pro</div>
+        </div>
+        <div class="right">
+          <span class="pill-active">Actif</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <span class="tab">Vue d'ensemble</span>
+        <span class="tab">Membres <span class="count">14</span></span>
+        <span class="tab">Missions <span class="count">9</span></span>
+        <span class="tab">Facturation</span>
+        <span class="tab active gold">Feature flags <span class="count">10</span></span>
+        <span class="tab">Audit log</span>
+      </div>
+
+      <div class="tab-body">
+        <div class="summary-bar">
+          <span class="stat">📊 <b>10 flags</b> visibles</span>
+          <span class="stat">🌐 <b>10 hérités</b> du global</span>
+          <span class="stat">🔒 <b>0 forcé ON</b></span>
+          <span class="stat">⛔ <b>0 forcé OFF</b></span>
+          <span style="margin-left:auto; color:var(--t5)">Aucun override sur ce cabinet</span>
+        </div>
+
+        <div class="flag-list">
+
+          <!-- Row 1: smart_questionnaire_ai - inherited ON -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">smart_questionnaire_ai</div>
+              <div class="name">Pré-remplissage IA questionnaire</div>
+              <div class="desc">Pré-remplissage des questionnaires de cadrage par analyse Claude des documents. <span class="global-hint">Global : ON.</span></div>
+            </div>
+            <div class="state-pill on"><span class="src inherited">Hérité</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">smart_analyse_control</div>
+              <div class="name">Analyse IA d'un contrôle</div>
+              <div class="desc">Analyse détaillée d'un contrôle avec Claude Sonnet 4. <span class="global-hint">Global : ON.</span></div>
+            </div>
+            <div class="state-pill on"><span class="src inherited">Hérité</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">smart_plan_mission</div>
+              <div class="name">Planification IA d'une mission</div>
+              <div class="desc">Génération du plan d'audit via Claude Haiku. <span class="global-hint">Global : ON.</span></div>
+            </div>
+            <div class="state-pill on"><span class="src inherited">Hérité</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 4 - report_generator (off globally) -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">report_generator_advanced</div>
+              <div class="name">Générateur rapport multi-formats</div>
+              <div class="desc">Page de génération avec PDF/PPTX/Word. <span class="global-hint">Global : OFF (beta).</span></div>
+            </div>
+            <div class="state-pill off"><span class="src inherited">Hérité</span> Désactivé</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 5 - supervision_group_mode -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">supervision_group_mode</div>
+              <div class="name">Mode supervision groupe</div>
+              <div class="desc">Toggle Cabinet/Groupe pour les régulateurs DCSSI. <span class="global-hint">Global : ON.</span></div>
+            </div>
+            <div class="state-pill on"><span class="src inherited">Hérité</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 — État avec overrides actifs + modale -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">02</span>
+      <h2>État avec overrides actifs · clic sur un segment ouvre la modale motif</h2>
+    </div>
+    <div class="section-desc">
+      Cabinet pilote sur lequel l'opérateur a déjà activé <span class="mono">report_generator_advanced</span> en avant-première
+      et désactivé <span class="mono">smart_analyse_control</span> à la demande du client. Le compteur en haut affiche les 2 overrides actifs.
+      Au clic sur « Forcer ON / OFF », une modale demande le motif (obligatoire, tracé indéfiniment).
+    </div>
+
+    <div class="scene">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">/admin/cabinets/audit-co-senegal</span>
+        <span class="ctx">Cabinet · Feature flags · 2 overrides</span>
+      </div>
+      <div class="mode-bar"><span class="pill">Admin mode</span> Console super-admin Gëstu — vos actions sont tracées.</div>
+
+      <div class="cab-h">
+        <div class="av">A</div>
+        <div>
+          <h1>Audit&Co Sénégal</h1>
+          <div class="meta">Cabinet · Dakar · plan Pro</div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <span class="tab">Vue d'ensemble</span>
+        <span class="tab">Membres <span class="count">14</span></span>
+        <span class="tab">Missions <span class="count">9</span></span>
+        <span class="tab">Facturation</span>
+        <span class="tab active gold">Feature flags <span class="count">10</span></span>
+        <span class="tab">Audit log</span>
+      </div>
+
+      <div class="tab-body" style="position:relative">
+        <div class="summary-bar">
+          <span class="stat">📊 <b>10 flags</b></span>
+          <span class="stat">🌐 <b>8 hérités</b></span>
+          <span class="stat" style="color:var(--ok)">🔒 <b>1 forcé ON</b></span>
+          <span class="stat" style="color:var(--err)">⛔ <b>1 forcé OFF</b></span>
+          <span style="margin-left:auto; color:var(--g6); font-weight:700">2 overrides actifs · réinitialiser tout</span>
+        </div>
+
+        <div class="flag-list">
+
+          <!-- Row 1 -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">smart_questionnaire_ai</div>
+              <div class="name">Pré-remplissage IA questionnaire</div>
+              <div class="desc"><span class="global-hint">Global : ON.</span></div>
+            </div>
+            <div class="state-pill on"><span class="src inherited">Hérité</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 2 - FORCED OFF -->
+          <div class="flag-row" style="background:#FFF7F7">
+            <div class="info">
+              <div class="slug">smart_analyse_control</div>
+              <div class="name">Analyse IA d'un contrôle</div>
+              <div class="desc" style="color:var(--err)">Forcé OFF — <i>« Le client se plaint d'erreurs récurrentes, on coupe le temps de patcher (ticket #143) »</i></div>
+            </div>
+            <div class="state-pill off"><span class="src forced">Forcé</span> Désactivé</div>
+            <div class="segctrl">
+              <span class="seg">Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg active off">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">smart_plan_mission</div>
+              <div class="name">Planification IA d'une mission</div>
+              <div class="desc"><span class="global-hint">Global : ON.</span></div>
+            </div>
+            <div class="state-pill on"><span class="src inherited">Hérité</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 4 - FORCED ON (override > global OFF) -->
+          <div class="flag-row" style="background:#F7FFFA">
+            <div class="info">
+              <div class="slug">report_generator_advanced</div>
+              <div class="name">Générateur rapport multi-formats</div>
+              <div class="desc" style="color:var(--ok)">Forcé ON — <i>« Pilote beta avec ce cabinet pendant 2 semaines avant GA »</i></div>
+            </div>
+            <div class="state-pill on"><span class="src forced">Forcé</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg">Hériter</span>
+              <span class="seg active on">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="flag-row">
+            <div class="info">
+              <div class="slug">supervision_group_mode</div>
+              <div class="name">Mode supervision groupe</div>
+              <div class="desc"><span class="global-hint">Global : ON.</span></div>
+            </div>
+            <div class="state-pill on"><span class="src inherited">Hérité</span> Actif</div>
+            <div class="segctrl">
+              <span class="seg active inherit"><span class="dot"></span>Hériter</span>
+              <span class="seg">Forcer ON</span>
+              <span class="seg">Forcer OFF</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal (clic sur Forcer OFF de smart_questionnaire_ai par exemple) -->
+        <div class="modal-bg">
+          <div class="modal">
+            <div class="modal-h">
+              <h3>Forcer OFF — <span class="mono" style="color:var(--err)">smart_questionnaire_ai</span></h3>
+              <div class="sub">Pour le cabinet <b>Audit&Co Sénégal</b> uniquement. Le global reste à ON pour les autres.</div>
+            </div>
+            <div class="modal-body">
+              <label>Motif <span class="req">*</span></label>
+              <textarea rows="3" placeholder="Pourquoi cette modification ? (obligatoire, tracé indéfiniment)"></textarea>
+              <p style="margin-top:8px; font-size:11px; color:var(--t5)">Le motif sera enregistré dans <span class="mono">admin_audit_log</span> et visible dans l'onglet <i>Audit log</i> du cabinet.</p>
+            </div>
+            <div class="modal-foot">
+              <button class="btn btn-sec">Annuler</button>
+              <button class="btn btn-pri" style="background:var(--err); border-color:var(--err)">Forcer OFF</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="note">
+      <b>Lignes colorées</b> — un override actif tient une coloration de fond très subtile (rose pour OFF, vert pour ON) +
+      un texte en italique sous le nom rappelle le motif tronqué. Au survol, on voit le motif complet en tooltip.
+    </div>
+  </div>
+
+  <!-- Section 3 — Audit log filtré sur le cabinet -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">03</span>
+      <h2>Trace dans l'onglet Audit log du cabinet</h2>
+    </div>
+    <div class="section-desc">
+      Chaque override apparaît dans <span class="mono">admin_audit_log</span> avec acteur · cible · motif · timestamp.
+      Indéfiniment retenu, exportable en CSV (héritage Phase 1).
+    </div>
+
+    <div class="log">
+      <h3>Audit log · Audit&Co Sénégal · 30 derniers jours</h3>
+
+      <div class="log-row">
+        <span class="time">26 avr · 14:38</span>
+        <span class="ic on">ON</span>
+        <span class="desc"><b>Oumar Gueye</b> a forcé ON le flag <span class="mono">report_generator_advanced</span><br/>
+          <i>« Pilote beta avec ce cabinet pendant 2 semaines avant GA »</i>
+        </span>
+        <span class="who">il y a 12 min</span>
+      </div>
+      <div class="log-row">
+        <span class="time">26 avr · 14:25</span>
+        <span class="ic off">OFF</span>
+        <span class="desc"><b>Oumar Gueye</b> a forcé OFF le flag <span class="mono">smart_analyse_control</span><br/>
+          <i>« Le client se plaint d'erreurs récurrentes, on coupe le temps de patcher (ticket #143) »</i>
+        </span>
+        <span class="who">il y a 25 min</span>
+      </div>
+      <div class="log-row">
+        <span class="time">22 avr · 09:14</span>
+        <span class="ic reset">↺</span>
+        <span class="desc"><b>Oumar Gueye</b> a réinitialisé l'override de <span class="mono">smart_questionnaire_ai</span> (retour à hérité)<br/>
+          <i>« Le bug a été fix en v1.4.2, on rebascule sur le global »</i>
+        </span>
+        <span class="who">22 avr.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4 — Architecture / résolution -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">04</span>
+      <h2>Architecture · résolution à 2 niveaux dans <span class="mono" style="font-size:14px;color:var(--gold)">useFeatureFlag()</span></h2>
+    </div>
+    <div class="section-desc">
+      Le code consommateur (<span class="mono">useFeatureFlag('slug')</span>) ne change pas. La résolution interne devient à 2 niveaux : override de l'org du user d'abord, fallback sur <span class="mono">is_globally_enabled</span> ensuite.
+    </div>
+
+<div class="code">
+<span class="com">-- Migration 00073</span>
+<span class="kw">CREATE TABLE</span> <span class="fn">public.feature_flag_overrides</span> (
+  id              <span class="ty">uuid</span> <span class="kw">PRIMARY KEY DEFAULT</span> <span class="fn">gen_random_uuid</span>(),
+  flag_id         <span class="ty">uuid</span> <span class="kw">NOT NULL REFERENCES</span> public.feature_flags(id) <span class="kw">ON DELETE CASCADE</span>,
+  organization_id <span class="ty">uuid</span> <span class="kw">NOT NULL REFERENCES</span> public.organizations(id) <span class="kw">ON DELETE CASCADE</span>,
+  enabled         <span class="ty">boolean</span> <span class="kw">NOT NULL</span>,
+  reason          <span class="ty">text</span> <span class="kw">NOT NULL CHECK</span> (length(trim(reason)) <span class="kw">&gt;</span> <span class="str">0</span>),
+  updated_by      <span class="ty">uuid</span> <span class="kw">REFERENCES</span> public.users(id) <span class="kw">ON DELETE SET NULL</span>,
+  updated_at      <span class="ty">timestamptz</span> <span class="kw">NOT NULL DEFAULT</span> now(),
+  <span class="kw">UNIQUE</span> (flag_id, organization_id)
+);
+
+<span class="com">// src/hooks/useFeatureFlag.ts (résolution à 2 niveaux)</span>
+<span class="kw">export function</span> <span class="fn">useFeatureFlag</span>(slug: <span class="ty">string</span>) {
+  <span class="kw">const</span> { profile } = <span class="fn">useAuth</span>()
+
+  <span class="com">// 1. override pour l'org du user courant ?</span>
+  <span class="kw">const</span> override = <span class="fn">useOverride</span>(slug, profile?.organization_id)
+  <span class="kw">if</span> (override !== <span class="kw">null</span>) <span class="kw">return</span> { enabled: override.enabled, source: <span class="str">'override'</span> }
+
+  <span class="com">// 2. fallback global</span>
+  <span class="kw">return</span> <span class="fn">useGlobal</span>(slug)  <span class="com">// is_globally_enabled</span>
+}
+</div>
+
+    <div class="compare">
+      <div class="compare-card">
+        <h4>Cas d'usage opérationnel</h4>
+        <p class="ex">Soft-launch <code>report_generator_advanced</code> sur 1 cabinet pilote → laisser global OFF → activer pour tous quand prêt.</p>
+      </div>
+      <div class="compare-card">
+        <h4>Cas d'usage support</h4>
+        <p class="ex">Le client se plaint que <code>smart_analyse_control</code> renvoie des erreurs → on force OFF pour lui le temps du fix → ses concurrents continuent normalement.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:14px; font-size:12px; color:var(--t5)">
+    <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--f9)">Gestu Comply</div>
+    <div>·</div>
+    <div>Mockup · Feature flags · onglet override par cabinet (Option A)</div>
+    <div style="margin-left:auto">Couleurs : Vert forêt #1B4332 · Or #D4A843 · Police : Inter</div>
+  </div>
+
+</div>
+
+</body>
+</html>

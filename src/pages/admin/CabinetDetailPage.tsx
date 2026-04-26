@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
 import { DeleteCabinetModal } from '../../features/admin/DeleteCabinetModal'
+import { CabinetFeatureFlagsTab } from '../../features/admin/CabinetFeatureFlagsTab'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -15,6 +16,7 @@ export function CabinetDetailPage() {
   const { cabinet, loading, error, refetch } = useAdminCabinetDetail(id)
   const [actionInFlight, setActionInFlight] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'flags'>('overview')
   const [reasonModal, setReasonModal] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
   const [reason, setReason] = useState('')
 
@@ -87,6 +89,26 @@ export function CabinetDetailPage() {
         </div>
       </div>
 
+      <div className="flex gap-1 border-b border-gray-200 mb-5">
+        <button
+          type="button"
+          onClick={() => setActiveTab('overview')}
+          className={`px-4 py-2 text-[12.5px] font-medium border-b-2 -mb-px transition-colors ${activeTab === 'overview' ? 'border-gold-500 text-forest-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          Vue d&apos;ensemble
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('flags')}
+          className={`px-4 py-2 text-[12.5px] font-medium border-b-2 -mb-px transition-colors ${activeTab === 'flags' ? 'border-gold-500 text-forest-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          Feature flags
+        </button>
+      </div>
+
+      {activeTab === 'flags' ? (
+        <CabinetFeatureFlagsTab cabinetId={cabinet.id} />
+      ) : (
       <div className="grid grid-cols-[1fr_320px] gap-5">
         <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
           <header className="px-4 py-3 border-b border-gray-200">
@@ -164,6 +186,7 @@ export function CabinetDetailPage() {
           </section>
         </div>
       </div>
+      )}
 
       {deleteOpen && (
         <DeleteCabinetModal
