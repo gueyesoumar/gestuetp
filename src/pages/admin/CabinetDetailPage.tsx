@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Download, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAdminCabinetDetail } from '../../features/admin/useAdminCabinetDetail'
@@ -8,6 +8,12 @@ import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
 import { DeleteCabinetModal } from '../../features/admin/DeleteCabinetModal'
 import { CabinetFeatureFlagsTab } from '../../features/admin/CabinetFeatureFlagsTab'
+import { CabinetMembersTab } from '../../features/admin/CabinetMembersTab'
+import { CabinetMissionsTab } from '../../features/admin/CabinetMissionsTab'
+import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
+import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
+
+type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'flags' | 'audit'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -16,7 +22,7 @@ export function CabinetDetailPage() {
   const { cabinet, loading, error, refetch } = useAdminCabinetDetail(id)
   const [actionInFlight, setActionInFlight] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'flags'>('overview')
+  const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [reasonModal, setReasonModal] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
   const [reason, setReason] = useState('')
 
@@ -89,85 +95,34 @@ export function CabinetDetailPage() {
         </div>
       </div>
 
-      <div className="flex gap-1 border-b border-gray-200 mb-5">
-        <button
-          type="button"
-          onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 text-[12.5px] font-medium border-b-2 -mb-px transition-colors ${activeTab === 'overview' ? 'border-gold-500 text-forest-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-        >
-          Vue d&apos;ensemble
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('flags')}
-          className={`px-4 py-2 text-[12.5px] font-medium border-b-2 -mb-px transition-colors ${activeTab === 'flags' ? 'border-gold-500 text-forest-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-        >
-          Feature flags
-        </button>
+      <div className="flex gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
+        <TabBtn k="overview" label="Vue d'ensemble" active={activeTab === 'overview'} onClick={setActiveTab} />
+        <TabBtn k="members" label={`Membres · ${cabinet.members.length}`} active={activeTab === 'members'} onClick={setActiveTab} />
+        <TabBtn k="missions" label={`Missions · ${cabinet.missions.length}`} active={activeTab === 'missions'} onClick={setActiveTab} />
+        <TabBtn k="billing" label="Facturation" active={activeTab === 'billing'} onClick={setActiveTab} />
+        <TabBtn k="flags" label="Feature flags" active={activeTab === 'flags'} onClick={setActiveTab} />
+        <TabBtn k="audit" label="Audit log" active={activeTab === 'audit'} onClick={setActiveTab} />
       </div>
 
-      {activeTab === 'flags' ? (
-        <CabinetFeatureFlagsTab cabinetId={cabinet.id} />
-      ) : (
-      <div className="grid grid-cols-[1fr_320px] gap-5">
-        <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <header className="px-4 py-3 border-b border-gray-200">
-            <span className="text-[13px] font-bold text-gray-900">Identité</span>
-          </header>
-          <div className="px-5 py-4">
-            <dl className="grid grid-cols-[140px_1fr] gap-y-2.5 gap-x-5 text-[13px]">
-              <dt className="text-gray-500 text-[12px]">Nom</dt><dd className="text-gray-900 font-medium">{cabinet.name}</dd>
-              <dt className="text-gray-500 text-[12px]">Slug</dt><dd className="text-gray-900 font-mono text-[12px]">{cabinet.slug}</dd>
-              <dt className="text-gray-500 text-[12px]">Plan</dt><dd className="text-gray-900">{cabinet.plan_name ?? '—'}{cabinet.plan_price != null && cabinet.plan_price > 0 ? ` · ${cabinet.plan_price} €/mois` : ''}</dd>
-              <dt className="text-gray-500 text-[12px]">Onboardé</dt><dd className="text-gray-900">{new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
-              <dt className="text-gray-500 text-[12px]">Membres</dt><dd className="text-gray-900">{cabinet.members.length}</dd>
-              <dt className="text-gray-500 text-[12px]">Missions</dt><dd className="text-gray-900">{cabinet.missions.length}</dd>
-            </dl>
-          </div>
-
-          <header className="px-4 py-3 border-y border-gray-200">
-            <span className="text-[13px] font-bold text-gray-900">Missions récentes</span>
-          </header>
-          <div className="px-5 py-3">
-            {cabinet.missions.length === 0 ? (
-              <div className="text-[12px] text-gray-300 py-2">Aucune mission.</div>
-            ) : (
-              <ul className="space-y-2">
-                {cabinet.missions.slice(0, 8).map((m) => (
-                  <li key={m.id} className="flex items-center gap-3 text-[12.5px] py-1.5 border-b border-gray-100 last:border-b-0">
-                    <span className="font-semibold text-gray-900 truncate flex-1">{m.name}</span>
-                    <span className="text-[11px] text-gray-300 capitalize">{m.status.replaceAll('_', ' ')}</span>
-                    <span className="text-[10.5px] text-gray-300 w-24 text-right">{new Date(m.updated_at).toLocaleDateString('fr-FR')}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-
-        <div className="space-y-4">
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-[1fr_320px] gap-5">
           <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
             <header className="px-4 py-3 border-b border-gray-200">
-              <span className="text-[13px] font-bold text-gray-900">Membres ({cabinet.members.length})</span>
+              <span className="text-[13px] font-bold text-gray-900">Identité</span>
             </header>
-            <div className="px-4 py-3">
-              {cabinet.members.slice(0, 6).map((m) => (
-                <Link key={m.id} to={`/admin/utilisateurs/${m.id}`} className="flex items-center gap-2.5 py-1.5 border-b border-gray-100 last:border-b-0 hover:bg-page-bg -mx-2 px-2 rounded">
-                  <div className="w-7 h-7 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center font-extrabold text-[10.5px]">{m.first_name.charAt(0)}{m.last_name.charAt(0)}</div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[12px] font-semibold text-gray-900 truncate">{m.first_name} {m.last_name}</div>
-                    <div className="text-[10.5px] text-gray-300 truncate">{m.job_title ?? m.email}</div>
-                  </div>
-                  {!m.is_active && <span className="text-[10px] text-red-600 font-semibold">Inactif</span>}
-                </Link>
-              ))}
-              {cabinet.members.length > 6 && (
-                <div className="text-[11px] text-gray-300 pt-2 border-t border-gray-100">+ {cabinet.members.length - 6} autres &mdash; <Link to="/admin/utilisateurs" className="text-forest-700 font-semibold">recherche</Link></div>
-              )}
+            <div className="px-5 py-4">
+              <dl className="grid grid-cols-[140px_1fr] gap-y-2.5 gap-x-5 text-[13px]">
+                <dt className="text-gray-500 text-[12px]">Nom</dt><dd className="text-gray-900 font-medium">{cabinet.name}</dd>
+                <dt className="text-gray-500 text-[12px]">Slug</dt><dd className="text-gray-900 font-mono text-[12px]">{cabinet.slug}</dd>
+                <dt className="text-gray-500 text-[12px]">Plan</dt><dd className="text-gray-900">{cabinet.plan_name ?? '—'}{cabinet.plan_price != null && cabinet.plan_price > 0 ? ` · ${cabinet.plan_price} €/mois` : ''}</dd>
+                <dt className="text-gray-500 text-[12px]">Onboardé</dt><dd className="text-gray-900">{new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
+                <dt className="text-gray-500 text-[12px]">Membres</dt><dd className="text-gray-900">{cabinet.members.length}</dd>
+                <dt className="text-gray-500 text-[12px]">Missions</dt><dd className="text-gray-900">{cabinet.missions.length}</dd>
+              </dl>
             </div>
           </section>
 
-          <section className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <section className="bg-red-50 border border-red-200 rounded-xl p-4 self-start">
             <h4 className="text-[12px] uppercase tracking-wider text-red-700 font-bold mb-1.5">Zone sensible</h4>
             <p className="text-[11.5px] text-red-700 leading-relaxed mb-3">Toute action est tracée dans l&apos;audit log avec le motif que vous saisirez.</p>
             <div className="flex flex-wrap gap-2">
@@ -185,8 +140,13 @@ export function CabinetDetailPage() {
             </div>
           </section>
         </div>
-      </div>
       )}
+
+      {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}
+      {activeTab === 'missions' && <CabinetMissionsTab cabinetId={cabinet.id} />}
+      {activeTab === 'billing' && <CabinetBillingTab cabinet={cabinet} />}
+      {activeTab === 'flags' && <CabinetFeatureFlagsTab cabinetId={cabinet.id} />}
+      {activeTab === 'audit' && <CabinetAuditLogTab cabinetId={cabinet.id} />}
 
       {deleteOpen && (
         <DeleteCabinetModal
@@ -245,5 +205,17 @@ function ReasonModal({ title, submitLabel, danger, reason, onChangeReason, submi
         </div>
       </div>
     </div>
+  )
+}
+
+function TabBtn({ k, label, active, onClick }: { k: TabKey; label: string; active: boolean; onClick: (k: TabKey) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(k)}
+      className={`px-4 py-2 text-[12.5px] font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${active ? 'border-gold-500 text-forest-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+    >
+      {label}
+    </button>
   )
 }
