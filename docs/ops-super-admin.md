@@ -115,6 +115,17 @@ supabase functions deploy admin-view-user
 supabase functions deploy admin-feature-flags
 supabase functions deploy admin-create-cabinet
 supabase functions deploy admin-delete-cabinet
+
+# Phase 2.5 — overrides feature flags par cabinet
+supabase functions deploy admin-feature-flag-overrides
+
+# Phase 3 — monitoring (redéployer aussi les 5 Edge Functions IA pour activer le logging)
+supabase functions deploy admin-monitoring-stats
+supabase functions deploy smart-questionnaire
+supabase functions deploy smart-analyse
+supabase functions deploy smart-plan
+supabase functions deploy smart-risks
+supabase functions deploy ai-documents
 ```
 
 Variables d'environnement à vérifier :
@@ -158,6 +169,36 @@ ORDER BY created_at DESC;
 - ✅ **Onboarding wizard** — bouton « Onboarder un cabinet » sur `/admin/cabinets`. Crée org + rôle Associé + auth user + email de définition de mot de passe en une seule transaction.
 - ✅ **Feature flags globaux** — `/admin/feature-flags`. 4 flags seedés (`weekly_digest_email`, `smart_questionnaire_v2`, `ai_pre_review`, `multi_framework_dashboard`). Hook `useFeatureFlag('slug')` côté client.
 - ✅ **Suppression définitive** — bouton dans la danger zone du cabinet. Triple confirmation (nom exact + mot SUPPRIMER + motif). Refus si platform owner présent. Refus si missions actives non clôturées (sauf force=true). Snapshot léger en metadata du log avant DELETE CASCADE.
+
+## 6bis. Page Santé / Monitoring
+
+Visible sur `/admin/monitoring` (sidebar « Santé / Monitoring »). Trace les appels Anthropic
+de toutes les Edge Functions IA (`smart-questionnaire`, `smart-analyse`, `smart-plan`,
+`smart-risks`, `ai-documents`).
+
+**Données affichées** :
+- KPI 30j : nombre d'appels, coût USD estimé, tokens consommés, taux de succès, emails envoyés
+- Edge Functions : breakdown par fonction (appels, succès %, durée moyenne, coût)
+- Top cabinets : ceux qui consomment le plus d'IA, triés par coût
+- Storage : taille des documents par cabinet
+- Emails par type (depuis `email_log`)
+- Liste des derniers échecs (max 50)
+
+**Source des coûts** : table `ai_calls_log` populée par chaque Edge Function après son
+appel à Anthropic. Le calcul utilise des constantes hardcodées dans
+`supabase/functions/_shared/log-ai-call.ts` :
+
+| Modèle | Input ($/M tokens) | Output ($/M tokens) |
+|--------|--------------------|---------------------|
+| Sonnet 4 / 4.5 / 4.6 | 3 | 15 |
+| Haiku 4.5 | 1 | 5 |
+| Opus 4 / 4.7 | 15 | 75 |
+
+**À mettre à jour** quand Anthropic ajuste ses prix. Les anciens log restent inchangés
+(coût figé à l'instant T) — pas de recalcul rétroactif.
+
+**Données rétroactives** : la table `ai_calls_log` ne capture que les appels postérieurs
+au déploiement de la migration 00074. Pas d'historique antérieur.
 
 ## 7. Limites restantes (Phase 3 si besoin)
 

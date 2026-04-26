@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logAiCall } from '../_shared/log-ai-call.ts'
 
 const SYSTEM_PROMPT = `Tu es un expert en audit SI. Pour chaque contrôle, tu détermines le risk_level, les audit_techniques, et l'auditor_id.
 
@@ -60,7 +61,7 @@ Deno.serve(async (req) => {
 
     // Fetch mission context (compact queries)
     const { data: mission } = await supabaseAdmin
-      .from('missions').select('name, framework_id, client_id, framework:frameworks(name, version)').eq('id', mission_id).single()
+      .from('missions').select('name, framework_id, client_id, cabinet_id, framework:frameworks(name, version)').eq('id', mission_id).single()
     if (!mission) {
       return new Response(JSON.stringify({ error: 'Mission introuvable' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -139,6 +140,10 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
 
     console.log(`[smart-plan] Calling Claude with ${controls.length} controls...`)
 
+    const startedAt = Date.now()
+    const MODEL = 'claude-haiku-4-5-20251001'
+    const cabinetIdForLog = (mission as { cabinet_id?: string } | null)?.cabinet_id ?? null
+
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -147,7 +152,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: MODEL,
         max_tokens: 16000,
         system: SYSTEM_PROMPT,
         messages: [
@@ -160,6 +165,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
     if (!claudeRes.ok) {
       const errText = await claudeRes.text()
       console.error('[smart-plan] Claude API error:', claudeRes.status, errText.slice(0, 500))
+      void logAiCall({ admin: supabaseAdmin, function_name: 'smart-plan', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${errText.slice(0, 200)}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
       return new Response(JSON.stringify({ error: `Erreur Claude: ${claudeRes.status}`, detail: errText.slice(0, 200) }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
@@ -167,6 +173,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
     const claudeData = await claudeRes.json()
     const rawContent = claudeData.content?.[0]?.text ?? ''
     console.log('[smart-plan] Raw response length:', rawContent.length, 'stop_reason:', claudeData.stop_reason)
+    void logAiCall({ admin: supabaseAdmin, function_name: 'smart-plan', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
 
     // Reconstruct JSON (we prefilled '{"controls":[')
     const fullJson = '{"controls":[' + rawContent

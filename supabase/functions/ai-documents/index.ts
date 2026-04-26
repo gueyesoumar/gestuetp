@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logAiCall } from '../_shared/log-ai-call.ts'
 
 /**
  * Edge Function: ai-documents
@@ -238,6 +239,15 @@ async function handleAnalyze(
   // Call Claude
   const claudeController = new AbortController()
   const claudeTimeout = setTimeout(() => claudeController.abort(), 180_000) // 3 min for large docs
+  const startedAt = Date.now()
+  const usedModel = model ?? 'claude-sonnet-4-20250514'
+
+  // Cabinet pour log : depuis mission_id si pr\u00e9sent
+  let cabinetIdForLog: string | null = null
+  if (mission_id) {
+    const { data: m } = await admin.from('missions').select('cabinet_id').eq('id', mission_id).maybeSingle()
+    cabinetIdForLog = (m as { cabinet_id?: string } | null)?.cabinet_id ?? null
+  }
 
   let claudeRes: Response
   try {
@@ -251,7 +261,7 @@ async function handleAnalyze(
       },
       signal: claudeController.signal,
       body: JSON.stringify({
-        model: model ?? 'claude-sonnet-4-20250514',
+        model: usedModel,
         max_tokens: max_tokens ?? 4096,
         messages: [{ role: 'user', content }],
       }),
@@ -268,12 +278,15 @@ async function handleAnalyze(
     if (errText.includes('file_not_found')) userMessage = 'Un des fichiers a expir\u00e9. Veuillez le re-uploader.'
     if (errText.includes('too_large')) userMessage = 'Les documents sont trop volumineux pour une seule analyse.'
 
+    void logAiCall({ admin, function_name: 'ai-documents', model: usedModel, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${userMessage}`, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
     return jsonResponse({ error: userMessage }, 502)
   }
 
   const data = await claudeRes.json()
   const text = data.content?.[0]?.text ?? ''
   const usage = data.usage ?? {}
+
+  void logAiCall({ admin, function_name: 'ai-documents', model: data.model ?? usedModel, input_tokens: usage.input_tokens ?? null, output_tokens: usage.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
 
   return jsonResponse({
     text,

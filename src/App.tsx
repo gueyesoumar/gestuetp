@@ -38,6 +38,7 @@ import { UsersSearchPage } from './pages/admin/UsersSearchPage'
 import { UserDetailPage } from './pages/admin/UserDetailPage'
 import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
 import { FeatureFlagsPage } from './pages/admin/FeatureFlagsPage'
+import { MonitoringPage } from './pages/admin/MonitoringPage'
 import { SupervisionPage } from './pages/SupervisionPage'
 import { EntityDetailPage } from './pages/EntityDetailPage'
 import { CampaignDetailPage } from './pages/CampaignDetailPage'
@@ -118,6 +119,7 @@ function App() {
             <Route path="utilisateurs" element={<UsersSearchPage />} />
             <Route path="utilisateurs/:id" element={<UserDetailPage />} />
             <Route path="feature-flags" element={<FeatureFlagsPage />} />
+            <Route path="monitoring" element={<MonitoringPage />} />
             <Route path="audit-log" element={<AdminAuditLogPage />} />
           </Route>
 

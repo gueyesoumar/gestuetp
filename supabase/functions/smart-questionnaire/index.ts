@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiCall } from '../_shared/log-ai-call.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
 type SupabaseAdmin = ReturnType<typeof createClient>
@@ -117,6 +118,7 @@ async function analyzeBatch(
   clientContext: string,
   questionsText: string,
   batchLabel: string,
+  logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
 ): Promise<BatchResult> {
   const { parts, names, failed, hasPdf, useFilesApi } = await prepareDocs(admin, docs)
 
@@ -165,6 +167,8 @@ JSON uniquement, en français.`
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS)
+  const startedAt = Date.now()
+  const MODEL = 'claude-sonnet-4-20250514'
 
   let claudeRes: Response
   try {
@@ -173,7 +177,7 @@ JSON uniquement, en français.`
       headers,
       signal: controller.signal,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL,
         max_tokens: 4000,
         messages: [{ role: 'user', content: parts }],
       }),
@@ -182,6 +186,7 @@ JSON uniquement, en français.`
     clearTimeout(timeout)
     const isAbort = err instanceof Error && err.name === 'AbortError'
     console.error(`[smart-questionnaire] ${batchLabel} ${isAbort ? 'timeout' : 'fetch error'}:`, err)
+    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: isAbort ? 'timeout' : 'fetch error', duration_ms: Date.now() - startedAt, mission_id: logCtx.mission_id, organization_id: logCtx.organization_id, user_id: logCtx.user_id })
     return { answers: [], analyzed: [], failed: [...failed, ...names.map((n) => ({ name: n, reason: isAbort ? 'timeout IA' : 'erreur réseau IA' }))] }
   }
   clearTimeout(timeout)
@@ -200,12 +205,14 @@ JSON uniquement, en français.`
       else if (msg) reason = `IA: ${msg.slice(0, 80)}`
     } catch { /* keep default */ }
 
+    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${reason}`, duration_ms: Date.now() - startedAt, mission_id: logCtx.mission_id, organization_id: logCtx.organization_id, user_id: logCtx.user_id })
     return { answers: [], analyzed: [], failed: [...failed, ...names.map((n) => ({ name: n, reason }))] }
   }
 
   const claudeData = await claudeRes.json()
   const rawText = claudeData.content?.[0]?.text ?? ''
   const clean = rawText.replace(/```json|```/g, '').trim()
+  void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: logCtx.mission_id, organization_id: logCtx.organization_id, user_id: logCtx.user_id })
 
   let parsed: { answers?: AIAnswer[] } = {}
   try {
@@ -295,6 +302,18 @@ Deno.serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
+    // ── 2bis. Résolution du contexte pour ai_calls_log
+    const { data: callerProfile } = await admin
+      .from('users')
+      .select('id')
+      .eq('auth_id', caller.id)
+      .maybeSingle()
+    const logCtx = {
+      mission_id,
+      organization_id: (mission as { cabinet_id?: string } | null)?.cabinet_id ?? null,
+      user_id: (callerProfile as { id?: string } | null)?.id ?? null,
+    }
+
     // ── 3. Process batches with single-doc fallback on failure ─────
     const mergedAnswers = new Map<string, AIAnswer>()
     const analyzedDocNames: string[] = []
@@ -315,7 +334,7 @@ Deno.serve(async (req) => {
       const batchLabel = `${batchIdx + 1}/${batches.length}`
 
       // Try the full batch first
-      const batchResult = await analyzeBatch(admin, batch, anthropicKey, clientContext, questionsText, batchLabel)
+      const batchResult = await analyzeBatch(admin, batch, anthropicKey, clientContext, questionsText, batchLabel, logCtx)
 
       if (batchResult.answers.length > 0 || batchResult.failed.length === 0) {
         // Success or no failures
@@ -331,7 +350,7 @@ Deno.serve(async (req) => {
         console.log(`[smart-questionnaire] Batch ${batchLabel} failed, retrying each doc individually`)
         for (let i = 0; i < batch.length; i++) {
           const singleLabel = `${batchLabel} retry ${i + 1}/${batch.length}`
-          const singleResult = await analyzeBatch(admin, [batch[i]], anthropicKey, clientContext, questionsText, singleLabel)
+          const singleResult = await analyzeBatch(admin, [batch[i]], anthropicKey, clientContext, questionsText, singleLabel, logCtx)
           mergeAnswers(singleResult.answers)
           analyzedDocNames.push(...singleResult.analyzed)
           failedDocs.push(...singleResult.failed)

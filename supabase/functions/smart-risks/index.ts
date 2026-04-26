@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logAiCall } from '../_shared/log-ai-call.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -35,7 +36,7 @@ Deno.serve(async (req) => {
     }
 
     // Fetch context
-    const { data: mission } = await admin.from('missions').select('name, client_id, framework:frameworks(name)').eq('id', mission_id).single()
+    const { data: mission } = await admin.from('missions').select('name, client_id, cabinet_id, framework:frameworks(name)').eq('id', mission_id).single()
     if (!mission) {
       return new Response(JSON.stringify({ error: 'Mission introuvable' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -93,6 +94,10 @@ Génère un JSON: {"risks":[{"title":"titre court","risk_level":"critical|high|m
 
 JSON uniquement, en français. Maximum 8 risques.`
 
+    const startedAt = Date.now()
+    const MODEL = 'claude-haiku-4-5-20251001'
+    const cabinetIdForLog = (mission as { cabinet_id?: string } | null)?.cabinet_id ?? null
+
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -101,7 +106,7 @@ JSON uniquement, en français. Maximum 8 risques.`
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: MODEL,
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -109,11 +114,13 @@ JSON uniquement, en français. Maximum 8 risques.`
 
     if (!claudeRes.ok) {
       console.error('[smart-risks] Claude error:', claudeRes.status)
+      void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `Claude ${claudeRes.status}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
       return new Response(JSON.stringify({ error: 'Erreur IA' }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const claudeData = await claudeRes.json()
+    void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
     const rawText = claudeData.content?.[0]?.text ?? ''
     const clean = rawText.replace(/```json|```/g, '').trim()
 

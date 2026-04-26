@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logAiCall } from '../_shared/log-ai-call.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -26,9 +27,11 @@ Deno.serve(async (req) => {
 
     // ── 1. Fetch client context ──────────────────────────────────────────────
     let clientContext = ''
+    let cabinetIdForLog: string | null = null
 
     if (mission_id) {
-      const { data: m } = await admin.from('missions').select('client_id, framework:frameworks(name)').eq('id', mission_id).single()
+      const { data: m } = await admin.from('missions').select('client_id, cabinet_id, framework:frameworks(name)').eq('id', mission_id).single()
+      cabinetIdForLog = (m as { cabinet_id?: string } | null)?.cabinet_id ?? null
       if (m) {
         const { data: ccs } = await admin.from('cabinet_clients')
           .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems, it_environment')
@@ -182,6 +185,8 @@ JSON uniquement, en fran\u00e7ais.`
     // ── 4. Call Claude API ───────────────────────────────────────────────────
     const claudeController = new AbortController()
     const claudeTimeout = setTimeout(() => claudeController.abort(), 120_000)
+    const startedAt = Date.now()
+    const MODEL = 'claude-sonnet-4-20250514'
 
     let claudeRes: Response
     try {
@@ -222,11 +227,13 @@ JSON uniquement, en fran\u00e7ais.`
         userMessage = 'Les documents fournis sont trop volumineux. Limite : 32 Mo par requ\u00eate.'
       }
 
+      void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${userMessage}`, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
       return new Response(JSON.stringify({ error: userMessage }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const data = await claudeRes.json()
+    void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
     const rawText = data.content?.[0]?.text ?? ''
     const clean = rawText.replace(/```json|```/g, '').trim()
 
