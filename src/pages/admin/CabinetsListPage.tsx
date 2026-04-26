@@ -1,16 +1,18 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Search } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import { useAdminCabinets, type AdminCabinet } from '../../features/admin/useAdminCabinets'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { CreateCabinetWizard } from '../../features/admin/CreateCabinetWizard'
 
 type StatusFilter = 'all' | 'active' | 'suspended'
 
 export function CabinetsListPage() {
-  const { cabinets, loading, error } = useAdminCabinets()
+  const { cabinets, loading, error, refetch } = useAdminCabinets()
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<StatusFilter>('all')
+  const [wizardOpen, setWizardOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -53,7 +55,18 @@ export function CabinetsListPage() {
         <FilterPill label={`Actifs · ${counts.active}`} active={filter === 'active'} onClick={() => setFilter('active')} variant="green" />
         <FilterPill label={`Suspendus · ${counts.suspended}`} active={filter === 'suspended'} onClick={() => setFilter('suspended')} variant="warn" />
         <FilterPill label={`Tous · ${counts.total}`} active={filter === 'all'} onClick={() => setFilter('all')} variant="gray" />
+        <button
+          onClick={() => setWizardOpen(true)}
+          className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest-700 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-900"
+        >
+          <Plus size={14} />
+          Onboarder un cabinet
+        </button>
       </div>
+
+      {wizardOpen && (
+        <CreateCabinetWizard onClose={() => setWizardOpen(false)} onCreated={refetch} />
+      )}
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full text-[13px]">

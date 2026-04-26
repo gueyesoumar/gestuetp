@@ -35,7 +35,9 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { CabinetsListPage } from './pages/admin/CabinetsListPage'
 import { CabinetDetailPage } from './pages/admin/CabinetDetailPage'
 import { UsersSearchPage } from './pages/admin/UsersSearchPage'
+import { UserDetailPage } from './pages/admin/UserDetailPage'
 import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
+import { FeatureFlagsPage } from './pages/admin/FeatureFlagsPage'
 import { SupervisionPage } from './pages/SupervisionPage'
 import { EntityDetailPage } from './pages/EntityDetailPage'
 import { CampaignDetailPage } from './pages/CampaignDetailPage'
@@ -114,6 +116,8 @@ function App() {
             <Route path="cabinets" element={<CabinetsListPage />} />
             <Route path="cabinets/:id" element={<CabinetDetailPage />} />
             <Route path="utilisateurs" element={<UsersSearchPage />} />
+            <Route path="utilisateurs/:id" element={<UserDetailPage />} />
+            <Route path="feature-flags" element={<FeatureFlagsPage />} />
             <Route path="audit-log" element={<AdminAuditLogPage />} />
           </Route>
 

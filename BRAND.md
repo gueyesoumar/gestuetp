@@ -287,7 +287,26 @@ La console Gëstu Admin est **distincte visuellement** de l'app cabinet pour qu'
 
 ---
 
-## 12. Règles d'application
+## 12. Mode aperçu utilisateur (super-admin)
+
+Le super-admin peut consulter une fiche utilisateur détaillée en lecture seule depuis `/admin/utilisateurs/:id`.
+
+**Garde-fous UX et RGPD :**
+1. **Modale de motif obligatoire à l'arrivée** : avant tout affichage de données personnelles, l'admin doit saisir un motif texte non vide. Le motif est tracé dans `admin_audit_log` et `admin_view_sessions` indéfiniment.
+2. **Notification à l'utilisateur consulté** : à chaque ouverture, une notification in-app est insérée pour le target (`type='admin_view'`). Anti-spam : skip si une session de moins de 24 h existe déjà sur le même couple admin/target.
+3. **Bandeau ambre persistant** : pendant la consultation, un bandeau « Aperçu actif — vous consultez cette fiche en lecture seule » est visible en haut de la page.
+4. **Lecture seule par construction** : la page ne propose aucune action de mutation. Les actions sensibles (reset password, désactivation) restent disponibles depuis `/admin/utilisateurs` (recherche) et déclenchent leur propre log indépendant.
+
+**Distinction avec une vraie impersonation** : Gëstu ne propose PAS de mode « se faire passer pour » l'utilisateur dans l'app cabinet. Cette décision est délibérée :
+- Ambiguïté d'audit (qui a fait quoi ?)
+- Risque de mutation non attribuée
+- Notification RGPD au target reste claire (« lecture seule » vs « action en votre nom »)
+
+Si un besoin de vraie impersonation émerge, c'est un Phase 3 dédié avec un flow d'auth custom et des garde-fous supplémentaires.
+
+---
+
+## 13. Règles d'application
 
 1. **Ne jamais modifier les couleurs du bouclier** — toujours vert forêt + or
 2. **Le tréma doré est obligatoire** sur le "e" de Gëstu dans tous les contextes

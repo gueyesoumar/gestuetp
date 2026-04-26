@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { useAdminUsers, type AdminUserRow } from '../../features/admin/useAdminUsers'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -134,6 +135,14 @@ function UserMenu({ user, onPickAction }: { user: AdminUserRow; onPickAction: (a
         <>
           <div onClick={() => setOpen(false)} className="fixed inset-0 z-40" />
           <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+            <Link
+              to={`/admin/utilisateurs/${user.id}`}
+              onClick={() => setOpen(false)}
+              className="block w-full text-left px-3 py-2 text-[12.5px] hover:bg-page-bg text-gray-700"
+            >
+              Inspecter (aperçu)
+            </Link>
+            <div className="border-t border-gray-100" />
             <button
               onClick={() => { setOpen(false); onPickAction('reset_password') }}
               className="block w-full text-left px-3 py-2 text-[12.5px] hover:bg-page-bg text-gray-700"

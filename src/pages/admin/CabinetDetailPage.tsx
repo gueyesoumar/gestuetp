@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Download } from 'lucide-react'
+import { ChevronLeft, Download, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAdminCabinetDetail } from '../../features/admin/useAdminCabinetDetail'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
+import { DeleteCabinetModal } from '../../features/admin/DeleteCabinetModal'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -13,6 +14,7 @@ export function CabinetDetailPage() {
   const toast = useToast()
   const { cabinet, loading, error, refetch } = useAdminCabinetDetail(id)
   const [actionInFlight, setActionInFlight] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [reasonModal, setReasonModal] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
   const [reason, setReason] = useState('')
 
@@ -128,14 +130,14 @@ export function CabinetDetailPage() {
             </header>
             <div className="px-4 py-3">
               {cabinet.members.slice(0, 6).map((m) => (
-                <div key={m.id} className="flex items-center gap-2.5 py-1.5 border-b border-gray-100 last:border-b-0">
+                <Link key={m.id} to={`/admin/utilisateurs/${m.id}`} className="flex items-center gap-2.5 py-1.5 border-b border-gray-100 last:border-b-0 hover:bg-page-bg -mx-2 px-2 rounded">
                   <div className="w-7 h-7 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center font-extrabold text-[10.5px]">{m.first_name.charAt(0)}{m.last_name.charAt(0)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="text-[12px] font-semibold text-gray-900 truncate">{m.first_name} {m.last_name}</div>
                     <div className="text-[10.5px] text-gray-300 truncate">{m.job_title ?? m.email}</div>
                   </div>
                   {!m.is_active && <span className="text-[10px] text-red-600 font-semibold">Inactif</span>}
-                </div>
+                </Link>
               ))}
               {cabinet.members.length > 6 && (
                 <div className="text-[11px] text-gray-300 pt-2 border-t border-gray-100">+ {cabinet.members.length - 6} autres &mdash; <Link to="/admin/utilisateurs" className="text-forest-700 font-semibold">recherche</Link></div>
@@ -155,10 +157,21 @@ export function CabinetDetailPage() {
               <button onClick={() => setReasonModal('export')} className="px-3 py-1.5 border border-red-200 bg-white text-red-700 rounded-lg text-[12px] font-semibold hover:bg-red-50 inline-flex items-center gap-1">
                 <Download size={12} /> Exporter CSV
               </button>
+              <button onClick={() => setDeleteOpen(true)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-[12px] font-semibold hover:bg-red-700 inline-flex items-center gap-1">
+                <Trash2 size={12} /> Supprimer définitivement
+              </button>
             </div>
           </section>
         </div>
       </div>
+
+      {deleteOpen && (
+        <DeleteCabinetModal
+          cabinetId={cabinet.id}
+          cabinetName={cabinet.name}
+          onClose={() => setDeleteOpen(false)}
+        />
+      )}
 
       {reasonModal && (
         <ReasonModal

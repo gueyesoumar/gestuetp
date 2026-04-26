@@ -105,9 +105,16 @@ session.
 ## 3. Déploiement des Edge Functions
 
 ```bash
+# Phase 1
 supabase functions deploy admin-cabinet
 supabase functions deploy admin-user
 supabase functions deploy admin-stats
+
+# Phase 2
+supabase functions deploy admin-view-user
+supabase functions deploy admin-feature-flags
+supabase functions deploy admin-create-cabinet
+supabase functions deploy admin-delete-cabinet
 ```
 
 Variables d'environnement à vérifier :
@@ -145,13 +152,19 @@ ORDER BY created_at DESC;
 | Réinitialiser le mot de passe | Supabase Auth recovery | Envoie un email de récup. à l'utilisateur | — (l'utilisateur définit son nouveau MDP) |
 | Désactiver un compte utilisateur | `users.is_active = false` | L'utilisateur ne peut plus se connecter | Oui (Réactiver) |
 
-## 6. Limites Phase 1 (à traiter en Phase 2)
+## 6. Phase 2 (livrée)
 
-- ❌ **Impersonation** : voir l'app comme un autre utilisateur. Demande JWT signé court + notification RGPD.
-- ❌ **Onboarding wizard** : créer un nouveau cabinet depuis l'UI. Aujourd'hui, passe par la création d'organisation existante + nomination owner.
-- ❌ **Stripe** : MRR est un placeholder. Phase 2 = intégration paiement réelle.
-- ❌ **Feature flags** : déploiement progressif par cabinet. Pas encore.
-- ❌ **Suppression définitive** : non implémentée. Suspendre + exporter avant de supprimer manuellement en SQL si vraiment nécessaire.
+- ✅ **Mode aperçu utilisateur** (lecture seule) — `/admin/utilisateurs/:id` avec motif obligatoire + notification RGPD au target. Pas de vraie impersonation (voir BRAND.md §12 pour le pourquoi).
+- ✅ **Onboarding wizard** — bouton « Onboarder un cabinet » sur `/admin/cabinets`. Crée org + rôle Associé + auth user + email de définition de mot de passe en une seule transaction.
+- ✅ **Feature flags globaux** — `/admin/feature-flags`. 4 flags seedés (`weekly_digest_email`, `smart_questionnaire_v2`, `ai_pre_review`, `multi_framework_dashboard`). Hook `useFeatureFlag('slug')` côté client.
+- ✅ **Suppression définitive** — bouton dans la danger zone du cabinet. Triple confirmation (nom exact + mot SUPPRIMER + motif). Refus si platform owner présent. Refus si missions actives non clôturées (sauf force=true). Snapshot léger en metadata du log avant DELETE CASCADE.
+
+## 7. Limites restantes (Phase 3 si besoin)
+
+- ❌ **Stripe** : MRR reste placeholder. Pas demandé pour l'instant.
+- ❌ **Impersonation full** : voir l'app comme un autre utilisateur en mode mutation. Risques d'audit. Non livré.
+- ❌ **Per-cabinet feature flags** : Phase 2 = global on/off uniquement.
+- ❌ **Tickets support** : besoin pas cadré (Linear ? Notion ? in-app ?).
 
 ## 7. Tests manuels recommandés
 
