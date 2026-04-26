@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
   }
 })
 
-interface SvgResult { ok: true; svg: string } | { ok: false; reason: string }
+type SvgResult = { ok: true; svg: string } | { ok: false; reason: string }
 
 /**
  * Sanitization SVG minimaliste mais suffisante pour le cas d'usage logo :
