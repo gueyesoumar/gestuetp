@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../hooks/useAuth'
 
 interface UseToggleMemberStatusResult {
   toggleStatus: (userId: string, activate: boolean) => Promise<boolean>
@@ -8,8 +7,16 @@ interface UseToggleMemberStatusResult {
   error: string | null
 }
 
+/**
+ * Suspend ou réactive un membre du cabinet via l'edge function manage-member.
+ *
+ * NOTE: avant migration 00082+00083, cette fonction faisait un UPDATE direct
+ * sur public.users, qui était bloqué silencieusement par la RLS users_update_self
+ * (auth_id = auth.uid()) → l'opération paraissait réussir mais ne faisait rien.
+ * On passe désormais par une edge function qui vérifie can_manage_members
+ * + protection anti-bricking (refus si on suspend le dernier admin du cabinet).
+ */
 export function useToggleMemberStatus(onSuccess?: () => void): UseToggleMemberStatusResult {
-  const { profile } = useAuth()
   const [toggling, setToggling] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -17,33 +24,29 @@ export function useToggleMemberStatus(onSuccess?: () => void): UseToggleMemberSt
     setToggling(true)
     setError(null)
 
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ is_active: activate })
-      .eq('id', userId)
+    const { data, error: fnError } = await supabase.functions.invoke('manage-member', {
+      body: {
+        action: activate ? 'reactivate' : 'suspend',
+        target_user_id: userId,
+      },
+    })
 
-    if (updateError) {
-      console.error('useToggleMemberStatus:', updateError.message)
+    setToggling(false)
+
+    if (fnError) {
+      console.error('useToggleMemberStatus invoke:', fnError.message)
       setError('Impossible de modifier le statut du membre.')
-      setToggling(false)
+      return false
+    }
+    if (data?.error) {
+      console.warn('useToggleMemberStatus rejected:', data.error)
+      setError(data.error)
       return false
     }
 
-    // Log audit event (silently fails if table doesn't exist yet)
-    if (profile?.organization_id) {
-      const { error: logError } = await supabase.from('member_audit_logs').insert({
-        organization_id: profile.organization_id,
-        target_user_id: userId,
-        performed_by: profile.id,
-        action: activate ? 'reactivated' : 'deactivated',
-      })
-      if (logError) console.warn('audit log:', logError.message)
-    }
-
-    setToggling(false)
     onSuccess?.()
     return true
-  }, [onSuccess, profile?.organization_id, profile?.id])
+  }, [onSuccess])
 
   return { toggleStatus, toggling, error }
 }
