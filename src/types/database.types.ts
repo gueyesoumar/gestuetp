@@ -251,6 +251,13 @@ export interface PlatformRolePermissions {
   can_assign_team: boolean
   can_be_lead: boolean
   can_designate_lead: boolean
+  /** Permissions cabinet ajoutées par migration 00082 (optionnelles côté
+   *  TypeScript pour les rôles legacy, traitées comme false si absentes). */
+  can_delete_mission?: boolean
+  can_manage_members?: boolean
+  can_manage_clients?: boolean
+  can_edit_organization?: boolean
+  can_manage_roles?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
