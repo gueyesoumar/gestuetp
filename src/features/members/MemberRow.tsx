@@ -6,6 +6,8 @@ import type { MemberWithRoles } from './types'
 
 interface MemberRowProps {
   member: MemberWithRoles
+  canManageMembers: boolean
+  canManageRoles: boolean
   onAssignRole: (member: MemberWithRoles) => void
   onToggleStatus: (member: MemberWithRoles) => void
   onResendInvite: (member: MemberWithRoles) => void
@@ -15,6 +17,8 @@ interface MemberRowProps {
 
 export function MemberRow({
   member,
+  canManageMembers,
+  canManageRoles,
   onAssignRole,
   onToggleStatus,
   onResendInvite,
@@ -102,28 +106,34 @@ export function MemberRow({
                 label="Voir le profil"
                 onClick={() => { onViewProfile(member); setMenuOpen(false) }}
               />
-              <MenuButton
-                icon={<Shield size={14} />}
-                label="G&eacute;rer les r&ocirc;les"
-                onClick={() => { onAssignRole(member); setMenuOpen(false) }}
-              />
-              <MenuButton
-                icon={<Send size={14} />}
-                label="Renvoyer l&rsquo;invitation"
-                onClick={() => { onResendInvite(member); setMenuOpen(false) }}
-              />
-              <MenuButton
-                icon={<KeyRound size={14} />}
-                label="Modifier le mot de passe"
-                onClick={() => { onResetPassword(member); setMenuOpen(false) }}
-              />
-              <hr className="my-1 border-gray-100" />
-              <MenuButton
-                icon={member.is_active ? <UserX size={14} /> : <UserCheck size={14} />}
-                label={member.is_active ? 'D\u00e9sactiver' : 'R\u00e9activer'}
-                onClick={() => { onToggleStatus(member); setMenuOpen(false) }}
-                danger={member.is_active}
-              />
+              {canManageRoles && (
+                <MenuButton
+                  icon={<Shield size={14} />}
+                  label="G&eacute;rer les r&ocirc;les"
+                  onClick={() => { onAssignRole(member); setMenuOpen(false) }}
+                />
+              )}
+              {canManageMembers && (
+                <>
+                  <MenuButton
+                    icon={<Send size={14} />}
+                    label="Renvoyer l&rsquo;invitation"
+                    onClick={() => { onResendInvite(member); setMenuOpen(false) }}
+                  />
+                  <MenuButton
+                    icon={<KeyRound size={14} />}
+                    label="Modifier le mot de passe"
+                    onClick={() => { onResetPassword(member); setMenuOpen(false) }}
+                  />
+                  <hr className="my-1 border-gray-100" />
+                  <MenuButton
+                    icon={member.is_active ? <UserX size={14} /> : <UserCheck size={14} />}
+                    label={member.is_active ? 'D\u00e9sactiver' : 'R\u00e9activer'}
+                    onClick={() => { onToggleStatus(member); setMenuOpen(false) }}
+                    danger={member.is_active}
+                  />
+                </>
+              )}
             </div>
           )}
         </div>

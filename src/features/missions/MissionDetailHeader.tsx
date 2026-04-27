@@ -4,6 +4,7 @@ import { ArrowLeft, FileText, Building2, Calendar, Clock, Play, MoreVertical, Tr
 import { supabase } from '../../lib/supabase'
 import { MissionStatusBadge } from './MissionStatusBadge'
 import { Modal } from '../../components/ui/Modal'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import type { MissionDetail } from './useMissionDetail'
 import type { MissionProgress } from './useMissionProgress'
 
@@ -15,9 +16,11 @@ interface MissionDetailHeaderProps {
 
 export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDetailHeaderProps) {
   const navigate = useNavigate()
+  const { canDeleteMission } = useCabinetPermissions()
   const [showMenu, setShowMenu] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const period = mission.start_date && mission.end_date
     ? `${formatDate(mission.start_date)} \u2192 ${formatDate(mission.end_date)}`
@@ -25,29 +28,18 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
 
   const handleDelete = async () => {
     setDeleting(true)
-    const { error } = await supabase.functions.invoke('delete-mission', {
+    setDeleteError(null)
+    const { data, error } = await supabase.functions.invoke('delete-mission', {
       body: { mission_id: mission.id },
     })
 
-    if (error) {
-      // Fallback: essayer suppression directe via REST
-      const session = await supabase.auth.getSession()
-      const token = session.data.session?.access_token
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/missions?id=eq.${mission.id}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Prefer': 'return=minimal',
-        },
-      })
-      if (!res.ok) {
-        console.error('Delete mission failed:', await res.text())
-        setDeleting(false)
-        return
-      }
+    setDeleting(false)
+    if (error || data?.error) {
+      const msg = (data?.error as string | undefined) ?? 'Suppression impossible'
+      console.error('delete-mission:', error?.message ?? msg)
+      setDeleteError(msg)
+      return
     }
-
     navigate('/missions')
   }
 
@@ -85,24 +77,26 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
               </button>
             )}
 
-            {/* Menu contextuel */}
-            <div className="relative">
-              <button onClick={() => setShowMenu(!showMenu)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
-                <MoreVertical size={16} />
-              </button>
-              {showMenu && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-10 z-20 w-52 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5">
-                    <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true) }}
-                      className="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                      <Trash2 size={13} /> Supprimer la mission
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+            {/* Menu contextuel : visible uniquement si l'utilisateur peut faire au moins une action */}
+            {canDeleteMission && (
+              <div className="relative">
+                <button onClick={() => setShowMenu(!showMenu)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
+                  <MoreVertical size={16} />
+                </button>
+                {showMenu && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                    <div className="absolute right-0 top-10 z-20 w-52 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5">
+                      <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true) }}
+                        className="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                        <Trash2 size={13} /> Supprimer la mission
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -131,6 +125,9 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
             <p className="text-[13px] text-gray-700">
               Confirmer la suppression de <strong>{mission.name}</strong> ?
             </p>
+            {deleteError && (
+              <p className="text-[12px] text-red-600 bg-red-50 border border-red-200 rounded p-2">{deleteError}</p>
+            )}
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowDeleteConfirm(false)}
                 className="px-4 py-2 border border-gray-200 rounded-lg text-[13px] text-gray-500 hover:bg-gray-50 transition-colors">

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useCabinetClients } from '../features/clients/useCabinetClients'
+import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
 import { Badge } from '../components/ui/Badge'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
@@ -7,6 +8,7 @@ import { EmptyState } from '../components/ui/EmptyState'
 
 export function ClientsListPage() {
   const { clients, loading, error } = useCabinetClients()
+  const { canManageClients } = useCabinetPermissions()
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
@@ -20,12 +22,14 @@ export function ClientsListPage() {
             G&eacute;rez votre portefeuille de clients.
           </p>
         </div>
-        <Link
-          to="/clients/nouveau"
-          className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
-        >
-          Nouveau client
-        </Link>
+        {canManageClients && (
+          <Link
+            to="/clients/nouveau"
+            className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
+          >
+            Nouveau client
+          </Link>
+        )}
       </div>
 
       {clients.length === 0 ? (
@@ -34,12 +38,14 @@ export function ClientsListPage() {
             title="Aucun client"
             description="Enregistrez votre premier client."
             action={
-              <Link
-                to="/clients/nouveau"
-                className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
-              >
-                Nouveau client
-              </Link>
+              canManageClients ? (
+                <Link
+                  to="/clients/nouveau"
+                  className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
+                >
+                  Nouveau client
+                </Link>
+              ) : undefined
             }
           />
         </div>

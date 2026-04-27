@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Badge } from '../../../components/ui/Badge'
 import { ROLE_LABELS } from '../mission-constants'
 import { useReviewLabels } from '../../organization-settings/useReviewLabels'
+import { useCabinetPermissions } from '../../../hooks/useCabinetPermissions'
 import { TeamManagementModal } from './TeamManagementModal'
 import type { MissionMemberRow } from '../useMissionDetail'
 
@@ -14,6 +15,7 @@ interface TeamActivityPanelProps {
 export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivityPanelProps){
   const [showManage, setShowManage] = useState(false)
   const { lead, associate } = useReviewLabels()
+  const { canAssignTeam } = useCabinetPermissions()
   const roleLabel = (role: string) => role === 'lead_auditor' ? lead : role === 'associate' ? associate : (ROLE_LABELS[role] ?? role)
 
   return (
@@ -22,9 +24,11 @@ export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivit
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <span className="text-[13px] font-semibold text-gray-900">{'\u00c9'}quipe</span>
-          <button onClick={() => setShowManage(true)} className="text-[11px] font-medium text-forest-700 hover:underline">
-            G{'\u00e9'}rer
-          </button>
+          {canAssignTeam && (
+            <button onClick={() => setShowManage(true)} className="text-[11px] font-medium text-forest-700 hover:underline">
+              G{'\u00e9'}rer
+            </button>
+          )}
         </div>
         <div>
           {members.map((m) => (

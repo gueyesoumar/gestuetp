@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useMembers } from '../features/members/useMembers'
 import { usePlatformRoles } from '../features/members/usePlatformRoles'
 import { useToggleMemberStatus } from '../features/members/useToggleMemberStatus'
+import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
 import { MemberTable } from '../features/members/MemberTable'
 import { MemberSearchBar } from '../features/members/MemberSearchBar'
 import { InviteMemberModal } from '../features/members/InviteMemberModal'
@@ -20,6 +21,7 @@ export function MembersPage() {
   const { members, loading, error, refetch } = useMembers()
   const { roles } = usePlatformRoles()
   const { toggleStatus } = useToggleMemberStatus(refetch)
+  const { canManageMembers, canManageRoles } = useCabinetPermissions()
 
   // Modals
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -106,19 +108,23 @@ export function MembersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={() => setRoleManagementOpen(true)}
-          >
-            <Settings size={16} />
-            R&ocirc;les
-          </button>
-          <button
-            className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
-            onClick={() => setInviteOpen(true)}
-          >
-            Inviter un membre
-          </button>
+          {canManageRoles && (
+            <button
+              className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              onClick={() => setRoleManagementOpen(true)}
+            >
+              <Settings size={16} />
+              R&ocirc;les
+            </button>
+          )}
+          {canManageMembers && (
+            <button
+              className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
+              onClick={() => setInviteOpen(true)}
+            >
+              Inviter un membre
+            </button>
+          )}
         </div>
       </div>
 
@@ -145,6 +151,8 @@ export function MembersPage() {
       <div className="mt-2">
         <MemberTable
           members={filteredMembers}
+          canManageMembers={canManageMembers}
+          canManageRoles={canManageRoles}
           onAssignRole={(member) => setSelectedMember(member)}
           onToggleStatus={handleToggleStatus}
           onResendInvite={handleResendInvite}

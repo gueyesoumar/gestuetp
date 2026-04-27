@@ -194,8 +194,13 @@ interface RoleFormProps {
 const PERMISSION_KEYS: { key: keyof PlatformRolePermissions; label: string }[] = [
   { key: 'can_create_mission', label: 'Créer des missions' },
   { key: 'can_assign_team', label: 'Assigner des équipes' },
-  { key: 'can_be_lead', label: 'Être auditeur principal' },
-  { key: 'can_designate_lead', label: 'Désigner un auditeur principal' },
+  { key: 'can_be_lead', label: 'Être chef de mission' },
+  { key: 'can_designate_lead', label: 'Désigner un chef de mission' },
+  { key: 'can_delete_mission', label: 'Supprimer des missions' },
+  { key: 'can_manage_members', label: 'Gérer les membres (inviter, suspendre)' },
+  { key: 'can_manage_clients', label: 'Gérer les clients du cabinet' },
+  { key: 'can_edit_organization', label: 'Modifier les paramètres du cabinet' },
+  { key: 'can_manage_roles', label: 'Gérer les rôles et leurs permissions' },
 ]
 
 const GROUP_PERMISSION_KEYS: { key: keyof PlatformRolePermissions; label: string; description: string }[] = [
