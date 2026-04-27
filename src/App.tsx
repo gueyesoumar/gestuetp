@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
 import { BrandingProvider } from './features/branding/BrandingContext'
@@ -21,7 +21,6 @@ import { MissionDetailPage } from './pages/MissionDetailPage'
 import { ClientsListPage } from './pages/ClientsListPage'
 import { ClientCreatePage } from './pages/ClientCreatePage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
-import { ProfilePage } from './pages/ProfilePage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { QuestionnaireClientPage } from './pages/QuestionnaireClientPage'
 import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDashboardPage'
@@ -90,7 +89,7 @@ function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="profil" element={<ProfilePage />} />
+            <Route path="profil" element={<Navigate to="/organisation" replace />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="organisation" element={<OrganizationPage />} />
             <Route path="membres" element={<MembersPage />} />

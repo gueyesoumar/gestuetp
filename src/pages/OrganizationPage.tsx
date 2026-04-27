@@ -1,31 +1,47 @@
-import { useOrganization } from '../features/organization/useOrganization'
-import { useUpdateOrganization } from '../features/organization/useUpdateOrganization'
-import { OrganizationForm } from '../features/organization/OrganizationForm'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { ErrorAlert } from '../components/ui/ErrorAlert'
+import { useState } from 'react'
+import { OrganizationInfoTab } from '../features/organization-settings/OrganizationInfoTab'
+import { ProfileSettingsTab } from '../features/organization-settings/ProfileSettingsTab'
+import { WorkflowSettingsTab } from '../features/organization-settings/WorkflowSettingsTab'
 
-export function OrganizationPage() {
-  const { organization, loading, error, refetch } = useOrganization()
-  const { updateOrganization, updating, error: updateError } = useUpdateOrganization(refetch)
+type Tab = 'organisation' | 'profil' | 'parametres'
 
-  if (loading) return <LoadingSpinner />
-  if (error) return <ErrorAlert message={error} />
-  if (!organization) return <ErrorAlert message="Organisation introuvable." />
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'organisation', label: 'Organisation' },
+  { key: 'profil', label: 'Mon profil' },
+  { key: 'parametres', label: 'Paramètres' },
+]
+
+export function OrganizationPage(): JSX.Element {
+  const [activeTab, setActiveTab] = useState<Tab>('organisation')
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900">Organisation</h2>
-      <p className="mt-1 text-sm text-gray-600">
-        G&eacute;rez les informations de votre organisation.
-      </p>
-      <div className="mt-6">
-        <OrganizationForm
-          organization={organization}
-          onSubmit={(data) => updateOrganization(organization.id, data)}
-          submitting={updating}
-          error={updateError}
-        />
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">Organisation</h2>
+        <p className="mt-1 text-[13px] text-gray-500">
+          Gérez votre cabinet, votre profil et les paramètres opérationnels.
+        </p>
       </div>
+
+      <div className="flex gap-6 border-b border-gray-200 mb-6">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`pb-3 text-[13px] font-medium border-b-2 transition-colors ${
+              activeTab === tab.key
+                ? 'border-forest-600 text-forest-700'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'organisation' && <OrganizationInfoTab />}
+      {activeTab === 'profil' && <ProfileSettingsTab />}
+      {activeTab === 'parametres' && <WorkflowSettingsTab />}
     </div>
   )
 }

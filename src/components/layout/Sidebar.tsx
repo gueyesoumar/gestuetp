@@ -4,7 +4,7 @@ import { GestuLogo } from '../GestuLogo'
 import { LayoutGrid, ShieldCheck } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
-  ProfileIcon, OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
+  OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
   CollapseIcon, ExpandIcon, ChevronUpIcon,
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
@@ -35,7 +35,6 @@ const NAV_ITEMS: NavItem[] = [
 ]
 
 const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
-  { to: '/profil', label: 'Mon profil', icon: <ProfileIcon /> },
   { to: '/notifications', label: 'Notifications', icon: <BellIcon /> },
   { to: '/organisation', label: 'Organisation', icon: <OrganizationIcon /> },
   { to: '/membres', label: 'Membres', icon: <MembersIcon /> },
