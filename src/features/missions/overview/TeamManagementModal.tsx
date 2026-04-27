@@ -4,6 +4,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { Badge } from '../../../components/ui/Badge'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { ROLE_LABELS } from '../mission-constants'
+import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import { useMembers } from '../../members/useMembers'
 import type { MissionMemberRow } from '../useMissionDetail'
 import type { MissionRole } from '../../../types/database.types'
@@ -17,6 +18,8 @@ interface TeamManagementModalProps {
 
 export function TeamManagementModal({ missionId, members, onClose, onRefetch }: TeamManagementModalProps) {
   const { members: allOrgMembers, loading: orgLoading } = useMembers()
+  const { lead, associate } = useReviewLabels()
+  const roleLabel = (role: string) => role === 'lead_auditor' ? lead : role === 'associate' ? associate : (ROLE_LABELS[role] ?? role)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -45,7 +48,7 @@ export function TeamManagementModal({ missionId, members, onClose, onRefetch }: 
       setError('Erreur lors de l\u2019ajout du membre.')
     } else {
       const added = allOrgMembers.find((m) => m.id === addUserId)
-      setSuccess(`${added?.first_name} ${added?.last_name} ajout\u00e9 comme ${ROLE_LABELS[addRole]}.`)
+      setSuccess(`${added?.first_name} ${added?.last_name} ajout\u00e9 comme ${roleLabel(addRole)}.`)
       setAddUserId('')
       onRefetch()
     }
@@ -88,7 +91,7 @@ export function TeamManagementModal({ missionId, members, onClose, onRefetch }: 
                   <span className="text-[13px] text-gray-900 font-medium">{m.user.first_name} {m.user.last_name}</span>
                   {m.user.email && <span className="text-[10px] text-gray-300 ml-2">{m.user.email}</span>}
                 </div>
-                <Badge label={ROLE_LABELS[m.role] ?? m.role} variant={m.role === 'associate' ? 'green' : m.role === 'lead_auditor' ? 'blue' : 'gray'} />
+                <Badge label={roleLabel(m.role)} variant={m.role === 'associate' ? 'green' : m.role === 'lead_auditor' ? 'blue' : 'gray'} />
                 {m.role === 'auditor' && (
                   <button onClick={() => handleRemove(m.id, `${m.user.first_name} ${m.user.last_name}`)} disabled={saving}
                     className="text-[10px] text-gray-300 hover:text-red-500 disabled:opacity-30" title="Retirer">
@@ -120,8 +123,8 @@ export function TeamManagementModal({ missionId, members, onClose, onRefetch }: 
               <select value={addRole} onChange={(e) => setAddRole(e.target.value as MissionRole)} disabled={saving}
                 className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500">
                 <option value="auditor">Auditeur</option>
-                <option value="lead_auditor">Chef de mission</option>
-                <option value="associate">Associ&eacute;</option>
+                <option value="lead_auditor">{lead}</option>
+                <option value="associate">{associate}</option>
               </select>
               <button onClick={handleAdd} disabled={saving || !addUserId}
                 className="px-4 py-2.5 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors shrink-0">

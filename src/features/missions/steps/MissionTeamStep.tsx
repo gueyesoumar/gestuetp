@@ -1,4 +1,5 @@
 import type { MemberWithRoles } from '../../members/types'
+import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 
 interface MissionTeamStepProps {
   members: MemberWithRoles[]
@@ -15,6 +16,7 @@ export function MissionTeamStep({
   members, associateId, leadAuditorId, selectedMemberIds, totalControls,
   onAssociateId, onLeadAuditorId, onToggleMember,
 }: MissionTeamStepProps) {
+  const { lead, associate } = useReviewLabels()
   const suggestedAuditors = totalControls > 60 ? '3 à 4' : totalControls > 30 ? '2 à 3' : '1 à 2'
   const suggestedDays = totalControls > 60 ? '15 à 20' : totalControls > 30 ? '10 à 15' : '5 à 10'
 
@@ -31,7 +33,7 @@ export function MissionTeamStep({
       <div className="mt-4 grid grid-cols-2 gap-3.5">
         <div>
           <label className="block text-[12px] font-semibold text-gray-700 mb-1.5">
-            Associé <span className="font-normal text-gray-300">Validateur ultime</span>
+            {associate} <span className="font-normal text-gray-300">Validateur ultime</span>
           </label>
           <select value={associateId} onChange={(e) => onAssociateId(e.target.value)} className="w-full">
             <option value="">Sélectionner</option>
@@ -40,7 +42,7 @@ export function MissionTeamStep({
         </div>
         <div>
           <label className="block text-[12px] font-semibold text-gray-700 mb-1.5">
-            Chef de mission <span className="font-normal text-gray-300">Coordonne l'équipe</span>
+            {lead} <span className="font-normal text-gray-300">Coordonne l'équipe</span>
           </label>
           <select value={leadAuditorId} onChange={(e) => onLeadAuditorId(e.target.value)} className="w-full">
             <option value="">Sélectionner</option>
@@ -66,8 +68,8 @@ export function MissionTeamStep({
                   className="accent-forest-700"
                 />
                 <span className={isLeadOrAssociate ? 'text-gray-400' : 'text-gray-700'}>{m.first_name} {m.last_name}</span>
-                {m.id === associateId && <span className="text-[10px] text-gold-600 ml-auto">Associé</span>}
-                {m.id === leadAuditorId && <span className="text-[10px] text-forest-500 ml-auto">Chef de mission</span>}
+                {m.id === associateId && <span className="text-[10px] text-gold-600 ml-auto">{associate}</span>}
+                {m.id === leadAuditorId && <span className="text-[10px] text-forest-500 ml-auto">{lead}</span>}
               </label>
             )
           })}

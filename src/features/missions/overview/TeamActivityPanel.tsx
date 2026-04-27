@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Badge } from '../../../components/ui/Badge'
 import { ROLE_LABELS } from '../mission-constants'
+import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import { TeamManagementModal } from './TeamManagementModal'
 import type { MissionMemberRow } from '../useMissionDetail'
 
@@ -12,6 +13,8 @@ interface TeamActivityPanelProps {
 
 export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivityPanelProps){
   const [showManage, setShowManage] = useState(false)
+  const { lead, associate } = useReviewLabels()
+  const roleLabel = (role: string) => role === 'lead_auditor' ? lead : role === 'associate' ? associate : (ROLE_LABELS[role] ?? role)
 
   return (
     <div className="space-y-4">
@@ -30,7 +33,7 @@ export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivit
               <span className="flex-1 text-[13px] text-gray-700 truncate">
                 {m.user.first_name} {m.user.last_name}
               </span>
-              <Badge label={ROLE_LABELS[m.role] ?? m.role} variant={roleVariant(m.role)} />
+              <Badge label={roleLabel(m.role)} variant={roleVariant(m.role)} />
             </div>
           ))}
         </div>

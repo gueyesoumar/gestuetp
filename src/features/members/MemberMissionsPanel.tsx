@@ -2,6 +2,7 @@ import { Briefcase } from 'lucide-react'
 import { Badge } from '../../components/ui/Badge'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { useMemberMissions } from './useMemberMissions'
+import { useReviewLabels } from '../organization-settings/useReviewLabels'
 
 interface MemberMissionsPanelProps {
   userId: string
@@ -27,14 +28,11 @@ const STATUS_VARIANTS: Record<string, 'green' | 'blue' | 'gold' | 'gray'> = {
   closure: 'green',
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  associate: 'Associé',
-  lead_auditor: 'Auditeur principal',
-  auditor: 'Auditeur',
-}
-
 export function MemberMissionsPanel({ userId }: MemberMissionsPanelProps) {
   const { missions, loading, error } = useMemberMissions(userId)
+  const { lead, associate } = useReviewLabels()
+  const roleLabel = (role: string) =>
+    role === 'associate' ? associate : role === 'lead_auditor' ? lead : role === 'auditor' ? 'Auditeur' : role
 
   if (loading) return <LoadingSpinner />
   if (error) return <p className="text-sm text-red-600">{error}</p>
@@ -58,7 +56,7 @@ export function MemberMissionsPanel({ userId }: MemberMissionsPanelProps) {
             />
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            {ROLE_LABELS[mt.role] ?? mt.role}
+            {roleLabel(mt.role)}
             {mt.mission.start_date && (
               <> &mdash; {new Date(mt.mission.start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}</>
             )}

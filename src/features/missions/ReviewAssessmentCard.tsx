@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Badge } from '../../components/ui/Badge'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { useReviewLabels } from '../organization-settings/useReviewLabels'
 import type { ReviewAssessment } from './useReviewAssessments'
 import type { AssessmentStatus, ValidationStage } from '../../types/database.types'
 
@@ -19,17 +20,17 @@ const statusConfig: Record<AssessmentStatus, { label: string; variant: 'gray' | 
   rejected: { label: 'Rejet\u00e9', variant: 'red' },
 }
 
-const stageLabels: Record<ValidationStage, string> = {
-  auditor_submitted: 'Soumis par l\u2019auditeur',
-  lead_review: 'Revue chef de mission',
-  associate_review: 'Revue associ\u00e9',
-  client_review: 'Revue client',
-}
-
 export function ReviewAssessmentCard({ assessment, reviewStage, onReview, reviewing }: ReviewAssessmentCardProps) {
   const [comment, setComment] = useState('')
   const [error, setError] = useState<string | null>(null)
   const status = statusConfig[assessment.status]
+  const { lead, associate } = useReviewLabels()
+  const stageLabels: Record<ValidationStage, string> = {
+    auditor_submitted: 'Soumis par l’auditeur',
+    lead_review: `Revue ${lead.toLowerCase()}`,
+    associate_review: `Revue ${associate.toLowerCase()}`,
+    client_review: 'Revue client',
+  }
 
   const canReview =
     (reviewStage === 'lead_review' && assessment.status === 'submitted') ||

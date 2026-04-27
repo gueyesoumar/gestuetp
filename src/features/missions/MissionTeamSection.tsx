@@ -1,4 +1,5 @@
 import type { MemberWithRoles } from '../members/types'
+import { useReviewLabels } from '../organization-settings/useReviewLabels'
 
 interface MissionTeamSectionProps {
   members: MemberWithRoles[]
@@ -15,12 +16,13 @@ export function MissionTeamSection({
   members, associateId, leadAuditorId, selectedMemberIds, disabled,
   onAssociateId, onLeadAuditorId, onToggleMember,
 }: MissionTeamSectionProps) {
+  const { lead, associate } = useReviewLabels()
   return (
     <fieldset className="space-y-4">
       <legend className="text-sm font-semibold text-gray-900">&Eacute;quipe de mission</legend>
 
       <div>
-        <label htmlFor="mission-associate" className="block text-sm font-medium text-gray-700">Associ&eacute;</label>
+        <label htmlFor="mission-associate" className="block text-sm font-medium text-gray-700">{associate}</label>
         <select
           id="mission-associate"
           required
@@ -29,7 +31,7 @@ export function MissionTeamSection({
           disabled={disabled}
           className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100"
         >
-          <option value="">S&eacute;lectionner l&apos;associ&eacute;</option>
+          <option value="">S&eacute;lectionner&nbsp;: {associate.toLowerCase()}</option>
           {members.map((m) => (
             <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>
           ))}
@@ -37,7 +39,7 @@ export function MissionTeamSection({
       </div>
 
       <div>
-        <label htmlFor="mission-lead" className="block text-sm font-medium text-gray-700">Chef de mission</label>
+        <label htmlFor="mission-lead" className="block text-sm font-medium text-gray-700">{lead}</label>
         <select
           id="mission-lead"
           required
@@ -46,7 +48,7 @@ export function MissionTeamSection({
           disabled={disabled}
           className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100"
         >
-          <option value="">S&eacute;lectionner le chef de mission</option>
+          <option value="">S&eacute;lectionner&nbsp;: {lead.toLowerCase()}</option>
           {members.map((m) => (
             <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>
           ))}
@@ -71,8 +73,8 @@ export function MissionTeamSection({
                 <span className={isLeadOrAssociate ? 'text-gray-400' : ''}>
                   {m.first_name} {m.last_name}
                 </span>
-                {m.id === associateId && <span className="text-xs text-forest-500">(Associ&eacute;)</span>}
-                {m.id === leadAuditorId && <span className="text-xs text-forest-500">(Chef de mission)</span>}
+                {m.id === associateId && <span className="text-xs text-forest-500">({associate})</span>}
+                {m.id === leadAuditorId && <span className="text-xs text-forest-500">({lead})</span>}
               </label>
             )
           })}
