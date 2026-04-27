@@ -94,7 +94,7 @@ export function ClientMissionDashboardTab({ mission, onTabChange }: Props): JSX.
 
         {/* Right column */}
         <div className="flex flex-col gap-6">
-          <ClientTeamCard missionId={mission.id} />
+          <ClientTeamCard missionId={mission.id} cabinetId={mission.cabinet_id} />
           <ClientUpcomingDeadlines
             missionId={mission.id}
             endDate={mission.end_date}

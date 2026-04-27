@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Users } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
+import { useReviewLabels } from '../../../organization-settings/useReviewLabels'
 
 interface TeamMember {
   id: string
   firstName: string
   lastName: string
-  roleLabel: string
   roleKey: string
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  associate: 'Associ\u00e9',
-  lead_auditor: 'Chef de mission',
-  auditor: 'Auditeur',
 }
 
 const ROLE_COLORS: Record<string, string> = {
@@ -24,9 +18,13 @@ const ROLE_COLORS: Record<string, string> = {
 
 interface ClientTeamCardProps {
   missionId: string
+  cabinetId: string
 }
 
-export function ClientTeamCard({ missionId }: ClientTeamCardProps): JSX.Element {
+export function ClientTeamCard({ missionId, cabinetId }: ClientTeamCardProps): JSX.Element {
+  const { lead, associate } = useReviewLabels(cabinetId)
+  const roleLabel = (role: string): string =>
+    role === 'lead_auditor' ? lead : role === 'associate' ? associate : role === 'auditor' ? 'Auditeur' : role
   const [team, setTeam] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -63,7 +61,6 @@ export function ClientTeamCard({ missionId }: ClientTeamCardProps): JSX.Element 
         id: m.user.id,
         firstName: m.user.first_name,
         lastName: m.user.last_name,
-        roleLabel: ROLE_LABELS[m.role] ?? m.role,
         roleKey: m.role,
       })))
       setLoading(false)
@@ -92,7 +89,7 @@ export function ClientTeamCard({ missionId }: ClientTeamCardProps): JSX.Element 
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] font-medium text-gray-900 truncate">{m.firstName} {m.lastName}</p>
-                <p className="text-[11px] text-gray-400">{m.roleLabel}</p>
+                <p className="text-[11px] text-gray-400">{roleLabel(m.roleKey)}</p>
               </div>
             </div>
           ))}

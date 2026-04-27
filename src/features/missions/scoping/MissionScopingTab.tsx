@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import { useScopingData } from './useScopingData'
 import { useSaveScoping } from './useSaveScoping'
 import { generateScopingNotePDF } from '../../reports/generateScopingNotePDF'
+import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionQuestionnaire } from '../useMissionQuestionnaire'
@@ -33,6 +34,7 @@ type ScopingTab = 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks'
 
 export function MissionScopingTab({ mission, members, domains, client, onRefetch }: MissionScopingTabProps) {
   const { profile } = useAuth()
+  const { lead, associate } = useReviewLabels()
   const { exclusions, risks, auditHistory, loading, error, refetch: refetchScoping } = useScopingData(mission.id, client?.id)
   const { addExclusion, removeExclusion, addRisk, removeRisk, saving, error: saveError } = useSaveScoping(refetchScoping)
   const { answeredCount, totalCount } = useMissionQuestionnaire(mission.id)
@@ -151,13 +153,13 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const handleGenerateNote = useCallback(() => {
     setActionSuccess(null)
     try {
-      generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected })
+      generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } })
       setActionSuccess('Note de cadrage PDF t\u00e9l\u00e9charg\u00e9e.')
     } catch (err) {
       console.error('handleGenerateNote:', err)
       setActionSuccess('Erreur lors de la g\u00e9n\u00e9ration du PDF.')
     }
-  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected])
+  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected, lead, associate])
 
   // === ACTION 3: Valider le cadrage ===
   const handleValidateScoping = useCallback(async () => {

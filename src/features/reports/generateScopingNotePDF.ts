@@ -14,6 +14,7 @@ interface ScopingNoteData {
   questionnaireProgress: number
   documentsReceived: number
   documentsExpected: number
+  reviewLabels?: { lead: string; associate: string }
 }
 
 // Couleurs Gestu — mutable arrays pour compatibilite jsPDF spread
@@ -33,7 +34,14 @@ const WHITE: RGB = [255, 255, 255]
 const BG: RGB = [250, 250, 248]
 
 export function generateScopingNotePDF(data: ScopingNoteData): void {
-  const { mission, members, domains, exclusions, risks, client, questionnaireProgress, documentsReceived, documentsExpected } = data
+  const { mission, members, domains, exclusions, risks, client, questionnaireProgress, documentsReceived, documentsExpected, reviewLabels } = data
+  const roleLabel = (role: string): string => {
+    if (reviewLabels) {
+      if (role === 'lead_auditor') return reviewLabels.lead
+      if (role === 'associate') return reviewLabels.associate
+    }
+    return ROLE_LABELS[role] ?? role
+  }
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const pageW = 210
@@ -258,7 +266,7 @@ export function generateScopingNotePDF(data: ScopingNoteData): void {
     doc.text(`${m.user.first_name} ${m.user.last_name}`, marginL + 4, y + 4)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...TEXT_700)
-    doc.text(ROLE_LABELS[m.role] ?? m.role, marginL + 70, y + 4)
+    doc.text(roleLabel(m.role), marginL + 70, y + 4)
     doc.setTextColor(...TEXT_500)
     doc.text(m.user.job_title ?? '\u2014', marginL + 110, y + 4)
     y += 6.5
