@@ -97,7 +97,11 @@ Deno.serve(async (req) => {
         name: 'Associé',
         description: 'Rôle créé automatiquement à l\'onboarding. Peut tout faire dans le cabinet.',
         is_default: true,
-        permissions: { can_create_mission: true, can_assign_team: true, can_be_lead: true, can_designate_lead: true },
+        permissions: {
+          can_create_mission: true, can_assign_team: true, can_be_lead: true, can_designate_lead: true,
+          can_delete_mission: true, can_manage_members: true, can_manage_clients: true,
+          can_edit_organization: true, can_manage_roles: true,
+        },
       })
       .select('id')
       .single()
