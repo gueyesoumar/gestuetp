@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 interface AssignRolePayload {
   user_id: string
@@ -47,6 +48,14 @@ Deno.serve(async (req) => {
     if (profileError || !callerProfile) {
       return new Response(
         JSON.stringify({ error: 'Profil introuvable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 3.bis Permission cabinet — can_manage_roles obligatoire
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_manage_roles'))) {
+      return new Response(
+        JSON.stringify({ error: 'Permission can_manage_roles requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -99,7 +108,57 @@ Deno.serve(async (req) => {
     }
 
     // 7. Supprimer l'ancien role si demande
+    // Protection anti-bricking : si le retrait fait perdre can_manage_roles à
+    // l'utilisateur ET qu'il était le dernier admin actif, on refuse.
     if (remove_role_id) {
+      // 7.a Le rôle retiré accordait-il can_manage_roles ?
+      // deno-lint-ignore no-explicit-any
+      const { data: removedRole } = await supabaseAdmin
+        .from('platform_roles')
+        .select('permissions')
+        .eq('id', remove_role_id)
+        .single() as { data: { permissions: Record<string, boolean> } | null }
+
+      const wasAdmin = removedRole?.permissions?.can_manage_roles === true
+
+      if (wasAdmin) {
+        // 7.b Vérifier qu'il restera au moins un autre admin actif après le retrait
+        // (autre user_platform_role qui accorde can_manage_roles à un user actif du cabinet)
+        const { data: otherAdmins } = await supabaseAdmin
+          .from('user_platform_roles')
+          .select('user_id, platform_roles!inner(organization_id, permissions), users!inner(is_active)')
+          .eq('platform_roles.organization_id', callerProfile.organization_id)
+          .neq('user_id', user_id)
+          .eq('users.is_active', true)
+          .limit(50)
+
+        const stillAdmins = (otherAdmins ?? []).some((row: unknown) => {
+          const r = row as { platform_roles: { permissions: Record<string, boolean> } }
+          return r.platform_roles?.permissions?.can_manage_roles === true
+        })
+
+        // Cas additionnel : le user lui-même conserve un autre rôle admin
+        const { data: userOtherRoles } = await supabaseAdmin
+          .from('user_platform_roles')
+          .select('platform_roles!inner(permissions)')
+          .eq('user_id', user_id)
+          .neq('platform_role_id', remove_role_id)
+
+        const userKeepsAdmin = (userOtherRoles ?? []).some((row: unknown) => {
+          const r = row as { platform_roles: { permissions: Record<string, boolean> } }
+          return r.platform_roles?.permissions?.can_manage_roles === true
+        })
+
+        if (!stillAdmins && !userKeepsAdmin) {
+          return new Response(
+            JSON.stringify({
+              error: 'Impossible: cet utilisateur est le dernier détenteur actif de can_manage_roles. Promouvez un autre membre d\'abord.',
+            }),
+            { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+      }
+
       const { error: deleteError } = await supabaseAdmin
         .from('user_platform_roles')
         .delete()

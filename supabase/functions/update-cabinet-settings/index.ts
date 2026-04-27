@@ -1,18 +1,19 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 /**
  * Edge Function : update-cabinet-settings
  *
- * Permet à un Associé du cabinet (ou un super-admin Gëstu) de mettre à jour
- * les paramètres organisationnels personnalisables :
+ * Permet à un membre disposant de can_edit_organization (cf. platform_roles)
+ * de mettre à jour les paramètres organisationnels personnalisables :
  *   - review_lead_label : libellé du 1er niveau de revue
  *   - review_associate_label : libellé du 2e niveau de revue
  *
  * Sécurité :
- *   - L'appelant doit appartenir au cabinet ciblé (organization_id match)
- *   - ET avoir au moins une mission_members.role = 'associate' dans le cabinet
- *     OU être platform_owner Gëstu (back-door)
+ *   - L'appelant doit appartenir au cabinet ciblé
+ *   - ET avoir la permission can_edit_organization (OR-aggregée sur ses
+ *     platform_roles) — platform_owner = override
  *   - Validation longueur 1-40 chars sur les labels
  *   - Trim systématique
  *   - Audit log avec motif optionnel
@@ -62,19 +63,9 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Compte désactivé' }, 403)
     }
 
-    // Permission : Associé d'au moins une mission du cabinet OU platform_owner
-    let allowed = profile.is_platform_owner
-    if (!allowed) {
-      const { count } = await admin
-        .from('mission_members')
-        .select('mission_id, missions!inner(cabinet_id)', { count: 'exact', head: true })
-        .eq('user_id', profile.id)
-        .eq('role', 'associate')
-        .eq('missions.cabinet_id', profile.organization_id)
-      allowed = (count ?? 0) > 0
-    }
-    if (!allowed) {
-      return jsonResponse({ error: 'Seul un Associé du cabinet peut modifier ces paramètres' }, 403)
+    // Permission can_edit_organization (platform_owner override géré en interne)
+    if (!(await hasCabinetPerm(admin, profile.id, 'can_edit_organization'))) {
+      return jsonResponse({ error: 'Permission can_edit_organization requise' }, 403)
     }
 
     const body = await req.json() as UpdatePayload

@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -31,6 +32,12 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
+    // Permission cabinet — can_assign_team requise pour add ET remove
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_assign_team'))) {
+      return new Response(JSON.stringify({ error: 'Permission can_assign_team requise' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
     const body = await req.json()
     const { action, mission_id, user_id, role, member_id } = body
 
@@ -51,6 +58,20 @@ Deno.serve(async (req) => {
       if (!user_id || !role) {
         return new Response(JSON.stringify({ error: 'user_id et role requis' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Si on ajoute quelqu'un comme lead_auditor : caller doit avoir
+      // can_designate_lead (sauf si c'est lui-même) et le user doit avoir can_be_lead
+      if (role === 'lead_auditor') {
+        if (user_id !== callerProfile.id
+            && !(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_designate_lead'))) {
+          return new Response(JSON.stringify({ error: 'Permission can_designate_lead requise' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+        if (!(await hasCabinetPerm(supabaseAdmin, user_id, 'can_be_lead'))) {
+          return new Response(JSON.stringify({ error: 'Cet utilisateur n\'a pas la permission can_be_lead' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
       }
 
       const { error: insertError } = await supabaseAdmin

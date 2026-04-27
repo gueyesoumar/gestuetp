@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 interface InvitePayload {
   email: string
@@ -70,6 +71,14 @@ Deno.serve(async (req) => {
     if (callerProfile.organization_id !== organization_id) {
       return new Response(
         JSON.stringify({ error: 'Accès interdit à cette organisation' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 5.bis Permission cabinet — can_manage_members obligatoire
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_manage_members'))) {
+      return new Response(
+        JSON.stringify({ error: 'Permission can_manage_members requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

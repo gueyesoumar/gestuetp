@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 interface CreateMissionPayload {
   name: string
@@ -81,6 +82,14 @@ Deno.serve(async (req) => {
       )
     }
 
+    // 2.bis Permissions cabinet — can_create_mission obligatoire
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_create_mission'))) {
+      return new Response(
+        JSON.stringify({ error: 'Permission can_create_mission requise' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // 3. Parser le payload
     const body: CreateMissionPayload = await req.json()
     const {
@@ -92,6 +101,24 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Champs requis manquants' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 3.bis Permissions sur la désignation du chef de mission
+    // - Si on désigne quelqu'un d'autre que soi-même → can_designate_lead requis
+    // - Le désigné doit avoir can_be_lead
+    if (lead_auditor_id !== callerProfile.id) {
+      if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_designate_lead'))) {
+        return new Response(
+          JSON.stringify({ error: 'Permission can_designate_lead requise pour désigner un autre chef de mission' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+    if (!(await hasCabinetPerm(supabaseAdmin, lead_auditor_id, 'can_be_lead'))) {
+      return new Response(
+        JSON.stringify({ error: 'Le chef de mission désigné n\'a pas la permission can_be_lead' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
