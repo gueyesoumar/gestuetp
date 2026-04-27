@@ -3,7 +3,7 @@ import { Lock, Sparkles } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useAuth } from '../../hooks/useAuth'
-import { useIsOrgAssociate } from './useIsOrgAssociate'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 
 /**
@@ -18,7 +18,7 @@ const MAX_LEN = 40
 
 export function WorkflowSettingsTab(): JSX.Element {
   const { profile } = useAuth()
-  const { isAssociate, loading: permLoading } = useIsOrgAssociate()
+  const { canEditOrganization, loading: permLoading } = useCabinetPermissions()
   const toast = useToast()
 
   const [leadLabel, setLeadLabel] = useState('')
@@ -58,7 +58,7 @@ export function WorkflowSettingsTab(): JSX.Element {
   const validAssociate = associateLabel.trim().length === 0 || associateLabel.trim().length <= MAX_LEN
 
   const submit = async () => {
-    if (!isAssociate || !dirty || !validLead || !validAssociate) return
+    if (!canEditOrganization || !dirty || !validLead || !validAssociate) return
     setSubmitting(true)
     const { data, error } = await supabase.functions.invoke('update-cabinet-settings', {
       body: {
@@ -88,11 +88,11 @@ export function WorkflowSettingsTab(): JSX.Element {
         Les libell&eacute;s s&apos;appliquent partout dans l&apos;app et dans les emails de notification.
       </p>
 
-      {!isAssociate && (
+      {!canEditOrganization && (
         <div className="mb-5 flex items-start gap-2.5 rounded-lg bg-amber-50 border border-amber-200 px-3.5 py-2.5">
           <Lock size={14} className="mt-0.5 flex-shrink-0 text-amber-700" />
           <span className="text-[12.5px] text-amber-900">
-            Seul un <b>Associ&eacute;</b> du cabinet peut modifier ces libell&eacute;s. Vous voyez la configuration en lecture seule.
+            La permission <b>can_edit_organization</b> est requise pour modifier ces libell&eacute;s. Vous voyez la configuration en lecture seule.
           </span>
         </div>
       )}
@@ -108,7 +108,7 @@ export function WorkflowSettingsTab(): JSX.Element {
             value={leadLabel}
             onChange={setLeadLabel}
             placeholder={DEFAULT_LEAD}
-            disabled={!isAssociate || submitting}
+            disabled={!canEditOrganization || submitting}
             invalid={!validLead}
           />
           <LabelField
@@ -116,12 +116,12 @@ export function WorkflowSettingsTab(): JSX.Element {
             value={associateLabel}
             onChange={setAssociateLabel}
             placeholder={DEFAULT_ASSOCIATE}
-            disabled={!isAssociate || submitting}
+            disabled={!canEditOrganization || submitting}
             invalid={!validAssociate}
           />
         </div>
 
-        {isAssociate && (
+        {canEditOrganization && (
           <div className="px-5 pb-5">
             <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Motif <span className="text-gray-400 font-normal">(optionnel)</span></label>
             <textarea
@@ -135,7 +135,7 @@ export function WorkflowSettingsTab(): JSX.Element {
           </div>
         )}
 
-        {isAssociate && (
+        {canEditOrganization && (
           <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
             <button
               type="button"
