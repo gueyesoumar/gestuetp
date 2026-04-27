@@ -46,10 +46,11 @@ body {
 }
 
 /* Harmoniser tous les champs de formulaire.
- * On utilise :where(...) pour ramener la spécificité à 0, sinon les utilitaires
- * Tailwind comme `pl-9` (typique des inputs avec icône de recherche) ne peuvent
- * pas surcharger le padding par défaut imposé ici. */
-:where(
+ * On enveloppe dans @layer base pour participer à la même cascade que le
+ * preflight Tailwind v4. Conséquence : nos rules battent le preflight (même
+ * layer, spécificité supérieure), et Tailwind utilities (`pl-9`, etc.)
+ * battent les nôtres puisque @layer utilities vient APRÈS @layer base. */
+@layer base {
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -58,59 +59,59 @@ body {
   input[type="number"],
   input[type="date"],
   textarea,
-  select
-) {
-  font-family: var(--font-sans);
-  font-size: 13px;
-  border-radius: 10px;
-  border: 1px solid #E5E7EB;
-  padding: 9px 12px;
-  outline: none;
-  background-color: white;
-  color: #1A1A1A;
-  width: 100%;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
+  select {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    border-radius: 10px;
+    border: 1px solid #E5E7EB;
+    padding: 9px 12px;
+    outline: none;
+    background-color: white;
+    color: #1A1A1A;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
 
-:where(
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="url"],
-  input[type="tel"],
-  input[type="number"],
-  input[type="date"],
-  textarea,
-  select
-):focus {
-  border-color: var(--color-forest-500);
-  box-shadow: 0 0 0 3px var(--color-forest-100);
-}
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="url"]:focus,
+  input[type="tel"]:focus,
+  input[type="number"]:focus,
+  input[type="date"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--color-forest-500);
+    box-shadow: 0 0 0 3px var(--color-forest-100);
+  }
 
-:where(input, textarea, select):disabled {
-  background-color: #F9FAFB;
-  color: #9CA3AF;
-  cursor: not-allowed;
-}
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    background-color: #F9FAFB;
+    color: #9CA3AF;
+    cursor: not-allowed;
+  }
 
-/* Select avec chevron custom */
-:where(select) {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5L6 8L9 5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
-}
+  /* Select avec chevron custom */
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5L6 8L9 5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
 
-/* Checkbox et radio — gardés en spécificité élevée pour éviter qu'une utilitaire générique ne les casse */
-input[type="checkbox"],
-input[type="radio"] {
-  width: auto;
-  padding: 0;
-  border-radius: 4px;
-  accent-color: var(--color-forest-700);
+  /* Checkbox et radio */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: auto;
+    padding: 0;
+    border-radius: 4px;
+    accent-color: var(--color-forest-700);
+  }
 }
 
 /* Placeholder */
