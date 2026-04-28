@@ -83,7 +83,8 @@ const MAX_TOKENS = 4000
 const CLAUDE_TIMEOUT_MS = 120_000
 const CACHE_TTL_HOURS = 24
 const FALLBACK_DOC_LIMIT = 8 // si aucun ai_metadata dispo, on attache jusqu'à 8 docs bruts
-const BACKFILL_CONCURRENCY = 3 // appels parallèles à extract-document-metadata
+const BACKFILL_CONCURRENCY = 1 // sequential — extract-document-metadata fait déjà du retry sur 429,
+                               // le séquentiel évite d'aggraver le rate limit Anthropic
 const BACKFILL_LIMIT = 20 // au-delà on n'attend pas — l'utilisateur verra le résultat à la prochaine analyse
 
 const SYNTHESIZE_TOOL = {
@@ -199,8 +200,25 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Inclut aussi les docs marqués en erreur transient (429/503/timeout) pour
+    // qu'ils soient retentés. Les erreurs permanentes (no_file_id, no_tool_use,
+    // unsupported, convert_error, file_not_found, anthropic_4xx hors 429) restent
+    // filtrées pour ne pas boucler.
+    const isTransientError = (code: string | null): boolean => {
+      if (!code) return false
+      return (
+        code === 'anthropic_429'
+        || code === 'anthropic_500'
+        || code === 'anthropic_502'
+        || code === 'anthropic_503'
+        || code === 'anthropic_504'
+        || code === 'anthropic_529'
+        || code === 'timeout'
+        || code.startsWith('fetch_')
+      )
+    }
     const pendingDocs = allDocs.filter(
-      (d) => d.anthropic_file_id && !d.ai_extracted_at && !d.ai_extract_error,
+      (d) => d.anthropic_file_id && !d.ai_extracted_at && (!d.ai_extract_error || isTransientError(d.ai_extract_error)),
     )
 
     // 3. Auto-backfill Passe 1 (impératif AVANT le cache : un cache produit
@@ -518,6 +536,14 @@ Appelle UNIQUEMENT l'outil propose_answers.`
 
 // ── CLAUDE CALL ─────────────────────────────────────────────────────────────
 
+// Backoff sur erreurs transient Anthropic. Attend 5s puis 15s puis 45s.
+const RETRY_DELAYS_MS = [5_000, 15_000, 45_000]
+const TRANSIENT_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504, 529])
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 async function callClaudeWithTool(
   anthropicKey: string,
   // deno-lint-ignore no-explicit-any
@@ -525,44 +551,64 @@ async function callClaudeWithTool(
   logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
   admin: SupabaseAdmin,
 ): Promise<{ success: true; answers: AIAnswer[] } | { success: false; error: string }> {
-  const ctrl = new AbortController()
-  const timeout = setTimeout(() => ctrl.abort(), CLAUDE_TIMEOUT_MS)
   const startedAt = Date.now()
+  const reqBody = JSON.stringify({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    tools: [SYNTHESIZE_TOOL],
+    tool_choice: { type: 'tool', name: 'propose_answers' },
+    messages: [{ role: 'user', content }],
+  })
 
-  let res: Response
-  try {
-    res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'files-api-2025-04-14,context-1m-2025-08-07',
-      },
-      signal: ctrl.signal,
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        tools: [SYNTHESIZE_TOOL],
-        tool_choice: { type: 'tool', name: 'propose_answers' },
-        messages: [{ role: 'user', content }],
-      }),
-    })
-  } catch (err) {
-    clearTimeout(timeout)
-    const isAbort = err instanceof Error && err.name === 'AbortError'
-    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: isAbort ? 'timeout' : 'fetch_error', duration_ms: Date.now() - startedAt, ...logCtx })
-    return { success: false, error: isAbort ? 'timeout IA' : 'erreur réseau IA' }
-  }
-  clearTimeout(timeout)
-
-  if (!res.ok) {
-    const errText = await res.text()
-    console.error(`[smart-questionnaire] Claude ${res.status}:`, errText.slice(0, 400))
-    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${res.status}: ${errText.slice(0, 200)}`, duration_ms: Date.now() - startedAt, ...logCtx })
-    let reason = `IA ${res.status}`
+  let res: Response | null = null
+  let lastErrText = ''
+  let lastStatus = 0
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    const ctrl = new AbortController()
+    const timeout = setTimeout(() => ctrl.abort(), CLAUDE_TIMEOUT_MS)
     try {
-      const j = JSON.parse(errText)
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'files-api-2025-04-14,context-1m-2025-08-07',
+        },
+        signal: ctrl.signal,
+        body: reqBody,
+      })
+      if (res.ok) break
+      lastStatus = res.status
+      lastErrText = await res.text().catch(() => '')
+      if (!TRANSIENT_STATUSES.has(res.status) || attempt === RETRY_DELAYS_MS.length) break
+      const retryAfterSec = Number(res.headers.get('retry-after'))
+      const waitMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0
+        ? Math.min(retryAfterSec * 1000, 90_000)
+        : RETRY_DELAYS_MS[attempt]
+      console.warn(`[smart-questionnaire] Claude ${res.status}, retry in ${(waitMs / 1000).toFixed(0)}s (attempt ${attempt + 1}/${RETRY_DELAYS_MS.length})`)
+      await sleep(waitMs)
+    } catch (err) {
+      const isAbort = err instanceof Error && err.name === 'AbortError'
+      lastErrText = isAbort ? 'timeout' : (err instanceof Error ? err.message : 'fetch_error')
+      lastStatus = 0
+      if (attempt === RETRY_DELAYS_MS.length) {
+        void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: lastErrText, duration_ms: Date.now() - startedAt, ...logCtx })
+        return { success: false, error: isAbort ? 'timeout IA' : 'erreur réseau IA' }
+      }
+      console.warn(`[smart-questionnaire] fetch error, retry: ${lastErrText}`)
+      await sleep(RETRY_DELAYS_MS[attempt])
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
+  if (!res || !res.ok) {
+    console.error(`[smart-questionnaire] Claude ${lastStatus} (after retries):`, lastErrText.slice(0, 400))
+    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${lastStatus}: ${lastErrText.slice(0, 200)}`, duration_ms: Date.now() - startedAt, ...logCtx })
+    let reason = `IA ${lastStatus}`
+    try {
+      const j = JSON.parse(lastErrText)
       if (j?.error?.message) reason = j.error.message.slice(0, 100)
     } catch { /* keep default */ }
     return { success: false, error: reason }

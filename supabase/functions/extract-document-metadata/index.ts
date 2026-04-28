@@ -206,37 +206,21 @@ Deno.serve(async (req) => {
       { type: 'text', text: EXTRACT_PROMPT },
     ]
 
-    // 4. Call Claude with forced tool_use
+    // 4. Call Claude with retry on 429/503/529 (transient rate limit / overload).
+    //    Sans retry, un 429 transient marquerait le doc comme failed définitif.
     const startedAt = Date.now()
-    const ctrl = new AbortController()
-    const timeout = setTimeout(() => ctrl.abort(), 120_000)
-
-    let claudeRes: Response
-    try {
-      claudeRes = await fetch(`${ANTHROPIC_API}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': anthropicKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-beta': ANTHROPIC_BETA,
-        },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: MAX_TOKENS,
-          tools: [EXTRACT_TOOL],
-          tool_choice: { type: 'tool', name: 'save_metadata' },
-          messages: [{ role: 'user', content }],
-        }),
-      })
-    } finally {
-      clearTimeout(timeout)
-    }
+    const claudeBody = JSON.stringify({
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      tools: [EXTRACT_TOOL],
+      tool_choice: { type: 'tool', name: 'save_metadata' },
+      messages: [{ role: 'user', content }],
+    })
+    const claudeRes = await callAnthropicWithRetry(anthropicKey, claudeBody)
 
     if (!claudeRes.ok) {
-      const errText = await claudeRes.text()
-      console.error(`[extract-document-metadata] Claude ${claudeRes.status}:`, errText.slice(0, 300))
+      const errText = await claudeRes.errorText ?? ''
+      console.error(`[extract-document-metadata] Claude ${claudeRes.status} (after retries):`, errText.slice(0, 300))
       const errCode = claudeRes.status === 404 ? 'file_not_found' : `anthropic_${claudeRes.status}`
       await persistError(admin, doc.id, errCode)
       void logAiCall({
@@ -249,7 +233,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Extraction impossible' }, 502)
     }
 
-    const data = await claudeRes.json()
+    const data = claudeRes.data!
     const usage = data.usage ?? {}
 
     // 5. Find tool_use block
@@ -314,6 +298,71 @@ async function persistError(
     .update({ ai_extract_error: code })
     .eq('id', documentId)
   if (error) console.warn('[extract-document-metadata] persistError failed:', error.message)
+}
+
+// Backoff sur erreurs transient Anthropic. Attend 5s puis 15s puis 45s.
+// Utilise le header `retry-after` quand disponible. Coupe à 120s par tentative.
+const RETRY_DELAYS_MS = [5_000, 15_000, 45_000]
+const TRANSIENT_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504, 529])
+
+interface AnthropicResult {
+  ok: boolean
+  status: number
+  // deno-lint-ignore no-explicit-any
+  data: any
+  errorText?: string
+}
+
+async function callAnthropicWithRetry(apiKey: string, body: string): Promise<AnthropicResult> {
+  let lastStatus = 0
+  let lastErrorText = ''
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    const ctrl = new AbortController()
+    const timeout = setTimeout(() => ctrl.abort(), 120_000)
+    try {
+      const res = await fetch(`${ANTHROPIC_API}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': ANTHROPIC_BETA,
+        },
+        signal: ctrl.signal,
+        body,
+      })
+      if (res.ok) {
+        const data = await res.json()
+        return { ok: true, status: res.status, data }
+      }
+      lastStatus = res.status
+      lastErrorText = await res.text().catch(() => '')
+      if (!TRANSIENT_STATUSES.has(res.status) || attempt === RETRY_DELAYS_MS.length) {
+        return { ok: false, status: res.status, data: null, errorText: lastErrorText }
+      }
+      const retryAfterSec = Number(res.headers.get('retry-after'))
+      const waitMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0
+        ? Math.min(retryAfterSec * 1000, 90_000)
+        : RETRY_DELAYS_MS[attempt]
+      console.warn(`[extract-document-metadata] Anthropic ${res.status}, retry in ${(waitMs / 1000).toFixed(0)}s (attempt ${attempt + 1}/${RETRY_DELAYS_MS.length})`)
+      await sleep(waitMs)
+    } catch (err) {
+      lastErrorText = err instanceof Error ? err.message : 'fetch_error'
+      lastStatus = 0
+      if (attempt === RETRY_DELAYS_MS.length) {
+        return { ok: false, status: 0, data: null, errorText: lastErrorText }
+      }
+      console.warn(`[extract-document-metadata] fetch error, retry in ${(RETRY_DELAYS_MS[attempt] / 1000).toFixed(0)}s: ${lastErrorText}`)
+      await sleep(RETRY_DELAYS_MS[attempt])
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+  return { ok: false, status: lastStatus, data: null, errorText: lastErrorText }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 function jsonResponse(data: Record<string, unknown>, status = 200): Response {
