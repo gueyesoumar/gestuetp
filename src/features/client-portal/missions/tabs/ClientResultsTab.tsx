@@ -14,13 +14,14 @@ import type { ControlWithAssessment } from '../useMissionControls'
 
 interface Props {
   mission: ClientMissionDetail
-  isContributor: boolean
+  canContribute: boolean
+  canApprove: boolean
   onRefetch: () => void
 }
 
 type ViewMode = 'synthese' | 'liste'
 
-export function ClientResultsTab({ mission, isContributor }: Props): JSX.Element {
+export function ClientResultsTab({ mission, canContribute, canApprove }: Props): JSX.Element {
   const [view, setView] = useState<ViewMode>('synthese')
   const [selectedControl, setSelectedControl] = useState<ControlWithAssessment | null>(null)
 
@@ -103,7 +104,7 @@ export function ClientResultsTab({ mission, isContributor }: Props): JSX.Element
       {/* CAR Section */}
       <section>
         <h3 className="text-sm font-bold mb-3">Demandes d{'’'}actions correctives (CAR)</h3>
-        <ClientCARSection missionId={mission.id} isContributor={isContributor} />
+        <ClientCARSection missionId={mission.id} canContribute={canContribute} />
       </section>
 
       {/* Action items */}
@@ -128,7 +129,7 @@ export function ClientResultsTab({ mission, isContributor }: Props): JSX.Element
               return (
                 <div key={item.id} className={`border border-gray-200 rounded-lg bg-white border-l-[3px] ${borderColor} ${item.status === 'done' ? 'opacity-60' : ''}`}>
                   <div className="flex items-center gap-2.5 px-3 py-2.5">
-                    {isContributor && item.status !== 'done' ? (
+                    {canContribute && item.status !== 'done' ? (
                       <button onClick={() => updateStatus(item.id, item.status === 'open' ? 'in_progress' : 'done' as ActionStatus)} disabled={updating}
                         className="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center shrink-0 hover:border-green-500 transition-colors cursor-pointer">
                         {item.status === 'in_progress' && <span className="text-[10px] text-blue-500">{'●'}</span>}
@@ -163,7 +164,8 @@ export function ClientResultsTab({ mission, isContributor }: Props): JSX.Element
       {selectedControl && (
         <ControlDetailDrawer
           control={selectedControl}
-          isContributor={isContributor}
+          canContribute={canContribute}
+          canApprove={canApprove}
           onClose={() => setSelectedControl(null)}
           onPrev={handlePrev}
           onNext={handleNext}

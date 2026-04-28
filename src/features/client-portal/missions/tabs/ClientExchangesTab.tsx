@@ -14,11 +14,11 @@ import type { ClientMissionDetail } from '../useClientMissionDetail'
 
 interface Props {
   mission: ClientMissionDetail
-  isContributor: boolean
+  canContribute: boolean
   onRefetch: () => void
 }
 
-export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Element {
+export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Element {
   const { profile } = useAuth()
   const toast = useToast()
   const filesApiFlag = useFeatureFlag('documents_anthropic_files')
@@ -227,7 +227,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
         </div>
 
         {/* Upload zone */}
-        {isContributor && (
+        {canContribute && (
           <div
             className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors mb-3 ${uploading ? 'border-gray-300 bg-gray-50' : 'border-forest-300 bg-forest-50 hover:border-forest-500'}`}
             onClick={() => triggerFileInput(null)}
@@ -288,7 +288,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
                         <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                           <Check size={13} className="text-white" />
                         </div>
-                      ) : isContributor ? (
+                      ) : canContribute ? (
                         <>
                           <button
                             onClick={() => triggerFileInput(doc.name, doc.controlIds)}
@@ -372,7 +372,7 @@ export function ClientExchangesTab({ mission, isContributor }: Props): JSX.Eleme
           {qLoading ? (
             <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Chargement...</p></div>
           ) : instance && questions.length > 0 ? (
-            <SmartInterviewContainer missionId={mission.id} missionName={mission.name} questions={questions} instanceId={instance.id} userId={profile?.id ?? null} initialResponses={initialResponses} readOnly={!isContributor} documentsCount={documents.length} />
+            <SmartInterviewContainer missionId={mission.id} missionName={mission.name} questions={questions} instanceId={instance.id} userId={profile?.id ?? null} initialResponses={initialResponses} readOnly={!canContribute} documentsCount={documents.length} />
           ) : (
             <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Aucun questionnaire pour cette mission.</p></div>
           )}

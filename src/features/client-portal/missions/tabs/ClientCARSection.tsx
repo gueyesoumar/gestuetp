@@ -17,10 +17,10 @@ const CLASSIFICATION_CONFIG: Record<string, { label: string; color: string }> = 
 
 interface Props {
   missionId: string
-  isContributor: boolean
+  canContribute: boolean
 }
 
-export function ClientCARSection({ missionId, isContributor }: Props): JSX.Element {
+export function ClientCARSection({ missionId, canContribute }: Props): JSX.Element {
   const { cars, loading, submitResponse, submitting } = useClientCARs(missionId)
 
   if (loading) return <p className="text-xs text-gray-400 text-center py-4">Chargement...</p>
@@ -35,15 +35,15 @@ export function ClientCARSection({ missionId, isContributor }: Props): JSX.Eleme
   return (
     <div className="space-y-2.5">
       {cars.map((car) => (
-        <CARCard key={car.id} car={car} isContributor={isContributor} onSubmit={submitResponse} submitting={submitting} />
+        <CARCard key={car.id} car={car} canContribute={canContribute} onSubmit={submitResponse} submitting={submitting} />
       ))}
     </div>
   )
 }
 
-function CARCard({ car, isContributor, onSubmit, submitting }: {
+function CARCard({ car, canContribute, onSubmit, submitting }: {
   car: ReturnType<typeof useClientCARs>['cars'][0]
-  isContributor: boolean
+  canContribute: boolean
   onSubmit: (id: string, rootCause: string, action: string, targetDate: string) => Promise<boolean>
   submitting: boolean
 }): JSX.Element {
@@ -78,7 +78,7 @@ function CARCard({ car, isContributor, onSubmit, submitting }: {
             <p className="text-xs text-gray-700 leading-relaxed">{car.description}</p>
           </div>
 
-          {car.status === 'open' && isContributor ? (
+          {car.status === 'open' && canContribute ? (
             <div className="space-y-2 bg-gray-50 rounded-lg p-3">
               <div>
                 <label className="block text-[11px] font-semibold text-gray-600 mb-1">Cause racine</label>

@@ -20,7 +20,9 @@ export function ClientMissionDetailPage(): JSX.Element {
   if (error) return <ErrorAlert message={error} />
   if (!mission) return <ErrorAlert message="Mission introuvable." />
 
-  const isContributor = permission === 'contributor'
+  // approver hérite de tous les droits contributor → canContribute capture les deux
+  const canContribute = permission === 'contributor' || permission === 'approver'
+  const canApprove = permission === 'approver'
 
   return (
     <div>
@@ -66,10 +68,10 @@ export function ClientMissionDetailPage(): JSX.Element {
         <ClientMissionDashboardTab mission={mission} onTabChange={(t) => setActiveTab(t as ClientTabKey)} />
       )}
       {activeTab === 'exchanges' && (
-        <ClientExchangesTab mission={mission} isContributor={isContributor} onRefetch={refetch} />
+        <ClientExchangesTab mission={mission} canContribute={canContribute} onRefetch={refetch} />
       )}
       {activeTab === 'results' && (
-        <ClientResultsTab mission={mission} isContributor={isContributor} onRefetch={refetch} />
+        <ClientResultsTab mission={mission} canContribute={canContribute} canApprove={canApprove} onRefetch={refetch} />
       )}
       {activeTab === 'reports' && (
         <ClientReportsTab mission={mission} />

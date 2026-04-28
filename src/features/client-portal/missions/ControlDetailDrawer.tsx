@@ -6,7 +6,8 @@ import type { ControlWithAssessment } from './useMissionControls'
 
 interface ControlDetailDrawerProps {
   control: ControlWithAssessment
-  isContributor: boolean
+  canContribute: boolean
+  canApprove: boolean
   onClose: () => void
   onPrev: () => void
   onNext: () => void
@@ -29,7 +30,7 @@ const CLASSIF_META: Record<FindingClassification | 'conforme', { label: string; 
 }
 
 export function ControlDetailDrawer({
-  control, isContributor, onClose, onPrev, onNext, onObservationSubmitted, hasPrev, hasNext,
+  control, canContribute, canApprove, onClose, onPrev, onNext, onObservationSubmitted, hasPrev, hasNext,
 }: ControlDetailDrawerProps): JSX.Element {
   const [observations, setObservations] = useState<ObservationWithAuthor[]>([])
   const [newObsText, setNewObsText] = useState('')
@@ -330,7 +331,7 @@ export function ControlDetailDrawer({
               )}
 
               {/* New observation form (contributor only, and only if no pending observation from them) */}
-              {isContributor && !control.myObservationId && (
+              {canContribute && !control.myObservationId && (
                 <div>
                   <textarea
                     value={newObsText}
@@ -345,7 +346,7 @@ export function ControlDetailDrawer({
                 </div>
               )}
 
-              {!isContributor && (
+              {!canContribute && (
                 <p className="text-[11px] text-gray-400 italic">
                   Seuls les contributeurs peuvent ajouter des observations.
                 </p>
@@ -368,7 +369,7 @@ export function ControlDetailDrawer({
         </div>
 
         {/* Footer */}
-        {isContributor && control.assessmentId && !control.myObservationId && (
+        {canContribute && control.assessmentId && !control.myObservationId && (
           <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-2">
             <button
               onClick={onClose}
