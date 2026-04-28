@@ -351,25 +351,26 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
                         </p>
                       )}
                     </div>
-                    <div className="shrink-0 mt-0.5 flex flex-col gap-1">
+                    <div className="shrink-0 mt-0.5 flex flex-col gap-1 w-[120px]">
                       {doc.status === 'uploaded' ? (
-                        <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                        <div className="self-end w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                           <Check size={13} className="text-white" />
                         </div>
                       ) : doc.status === 'declined_by_client' && canContribute ? (
                         <button
                           onClick={() => handleCancelDecline(doc)}
                           disabled={declineSubmitting}
-                          className="px-3 py-1 border border-amber-300 rounded-lg text-[9px] text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                          className="w-full px-2.5 py-1.5 border border-amber-300 rounded-md text-[10.5px] font-medium text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5 leading-none"
+                          title="Annuler la déclaration et revenir à 'en attente'"
                         >
-                          <RotateCw size={10} /> Annuler la d&eacute;claration
+                          <RotateCw size={11} /> Annuler
                         </button>
                       ) : doc.status === 'accepted' ? (
-                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center" title="Accept&eacute;e">
+                        <div className="self-end w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center" title="Acceptée par l'auditeur">
                           <Check size={13} className="text-white" />
                         </div>
                       ) : doc.status === 'escalated_to_finding' ? (
-                        <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center" title="Transform&eacute; en constat">
+                        <div className="self-end w-6 h-6 rounded-full bg-red-500 flex items-center justify-center" title="Transformé en constat">
                           <AlertCircle size={13} className="text-white" />
                         </div>
                       ) : canContribute ? (
@@ -377,34 +378,35 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
                           <button
                             onClick={() => triggerFileInput(doc.name, doc.controlIds)}
                             disabled={uploading}
-                            className="px-3 py-1.5 border border-forest-300 rounded-lg text-[10px] font-semibold text-forest-700 bg-forest-50 hover:bg-forest-100 transition-colors disabled:opacity-50"
+                            className="w-full px-2.5 py-1.5 border border-forest-300 rounded-md text-[10.5px] font-semibold text-forest-700 bg-forest-50 hover:bg-forest-100 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5 leading-none"
                           >
                             {uploading && pendingDocName === doc.name ? (
                               <span className="w-3 h-3 border-2 border-forest-300 border-t-forest-700 rounded-full animate-spin inline-block" />
                             ) : (
-                              <><Paperclip size={11} /> D&eacute;poser</>
+                              <><Paperclip size={11} /> Déposer</>
                             )}
                           </button>
                           {documents.length > 0 && (
                             <button
                               onClick={() => setLinkingDocName(linkingDocName === doc.name ? null : doc.name)}
-                              className="px-3 py-1 border border-gray-200 rounded-lg text-[9px] text-gray-400 hover:text-forest-700 hover:border-forest-300 transition-colors"
+                              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[10.5px] font-medium text-gray-600 hover:text-forest-700 hover:border-forest-300 hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-1.5 leading-none"
                             >
-                              <Link2 size={10} /> Lier existant
+                              <Link2 size={11} /> Lier
                             </button>
                           )}
                           {doc.evidenceRequestIds.length > 0 && (
                             <button
                               onClick={() => { setDeclineError(null); setDecliningDoc(doc) }}
                               disabled={declineSubmitting}
-                              className="px-3 py-1 border border-amber-200 rounded-lg text-[9px] text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                              className="w-full px-2.5 py-1.5 border border-amber-200 rounded-md text-[10.5px] font-medium text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5 leading-none"
+                              title="Je n'ai pas ce document"
                             >
-                              <XCircle size={10} /> Je n&rsquo;ai pas ce document
+                              <XCircle size={11} /> Indisponible
                             </button>
                           )}
                         </>
                       ) : (
-                        <div className="w-6 h-6 rounded-full border-2 border-gold-500" />
+                        <div className="self-end w-6 h-6 rounded-full border-2 border-gold-500" />
                       )}
                     </div>
                   </div>
