@@ -13,6 +13,8 @@ export interface ControlWithAssessment {
   domainName: string
   domainSortOrder: number
   assessmentId: string | null
+  /** Statut de l'assessment côté serveur : 'submitted' | 'in_review' | 'approved' (les autres ne sont pas chargés). */
+  assessmentStatus: string | null
   findings: string | null
   recommendations: string | null
   riskNotes: string | null
@@ -170,6 +172,7 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
           domainName: domain.name,
           domainSortOrder: domain.sort_order,
           assessmentId: assessment?.id ?? null,
+          assessmentStatus: assessment?.status ?? null,
           findings: assessment?.findings ?? null,
           recommendations: assessment?.recommendations ?? null,
           riskNotes: assessment?.risk_notes ?? null,

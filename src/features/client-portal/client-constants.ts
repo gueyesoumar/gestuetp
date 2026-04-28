@@ -8,6 +8,7 @@ export const CLIENT_TABS = [
 export type ClientTabKey = typeof CLIENT_TABS[number]['key']
 
 export const PERMISSION_LABELS: Record<string, string> = {
+  approver: 'Approbateur',
   contributor: 'Contributeur',
   viewer: 'Lecteur',
 }

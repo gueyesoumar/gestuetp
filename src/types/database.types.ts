@@ -201,7 +201,7 @@ export interface UserUpdate {
 // ============================================================
 
 export type PortalStatus = 'pending' | 'invited' | 'active'
-export type ClientPermission = 'contributor' | 'viewer'
+export type ClientPermission = 'contributor' | 'viewer' | 'approver'
 export type ActionPriority = 'critical' | 'high' | 'medium' | 'low'
 export type ActionStatus = 'open' | 'in_progress' | 'done'
 

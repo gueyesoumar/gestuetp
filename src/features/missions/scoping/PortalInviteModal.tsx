@@ -199,6 +199,7 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
                       className="px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-forest-500" />
                     <select value={permission} onChange={(e) => setPermission(e.target.value as ClientPermission)}
                       className="px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-forest-500 bg-white">
+                      <option value="approver">{PERMISSION_LABELS.approver}</option>
                       <option value="contributor">{PERMISSION_LABELS.contributor}</option>
                       <option value="viewer">{PERMISSION_LABELS.viewer}</option>
                     </select>
