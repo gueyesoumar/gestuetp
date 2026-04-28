@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { MoreVertical, Shield, UserX, UserCheck, Send, Eye, KeyRound } from 'lucide-react'
 import { Badge } from '../../components/ui/Badge'
 import { PermissionBadges } from './PermissionBadges'
@@ -26,19 +27,17 @@ export function MemberRow({
   onResetPassword,
 }: MemberRowProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
   const [showPerms, setShowPerms] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
-    if (!menuOpen) return
-    const handleClick = (e: MouseEvent): void => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
+  const toggleMenu = (): void => {
+    if (!menuOpen && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect()
+      setMenuPos({ top: r.bottom + 4, right: window.innerWidth - r.right })
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [menuOpen])
+    setMenuOpen((v) => !v)
+  }
 
   return (
     <tr className="border-b border-gray-100 hover:bg-gray-50/50">
@@ -90,17 +89,22 @@ export function MemberRow({
         />
       </td>
       <td className="px-4 py-3">
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100"
-            aria-label="Actions"
-          >
-            <MoreVertical size={16} />
-          </button>
+        <button
+          ref={btnRef}
+          onClick={toggleMenu}
+          className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+          aria-label="Actions"
+        >
+          <MoreVertical size={16} />
+        </button>
 
-          {menuOpen && (
-            <div className="absolute right-0 top-8 z-10 w-52 rounded-lg border border-gray-200 bg-white shadow-lg py-1">
+        {menuOpen && menuPos && createPortal(
+          <>
+            <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[60]" />
+            <div
+              style={{ position: 'fixed', top: menuPos.top, right: menuPos.right }}
+              className="w-52 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-[70]"
+            >
               <MenuButton
                 icon={<Eye size={14} />}
                 label="Voir le profil"
@@ -135,8 +139,9 @@ export function MemberRow({
                 </>
               )}
             </div>
-          )}
-        </div>
+          </>,
+          document.body,
+        )}
       </td>
     </tr>
   )
