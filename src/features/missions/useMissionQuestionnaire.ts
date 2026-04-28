@@ -13,12 +13,17 @@ export interface QuestionnaireInstanceData {
   created_at: string
 }
 
+export type EvidenceType = 'declared_only' | 'declared_with_doc' | 'declared_with_signed_doc'
+
 export interface QuestionnaireResponseData {
   id: string
   instance_id: string
   question_code: string
   response: Record<string, unknown> | null
   responded_by: string
+  evidence_type: EvidenceType | null
+  source_documents: string[] | null
+  ai_confidence: number | null
   created_at: string
   updated_at: string
 }

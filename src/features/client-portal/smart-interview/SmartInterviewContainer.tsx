@@ -6,12 +6,17 @@ import { SmartRadar } from './SmartRadar'
 import type { Question } from '../../../types/database.types'
 import type { ReactNode } from 'react'
 
+export type EvidenceType = 'declared_only' | 'declared_with_doc' | 'declared_with_signed_doc'
+
 export interface SmartAnswer {
   questionCode: string
   questionLabel: string
   answer: string
   confidence: number
-  sourceDoc: string | null
+  /** @deprecated Conservé pour rétro-compat ; préférer sourceDocs. */
+  sourceDoc?: string | null
+  sourceDocs?: string[]
+  evidenceType?: EvidenceType
   validated: boolean
 }
 

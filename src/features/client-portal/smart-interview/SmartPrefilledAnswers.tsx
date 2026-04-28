@@ -1,9 +1,25 @@
 import { useState, useCallback } from 'react'
-import { Sparkles, Check, Pencil, MessageCircle, Brain, Square } from 'lucide-react'
+import { Sparkles, Check, Pencil, MessageCircle, Brain, Square, ShieldCheck, FileText, MessageSquare } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import type { Question } from '../../../types/database.types'
-import type { SmartAnswer, AnalysisStatus } from './SmartInterviewContainer'
+import type { SmartAnswer, AnalysisStatus, EvidenceType } from './SmartInterviewContainer'
+
+const EVIDENCE_META: Record<EvidenceType, { label: string; icon: typeof ShieldCheck; classes: string }> = {
+  declared_with_signed_doc: { label: 'Doc signé', icon: ShieldCheck, classes: 'bg-forest-100 text-forest-700 border border-forest-200' },
+  declared_with_doc: { label: 'Doc fourni', icon: FileText, classes: 'bg-gold-50 text-gold-700 border border-gold-200' },
+  declared_only: { label: 'Déclaratif', icon: MessageSquare, classes: 'bg-gray-100 text-gray-600 border border-gray-200' },
+}
+
+function EvidenceBadge({ type }: { type: EvidenceType }): JSX.Element {
+  const meta = EVIDENCE_META[type]
+  const Icon = meta.icon
+  return (
+    <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 ${meta.classes}`}>
+      <Icon size={9} /> {meta.label}
+    </span>
+  )
+}
 
 function EditableAnswer({ answer, onSave, onCancel }: { answer: SmartAnswer; onSave: (text: string) => void; onCancel: () => void }): JSX.Element {
   const [text, setText] = useState(answer.answer)
@@ -104,7 +120,6 @@ export function SmartPrefilledAnswers({
     const answer = prefilledAnswers.find((a) => a.questionCode === questionCode)
     if (!answer || !instanceId || !userId) return
 
-    // Save to questionnaire_responses
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
     if (!token) return
@@ -122,6 +137,9 @@ export function SmartPrefilledAnswers({
         question_code: questionCode,
         response: { value: answer.answer },
         responded_by: userId,
+        evidence_type: answer.evidenceType ?? null,
+        source_documents: answer.sourceDocs && answer.sourceDocs.length > 0 ? answer.sourceDocs : null,
+        ai_confidence: answer.confidence,
       }),
     })
 
@@ -157,6 +175,9 @@ export function SmartPrefilledAnswers({
         question_code: questionCode,
         response: { value: newText },
         responded_by: userId,
+        evidence_type: answer.evidenceType ?? null,
+        source_documents: answer.sourceDocs && answer.sourceDocs.length > 0 ? answer.sourceDocs : null,
+        ai_confidence: answer.confidence,
       }),
     })
 
@@ -229,17 +250,23 @@ export function SmartPrefilledAnswers({
             if (!answer) return null
             return (
               <div key={q.code} className="border border-gray-200 rounded-lg mb-2 bg-white overflow-hidden">
-                <div className="flex items-center gap-2 px-3 py-2.5">
+                <div className="flex items-center gap-2 px-3 py-2.5 flex-wrap">
                   <span className="font-mono text-[10px] font-semibold text-forest-700">{q.code}</span>
-                  <span className="text-xs font-medium flex-1">{q.text}</span>
+                  <span className="text-xs font-medium flex-1 min-w-[120px]">{q.text}</span>
+                  {answer.evidenceType && <EvidenceBadge type={answer.evidenceType} />}
                   <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${
                     answer.confidence >= 80 ? 'bg-forest-100 text-forest-700' :
                     answer.confidence >= 60 ? 'bg-gold-50 text-gold-600' :
                     'bg-red-50 text-red-500'
                   }`}>{answer.confidence}%</span>
-                  {answer.sourceDoc && (
-                    <span className="text-[9px] text-gray-300">{answer.sourceDoc}</span>
-                  )}
+                  {(() => {
+                    const docs = answer.sourceDocs ?? (answer.sourceDoc ? [answer.sourceDoc] : [])
+                    if (docs.length === 0) return null
+                    const label = docs.length === 1 ? docs[0] : `${docs[0]} +${docs.length - 1}`
+                    return (
+                      <span className="text-[9px] text-gray-400 truncate max-w-[180px]" title={docs.join(', ')}>{label}</span>
+                    )
+                  })()}
                 </div>
                 {editingCode === q.code ? (
                   <EditableAnswer

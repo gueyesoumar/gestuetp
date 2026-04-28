@@ -1,11 +1,27 @@
 import { useState, useMemo } from 'react'
-import { User, Check, Mail, Sparkles, Send } from 'lucide-react'
+import { User, Check, Mail, Send, ShieldCheck, FileText, MessageSquare } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
-import { useMissionQuestionnaire } from '../useMissionQuestionnaire'
+import { useMissionQuestionnaire, type EvidenceType } from '../useMissionQuestionnaire'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { MissionDetail } from '../useMissionDetail'
+
+const EVIDENCE_META: Record<EvidenceType, { label: string; icon: typeof ShieldCheck; classes: string }> = {
+  declared_with_signed_doc: { label: 'Doc signé', icon: ShieldCheck, classes: 'bg-forest-100 text-forest-700 border border-forest-200' },
+  declared_with_doc: { label: 'Doc fourni', icon: FileText, classes: 'bg-gold-50 text-gold-700 border border-gold-200' },
+  declared_only: { label: 'Déclaratif', icon: MessageSquare, classes: 'bg-gray-100 text-gray-600 border border-gray-200' },
+}
+
+function EvidenceBadge({ type }: { type: EvidenceType }): JSX.Element {
+  const meta = EVIDENCE_META[type]
+  const Icon = meta.icon
+  return (
+    <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 ${meta.classes}`}>
+      <Icon size={9} /> {meta.label}
+    </span>
+  )
+}
 
 interface ScopingQuestionnaireTabProps {
   mission: MissionDetail
@@ -40,16 +56,23 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
   const hasQuestionnaire = mission.status !== 'initialization' || !!instance
   const progress = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0
 
-  // Build response map: code → { value, responded_by }
   const responseMap = useMemo(() => {
-    const map = new Map<string, { value: string; isAI: boolean }>()
+    const map = new Map<string, {
+      value: string
+      evidenceType: EvidenceType | null
+      sourceDocs: string[]
+      aiConfidence: number | null
+    }>()
     for (const r of responses) {
       const val = r.response
       if (val && typeof val === 'object' && 'value' in val) {
         const v = String((val as { value: unknown }).value)
-        // Detect if AI-prefilled by checking for [EVIDENCE:] pattern or confidence markers
-        const isAI = v.includes('PSSI') || v.includes('document') || v.length > 80
-        map.set(r.question_code, { value: v, isAI })
+        map.set(r.question_code, {
+          value: v,
+          evidenceType: r.evidence_type,
+          sourceDocs: r.source_documents ?? [],
+          aiConfidence: r.ai_confidence,
+        })
       }
     }
     return map
@@ -134,9 +157,28 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-gray-700">{q.text}</p>
                         {resp ? (
-                          <p className="text-[11px] text-forest-900 mt-1 bg-forest-50 rounded px-2 py-1.5 leading-relaxed">
-                            {resp.value}
-                          </p>
+                          <>
+                            <p className="text-[11px] text-forest-900 mt-1 bg-forest-50 rounded px-2 py-1.5 leading-relaxed">
+                              {resp.value}
+                            </p>
+                            {(resp.evidenceType || resp.sourceDocs.length > 0 || resp.aiConfidence !== null) && (
+                              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                                {resp.evidenceType && <EvidenceBadge type={resp.evidenceType} />}
+                                {resp.aiConfidence !== null && (
+                                  <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+                                    resp.aiConfidence >= 80 ? 'bg-forest-50 text-forest-700' :
+                                    resp.aiConfidence >= 60 ? 'bg-gold-50 text-gold-700' :
+                                    'bg-red-50 text-red-500'
+                                  }`}>{resp.aiConfidence}%</span>
+                                )}
+                                {resp.sourceDocs.length > 0 && (
+                                  <span className="text-[9px] text-gray-400 truncate" title={resp.sourceDocs.join(', ')}>
+                                    Sources : {resp.sourceDocs.length === 1 ? resp.sourceDocs[0] : `${resp.sourceDocs[0]} +${resp.sourceDocs.length - 1}`}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </>
                         ) : null}
                       </div>
 
