@@ -419,17 +419,33 @@ function formatMetadataBlock(d: DocRow): string {
 // concurrence bornée. await complet avant de rendre la main pour que la
 // Passe 2 puisse exploiter les ai_metadata fraîchement écrits.
 
-async function runBackfill(admin: SupabaseAdmin, docs: DocRow[]): Promise<void> {
+async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[]): Promise<void> {
+  // Direct fetch (au lieu de admin.functions.invoke) pour capturer le status
+  // HTTP réel et le body d'erreur dans les logs — essentiel pour diagnostiquer
+  // les échecs de la fonction cible (404 si non déployée, 500 si crash interne).
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const targetUrl = `${supabaseUrl}/functions/v1/extract-document-metadata`
+
   let cursor = 0
   const next = async (): Promise<void> => {
     while (cursor < docs.length) {
       const i = cursor++
       const doc = docs[i]
       try {
-        const { error } = await admin.functions.invoke('extract-document-metadata', {
-          body: { document_id: doc.id },
+        const res = await fetch(targetUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${serviceKey}`,
+            'apikey': serviceKey,
+          },
+          body: JSON.stringify({ document_id: doc.id }),
         })
-        if (error) console.warn(`[smart-questionnaire] backfill doc ${doc.file_name}:`, error.message)
+        if (!res.ok) {
+          const bodyText = await res.text().catch(() => '<no body>')
+          console.warn(`[smart-questionnaire] backfill doc ${doc.file_name}: status=${res.status} body=${bodyText.slice(0, 200)}`)
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'unknown'
         console.warn(`[smart-questionnaire] backfill doc ${doc.file_name} threw:`, msg)
