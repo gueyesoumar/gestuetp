@@ -12,6 +12,7 @@ import { useDeclineEvidence } from '../../smart-interview/useDeclineEvidence'
 import { DeclineEvidenceModal } from '../../smart-interview/DeclineEvidenceModal'
 import { useClientInterviews } from './useClientInterviews'
 import { SmartInterviewContainer } from '../../smart-interview/SmartInterviewContainer'
+import { validateFiles, ACCEPT_ATTR, formatList, MAX_FILE_SIZE_LABEL } from '../../../missions/uploadValidation'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
 import type { ExpectedDocument } from '../../smart-interview/useClientExpectedDocuments'
 import type { EvidenceDeclineReason } from '../../../../types/database.types'
@@ -35,7 +36,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
   const [declineError, setDeclineError] = useState<string | null>(null)
 
   const { instance, questions, responses, loading: qLoading } = useMissionQuestionnaire(mission.id)
-  const { documents, uploading, uploadDocument, refetch: refetchDocs } = useMissionDocuments(mission.id)
+  const { documents, uploading, refetch: refetchDocs } = useMissionDocuments(mission.id)
   const { expectedDocs, pendingCount, uploadedCount, declinedCount, coveredControls, totalControls, loading: edLoading, refetch: refetchExpected } = useClientExpectedDocuments(mission.id)
   const { declineDocument, cancelDeclaration, submitting: declineSubmitting } = useDeclineEvidence(refetchExpected)
   const { interviews, loading: intLoading } = useClientInterviews(mission.id)
@@ -82,19 +83,18 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
     }
   }, [])
 
-  const handleFileSelected = useCallback(async (): Promise<void> => {
-    const file = fileInputRef.current?.files?.[0]
-    if (!file || !profile) return
+  const uploadOne = useCallback(async (file: File, evidenceName: string | null, controlIds: string[]): Promise<void> => {
+    if (!profile) return
 
-    const description = pendingDocName ? `[EVIDENCE:${pendingDocName}]` : ''
-    const evidenceLabel = pendingDocName ?? file.name
+    const description = evidenceName ? `[EVIDENCE:${evidenceName}]` : ''
+    const evidenceLabel = evidenceName ?? file.name
 
     const safeName = file.name
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9._-]/g, '_')
       .replace(/_+/g, '_')
     const filePath = `missions/${mission.id}/${Date.now()}_${safeName}`
-    const controlId = pendingControlIds.length > 0 ? pendingControlIds[0] : null
+    const controlId = controlIds.length > 0 ? controlIds[0] : null
 
     const upload = async (): Promise<string> => {
       const { error: storageError } = await supabase.storage.from('documents').upload(filePath, file)
@@ -149,29 +149,38 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
       error: 'Impossible d\'envoyer le document',
     })
 
-    try {
-      await promise
-      refetchDocs()
-      setTimeout(() => refetchExpected(), 500)
-    } catch {
-      // toast already informed the user
-    } finally {
-      setPendingDocName(null)
-      setPendingControlIds([])
+    try { await promise } catch { /* toast already informed the user */ }
+  }, [mission.id, profile, filesApiFlag.enabled, toast])
+
+  const processSelectedFiles = useCallback(async (files: FileList | File[], evidenceName: string | null, controlIds: string[]): Promise<void> => {
+    const { ok, failures } = validateFiles(files)
+    for (const f of failures) {
+      toast.error(`${f.fileName} : ${f.reason}`)
     }
-  }, [mission.id, profile, pendingDocName, pendingControlIds, refetchDocs, refetchExpected, toast])
+    if (ok.length === 0) return
+    // Upload s\u00e9quentiel pour limiter la charge r\u00e9seau c\u00f4t\u00e9 client
+    for (const file of ok) {
+      // eslint-disable-next-line no-await-in-loop
+      await uploadOne(file, evidenceName, controlIds)
+    }
+    refetchDocs()
+    setTimeout(() => refetchExpected(), 500)
+  }, [uploadOne, refetchDocs, refetchExpected, toast])
+
+  const handleFileSelected = useCallback(async (): Promise<void> => {
+    const files = fileInputRef.current?.files
+    if (!files || files.length === 0) return
+    await processSelectedFiles(files, pendingDocName, pendingControlIds)
+    setPendingDocName(null)
+    setPendingControlIds([])
+  }, [processSelectedFiles, pendingDocName, pendingControlIds])
 
   const handleDrop = useCallback(async (e: React.DragEvent): Promise<void> => {
     e.preventDefault()
-    const file = e.dataTransfer.files[0]
-    if (!file) return
-    // useMissionDocuments fires its own toast.promise \u2014 no double feedback
-    const ok = await uploadDocument(file, '')
-    if (ok) {
-      refetchDocs()
-      setTimeout(() => refetchExpected(), 500)
-    }
-  }, [uploadDocument, refetchDocs, refetchExpected])
+    const files = e.dataTransfer.files
+    if (!files || files.length === 0) return
+    await processSelectedFiles(files, null, [])
+  }, [processSelectedFiles])
 
   const linkExistingDoc = useCallback(async (existingDoc: { file_name: string; file_path: string; file_size: number | null; mime_type: string | null }, evidenceName: string, controlIds?: string[]): Promise<void> => {
     if (!profile) return
@@ -245,8 +254,8 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
   return (
     <div className="space-y-8">
       {/* Single hidden file input */}
-      <input ref={fileInputRef} type="file" className="hidden"
-        accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.csv,.doc,.docx"
+      <input ref={fileInputRef} type="file" multiple className="hidden"
+        accept={ACCEPT_ATTR}
         onChange={handleFileSelected} />
 
       {/* ═══ SECTION: Documents ═══ */}
@@ -275,7 +284,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
             ) : (
               <>
                 <p className="text-xs font-semibold text-forest-900">Glissez vos fichiers ici ou <span className="text-forest-700 underline">parcourez</span></p>
-                <p className="text-[10px] text-gray-400 mt-1">PDF, DOCX, XLSX &mdash; 25 Mo max</p>
+                <p className="text-[10px] text-gray-400 mt-1">{formatList()} &mdash; {MAX_FILE_SIZE_LABEL} max par fichier &middot; multi-s&eacute;lection support&eacute;e</p>
               </>
             )}
           </div>
