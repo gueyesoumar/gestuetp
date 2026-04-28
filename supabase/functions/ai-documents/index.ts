@@ -165,6 +165,23 @@ async function handleUpload(
     console.error('[ai-documents] DB update error:', updateErr.message)
   }
 
+  // Fire-and-forget : Passe 1 (extraction métadonnées par doc).
+  // Utilise EdgeRuntime.waitUntil quand disponible (Supabase Edge Runtime)
+  // pour que la promesse survive au retour de la response.
+  const extractPromise = admin.functions
+    .invoke('extract-document-metadata', { body: { document_id } })
+    .catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'unknown'
+      console.warn('[ai-documents] extract-document-metadata invoke failed:', msg)
+    })
+  // deno-lint-ignore no-explicit-any
+  const runtime = (globalThis as any).EdgeRuntime
+  if (runtime?.waitUntil) {
+    runtime.waitUntil(extractPromise)
+  } else {
+    void extractPromise
+  }
+
   return jsonResponse({ file_id: fileId, file_name: doc.file_name, kind: prepared.kind })
 }
 
