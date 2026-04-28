@@ -407,6 +407,11 @@ async function synthesizeWithMetadata(
 
   const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
   const evidenceSection = formatEvidenceSection(evidenceContext)
+  const mappings = computeQuestionMappings(questions, evidenceContext.dedicatedDocs)
+  const mappingSection = formatMappingSection(mappings)
+  if (mappings.length > 0) {
+    console.log(`[smart-questionnaire] Computed ${mappings.length} forced question→doc mapping(s)`)
+  }
 
   const prompt = `Tu es un auditeur SI senior rigoureux. Tu disposes d'un corpus de documents fournis par le client avec leurs métadonnées extraites (Passe 1, signatures avec preuve visuelle).
 
@@ -414,7 +419,7 @@ ${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
 CORPUS (${docsWithMeta.length} documents avec métadonnées vérifiées) :
 
 ${corpusBlocks.join('\n\n---\n\n')}
-${evidenceSection}
+${evidenceSection}${mappingSection}
 QUESTIONS :
 ${questionsText}
 
@@ -471,8 +476,17 @@ Appelle UNIQUEMENT l'outil propose_answers.`
   if (!out.success) {
     return { answers: [], docs_analyzed_names: [], docs_failed: [...failures, { name: 'tous', reason: out.error ?? 'erreur IA' }] }
   }
+  // Ceinture + bretelles : on impose les pièces dédiées en premier dans
+  // source_documents même si Sonnet n'a pas suivi la règle dans son output.
+  const enforced = enforceMappings(out.answers, mappings)
+  if (mappings.length > 0) {
+    const corrected = enforced.filter((a, i) => a.sourceDocs?.[0] !== out.answers[i]?.sourceDocs?.[0]).length
+    if (corrected > 0) {
+      console.log(`[smart-questionnaire] Post-process corrected ${corrected} answer(s) to honor question→doc mapping`)
+    }
+  }
   return {
-    answers: out.answers,
+    answers: enforced,
     docs_analyzed_names: docsWithMeta.map((d) => d.file_name),
     docs_failed: failures,
   }
@@ -583,12 +597,14 @@ async function synthesizeWithRawDocs(
   const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
   const docNames = docs.map((d) => `[${d.file_name}]`).join('; ')
   const evidenceSection = formatEvidenceSection(evidenceContext)
+  const mappings = computeQuestionMappings(questions, evidenceContext.dedicatedDocs)
+  const mappingSection = formatMappingSection(mappings)
 
   const prompt = `Tu es un auditeur SI senior. Analyse les documents joints pour pré-remplir un questionnaire de prise de connaissance.
 
 ${clientContext ? `CONTEXTE: ${clientContext}\n` : ''}
 DOCUMENTS: ${docNames}
-${evidenceSection}
+${evidenceSection}${mappingSection}
 QUESTIONS :
 ${questionsText}
 
@@ -623,7 +639,7 @@ Appelle UNIQUEMENT l'outil propose_answers.`
     return { answers: [], docs_analyzed_names: [], docs_failed: [{ name: 'tous', reason: out.error ?? 'erreur IA' }] }
   }
   return {
-    answers: out.answers,
+    answers: enforceMappings(out.answers, mappings),
     docs_analyzed_names: docs.map((d) => d.file_name),
     docs_failed: [],
   }
@@ -849,6 +865,122 @@ async function loadEvidenceContext(admin: SupabaseAdmin, missionId: string): Pro
   }
 
   return { dedicatedDocs, declinedRequests }
+}
+
+// ── MAPPING QUESTION → PIÈCE DÉDIÉE (pré-calcul serveur) ──────────────────
+// On ne laisse plus le modèle deviner : pour chaque question on calcule
+// par recouvrement de mots-clés la pièce dédiée la plus pertinente, et on
+// force ce mapping dans le prompt + en post-traitement.
+
+const STOPWORDS = new Set([
+  'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'au', 'aux', 'à', 'a',
+  'et', 'ou', 'mais', 'donc', 'car', 'ni', 'or',
+  'que', 'qui', 'quoi', 'dont', 'quel', 'quelle', 'quels', 'quelles',
+  'est', 'sont', 'être', 'avoir', 'ont', 'a', 'fait', 'faites',
+  'pour', 'par', 'sur', 'avec', 'sans', 'dans', 'en', 'vers', 'chez',
+  'son', 'sa', 'ses', 'leur', 'leurs', 'votre', 'vos', 'mon', 'ma', 'mes', 'notre', 'nos',
+  'ce', 'cette', 'ces', 'cet',
+  'disposez', 'disposer', 'disposez-vous', 'avez-vous', 'existe', 'existe-t-il',
+  'vous', 'vos', 'votre', 'tu', 'on', 'nous',
+  'oui', 'non', 'plus', 'moins', 'tres', 'très', 'aussi', 'donc',
+  'precise', 'précise', 'précisé', 'definie', 'définie',
+  'mise', 'place', 'mises', 'places',
+])
+
+function normalizeText(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function contentTokens(s: string): Set<string> {
+  return new Set(
+    normalizeText(s)
+      .split(' ')
+      .filter((w) => w.length >= 4 && !STOPWORDS.has(w)),
+  )
+}
+
+interface QuestionMapping {
+  questionCode: string
+  dedicatedFileName: string
+  evidenceName: string
+  overlap: number
+}
+
+function computeQuestionMappings(
+  questions: QuestionInput[],
+  dedicatedDocs: DedicatedDoc[],
+): QuestionMapping[] {
+  if (dedicatedDocs.length === 0) return []
+  const mappings: QuestionMapping[] = []
+  for (const q of questions) {
+    const qTokens = contentTokens(`${q.label} ${q.description ?? ''}`)
+    if (qTokens.size === 0) continue
+    let best: { doc: DedicatedDoc; overlap: number } | null = null
+    for (const d of dedicatedDocs) {
+      const dTokens = contentTokens(d.evidence_name)
+      if (dTokens.size === 0) continue
+      let count = 0
+      for (const t of dTokens) if (qTokens.has(t)) count++
+      // Seuil : au moins 2 mots-clés en commun ET ≥ 50 % des tokens du nom de la preuve
+      const ratio = count / dTokens.size
+      if (count >= 2 && ratio >= 0.5 && (!best || count > best.overlap)) {
+        best = { doc: d, overlap: count }
+      }
+    }
+    if (best) {
+      mappings.push({
+        questionCode: q.code,
+        dedicatedFileName: best.doc.file_name,
+        evidenceName: best.doc.evidence_name,
+        overlap: best.overlap,
+      })
+    }
+  }
+  return mappings
+}
+
+function formatMappingSection(mappings: QuestionMapping[]): string {
+  if (mappings.length === 0) return ''
+  const lines = [
+    '',
+    'MAPPINGS QUESTION → PIÈCE DÉDIÉE OBLIGATOIRE (calculés par recouvrement de mots-clés, à respecter à la lettre) :',
+  ]
+  for (const m of mappings) {
+    lines.push(`- ${m.questionCode} → "${m.dedicatedFileName}" (preuve "${m.evidenceName}")`)
+  }
+  lines.push('')
+  lines.push('Pour ces questions, source_documents DOIT commencer EXACTEMENT par le file_name indiqué. Tu peux ajouter ensuite d\'autres docs en complément, JAMAIS avant.')
+  lines.push('')
+  return lines.join('\n')
+}
+
+// Post-traitement : force la pièce dédiée en première position des sources
+// pour toute réponse dont la question a un mapping fort. Ceinture + bretelles
+// au cas où le modèle ignorerait le prompt.
+function enforceMappings(answers: AIAnswer[], mappings: QuestionMapping[]): AIAnswer[] {
+  if (mappings.length === 0) return answers
+  const byCode = new Map(mappings.map((m) => [m.questionCode, m]))
+  return answers.map((a) => {
+    const m = byCode.get(a.questionCode)
+    if (!m) return a
+    const current = a.sourceDocs ?? []
+    if (current[0] === m.dedicatedFileName) return a
+    const filtered = current.filter((s) => s !== m.dedicatedFileName)
+    const fixed: AIAnswer = { ...a, sourceDocs: [m.dedicatedFileName, ...filtered] }
+    // Si le modèle avait classé en declared_only sans citer la pièce, on
+    // remonte au moins en declared_with_doc puisqu'une pièce dédiée existe.
+    if (fixed.evidenceType === 'declared_only') {
+      fixed.evidenceType = 'declared_with_doc'
+      if (fixed.confidence < 60) fixed.confidence = 60
+    }
+    return fixed
+  })
 }
 
 function formatEvidenceSection(ctx: EvidenceContext): string {
