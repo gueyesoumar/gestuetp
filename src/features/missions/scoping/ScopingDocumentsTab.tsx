@@ -5,6 +5,7 @@ import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionEvidenceOverrides } from '../useMissionEvidenceOverrides'
 import { supabase } from '../../../lib/supabase'
+import { DeclinedEvidenceSection } from './DeclinedEvidenceSection'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionExclusion } from '../../../types/database.types'
 
@@ -16,7 +17,7 @@ interface ScopingDocumentsTabProps {
 
 export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingDocumentsTabProps): JSX.Element {
   const { evidenceByControl, loading: catLoading } = useEvidenceCatalog(domains)
-  const { requestedIds, requestEvidence, requesting, refetch } = useMissionEvidenceRequests(missionId)
+  const { requests, requestedIds, requestEvidence, requesting, refetch } = useMissionEvidenceRequests(missionId)
   const { documents } = useMissionDocuments(missionId)
   const { isEssential, toggleOverride, saving: savingOverride } = useMissionEvidenceOverrides(missionId)
 
@@ -149,7 +150,10 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
   // Counts
   const requestedCount = requestedNames.size
   const receivedCount = [...requestedNames].filter((n) => uploadedNames.has(n)).length
-  const pendingCount = requestedCount - receivedCount
+  const declinedCount = requests.filter((r) => r.status === 'declined_by_client').length
+  const acceptedCount = requests.filter((r) => r.status === 'accepted' || r.status === 'escalated_to_finding').length
+  // Pending = requested but no document received AND not declined/accepted/escalated
+  const pendingCount = Math.max(0, requestedCount - receivedCount - declinedCount - acceptedCount)
   const essentialNotRequested = essentialEvidence.filter((e) => !e.ids.some((id) => requestedIds.has(id)))
 
   const toggleSelected = (ids: string[]): void => {
@@ -215,7 +219,7 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Demand{'é'}es</p>
           <p className="text-[22px] font-bold text-forest-700">{requestedCount}</p>
@@ -224,11 +228,19 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
           <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Re{'ç'}ues</p>
           <p className="text-[22px] font-bold text-green-600">{receivedCount}</p>
         </div>
+        <div className={`bg-white border rounded-xl px-4 py-3 ${declinedCount > 0 ? 'border-amber-300 bg-amber-50/40' : 'border-gray-200'}`}>
+          <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${declinedCount > 0 ? 'text-amber-700' : 'text-gray-500'}`}>D{'é'}clar{'é'}s ND</p>
+          <p className={`text-[22px] font-bold ${declinedCount > 0 ? 'text-amber-700' : 'text-gray-300'}`}>{declinedCount}</p>
+          {declinedCount > 0 && <p className="text-[9.5px] text-amber-700 mt-0.5 font-medium">d{'é'}cision requise</p>}
+        </div>
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1">En attente</p>
           <p className="text-[22px] font-bold text-gold-500">{pendingCount}</p>
         </div>
       </div>
+
+      {/* Section ND — décisions auditeur */}
+      <DeclinedEvidenceSection missionId={missionId} />
 
       {/* Essentielles section */}
       {essentialNotRequested.length > 0 && (
