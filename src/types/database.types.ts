@@ -365,7 +365,15 @@ export interface ControlMapping {
   created_at: string
 }
 
-export type EvidenceRequestStatus = 'pending' | 'uploaded' | 'validated' | 'rejected'
+export type EvidenceRequestStatus =
+  | 'pending'
+  | 'uploaded'
+  | 'declined_by_client'
+  | 'accepted'
+  | 'reissued'
+  | 'escalated_to_finding'
+
+export type EvidenceDeclineReason = 'inexistant' | 'non_applicable' | 'confidentialite'
 
 export interface EvidenceCatalogItem {
   id: string
@@ -385,6 +393,14 @@ export interface MissionEvidenceRequest {
   requested_by: string
   status: EvidenceRequestStatus
   created_at: string
+  decline_reason?: EvidenceDeclineReason | null
+  decline_justification?: string | null
+  declined_by?: string | null
+  declined_at?: string | null
+  auditor_response?: string | null
+  auditor_decided_by?: string | null
+  auditor_decided_at?: string | null
+  escalated_assessment_id?: string | null
 }
 
 export interface QuestionnaireTemplate {
