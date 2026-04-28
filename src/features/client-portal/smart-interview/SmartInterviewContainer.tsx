@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Sparkles, MessageCircle, BarChart3, Paperclip } from 'lucide-react'
+import { Sparkles, MessageCircle, Paperclip } from 'lucide-react'
 import { SmartPrefilledAnswers } from './SmartPrefilledAnswers'
 import { SmartConversation } from './SmartConversation'
-import { SmartRadar } from './SmartRadar'
 import type { Question } from '../../../types/database.types'
 import type { ReactNode } from 'react'
 
@@ -40,7 +39,7 @@ interface SmartInterviewContainerProps {
   documentsCount: number
 }
 
-type SmartTab = 'prefill' | 'conversation' | 'radar'
+type SmartTab = 'prefill' | 'conversation'
 
 export function SmartInterviewContainer({
   missionId, missionName, questions, instanceId, userId,
@@ -60,7 +59,6 @@ export function SmartInterviewContainer({
   const tabs: { key: SmartTab; label: string; icon: ReactNode }[] = [
     { key: 'prefill', label: 'R\u00e9ponses IA', icon: <Sparkles size={13} /> },
     { key: 'conversation', label: 'Conversation', icon: <MessageCircle size={13} /> },
-    { key: 'radar', label: 'Mon radar', icon: <BarChart3 size={13} /> },
   ]
 
   return (
@@ -153,13 +151,6 @@ export function SmartInterviewContainer({
           instanceId={instanceId}
           userId={userId}
           readOnly={readOnly}
-        />
-      )}
-      {activeTab === 'radar' && (
-        <SmartRadar
-          questions={questions}
-          initialResponses={initialResponses}
-          prefilledAnswers={prefilledAnswers}
         />
       )}
     </div>
