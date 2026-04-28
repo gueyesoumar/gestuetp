@@ -77,7 +77,10 @@ Deno.serve(async (req) => {
   const admin = createClient(supabaseUrl, serviceKey)
   const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? 'https://app.gestugroup.com'
 
-  // 1. Récupérer toutes les demandes en attente
+  // 1. Récupérer toutes les demandes en attente — y compris reissued (l'auditeur
+  //    a re-poussé la demande après une déclaration). Les statuts terminaux
+  //    (uploaded, accepted, escalated_to_finding, declined_by_client) sont
+  //    explicitement exclus pour ne pas relancer pour rien.
   const { data: requests, error: reqError } = await admin
     .from('mission_evidence_requests')
     .select(`
@@ -90,7 +93,7 @@ Deno.serve(async (req) => {
       evidence_catalog:evidence_catalog!inner(name, control_id),
       mission:missions!inner(name, client_id, cabinet_id, cabinet_clients:cabinet_clients!missions_client_id_fkey(client_name))
     `)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'reissued'])
 
   if (reqError) {
     console.error('[evidence-reminders] requests error:', reqError.message)
