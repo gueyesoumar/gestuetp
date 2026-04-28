@@ -75,27 +75,21 @@ export function SmartPrefilledAnswers({
     !initialResponses.has(q.code) && !prefilledAnswers.some((a) => a.questionCode === q.code)
   )
 
+  const [backfillStatus, setBackfillStatus] = useState<{ processed: number; total: number } | null>(null)
+
   const handleAnalyze = useCallback(async (): Promise<void> => {
     onAnalyzingChange(true)
     setError(null)
+    setBackfillStatus(null)
 
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
     if (!token) { setError('Non authentifi\u00e9'); onAnalyzingChange(false); return }
 
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/smart-questionnaire`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ mission_id: missionId, questions: questions.map((q) => ({ code: q.code, label: q.text, description: q.description })) }),
-    })
-
-    if (!res.ok) {
-      setError('Erreur lors de l\u2019analyse IA')
-      onAnalyzingChange(false)
-      return
-    }
-
-    const data = await res.json() as {
+    // Boucle d'invocation : si le backfill est incomplet (budget temps \u00e9puis\u00e9
+    // c\u00f4t\u00e9 edge function), on rappelle automatiquement jusqu'\u00e0 compl\u00e9tion.
+    const MAX_ROUNDS = 10
+    let data: {
       answers: SmartAnswer[]
       docs_analyzed?: number
       docs_total?: number
@@ -103,7 +97,42 @@ export function SmartPrefilledAnswers({
       docs_skipped?: string[]
       docs_failed?: { name: string; reason: string }[]
       batches?: number
+      backfill_in_progress?: boolean
+      backfill_processed?: number
+      backfill_remaining?: number
+      backfill_total?: number
+    } | null = null
+
+    for (let round = 0; round < MAX_ROUNDS; round++) {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/smart-questionnaire`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ mission_id: missionId, questions: questions.map((q) => ({ code: q.code, label: q.text, description: q.description })) }),
+      })
+      if (!res.ok) {
+        setError('Erreur lors de l\u2019analyse IA')
+        setBackfillStatus(null)
+        onAnalyzingChange(false)
+        return
+      }
+      data = await res.json()
+      if (!data?.backfill_in_progress) break
+      setBackfillStatus({
+        processed: data.backfill_processed ?? 0,
+        total: data.backfill_total ?? data.backfill_remaining ?? 0,
+      })
+      // pause courte avant de rappeler \u2014 laisse aussi les rate-limits Anthropic respirer
+      await new Promise((r) => setTimeout(r, 2000))
     }
+
+    setBackfillStatus(null)
+
+    if (!data || data.backfill_in_progress) {
+      setError('Analyse trop longue, r\u00e9essayez plus tard')
+      onAnalyzingChange(false)
+      return
+    }
+
     onPrefilledAnswersChange(data.answers ?? [])
     onAnalysisStatusChange({
       docsAnalyzed: data.docs_analyzed ?? 0,
@@ -219,7 +248,24 @@ export function SmartPrefilledAnswers({
             <Brain size={28} className="text-gold-500" />
           </div>
           <p className="text-sm font-semibold mb-1">Analyse en cours...</p>
-          <p className="text-xs text-gray-400">L&rsquo;IA parcourt vos documents pour identifier les r&eacute;ponses</p>
+          {backfillStatus && backfillStatus.total > 0 ? (
+            <>
+              <p className="text-xs text-gray-500 mb-2">
+                Extraction des m&eacute;tadonn&eacute;es : <b>{backfillStatus.processed}/{backfillStatus.total}</b> documents
+              </p>
+              <div className="w-48 h-1.5 mx-auto bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gold-500 transition-all"
+                  style={{ width: `${(backfillStatus.processed / backfillStatus.total) * 100}%` }}
+                />
+              </div>
+              <p className="mt-2 text-[10px] text-gray-400">
+                Premi&egrave;re analyse : peut prendre quelques minutes selon le nombre de documents.
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-gray-400">L&rsquo;IA parcourt vos documents pour identifier les r&eacute;ponses</p>
+          )}
         </div>
       )}
 

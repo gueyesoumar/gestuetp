@@ -83,9 +83,14 @@ const MAX_TOKENS = 4000
 const CLAUDE_TIMEOUT_MS = 120_000
 const CACHE_TTL_HOURS = 24
 const FALLBACK_DOC_LIMIT = 8 // si aucun ai_metadata dispo, on attache jusqu'à 8 docs bruts
-const BACKFILL_CONCURRENCY = 1 // sequential — extract-document-metadata fait déjà du retry sur 429
-const BACKFILL_INTER_DOC_DELAY_MS = 5_000 // pause entre chaque doc pour respecter le TPM Anthropic
-const BACKFILL_LIMIT = 20 // au-delà on n'attend pas — l'utilisateur verra le résultat à la prochaine analyse
+const BACKFILL_INTER_DOC_DELAY_MS = 3_000 // pacing TPM Anthropic
+// Budget temps strict pour le backfill : si on s'approche de la limite Supabase
+// (~150s wall-time en hosted), on arrête et on dit au frontend de rappeler.
+// Marge confortable sous 150s pour laisser place à la Passe 2 si tout est extrait.
+const BACKFILL_TIME_BUDGET_MS = 90_000
+// Si reste de budget < ce seuil, on n'entame pas un nouveau doc (130s max par doc
+// dans extract-document-metadata avec retries pleins).
+const BACKFILL_MIN_REMAINING_MS = 70_000
 
 const SYNTHESIZE_TOOL = {
   name: 'propose_answers',
@@ -226,7 +231,7 @@ Deno.serve(async (req) => {
     //    refaire une synthèse de qualité).
     if (pendingDocs.length > 0) {
       console.log(`[smart-questionnaire] Auto-backfill: ${pendingDocs.length} doc(s) en attente de Passe 1`)
-      await runBackfill(admin, pendingDocs.slice(0, BACKFILL_LIMIT))
+      const backfillResult = await runBackfill(admin, pendingDocs)
       const { data: refreshed } = await admin
         .from('documents')
         .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
@@ -234,9 +239,28 @@ Deno.serve(async (req) => {
         .order('created_at', { ascending: false })
       allDocs = (refreshed ?? []) as DocRow[]
       const postExtracted = allDocs.filter((d) => d.ai_extracted_at).length
-      const postFailed = allDocs.filter((d) => d.ai_extract_error).length
-      const postPending = allDocs.filter((d) => d.anthropic_file_id && !d.ai_extracted_at && !d.ai_extract_error).length
-      console.log(`[smart-questionnaire] Post-backfill: extracted=${postExtracted} failed=${postFailed} pending=${postPending}`)
+      const postFailed = allDocs.filter((d) => d.ai_extract_error && !isTransientError(d.ai_extract_error)).length
+      const postPendingAll = allDocs.filter(
+        (d) => d.anthropic_file_id && !d.ai_extracted_at && (!d.ai_extract_error || isTransientError(d.ai_extract_error)),
+      ).length
+      console.log(`[smart-questionnaire] Post-backfill: extracted=${postExtracted} failed=${postFailed} pending=${postPendingAll} (this call processed=${backfillResult.processed})`)
+
+      // Si reste > 0 : budget temps épuisé → on rend la main au frontend pour
+      // qu'il rappelle. Pas de Passe 2 sur un corpus partiellement extrait.
+      if (postPendingAll > 0) {
+        return jsonResponse({
+          answers: [],
+          docs_analyzed: 0,
+          docs_total: allDocs.length,
+          docs_analyzed_names: [],
+          docs_skipped: [],
+          docs_failed: [],
+          backfill_in_progress: true,
+          backfill_processed: postExtracted,
+          backfill_remaining: postPendingAll,
+          backfill_total: pendingDocs.length,
+        })
+      }
     }
 
     // 4. Cache check (TTL 24h) — uniquement si AUCUN doc n'était en attente.
@@ -437,46 +461,56 @@ function formatMetadataBlock(d: DocRow): string {
 // concurrence bornée. await complet avant de rendre la main pour que la
 // Passe 2 puisse exploiter les ai_metadata fraîchement écrits.
 
-async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[]): Promise<void> {
-  // Direct fetch (au lieu de admin.functions.invoke) pour capturer le status
-  // HTTP réel et le body d'erreur dans les logs — essentiel pour diagnostiquer
-  // les échecs de la fonction cible (404 si non déployée, 500 si crash interne).
+interface BackfillResult {
+  processed: number
+  remaining: number
+}
+
+async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[]): Promise<BackfillResult> {
+  // Séquentiel + budget temps strict : on n'entame pas un nouveau doc si on
+  // risque de dépasser la wall-time Supabase. Le reste sera traité au prochain
+  // appel (frontend rejoue automatiquement).
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const targetUrl = `${supabaseUrl}/functions/v1/extract-document-metadata`
 
-  let cursor = 0
-  const next = async (): Promise<void> => {
-    while (cursor < docs.length) {
-      const i = cursor++
-      const doc = docs[i]
-      try {
-        const res = await fetch(targetUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${serviceKey}`,
-            'apikey': serviceKey,
-          },
-          body: JSON.stringify({ document_id: doc.id }),
-        })
-        if (!res.ok) {
-          const bodyText = await res.text().catch(() => '<no body>')
-          console.warn(`[smart-questionnaire] backfill doc ${doc.file_name}: status=${res.status} body=${bodyText.slice(0, 200)}`)
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'unknown'
-        console.warn(`[smart-questionnaire] backfill doc ${doc.file_name} threw:`, msg)
+  const startedAt = Date.now()
+  let processed = 0
+
+  for (let i = 0; i < docs.length; i++) {
+    const elapsed = Date.now() - startedAt
+    const remainingBudget = BACKFILL_TIME_BUDGET_MS - elapsed
+    if (remainingBudget < BACKFILL_MIN_REMAINING_MS) {
+      console.log(`[smart-questionnaire] Backfill budget exhausted (elapsed=${(elapsed / 1000).toFixed(0)}s, processed=${processed}, remaining=${docs.length - i})`)
+      return { processed, remaining: docs.length - i }
+    }
+
+    const doc = docs[i]
+    try {
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+          'apikey': serviceKey,
+        },
+        body: JSON.stringify({ document_id: doc.id }),
+      })
+      if (!res.ok) {
+        const bodyText = await res.text().catch(() => '<no body>')
+        console.warn(`[smart-questionnaire] backfill doc ${doc.file_name}: status=${res.status} body=${bodyText.slice(0, 200)}`)
       }
-      // Pacing TPM Anthropic : laisser respirer la fenêtre de tokens-per-minute
-      // entre chaque doc pour éviter de saturer dès le 3e ou 4e appel.
-      if (cursor < docs.length) {
-        await sleep(BACKFILL_INTER_DOC_DELAY_MS)
-      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'unknown'
+      console.warn(`[smart-questionnaire] backfill doc ${doc.file_name} threw:`, msg)
+    }
+    processed++
+
+    if (i + 1 < docs.length) {
+      await sleep(BACKFILL_INTER_DOC_DELAY_MS)
     }
   }
-  const workers = Array.from({ length: Math.min(BACKFILL_CONCURRENCY, docs.length) }, () => next())
-  await Promise.all(workers)
+  return { processed, remaining: 0 }
 }
 
 // ── MODE FALLBACK ──────────────────────────────────────────────────────────

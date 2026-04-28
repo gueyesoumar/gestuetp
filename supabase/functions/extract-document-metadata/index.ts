@@ -300,10 +300,11 @@ async function persistError(
   if (error) console.warn('[extract-document-metadata] persistError failed:', error.message)
 }
 
-// Backoff sur erreurs transient Anthropic. 15s puis 45s puis 90s — calibré
-// pour couvrir la fenêtre TPM (1 minute) en Tier 1, où plusieurs docs PDF
-// volumineux saturent vite la limite tokens-per-minute. Honore retry-after.
-const RETRY_DELAYS_MS = [15_000, 45_000, 90_000]
+// Backoff sur erreurs transient Anthropic. 10s puis 30s — total wait 40s
+// + 3 attempts × 30s timeout = 130s max par doc. Calibré pour rester sous
+// le budget temps de smart-questionnaire (90s par doc cible).
+const RETRY_DELAYS_MS = [10_000, 30_000]
+const PER_ATTEMPT_TIMEOUT_MS = 30_000
 const TRANSIENT_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504, 529])
 
 interface AnthropicResult {
@@ -319,7 +320,7 @@ async function callAnthropicWithRetry(apiKey: string, body: string): Promise<Ant
   let lastErrorText = ''
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     const ctrl = new AbortController()
-    const timeout = setTimeout(() => ctrl.abort(), 120_000)
+    const timeout = setTimeout(() => ctrl.abort(), PER_ATTEMPT_TIMEOUT_MS)
     try {
       const res = await fetch(`${ANTHROPIC_API}/messages`, {
         method: 'POST',
