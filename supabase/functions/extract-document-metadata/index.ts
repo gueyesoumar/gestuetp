@@ -300,9 +300,10 @@ async function persistError(
   if (error) console.warn('[extract-document-metadata] persistError failed:', error.message)
 }
 
-// Backoff sur erreurs transient Anthropic. Attend 5s puis 15s puis 45s.
-// Utilise le header `retry-after` quand disponible. Coupe à 120s par tentative.
-const RETRY_DELAYS_MS = [5_000, 15_000, 45_000]
+// Backoff sur erreurs transient Anthropic. 15s puis 45s puis 90s — calibré
+// pour couvrir la fenêtre TPM (1 minute) en Tier 1, où plusieurs docs PDF
+// volumineux saturent vite la limite tokens-per-minute. Honore retry-after.
+const RETRY_DELAYS_MS = [15_000, 45_000, 90_000]
 const TRANSIENT_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504, 529])
 
 interface AnthropicResult {

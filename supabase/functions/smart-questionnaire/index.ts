@@ -83,8 +83,8 @@ const MAX_TOKENS = 4000
 const CLAUDE_TIMEOUT_MS = 120_000
 const CACHE_TTL_HOURS = 24
 const FALLBACK_DOC_LIMIT = 8 // si aucun ai_metadata dispo, on attache jusqu'à 8 docs bruts
-const BACKFILL_CONCURRENCY = 1 // sequential — extract-document-metadata fait déjà du retry sur 429,
-                               // le séquentiel évite d'aggraver le rate limit Anthropic
+const BACKFILL_CONCURRENCY = 1 // sequential — extract-document-metadata fait déjà du retry sur 429
+const BACKFILL_INTER_DOC_DELAY_MS = 5_000 // pause entre chaque doc pour respecter le TPM Anthropic
 const BACKFILL_LIMIT = 20 // au-delà on n'attend pas — l'utilisateur verra le résultat à la prochaine analyse
 
 const SYNTHESIZE_TOOL = {
@@ -467,6 +467,11 @@ async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[]): Promise<void>
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'unknown'
         console.warn(`[smart-questionnaire] backfill doc ${doc.file_name} threw:`, msg)
+      }
+      // Pacing TPM Anthropic : laisser respirer la fenêtre de tokens-per-minute
+      // entre chaque doc pour éviter de saturer dès le 3e ou 4e appel.
+      if (cursor < docs.length) {
+        await sleep(BACKFILL_INTER_DOC_DELAY_MS)
       }
     }
   }
