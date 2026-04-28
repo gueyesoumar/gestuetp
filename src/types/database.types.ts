@@ -777,6 +777,7 @@ export interface Document {
   description: string | null
   anthropic_file_id: string | null
   anthropic_file_uploaded_at: string | null
+  anthropic_file_kind: 'document' | 'image' | null
   ai_metadata: DocumentAiMetadata | null
   ai_extracted_at: string | null
   ai_extract_error: string | null

@@ -3,20 +3,23 @@ import { supabase } from '../../lib/supabase'
 /**
  * Triggers an asynchronous Anthropic Files API upload for the given document.
  * Calls the ai-documents Edge Function with action='upload' which downloads
- * the file from Supabase Storage and uploads it to Anthropic.
+ * the file from Supabase Storage, convertit si nécessaire (DOCX/XLSX) puis
+ * upload vers Anthropic.
  *
- * - Runs in the background (fire-and-forget). Errors are logged but don't
- *   block the upload flow.
- * - Skips PDFs only (Files API doesn't support all formats).
- * - Once the upload succeeds, the document's `anthropic_file_id` column
- *   is populated, and subsequent AI analyses will use the Files API
- *   (faster, no token retransmission).
+ * - Fire-and-forget : les erreurs sont loggées mais ne bloquent pas l'upload UI.
+ * - La whitelist doit rester synchro avec uploadValidation.ts ACCEPTED_FORMATS
+ *   et avec la branche prepareAsset() de la edge function ai-documents.
  */
 export function registerDocumentForAI(documentId: string, fileName: string): void {
   const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
-  const supportedExts = ['pdf', 'txt', 'csv', 'html']
+  const supportedExts = [
+    'pdf', 'txt', 'csv', 'html', 'htm', 'md',
+    'docx', 'doc',
+    'xlsx', 'xls',
+    'png', 'jpg', 'jpeg', 'webp',
+  ]
   if (!supportedExts.includes(ext)) {
-    return // No-op for unsupported formats (e.g. images, docx)
+    return
   }
 
   // Fire-and-forget — don't await
