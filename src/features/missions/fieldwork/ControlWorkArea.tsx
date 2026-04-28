@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { AlertTriangle, FileText, Check, X, Save, Play, ArrowLeft, ArrowRight } from 'lucide-react'
+import { AlertTriangle, FileText, Check, X, Save, Play, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { AutosaveIndicator } from '../../../components/ui/AutosaveIndicator'
@@ -9,6 +9,7 @@ import { FreeWorkForm } from './FreeWorkForm'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useToast } from '../../../hooks/useToast'
 import { useAutosave } from '../../../hooks/useAutosave'
+import { useAssessmentDeclineSource } from './useAssessmentDeclineSource'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
 interface ControlWorkAreaProps {
@@ -62,6 +63,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
     setFindingClassification(assessment.finding_classification ?? null)
   }, [assessment.id])
 
+  const declineSource = useAssessmentDeclineSource(assessment.id)
   const status = ASSESSMENT_STATUS_CONFIG[assessment.status]
   const canGoNext = guidedStep < GUIDED_STEPS.length - 1
   const canGoPrev = guidedStep > 0
@@ -138,6 +140,23 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
           <p className="text-xs text-red-600 leading-relaxed">
             <strong>Rejet&eacute;</strong> &mdash; Veuillez corriger et resoumettre.
           </p>
+        </div>
+      )}
+
+      {/* Decline source banner — assessment created from a client decline */}
+      {declineSource && (
+        <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5">
+          <Sparkles size={15} className="text-amber-700 shrink-0 mt-0.5" />
+          <div className="flex-1 text-xs text-amber-900 leading-relaxed">
+            <strong>&Eacute;valuation pr&eacute;-remplie automatiquement.</strong>{' '}
+            Une d&eacute;claration <em>{labelForReason(declineSource.reason)}</em> a &eacute;t&eacute; enregistr&eacute;e
+            {declineSource.declinerName ? <> par <strong>{declineSource.declinerName}</strong></> : null}
+            {' '}sur le document <em>&laquo;&nbsp;{declineSource.evidenceName}&nbsp;&raquo;</em>. La classification, le constat et la recommandation
+            ont &eacute;t&eacute; pr&eacute;-r&eacute;dig&eacute;s &mdash; v&eacute;rifiez puis soumettez.
+            {declineSource.justification && (
+              <p className="mt-1.5 italic text-amber-800">&laquo;&nbsp;{declineSource.justification}&nbsp;&raquo;</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -363,6 +382,13 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
       )}
     </div>
   )
+}
+
+function labelForReason(reason: string | null): string {
+  if (reason === 'inexistant') return 'Inexistant'
+  if (reason === 'non_applicable') return 'Non applicable'
+  if (reason === 'confidentialite') return 'Confidentialité'
+  return 'Non disponible'
 }
 
 function ReviewSection({ title, content, highlight }: { title: string; content: string; highlight?: boolean }): JSX.Element | null {
