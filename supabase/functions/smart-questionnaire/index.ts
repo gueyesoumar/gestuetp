@@ -248,6 +248,11 @@ Deno.serve(async (req) => {
       // Si reste > 0 : budget temps épuisé → on rend la main au frontend pour
       // qu'il rappelle. Pas de Passe 2 sur un corpus partiellement extrait.
       if (postPendingAll > 0) {
+        // Comptage cohérent : on rapporte le progrès parmi les docs qu'il
+        // restait à traiter au début de la boucle (pendingDocs.length), pas
+        // l'effectif total des docs extraits (qui inclut ceux déjà OK avant).
+        const totalToBackfill = pendingDocs.length
+        const doneAmongTodo = totalToBackfill - postPendingAll
         return jsonResponse({
           answers: [],
           docs_analyzed: 0,
@@ -256,9 +261,9 @@ Deno.serve(async (req) => {
           docs_skipped: [],
           docs_failed: [],
           backfill_in_progress: true,
-          backfill_processed: postExtracted,
+          backfill_processed: doneAmongTodo,
           backfill_remaining: postPendingAll,
-          backfill_total: pendingDocs.length,
+          backfill_total: totalToBackfill,
         })
       }
     }
