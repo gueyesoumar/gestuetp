@@ -327,7 +327,14 @@ Deno.serve(async (req) => {
       user_id: (callerProfile as { id?: string } | null)?.id ?? null,
     }
 
-    // 6. Mode : metadata-driven (préféré) ou fallback raw-doc
+    // 6. Pièces dédiées : docs uploadés en réponse à une demande de preuve
+    //    (mapping fort doc → contrôle / sujet) + pièces déclinées par le client.
+    const evidenceContext = await loadEvidenceContext(admin, mission_id)
+    if (evidenceContext.dedicatedDocs.length > 0 || evidenceContext.declinedRequests.length > 0) {
+      console.log(`[smart-questionnaire] Evidence context: ${evidenceContext.dedicatedDocs.length} dedicated, ${evidenceContext.declinedRequests.length} declined`)
+    }
+
+    // 7. Mode : metadata-driven (préféré) ou fallback raw-doc
     const docsWithMeta = allDocs.filter((d) => d.ai_metadata && d.ai_extracted_at)
     const docsForFallback = allDocs.filter((d) => d.anthropic_file_id && !d.ai_metadata)
     const useMetadataMode = docsWithMeta.length >= Math.min(3, allDocs.length)
@@ -335,8 +342,8 @@ Deno.serve(async (req) => {
     console.log(`[smart-questionnaire] Mode=${useMetadataMode ? 'metadata' : 'fallback'} docsWithMeta=${docsWithMeta.length} docsForFallback=${docsForFallback.length}`)
 
     const result = useMetadataMode
-      ? await synthesizeWithMetadata(admin, anthropicKey, allDocs, docsWithMeta, questions, clientContext, logCtx)
-      : await synthesizeWithRawDocs(admin, anthropicKey, docsForFallback.slice(0, FALLBACK_DOC_LIMIT), questions, clientContext, logCtx)
+      ? await synthesizeWithMetadata(admin, anthropicKey, allDocs, docsWithMeta, questions, clientContext, evidenceContext, logCtx)
+      : await synthesizeWithRawDocs(admin, anthropicKey, docsForFallback.slice(0, FALLBACK_DOC_LIMIT), questions, clientContext, evidenceContext, logCtx)
 
     console.log(`[smart-questionnaire] Synthesis returned ${result.answers.length} answer(s), ${result.docs_failed.length} failure(s)`)
 
@@ -390,6 +397,7 @@ async function synthesizeWithMetadata(
   docsWithMeta: DocRow[],
   questions: QuestionInput[],
   clientContext: string,
+  evidenceContext: EvidenceContext,
   logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
 ): Promise<{ answers: AIAnswer[]; docs_analyzed_names: string[]; docs_failed: { name: string; reason: string }[] }> {
   const corpusBlocks = docsWithMeta.map((d) => formatMetadataBlock(d))
@@ -398,6 +406,7 @@ async function synthesizeWithMetadata(
     .map((d) => ({ name: d.file_name, reason: d.ai_extract_error ?? 'extraction_failed' }))
 
   const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
+  const evidenceSection = formatEvidenceSection(evidenceContext)
 
   const prompt = `Tu es un auditeur SI senior rigoureux. Tu disposes d'un corpus de documents fournis par le client avec leurs métadonnées extraites (Passe 1, signatures avec preuve visuelle).
 
@@ -405,7 +414,7 @@ ${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
 CORPUS (${docsWithMeta.length} documents avec métadonnées vérifiées) :
 
 ${corpusBlocks.join('\n\n---\n\n')}
-
+${evidenceSection}
 QUESTIONS :
 ${questionsText}
 
@@ -425,9 +434,13 @@ RÈGLES STRICTES :
    - 50-70 : un doc dédié non signé ou formalité moyenne
    - 25-45 : declared_only
 
-5. Ne renvoie pas les questions sans aucune information disponible.
+5. PIÈCES DÉDIÉES (priorité absolue) : si une question porte sur un sujet pour lequel une PIÈCE DÉDIÉE figure dans la section ci-dessus, tu DOIS placer cette pièce en premier dans source_documents. Les documents généralistes (PSSI, charte) ne viennent qu'en complément. Ne tombe JAMAIS sur la PSSI quand une pièce dédiée existe pour le sujet.
 
-6. source_documents = noms exacts (file_name) du corpus. Vide pour declared_only.
+6. PIÈCES INDISPONIBLES : pour toute question qui touche un sujet listé en "PIÈCES DÉCLARÉES INDISPONIBLES", ta réponse DOIT explicitement mentionner que le client a déclaré ne pas avoir ce document, en reprenant le motif et la justification. evidence_type doit être 'declared_only' (jamais 'declared_with_doc' ni 'declared_with_signed_doc'), confidence ≤ 30, source_documents vide. Tu peux quand même proposer une réponse synthétique de la situation déclarée.
+
+7. Ne renvoie pas les questions sans aucune information disponible (ni doc ni déclinaison).
+
+8. source_documents = noms exacts (file_name) du corpus. Vide pour declared_only.
 
 Appelle UNIQUEMENT l'outil propose_answers.`
 
@@ -550,6 +563,7 @@ async function synthesizeWithRawDocs(
   docs: DocRow[],
   questions: QuestionInput[],
   clientContext: string,
+  evidenceContext: EvidenceContext,
   logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
 ): Promise<{ answers: AIAnswer[]; docs_analyzed_names: string[]; docs_failed: { name: string; reason: string }[] }> {
   if (docs.length === 0) {
@@ -558,12 +572,13 @@ async function synthesizeWithRawDocs(
 
   const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
   const docNames = docs.map((d) => `[${d.file_name}]`).join('; ')
+  const evidenceSection = formatEvidenceSection(evidenceContext)
 
   const prompt = `Tu es un auditeur SI senior. Analyse les documents joints pour pré-remplir un questionnaire de prise de connaissance.
 
 ${clientContext ? `CONTEXTE: ${clientContext}\n` : ''}
 DOCUMENTS: ${docNames}
-
+${evidenceSection}
 QUESTIONS :
 ${questionsText}
 
@@ -573,8 +588,10 @@ RÈGLES :
    - 'declared_with_doc' : doc traite le sujet mais signature/formalité absente
    - 'declared_only' : seule mention textuelle dans un doc non dédié
 2. Pour confidence : 70-85 si doc direct, 25-45 si déclaration sans doc dédié.
-3. Ne renvoie pas les questions sans information.
-4. source_documents = noms exacts (file_name) ayant servi de source.
+3. PIÈCES DÉDIÉES : si une question porte sur un sujet pour lequel une pièce dédiée existe, place-la EN PREMIER dans source_documents. Ne tombe jamais sur la PSSI quand une pièce dédiée existe.
+4. PIÈCES INDISPONIBLES : pour les questions touchant les sujets déclinés, evidence_type='declared_only', confidence ≤ 30, source_documents vide. Mentionne explicitement le motif et la justification du client dans answer.
+5. Ne renvoie pas les questions sans information ni déclinaison.
+6. source_documents = noms exacts (file_name) ayant servi de source.
 
 Appelle UNIQUEMENT l'outil propose_answers.`
 
@@ -713,6 +730,142 @@ async function callClaudeWithTool(
     }))
 
   return { success: true, answers }
+}
+
+// ── EVIDENCE CONTEXT (pièces dédiées + pièces déclinées) ───────────────────
+// Permet à la Passe 2 de :
+//   - prioriser les docs uploadés EN RÉPONSE à une demande de preuve précise
+//     (mapping fort doc → contrôle / sujet) plutôt qu'un doc généraliste (PSSI)
+//   - mentionner explicitement les sujets pour lesquels le client a déclaré
+//     ne pas avoir de document (decline_reason + decline_justification)
+
+interface DedicatedDoc {
+  file_name: string
+  evidence_name: string
+  evidence_description: string | null
+  control_code: string | null
+  control_name: string | null
+}
+
+interface DeclinedEvidence {
+  evidence_name: string
+  evidence_description: string | null
+  control_code: string | null
+  control_name: string | null
+  decline_reason: string | null
+  decline_justification: string | null
+}
+
+interface EvidenceContext {
+  dedicatedDocs: DedicatedDoc[]
+  declinedRequests: DeclinedEvidence[]
+}
+
+async function loadEvidenceContext(admin: SupabaseAdmin, missionId: string): Promise<EvidenceContext> {
+  // Pièces dédiées : docs uploadés via le workflow "demande de preuve"
+  const { data: docsRaw } = await admin
+    .from('documents')
+    .select(`
+      file_name,
+      evidence_request:mission_evidence_requests!evidence_request_id (
+        evidence_catalog:evidence_catalog!evidence_catalog_id (
+          name,
+          description,
+          control:controls!control_id ( code, name )
+        )
+      )
+    `)
+    .eq('mission_id', missionId)
+    .not('evidence_request_id', 'is', null)
+
+  const dedicatedDocs: DedicatedDoc[] = []
+  for (const row of (docsRaw ?? []) as Array<{
+    file_name: string
+    evidence_request: {
+      evidence_catalog: {
+        name: string
+        description: string | null
+        control: { code: string; name: string } | null
+      } | null
+    } | null
+  }>) {
+    const ec = row.evidence_request?.evidence_catalog
+    if (!ec) continue
+    dedicatedDocs.push({
+      file_name: row.file_name,
+      evidence_name: ec.name,
+      evidence_description: ec.description,
+      control_code: ec.control?.code ?? null,
+      control_name: ec.control?.name ?? null,
+    })
+  }
+
+  // Pièces déclinées : demandes que le client a explicitement marquées indisponibles
+  const { data: declinedRaw } = await admin
+    .from('mission_evidence_requests')
+    .select(`
+      decline_reason,
+      decline_justification,
+      evidence_catalog:evidence_catalog!evidence_catalog_id (
+        name,
+        description,
+        control:controls!control_id ( code, name )
+      )
+    `)
+    .eq('mission_id', missionId)
+    .in('status', ['declined_by_client', 'accepted'])
+
+  const declinedRequests: DeclinedEvidence[] = []
+  for (const row of (declinedRaw ?? []) as Array<{
+    decline_reason: string | null
+    decline_justification: string | null
+    evidence_catalog: {
+      name: string
+      description: string | null
+      control: { code: string; name: string } | null
+    } | null
+  }>) {
+    const ec = row.evidence_catalog
+    if (!ec) continue
+    declinedRequests.push({
+      evidence_name: ec.name,
+      evidence_description: ec.description,
+      control_code: ec.control?.code ?? null,
+      control_name: ec.control?.name ?? null,
+      decline_reason: row.decline_reason,
+      decline_justification: row.decline_justification,
+    })
+  }
+
+  return { dedicatedDocs, declinedRequests }
+}
+
+function formatEvidenceSection(ctx: EvidenceContext): string {
+  if (ctx.dedicatedDocs.length === 0 && ctx.declinedRequests.length === 0) return ''
+  const parts: string[] = ['']
+
+  if (ctx.dedicatedDocs.length > 0) {
+    parts.push(`PIÈCES DÉDIÉES (le client les a fournies en réponse à une demande de preuve précise — à utiliser EN PRIORITÉ pour les questions du sujet correspondant) :`)
+    for (const d of ctx.dedicatedDocs) {
+      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' — ' + d.control_name : ''}]` : ''
+      const desc = d.evidence_description ? ` — ${d.evidence_description}` : ''
+      parts.push(`- ${d.file_name} → preuve attendue : "${d.evidence_name}"${desc}${ctrl}`)
+    }
+    parts.push('')
+  }
+
+  if (ctx.declinedRequests.length > 0) {
+    parts.push(`PIÈCES DÉCLARÉES INDISPONIBLES (le client a explicitement déclaré ne pas avoir ces preuves — pour ces sujets ta réponse DOIT mentionner cette indisponibilité, evidence_type='declared_only', confidence ≤ 30, source_documents vide) :`)
+    for (const d of ctx.declinedRequests) {
+      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' — ' + d.control_name : ''}]` : ''
+      const reason = d.decline_reason ?? '?'
+      const justif = d.decline_justification ? ` — Justification : "${d.decline_justification}"` : ''
+      parts.push(`- "${d.evidence_name}"${ctrl} — Motif : ${reason}${justif}`)
+    }
+    parts.push('')
+  }
+
+  return parts.join('\n')
 }
 
 // ── HELPERS ─────────────────────────────────────────────────────────────────
