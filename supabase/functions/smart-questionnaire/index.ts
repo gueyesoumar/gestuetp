@@ -263,14 +263,19 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4. Cache check (TTL 24h) — uniquement si AUCUN doc n'était en attente.
-    //    Sinon le cache est forcément obsolète (produit sur un corpus sans
-    //    métadonnées) et doit être recompilé.
-    if (pendingDocs.length === 0 && mission.ai_synthesis_cache?.answers && mission.ai_synthesis_at) {
+    // 4. Cache check (TTL 24h) — uniquement si AUCUN doc n'était en attente
+    //    ET si le cache contient au moins une réponse. Un cache vide vient
+    //    forcément d'un run raté et doit être recompilé.
+    if (
+      pendingDocs.length === 0
+      && mission.ai_synthesis_cache?.answers
+      && mission.ai_synthesis_cache.answers.length > 0
+      && mission.ai_synthesis_at
+    ) {
       const ageMs = Date.now() - new Date(mission.ai_synthesis_at).getTime()
       if (ageMs < CACHE_TTL_HOURS * 3600 * 1000) {
         const cached = mission.ai_synthesis_cache
-        console.log(`[smart-questionnaire] Cache HIT (age=${(ageMs / 3600 / 1000).toFixed(1)}h)`)
+        console.log(`[smart-questionnaire] Cache HIT (age=${(ageMs / 3600 / 1000).toFixed(1)}h, answers=${cached.answers.length})`)
         return jsonResponse({
           answers: (cached.answers ?? []).map((a) => ({ ...a, validated: false })),
           docs_analyzed: cached.docs_analyzed_names?.length ?? 0,
@@ -322,23 +327,36 @@ Deno.serve(async (req) => {
     const docsForFallback = allDocs.filter((d) => d.anthropic_file_id && !d.ai_metadata)
     const useMetadataMode = docsWithMeta.length >= Math.min(3, allDocs.length)
 
+    console.log(`[smart-questionnaire] Mode=${useMetadataMode ? 'metadata' : 'fallback'} docsWithMeta=${docsWithMeta.length} docsForFallback=${docsForFallback.length}`)
+
     const result = useMetadataMode
       ? await synthesizeWithMetadata(admin, anthropicKey, allDocs, docsWithMeta, questions, clientContext, logCtx)
       : await synthesizeWithRawDocs(admin, anthropicKey, docsForFallback.slice(0, FALLBACK_DOC_LIMIT), questions, clientContext, logCtx)
 
-    // 7. Cache
-    // deno-lint-ignore no-explicit-any
-    await (admin.from('missions') as any)
-      .update({
-        ai_synthesis_cache: {
-          answers: result.answers,
-          docs_analyzed_names: result.docs_analyzed_names,
-          docs_total: allDocs.length,
-          docs_failed: result.docs_failed,
-        },
-        ai_synthesis_at: new Date().toISOString(),
-      })
-      .eq('id', mission_id)
+    console.log(`[smart-questionnaire] Synthesis returned ${result.answers.length} answer(s), ${result.docs_failed.length} failure(s)`)
+
+    // 7. Cache — uniquement si la synthèse a produit au moins une réponse.
+    //    Sinon on laisse le cache existant (au pire l'ancien, au mieux NULL)
+    //    pour ne pas bloquer un retry ultérieur sur un cache vide.
+    if (result.answers.length > 0) {
+      // deno-lint-ignore no-explicit-any
+      await (admin.from('missions') as any)
+        .update({
+          ai_synthesis_cache: {
+            answers: result.answers,
+            docs_analyzed_names: result.docs_analyzed_names,
+            docs_total: allDocs.length,
+            docs_failed: result.docs_failed,
+          },
+          ai_synthesis_at: new Date().toISOString(),
+        })
+        .eq('id', mission_id)
+    } else {
+      // deno-lint-ignore no-explicit-any
+      await (admin.from('missions') as any)
+        .update({ ai_synthesis_cache: null, ai_synthesis_at: null })
+        .eq('id', mission_id)
+    }
 
     return jsonResponse({
       answers: result.answers.map((a) => ({ ...a, validated: false })),
