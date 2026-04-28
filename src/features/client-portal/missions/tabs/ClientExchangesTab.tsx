@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
-import { Paperclip, Check, Sparkles, FileText, BarChart3, Calendar, BookOpen, Link2, ArrowRight } from 'lucide-react'
+import { Paperclip, Check, Sparkles, FileText, BarChart3, Calendar, BookOpen, Link2, ArrowRight, XCircle, AlertCircle, RotateCw } from 'lucide-react'
 import { useAuth } from '../../../../hooks/useAuth'
 import { useToast } from '../../../../hooks/useToast'
 import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
@@ -8,9 +8,13 @@ import { useMissionQuestionnaire } from '../../../missions/useMissionQuestionnai
 import { useMissionDocuments } from '../../../missions/useMissionDocuments'
 import { registerDocumentForAI } from '../../../missions/registerDocumentForAI'
 import { useClientExpectedDocuments } from '../../smart-interview/useClientExpectedDocuments'
+import { useDeclineEvidence } from '../../smart-interview/useDeclineEvidence'
+import { DeclineEvidenceModal } from '../../smart-interview/DeclineEvidenceModal'
 import { useClientInterviews } from './useClientInterviews'
 import { SmartInterviewContainer } from '../../smart-interview/SmartInterviewContainer'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
+import type { ExpectedDocument } from '../../smart-interview/useClientExpectedDocuments'
+import type { EvidenceDeclineReason } from '../../../../types/database.types'
 
 interface Props {
   mission: ClientMissionDetail
@@ -27,11 +31,39 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
   const [pendingDocName, setPendingDocName] = useState<string | null>(null)
   const [pendingControlIds, setPendingControlIds] = useState<string[]>([])
   const [linkingDocName, setLinkingDocName] = useState<string | null>(null)
+  const [decliningDoc, setDecliningDoc] = useState<ExpectedDocument | null>(null)
+  const [declineError, setDeclineError] = useState<string | null>(null)
 
   const { instance, questions, responses, loading: qLoading } = useMissionQuestionnaire(mission.id)
   const { documents, uploading, uploadDocument, refetch: refetchDocs } = useMissionDocuments(mission.id)
-  const { expectedDocs, pendingCount, uploadedCount, coveredControls, totalControls, loading: edLoading, refetch: refetchExpected } = useClientExpectedDocuments(mission.id)
+  const { expectedDocs, pendingCount, uploadedCount, declinedCount, coveredControls, totalControls, loading: edLoading, refetch: refetchExpected } = useClientExpectedDocuments(mission.id)
+  const { declineDocument, cancelDeclaration, submitting: declineSubmitting } = useDeclineEvidence(refetchExpected)
   const { interviews, loading: intLoading } = useClientInterviews(mission.id)
+
+  const handleDecline = useCallback(async (reason: EvidenceDeclineReason, justification: string): Promise<void> => {
+    if (!decliningDoc) return
+    setDeclineError(null)
+    const result = await declineDocument({
+      evidenceRequestIds: decliningDoc.evidenceRequestIds,
+      reason,
+      justification,
+    })
+    if (!result.ok) {
+      setDeclineError(result.error ?? 'Erreur')
+      return
+    }
+    toast.success(`Déclaration enregistrée pour « ${decliningDoc.name} »`)
+    setDecliningDoc(null)
+  }, [decliningDoc, declineDocument, toast])
+
+  const handleCancelDecline = useCallback(async (doc: ExpectedDocument): Promise<void> => {
+    const result = await cancelDeclaration(doc.evidenceRequestIds)
+    if (!result.ok) {
+      toast.error(result.error ?? 'Annulation impossible')
+      return
+    }
+    toast.success(`Déclaration annulée pour « ${doc.name} »`)
+  }, [cancelDeclaration, toast])
 
   const initialResponses = new Map<string, unknown>()
   for (const r of responses) {
@@ -224,6 +256,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
           <h3 className="text-sm font-bold">Documents</h3>
           {pendingCount > 0 && <span className="text-[10px] font-medium text-gold-600 bg-gold-50 px-2 py-0.5 rounded-full">{pendingCount} en attente</span>}
           {uploadedCount > 0 && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{uploadedCount} d&eacute;pos&eacute;{uploadedCount > 1 ? 's' : ''}</span>}
+          {declinedCount > 0 && <span className="text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">{declinedCount} d&eacute;clar&eacute;{declinedCount > 1 ? 's' : ''} ND</span>}
         </div>
 
         {/* Upload zone */}
@@ -267,9 +300,20 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
               {expectedDocs.map((doc) => (
                 <div key={doc.id} className="flex flex-col">
                   <div className={`flex items-start gap-2.5 p-3 border rounded-lg transition-colors ${
-                    doc.status === 'uploaded' ? 'bg-forest-50 border-forest-200' : 'bg-white border-gray-200 hover:border-forest-300'
+                    doc.status === 'uploaded' ? 'bg-forest-50 border-forest-200'
+                      : doc.status === 'declined_by_client' ? 'bg-amber-50/40 border-amber-200'
+                      : doc.status === 'accepted' ? 'bg-blue-50/40 border-blue-200'
+                      : doc.status === 'escalated_to_finding' ? 'bg-red-50/40 border-red-200'
+                      : doc.status === 'reissued' ? 'bg-gold-50/40 border-gold-300'
+                      : 'bg-white border-gray-200 hover:border-forest-300'
                   }`}>
-                    <span className="mt-0.5">{doc.status === 'uploaded' ? <FileText size={16} className="text-forest-700" /> : <BookOpen size={16} className="text-gold-500" />}</span>
+                    <span className="mt-0.5">
+                      {doc.status === 'uploaded' && <FileText size={16} className="text-forest-700" />}
+                      {(doc.status === 'pending' || doc.status === 'reissued') && <BookOpen size={16} className="text-gold-500" />}
+                      {doc.status === 'declined_by_client' && <XCircle size={16} className="text-amber-700" />}
+                      {doc.status === 'accepted' && <Check size={16} className="text-blue-600" />}
+                      {doc.status === 'escalated_to_finding' && <AlertCircle size={16} className="text-red-600" />}
+                    </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-900">{doc.name}</p>
                       {doc.description && <p className="text-[10px] text-gray-400 mt-0.5">{doc.description}</p>}
@@ -282,11 +326,51 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
                       {doc.uploadedFileName && (
                         <p className="text-[10px] text-green-600 font-medium mt-1.5 flex items-center gap-0.5"><Check size={10} /> {doc.uploadedFileName}</p>
                       )}
+                      {doc.status === 'declined_by_client' && (
+                        <div className="mt-1.5 text-[10px]">
+                          <span className="font-semibold text-amber-700">D&eacute;clar&eacute; non disponible</span>
+                          {doc.declineReason === 'inexistant' && <span className="text-amber-700"> &middot; inexistant</span>}
+                          {doc.declineReason === 'non_applicable' && <span className="text-amber-700"> &middot; non applicable</span>}
+                          {doc.declineReason === 'confidentialite' && <span className="text-amber-700"> &middot; confidentialit&eacute;</span>}
+                          <span className="text-gray-400"> &middot; en attente de l&rsquo;auditeur</span>
+                        </div>
+                      )}
+                      {doc.status === 'accepted' && (
+                        <p className="text-[10px] text-blue-700 font-medium mt-1.5 flex items-center gap-1">
+                          <Check size={10} /> D&eacute;claration accept&eacute;e par l&rsquo;auditeur
+                        </p>
+                      )}
+                      {doc.status === 'escalated_to_finding' && (
+                        <p className="text-[10px] text-red-700 font-medium mt-1.5 flex items-center gap-1">
+                          <AlertCircle size={10} /> Transform&eacute; en constat par l&rsquo;auditeur
+                        </p>
+                      )}
+                      {doc.status === 'reissued' && doc.auditorResponse && (
+                        <p className="text-[10px] text-gold-700 mt-1.5">
+                          <span className="font-semibold">L&rsquo;auditeur insiste&nbsp;:</span> {doc.auditorResponse}
+                        </p>
+                      )}
                     </div>
                     <div className="shrink-0 mt-0.5 flex flex-col gap-1">
                       {doc.status === 'uploaded' ? (
                         <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                           <Check size={13} className="text-white" />
+                        </div>
+                      ) : doc.status === 'declined_by_client' && canContribute ? (
+                        <button
+                          onClick={() => handleCancelDecline(doc)}
+                          disabled={declineSubmitting}
+                          className="px-3 py-1 border border-amber-300 rounded-lg text-[9px] text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                        >
+                          <RotateCw size={10} /> Annuler la d&eacute;claration
+                        </button>
+                      ) : doc.status === 'accepted' ? (
+                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center" title="Accept&eacute;e">
+                          <Check size={13} className="text-white" />
+                        </div>
+                      ) : doc.status === 'escalated_to_finding' ? (
+                        <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center" title="Transform&eacute; en constat">
+                          <AlertCircle size={13} className="text-white" />
                         </div>
                       ) : canContribute ? (
                         <>
@@ -307,6 +391,15 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
                               className="px-3 py-1 border border-gray-200 rounded-lg text-[9px] text-gray-400 hover:text-forest-700 hover:border-forest-300 transition-colors"
                             >
                               <Link2 size={10} /> Lier existant
+                            </button>
+                          )}
+                          {doc.evidenceRequestIds.length > 0 && (
+                            <button
+                              onClick={() => { setDeclineError(null); setDecliningDoc(doc) }}
+                              disabled={declineSubmitting}
+                              className="px-3 py-1 border border-amber-200 rounded-lg text-[9px] text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            >
+                              <XCircle size={10} /> Je n&rsquo;ai pas ce document
                             </button>
                           )}
                         </>
@@ -418,6 +511,18 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
           </div>
         )}
       </section>
+
+      {/* Decline modal */}
+      {decliningDoc && (
+        <DeclineEvidenceModal
+          documentName={decliningDoc.name}
+          evidenceRequestIds={decliningDoc.evidenceRequestIds}
+          submitting={declineSubmitting}
+          error={declineError}
+          onClose={() => { setDecliningDoc(null); setDeclineError(null) }}
+          onConfirm={handleDecline}
+        />
+      )}
     </div>
   )
 }
