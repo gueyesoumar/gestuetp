@@ -182,25 +182,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    // 2. Cache check (TTL 24h)
-    if (mission.ai_synthesis_cache?.answers && mission.ai_synthesis_at) {
-      const ageMs = Date.now() - new Date(mission.ai_synthesis_at).getTime()
-      if (ageMs < CACHE_TTL_HOURS * 3600 * 1000) {
-        const cached = mission.ai_synthesis_cache
-        console.log(`[smart-questionnaire] Cache HIT (age=${(ageMs / 3600 / 1000).toFixed(1)}h)`)
-        return jsonResponse({
-          answers: (cached.answers ?? []).map((a) => ({ ...a, validated: false })),
-          docs_analyzed: cached.docs_analyzed_names?.length ?? 0,
-          docs_total: cached.docs_total ?? 0,
-          docs_analyzed_names: cached.docs_analyzed_names ?? [],
-          docs_skipped: [],
-          docs_failed: cached.docs_failed ?? [],
-          from_cache: true,
-        })
-      }
-    }
-
-    // 3. Documents + métadonnées Passe 1
+    // 2. Documents + métadonnées Passe 1 — chargés AVANT le check de cache
+    // pour pouvoir détecter les docs en attente de Passe 1 et invalider le
+    // cache obsolète automatiquement.
     const { data: docsData } = await admin
       .from('documents')
       .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
@@ -215,22 +199,46 @@ Deno.serve(async (req) => {
       })
     }
 
-    // 3.bis Auto-backfill Passe 1 : tout doc avec anthropic_file_id mais sans
-    // ai_extracted_at ni ai_extract_error doit passer la Passe 1 avant qu'on
-    // raisonne dessus. Couvre les docs uploadés avant le commit 4.
     const pendingDocs = allDocs.filter(
       (d) => d.anthropic_file_id && !d.ai_extracted_at && !d.ai_extract_error,
     )
+
+    // 3. Auto-backfill Passe 1 (impératif AVANT le cache : un cache produit
+    //    sans métadonnées Passe 1 doit être balayé dès qu'on a la chance de
+    //    refaire une synthèse de qualité).
     if (pendingDocs.length > 0) {
       console.log(`[smart-questionnaire] Auto-backfill: ${pendingDocs.length} doc(s) en attente de Passe 1`)
       await runBackfill(admin, pendingDocs.slice(0, BACKFILL_LIMIT))
-      // Re-fetch pour récupérer les ai_metadata fraîchement écrits
       const { data: refreshed } = await admin
         .from('documents')
         .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
         .eq('mission_id', mission_id)
         .order('created_at', { ascending: false })
       allDocs = (refreshed ?? []) as DocRow[]
+      const postExtracted = allDocs.filter((d) => d.ai_extracted_at).length
+      const postFailed = allDocs.filter((d) => d.ai_extract_error).length
+      const postPending = allDocs.filter((d) => d.anthropic_file_id && !d.ai_extracted_at && !d.ai_extract_error).length
+      console.log(`[smart-questionnaire] Post-backfill: extracted=${postExtracted} failed=${postFailed} pending=${postPending}`)
+    }
+
+    // 4. Cache check (TTL 24h) — uniquement si AUCUN doc n'était en attente.
+    //    Sinon le cache est forcément obsolète (produit sur un corpus sans
+    //    métadonnées) et doit être recompilé.
+    if (pendingDocs.length === 0 && mission.ai_synthesis_cache?.answers && mission.ai_synthesis_at) {
+      const ageMs = Date.now() - new Date(mission.ai_synthesis_at).getTime()
+      if (ageMs < CACHE_TTL_HOURS * 3600 * 1000) {
+        const cached = mission.ai_synthesis_cache
+        console.log(`[smart-questionnaire] Cache HIT (age=${(ageMs / 3600 / 1000).toFixed(1)}h)`)
+        return jsonResponse({
+          answers: (cached.answers ?? []).map((a) => ({ ...a, validated: false })),
+          docs_analyzed: cached.docs_analyzed_names?.length ?? 0,
+          docs_total: cached.docs_total ?? 0,
+          docs_analyzed_names: cached.docs_analyzed_names ?? [],
+          docs_skipped: [],
+          docs_failed: cached.docs_failed ?? [],
+          from_cache: true,
+        })
+      }
     }
 
     // 4. Contexte client
