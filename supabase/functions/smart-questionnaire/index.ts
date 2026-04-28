@@ -231,7 +231,7 @@ Deno.serve(async (req) => {
     //    refaire une synthèse de qualité).
     if (pendingDocs.length > 0) {
       console.log(`[smart-questionnaire] Auto-backfill: ${pendingDocs.length} doc(s) en attente de Passe 1`)
-      const backfillResult = await runBackfill(admin, pendingDocs)
+      const backfillResult = await runBackfill(admin, pendingDocs, authHeader)
       const { data: refreshed } = await admin
         .from('documents')
         .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
@@ -484,12 +484,17 @@ interface BackfillResult {
   remaining: number
 }
 
-async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[]): Promise<BackfillResult> {
+async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[], callerAuthHeader: string): Promise<BackfillResult> {
   // Séquentiel + budget temps strict : on n'entame pas un nouveau doc si on
   // risque de dépasser la wall-time Supabase. Le reste sera traité au prochain
   // appel (frontend rejoue automatiquement).
+  //
+  // Auth : on forwarde le JWT utilisateur reçu du frontend (callerAuthHeader)
+  // au lieu de fabriquer un Bearer service-role. Ainsi la passerelle Supabase
+  // de extract-document-metadata accepte l'appel sans avoir à désactiver
+  // verify_jwt — solution résiliente aux re-déploiements.
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
   const targetUrl = `${supabaseUrl}/functions/v1/extract-document-metadata`
 
   const startedAt = Date.now()
@@ -509,8 +514,8 @@ async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[]): Promise<Backf
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-          'apikey': serviceKey,
+          'Authorization': callerAuthHeader,
+          'apikey': anonKey,
         },
         body: JSON.stringify({ document_id: doc.id }),
       })

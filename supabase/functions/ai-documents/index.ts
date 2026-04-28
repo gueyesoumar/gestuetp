@@ -46,13 +46,14 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceRoleKey)
+    const callerAuth = req.headers.get('Authorization') ?? ''
 
     const body = await req.json()
     const action = body.action as string
 
     switch (action) {
       case 'upload':
-        return await handleUpload(admin, anthropicKey, body)
+        return await handleUpload(admin, anthropicKey, body, callerAuth)
       case 'delete':
         return await handleDelete(admin, anthropicKey, body)
       case 'analyze':
@@ -75,7 +76,8 @@ Deno.serve(async (req) => {
 async function handleUpload(
   admin: ReturnType<typeof createClient>,
   anthropicKey: string,
-  body: { document_id: string }
+  body: { document_id: string },
+  callerAuth: string,
 ): Promise<Response> {
   const { document_id } = body
   if (!document_id) return jsonResponse({ error: 'document_id requis' }, 400)
@@ -166,14 +168,22 @@ async function handleUpload(
   }
 
   // Fire-and-forget : Passe 1 (extraction métadonnées par doc).
-  // Utilise EdgeRuntime.waitUntil quand disponible (Supabase Edge Runtime)
-  // pour que la promesse survive au retour de la response.
-  const extractPromise = admin.functions
-    .invoke('extract-document-metadata', { body: { document_id } })
-    .catch((err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'unknown'
-      console.warn('[ai-documents] extract-document-metadata invoke failed:', msg)
-    })
+  // Forward du JWT utilisateur (callerAuth) pour passer la vérification
+  // gateway de extract-document-metadata sans dépendre de --no-verify-jwt.
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+  const extractPromise = fetch(`${supabaseUrl}/functions/v1/extract-document-metadata`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': callerAuth,
+      'apikey': anonKey,
+    },
+    body: JSON.stringify({ document_id }),
+  }).catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : 'unknown'
+    console.warn('[ai-documents] extract-document-metadata fetch failed:', msg)
+  })
   // deno-lint-ignore no-explicit-any
   const runtime = (globalThis as any).EdgeRuntime
   if (runtime?.waitUntil) {
