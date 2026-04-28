@@ -25,11 +25,8 @@ export const HUB_PRODUCTS: HubProduct[] = [
     color: '#40916C',
     active: true,
     badge: 'Actif',
-    stats: [
-      { label: 'Missions', value: '3' },
-      { label: 'Contr\u00f4les', value: '93' },
-      { label: 'Score', value: '78%' },
-    ],
+    // stats live calcul\u00e9es dans HubPage via useComplyHubStats \u2014 laiss\u00e9es vides ici
+    stats: [],
   },
   {
     name: 'Risk',

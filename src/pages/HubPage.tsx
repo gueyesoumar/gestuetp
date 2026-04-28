@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { ShieldCheck, ChevronRight } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useBranding } from '../features/branding/useBranding'
+import { useComplyHubStats } from '../features/dashboard/useComplyHubStats'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 import { VaultBackground } from '../components/vault/VaultBackground'
 import { ParticleCanvas } from '../components/vault/ParticleCanvas'
@@ -21,10 +22,25 @@ import { HUB_PRODUCTS } from '../lib/hubProducts'
 export function HubPage(): JSX.Element {
   const { profile, signOut } = useAuth()
   const { branding } = useBranding()
+  const { stats: complyStats, loading: complyLoading } = useComplyHubStats()
   const navigate = useNavigate()
 
   const firstName = profile?.first_name ?? 'Utilisateur'
   const isBranded = Boolean(branding)
+
+  // Stats live pour la carte Comply (les autres produits ne sont pas encore actifs)
+  const complyLiveStats = [
+    { label: 'Missions', value: complyLoading ? '…' : String(complyStats.activeMissions) },
+    { label: 'Contrôles', value: complyLoading ? '…' : String(complyStats.totalControls) },
+    {
+      label: 'Score',
+      value: complyLoading
+        ? '…'
+        : complyStats.conformityScore === null
+          ? '—'
+          : `${complyStats.conformityScore}%`,
+    },
+  ]
 
   return (
     <VaultBackground>
@@ -61,7 +77,7 @@ export function HubPage(): JSX.Element {
                 color={product.color}
                 active={product.active}
                 badge={product.badge}
-                stats={product.stats}
+                stats={product.name === 'Comply' ? complyLiveStats : product.stats}
                 delay={i * 100}
                 onClick={product.active ? () => navigate('/') : undefined}
               />
