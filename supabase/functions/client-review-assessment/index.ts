@@ -91,6 +91,24 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Verifier que l'appelant est explicitement Approbateur sur cette mission
+    // (cf. migration 00086 — la signature client_review est approver-only)
+    // deno-lint-ignore no-explicit-any
+    const { data: accessRows } = await (supabaseAdmin
+      .from('client_mission_access') as any)
+      .select('permission, client_portal_contacts!inner(user_id)')
+      .eq('mission_id', assessment.mission_id)
+      .eq('client_portal_contacts.user_id', callerProfile.id)
+      .eq('permission', 'approver')
+      .limit(1)
+
+    if (!accessRows || accessRows.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Permission Approbateur requise pour valider ce contrôle' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Verifier que le statut permet la revue client
     if (assessment.status !== 'in_review') {
       return new Response(
