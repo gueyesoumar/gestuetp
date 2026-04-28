@@ -31,6 +31,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [pendingDocName, setPendingDocName] = useState<string | null>(null)
   const [pendingControlIds, setPendingControlIds] = useState<string[]>([])
+  const [pendingEvidenceRequestIds, setPendingEvidenceRequestIds] = useState<string[]>([])
   const [linkingDocName, setLinkingDocName] = useState<string | null>(null)
   const [decliningDoc, setDecliningDoc] = useState<ExpectedDocument | null>(null)
   const [declineError, setDeclineError] = useState<string | null>(null)
@@ -74,16 +75,17 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
     }
   }
 
-  const triggerFileInput = useCallback((docName: string | null, controlIds?: string[]): void => {
+  const triggerFileInput = useCallback((docName: string | null, controlIds?: string[], evidenceRequestIds?: string[]): void => {
     setPendingDocName(docName)
     setPendingControlIds(controlIds ?? [])
+    setPendingEvidenceRequestIds(evidenceRequestIds ?? [])
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
       fileInputRef.current.click()
     }
   }, [])
 
-  const uploadOne = useCallback(async (file: File, evidenceName: string | null, controlIds: string[]): Promise<void> => {
+  const uploadOne = useCallback(async (file: File, evidenceName: string | null, controlIds: string[], evidenceRequestIds: string[]): Promise<void> => {
     if (!profile) return
 
     const description = evidenceName ? `[EVIDENCE:${evidenceName}]` : ''
@@ -95,6 +97,10 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
       .replace(/_+/g, '_')
     const filePath = `missions/${mission.id}/${Date.now()}_${safeName}`
     const controlId = controlIds.length > 0 ? controlIds[0] : null
+    // Mapping fort doc \u2192 demande de preuve : indispensable pour que la Passe 2
+    // de l'IA priorise ce doc sur la question correspondante (vs un doc
+    // g\u00e9n\u00e9raliste comme la PSSI). On prend la 1re demande de preuve si plusieurs.
+    const evidenceRequestId = evidenceRequestIds.length > 0 ? evidenceRequestIds[0] : null
 
     const upload = async (): Promise<string> => {
       const { error: storageError } = await supabase.storage.from('documents').upload(filePath, file)
@@ -118,6 +124,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
         body: JSON.stringify({
           mission_id: mission.id,
           control_id: controlId,
+          evidence_request_id: evidenceRequestId,
           uploaded_by: profile.id,
           file_name: file.name,
           file_path: filePath,
@@ -152,16 +159,15 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
     try { await promise } catch { /* toast already informed the user */ }
   }, [mission.id, profile, filesApiFlag.enabled, toast])
 
-  const processSelectedFiles = useCallback(async (files: FileList | File[], evidenceName: string | null, controlIds: string[]): Promise<void> => {
+  const processSelectedFiles = useCallback(async (files: FileList | File[], evidenceName: string | null, controlIds: string[], evidenceRequestIds: string[]): Promise<void> => {
     const { ok, failures } = validateFiles(files)
     for (const f of failures) {
       toast.error(`${f.fileName} : ${f.reason}`)
     }
     if (ok.length === 0) return
-    // Upload s\u00e9quentiel pour limiter la charge r\u00e9seau c\u00f4t\u00e9 client
     for (const file of ok) {
       // eslint-disable-next-line no-await-in-loop
-      await uploadOne(file, evidenceName, controlIds)
+      await uploadOne(file, evidenceName, controlIds, evidenceRequestIds)
     }
     refetchDocs()
     setTimeout(() => refetchExpected(), 500)
@@ -170,16 +176,17 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
   const handleFileSelected = useCallback(async (): Promise<void> => {
     const files = fileInputRef.current?.files
     if (!files || files.length === 0) return
-    await processSelectedFiles(files, pendingDocName, pendingControlIds)
+    await processSelectedFiles(files, pendingDocName, pendingControlIds, pendingEvidenceRequestIds)
     setPendingDocName(null)
     setPendingControlIds([])
-  }, [processSelectedFiles, pendingDocName, pendingControlIds])
+    setPendingEvidenceRequestIds([])
+  }, [processSelectedFiles, pendingDocName, pendingControlIds, pendingEvidenceRequestIds])
 
   const handleDrop = useCallback(async (e: React.DragEvent): Promise<void> => {
     e.preventDefault()
     const files = e.dataTransfer.files
     if (!files || files.length === 0) return
-    await processSelectedFiles(files, null, [])
+    await processSelectedFiles(files, null, [], [])
   }, [processSelectedFiles])
 
   const linkExistingDoc = useCallback(async (existingDoc: { file_name: string; file_path: string; file_size: number | null; mime_type: string | null }, evidenceName: string, controlIds?: string[]): Promise<void> => {
@@ -385,7 +392,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
                       ) : canContribute ? (
                         <>
                           <button
-                            onClick={() => triggerFileInput(doc.name, doc.controlIds)}
+                            onClick={() => triggerFileInput(doc.name, doc.controlIds, doc.evidenceRequestIds)}
                             disabled={uploading}
                             className="w-full px-2.5 py-1.5 border border-forest-300 rounded-md text-[10.5px] font-semibold text-forest-700 bg-forest-50 hover:bg-forest-100 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5 leading-none"
                           >

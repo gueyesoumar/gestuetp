@@ -428,19 +428,29 @@ RÈGLES STRICTES :
 
 3. Une SIMPLE MENTION (« le RSSI a signé la PSSI ») dans un document non dédié au sujet NE compte PAS comme 'declared_with_signed_doc' — c'est 'declared_only'. Seule la présence d'un document dédié + signé (preuve visuelle) compte.
 
-4. Confidence (0-100) :
-   - 90-95 : plusieurs docs concordants signés avec preuve visuelle
-   - 70-85 : un doc dédié signé avec preuve visuelle
-   - 50-70 : un doc dédié non signé ou formalité moyenne
+4. PREUVE TANGIBLE D'EXISTENCE — règle critique pour un audit. Quand un document AFFIRME l'existence d'une personne, d'une instance ou d'un mécanisme, tu DOIS chercher dans le corpus une PREUVE TANGIBLE DISTINCTE de cette affirmation, sinon tu rétrogrades l'evidence_type :
+   - Personne (RSSI, DPO, RSIO, etc.) : preuve tangible = fiche de poste signée, lettre de mission, organigramme nominatif, contrat de travail, mail signé du nommé. La seule mention « le RSSI fait X » dans la PSSI NE prouve PAS l'existence effective d'un RSSI.
+   - Instance / Comité (Comité de Sécurité, COSEC, COPIL) : preuve tangible = note de création signée, charte du comité, compte-rendu de séance (avec date + participants). La seule mention dans une procédure NE prouve PAS l'existence effective.
+   - Mécanisme récurrent (revue annuelle, audit interne périodique) : preuve tangible = au moins un livrable historique daté (CR, rapport, attestation). La seule mention dans une politique NE prouve PAS la réalisation effective.
+
+   Si la mention est présente mais la preuve tangible ABSENTE du corpus :
+   - evidence_type ne peut PAS être 'declared_with_signed_doc' — au mieux 'declared_with_doc' ou 'declared_only'
+   - confidence plafonné à 50
+   - ta réponse DOIT mentionner explicitement le manque ("mention de [X] dans [doc] mais aucune preuve tangible (fiche de poste / note de création / livrable daté) n'a été fournie pour confirmer l'existence effective")
+
+5. Confidence (0-100) :
+   - 90-95 : plusieurs docs concordants signés avec preuve visuelle ET preuves tangibles d'existence
+   - 70-85 : un doc dédié signé avec preuve visuelle ET preuves tangibles
+   - 50-70 : un doc dédié non signé OU formalité moyenne OU mention sans preuve tangible
    - 25-45 : declared_only
 
-5. PIÈCES DÉDIÉES (priorité absolue) : si une question porte sur un sujet pour lequel une PIÈCE DÉDIÉE figure dans la section ci-dessus, tu DOIS placer cette pièce en premier dans source_documents. Les documents généralistes (PSSI, charte) ne viennent qu'en complément. Ne tombe JAMAIS sur la PSSI quand une pièce dédiée existe pour le sujet.
+6. PIÈCES DÉDIÉES (priorité absolue) : si une question porte sur un sujet pour lequel une PIÈCE DÉDIÉE figure dans la section ci-dessus, tu DOIS placer cette pièce en premier dans source_documents. Les documents généralistes (PSSI, charte) ne viennent qu'en complément. Ne tombe JAMAIS sur la PSSI quand une pièce dédiée existe pour le sujet.
 
-6. PIÈCES INDISPONIBLES : pour toute question qui touche un sujet listé en "PIÈCES DÉCLARÉES INDISPONIBLES", ta réponse DOIT explicitement mentionner que le client a déclaré ne pas avoir ce document, en reprenant le motif et la justification. evidence_type doit être 'declared_only' (jamais 'declared_with_doc' ni 'declared_with_signed_doc'), confidence ≤ 30, source_documents vide. Tu peux quand même proposer une réponse synthétique de la situation déclarée.
+7. PIÈCES INDISPONIBLES : pour toute question qui touche un sujet listé en "PIÈCES DÉCLARÉES INDISPONIBLES", ta réponse DOIT explicitement mentionner que le client a déclaré ne pas avoir ce document, en reprenant le motif et la justification. evidence_type doit être 'declared_only' (jamais 'declared_with_doc' ni 'declared_with_signed_doc'), confidence ≤ 30, source_documents vide.
 
-7. Ne renvoie pas les questions sans aucune information disponible (ni doc ni déclinaison).
+8. Ne renvoie pas les questions sans aucune information disponible (ni doc ni déclinaison).
 
-8. source_documents = noms exacts (file_name) du corpus. Vide pour declared_only.
+9. source_documents = noms exacts (file_name) du corpus. Vide pour declared_only.
 
 Appelle UNIQUEMENT l'outil propose_answers.`
 
@@ -587,11 +597,12 @@ RÈGLES :
    - 'declared_with_signed_doc' : doc présente le sujet ET tu vois une signature/cachet/paraphe + en-tête formel
    - 'declared_with_doc' : doc traite le sujet mais signature/formalité absente
    - 'declared_only' : seule mention textuelle dans un doc non dédié
-2. Pour confidence : 70-85 si doc direct, 25-45 si déclaration sans doc dédié.
-3. PIÈCES DÉDIÉES : si une question porte sur un sujet pour lequel une pièce dédiée existe, place-la EN PREMIER dans source_documents. Ne tombe jamais sur la PSSI quand une pièce dédiée existe.
-4. PIÈCES INDISPONIBLES : pour les questions touchant les sujets déclinés, evidence_type='declared_only', confidence ≤ 30, source_documents vide. Mentionne explicitement le motif et la justification du client dans answer.
-5. Ne renvoie pas les questions sans information ni déclinaison.
-6. source_documents = noms exacts (file_name) ayant servi de source.
+2. PREUVE TANGIBLE D'EXISTENCE : si un doc affirme l'existence d'un RSSI, d'un Comité de Sécurité, d'une revue annuelle, etc., tu cherches une preuve tangible distincte (fiche de poste, note de création, compte-rendu de séance, livrable daté). Sans cette preuve : evidence_type au mieux 'declared_with_doc' ou 'declared_only', confidence ≤ 50, et la réponse mentionne explicitement le manque de preuve tangible.
+3. Pour confidence : 70-85 si doc direct + preuve tangible, 50 si mention sans preuve tangible, 25-45 si déclaration sans doc dédié.
+4. PIÈCES DÉDIÉES : si une question porte sur un sujet pour lequel une pièce dédiée existe, place-la EN PREMIER dans source_documents. Ne tombe jamais sur la PSSI quand une pièce dédiée existe.
+5. PIÈCES INDISPONIBLES : pour les questions touchant les sujets déclinés, evidence_type='declared_only', confidence ≤ 30, source_documents vide. Mentionne explicitement le motif et la justification du client dans answer.
+6. Ne renvoie pas les questions sans information ni déclinaison.
+7. source_documents = noms exacts (file_name) ayant servi de source.
 
 Appelle UNIQUEMENT l'outil propose_answers.`
 
