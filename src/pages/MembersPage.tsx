@@ -5,6 +5,7 @@ import { useMembers } from '../features/members/useMembers'
 import { usePlatformRoles } from '../features/members/usePlatformRoles'
 import { useToggleMemberStatus } from '../features/members/useToggleMemberStatus'
 import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
+import { useToast } from '../hooks/useToast'
 import { MemberTable } from '../features/members/MemberTable'
 import { MemberSearchBar } from '../features/members/MemberSearchBar'
 import { InviteMemberModal } from '../features/members/InviteMemberModal'
@@ -22,6 +23,7 @@ export function MembersPage() {
   const { roles } = usePlatformRoles()
   const { toggleStatus } = useToggleMemberStatus(refetch)
   const { canManageMembers, canManageRoles } = useCabinetPermissions()
+  const toast = useToast()
 
   // Modals
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -82,7 +84,7 @@ export function MembersPage() {
 
   const confirmResendInvite = useCallback(async () => {
     if (!resendTarget) return
-    await supabase.functions.invoke('invite-member', {
+    const { data, error: fnError } = await supabase.functions.invoke('invite-member', {
       body: {
         email: resendTarget.email,
         first_name: resendTarget.first_name,
@@ -91,8 +93,13 @@ export function MembersPage() {
         resend: true,
       },
     })
+    if (fnError || data?.error) {
+      toast.error((data?.error as string | undefined) ?? fnError?.message ?? 'Envoi de l\'invitation impossible')
+    } else {
+      toast.success(`Invitation renvoyée à ${resendTarget.email}`)
+    }
     setResendTarget(null)
-  }, [resendTarget])
+  }, [resendTarget, toast])
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />

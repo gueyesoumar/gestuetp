@@ -33,6 +33,31 @@ export function cabinetOwnerInviteTemplate({ firstName, cabinetName, link }: Cab
   })
 }
 
+interface MemberInviteParams {
+  firstName: string
+  cabinetName: string
+  link: string
+  isResend?: boolean
+}
+
+export function memberInviteTemplate({ firstName, cabinetName, link, isResend }: MemberInviteParams): string {
+  const safeFirst = escapeHtml(firstName)
+  const safeCabinet = escapeHtml(cabinetName)
+  const safeLink = escapeHtml(link)
+  const title = isResend ? 'Nouvelle invitation à rejoindre le cabinet' : 'Vous êtes invité·e à rejoindre le cabinet'
+  const body = isResend
+    ? `Voici un nouveau lien pour rejoindre le cabinet <strong>${safeCabinet}</strong> sur Gëstu Comply. Le lien précédent a peut-être expiré ou n'est plus valide.`
+    : `Vous avez été invité·e à rejoindre le cabinet <strong>${safeCabinet}</strong> sur Gëstu Comply, la plateforme d'audit et de conformité. Définissez votre mot de passe pour activer votre compte et accéder à votre espace de travail.`
+  return baseTemplate({
+    title,
+    intro: `Bonjour ${safeFirst},`,
+    body,
+    ctaLabel: 'Définir mon mot de passe',
+    ctaLink: safeLink,
+    expiry: 'Ce lien est valable 24 heures.',
+  })
+}
+
 interface PasswordResetParams {
   firstName: string
   link: string
