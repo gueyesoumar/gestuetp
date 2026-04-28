@@ -38,15 +38,27 @@ interface AIAnswer {
   sourceDocs: string[]
 }
 
+interface SignatureEvidence {
+  page: number | null
+  quote: string
+}
+
 interface DocumentSignature {
   role: string | null
   name: string | null
   signed: boolean
   date: string | null
+  evidence?: SignatureEvidence | null
+}
+
+interface VersionEvidence {
+  location: string
+  quote: string
 }
 
 interface DocumentAiMetadata {
   version: string | null
+  version_evidence?: VersionEvidence | null
   last_revision_date: string | null
   signatures: DocumentSignature[]
   formality_score: number | null
@@ -57,6 +69,7 @@ interface DocumentAiMetadata {
 }
 
 interface DocRow {
+  id: string
   file_name: string
   anthropic_file_id: string | null
   anthropic_file_kind: 'document' | 'image' | null
@@ -70,6 +83,8 @@ const MAX_TOKENS = 4000
 const CLAUDE_TIMEOUT_MS = 120_000
 const CACHE_TTL_HOURS = 24
 const FALLBACK_DOC_LIMIT = 8 // si aucun ai_metadata dispo, on attache jusqu'à 8 docs bruts
+const BACKFILL_CONCURRENCY = 3 // appels parallèles à extract-document-metadata
+const BACKFILL_LIMIT = 20 // au-delà on n'attend pas — l'utilisateur verra le résultat à la prochaine analyse
 
 const SYNTHESIZE_TOOL = {
   name: 'propose_answers',
@@ -95,7 +110,7 @@ const SYNTHESIZE_TOOL = {
             evidence_type: {
               type: 'string',
               enum: ['declared_only', 'declared_with_doc', 'declared_with_signed_doc'],
-              description: "Qualité de la preuve : 'declared_with_signed_doc' si ≥1 signature signed=true ET formality_score>=70 sur un doc traitant le sujet ; 'declared_with_doc' si un doc traite le sujet mais formel/signé absent ; 'declared_only' si la réponse repose sur une déclaration textuelle sans doc dédié.",
+              description: "Qualité de la preuve. 'declared_with_signed_doc' EXIGE simultanément : un doc dédié au sujet + au moins une signature avec preuve visuelle (Signatures avec preuve non vide) + formalité observée >= 70. Sinon 'declared_with_doc' (doc dédié mais une condition manque) ou 'declared_only' (aucun doc dédié, pure mention textuelle). Une simple mention 'signé par X' sans preuve visuelle est PROSCRITE comme declared_with_signed_doc.",
             },
             source_documents: {
               type: 'array',
@@ -188,16 +203,34 @@ Deno.serve(async (req) => {
     // 3. Documents + métadonnées Passe 1
     const { data: docsData } = await admin
       .from('documents')
-      .select('file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
+      .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
       .eq('mission_id', mission_id)
       .order('created_at', { ascending: false })
 
-    const allDocs = (docsData ?? []) as DocRow[]
+    let allDocs = (docsData ?? []) as DocRow[]
     if (allDocs.length === 0) {
       return jsonResponse({
         answers: [], docs_analyzed: 0, docs_total: 0,
         docs_analyzed_names: [], docs_skipped: [], docs_failed: [],
       })
+    }
+
+    // 3.bis Auto-backfill Passe 1 : tout doc avec anthropic_file_id mais sans
+    // ai_extracted_at ni ai_extract_error doit passer la Passe 1 avant qu'on
+    // raisonne dessus. Couvre les docs uploadés avant le commit 4.
+    const pendingDocs = allDocs.filter(
+      (d) => d.anthropic_file_id && !d.ai_extracted_at && !d.ai_extract_error,
+    )
+    if (pendingDocs.length > 0) {
+      console.log(`[smart-questionnaire] Auto-backfill: ${pendingDocs.length} doc(s) en attente de Passe 1`)
+      await runBackfill(admin, pendingDocs.slice(0, BACKFILL_LIMIT))
+      // Re-fetch pour récupérer les ai_metadata fraîchement écrits
+      const { data: refreshed } = await admin
+        .from('documents')
+        .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
+        .eq('mission_id', mission_id)
+        .order('created_at', { ascending: false })
+      allDocs = (refreshed ?? []) as DocRow[]
     }
 
     // 4. Contexte client
@@ -293,10 +326,10 @@ async function synthesizeWithMetadata(
 
   const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
 
-  const prompt = `Tu es un auditeur SI senior rigoureux. Tu disposes d'un corpus de documents fournis par le client avec leurs métadonnées extraites (Passe 1).
+  const prompt = `Tu es un auditeur SI senior rigoureux. Tu disposes d'un corpus de documents fournis par le client avec leurs métadonnées extraites (Passe 1, signatures avec preuve visuelle).
 
 ${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
-CORPUS (${docsWithMeta.length} documents avec métadonnées) :
+CORPUS (${docsWithMeta.length} documents avec métadonnées vérifiées) :
 
 ${corpusBlocks.join('\n\n---\n\n')}
 
@@ -305,13 +338,23 @@ ${questionsText}
 
 RÈGLES STRICTES :
 1. Tu peux croiser les informations de plusieurs documents.
-2. Pour evidence_type :
-   - 'declared_with_signed_doc' : ≥1 doc traite le sujet ET ce doc a ≥1 signature signed=true ET son formality_score >= 70
-   - 'declared_with_doc' : un doc traite le sujet mais signature absente ou formality_score < 70
-   - 'declared_only' : aucun doc dédié, tu te bases uniquement sur une mention/synthèse textuelle
-3. Pour confidence : voir l'enum dans le tool. N'invente JAMAIS.
-4. Ne renvoie pas les questions sans aucune information disponible.
-5. source_documents = noms exacts (file_name) du corpus ; vide pour declared_only.
+
+2. Pour evidence_type, applique CE QUI SUIT À LA LETTRE :
+   - 'declared_with_signed_doc' : il existe ≥1 document qui (a) traite le sujet de la question dans une section dédiée ou via ses sujets clés ET (b) a au moins une signature avec preuve visuelle (champ "Signatures avec preuve" non vide) ET (c) a une formalité observée >= 70.
+   - 'declared_with_doc' : un document traite le sujet mais ne remplit PAS toutes les conditions ci-dessus (ex: document non signé, ou formalité < 70, ou signature mentionnée sans preuve visuelle).
+   - 'declared_only' : aucun document du corpus ne traite directement le sujet, ta réponse repose uniquement sur des mentions textuelles indirectes ou sur la synthèse générale d'un doc.
+
+3. Une SIMPLE MENTION (« le RSSI a signé la PSSI ») dans un document non dédié au sujet NE compte PAS comme 'declared_with_signed_doc' — c'est 'declared_only'. Seule la présence d'un document dédié + signé (preuve visuelle) compte.
+
+4. Confidence (0-100) :
+   - 90-95 : plusieurs docs concordants signés avec preuve visuelle
+   - 70-85 : un doc dédié signé avec preuve visuelle
+   - 50-70 : un doc dédié non signé ou formalité moyenne
+   - 25-45 : declared_only
+
+5. Ne renvoie pas les questions sans aucune information disponible.
+
+6. source_documents = noms exacts (file_name) du corpus. Vide pour declared_only.
 
 Appelle UNIQUEMENT l'outil propose_answers.`
 
@@ -341,15 +384,52 @@ Appelle UNIQUEMENT l'outil propose_answers.`
 
 function formatMetadataBlock(d: DocRow): string {
   const m = d.ai_metadata!
+  const signedSigs = m.signatures.filter((s) => s.signed)
   const sigSummary = m.signatures.length === 0
-    ? 'aucune signature'
-    : `${m.signatures.filter((s) => s.signed).length}/${m.signatures.length} signées`
+    ? 'aucune signature détectée'
+    : `${signedSigs.length}/${m.signatures.length} signées avec preuve visuelle`
+  // Détail des signatures signées (preuve concrète) — décisif pour evidence_type
+  const sigDetail = signedSigs.length === 0
+    ? ''
+    : '\n- Signatures avec preuve : ' + signedSigs
+        .slice(0, 3)
+        .map((s) => `${s.role ?? '?'}${s.name ? ' (' + s.name + ')' : ''} → "${s.evidence?.quote ?? 'preuve visuelle'}"`)
+        .join(' ; ')
+  const versionDetail = m.version_evidence
+    ? ` (${m.version_evidence.location} : "${m.version_evidence.quote}")`
+    : ''
   return `Document: ${d.file_name}
 - Synthèse: ${m.synthesis ?? '?'}
-- Version: ${m.version ?? '?'} | Dernière révision: ${m.last_revision_date ?? '?'} | Pages: ${m.page_count ?? '?'}
-- Formalité: ${m.formality_score ?? '?'}/100 | Signatures: ${sigSummary}
+- Version: ${m.version ?? 'aucune'}${versionDetail} | Dernière révision: ${m.last_revision_date ?? '?'} | Pages: ${m.page_count ?? '?'}
+- Formalité observée: ${m.formality_score ?? '?'}/100 | Signatures: ${sigSummary}${sigDetail}
 - Scope déclaré: ${m.scope_declared ?? '?'}
 - Sujets clés: ${m.key_topics.join(', ') || '?'}`
+}
+
+// ── BACKFILL ───────────────────────────────────────────────────────────────
+// Invoque extract-document-metadata pour chaque doc en attente, avec
+// concurrence bornée. await complet avant de rendre la main pour que la
+// Passe 2 puisse exploiter les ai_metadata fraîchement écrits.
+
+async function runBackfill(admin: SupabaseAdmin, docs: DocRow[]): Promise<void> {
+  let cursor = 0
+  const next = async (): Promise<void> => {
+    while (cursor < docs.length) {
+      const i = cursor++
+      const doc = docs[i]
+      try {
+        const { error } = await admin.functions.invoke('extract-document-metadata', {
+          body: { document_id: doc.id },
+        })
+        if (error) console.warn(`[smart-questionnaire] backfill doc ${doc.file_name}:`, error.message)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'unknown'
+        console.warn(`[smart-questionnaire] backfill doc ${doc.file_name} threw:`, msg)
+      }
+    }
+  }
+  const workers = Array.from({ length: Math.min(BACKFILL_CONCURRENCY, docs.length) }, () => next())
+  await Promise.all(workers)
 }
 
 // ── MODE FALLBACK ──────────────────────────────────────────────────────────

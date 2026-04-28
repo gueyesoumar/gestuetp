@@ -18,24 +18,35 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
  *   - Document déjà extrait (ai_extracted_at non NULL) — idempotent
  *   - Pas de anthropic_file_id → erreur persistée
  *
- * Modèle : claude-haiku-4-5-20251001 (extraction structurée, ~3x moins cher
- * que Sonnet, qualité suffisante pour métadonnées factuelles).
+ * Modèle : claude-sonnet-4-20250514 (Haiku 4.5 trop laxiste sur la
+ * détection des signatures réelles vs blocs vides et sur le versionning).
+ * Sonnet est exigé pour la qualité — Pass 1 ne tourne qu'une fois par doc
+ * puis le résultat est mis en cache permanent dans documents.ai_metadata.
  */
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
 const ANTHROPIC_BETA = 'files-api-2025-04-14'
-const MODEL = 'claude-haiku-4-5-20251001'
-const MAX_TOKENS = 1500
+const MODEL = 'claude-sonnet-4-20250514'
+const MAX_TOKENS = 2500
 
 const EXTRACT_TOOL = {
   name: 'save_metadata',
-  description: 'Stocke les métadonnées extraites du document analysé.',
+  description: 'Stocke les métadonnées extraites du document analysé. Chaque champ doit être étayé par une preuve textuelle quand applicable.',
   input_schema: {
     type: 'object',
     properties: {
       version: {
         type: ['string', 'null'],
-        description: 'Numéro/libellé de version visible dans le document (ex: "v1.2", "Rev. 3", "Édition 2025"). null si absent.',
+        description: 'Numéro/libellé de version visible dans le document (ex: "v1.2", "Rev. 3", "Édition 2025"). null si absent. NE PAS confondre avec la date de dernière révision ou la date de génération PDF.',
+      },
+      version_evidence: {
+        type: ['object', 'null'],
+        description: 'Si version non null : où elle a été trouvée (en-tête, page de garde, footer, tableau de versions) + citation textuelle exacte. null si version=null.',
+        properties: {
+          location: { type: 'string', description: 'Ex: "page de garde", "en-tête page 1", "tableau de versions p.2".' },
+          quote: { type: 'string', description: 'Citation textuelle exacte (max 100 chars).' },
+        },
+        required: ['location', 'quote'],
       },
       last_revision_date: {
         type: ['string', 'null'],
@@ -49,15 +60,24 @@ const EXTRACT_TOOL = {
           properties: {
             role: { type: ['string', 'null'], description: 'Fonction du signataire (ex: "RSSI", "DG", "DAF").' },
             name: { type: ['string', 'null'], description: 'Nom complet si visible.' },
-            signed: { type: 'boolean', description: 'true si signature apposée (paraphe, cachet, scan visible). false si emplacement présent mais vide.' },
+            signed: { type: 'boolean', description: 'true UNIQUEMENT si tu vois un paraphe manuscrit, un cachet, un scan de signature, ou une mention électronique vérifiable type "signé électroniquement par X le YYYY-MM-DD". false dans tous les autres cas (bloc vide, simple "Signé : _____", mention "signé" sans visuel).' },
             date: { type: ['string', 'null'], description: 'Date de signature au format YYYY-MM-DD si visible.' },
+            evidence: {
+              type: ['object', 'null'],
+              description: 'Si signed=true : preuve visuelle. null si signed=false.',
+              properties: {
+                page: { type: ['number', 'null'], description: 'Numéro de page où la signature a été observée.' },
+                quote: { type: 'string', description: 'Description exacte de la preuve : "paraphe manuscrit visible", "cachet rond DG", "Signé électroniquement par J. Dupont le 2025-03-10". Max 120 chars.' },
+              },
+              required: ['page', 'quote'],
+            },
           },
-          required: ['role', 'name', 'signed', 'date'],
+          required: ['role', 'name', 'signed', 'date', 'evidence'],
         },
       },
       formality_score: {
         type: 'number',
-        description: 'Score 0-100 de formalité du document. 100 = entièrement formel (signé, daté, versionné, en-tête officiel). 50 = partiellement formel (ex: signé mais non daté). 0 = note libre, brouillon.',
+        description: 'Score 0-100 strictement basé sur la présence DE PREUVES VISUELLES. Barème : 90-100 = en-tête officiel + version + dates + ≥1 signature signed=true ; 60-80 = 2 ou 3 de ces critères ; 30-50 = en-tête présent mais ni signature visuelle ni version ; <30 = note libre, brouillon, sans en-tête. Une simple mention "ce document est signé" sans signature visuelle NE compte PAS.',
         minimum: 0,
         maximum: 100,
       },
@@ -76,20 +96,36 @@ const EXTRACT_TOOL = {
       },
       synthesis: {
         type: 'string',
-        description: 'Synthèse en 2-3 phrases : nature du document, contenu principal, niveau de formalité.',
+        description: 'Synthèse en 2-3 phrases : nature du document, contenu principal, niveau de formalité OBSERVÉ (non déclaratif).',
       },
     },
-    required: ['version', 'last_revision_date', 'signatures', 'formality_score', 'scope_declared', 'key_topics', 'page_count', 'synthesis'],
+    required: ['version', 'version_evidence', 'last_revision_date', 'signatures', 'formality_score', 'scope_declared', 'key_topics', 'page_count', 'synthesis'],
   },
 } as const
 
-const EXTRACT_PROMPT = `Tu es un assistant de conformité. Analyse le document fourni et extrais ses métadonnées factuelles.
+const EXTRACT_PROMPT = `Tu es un auditeur SI senior. Analyse le document fourni et extrais ses métadonnées factuelles avec rigueur.
 
-Sois rigoureux :
-- Une signature est "apposée" uniquement si tu vois un paraphe, cachet, scan, ou la mention explicite "signé". Un bloc "Nom : ___ Signature : ___" vide ne compte PAS comme signé.
-- Si le document est une note libre non datée non signée, formality_score doit être très bas (<30).
-- N'invente jamais : si une donnée n'est pas visible, mets null.
-- Réponds UNIQUEMENT en appelant l'outil save_metadata avec les valeurs extraites.`
+RÈGLES STRICTES — la qualité de cette extraction est critique :
+
+1. SIGNATURES : signed=true UNIQUEMENT si tu observes une preuve visuelle :
+   - paraphe manuscrit (trait, gribouillis distinctif)
+   - cachet/tampon (rond, rectangulaire, signé)
+   - scan/image de signature collée
+   - mention électronique vérifiable du type "Signé électroniquement par X le YYYY-MM-DD"
+
+   Comptent comme signed=false :
+   - bloc "Signature : ___" vide
+   - mention "Le présent document est signé" SANS preuve visuelle
+   - "Pour le DG" sans paraphe visible
+   - en-tête nominatif sans signature
+
+2. VERSION : ne confonds jamais avec la date de génération PDF ou la date de dernière révision. La version est un identifiant explicite (ex: "v1.2", "Rev.3", "Édition 2025"). Si tu trouves la version, fournis version_evidence (où + citation).
+
+3. FORMALITY_SCORE : strictement basé sur les preuves observées, jamais sur les déclarations.
+
+4. N'INVENTE JAMAIS : si une donnée n'est pas visible, mets null. Mieux vaut un null qu'une hallucination.
+
+Réponds UNIQUEMENT en appelant l'outil save_metadata.`
 
 interface DocRow {
   id: string

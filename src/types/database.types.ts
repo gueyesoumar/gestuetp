@@ -744,15 +744,29 @@ export interface CabinetClientUpdate {
   notes?: string | null
 }
 
+export interface SignatureEvidence {
+  page: number | null
+  quote: string
+}
+
 export interface DocumentSignature {
   role: string | null
   name: string | null
   signed: boolean
   date: string | null
+  /** Required when signed=true (Pass 1 schema 2026+). Optional for older extractions. */
+  evidence?: SignatureEvidence | null
+}
+
+export interface VersionEvidence {
+  location: string
+  quote: string
 }
 
 export interface DocumentAiMetadata {
   version: string | null
+  /** Optional (Pass 1 schema 2026+). Where + citation supporting `version`. */
+  version_evidence?: VersionEvidence | null
   last_revision_date: string | null
   signatures: DocumentSignature[]
   formality_score: number | null
