@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Lock, Sparkles } from 'lucide-react'
+import { Lock, Sparkles, Brain } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useAuth } from '../../hooks/useAuth'
@@ -25,6 +25,8 @@ export function WorkflowSettingsTab(): JSX.Element {
   const [associateLabel, setAssociateLabel] = useState('')
   const [initialLead, setInitialLead] = useState('')
   const [initialAssociate, setInitialAssociate] = useState('')
+  const [aiEnabled, setAiEnabled] = useState(true)
+  const [aiToggling, setAiToggling] = useState(false)
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -35,22 +37,42 @@ export function WorkflowSettingsTab(): JSX.Element {
     void (async () => {
       const { data } = await supabase
         .from('organizations')
-        .select('review_lead_label, review_associate_label')
+        .select('review_lead_label, review_associate_label, ai_analysis_enabled')
         .eq('id', profile.organization_id)
         .abortSignal(abort.signal)
         .maybeSingle()
       if (abort.signal.aborted) return
-      const o = data as { review_lead_label: string | null; review_associate_label: string | null } | null
+      const o = data as {
+        review_lead_label: string | null
+        review_associate_label: string | null
+        ai_analysis_enabled: boolean | null
+      } | null
       const lead = o?.review_lead_label ?? ''
       const assoc = o?.review_associate_label ?? ''
       setLeadLabel(lead)
       setAssociateLabel(assoc)
       setInitialLead(lead)
       setInitialAssociate(assoc)
+      setAiEnabled(o?.ai_analysis_enabled ?? true)
       setLoading(false)
     })()
     return () => abort.abort()
   }, [profile?.organization_id])
+
+  const toggleAi = async (next: boolean): Promise<void> => {
+    if (!canEditOrganization) return
+    setAiToggling(true)
+    const { data, error } = await supabase.functions.invoke('update-cabinet-settings', {
+      body: { ai_analysis_enabled: next },
+    })
+    setAiToggling(false)
+    if (error || data?.error) {
+      toast.error((data?.error as string | undefined) ?? error?.message ?? 'Mise à jour impossible')
+      return
+    }
+    setAiEnabled(next)
+    toast.success(next ? 'Analyse IA activée' : 'Analyse IA désactivée pour ce cabinet')
+  }
 
   const dirty = leadLabel.trim() !== initialLead && (leadLabel.trim().length > 0 || initialLead.length > 0)
     || associateLabel.trim() !== initialAssociate && (associateLabel.trim().length > 0 || initialAssociate.length > 0)
@@ -151,6 +173,38 @@ export function WorkflowSettingsTab(): JSX.Element {
             >{submitting ? 'Enregistrement…' : 'Enregistrer'}</button>
           </div>
         )}
+      </div>
+
+      {/* Kill switch IA cabinet */}
+      <div className="mt-6 rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <header className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+          <Brain size={14} className="text-forest-700" />
+          <span className="text-[13px] font-bold text-gray-900">Analyse IA des documents</span>
+        </header>
+        <div className="p-5 flex items-start gap-4">
+          <div className="flex-1">
+            <p className="text-[13px] text-gray-700 leading-relaxed">
+              {aiEnabled
+                ? <>L&rsquo;<b>analyse IA</b> est <b>activ&eacute;e</b> pour ce cabinet. Les documents fournis par les clients sont analys&eacute;s automatiquement (extraction de m&eacute;tadonn&eacute;es&nbsp;: version, signatures, couverture des contr&ocirc;les) et le questionnaire est pr&eacute;-rempli intelligemment.</>
+                : <>L&rsquo;<b>analyse IA</b> est <b>d&eacute;sactiv&eacute;e</b>. Aucun document n&rsquo;est envoy&eacute; aux serveurs Anthropic. L&rsquo;extraction de m&eacute;tadonn&eacute;es et le pr&eacute;-remplissage du questionnaire sont indisponibles pour toutes les missions de ce cabinet.</>
+              }
+            </p>
+            <p className="mt-2 text-[11.5px] text-gray-400">
+              Utile en cas d&rsquo;exigence de confidentialit&eacute; cabinet ou client. Les documents restent stock&eacute;s sur Supabase, seul le pipeline IA est coup&eacute;.
+            </p>
+          </div>
+          <label className="inline-flex items-center cursor-pointer flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={aiEnabled}
+              onChange={(e) => toggleAi(e.target.checked)}
+              disabled={!canEditOrganization || aiToggling}
+              className="sr-only peer"
+            />
+            <div className="w-10 h-6 rounded-full bg-gray-300 peer-checked:bg-forest-700 transition-colors relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-4 peer-disabled:opacity-50"></div>
+            <span className="ml-2 text-[12px] font-semibold text-gray-700">{aiEnabled ? 'Activ&eacute;e' : 'D&eacute;sactiv&eacute;e'}</span>
+          </label>
+        </div>
       </div>
     </div>
   )

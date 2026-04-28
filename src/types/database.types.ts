@@ -68,6 +68,8 @@ export interface Organization {
   sector: string | null
   description: string | null
   is_active: boolean
+  /** Kill switch IA cabinet (cf. migration 00088). */
+  ai_analysis_enabled?: boolean
   created_at: string
   updated_at: string
 }
@@ -742,6 +744,25 @@ export interface CabinetClientUpdate {
   notes?: string | null
 }
 
+export interface DocumentSignature {
+  role: string | null
+  name: string | null
+  signed: boolean
+  date: string | null
+}
+
+export interface DocumentAiMetadata {
+  version: string | null
+  last_revision_date: string | null
+  signatures: DocumentSignature[]
+  formality_score: number | null
+  scope_declared: string | null
+  key_topics: string[]
+  page_count: number | null
+  /** Optional: human-readable summary of what the doc covers (1-2 sentences). */
+  synthesis: string | null
+}
+
 export interface Document {
   id: string
   mission_id: string
@@ -756,6 +777,9 @@ export interface Document {
   description: string | null
   anthropic_file_id: string | null
   anthropic_file_uploaded_at: string | null
+  ai_metadata: DocumentAiMetadata | null
+  ai_extracted_at: string | null
+  ai_extract_error: string | null
   created_at: string
 }
 

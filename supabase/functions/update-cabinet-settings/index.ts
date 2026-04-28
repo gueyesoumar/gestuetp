@@ -22,6 +22,8 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 interface UpdatePayload {
   review_lead_label?: string | null
   review_associate_label?: string | null
+  /** Kill switch IA cabinet (cf. migration 00088). Optional — undefined = pas de changement. */
+  ai_analysis_enabled?: boolean
   reason?: string  // optionnel
 }
 
@@ -77,12 +79,20 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: `Libellé invalide (1-${MAX_LABEL_LEN} caractères)` }, 400)
     }
 
+    // Construire le patch dynamiquement (les champs absents ne sont pas modifiés)
+    // deno-lint-ignore no-explicit-any
+    const patch: Record<string, any> = {}
+    if (body.review_lead_label !== undefined) patch.review_lead_label = leadLabel
+    if (body.review_associate_label !== undefined) patch.review_associate_label = associateLabel
+    if (typeof body.ai_analysis_enabled === 'boolean') patch.ai_analysis_enabled = body.ai_analysis_enabled
+
+    if (Object.keys(patch).length === 0) {
+      return jsonResponse({ error: 'Aucun changement fourni' }, 400)
+    }
+
     // deno-lint-ignore no-explicit-any
     const { error: updateError } = await (admin.from('organizations') as any)
-      .update({
-        review_lead_label: leadLabel,
-        review_associate_label: associateLabel,
-      })
+      .update(patch)
       .eq('id', profile.organization_id)
 
     if (updateError) {
@@ -90,18 +100,20 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Mise à jour impossible' }, 500)
     }
 
-    // Audit log : optionnel, motif facultatif
+    // Audit log : motif facultatif
     const reason = (body.reason ?? '').trim()
+    const actionName = typeof body.ai_analysis_enabled === 'boolean' && Object.keys(patch).length === 1
+      ? 'toggle_ai_analysis'
+      : 'update_cabinet_settings'
     // deno-lint-ignore no-explicit-any
     await (admin.from('admin_audit_log') as any).insert({
       actor_id: profile.id,
-      action: 'update_cabinet_review_labels',
+      action: actionName,
       target_type: 'organization',
       target_id: profile.organization_id,
-      reason: reason || 'Mise à jour libellés revue par Associé cabinet',
+      reason: reason || 'Mise à jour paramètres cabinet',
       metadata: {
-        review_lead_label: leadLabel,
-        review_associate_label: associateLabel,
+        ...patch,
         actor_is_platform_owner: profile.is_platform_owner,
       },
     })
