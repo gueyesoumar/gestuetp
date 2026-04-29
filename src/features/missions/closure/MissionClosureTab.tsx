@@ -28,6 +28,11 @@ interface ScoringData {
   approved_controls: number
   rejected_controls: number
   pending_controls: number
+  /** Compteurs de conformité (basés sur conformity_level), affichés dans les StatCards. */
+  conformes: number
+  partiels: number
+  non_conformes: number
+  non_applicables: number
   domain_scores: DomainScore[]
 }
 
@@ -116,11 +121,12 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
 
       {scoring && (
         <>
-          <HeroScoreCard score={scoring.conformity_score} approvedControls={scoring.approved_controls} totalControls={scoring.total_controls} />
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <StatCard label="Conformes" value={scoring.approved_controls} color="text-green-600" bg="bg-green-50 border-green-200" />
-            <StatCard label="Non conformes" value={scoring.rejected_controls} color="text-red-600" bg="bg-red-50 border-red-200" />
-            <StatCard label="En attente" value={scoring.pending_controls} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
+          <HeroScoreCard score={scoring.conformity_score} conformes={scoring.conformes} totalControls={scoring.total_controls} />
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <StatCard label="Conformes" value={scoring.conformes} color="text-green-600" bg="bg-green-50 border-green-200" />
+            <StatCard label="Partiels" value={scoring.partiels} color="text-amber-600" bg="bg-amber-50 border-amber-200" />
+            <StatCard label="Non conformes" value={scoring.non_conformes} color="text-red-600" bg="bg-red-50 border-red-200" />
+            <StatCard label="Non applicables" value={scoring.non_applicables} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
           </div>
           <DomainBreakdownList domainScores={scoring.domain_scores} />
           <ClosureActionCards />
@@ -169,11 +175,12 @@ function ScoringLoader({ missionId }: { missionId: string }){
 
   return (
     <>
-      <HeroScoreCard score={scoring.conformity_score} approvedControls={scoring.approved_controls} totalControls={scoring.total_controls} />
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <StatCard label="Conformes" value={scoring.approved_controls} color="text-green-600" bg="bg-green-50 border-green-200" />
-        <StatCard label="Non conformes" value={scoring.rejected_controls} color="text-red-600" bg="bg-red-50 border-red-200" />
-        <StatCard label="En attente" value={scoring.pending_controls} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
+      <HeroScoreCard score={scoring.conformity_score} conformes={scoring.conformes} totalControls={scoring.total_controls} />
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <StatCard label="Conformes" value={scoring.conformes} color="text-green-600" bg="bg-green-50 border-green-200" />
+        <StatCard label="Partiels" value={scoring.partiels} color="text-amber-600" bg="bg-amber-50 border-amber-200" />
+        <StatCard label="Non conformes" value={scoring.non_conformes} color="text-red-600" bg="bg-red-50 border-red-200" />
+        <StatCard label="Non applicables" value={scoring.non_applicables} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
       </div>
       <DomainBreakdownList domainScores={scoring.domain_scores} />
       <ClosureActionCards />

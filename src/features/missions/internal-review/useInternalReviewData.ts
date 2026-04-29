@@ -59,7 +59,7 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
       // 1. Fetch all assessments with control + domain info
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
-        .select('id, status, findings, finding_classification, control_id, control:controls(code, name, domain_id, domain:domains(code, name))')
+        .select('id, status, conformity_level, findings, finding_classification, control_id, control:controls(code, name, domain_id, domain:domains(code, name))')
         .eq('mission_id', missionId)
         .abortSignal(abortController.signal)
 
@@ -71,6 +71,17 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
       const approvedControls = all.filter((a) => a.status === 'approved').length
       const withFindings = all.filter((a) => a.findings && a.findings.trim().length > 0).length
 
+      // Pond\u00e9ration conformit\u00e9 : c=100, lc=75, pc=50, nc=0, NA exclus
+      const weightOf = (level: string | null | undefined): number | null => {
+        switch (level) {
+          case 'c':  return 100
+          case 'lc': return 75
+          case 'pc': return 50
+          case 'nc': return 0
+          default:   return null
+        }
+      }
+
       // 2. Count documents as evidence
       const { count: evidenceCount } = await supabase
         .from('documents')
@@ -80,21 +91,28 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
 
       if (abortController.signal.aborted) return
 
-      // 3. Domain scores
-      const domainMap = new Map<string, { code: string; name: string; total: number; approved: number }>()
+      // 3. Domain scores : pondération conformity_level (vrai score d'audit)
+      //    `approved` reste le compteur de contrôles validés workflow, mais
+      //    le `score` reflète maintenant la conformité réelle.
+      const domainMap = new Map<string, { code: string; name: string; total: number; approved: number; sum: number; count: number }>()
       for (const a of all) {
         const ctrl = a.control as unknown as { code: string; name: string; domain: { code: string; name: string } | null } | null
         if (!ctrl?.domain) continue
         const key = ctrl.domain.code
         if (!domainMap.has(key)) {
-          domainMap.set(key, { code: ctrl.domain.code, name: ctrl.domain.name, total: 0, approved: 0 })
+          domainMap.set(key, { code: ctrl.domain.code, name: ctrl.domain.name, total: 0, approved: 0, sum: 0, count: 0 })
         }
         const d = domainMap.get(key)!
         d.total++
         if (a.status === 'approved') d.approved++
+        const w = weightOf(a.conformity_level as string | null | undefined)
+        if (w !== null) { d.sum += w; d.count += 1 }
       }
       const domainScores: DomainScore[] = [...domainMap.values()]
-        .map((d) => ({ ...d, score: d.total > 0 ? Math.round((d.approved / d.total) * 100) : 0 }))
+        .map((d) => ({
+          code: d.code, name: d.name, total: d.total, approved: d.approved,
+          score: d.count > 0 ? Math.round(d.sum / d.count) : 0,
+        }))
         .sort((a, b) => a.code.localeCompare(b.code))
 
       // 4. Finding classification summary
@@ -121,7 +139,14 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
           }
         })
 
-      const globalScore = totalControls > 0 ? Math.round((approvedControls / totalControls) * 100) : 0
+      // Score global : pondération c=100/lc=75/pc=50/nc=0, NA exclus
+      let scoreSum = 0
+      let scoreCount = 0
+      for (const a of all) {
+        const w = weightOf(a.conformity_level as string | null | undefined)
+        if (w !== null) { scoreSum += w; scoreCount += 1 }
+      }
+      const globalScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0
 
       setData({
         totalControls, approvedControls, withFindings,

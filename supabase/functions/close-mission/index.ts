@@ -72,19 +72,43 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Charger tous les assessments pour le scoring
+    // Charger tous les assessments pour le scoring (status pour suivi
+    // workflow + conformity_level pour le vrai score de conformité audit).
     const { data: assessments } = await supabaseAdmin
       .from('control_assessments')
-      .select('id, status, control_id')
+      .select('id, status, control_id, conformity_level')
       .eq('mission_id', mission_id)
 
     const total = assessments?.length ?? 0
+    // Compteurs de workflow (status)
     const approved = assessments?.filter((a) => a.status === 'approved').length ?? 0
     const rejected = assessments?.filter((a) => a.status === 'rejected').length ?? 0
     const pending = total - approved - rejected
 
-    // Calculer le score de conformité (pourcentage de contrôles approuvés)
-    const conformityScore = total > 0 ? Math.round((approved / total) * 100) : 0
+    // Compteurs de conformité (level), c'est ce qui est affiché en démo client
+    const conformes = assessments?.filter((a) => a.conformity_level === 'c').length ?? 0
+    const partiels = assessments?.filter((a) => a.conformity_level === 'lc' || a.conformity_level === 'pc').length ?? 0
+    const nonConformes = assessments?.filter((a) => a.conformity_level === 'nc').length ?? 0
+    const nonApplicables = assessments?.filter((a) => a.conformity_level === 'na').length ?? 0
+
+    // Score de conformité pondéré (c=100, lc=75, pc=50, nc=0). NA et
+    // assessments sans conformity_level sont exclus des deux côtés du ratio.
+    const weightOf = (level: string | null | undefined): number | null => {
+      switch (level) {
+        case 'c':  return 100
+        case 'lc': return 75
+        case 'pc': return 50
+        case 'nc': return 0
+        default:   return null
+      }
+    }
+    let scoreSum = 0
+    let scoreCount = 0
+    for (const a of assessments ?? []) {
+      const w = weightOf(a.conformity_level as string | null | undefined)
+      if (w !== null) { scoreSum += w; scoreCount += 1 }
+    }
+    const conformityScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0
 
     // Charger les domaines pour le scoring par domaine
     const { data: domains } = await supabaseAdmin
@@ -98,30 +122,44 @@ Deno.serve(async (req) => {
       .select('id, domain_id')
       .in('domain_id', (domains ?? []).map((d) => d.id))
 
-    const controlDomainMap = new Map((controls ?? []).map((c) => [c.id, c.domain_id]))
-    const assessmentMap = new Map((assessments ?? []).map((a) => [a.control_id, a.status]))
+    const assessmentByControl = new Map(
+      (assessments ?? []).map((a) => [a.control_id, a.conformity_level as string | null]),
+    )
 
     const domainScores = (domains ?? []).map((domain) => {
       const domainControls = (controls ?? []).filter((c) => c.domain_id === domain.id)
       const domainTotal = domainControls.length
-      const domainApproved = domainControls.filter((c) => assessmentMap.get(c.id) === 'approved').length
-      const score = domainTotal > 0 ? Math.round((domainApproved / domainTotal) * 100) : 0
+      let dSum = 0
+      let dCount = 0
+      let dConformes = 0
+      for (const c of domainControls) {
+        const w = weightOf(assessmentByControl.get(c.id))
+        if (w !== null) { dSum += w; dCount += 1 }
+        if (assessmentByControl.get(c.id) === 'c') dConformes += 1
+      }
+      const score = dCount > 0 ? Math.round(dSum / dCount) : 0
       return {
         domain_code: domain.code,
         domain_name: domain.name,
         total: domainTotal,
-        approved: domainApproved,
+        approved: dConformes, // pour rétrocompat : `approved` = conformes côté domaine
         score,
       }
     })
 
-    // Créer le rapport
+    // Créer le rapport. On conserve approved/rejected/pending pour ne pas
+    // casser d'éventuels consommateurs historiques, et on ajoute les vrais
+    // compteurs de conformité (consommés par MissionClosureTab).
     const reportData = {
       conformity_score: conformityScore,
       total_controls: total,
       approved_controls: approved,
       rejected_controls: rejected,
       pending_controls: pending,
+      conformes,
+      partiels,
+      non_conformes: nonConformes,
+      non_applicables: nonApplicables,
       domain_scores: domainScores,
       closed_at: new Date().toISOString(),
       closed_by: callerProfile.id,

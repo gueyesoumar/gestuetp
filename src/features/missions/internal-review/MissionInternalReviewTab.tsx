@@ -176,7 +176,7 @@ function ScoreSection({ score, domains }: { score: number; domains: DomainScore[
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[14px] font-bold text-gray-900">Score de conformit&eacute;</h3>
-        <InfoPopover text="Pourcentage de contr&ocirc;les approuv&eacute;s par rapport au total." />
+        <InfoPopover text="Score pond&eacute;r&eacute; sur conformity_level : c=100, lc=75, pc=50, nc=0. NA exclus." />
       </div>
       <div className="flex items-center gap-8">
         {/* Ring */}
