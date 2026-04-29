@@ -14,7 +14,12 @@ export interface MissionProgress {
   approvedControls: number
   /** Contr\u00f4les dont l'assessment est uniquement soumis ou en revue (pas encore valid\u00e9). */
   submittedControls: number
-  provisionalScore: number
+  /**
+   * Score de conformit\u00e9 pond\u00e9r\u00e9 sur les contr\u00f4les ayant un conformity_level
+   * non-NA : c=100, lc=75, pc=50, nc=0. Les NA et les contr\u00f4les sans
+   * \u00e9valuation sont exclus du calcul (numerator + denominator).
+   */
+  conformityScore: number
   nextAction: { label: string; ctaLabel: string; tab: string } | null
   phases: { key: string; label: string; state: 'done' | 'active' | 'locked'; sublabel?: string }[]
 }
@@ -35,7 +40,7 @@ export function useMissionProgress(
       return {
         phaseIndex: -1, overallPercent: 0, daysRemaining: null,
         totalControls: 0, assessedControls: 0, approvedControls: 0, submittedControls: 0,
-        provisionalScore: 0, nextAction: null, phases: [],
+        conformityScore: 0, nextAction: null, phases: [],
       }
     }
 
@@ -53,7 +58,25 @@ export function useMissionProgress(
     const assessedControls = scopedAssessments.filter((a) => isAssessmentCompleted(a.status)).length
     const approvedControls = scopedAssessments.filter((a) => isAssessmentApproved(a.status)).length
     const submittedControls = scopedAssessments.filter((a) => a.status === 'submitted' || a.status === 'in_review').length
-    const provisionalScore = assessedControls > 0 ? Math.round((approvedControls / assessedControls) * 100) : 0
+
+    // Score de conformité pondéré (c=100, lc=75, pc=50, nc=0). NA et
+    // assessments sans conformity_level sont exclus des deux côtés du ratio.
+    let conformitySum = 0
+    let conformityCount = 0
+    for (const a of scopedAssessments) {
+      let weight: number | null = null
+      switch (a.conformity_level) {
+        case 'c':  weight = 100; break
+        case 'lc': weight = 75;  break
+        case 'pc': weight = 50;  break
+        case 'nc': weight = 0;   break
+      }
+      if (weight !== null) {
+        conformitySum += weight
+        conformityCount += 1
+      }
+    }
+    const conformityScore = conformityCount > 0 ? Math.round(conformitySum / conformityCount) : 0
 
     const overallPercent = totalControls > 0
       ? Math.round(((phaseIndex + 1) / 6) * 50 + (assessedControls / totalControls) * 50)
@@ -85,7 +108,7 @@ export function useMissionProgress(
     return {
       phaseIndex, overallPercent, daysRemaining,
       totalControls, assessedControls, approvedControls, submittedControls,
-      provisionalScore, nextAction, phases,
+      conformityScore, nextAction, phases,
     }
   }, [mission, assessments, domains, scopeControlIds])
 }

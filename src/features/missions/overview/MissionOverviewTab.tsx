@@ -49,7 +49,7 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
       <div className="grid grid-cols-4 gap-4 mb-6">
         <KpiCard label="Progression globale" value={`${progress.overallPercent}%`} color="var(--color-forest-700)" bar={progress.overallPercent} barColor="#40916C" />
         <KpiCard label="Contr&ocirc;les &eacute;valu&eacute;s" value={`${progress.assessedControls}/${progress.totalControls}`} color="var(--color-gold-500)" sub={`${progress.submittedControls} soumis \u00b7 ${progress.approvedControls} approuv\u00e9s`} />
-        <KpiCard label="Score provisoire" value={`${progress.provisionalScore}%`} color="var(--color-success)" sub={`Bas\u00e9 sur ${progress.assessedControls} contr\u00f4les`} />
+        <KpiCard label="Conformit&eacute;" value={`${progress.conformityScore}%`} color="var(--color-success)" sub="c=100 / lc=75 / pc=50 / nc=0 (NA exclus)" />
         <KpiCard label="Jours restants" value={progress.daysRemaining !== null ? `${progress.daysRemaining}` : '\u2014'} color="var(--color-forest-700)" />
       </div>
 
