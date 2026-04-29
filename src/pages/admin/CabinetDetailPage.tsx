@@ -224,10 +224,11 @@ function TabBtn({ k, label, active, onClick }: { k: TabKey; label: string; activ
 }
 
 function labelType(types: string[]): string {
+  if (types.includes('cabinet') && types.includes('group')) return 'Cabinet · Groupe'
   if (types.includes('cabinet') && types.includes('client')) return 'Cabinet · Client'
   if (types.includes('cabinet')) return 'Cabinet'
   if (types.includes('client')) return 'Client'
-  if (types.includes('groupe')) return 'Groupe'
+  if (types.includes('group')) return 'Groupe'
   if (types.includes('platform')) return 'Plateforme'
   return 'Organisation'
 }

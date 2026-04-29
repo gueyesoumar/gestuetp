@@ -2,17 +2,18 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useFeatureFlag } from '../hooks/useFeatureFlag'
+import { isGroupOrg } from '../lib/organization-utils'
 import { CabinetDashboard } from '../features/dashboard/CabinetDashboard'
 import { GroupeDashboard } from '../features/dashboard/GroupeDashboard'
 
-type DashboardView = 'cabinet' | 'groupe'
+type DashboardView = 'cabinet' | 'group'
 
 export function DashboardPage() {
   const { profile } = useAuth()
   const [view, setView] = useState<DashboardView>('cabinet')
-  const [hasGroupeRole, setHasGroupeRole] = useState(false)
+  const [hasGroupRole, setHasGroupRole] = useState(false)
   const groupModeFlag = useFeatureFlag('supervision_group_mode')
-  const groupVisible = hasGroupeRole && !groupModeFlag.loading && groupModeFlag.enabled
+  const groupVisible = hasGroupRole && !groupModeFlag.loading && groupModeFlag.enabled
   const effectiveView = groupVisible ? view : 'cabinet'
 
   useEffect(() => {
@@ -27,8 +28,8 @@ export function DashboardPage() {
       .abortSignal(abortController.signal)
       .then(({ data }) => {
         if (abortController.signal.aborted) return
-        if (data?.types && (data.types as string[]).includes('groupe')) {
-          setHasGroupeRole(true)
+        if (data?.types && isGroupOrg({ types: data.types as string[] })) {
+          setHasGroupRole(true)
         }
       })
 
@@ -51,9 +52,9 @@ export function DashboardPage() {
               Cabinet
             </button>
             <button
-              onClick={() => setView('groupe')}
+              onClick={() => setView('group')}
               className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-colors ${
-                view === 'groupe'
+                view === 'group'
                   ? 'bg-forest-700 text-white font-semibold'
                   : 'text-gray-500 hover:bg-forest-50 hover:text-forest-700'
               }`}

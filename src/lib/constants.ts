@@ -83,11 +83,14 @@ export const PARTIE_INTERESSEE_TYPE_OPTIONS = [
   { value: 'externe', label: 'Externe' },
 ] as const
 
+// Valeurs canoniques (anglais) alignées sur les helpers organization-utils.ts
+// et la contrainte CHECK organizations_types_canonical (migration 00094).
+// 'platform' est volontairement absent : réservé au super-admin Gëstu via
+// l'edge function admin-update-organization, jamais coché-able par un user.
 export const ORG_TYPE_OPTIONS = [
   { value: 'cabinet', label: 'Cabinet de conseil' },
   { value: 'client', label: 'Client' },
-  { value: 'groupe', label: 'Groupe / Holding' },
-  { value: 'fonds', label: 'Fonds d\'investissement' },
+  { value: 'group', label: 'Groupe / Holding' },
 ] as const
 
 export const PERMISSION_LABELS: Record<string, string> = {
