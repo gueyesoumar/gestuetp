@@ -150,10 +150,10 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   }, [mission, requests, totalCount, answeredCount])
 
   // === ACTION 2: Generer la note de cadrage (PDF) ===
-  const handleGenerateNote = useCallback(() => {
+  const handleGenerateNote = useCallback(async () => {
     setActionSuccess(null)
     try {
-      generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } })
+      await generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } })
       setActionSuccess('Note de cadrage PDF t\u00e9l\u00e9charg\u00e9e.')
     } catch (err) {
       console.error('handleGenerateNote:', err)

@@ -52,11 +52,14 @@ const BLUE_50: RGB = [239, 246, 255]
 
 // ── Public API ─────────────────────────────────────────────────────────────
 
-export function generateScopingNotePDF(data: ScopingNoteData): void {
+export async function generateScopingNotePDF(data: ScopingNoteData): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const ctx = createContext(doc, data)
 
-  drawCoverPage(ctx)
+  // Pré-charge le logo client (best effort — silencieux si KO)
+  const clientLogo = data.client?.logo_url ? await loadImageAsDataURL(data.client.logo_url) : null
+
+  drawCoverPage(ctx, clientLogo)
 
   drawSection01Preambule(ctx)
   drawSection02Objectifs(ctx)
@@ -171,13 +174,46 @@ function writeWrapped(ctx: DocContext, text: string, opts: { size?: number; colo
 
 // ── Cover page ─────────────────────────────────────────────────────────────
 
-function drawCoverPage(ctx: DocContext): void {
+interface LogoData {
+  dataUrl: string
+  width: number
+  height: number
+  format: 'PNG' | 'JPEG' | 'WEBP'
+}
+
+function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): void {
   const { doc, data, pageW, pageH, marginL } = ctx
   const contentW = pageW - marginL - ctx.marginR
 
   // Hero band
   fillRect(doc, 0, 0, pageW, 100, FOREST_900)
   fillRect(doc, 0, 100, pageW, 1.5, GOLD_500)
+
+  // Logo client en haut à droite (si disponible). Fond blanc arrondi pour
+  // garantir la lisibilité quel que soit le coloris du logo.
+  if (clientLogo) {
+    const maxW = 30
+    const maxH = 18
+    const ratio = clientLogo.width / clientLogo.height
+    let lw = maxW
+    let lh = maxW / ratio
+    if (lh > maxH) {
+      lh = maxH
+      lw = maxH * ratio
+    }
+    const padding = 2
+    const boxW = lw + padding * 2
+    const boxH = lh + padding * 2
+    const boxX = pageW - ctx.marginR - boxW
+    const boxY = 14
+    fillRoundedRect(doc, boxX, boxY, boxW, boxH, 1, WHITE)
+    try {
+      doc.addImage(clientLogo.dataUrl, clientLogo.format, boxX + padding, boxY + padding, lw, lh)
+    } catch (err) {
+      // Format non supporté par jsPDF (ex: SVG) — on a déjà le carré blanc, tant pis pour le visuel
+      console.warn('[scoping-pdf] addImage failed:', err)
+    }
+  }
 
   // Mission ID pill
   const idLabel = `MISSION · ${data.mission.id.slice(0, 8)} · v1.0`
@@ -1041,4 +1077,40 @@ function computeDurationWeeks(start: string | null, end: string | null): number 
 function formatDate(date: string | null): string {
   if (!date) return '—'
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+// Charge une image distante et la convertit en data URL pour insertion
+// jsPDF. Retourne null si l'image n'est pas accessible (CORS, 404) ou
+// d'un format non supporté (SVG, etc.). Best effort, ne lève jamais.
+async function loadImageAsDataURL(url: string): Promise<LogoData | null> {
+  try {
+    const res = await fetch(url, { mode: 'cors' })
+    if (!res.ok) return null
+    const blob = await res.blob()
+    const mime = blob.type.toLowerCase()
+    let format: LogoData['format'] | null = null
+    if (mime.includes('png')) format = 'PNG'
+    else if (mime.includes('jpeg') || mime.includes('jpg')) format = 'JPEG'
+    else if (mime.includes('webp')) format = 'WEBP'
+    if (!format) return null // jsPDF ne supporte pas SVG/GIF nativement
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(new Error('FileReader error'))
+      reader.readAsDataURL(blob)
+    })
+
+    const dims = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+      img.onerror = () => reject(new Error('Image decode error'))
+      img.src = dataUrl
+    })
+
+    return { dataUrl, format, width: dims.width, height: dims.height }
+  } catch (err) {
+    console.warn('[scoping-pdf] logo load failed:', err)
+    return null
+  }
 }
