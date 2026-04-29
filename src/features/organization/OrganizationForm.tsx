@@ -5,7 +5,8 @@ import { SplitForm } from '../../components/ui/SplitForm'
 import { SplitFormSection } from '../../components/ui/SplitFormSection'
 import { FormField } from '../../components/ui/FormField'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { ORG_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
+import { SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
+import { getOrgTypeLabel } from '../../lib/organization-utils'
 
 interface OrganizationFormProps {
   organization: Organization
@@ -20,7 +21,6 @@ export function OrganizationForm({ organization, onSubmit, submitting, error }: 
   const [name, setName] = useState(organization.name)
   const [slug, setSlug] = useState(organization.slug)
   const [website, setWebsite] = useState(organization.website ?? '')
-  const [types, setTypes] = useState<string[]>(organization.types)
   const [phone, setPhone] = useState(organization.phone ?? '')
   const [address, setAddress] = useState(organization.address ?? '')
   const [city, setCity] = useState(organization.city ?? '')
@@ -30,17 +30,14 @@ export function OrganizationForm({ organization, onSubmit, submitting, error }: 
   const [description, setDescription] = useState(organization.description ?? '')
   const [success, setSuccess] = useState(false)
 
-  const handleTypeToggle = (type: string) => {
-    setTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    )
-  }
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSuccess(false)
+    // types est volontairement omis du payload : la modification est
+    // réservée au super-admin Gëstu via l'edge function admin-update-organization.
+    // Toute tentative côté user serait rejetée par le trigger 00095.
     const ok = await onSubmit({
-      name, slug, website: website || null, types,
+      name, slug, website: website || null,
       phone: phone || null, address: address || null, city: city || null,
       country: country || null, registration_number: registrationNumber || null,
       sector: sector || null, description: description || null,
@@ -65,13 +62,13 @@ export function OrganizationForm({ organization, onSubmit, submitting, error }: 
             <FormField id="org-website" label="Site web" type="url" value={website} onChange={setWebsite} placeholder="https://..." disabled={submitting} />
             <div>
               <span className="block text-[13px] font-medium text-gray-700">Type d&apos;organisation</span>
-              <div className="mt-2 space-y-2">
-                {ORG_TYPE_OPTIONS.map((t) => (
-                  <label key={t.value} className="flex items-center gap-2 text-[13px] text-gray-700 cursor-pointer">
-                    <input type="checkbox" checked={types.includes(t.value)} onChange={() => handleTypeToggle(t.value)} disabled={submitting} className="rounded border-gray-300 accent-forest-700" />
-                    {t.label}
-                  </label>
-                ))}
+              <div className="mt-2 flex items-center gap-2">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-forest-100 text-forest-700 text-[12px] font-semibold">
+                  {getOrgTypeLabel(organization)}
+                </span>
+                <span className="text-[11px] text-gray-400">
+                  Ce param&egrave;tre est g&eacute;r&eacute; par l&apos;&eacute;quipe G&euml;stu.
+                </span>
               </div>
             </div>
           </div>
