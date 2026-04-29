@@ -127,8 +127,8 @@ INSERT INTO public.audit_campaigns (id, organization_id, framework_id, name, per
 SELECT '00000000-0000-0000-0099-300000000001'::uuid,
        advisory.id,
        '00000000-0000-0000-0000-000000000010'::uuid,
-       'Campagne ISO 27001 — Cycle 2025',
-       'Année 2025', '2025-01-15', '2025-12-31', 'active'
+       'Campagne ISO 27001 — Cycle 2026',
+       'Année 2026', '2026-01-15', '2026-12-31', 'active'
 FROM public.organizations advisory
 WHERE advisory.name = 'Gëstu Advisory'
   AND 'group' = ANY(advisory.types)
@@ -161,19 +161,22 @@ BEGIN
   INSERT INTO public.missions (id, cabinet_id, client_id, framework_id, name, description, status, lead_auditor_id, start_date, end_date, campaign_id, is_active)
   SELECT v.id, v_cabinet_id, v.client_id, v.fw, v.name, v.description, v.st::public.mission_status, v_lead_id, v.sd, v.ed, v.camp, true
   FROM (VALUES
+  -- Dates calibrées pour la démo en avril-mai 2026 :
+  --   missions actives → en cours ou très proches d'échéance
+  --   Service Public ISO closure → clos en 2025 (cohérent avec un audit l'an dernier)
   -- BANQUE SA (mature) : 1 ISO en internal_review + 1 PSSI-ES en fieldwork
-    ('00000000-0000-0000-0099-200000000001'::uuid, '00000000-0000-0000-0099-000000000001'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Banque SA',         'Audit annuel SMSI',       'internal_review', '2025-02-01'::date, '2025-04-30'::date, v_camp_id),
-    ('00000000-0000-0000-0099-200000000002'::uuid, '00000000-0000-0000-0099-000000000001'::uuid, v_pssi_fw, 'Audit PSSI-ES — Démo Banque SA',           'Conformité PSSI-ES',      'fieldwork',       '2025-03-15'::date, '2025-06-30'::date, NULL::uuid),
+    ('00000000-0000-0000-0099-200000000001'::uuid, '00000000-0000-0000-0099-000000000001'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Banque SA',         'Audit annuel SMSI',       'internal_review', '2026-02-01'::date, '2026-05-15'::date, v_camp_id),
+    ('00000000-0000-0000-0099-200000000002'::uuid, '00000000-0000-0000-0099-000000000001'::uuid, v_pssi_fw, 'Audit PSSI-ES — Démo Banque SA',           'Conformité PSSI-ES',      'fieldwork',       '2026-03-15'::date, '2026-07-30'::date, NULL::uuid),
   -- SANTE+ (moyen) : 1 ISO en fieldwork
-    ('00000000-0000-0000-0099-200000000003'::uuid, '00000000-0000-0000-0099-000000000002'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Santé+',            'Audit initial SMSI',      'fieldwork',       '2025-03-01'::date, '2025-05-31'::date, v_camp_id),
+    ('00000000-0000-0000-0099-200000000003'::uuid, '00000000-0000-0000-0099-000000000002'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Santé+',            'Audit initial SMSI',      'fieldwork',       '2026-03-01'::date, '2026-06-15'::date, v_camp_id),
   -- TELCO (faible) : 1 ISO en initialization
-    ('00000000-0000-0000-0099-200000000004'::uuid, '00000000-0000-0000-0099-000000000003'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Télécom Network',   'Mission de cadrage',      'initialization',  '2025-04-01'::date, '2025-07-31'::date, v_camp_id),
-  -- PUBLIC (moyen) : 1 ISO closure (clôturée) + 1 PSSI-ES en client_review
-    ('00000000-0000-0000-0099-200000000005'::uuid, '00000000-0000-0000-0099-000000000004'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Service Public',    'Audit de surveillance',   'closure',         '2024-09-01'::date, '2024-12-15'::date, NULL::uuid),
-    ('00000000-0000-0000-0099-200000000006'::uuid, '00000000-0000-0000-0099-000000000004'::uuid, v_pssi_fw, 'Audit PSSI-ES — Démo Service Public',      'Conformité PSSI-ES',      'client_review',   '2025-01-15'::date, '2025-04-15'::date, NULL::uuid),
+    ('00000000-0000-0000-0099-200000000004'::uuid, '00000000-0000-0000-0099-000000000003'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Télécom Network',   'Mission de cadrage',      'initialization',  '2026-04-15'::date, '2026-08-31'::date, v_camp_id),
+  -- PUBLIC (moyen) : 1 ISO closure (clôturée l'an dernier) + 1 PSSI-ES en client_review
+    ('00000000-0000-0000-0099-200000000005'::uuid, '00000000-0000-0000-0099-000000000004'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Service Public',    'Audit de surveillance',   'closure',         '2025-09-01'::date, '2025-12-15'::date, NULL::uuid),
+    ('00000000-0000-0000-0099-200000000006'::uuid, '00000000-0000-0000-0099-000000000004'::uuid, v_pssi_fw, 'Audit PSSI-ES — Démo Service Public',      'Conformité PSSI-ES',      'client_review',   '2026-01-15'::date, '2026-04-15'::date, NULL::uuid),
   -- ENERGIE (mature) : 1 ISO en fieldwork + 1 PSSI-ES en internal_review
-    ('00000000-0000-0000-0099-200000000007'::uuid, '00000000-0000-0000-0099-000000000005'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Énergie & Co',      'Audit de renouvellement', 'fieldwork',       '2025-02-15'::date, '2025-05-15'::date, v_camp_id),
-    ('00000000-0000-0000-0099-200000000008'::uuid, '00000000-0000-0000-0099-000000000005'::uuid, v_pssi_fw, 'Audit PSSI-ES — Démo Énergie & Co',        'Conformité PSSI-ES',      'internal_review', '2025-01-05'::date, '2025-04-05'::date, NULL::uuid)
+    ('00000000-0000-0000-0099-200000000007'::uuid, '00000000-0000-0000-0099-000000000005'::uuid, v_iso_fw,  'Audit ISO 27001 — Démo Énergie & Co',      'Audit de renouvellement', 'fieldwork',       '2026-02-15'::date, '2026-06-30'::date, v_camp_id),
+    ('00000000-0000-0000-0099-200000000008'::uuid, '00000000-0000-0000-0099-000000000005'::uuid, v_pssi_fw, 'Audit PSSI-ES — Démo Énergie & Co',        'Conformité PSSI-ES',      'internal_review', '2026-01-05'::date, '2026-04-30'::date, NULL::uuid)
   ) AS v(id, client_id, fw, name, description, st, sd, ed, camp)
   -- JOIN sur la filiale pour garantir qu'on n'insère pas une mission sans client valide
   JOIN public.organizations fil ON fil.id = v.client_id
@@ -270,14 +273,6 @@ BEGIN
       ELSE 0
     END;
 
-    -- Statut des assessments
-    v_status := CASE v_mission.status
-      WHEN 'closure'         THEN 'approved'::public.assessment_status
-      WHEN 'client_review'   THEN 'approved'::public.assessment_status
-      WHEN 'internal_review' THEN 'submitted'::public.assessment_status
-      ELSE                        'draft'::public.assessment_status
-    END;
-
     v_idx := 0;
     -- Pour les missions partielles : distribution sur tous les domaines via md5
     -- Pour les missions à 100% : ordre naturel par domaine + sort_order
@@ -295,6 +290,25 @@ BEGIN
       LIMIT v_max_assessments
     LOOP
       v_idx := v_idx + 1;
+
+      -- Statut de l'assessment selon le statut mission. Pour fieldwork :
+      -- première moitié submitted (auditeur a fini ces contrôles), seconde
+      -- moitié draft (auditeur encore en train de les évaluer). Donne une
+      -- progression visible (~25%) au lieu de 0% sur l'écran de suivi.
+      IF v_mission.status = 'fieldwork' THEN
+        v_status := CASE
+          WHEN v_idx <= ceil(v_max_assessments::numeric / 2)::int
+          THEN 'submitted'::public.assessment_status
+          ELSE 'draft'::public.assessment_status
+        END;
+      ELSE
+        v_status := CASE v_mission.status
+          WHEN 'closure'         THEN 'approved'::public.assessment_status
+          WHEN 'client_review'   THEN 'approved'::public.assessment_status
+          WHEN 'internal_review' THEN 'submitted'::public.assessment_status
+          ELSE                        'draft'::public.assessment_status
+        END;
+      END IF;
       -- Pseudo-aléa déterministe : (idx * 17 + hash mission) mod 100
       v_pos := (v_idx * 17 + (hashtext(v_mission.id::text) % 100 + 100) % 100) % 100;
 
