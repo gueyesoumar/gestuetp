@@ -13,6 +13,7 @@ import { CabinetMissionsTab } from '../../features/admin/CabinetMissionsTab'
 import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
+import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
 
 type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
 
@@ -26,6 +27,7 @@ export function CabinetDetailPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [reasonModal, setReasonModal] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
   const [reason, setReason] = useState('')
+  const [typesModalOpen, setTypesModalOpen] = useState(false)
 
   if (loading) return <div className="p-8"><LoadingSpinner /></div>
   if (error || !cabinet) return <div className="p-8"><ErrorAlert message={error ?? 'Organisation introuvable'} /></div>
@@ -118,6 +120,18 @@ export function CabinetDetailPage() {
                 <dt className="text-gray-500 text-[12px]">Slug</dt><dd className="text-gray-900 font-mono text-[12px]">{cabinet.slug}</dd>
                 <dt className="text-gray-500 text-[12px]">Plan</dt><dd className="text-gray-900">{cabinet.plan_name ?? '—'}{cabinet.plan_price != null && cabinet.plan_price > 0 ? ` · ${cabinet.plan_price} €/mois` : ''}</dd>
                 <dt className="text-gray-500 text-[12px]">Onboardé</dt><dd className="text-gray-900">{new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
+                <dt className="text-gray-500 text-[12px]">Types</dt>
+                <dd className="text-gray-900 flex items-center gap-2">
+                  <span>{labelType(cabinet.types)}</span>
+                  {!cabinet.types.includes('platform') && (
+                    <button
+                      onClick={() => setTypesModalOpen(true)}
+                      className="text-[11px] text-forest-700 font-semibold hover:text-forest-900"
+                    >
+                      Modifier
+                    </button>
+                  )}
+                </dd>
                 <dt className="text-gray-500 text-[12px]">Membres</dt><dd className="text-gray-900">{cabinet.members.length}</dd>
                 <dt className="text-gray-500 text-[12px]">Missions</dt><dd className="text-gray-900">{cabinet.missions.length}</dd>
               </dl>
@@ -156,6 +170,16 @@ export function CabinetDetailPage() {
           cabinetId={cabinet.id}
           cabinetName={cabinet.name}
           onClose={() => setDeleteOpen(false)}
+        />
+      )}
+
+      {typesModalOpen && (
+        <EditOrganizationTypesModal
+          organizationId={cabinet.id}
+          organizationName={cabinet.name}
+          currentTypes={cabinet.types}
+          onClose={() => setTypesModalOpen(false)}
+          onSuccess={refetch}
         />
       )}
 
