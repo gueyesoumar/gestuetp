@@ -283,7 +283,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
                     )}
                     {groupReceived.length > 0 && (
                       <span className="text-[9px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                        {groupReceived.length} re\u00e7u{groupReceived.length > 1 ? 'es' : 'e'}
+                        {groupReceived.length} re&ccedil;u{groupReceived.length > 1 ? 'es' : 'e'}
                       </span>
                     )}
                     {filter === 'all' && groupNotRequested.length > 0 && (
