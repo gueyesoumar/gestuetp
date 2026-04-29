@@ -153,6 +153,7 @@ Deno.serve(async (req) => {
     let assessmentId: string
     const findings = buildFindings(request.evidence_catalog.name, reason, request.decline_justification)
     const recommendations = buildRecommendation(request.evidence_catalog.name, reason)
+    const riskNotes = buildRisk(request.evidence_catalog.name, reason, suggestedClassif)
 
     if (existing) {
       const e = existing as { id: string; status: string }
@@ -170,6 +171,7 @@ Deno.serve(async (req) => {
           finding_classification: suggestedClassif,
           findings,
           recommendations,
+          risk_notes: riskNotes,
         })
         .eq('id', e.id)
       assessmentId = e.id
@@ -186,6 +188,7 @@ Deno.serve(async (req) => {
           finding_classification: suggestedClassif,
           findings,
           recommendations,
+          risk_notes: riskNotes,
         })
         .select('id')
         .single()
@@ -240,6 +243,26 @@ function buildRecommendation(docName: string, reason: string): string {
     return `Documenter formellement les motifs d'exclusion du contrôle dans la déclaration d'applicabilité (SoA), avec validation par la direction.`
   }
   return `Mettre à disposition une preuve alternative (entretien dirigé, walk-through, attestation managériale) permettant de couvrir l'objectif du contrôle sans exposer le document confidentiel.`
+}
+
+function buildRisk(docName: string, reason: string, classif: string): string {
+  // Le texte de risque est calibré sur le motif de déclaration et la
+  // classification décidée par l'auditeur (major_nc, minor_nc, observation).
+  // Il vise à expliciter l'exposition concrète de l'organisation.
+  const severityIntro = classif === 'major_nc'
+    ? 'Risque élevé'
+    : classif === 'minor_nc'
+      ? 'Risque modéré'
+      : 'Risque résiduel'
+
+  if (reason === 'inexistant') {
+    return `${severityIntro}. L'absence du document « ${docName} » prive l'organisation d'un cadre formel sur le sujet : les pratiques peuvent diverger d'une équipe à l'autre, les responsabilités ne sont pas tracées, et toute défaillance ne pourra être démontrée comme accidentelle plutôt que systémique. Exposition probable : non-conformité au référentiel, perte de mémoire organisationnelle en cas de turnover, difficulté à répondre à un audit externe ou à un contrôle réglementaire.`
+  }
+  if (reason === 'non_applicable') {
+    return `${severityIntro}. Le client estime que ce contrôle ne s'applique pas à son contexte. Si cette exclusion n'est pas correctement documentée et justifiée dans la déclaration d'applicabilité (SoA), l'organisation s'expose à une non-conformité formelle au référentiel et à une remise en cause de la portée de la certification visée.`
+  }
+  // confidentialite
+  return `${severityIntro}. Le document existe mais n'est pas communicable. L'auditeur ne peut donc pas vérifier directement son contenu, ce qui crée une zone d'ombre dans la couverture du contrôle. À défaut de preuve alternative (entretien dirigé, attestation managériale, walk-through), la conformité ne peut être affirmée et l'organisation s'expose à une réserve dans le rapport d'audit.`
 }
 
 function jsonResponse(data: Record<string, unknown>, status = 200): Response {
