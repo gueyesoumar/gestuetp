@@ -1,4 +1,22 @@
-import type { MissionStatus, AssessmentStatus } from '../../types/database.types'
+import type { MissionStatus, AssessmentStatus, ControlAssessment } from '../../types/database.types'
+
+// Sémantique partagée : un contrôle est "complété" (= envoyé pour revue ou
+// validé) dès lors que son assessment est passé du brouillon à un état
+// post-soumission. C'est cette définition qu'utilisent à la fois
+// useMissionProgress, DomainProgressList et FieldworkDomainGroup pour
+// éviter les divergences entre la Vue d'ensemble et les Travaux.
+export function isAssessmentCompleted(status: AssessmentStatus | string | null | undefined): boolean {
+  return status === 'submitted' || status === 'in_review' || status === 'approved'
+}
+
+export function isAssessmentApproved(status: AssessmentStatus | string | null | undefined): boolean {
+  return status === 'approved'
+}
+
+export function isAssessmentInProgress(assessment: Pick<ControlAssessment, 'status' | 'findings'>): boolean {
+  // En cours = il y a un assessment ouvert (draft, rejected) avec OU sans findings
+  return assessment.status === 'draft' || assessment.status === 'rejected'
+}
 
 export interface MissionPhase {
   key: MissionStatus

@@ -33,7 +33,12 @@ export function MissionDetailPage(){
   const userRole = useMissionUserRole(mission)
   const { assessments } = useAuditorAssessments(id)
   const { assessments: allAssessments } = useAllAssessments(id)
-  const progress = useMissionProgress(mission, allAssessments, domains)
+  // Pour les auditeurs, on restreint le calcul de progression aux contrôles
+  // qui leur sont affectés. Sinon le stepper afficherait par exemple
+  // "5/93" (mission complète) alors que l'auditeur n'a accès qu'à 61
+  // contrôles, ce qui est trompeur.
+  const progressScope = !userRole.isPrivileged && !userRole.loading ? userRole.assignedControlIds : undefined
+  const progress = useMissionProgress(mission, allAssessments, domains, progressScope)
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [cabinetClient, setCabinetClient] = useState<CabinetClient | null>(null)
 

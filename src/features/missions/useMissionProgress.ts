@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { STATUS_TO_PHASE_INDEX, MISSION_PHASES } from './mission-constants'
+import { STATUS_TO_PHASE_INDEX, MISSION_PHASES, isAssessmentCompleted, isAssessmentApproved } from './mission-constants'
 import type { MissionDetail } from './useMissionDetail'
 import type { AssessmentWithControl } from './useAuditorAssessments'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
@@ -9,18 +9,26 @@ export interface MissionProgress {
   overallPercent: number
   daysRemaining: number | null
   totalControls: number
+  /** Contr\u00f4les avec assessment soumis ou valid\u00e9 (cf. isAssessmentCompleted). */
   assessedControls: number
   approvedControls: number
+  /** Contr\u00f4les dont l'assessment est uniquement soumis ou en revue (pas encore valid\u00e9). */
   submittedControls: number
   provisionalScore: number
   nextAction: { label: string; ctaLabel: string; tab: string } | null
   phases: { key: string; label: string; state: 'done' | 'active' | 'locked'; sublabel?: string }[]
 }
 
+/**
+ * @param scopeControlIds Optional. When provided, restricts the progress
+ *   computation to those control IDs. Used to give an auditor an accurate
+ *   stepper / KPI based only on their assigned controls.
+ */
 export function useMissionProgress(
   mission: MissionDetail | null,
   assessments: AssessmentWithControl[],
-  domains: DomainWithControls[]
+  domains: DomainWithControls[],
+  scopeControlIds?: Set<string>,
 ): MissionProgress {
   return useMemo(() => {
     if (!mission) {
@@ -31,11 +39,20 @@ export function useMissionProgress(
       }
     }
 
+    // P\u00e9rim\u00e8tre filtr\u00e9 : si scopeControlIds est fourni, on ne regarde que
+    // ces contr\u00f4les. Coh\u00e9rence garantie sur stepper, KPI et progression.
+    const scopedDomains = scopeControlIds
+      ? domains.map((d) => ({ ...d, controls: d.controls.filter((c) => scopeControlIds.has(c.id)) }))
+      : domains
+    const scopedAssessments = scopeControlIds
+      ? assessments.filter((a) => scopeControlIds.has(a.control_id))
+      : assessments
+
     const phaseIndex = STATUS_TO_PHASE_INDEX[mission.status]
-    const totalControls = domains.reduce((sum, d) => sum + d.controls.length, 0)
-    const assessedControls = assessments.filter((a) => a.findings).length
-    const approvedControls = assessments.filter((a) => a.status === 'approved').length
-    const submittedControls = assessments.filter((a) => a.status === 'submitted' || a.status === 'in_review').length
+    const totalControls = scopedDomains.reduce((sum, d) => sum + d.controls.length, 0)
+    const assessedControls = scopedAssessments.filter((a) => isAssessmentCompleted(a.status)).length
+    const approvedControls = scopedAssessments.filter((a) => isAssessmentApproved(a.status)).length
+    const submittedControls = scopedAssessments.filter((a) => a.status === 'submitted' || a.status === 'in_review').length
     const provisionalScore = assessedControls > 0 ? Math.round((approvedControls / assessedControls) * 100) : 0
 
     const overallPercent = totalControls > 0
@@ -48,7 +65,7 @@ export function useMissionProgress(
       daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
     }
 
-    const draftCount = assessments.filter((a) => a.status === 'draft').length
+    const draftCount = scopedAssessments.filter((a) => a.status === 'draft' || a.status === 'rejected').length
     const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls)
 
     const phases = MISSION_PHASES.map((p) => {
@@ -70,7 +87,7 @@ export function useMissionProgress(
       totalControls, assessedControls, approvedControls, submittedControls,
       provisionalScore, nextAction, phases,
     }
-  }, [mission, assessments, domains])
+  }, [mission, assessments, domains, scopeControlIds])
 }
 
 function computeNextAction(

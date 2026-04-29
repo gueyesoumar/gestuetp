@@ -24,29 +24,14 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
   const userRole = useMissionUserRole(mission)
 
   // Pour les auditeurs : ne montrer que les contr\u00f4les affect\u00e9s.
+  // Le progress re\u00e7u en prop est d\u00e9j\u00e0 filtr\u00e9 par MissionDetailPage
+  // (via scopeControlIds dans useMissionProgress).
   const filteredDomains = useMemo(() => {
     if (userRole.isPrivileged || userRole.loading) return domains
     return domains
       .map((d) => ({ ...d, controls: d.controls.filter((c) => userRole.assignedControlIds.has(c.id)) }))
       .filter((d) => d.controls.length > 0)
   }, [domains, userRole.isPrivileged, userRole.loading, userRole.assignedControlIds])
-
-  // Idem pour les KPI : un auditeur ne voit que sa propre progression.
-  const localProgress = useMemo(() => {
-    if (userRole.isPrivileged || userRole.loading) return progress
-    const filteredTotal = filteredDomains.reduce((s, d) => s + d.controls.length, 0)
-    const filteredAssessments = assessments.filter((a) => userRole.assignedControlIds.has(a.control_id))
-    const submitted = filteredAssessments.filter((a) => a.status === 'submitted' || a.status === 'in_review' || a.status === 'approved').length
-    const approved = filteredAssessments.filter((a) => a.status === 'approved').length
-    return {
-      ...progress,
-      totalControls: filteredTotal,
-      assessedControls: filteredAssessments.length,
-      submittedControls: submitted,
-      approvedControls: approved,
-      overallPercent: filteredTotal > 0 ? Math.round((submitted / filteredTotal) * 100) : 0,
-    }
-  }, [progress, assessments, filteredDomains, userRole.isPrivileged, userRole.loading, userRole.assignedControlIds])
 
   if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
     return (
@@ -62,10 +47,10 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
 
       {/* KPI row */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Progression globale" value={`${localProgress.overallPercent}%`} color="var(--color-forest-700)" bar={localProgress.overallPercent} barColor="#40916C" />
-        <KpiCard label="Contr&ocirc;les &eacute;valu&eacute;s" value={`${localProgress.assessedControls}/${localProgress.totalControls}`} color="var(--color-gold-500)" sub={`${localProgress.submittedControls} soumis \u00b7 ${localProgress.approvedControls} approuv\u00e9s`} />
-        <KpiCard label="Score provisoire" value={`${localProgress.provisionalScore}%`} color="var(--color-success)" sub={`Bas\u00e9 sur ${localProgress.assessedControls} contr\u00f4les`} />
-        <KpiCard label="Jours restants" value={localProgress.daysRemaining !== null ? `${localProgress.daysRemaining}` : '\u2014'} color="var(--color-forest-700)" />
+        <KpiCard label="Progression globale" value={`${progress.overallPercent}%`} color="var(--color-forest-700)" bar={progress.overallPercent} barColor="#40916C" />
+        <KpiCard label="Contr&ocirc;les &eacute;valu&eacute;s" value={`${progress.assessedControls}/${progress.totalControls}`} color="var(--color-gold-500)" sub={`${progress.submittedControls} soumis \u00b7 ${progress.approvedControls} approuv\u00e9s`} />
+        <KpiCard label="Score provisoire" value={`${progress.provisionalScore}%`} color="var(--color-success)" sub={`Bas\u00e9 sur ${progress.assessedControls} contr\u00f4les`} />
+        <KpiCard label="Jours restants" value={progress.daysRemaining !== null ? `${progress.daysRemaining}` : '\u2014'} color="var(--color-forest-700)" />
       </div>
 
       {/* Two columns */}
