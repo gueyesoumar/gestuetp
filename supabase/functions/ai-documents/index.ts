@@ -366,14 +366,28 @@ async function handleAnalyze(
 async function prepareAsset(blob: Blob, fileName: string): Promise<PreparedAsset> {
   const ext = (fileName.split('.').pop() ?? '').toLowerCase()
 
-  // Natif Anthropic (document)
-  if (['pdf', 'txt', 'csv', 'html', 'htm', 'md'].includes(ext)) {
+  // PDF natif
+  if (ext === 'pdf') {
     return { blob, fileName, kind: 'document' }
   }
 
-  // Natif Anthropic (image)
+  // Images natives
   if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
     return { blob, fileName, kind: 'image' }
+  }
+
+  // Texte natif (TXT, CSV, HTML, MD) → uniformiser en text/plain car
+  // Anthropic rejette text/csv et text/html sur le content block 'document'
+  // ("Only PDF and plaintext documents are supported"). Le contenu reste
+  // identique, seule l'enveloppe MIME et l'extension changent.
+  if (['txt', 'csv', 'html', 'htm', 'md'].includes(ext)) {
+    const text = await blob.text()
+    const newName = ext === 'txt' ? fileName : fileName.replace(/\.[^.]+$/, '') + '.txt'
+    return {
+      blob: new Blob([text], { type: 'text/plain' }),
+      fileName: newName,
+      kind: 'document',
+    }
   }
 
   // DOCX / DOC → texte plat via mammoth
@@ -390,7 +404,7 @@ async function prepareAsset(blob: Blob, fileName: string): Promise<PreparedAsset
     }
   }
 
-  // XLSX / XLS → CSV multi-feuilles
+  // XLSX / XLS → texte multi-feuilles (mime text/plain pour qu'Anthropic accepte)
   if (ext === 'xlsx' || ext === 'xls') {
     const buffer = await blob.arrayBuffer()
     const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' })
@@ -406,9 +420,9 @@ async function prepareAsset(blob: Blob, fileName: string): Promise<PreparedAsset
     }
     if (!parts.length) throw new Error('Classeur Excel sans données')
     const merged = parts.join('\n\n')
-    const newName = fileName.replace(/\.xlsx?$/i, '') + '.csv'
+    const newName = fileName.replace(/\.xlsx?$/i, '') + '.txt'
     return {
-      blob: new Blob([merged], { type: 'text/csv' }),
+      blob: new Blob([merged], { type: 'text/plain' }),
       fileName: newName,
       kind: 'document',
     }
