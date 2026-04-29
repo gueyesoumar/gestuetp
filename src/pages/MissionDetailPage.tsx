@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useMissionDetail } from '../features/missions/useMissionDetail'
 import { useAuditorAssessments } from '../features/missions/useAuditorAssessments'
 import { useAllAssessments } from '../features/missions/useAllAssessments'
 import { useMissionProgress } from '../features/missions/useMissionProgress'
+import { useMissionUserRole } from '../features/missions/useMissionUserRole'
 import { MissionDetailHeader } from '../features/missions/MissionDetailHeader'
 import { MissionStepper } from '../features/missions/MissionStepper'
 import { MissionOverviewTab } from '../features/missions/overview/MissionOverviewTab'
@@ -21,14 +22,35 @@ import type { CabinetClient } from '../types/database.types'
 
 type TabKey = 'overview' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure'
 
+// Onglets interdits aux auditeurs (rôle non-lead, non-associate). Le RLS
+// (migration 00091) bloque déjà les fuites de données ; cette liste cache
+// les onglets dans la navigation et redirige si l'utilisateur tape l'URL.
+const AUDITOR_FORBIDDEN_TABS: ReadonlySet<TabKey> = new Set(['scoping', 'planning', 'review', 'internal_review', 'client_review'])
+
 export function MissionDetailPage(){
   const { id } = useParams<{ id: string }>()
   const { mission, members, assignments, domains, loading, error, refetch } = useMissionDetail(id)
+  const userRole = useMissionUserRole(mission)
   const { assessments } = useAuditorAssessments(id)
   const { assessments: allAssessments } = useAllAssessments(id)
   const progress = useMissionProgress(mission, allAssessments, domains)
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [cabinetClient, setCabinetClient] = useState<CabinetClient | null>(null)
+
+  // Filtre les phases du Stepper pour les auditeurs.
+  const visiblePhases = useMemo(() => {
+    if (userRole.isPrivileged) return progress.phases
+    return progress.phases.filter((p) => !AUDITOR_FORBIDDEN_TABS.has(p.key as TabKey))
+  }, [progress.phases, userRole.isPrivileged])
+
+  // Si l'utilisateur tape un onglet interdit dans l'URL ou navigue vers
+  // un onglet sur lequel son rôle vient d'être réduit → repli sur Overview.
+  useEffect(() => {
+    if (userRole.loading) return
+    if (!userRole.isPrivileged && AUDITOR_FORBIDDEN_TABS.has(activeTab)) {
+      setActiveTab('overview')
+    }
+  }, [userRole.loading, userRole.isPrivileged, activeTab])
 
   // Fetch CabinetClient linked to this mission's client_id
   useEffect(() => {
@@ -64,28 +86,28 @@ export function MissionDetailPage(){
   return (
     <div className="-m-7">
       <MissionDetailHeader mission={mission} progress={progress} onCtaClick={handleCtaClick} />
-      <MissionStepper phases={progress.phases} activeTab={activeTab} onTabChange={(t) => setActiveTab(t as TabKey)} />
+      <MissionStepper phases={visiblePhases} activeTab={activeTab} onTabChange={(t) => setActiveTab(t as TabKey)} />
 
       <div className="p-7">
         {activeTab === 'overview' && (
           <MissionOverviewTab mission={mission} members={members} assessments={assessments} domains={domains} progress={progress} onRefetch={refetch} />
         )}
-        {activeTab === 'scoping' && (
+        {activeTab === 'scoping' && userRole.isPrivileged && (
           <MissionScopingTab mission={mission} members={members} domains={domains} client={cabinetClient} onRefetch={refetch} />
         )}
-        {activeTab === 'planning' && (
+        {activeTab === 'planning' && userRole.isPrivileged && (
           <MissionPlanningTab mission={mission} domains={domains} members={members} assignments={assignments} onRefetch={refetch} />
         )}
         {activeTab === 'fieldwork' && (
           <MissionFieldworkTab mission={mission} domains={domains} members={members} assignments={assignments} onRefetch={refetch} />
         )}
-        {activeTab === 'review' && (
+        {activeTab === 'review' && userRole.isPrivileged && (
           <MissionReviewTab mission={mission} />
         )}
-        {activeTab === 'internal_review' && (
+        {activeTab === 'internal_review' && userRole.isPrivileged && (
           <MissionInternalReviewTab mission={mission} onStatusChange={refetch} />
         )}
-        {activeTab === 'client_review' && (
+        {activeTab === 'client_review' && userRole.isPrivileged && (
           <MissionClientReviewTab mission={mission} />
         )}
         {activeTab === 'closure' && (
