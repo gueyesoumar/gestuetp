@@ -16,7 +16,9 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
     const admin = createClient(supabaseUrl, serviceRoleKey)
+    const callerAuth = req.headers.get('Authorization') ?? ''
 
     const { mission_id, control_id, control_code, control_name, control_description, domain, observations, evidence_notes } = await req.json()
 
@@ -126,6 +128,55 @@ Deno.serve(async (req) => {
         }
       }
       dedicatedCount = dedicatedDocs.length
+
+      // Self-heal : si une pièce dédiée n'a pas encore d'anthropic_file_id
+      // (ou en a un obsolète qu'on a effacé suite au fix text/csv→text/plain),
+      // on déclenche l'upload Anthropic à la volée pour qu'elle soit
+      // analysable dans cette même requête. Ainsi l'utilisateur n'a jamais
+      // à re-cliquer ni à manipuler la base.
+      const dedicatedNeedingUpload = dedicatedDocs.filter((d) => !d.anthropic_file_id)
+      if (dedicatedNeedingUpload.length > 0 && callerAuth) {
+        console.log(`[smart-analyse] Self-heal: triggering upload for ${dedicatedNeedingUpload.length} dedicated doc(s) without file_id`)
+        const uploadUrl = `${supabaseUrl}/functions/v1/ai-documents`
+        for (const doc of dedicatedNeedingUpload) {
+          // 1. Récupérer le document.id depuis le file_path (nécessaire au handleUpload)
+          const { data: docRow } = await admin
+            .from('documents')
+            .select('id')
+            .eq('file_path', doc.file_path)
+            .single()
+          const docId = (docRow as { id?: string } | null)?.id
+          if (!docId) {
+            console.warn(`[smart-analyse] self-heal: cannot resolve doc id for ${doc.file_name}`)
+            continue
+          }
+          try {
+            const res = await fetch(uploadUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': callerAuth,
+                'apikey': anonKey,
+              },
+              body: JSON.stringify({ action: 'upload', document_id: docId }),
+            })
+            if (!res.ok) {
+              const body = await res.text().catch(() => '')
+              console.warn(`[smart-analyse] self-heal upload failed for ${doc.file_name}: status=${res.status} body=${body.slice(0, 200)}`)
+              continue
+            }
+            const out = await res.json() as { file_id?: string; kind?: 'document' | 'image' }
+            if (out.file_id) {
+              doc.anthropic_file_id = out.file_id
+              doc.anthropic_file_kind = out.kind ?? 'document'
+              console.log(`[smart-analyse] self-heal OK for ${doc.file_name} → ${out.file_id}`)
+            }
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : 'unknown'
+            console.warn(`[smart-analyse] self-heal threw for ${doc.file_name}: ${msg}`)
+          }
+        }
+      }
     }
 
     let docs: DocRow[] = []
@@ -164,10 +215,12 @@ Deno.serve(async (req) => {
 
           // Pas de file_id : fallback URL signée. Limité à PDF / images
           // natives car les autres formats ne sont pas acceptés tels quels
-          // par Anthropic. L'utilisateur doit re-déclencher la conversion
-          // via le bouton de ré-analyse côté admin (futur).
+          // par Anthropic. Le self-heal en amont gère normalement ce cas
+          // pour les pièces dédiées ; ce log signale les documents qui
+          // n'ont pas pu être préparés.
           if (!isImage && !isPdf) {
             docDescriptions.push(`[${role}] [${doc.file_name}] (format ${ext ?? '?'} : conversion IA en attente — relancer l'extraction)`)
+            console.warn(`[smart-analyse] [${role}] SKIPPED ${doc.file_name} (format ${ext ?? '?'}, no anthropic_file_id)`)
             continue
           }
 
