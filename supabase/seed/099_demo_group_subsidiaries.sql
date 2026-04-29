@@ -3,8 +3,14 @@
 --
 -- Met en évidence la supervision groupe : Gëstu Advisory (cabinet+group)
 -- supervise 5 filiales fictives, chacune avec missions ISO 27001 ± PSSI-ES
--- et assessments variés. Profils de maturité contrastés (1 rouge, 2 orange,
--- 2 vert) pour rendre la heatmap et le classement lisibles.
+-- et assessments variés.
+--
+-- Profils par mission (pas par filiale) pour raconter une histoire :
+--   - Banque SA, Énergie & Co : mature sur les deux référentiels (vert)
+--   - Santé+ : moyen (orange)
+--   - Télécom Network : faible (rouge)
+--   - Service Public : mature sur ISO 27001 (audit clôturé OK) MAIS faible
+--     sur PSSI-ES (référentiel national en retard) → split intentionnel
 --
 -- IDEMPOTENT : tous les inserts utilisent ON CONFLICT DO NOTHING. Les UUIDs
 -- sont préfixés '00000000-0000-0000-0099-' pour cleanup trivial.
@@ -229,11 +235,20 @@ BEGIN
   END IF;
 
   FOR v_mission IN
+    -- Profil de conformité par mission (pas par filiale) :
+    -- Service Public est volontairement split : ISO 27001 maîtrisé (mature),
+    -- PSSI-ES en retard (faible). Raconte l'histoire d'un groupe qui a
+    -- intégré un référentiel international mais peine sur le national.
     SELECT m.id, m.framework_id, m.status, m.client_id,
-           CASE
-             WHEN m.client_id IN ('00000000-0000-0000-0099-000000000001'::uuid,
-                                  '00000000-0000-0000-0099-000000000005'::uuid) THEN 'mature'
-             WHEN m.client_id = '00000000-0000-0000-0099-000000000003'::uuid THEN 'faible'
+           CASE m.id
+             WHEN '00000000-0000-0000-0099-200000000001'::uuid THEN 'mature' -- ISO Banque SA
+             WHEN '00000000-0000-0000-0099-200000000002'::uuid THEN 'mature' -- PSSI-ES Banque SA
+             WHEN '00000000-0000-0000-0099-200000000003'::uuid THEN 'moyen'  -- ISO Santé+
+             WHEN '00000000-0000-0000-0099-200000000004'::uuid THEN 'faible' -- ISO Télécom
+             WHEN '00000000-0000-0000-0099-200000000005'::uuid THEN 'mature' -- ISO Service Public (closure, audit OK)
+             WHEN '00000000-0000-0000-0099-200000000006'::uuid THEN 'faible' -- PSSI-ES Service Public (en retard sur le national)
+             WHEN '00000000-0000-0000-0099-200000000007'::uuid THEN 'mature' -- ISO Énergie & Co
+             WHEN '00000000-0000-0000-0099-200000000008'::uuid THEN 'mature' -- PSSI-ES Énergie & Co
              ELSE 'moyen'
            END AS profile
     FROM public.missions m
