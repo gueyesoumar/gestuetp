@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { EmptyState } from '../../../components/ui/EmptyState'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { useMissionUserRole } from '../useMissionUserRole'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
 import { ClosureActionCards } from './ClosureActionCards'
@@ -41,6 +43,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const [assessments, setAssessments] = useState<ControlAssessment[]>([])
   const isClosed = mission.status === 'closure'
   const reportFlag = useFeatureFlag('report_generator_advanced')
+  const userRole = useMissionUserRole(mission)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -77,6 +80,16 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     onRefetch()
   }, [mission.id, onRefetch])
 
+  // Auditeur sans contrôle affecté → rien à afficher.
+  if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
+    return (
+      <EmptyState
+        title="Aucun contrôle affecté"
+        description="Vous n'avez pas de contrôle dans cette mission, donc aucun résultat à consulter ici."
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -88,7 +101,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
 
       {closeError && <ErrorAlert message={closeError} />}
 
-      {!isClosed && !scoring && (
+      {!isClosed && !scoring && userRole.isPrivileged && (
         <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div>
             <p className="text-sm font-medium text-amber-800">Pr&ecirc;t &agrave; cl&ocirc;turer la mission ?</p>
@@ -126,7 +139,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}
             initialComment={(mission as unknown as Record<string, unknown>).audit_conclusion_comment as string | null ?? null}
           />
-          {!reportFlag.loading && reportFlag.enabled && (
+          {!reportFlag.loading && reportFlag.enabled && userRole.isPrivileged && (
             <ReportGenerator missionId={mission.id} missionName={mission.name} />
           )}
         </>
