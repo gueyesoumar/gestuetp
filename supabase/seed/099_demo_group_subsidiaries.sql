@@ -184,12 +184,22 @@ BEGIN
 END $$;
 
 -- =============================================================================
--- 5. Control_assessments générés selon profils de maturité
+-- 5. Control_assessments générés selon profils de maturité ET statut mission
 -- =============================================================================
--- Profils (déterministes, basés sur position du contrôle dans le framework) :
+-- Profil de conformité (déterministe, position pseudo-aléa par contrôle) :
 --   mature : 70% c, 15% lc, 10% pc, 3% nc, 2% na   → score ~80
 --   moyen  : 40% c, 20% lc, 25% pc, 10% nc, 5% na  → score ~55
 --   faible : 15% c, 15% lc, 30% pc, 35% nc, 5% na  → score ~30 (rouge)
+--
+-- Couverture (réaliste selon statut mission) :
+--   initialization : 5 contrôles (mission tout juste démarrée)
+--   fieldwork      : 50% des contrôles (en cours)
+--   internal_review: 85% des contrôles (auditeur finalise)
+--   client_review  : 100% (auditeur a fini, attend validation client)
+--   closure        : 100% (mission close)
+--
+-- La sélection des contrôles partiels utilise md5(control_id || mission_id)
+-- pour distribuer sur tous les domaines du framework (pas concentrés sur A.5).
 
 DO $$
 DECLARE
@@ -198,6 +208,7 @@ DECLARE
   v_mission record;
   v_control record;
   v_idx int;
+  v_total_controls int;
   v_max_assessments int;
   v_pos int;
   v_conformity text;
@@ -228,10 +239,23 @@ BEGIN
     FROM public.missions m
     WHERE m.id::text LIKE '00000000-0000-0000-0099-200%'
   LOOP
-    -- Mission en initialization : 5 assessments seulement, sinon 15
-    v_max_assessments := CASE WHEN v_mission.status = 'initialization' THEN 5 ELSE 15 END;
+    -- Total de contrôles dans le framework de cette mission
+    SELECT count(*) INTO v_total_controls
+    FROM public.controls c
+    JOIN public.domains d ON d.id = c.domain_id
+    WHERE d.framework_id = v_mission.framework_id;
 
-    -- Status des assessments selon le statut de la mission
+    -- Couverture cible selon statut mission
+    v_max_assessments := CASE v_mission.status
+      WHEN 'initialization'  THEN LEAST(5, v_total_controls)
+      WHEN 'fieldwork'       THEN ceil(v_total_controls * 0.50)::int
+      WHEN 'internal_review' THEN ceil(v_total_controls * 0.85)::int
+      WHEN 'client_review'   THEN v_total_controls
+      WHEN 'closure'         THEN v_total_controls
+      ELSE 0
+    END;
+
+    -- Statut des assessments
     v_status := CASE v_mission.status
       WHEN 'closure'         THEN 'approved'::public.assessment_status
       WHEN 'client_review'   THEN 'approved'::public.assessment_status
@@ -240,12 +264,19 @@ BEGIN
     END;
 
     v_idx := 0;
+    -- Pour les missions partielles : distribution sur tous les domaines via md5
+    -- Pour les missions à 100% : ordre naturel par domaine + sort_order
     FOR v_control IN
       SELECT c.id
       FROM public.controls c
       JOIN public.domains d ON d.id = c.domain_id
       WHERE d.framework_id = v_mission.framework_id
-      ORDER BY d.sort_order, c.sort_order
+      ORDER BY
+        CASE WHEN v_max_assessments < v_total_controls
+          THEN md5(c.id::text || v_mission.id::text)
+          ELSE NULL
+        END NULLS LAST,
+        d.sort_order, c.sort_order
       LIMIT v_max_assessments
     LOOP
       v_idx := v_idx + 1;
@@ -303,5 +334,5 @@ BEGIN
     END LOOP;
   END LOOP;
 
-  RAISE NOTICE '[seed démo] OK : 5 filiales, 5 RSSI, 1 campagne, 8 missions, ~115 assessments.';
+  RAISE NOTICE '[seed démo] OK : 5 filiales, 5 RSSI, 1 campagne, 8 missions, assessments selon couverture par statut.';
 END $$;
