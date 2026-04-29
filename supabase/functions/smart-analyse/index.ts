@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
     if (mission_id && control_id) {
       // 2.a — direct match documents.control_id
       const { data: directDocs } = await admin.from('documents')
-        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, evidence_request_id')
+        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id')
         .eq('mission_id', mission_id)
         .eq('control_id', control_id)
         .order('created_at', { ascending: false })
@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       // 2.b — match via evidence_request_id → evidence_catalog.control_id
       const { data: viaEvidence } = await admin.from('documents')
         .select(`
-          file_name, file_path, mime_type, file_size, anthropic_file_id, evidence_request_id,
+          file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id,
           evidence_request:mission_evidence_requests!evidence_request_id (
             evidence_catalog:evidence_catalog!evidence_catalog_id ( control_id )
           )
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     let docs: DocRow[] = []
     if (mission_id) {
       const { data: otherDocs } = await admin.from('documents')
-        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, evidence_request_id')
+        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id')
         .eq('mission_id', mission_id)
         .order('created_at', { ascending: false }).limit(10)
       const generalDocs = ((otherDocs ?? []) as DocRow[]).filter((d) => !dedicatedPaths.has(d.file_path))
@@ -146,20 +146,32 @@ Deno.serve(async (req) => {
           const role = dedicatedPaths.has(doc.file_path) ? 'DEDIE' : 'CONTEXTE'
           const sizeMb = doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)}Mo` : '?'
 
-          if (!isImage && !isPdf) {
-            docDescriptions.push(`[${role}] [${doc.file_name}] (format non supporté)`)
-            continue
-          }
-
+          // Si le doc a un anthropic_file_id, il a déjà été converti à
+          // l'upload (DOCX→TXT, XLSX→CSV, images natives) → on l'utilise
+          // tel quel quel que soit le format d'origine. La conversion est
+          // opaque côté smart-analyse.
           if (doc.anthropic_file_id) {
+            const kind: 'document' | 'image' = doc.anthropic_file_kind === 'image' ? 'image' : 'document'
             contentParts.push({
-              type: 'document',
+              type: kind,
               source: { type: 'file', file_id: doc.anthropic_file_id },
             })
             useFilesApi = true
-            docDescriptions.push(`[${role}] [${doc.file_name}] OK Files API (${sizeMb})`)
-            console.log(`[smart-analyse] [${role}] file_id ${doc.anthropic_file_id} for ${doc.file_name}`)
-          } else if (isPdf) {
+            docDescriptions.push(`[${role}] [${doc.file_name}] OK Files API (${sizeMb}, kind=${kind})`)
+            console.log(`[smart-analyse] [${role}] file_id ${doc.anthropic_file_id} kind=${kind} for ${doc.file_name}`)
+            continue
+          }
+
+          // Pas de file_id : fallback URL signée. Limité à PDF / images
+          // natives car les autres formats ne sont pas acceptés tels quels
+          // par Anthropic. L'utilisateur doit re-déclencher la conversion
+          // via le bouton de ré-analyse côté admin (futur).
+          if (!isImage && !isPdf) {
+            docDescriptions.push(`[${role}] [${doc.file_name}] (format ${ext ?? '?'} : conversion IA en attente — relancer l'extraction)`)
+            continue
+          }
+
+          if (isPdf) {
             if (pdfCount >= MAX_PDFS) {
               docDescriptions.push(`[${role}] [${doc.file_name}] (limité à ${MAX_PDFS} PDF en mode URL)`)
               continue
