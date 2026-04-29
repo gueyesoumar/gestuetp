@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { useToast } from '../../../hooks/useToast'
 import { useMissionUserRole } from '../useMissionUserRole'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
@@ -11,6 +12,8 @@ import { FindingSynthesis } from './FindingSynthesis'
 import { CARTracking } from './CARTracking'
 import { AuditConclusion } from './AuditConclusion'
 import { ReportGenerator } from './ReportGenerator'
+import { generateAuditReportPDF } from '../../reports/generateAuditReportPDF'
+import { loadAuditReportData } from '../../reports/loadAuditReportData'
 import type { MissionDetail } from '../useMissionDetail'
 import type { ControlAssessment } from '../../../types/database.types'
 
@@ -42,10 +45,12 @@ interface MissionClosureTabProps {
 }
 
 export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps){
+  const toast = useToast()
   const [closing, setClosing] = useState(false)
   const [closeError, setCloseError] = useState<string | null>(null)
   const [scoring, setScoring] = useState<ScoringData | null>(null)
   const [assessments, setAssessments] = useState<ControlAssessment[]>([])
+  const [generatingPdf, setGeneratingPdf] = useState(false)
   const isClosed = mission.status === 'closure'
   const reportFlag = useFeatureFlag('report_generator_advanced')
   const userRole = useMissionUserRole(mission)
@@ -68,6 +73,19 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     load()
     return () => controller.abort()
   }, [mission.id])
+
+  const handleGenerateAuditReport = useCallback(async () => {
+    setGeneratingPdf(true)
+    try {
+      const data = await loadAuditReportData(mission)
+      await generateAuditReportPDF(data)
+      toast.success('Rapport PDF généré', { description: mission.name })
+    } catch (err) {
+      toast.error('Génération du rapport impossible', err)
+    } finally {
+      setGeneratingPdf(false)
+    }
+  }, [mission, toast])
 
   const handleClose = useCallback(async () => {
     setClosing(true)
@@ -129,11 +147,20 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
             <StatCard label="Non applicables" value={scoring.non_applicables} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
           </div>
           <DomainBreakdownList domainScores={scoring.domain_scores} />
-          <ClosureActionCards />
+          <ClosureActionCards
+            busy={{ pdf: generatingPdf }}
+            onGenerateAuditReport={userRole.isPrivileged ? handleGenerateAuditReport : undefined}
+          />
         </>
       )}
 
-      {isClosed && !scoring && <ScoringLoader missionId={mission.id} />}
+      {isClosed && !scoring && (
+        <ScoringLoader
+          missionId={mission.id}
+          actionsBusy={{ pdf: generatingPdf }}
+          onGenerateAuditReport={userRole.isPrivileged ? handleGenerateAuditReport : undefined}
+        />
+      )}
 
       {/* ISO 27001 closure enrichments */}
       {(isClosed || scoring) && (
@@ -163,7 +190,13 @@ function StatCard({ label, value, color, bg }: { label: string; value: number; c
   )
 }
 
-function ScoringLoader({ missionId }: { missionId: string }){
+interface ScoringLoaderProps {
+  missionId: string
+  actionsBusy?: { pdf?: boolean; pptx?: boolean; plan?: boolean; archive?: boolean }
+  onGenerateAuditReport?: () => void | Promise<void>
+}
+
+function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport }: ScoringLoaderProps){
   const [scoring, setScoring] = useState<ScoringData | null>(null)
 
   useEffect(() => {
@@ -183,7 +216,7 @@ function ScoringLoader({ missionId }: { missionId: string }){
         <StatCard label="Non applicables" value={scoring.non_applicables} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
       </div>
       <DomainBreakdownList domainScores={scoring.domain_scores} />
-      <ClosureActionCards />
+      <ClosureActionCards busy={actionsBusy} onGenerateAuditReport={onGenerateAuditReport} />
     </>
   )
 }
