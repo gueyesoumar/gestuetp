@@ -79,6 +79,7 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
     const { data, error: fnErr } = await supabase.functions.invoke('smart-analyse', {
       body: {
         mission_id: assessment.mission_id,
+        control_id: assessment.control_id,
         control_code: assessment.control.code,
         control_name: assessment.control.name,
         control_description: assessment.control.description,
