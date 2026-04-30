@@ -12,7 +12,7 @@ interface AssessmentRow {
   findings: string | null
   recommendations: string | null
   control_id: string
-  controls: { code: string | null; title: string | null } | null
+  controls: { code: string | null; name: string | null } | null
 }
 
 interface MissionRow {
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     // Charger les assessments classifiés
     const { data: assessments, error: assessErr } = await supabaseAdmin
       .from('control_assessments')
-      .select('id, finding_classification, findings, recommendations, control_id, controls:control_id(code, title)')
+      .select('id, finding_classification, findings, recommendations, control_id, controls:control_id(code, name)')
       .eq('mission_id', mission_id)
       .in('finding_classification', ['major_nc', 'minor_nc', 'observation'])
       .returns<AssessmentRow[]>()
@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
         : (a.recommendations ?? 'Constat à préciser.')
 
       const ctrlCode = a.controls?.code ?? null
-      const ctrlName = a.controls?.title ?? null
+      const ctrlName = a.controls?.name ?? null
       const normRef = ctrlCode && ctrlName ? `${ctrlCode} — ${ctrlName}` : (ctrlCode ?? ctrlName)
 
       const { data: insRow, error: insErr } = await supabaseAdmin
