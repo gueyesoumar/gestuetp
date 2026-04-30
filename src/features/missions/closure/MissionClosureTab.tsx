@@ -12,6 +12,8 @@ import { FindingSynthesis } from './FindingSynthesis'
 import { CARTracking } from './CARTracking'
 import { AuditConclusion } from './AuditConclusion'
 import { ReportGenerator } from './ReportGenerator'
+import { ActionPlanPreviewModal } from './ActionPlanPreviewModal'
+import { useActionPlan } from './useActionPlan'
 import { generateAuditReportPDF } from '../../reports/generateAuditReportPDF'
 import { loadAuditReportData } from '../../reports/loadAuditReportData'
 import type { MissionDetail } from '../useMissionDetail'
@@ -54,6 +56,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const isClosed = mission.status === 'closure'
   const reportFlag = useFeatureFlag('report_generator_advanced')
   const userRole = useMissionUserRole(mission)
+  const actionPlan = useActionPlan(mission)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -148,8 +151,9 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
           </div>
           <DomainBreakdownList domainScores={scoring.domain_scores} />
           <ClosureActionCards
-            busy={{ pdf: generatingPdf }}
+            busy={{ pdf: generatingPdf, plan: actionPlan.busy }}
             onGenerateAuditReport={userRole.isPrivileged ? handleGenerateAuditReport : undefined}
+            onOpenActionPlan={userRole.isPrivileged ? actionPlan.openPreviewOrExport : undefined}
           />
         </>
       )}
@@ -157,8 +161,9 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       {isClosed && !scoring && (
         <ScoringLoader
           missionId={mission.id}
-          actionsBusy={{ pdf: generatingPdf }}
+          actionsBusy={{ pdf: generatingPdf, plan: actionPlan.busy }}
           onGenerateAuditReport={userRole.isPrivileged ? handleGenerateAuditReport : undefined}
+          onOpenActionPlan={userRole.isPrivileged ? actionPlan.openPreviewOrExport : undefined}
         />
       )}
 
@@ -166,7 +171,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       {(isClosed || scoring) && (
         <>
           <FindingSynthesis assessments={assessments} />
-          <CARTracking missionId={mission.id} />
+          <CARTracking missionId={mission.id} mission={mission} />
           <AuditConclusion
             missionId={mission.id}
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}
@@ -177,6 +182,14 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
           )}
         </>
       )}
+
+      <ActionPlanPreviewModal
+        open={actionPlan.previewOpen}
+        busy={actionPlan.busy}
+        findings={actionPlan.findings}
+        onClose={actionPlan.closePreview}
+        onConfirm={actionPlan.confirmGeneration}
+      />
     </div>
   )
 }
@@ -194,9 +207,10 @@ interface ScoringLoaderProps {
   missionId: string
   actionsBusy?: { pdf?: boolean; pptx?: boolean; plan?: boolean; archive?: boolean }
   onGenerateAuditReport?: () => void | Promise<void>
+  onOpenActionPlan?: () => void | Promise<void>
 }
 
-function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport }: ScoringLoaderProps){
+function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport, onOpenActionPlan }: ScoringLoaderProps){
   const [scoring, setScoring] = useState<ScoringData | null>(null)
 
   useEffect(() => {
@@ -216,7 +230,7 @@ function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport }: Scorin
         <StatCard label="Non applicables" value={scoring.non_applicables} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
       </div>
       <DomainBreakdownList domainScores={scoring.domain_scores} />
-      <ClosureActionCards busy={actionsBusy} onGenerateAuditReport={onGenerateAuditReport} />
+      <ClosureActionCards busy={actionsBusy} onGenerateAuditReport={onGenerateAuditReport} onOpenActionPlan={onOpenActionPlan} />
     </>
   )
 }

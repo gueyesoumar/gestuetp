@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { useMissionUserRole } from '../useMissionUserRole'
+import { CARVerificationDialog } from './CARVerificationDialog'
 import type { CorrectiveActionRequest } from '../../../types/database.types'
+import type { MissionDetail } from '../useMissionDetail'
 
 const STATUS_BADGES: Record<string, { label: string; color: string }> = {
   open: { label: 'Ouvert', color: 'text-gold-600 bg-gold-50' },
-  client_responded: { label: 'R&eacute;pondu', color: 'text-blue-600 bg-blue-50' },
-  verified: { label: 'V&eacute;rifi&eacute;', color: 'text-green-600 bg-green-50' },
-  closed: { label: 'Cl&ocirc;tur&eacute;', color: 'text-gray-500 bg-gray-100' },
+  client_responded: { label: 'À vérifier', color: 'text-blue-600 bg-blue-50' },
+  verified: { label: 'Vérifié', color: 'text-green-600 bg-green-50' },
+  closed: { label: 'Clôturé', color: 'text-gray-500 bg-gray-100' },
 }
 
 const CLASS_BADGES: Record<string, { label: string; color: string }> = {
@@ -17,42 +20,55 @@ const CLASS_BADGES: Record<string, { label: string; color: string }> = {
 
 interface Props {
   missionId: string
+  mission?: MissionDetail
 }
 
-export function CARTracking({ missionId }: Props): JSX.Element {
+export function CARTracking({ missionId, mission }: Props): JSX.Element {
   const [cars, setCars] = useState<CorrectiveActionRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState<CorrectiveActionRequest | null>(null)
+  const userRole = useMissionUserRole(mission ?? ({ id: missionId } as MissionDetail))
+
+  const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
+    const { data, error } = await supabase
+      .from('corrective_action_requests')
+      .select('*')
+      .eq('mission_id', missionId)
+      .order('code', { ascending: true })
+    if (signal?.aborted) return
+    if (error) {
+      console.error('CARTracking load:', error.message)
+      setLoading(false)
+      return
+    }
+    setCars((data ?? []) as CorrectiveActionRequest[])
+    setLoading(false)
+  }, [missionId])
 
   useEffect(() => {
     const controller = new AbortController()
-    const load = async (): Promise<void> => {
-      const session = await supabase.auth.getSession()
-      const token = session.data.session?.access_token
-      if (!token) { setLoading(false); return }
-
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL
-      const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
-      const res = await fetch(
-        `${baseUrl}/rest/v1/corrective_action_requests?mission_id=eq.${missionId}&order=created_at.asc`,
-        { headers: { 'apikey': apikey, 'Authorization': `Bearer ${token}` }, signal: controller.signal }
-      )
-      if (controller.signal.aborted) return
-      if (res.ok) setCars((await res.json()) as CorrectiveActionRequest[])
-      setLoading(false)
-    }
-    load()
+    void load(controller.signal)
     return () => controller.abort()
-  }, [missionId])
+  }, [load])
 
   if (loading) return <p className="text-xs text-gray-400 text-center py-4">Chargement...</p>
 
   const accepted = cars.filter((c) => c.status === 'verified' || c.status === 'closed').length
   const total = cars.length
   const pct = total > 0 ? Math.round((accepted / total) * 100) : 0
+  const pendingVerif = cars.filter((c) => c.status === 'client_responded').length
 
   return (
     <div>
-      <h4 className="text-sm font-bold text-gray-900 mb-3">Suivi des actions correctives</h4>
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-bold text-gray-900">Suivi des actions correctives</h4>
+        {pendingVerif > 0 && userRole.isPrivileged && (
+          <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+            {pendingVerif} à vérifier
+          </span>
+        )}
+      </div>
+
       {total === 0 ? (
         <p className="text-xs text-gray-400 text-center py-4">Aucune CAR pour cette mission.</p>
       ) : (
@@ -78,7 +94,7 @@ export function CARTracking({ missionId }: Props): JSX.Element {
                   const cls = CLASS_BADGES[car.finding_classification] ?? { label: car.finding_classification, color: 'text-gray-500 bg-gray-50' }
                   const st = STATUS_BADGES[car.status] ?? STATUS_BADGES.open
                   return (
-                    <tr key={car.id}>
+                    <tr key={car.id} onClick={() => setSelected(car)} className="cursor-pointer hover:bg-gray-50 transition-colors">
                       <td className="px-3 py-2 font-mono font-semibold text-forest-700">{car.code}</td>
                       <td className="px-3 py-2 text-gray-700">{car.control_code ?? '-'}</td>
                       <td className="px-3 py-2"><span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${cls.color}`}>{cls.label}</span></td>
@@ -91,6 +107,13 @@ export function CARTracking({ missionId }: Props): JSX.Element {
           </div>
         </>
       )}
+
+      <CARVerificationDialog
+        car={selected}
+        canVerify={userRole.isPrivileged}
+        onClose={() => setSelected(null)}
+        onChanged={load}
+      />
     </div>
   )
 }
