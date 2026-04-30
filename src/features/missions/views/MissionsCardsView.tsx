@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../../../components/ui/Badge'
+import { MissionKindBadge } from '../MissionKindBadge'
 import type { MissionWithDetails } from '../useMissions'
 import type { MissionStatus } from '../../../types/database.types'
 
@@ -59,6 +60,7 @@ export function MissionsCardsView({ missions }: MissionsCardsViewProps) {
                 {fw.abbr}
               </div>
               <div className="flex items-center gap-1.5">
+                <MissionKindBadge kind={mission.kind} />
                 <Badge label={st.label} variant={st.variant} />
               </div>
             </div>

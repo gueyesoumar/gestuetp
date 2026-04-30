@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../../../components/ui/Badge'
+import { MissionKindBadge } from '../MissionKindBadge'
 import type { MissionWithDetails } from '../useMissions'
 import type { MissionStatus } from '../../../types/database.types'
 
@@ -59,6 +60,7 @@ export function MissionsSplitView({ missions }: MissionsSplitViewProps) {
                 <div className="text-[11px] text-gray-300 truncate mt-0.5">{mission.client?.name}</div>
                 <div className="flex items-center gap-2 mt-1.5">
                   <Badge label={st.label} variant={st.variant} />
+                  <MissionKindBadge kind={mission.kind} compact />
                   <span className="text-[10px] text-gray-400">{mission.progressPct}%</span>
                 </div>
               </div>
@@ -79,6 +81,7 @@ export function MissionsSplitView({ missions }: MissionsSplitViewProps) {
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                <MissionKindBadge kind={selected.kind} />
                 <Badge label={statusConfig[selected.status].label} variant={statusConfig[selected.status].variant} />
                 <button
                   onClick={() => navigate(`/missions/${selected.id}`)}

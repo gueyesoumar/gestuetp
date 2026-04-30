@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../../../components/ui/Badge'
+import { MissionKindBadge } from '../MissionKindBadge'
 import type { MissionWithDetails } from '../useMissions'
 import type { MissionStatus } from '../../../types/database.types'
 
@@ -60,7 +61,10 @@ export function MissionsKanbanView({ missions }: MissionsKanbanViewProps) {
                   >
                     <div className="flex items-start justify-between">
                       <span className="text-[13px] font-semibold text-gray-900 leading-tight">{mission.name}</span>
-                      <span className={`flex h-6 w-6 items-center justify-center rounded-md text-[8px] font-extrabold flex-shrink-0 ml-2 ${fw.bg}`}>{fw.abbr}</span>
+                      <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                        <MissionKindBadge kind={mission.kind} compact />
+                        <span className={`flex h-6 w-6 items-center justify-center rounded-md text-[8px] font-extrabold ${fw.bg}`}>{fw.abbr}</span>
+                      </div>
                     </div>
                     <div className="text-[11px] text-gray-300 mt-1">{mission.client?.name}</div>
 
