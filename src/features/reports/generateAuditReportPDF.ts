@@ -960,9 +960,9 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   doc.text(`${d.score}%`, sx + 11, ctx.y + 10, { align: 'center' })
   ctx.y += 18
 
-  // Stats inline
+  // Stats inline — alignées avec le titre du bandeau au-dessus (marginL + 8)
   setText(doc, TEXT_500, 8.5, 'normal')
-  doc.text(`${d.scored}/${d.total} contrôles évalués · ${d.conformes} strictement conformes · ${d.ncMajor} NC maj · ${d.ncMinor} NC min · ${d.observations} obs.`, marginL, ctx.y)
+  doc.text(`${d.scored}/${d.total} contrôles évalués · ${d.conformes} strictement conformes · ${d.ncMajor} NC maj · ${d.ncMinor} NC min · ${d.observations} obs.`, marginL + 8, ctx.y)
   ctx.y += 6
 
   // Narratif
@@ -1106,8 +1106,10 @@ function drawRecoCard(ctx: DocContext, a: AssessmentWithControl, idx: number): v
   const priority = a.finding_classification === 'major_nc' ? 'P1' : a.finding_classification === 'minor_nc' ? 'P2' : 'P3'
   const color = priority === 'P1' ? RED : priority === 'P2' ? ORANGE : BLUE
 
+  // Indent gauche du corps : aligné sous le titre (badge + chip = 32 mm)
+  const BODY_X = 32
   const text = a.recommendations ?? '—'
-  const lines = doc.splitTextToSize(text, contentW - 24) as string[]
+  const lines = doc.splitTextToSize(text, contentW - BODY_X - 4) as string[]
   const cardH = 14 + lines.length * 4.5 + 2
   checkPage(ctx, cardH + 3)
 
@@ -1123,11 +1125,11 @@ function drawRecoCard(ctx: DocContext, a: AssessmentWithControl, idx: number): v
   doc.text(priority, marginL + 21.5, ctx.y + 7.5, { align: 'center' })
 
   setText(doc, FOREST_900, 9, 'bold')
-  doc.text(`${a.control.code} — ${truncate(a.control.name, 55)}`, marginL + 32, ctx.y + 8)
+  doc.text(`${a.control.code} — ${truncate(a.control.name, 55)}`, marginL + BODY_X, ctx.y + 8)
 
   setText(doc, TEXT_700, 9, 'normal')
   let ly = ctx.y + 14
-  for (const l of lines) { doc.text(l, marginL + 8, ly); ly += 4.5 }
+  for (const l of lines) { doc.text(l, marginL + BODY_X, ly); ly += 4.5 }
 
   ctx.y += cardH + 2
 }
@@ -1331,7 +1333,7 @@ function drawTable(ctx: DocContext, headers: string[], rows: string[][], widths:
   fillRect(doc, marginL, ctx.y, totalW, headerH, ctx.palette.primary)
   setText(doc, WHITE, 8, 'bold')
   let cx = marginL
-  for (let i = 0; i < headers.length; i++) { doc.text(headers[i], cx + 2, ctx.y + 5.4); cx += widths[i] }
+  for (let i = 0; i < headers.length; i++) { doc.text(headers[i], cx + 4, ctx.y + 5.4); cx += widths[i] }
   ctx.y += headerH
 
   setText(doc, TEXT_700, 8, 'normal')
@@ -1340,7 +1342,7 @@ function drawTable(ctx: DocContext, headers: string[], rows: string[][], widths:
     checkPage(ctx, rowH)
     if (zebra) fillRect(doc, marginL, ctx.y, totalW, rowH, CREAM)
     cx = marginL
-    for (let i = 0; i < row.length; i++) { doc.text(row[i], cx + 2, ctx.y + 4); cx += widths[i] }
+    for (let i = 0; i < row.length; i++) { doc.text(row[i], cx + 4, ctx.y + 4); cx += widths[i] }
     ctx.y += rowH
     zebra = !zebra
   }
