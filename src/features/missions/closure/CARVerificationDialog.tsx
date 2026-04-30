@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { useCARVerification, type VerifyAction } from './useCARVerification'
+import { CARTimeline } from './CARTimeline'
 import type { CorrectiveActionRequest } from '../../../types/database.types'
 
 interface CARVerificationDialogProps {
@@ -8,6 +9,8 @@ interface CARVerificationDialogProps {
   canVerify: boolean
   onClose: () => void
   onChanged: () => void | Promise<void>
+  userNames?: Map<string, string>
+  contactNames?: Map<string, string>
 }
 
 const CLASS_LABEL: Record<string, string> = {
@@ -16,7 +19,7 @@ const CLASS_LABEL: Record<string, string> = {
   observation: 'Observation',
 }
 
-export function CARVerificationDialog({ car, canVerify, onClose, onChanged }: CARVerificationDialogProps): JSX.Element | null {
+export function CARVerificationDialog({ car, canVerify, onClose, onChanged, userNames, contactNames }: CARVerificationDialogProps): JSX.Element | null {
   const { busy, verify } = useCARVerification(async () => { await onChanged(); onClose() })
   const [requireComment, setRequireComment] = useState<VerifyAction | null>(null)
   const [comment, setComment] = useState('')
@@ -36,6 +39,8 @@ export function CARVerificationDialog({ car, canVerify, onClose, onChanged }: CA
   return (
     <Modal open={!!car} onClose={onClose} title={`${car.code} — ${CLASS_LABEL[car.finding_classification] ?? car.finding_classification}`}>
       <div className="space-y-4">
+        <CARTimeline car={car} userNames={userNames} contactNames={contactNames} />
+
         <Section title="Constat de l'auditeur">
           {car.control_code && (
             <p className="text-xs font-semibold text-forest-700 mb-1">{car.control_code} — {car.control_name ?? ''}</p>

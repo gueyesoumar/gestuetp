@@ -4,6 +4,7 @@ import { useClientMissionDetail } from './useClientMissionDetail'
 import { ClientMissionDashboardTab } from './tabs/ClientMissionDashboardTab'
 import { ClientExchangesTab } from './tabs/ClientExchangesTab'
 import { ClientResultsTab } from './tabs/ClientResultsTab'
+import { ClientActionPlanTab } from './tabs/ClientActionPlanTab'
 import { ClientReportsTab } from './tabs/ClientReportsTab'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
@@ -72,6 +73,9 @@ export function ClientMissionDetailPage(): JSX.Element {
       )}
       {activeTab === 'results' && (
         <ClientResultsTab mission={mission} canContribute={canContribute} canApprove={canApprove} onRefetch={refetch} />
+      )}
+      {activeTab === 'action_plan' && (
+        <ClientActionPlanTab mission={mission} canContribute={canContribute} />
       )}
       {activeTab === 'reports' && (
         <ClientReportsTab mission={mission} />

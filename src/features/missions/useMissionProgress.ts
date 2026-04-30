@@ -91,19 +91,26 @@ export function useMissionProgress(
     const draftCount = scopedAssessments.filter((a) => a.status === 'draft' || a.status === 'rejected').length
     const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls)
 
-    const phases = MISSION_PHASES.map((p) => {
-      let state: 'done' | 'active' | 'locked' = 'locked'
-      if (p.index < phaseIndex) state = 'done'
-      else if (p.index === phaseIndex) state = 'active'
+    const isClosure = mission.status === 'closure'
+    const phases = MISSION_PHASES
+      // Phase virtuelle "action_plan" visible uniquement pendant la cl\u00f4ture
+      .filter((p) => p.key !== 'action_plan' || isClosure)
+      .map((p) => {
+        let state: 'done' | 'active' | 'locked' = 'locked'
+        if (p.key === 'action_plan') {
+          // En cl\u00f4ture, plan d'action est toujours accessible (active)
+          state = 'active'
+        } else if (p.index < phaseIndex) state = 'done'
+        else if (p.index === phaseIndex) state = 'active'
 
-      let sublabel: string | undefined
-      if (state === 'done') sublabel = 'Termin\u00e9'
-      if (state === 'active' && p.key === 'fieldwork') {
-        sublabel = `${assessedControls}/${totalControls} contr\u00f4les`
-      }
+        let sublabel: string | undefined
+        if (state === 'done') sublabel = 'Termin\u00e9'
+        if (state === 'active' && p.key === 'fieldwork') {
+          sublabel = `${assessedControls}/${totalControls} contr\u00f4les`
+        }
 
-      return { key: p.key, label: p.label, state, sublabel }
-    })
+        return { key: p.key, label: p.label, state, sublabel }
+      })
 
     return {
       phaseIndex, overallPercent, daysRemaining,

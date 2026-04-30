@@ -23,8 +23,12 @@ interface UseActionPlanResult {
   busy: boolean
   previewOpen: boolean
   findings: FindingCounts
+  userNames: Map<string, string>
+  contactNames: Map<string, string>
+  reload: () => Promise<void>
   openPreviewOrExport: () => Promise<void>
   closePreview: () => void
+  openPreview: () => void
   confirmGeneration: () => Promise<void>
   exportXLSX: () => Promise<void>
 }
@@ -32,7 +36,8 @@ interface UseActionPlanResult {
 export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
   const toast = useToast()
   const [cars, setCars] = useState<ActionPlanCAR[]>([])
-  const [domainsByControl, setDomainsByControl] = useState<Map<string, string>>(new Map())
+  const [userNames, setUserNames] = useState<Map<string, string>>(new Map())
+  const [contactNames, setContactNames] = useState<Map<string, string>>(new Map())
   const [findings, setFindings] = useState<FindingCounts>({ major_nc: 0, minor_nc: 0, observation: 0 })
   const [brand, setBrand] = useState<BrandColors>(DEFAULT_BRAND)
   const [loading, setLoading] = useState(true)
@@ -81,7 +86,6 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
     for (const d of (domainRows ?? []) as unknown as Array<{ id: string; name: string; controls: { id: string }[] }>) {
       for (const c of d.controls ?? []) map.set(c.id, d.name)
     }
-    setDomainsByControl(map)
 
     // 4. Branding cabinet
     const { data: branding } = await supabase
@@ -114,6 +118,45 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
       return { ...(c as ActionPlanCAR), domain_name: domain ?? null }
     })
     setCars(enriched)
+
+    // 6. Charger les noms d'utilisateurs (auteurs CAR + auditeurs vérifieurs) pour la timeline
+    const userIds = new Set<string>()
+    for (const c of enriched) {
+      if (c.created_by) userIds.add(c.created_by)
+      if (c.verified_by) userIds.add(c.verified_by)
+    }
+    if (userIds.size > 0) {
+      const { data: uRows } = await supabase
+        .from('users')
+        .select('id, first_name, last_name, email')
+        .in('id', Array.from(userIds))
+      if (signal?.aborted) return
+      const uMap = new Map<string, string>()
+      for (const u of (uRows ?? []) as unknown as Array<{ id: string; first_name: string | null; last_name: string | null; email: string }>) {
+        const name = [u.first_name, u.last_name].filter(Boolean).join(' ').trim()
+        uMap.set(u.id, name || u.email)
+      }
+      setUserNames(uMap)
+    }
+
+    // 7. Charger les noms des responsables internes côté client
+    const contactIds = new Set<string>()
+    for (const c of enriched) {
+      if (c.client_responsible_id) contactIds.add(c.client_responsible_id)
+    }
+    if (contactIds.size > 0) {
+      const { data: cRows } = await supabase
+        .from('client_portal_contacts')
+        .select('id, contact_name, email')
+        .in('id', Array.from(contactIds))
+      if (signal?.aborted) return
+      const cMap = new Map<string, string>()
+      for (const c of (cRows ?? []) as unknown as Array<{ id: string; contact_name: string | null; email: string }>) {
+        cMap.set(c.id, c.contact_name ?? c.email)
+      }
+      setContactNames(cMap)
+    }
+
     setLoading(false)
   }, [mission.id, mission.framework_id, mission.cabinet_id])
 
@@ -159,6 +202,8 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
   }, [cars.length, exportXLSX])
 
   const closePreview = useCallback(() => setPreviewOpen(false), [])
+  const openPreview = useCallback(() => setPreviewOpen(true), [])
+  const reload = useCallback(async (): Promise<void> => { await loadAll() }, [loadAll])
 
   const confirmGeneration = useCallback(async (): Promise<void> => {
     setBusy(true)
@@ -187,8 +232,12 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
     busy,
     previewOpen,
     findings,
+    userNames,
+    contactNames,
+    reload,
     openPreviewOrExport,
     closePreview,
+    openPreview,
     confirmGeneration,
     exportXLSX,
   }

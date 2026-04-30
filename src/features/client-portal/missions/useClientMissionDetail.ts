@@ -9,9 +9,12 @@ export interface ClientMissionDetail {
   status_label: string
   start_date: string | null
   end_date: string | null
+  framework_id: string | null
   framework_name: string | null
   cabinet_name: string | null
   cabinet_id: string
+  client_id: string | null
+  client_name: string | null
 }
 
 interface UseClientMissionDetailReturn {
@@ -47,7 +50,7 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
 
     // Fetch mission (sans join pour éviter erreur 300)
     const missionRes = await fetch(
-      `${baseUrl}/rest/v1/missions?id=eq.${missionId}&select=id,name,status,start_date,end_date,cabinet_id,framework_id`,
+      `${baseUrl}/rest/v1/missions?id=eq.${missionId}&select=id,name,status,start_date,end_date,cabinet_id,framework_id,client_id`,
       { headers }
     )
 
@@ -66,9 +69,10 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
 
     const m = missions[0]
 
-    // Fetch framework & cabinet names
+    // Fetch framework, cabinet, client names
     let frameworkName: string | null = null
     let cabinetName: string | null = null
+    let clientName: string | null = null
 
     if (m.framework_id) {
       const fwRes = await fetch(`${baseUrl}/rest/v1/frameworks?id=eq.${m.framework_id}&select=name`, { headers })
@@ -84,6 +88,13 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
         cabinetName = cabData[0]?.name ?? null
       }
     }
+    if (m.client_id) {
+      const clRes = await fetch(`${baseUrl}/rest/v1/organizations?id=eq.${m.client_id}&select=name`, { headers })
+      if (clRes.ok) {
+        const clData = await clRes.json() as { name: string }[]
+        clientName = clData[0]?.name ?? null
+      }
+    }
 
     setMission({
       id: m.id as string,
@@ -92,9 +103,12 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
       status_label: PHASE_LABELS[m.status as string] ?? (m.status as string),
       start_date: m.start_date as string | null,
       end_date: m.end_date as string | null,
+      framework_id: (m.framework_id as string | null) ?? null,
       framework_name: frameworkName,
       cabinet_name: cabinetName,
       cabinet_id: m.cabinet_id as string,
+      client_id: (m.client_id as string | null) ?? null,
+      client_name: clientName,
     })
 
     // Fetch permission

@@ -16,11 +16,12 @@ import { MissionReviewTab } from '../features/missions/review/MissionReviewTab'
 import { MissionInternalReviewTab } from '../features/missions/internal-review/MissionInternalReviewTab'
 import { MissionClientReviewTab } from '../features/missions/client-review/MissionClientReviewTab'
 import { MissionClosureTab } from '../features/missions/closure/MissionClosureTab'
+import { MissionActionPlanTab } from '../features/missions/action-plan/MissionActionPlanTab'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import type { CabinetClient } from '../types/database.types'
 
-type TabKey = 'overview' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure'
+type TabKey = 'overview' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure' | 'action_plan'
 
 // Onglets interdits aux auditeurs (rôle non-lead, non-associate). Le RLS
 // (migration 00091) bloque déjà les fuites de données ; cette liste cache
@@ -117,6 +118,9 @@ export function MissionDetailPage(){
         )}
         {activeTab === 'closure' && (
           <MissionClosureTab mission={mission} onRefetch={refetch} />
+        )}
+        {activeTab === 'action_plan' && (
+          <MissionActionPlanTab mission={mission} />
         )}
       </div>
     </div>

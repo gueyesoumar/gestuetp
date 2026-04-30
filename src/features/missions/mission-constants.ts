@@ -19,7 +19,7 @@ export function isAssessmentInProgress(assessment: Pick<ControlAssessment, 'stat
 }
 
 export interface MissionPhase {
-  key: MissionStatus
+  key: MissionStatus | 'action_plan'
   label: string
   index: number
 }
@@ -31,6 +31,7 @@ export const MISSION_PHASES: MissionPhase[] = [
   { key: 'internal_review', label: 'Revue interne', index: 3 },
   { key: 'client_review', label: 'Validation client', index: 4 },
   { key: 'closure', label: 'Cl\u00f4ture', index: 5 },
+  { key: 'action_plan', label: "Plan d'action", index: 6 },
 ]
 
 export const STATUS_TO_PHASE_INDEX: Record<MissionStatus, number> = {

@@ -4,7 +4,6 @@ import { useMissionControls } from '../useMissionControls'
 import { ControlSyntheseView } from '../ControlSyntheseView'
 import { ControlListView } from '../ControlListView'
 import { ControlDetailDrawer } from '../ControlDetailDrawer'
-import { ClientCARSection } from './ClientCARSection'
 import { useClientActionItems } from './useClientActionItems'
 import { Check } from 'lucide-react'
 import { ACTION_PRIORITY_LABELS, ACTION_STATUS_LABELS } from '../../client-constants'
@@ -100,12 +99,6 @@ export function ClientResultsTab({ mission, canContribute, canApprove }: Props):
           onControlClick={setSelectedControl}
         />
       )}
-
-      {/* CAR Section */}
-      <section>
-        <h3 className="text-sm font-bold mb-3">Demandes d{'’'}actions correctives (CAR)</h3>
-        <ClientCARSection missionId={mission.id} canContribute={canContribute} />
-      </section>
 
       {/* Action items */}
       <section>
