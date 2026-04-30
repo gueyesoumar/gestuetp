@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
-import { LayoutGrid, ShieldCheck } from 'lucide-react'
+import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
   OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
@@ -9,6 +9,7 @@ import {
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
+import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 import { useNotifications } from '../../features/notifications/useNotifications'
 import type { User } from '../../types/database.types'
 import type { ReactNode } from 'react'
@@ -34,6 +35,12 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/missions', label: 'Missions', icon: <MissionsIcon /> },
 ]
 
+const GROUP_NAV_ITEMS: { to: string; label: string; icon: ReactNode }[] = [
+  { to: '/filiales', label: 'Filiales', icon: <Building2 size={20} strokeWidth={1.5} /> },
+  { to: '/revues', label: 'Revues continues', icon: <RefreshCw size={20} strokeWidth={1.5} /> },
+  { to: '/plans-transverses', label: "Plans d'action", icon: <ListChecks size={20} strokeWidth={1.5} /> },
+]
+
 const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/notifications', label: 'Notifications', icon: <BellIcon /> },
   { to: '/organisation', label: 'Organisation', icon: <OrganizationIcon /> },
@@ -43,6 +50,7 @@ const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
 export function Sidebar({ profile, open, onClose }: SidebarProps) {
   const { signOut } = useAuth()
   const { canViewSupervision } = useGroupPermissions()
+  const { isGroup } = useOrganizationHierarchy(profile?.organization_id)
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
@@ -147,6 +155,40 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
               )}
             </NavLink>
           ))}
+
+          {isGroup && (
+            <>
+              {!collapsed && (
+                <p className="mt-5 mb-2 px-3.5 text-[10px] font-bold uppercase tracking-wider text-gold-300">Module Groupe</p>
+              )}
+              {collapsed && <div className="my-3 mx-auto h-px w-8 bg-white/10" />}
+              {GROUP_NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={onClose}
+                  title={collapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    collapsed
+                      ? `relative flex items-center justify-center w-11 h-11 mx-auto mb-1 rounded-xl transition-colors ${
+                          isActive ? 'bg-white/12 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/70'
+                        }`
+                      : `relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 mb-0.5 text-[13px] font-medium transition-colors ${
+                          isActive ? 'bg-white/12 text-white' : 'text-white/45 hover:bg-white/8 hover:text-white/80'
+                        }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && <span className={`absolute top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gold-500 ${collapsed ? '-left-2' : 'left-0'}`} />}
+                      <span className="flex-shrink-0">{item.icon}</span>
+                      {!collapsed && <span>{item.label}</span>}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </>
+          )}
         </nav>
 
         {/* Profile area with popup menu */}

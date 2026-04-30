@@ -34,6 +34,26 @@ export const MISSION_PHASES: MissionPhase[] = [
   { key: 'action_plan', label: "Plan d'action", index: 6 },
 ]
 
+/**
+ * En mode supervision continue, la phase "Validation client" est retir\u00e9e
+ * (supervision interne) et "Cl\u00f4ture" devient "Cl\u00f4ture revue" \u2014 elle ne
+ * termine pas la mission mais le cycle trimestriel courant.
+ */
+export const CONTINUOUS_SUPERVISION_PHASES: MissionPhase[] = [
+  { key: 'scoping', label: 'Cadrage', index: 0 },
+  { key: 'planning', label: 'Planification', index: 1 },
+  { key: 'fieldwork', label: 'Travaux', index: 2 },
+  { key: 'internal_review', label: 'Revue interne', index: 3 },
+  { key: 'closure', label: 'Cl\u00f4ture revue', index: 5 },
+  { key: 'action_plan', label: "Plan d'action", index: 6 },
+]
+
+export type MissionKindShort = 'audit' | 'continuous_supervision'
+
+export function getMissionPhases(kind: MissionKindShort | null | undefined): MissionPhase[] {
+  return kind === 'continuous_supervision' ? CONTINUOUS_SUPERVISION_PHASES : MISSION_PHASES
+}
+
 export const STATUS_TO_PHASE_INDEX: Record<MissionStatus, number> = {
   initialization: 0,
   scoping: 0,

@@ -434,6 +434,8 @@ export interface Question {
 // Tables mission
 // ============================================================
 
+export type MissionKind = 'audit' | 'continuous_supervision'
+
 export interface Mission {
   id: string
   cabinet_id: string
@@ -442,6 +444,7 @@ export interface Mission {
   name: string
   description: string | null
   status: MissionStatus
+  kind: MissionKind
   lead_auditor_id: string | null
   associate_id: string | null
   start_date: string | null
@@ -463,6 +466,7 @@ export interface MissionInsert {
   name: string
   description?: string | null
   status?: MissionStatus
+  kind?: MissionKind
   lead_auditor_id?: string | null
   associate_id?: string | null
   start_date?: string | null
@@ -530,6 +534,7 @@ export interface ControlAssessment {
   risk_notes: string | null
   conformity_level: string | null
   finding_classification: string | null
+  cycle_id: string | null
   created_at: string
   updated_at: string
 }
@@ -544,6 +549,7 @@ export interface ControlAssessmentInsert {
   recommendations?: string | null
   ai_draft?: string | null
   evidence_notes?: string | null
+  cycle_id?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -586,9 +592,42 @@ export interface CorrectiveActionRequest {
   verified_by: string | null
   verified_at: string | null
   status: CARStatus
+  cycle_id: string | null
   created_by: string
   created_at: string
   updated_at: string
+}
+
+export type SupervisionCycleStatus = 'planned' | 'in_progress' | 'closed'
+
+export interface SupervisionCycle {
+  id: string
+  mission_id: string
+  period_label: string
+  period_start: string
+  period_end: string
+  status: SupervisionCycleStatus
+  score: number | null
+  conformity_summary: Record<string, unknown> | null
+  lead_auditor_id: string | null
+  created_by: string
+  closed_by: string | null
+  closed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface SupervisionCycleInsert {
+  id?: string
+  mission_id: string
+  period_label: string
+  period_start: string
+  period_end: string
+  status?: SupervisionCycleStatus
+  score?: number | null
+  conformity_summary?: Record<string, unknown> | null
+  lead_auditor_id?: string | null
+  created_by: string
 }
 
 export interface AssessmentValidation {

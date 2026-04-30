@@ -45,6 +45,10 @@ import { AdminFrameworkDetailPage } from './pages/admin/AdminFrameworkDetailPage
 import { SupervisionPage } from './pages/SupervisionPage'
 import { EntityDetailPage } from './pages/EntityDetailPage'
 import { CampaignDetailPage } from './pages/CampaignDetailPage'
+import { SubsidiariesPage } from './features/group-module/SubsidiariesPage'
+import { SubsidiaryDetailPage } from './features/group-module/SubsidiaryDetailPage'
+import { ContinuousReviewsPage } from './features/group-module/ContinuousReviewsPage'
+import { TransversalPlansPage } from './features/group-module/TransversalPlansPage'
 
 function App() {
   return (
@@ -106,6 +110,11 @@ function App() {
             <Route path="missions/nouvelle" element={<MissionCreatePage />} />
             <Route path="missions/:id" element={<MissionDetailPage />} />
             <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
+            {/* Module Groupe */}
+            <Route path="filiales" element={<SubsidiariesPage />} />
+            <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
+            <Route path="revues" element={<ContinuousReviewsPage />} />
+            <Route path="plans-transverses" element={<TransversalPlansPage />} />
           </Route>
 
           {/* Super-admin routes (Gëstu platform owner) */}

@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { STATUS_TO_PHASE_INDEX, MISSION_PHASES, isAssessmentCompleted, isAssessmentApproved } from './mission-constants'
+import { STATUS_TO_PHASE_INDEX, getMissionPhases, isAssessmentCompleted, isAssessmentApproved } from './mission-constants'
+import type { MissionKindShort } from './mission-constants'
 import type { MissionDetail } from './useMissionDetail'
 import type { AssessmentWithControl } from './useAuditorAssessments'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
@@ -92,7 +93,8 @@ export function useMissionProgress(
     const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls)
 
     const isClosure = mission.status === 'closure'
-    const phases = MISSION_PHASES
+    const missionKind = (mission as unknown as { kind?: MissionKindShort | null }).kind ?? 'audit'
+    const phases = getMissionPhases(missionKind)
       // Phase virtuelle "action_plan" visible uniquement pendant la cl\u00f4ture
       .filter((p) => p.key !== 'action_plan' || isClosure)
       .map((p) => {

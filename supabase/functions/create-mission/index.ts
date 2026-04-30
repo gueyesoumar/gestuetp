@@ -2,6 +2,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
+type MissionKind = 'audit' | 'continuous_supervision'
+
 interface CreateMissionPayload {
   name: string
   description: string
@@ -12,6 +14,13 @@ interface CreateMissionPayload {
   start_date: string
   end_date: string
   member_ids: string[]
+  kind?: MissionKind
+}
+
+function quarterLabel(dateIso: string): string {
+  const d = new Date(dateIso)
+  const q = Math.floor(d.getUTCMonth() / 3) + 1
+  return `Q${q} ${d.getUTCFullYear()}`
 }
 
 Deno.serve(async (req) => {
@@ -96,6 +105,7 @@ Deno.serve(async (req) => {
       name, description, cabinet_client_id, framework_id,
       lead_auditor_id, associate_id, start_date, end_date, member_ids,
     } = body
+    const kind: MissionKind = body.kind === 'continuous_supervision' ? 'continuous_supervision' : 'audit'
 
     if (!name || !cabinet_client_id || !framework_id || !lead_auditor_id || !associate_id || !start_date || !end_date) {
       return new Response(
@@ -221,6 +231,7 @@ Deno.serve(async (req) => {
         cabinet_id: callerProfile.organization_id,
         client_id: clientOrgId,
         framework_id,
+        kind,
         lead_auditor_id,
         associate_id,
         start_date,
@@ -236,6 +247,33 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Erreur lors de la création de la mission' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // 7.bis En supervision continue, ouvrir automatiquement le 1er cycle (trimestre courant
+    //       basé sur start_date) pour que les évaluations soient rattachées dès la première
+    //       phase de travaux.
+    if (kind === 'continuous_supervision') {
+      const startD = new Date(start_date)
+      const startMonth = startD.getUTCMonth()
+      const quarterStartMonth = startMonth - (startMonth % 3)
+      const cycleStart = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth, 1))
+      const cycleEnd = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth + 3, 0))
+
+      const { error: cycleErr } = await supabaseAdmin
+        .from('supervision_cycles')
+        .insert({
+          mission_id: mission.id,
+          period_label: quarterLabel(start_date),
+          period_start: cycleStart.toISOString().slice(0, 10),
+          period_end: cycleEnd.toISOString().slice(0, 10),
+          status: 'in_progress',
+          lead_auditor_id,
+          created_by: callerProfile.id,
+        })
+      if (cycleErr) {
+        console.error('create-mission cycle insert:', cycleErr.message)
+        // Non bloquant : la mission est créée, le cycle peut être ajouté plus tard manuellement
+      }
     }
 
     // 8. Ajouter les membres de la mission

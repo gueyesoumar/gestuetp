@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
+import { isGroupOrg } from '../lib/organization-utils'
 import { useFrameworks } from '../features/frameworks/useFrameworks'
 import { useCabinetClients } from '../features/clients/useCabinetClients'
 import { useMembers } from '../features/members/useMembers'
 import { useCreateMission } from '../features/missions/useCreateMission'
+import { MissionEngagementStep } from '../features/missions/steps/MissionEngagementStep'
 import { MissionTypeStep } from '../features/missions/steps/MissionTypeStep'
 import { MissionClientStep } from '../features/missions/steps/MissionClientStep'
 import { MissionTeamStep } from '../features/missions/steps/MissionTeamStep'
@@ -13,21 +17,43 @@ import { FormWizard } from '../components/ui/FormWizard'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
 import { useFieldValidation, required } from '../hooks/useFieldValidation'
+import type { MissionKind } from '../types/database.types'
 
 export function MissionCreatePage() {
   const navigate = useNavigate()
   const toast = useToast()
+  const { profile } = useAuth()
   const { frameworks, loading: fwLoading } = useFrameworks()
   const { clients, loading: clientsLoading } = useCabinetClients()
   const { members, loading: membersLoading } = useMembers()
   const { createMission, creating } = useCreateMission()
 
+  const [kind, setKind] = useState<MissionKind>('audit')
+  const [groupAvailable, setGroupAvailable] = useState(false)
   const [frameworkId, setFrameworkId] = useState('')
   const [clientId, setClientId] = useState('')
   const [missionName, setMissionName] = useState('')
   const [associateId, setAssociateId] = useState('')
   const [leadAuditorId, setLeadAuditorId] = useState('')
   const [memberIds, setMemberIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!profile?.organization_id) return
+    const ac = new AbortController()
+    supabase
+      .from('organizations')
+      .select('types')
+      .eq('id', profile.organization_id)
+      .single()
+      .abortSignal(ac.signal)
+      .then(({ data }) => {
+        if (ac.signal.aborted) return
+        if (data?.types && isGroupOrg({ types: data.types as string[] })) {
+          setGroupAvailable(true)
+        }
+      })
+    return () => ac.abort()
+  }, [profile?.organization_id])
   const startDate = useFieldValidation('', required('Date de début requise.'))
   const endDate = useFieldValidation('', (v) => {
     if (!v) return 'Date de fin requise.'
@@ -65,6 +91,7 @@ export function MissionCreatePage() {
       start_date: startDate.value,
       end_date: endDate.value,
       member_ids: allMemberIds,
+      kind,
     })
     if (ok) {
       toast.success('Mission créée', {
@@ -84,7 +111,7 @@ export function MissionCreatePage() {
       </Link>
 
       <h2 className="mt-4 text-xl font-semibold text-gray-900">Nouvelle mission</h2>
-      <p className="mt-1 text-[13px] text-gray-500">Cr&eacute;ez une mission en 5 &eacute;tapes guid&eacute;es.</p>
+      <p className="mt-1 text-[13px] text-gray-500">Cr&eacute;ez une mission en 6 &eacute;tapes guid&eacute;es.</p>
 
       <div className="mt-6">
         <FormWizard
@@ -93,8 +120,19 @@ export function MissionCreatePage() {
           onSubmit={handleSubmit}
           steps={[
             {
+              key: 'engagement',
+              label: "Type d'engagement",
+              content: (
+                <MissionEngagementStep
+                  kind={kind}
+                  onChange={setKind}
+                  groupAvailable={groupAvailable}
+                />
+              ),
+            },
+            {
               key: 'type',
-              label: 'Type de mission',
+              label: 'Référentiel',
               content: (
                 <MissionTypeStep
                   frameworks={frameworks}

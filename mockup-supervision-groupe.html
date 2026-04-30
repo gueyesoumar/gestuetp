@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Gëstu Comply — Mockup Supervision Groupe (Phase 2-3)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-50: #ECF3EF;
+    --forest-100: #D6E5DD;
+    --forest-300: #74A98D;
+    --forest-500: #2E6F4D;
+    --forest-700: #1B4332;
+    --forest-900: #0E2A20;
+    --gold-50: #FAF3E1;
+    --gold-300: #E8C572;
+    --gold-500: #D4A843;
+    --gold-700: #A37E2A;
+    --bg: #F5F4F0;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: #111827; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .text-forest-700 { color: var(--forest-700); }
+  .text-forest-500 { color: var(--forest-500); }
+  .text-forest-300 { color: var(--forest-300); }
+  .text-gold-500 { color: var(--gold-500); }
+  .text-gold-700 { color: var(--gold-700); }
+  .bg-forest-50 { background: var(--forest-50); }
+  .bg-forest-100 { background: var(--forest-100); }
+  .bg-forest-700 { background: var(--forest-700); }
+  .bg-forest-900 { background: var(--forest-900); }
+  .bg-gold-50 { background: var(--gold-50); }
+  .bg-gold-500 { background: var(--gold-500); }
+  .border-forest-300 { border-color: var(--forest-300); }
+  .border-forest-700 { border-color: var(--forest-700); }
+  .border-gold-500 { border-color: var(--gold-500); }
+  .donut-bg { stroke: #E5E7EB; }
+  .donut-fg-good { stroke: #16A34A; }
+  .donut-fg-mid { stroke: var(--gold-500); }
+  .donut-fg-bad { stroke: #DC2626; }
+  .nav-active { background: var(--forest-50); color: var(--forest-700); border-left: 3px solid var(--gold-500); }
+  .scroll-section { scroll-margin-top: 16px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .pill { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+  .ring-good { box-shadow: 0 0 0 1px #BBF7D0 inset; }
+  .ring-warn { box-shadow: 0 0 0 1px #FDE68A inset; }
+  .ring-bad { box-shadow: 0 0 0 1px #FECACA inset; }
+  .anchor-nav a { transition: all .15s; }
+  .anchor-nav a:hover { background: var(--forest-50); color: var(--forest-700); }
+</style>
+</head>
+<body class="text-sm">
+
+<!-- Top sticky nav for mockup sections -->
+<nav class="anchor-nav sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-4 text-xs font-medium text-gray-500">
+  <span class="font-bold text-forest-700 mr-4">Mockup Supervision Groupe</span>
+  <a href="#nav" class="px-2 py-1 rounded">Navigation</a>
+  <a href="#liste" class="px-2 py-1 rounded">Liste filiales</a>
+  <a href="#detail" class="px-2 py-1 rounded">Détail filiale</a>
+  <a href="#cycles" class="px-2 py-1 rounded">Cycles de revue</a>
+  <a href="#plans" class="px-2 py-1 rounded">Plans transverses</a>
+  <a href="#wizard" class="px-2 py-1 rounded">Wizard création</a>
+  <a href="#superv" class="px-2 py-1 rounded">Mission continue</a>
+  <span class="ml-auto text-gray-400">Gëstu Advisory · Gëstu Comply</span>
+</nav>
+
+<div class="px-6 py-8 max-w-[1320px] mx-auto space-y-16">
+
+<!-- ============================================================ -->
+<!-- 1. NAVIGATION SIDEBAR -->
+<!-- ============================================================ -->
+<section id="nav" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">1 — Sidebar et toggle Cabinet/Groupe</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Navigation enrichie pour les groupes</h2>
+    <p class="text-gray-500 mt-1">Quand l'organisation a le type <span class="mono bg-gray-100 px-1.5 py-0.5 rounded">group</span>, une section "Module Groupe" apparaît dans la sidebar avec ses propres entrées.</p>
+  </header>
+  <div class="bg-white rounded-2xl border border-gray-200 p-6 grid grid-cols-[260px_1fr] gap-6 shadow-sm">
+    <!-- Sidebar -->
+    <aside class="bg-forest-900 text-white rounded-xl py-5 px-3 self-start">
+      <div class="px-3 mb-6 flex items-center gap-2">
+        <div class="w-8 h-8 rounded bg-gold-500 flex items-center justify-center font-extrabold text-forest-900">G</div>
+        <div>
+          <p class="font-bold text-base leading-tight">Gëstu</p>
+          <p class="text-[10px] tracking-[0.18em] text-white/60">COMPLY</p>
+        </div>
+      </div>
+      <ul class="space-y-1 text-[13px]">
+        <li class="px-3 py-2 rounded text-white/70">⌂ Hub ETP</li>
+        <li class="px-3 py-2 rounded nav-active">▦ Tableau de bord</li>
+      </ul>
+
+      <p class="px-3 mt-6 mb-2 text-[10px] font-bold tracking-wider text-white/40 uppercase">Module Cabinet</p>
+      <ul class="space-y-1 text-[13px]">
+        <li class="px-3 py-2 rounded text-white/70">◐ Supervision</li>
+        <li class="px-3 py-2 rounded text-white/70">◌ Clients</li>
+        <li class="px-3 py-2 rounded text-white/70">≡ Référentiels</li>
+        <li class="px-3 py-2 rounded text-white/70">⬡ Missions</li>
+      </ul>
+
+      <p class="px-3 mt-6 mb-2 text-[10px] font-bold tracking-wider text-gold-300 uppercase">Module Groupe</p>
+      <ul class="space-y-1 text-[13px]">
+        <li class="px-3 py-2 rounded bg-white/10 text-white border-l-2 border-gold-500 -ml-0.5">◯ <strong>Filiales</strong> <span class="ml-2 text-[10px] bg-gold-500 text-forest-900 px-1.5 py-px rounded font-bold">5</span></li>
+        <li class="px-3 py-2 rounded text-white/70">↻ Revues continues</li>
+        <li class="px-3 py-2 rounded text-white/70">▤ Plans d'action transverses <span class="ml-2 text-[10px] bg-red-500 text-white px-1.5 py-px rounded font-bold">12</span></li>
+      </ul>
+      <div class="mt-8 mx-3 p-3 rounded-lg bg-white/5 text-[11px] text-white/60">
+        Connecté en tant que<br/>
+        <strong class="text-white">Aminata Fall</strong><br/>
+        Associée — Gëstu Advisory
+      </div>
+    </aside>
+
+    <!-- Right side: explanation + toggle preview -->
+    <div class="space-y-4">
+      <div class="bg-forest-50 border border-forest-300 rounded-xl p-4">
+        <h3 class="font-bold text-forest-700 mb-2">Différenciation visuelle</h3>
+        <ul class="text-[13px] text-forest-900 space-y-1.5">
+          <li>• "Module Cabinet" : missions ponctuelles facturées à des clients tiers</li>
+          <li>• "Module Groupe" : supervision continue de filiales internes (visible uniquement si l'organisation a le type <span class="mono bg-white px-1 py-0.5 rounded">group</span>)</li>
+          <li>• Les deux modules partagent référentiels et contrôles (réutilisation maximale)</li>
+        </ul>
+      </div>
+
+      <div class="border border-gray-200 rounded-xl p-4">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-3">Toggle sur le tableau de bord</p>
+        <div class="inline-flex bg-white border border-gray-200 rounded-lg p-1 gap-0.5">
+          <button class="px-4 py-1.5 rounded text-[13px] text-gray-500">Cabinet</button>
+          <button class="px-4 py-1.5 rounded text-[13px] bg-forest-700 text-white font-semibold">Groupe</button>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-3">Le toggle reste, mais sa logique est plus claire : Cabinet → clients externes, Groupe → filiales internes. Aucune donnée mélangée entre les deux vues.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 2. LISTE FILIALES -->
+<!-- ============================================================ -->
+<section id="liste" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">2 — Page "Mes filiales"</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Vue d'ensemble du parc</h2>
+    <p class="text-gray-500 mt-1">Une carte par filiale avec son score, ses missions actives et ses plans d'action en retard. C'est le cockpit de l'associé groupe.</p>
+  </header>
+
+  <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-5">
+    <!-- Header bar -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-bold text-gray-900">Mes filiales</h3>
+        <p class="text-[13px] text-gray-500 mt-0.5">5 filiales actives · score moyen pondéré 78% · 12 plans d'action en retard</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <input class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64" placeholder="Rechercher une filiale…" />
+        <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <option>Tous référentiels</option>
+          <option>ISO 27001</option>
+          <option>PSSI-ES</option>
+        </select>
+        <button class="bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">+ Nouvelle filiale</button>
+      </div>
+    </div>
+
+    <!-- Grid of cards -->
+    <div class="grid grid-cols-3 gap-4">
+      <!-- Card 1 -->
+      <div class="border border-gray-200 rounded-xl p-5 ring-good bg-white hover:shadow-md transition cursor-pointer">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-lg bg-blue-100 flex items-center justify-center font-bold text-blue-700">DB</div>
+            <div>
+              <p class="font-bold text-gray-900">Démo Banque</p>
+              <p class="text-[11px] text-gray-500">Banque & Finance</p>
+            </div>
+          </div>
+          <span class="badge bg-green-50 text-green-700">Conforme</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <svg viewBox="0 0 36 36" class="w-16 h-16">
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-bg"/>
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-fg-good" stroke-dasharray="87 100" transform="rotate(-90 18 18)" stroke-linecap="round"/>
+            <text x="18" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="#16A34A">87%</text>
+          </svg>
+          <div class="flex-1 text-[12px] text-gray-700 space-y-1">
+            <p>2 missions actives · 4 closes</p>
+            <p class="text-gray-500">ISO 27001 · PSSI-ES</p>
+            <p class="text-green-700 font-semibold">0 plan en retard</p>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between text-[11px] text-gray-400">
+          <span>Dernière revue : 15 mars</span>
+          <span>Prochaine : 15 juin</span>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="border border-gray-200 rounded-xl p-5 ring-warn bg-white hover:shadow-md transition cursor-pointer">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-lg bg-rose-100 flex items-center justify-center font-bold text-rose-700">DS</div>
+            <div>
+              <p class="font-bold text-gray-900">Démo Santé+</p>
+              <p class="text-[11px] text-gray-500">Santé & Hospitalier</p>
+            </div>
+          </div>
+          <span class="badge bg-amber-50 text-amber-700">Surveillance</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <svg viewBox="0 0 36 36" class="w-16 h-16">
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-bg"/>
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-fg-mid" stroke-dasharray="72 100" transform="rotate(-90 18 18)" stroke-linecap="round"/>
+            <text x="18" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="#A37E2A">72%</text>
+          </svg>
+          <div class="flex-1 text-[12px] text-gray-700 space-y-1">
+            <p>1 mission active · 3 closes</p>
+            <p class="text-gray-500">ISO 27001</p>
+            <p class="text-amber-700 font-semibold">3 plans en retard</p>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between text-[11px] text-gray-400">
+          <span>Dernière revue : 28 février</span>
+          <span>Prochaine : 28 mai</span>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="border border-gray-200 rounded-xl p-5 ring-bad bg-white hover:shadow-md transition cursor-pointer">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-lg bg-orange-100 flex items-center justify-center font-bold text-orange-700">SP</div>
+            <div>
+              <p class="font-bold text-gray-900">Démo Service Public</p>
+              <p class="text-[11px] text-gray-500">Administration</p>
+            </div>
+          </div>
+          <span class="badge bg-red-50 text-red-700">Critique</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <svg viewBox="0 0 36 36" class="w-16 h-16">
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-bg"/>
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-fg-bad" stroke-dasharray="58 100" transform="rotate(-90 18 18)" stroke-linecap="round"/>
+            <text x="18" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="#DC2626">58%</text>
+          </svg>
+          <div class="flex-1 text-[12px] text-gray-700 space-y-1">
+            <p>2 missions actives · 1 close</p>
+            <p class="text-gray-500">ISO 27001 · PSSI-ES</p>
+            <p class="text-red-700 font-semibold">7 plans en retard</p>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between text-[11px] text-gray-400">
+          <span>Dernière revue : 22 mars</span>
+          <span>Prochaine : 22 juin</span>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="border border-gray-200 rounded-xl p-5 ring-good bg-white hover:shadow-md transition cursor-pointer">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-lg bg-purple-100 flex items-center justify-center font-bold text-purple-700">DT</div>
+            <div>
+              <p class="font-bold text-gray-900">Démo Télécom</p>
+              <p class="text-[11px] text-gray-500">Télécommunications</p>
+            </div>
+          </div>
+          <span class="badge bg-green-50 text-green-700">Conforme</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <svg viewBox="0 0 36 36" class="w-16 h-16">
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-bg"/>
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-fg-good" stroke-dasharray="91 100" transform="rotate(-90 18 18)" stroke-linecap="round"/>
+            <text x="18" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="#16A34A">91%</text>
+          </svg>
+          <div class="flex-1 text-[12px] text-gray-700 space-y-1">
+            <p>1 mission active · 5 closes</p>
+            <p class="text-gray-500">ISO 27001</p>
+            <p class="text-green-700 font-semibold">1 plan en retard</p>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between text-[11px] text-gray-400">
+          <span>Dernière revue : 5 mars</span>
+          <span>Prochaine : 5 juin</span>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="border border-gray-200 rounded-xl p-5 ring-warn bg-white hover:shadow-md transition cursor-pointer">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-lg bg-cyan-100 flex items-center justify-center font-bold text-cyan-700">DE</div>
+            <div>
+              <p class="font-bold text-gray-900">Démo Énergie</p>
+              <p class="text-[11px] text-gray-500">Énergie & Utilities</p>
+            </div>
+          </div>
+          <span class="badge bg-amber-50 text-amber-700">Surveillance</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <svg viewBox="0 0 36 36" class="w-16 h-16">
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-bg"/>
+            <circle cx="18" cy="18" r="16" fill="none" stroke-width="3" class="donut-fg-mid" stroke-dasharray="79 100" transform="rotate(-90 18 18)" stroke-linecap="round"/>
+            <text x="18" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="#A37E2A">79%</text>
+          </svg>
+          <div class="flex-1 text-[12px] text-gray-700 space-y-1">
+            <p>1 mission active · 2 closes</p>
+            <p class="text-gray-500">ISO 27001</p>
+            <p class="text-amber-700 font-semibold">1 plan en retard</p>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between text-[11px] text-gray-400">
+          <span>Dernière revue : 12 mars</span>
+          <span>Prochaine : 12 juin</span>
+        </div>
+      </div>
+
+      <!-- Add Card -->
+      <div class="border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center text-center hover:border-forest-300 cursor-pointer">
+        <div class="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-2xl text-gray-400 mb-2">+</div>
+        <p class="font-medium text-gray-600">Ajouter une filiale</p>
+        <p class="text-[11px] text-gray-400 mt-1">Renseigner ses référentiels et démarrer la supervision</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 3. DETAIL FILIALE -->
+<!-- ============================================================ -->
+<section id="detail" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">3 — Détail d'une filiale</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Cockpit "Démo Banque"</h2>
+    <p class="text-gray-500 mt-1">Hero score, KPI temps réel, et 4 onglets : Vue d'ensemble, Cycles de revue, Plans d'action transverses, Équipe.</p>
+  </header>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+    <!-- Hero -->
+    <div class="bg-gradient-to-br from-forest-700 to-forest-900 text-white p-6">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-xl bg-blue-100 flex items-center justify-center font-bold text-blue-700 text-2xl">DB</div>
+          <div>
+            <p class="text-[11px] tracking-wider uppercase text-white/60">Filiale · Banque & Finance</p>
+            <h3 class="text-2xl font-bold">Démo Banque</h3>
+            <div class="flex gap-2 mt-2">
+              <span class="pill bg-white/15 text-white">ISO 27001</span>
+              <span class="pill bg-white/15 text-white">PSSI-ES</span>
+              <span class="pill bg-gold-500 text-forest-900">Sous supervision continue</span>
+            </div>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-[11px] uppercase tracking-wider text-white/60">Conformité</p>
+          <p class="text-5xl font-extrabold text-white">87<span class="text-2xl">%</span></p>
+          <p class="text-[12px] text-green-300 font-semibold mt-1">+4 pts vs trimestre précédent</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 KPI -->
+    <div class="grid grid-cols-4 divide-x divide-gray-200 border-b border-gray-200">
+      <div class="p-5">
+        <p class="text-[11px] uppercase tracking-wider text-gray-500">Missions actives</p>
+        <p class="text-3xl font-bold text-forest-700 mt-1">2</p>
+        <p class="text-[11px] text-gray-400 mt-0.5">dont 1 supervision continue</p>
+      </div>
+      <div class="p-5">
+        <p class="text-[11px] uppercase tracking-wider text-gray-500">Contrôles évalués</p>
+        <p class="text-3xl font-bold text-forest-700 mt-1">142<span class="text-base text-gray-400">/156</span></p>
+        <p class="text-[11px] text-gray-400 mt-0.5">cumul tous référentiels</p>
+      </div>
+      <div class="p-5">
+        <p class="text-[11px] uppercase tracking-wider text-gray-500">Plans d'action ouverts</p>
+        <p class="text-3xl font-bold text-amber-700 mt-1">8</p>
+        <p class="text-[11px] text-gray-400 mt-0.5">dont 0 en retard</p>
+      </div>
+      <div class="p-5">
+        <p class="text-[11px] uppercase tracking-wider text-gray-500">Prochaine revue</p>
+        <p class="text-3xl font-bold text-forest-700 mt-1">15 juin</p>
+        <p class="text-[11px] text-gray-400 mt-0.5">Q2 2026 — dans 47 jours</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200 px-6">
+      <button class="px-5 py-3 text-[13px] font-semibold text-forest-700 border-b-2 border-forest-700">Vue d'ensemble</button>
+      <button class="px-5 py-3 text-[13px] text-gray-500">Cycles de revue (4)</button>
+      <button class="px-5 py-3 text-[13px] text-gray-500">Plans d'action transverses (8)</button>
+      <button class="px-5 py-3 text-[13px] text-gray-500">Équipe affectée (3)</button>
+    </div>
+
+    <!-- Tab content -->
+    <div class="p-6 grid grid-cols-2 gap-6">
+      <div>
+        <h4 class="text-sm font-bold text-gray-900 mb-3">Tendance trimestrielle</h4>
+        <div class="border border-gray-200 rounded-xl p-5">
+          <svg viewBox="0 0 320 140" class="w-full">
+            <defs><linearGradient id="grd" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#1B4332" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#1B4332" stop-opacity="0"/>
+            </linearGradient></defs>
+            <polyline fill="url(#grd)" stroke="none" points="20,90 90,80 160,60 230,45 300,30 300,130 20,130"/>
+            <polyline fill="none" stroke="#1B4332" stroke-width="2.5" points="20,90 90,80 160,60 230,45 300,30"/>
+            <circle cx="20" cy="90" r="4" fill="#1B4332"/>
+            <circle cx="90" cy="80" r="4" fill="#1B4332"/>
+            <circle cx="160" cy="60" r="4" fill="#1B4332"/>
+            <circle cx="230" cy="45" r="4" fill="#1B4332"/>
+            <circle cx="300" cy="30" r="4" fill="#D4A843" stroke="white" stroke-width="2"/>
+            <text x="20" y="115" font-size="9" fill="#9CA3AF" text-anchor="middle">Q1 25</text>
+            <text x="90" y="115" font-size="9" fill="#9CA3AF" text-anchor="middle">Q2 25</text>
+            <text x="160" y="115" font-size="9" fill="#9CA3AF" text-anchor="middle">Q3 25</text>
+            <text x="230" y="115" font-size="9" fill="#9CA3AF" text-anchor="middle">Q4 25</text>
+            <text x="300" y="115" font-size="9" fill="#A37E2A" text-anchor="middle" font-weight="700">Q1 26</text>
+            <text x="20" y="85" font-size="10" fill="#6B7280" text-anchor="middle">68%</text>
+            <text x="300" y="22" font-size="11" fill="#1B4332" text-anchor="middle" font-weight="700">87%</text>
+          </svg>
+          <p class="text-[11px] text-gray-500 mt-2">Progression de 19 points en 4 trimestres. Trajectoire positive sur tous les domaines sauf A.6 (Mesures liées aux personnes — stable à 84%).</p>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-sm font-bold text-gray-900 mb-3">Domaines à surveiller</h4>
+        <div class="space-y-2">
+          <div class="border border-amber-200 bg-amber-50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p class="font-semibold text-amber-900 text-[13px]">A.6 — Mesures liées aux personnes</p>
+              <p class="text-[11px] text-amber-700 mt-0.5">Stable depuis 3 trimestres</p>
+            </div>
+            <span class="font-bold text-amber-700">84%</span>
+          </div>
+          <div class="border border-red-200 bg-red-50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p class="font-semibold text-red-900 text-[13px]">A.7 — Mesures physiques</p>
+              <p class="text-[11px] text-red-700 mt-0.5">2 NC majeures persistantes</p>
+            </div>
+            <span class="font-bold text-red-700">62%</span>
+          </div>
+          <div class="border border-green-200 bg-green-50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p class="font-semibold text-green-900 text-[13px]">A.5 — Politiques organisationnelles</p>
+              <p class="text-[11px] text-green-700 mt-0.5">+12 pts ce trimestre</p>
+            </div>
+            <span class="font-bold text-green-700">94%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 4. CYCLES DE REVUE -->
+<!-- ============================================================ -->
+<section id="cycles" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">4 — Cycles de revue</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Une supervision continue se déroule en cycles trimestriels</h2>
+    <p class="text-gray-500 mt-1">Chaque cycle est une "revue" autonome (équivalent d'une mini-mission) qui peut mobiliser une équipe différente. Les plans d'action persistent d'un cycle à l'autre.</p>
+  </header>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-5">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-bold text-gray-900">Cycles ISO 27001 — Démo Banque</h3>
+      <button class="text-sm font-semibold text-forest-700 border border-forest-300 rounded-lg px-3 py-1.5">+ Planifier le prochain cycle</button>
+    </div>
+
+    <div class="relative">
+      <div class="absolute left-0 right-0 top-[18px] h-0.5 bg-gray-200"></div>
+      <div class="relative grid grid-cols-4 gap-4">
+        <!-- Q1 done -->
+        <div>
+          <div class="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center font-bold relative z-10">✓</div>
+          <p class="text-[11px] font-semibold text-green-700 uppercase mt-2">Q1 2026 — Clos</p>
+          <div class="border border-green-200 bg-green-50 rounded-lg p-3 mt-2">
+            <p class="font-bold text-gray-900 text-[13px]">Revue trimestrielle Q1</p>
+            <p class="text-[11px] text-gray-500 mt-0.5">12 jan → 15 mars</p>
+            <p class="text-[12px] mt-2"><strong>83%</strong> conformité · 6 NC traitées</p>
+            <p class="text-[11px] text-gray-500">Lead : Moussa Diop</p>
+          </div>
+        </div>
+        <!-- Q2 active -->
+        <div>
+          <div class="w-9 h-9 rounded-full bg-gold-500 text-forest-900 flex items-center justify-center font-bold relative z-10 ring-4 ring-gold-50">2</div>
+          <p class="text-[11px] font-semibold text-gold-700 uppercase mt-2">Q2 2026 — En cours</p>
+          <div class="border-2 border-gold-500 bg-gold-50 rounded-lg p-3 mt-2">
+            <p class="font-bold text-gray-900 text-[13px]">Revue trimestrielle Q2</p>
+            <p class="text-[11px] text-gray-500 mt-0.5">1 avril → 15 juin</p>
+            <p class="text-[12px] mt-2"><strong>87%</strong> partiel · 60% du périmètre couvert</p>
+            <div class="h-1.5 bg-gray-200 rounded-full mt-2"><div class="h-1.5 bg-gold-500 rounded-full" style="width: 60%"></div></div>
+            <p class="text-[11px] text-gray-500 mt-1">Lead : Awa Sarr · 3 auditeurs</p>
+          </div>
+        </div>
+        <!-- Q3 planned -->
+        <div>
+          <div class="w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center font-bold relative z-10">3</div>
+          <p class="text-[11px] font-semibold text-gray-500 uppercase mt-2">Q3 2026 — Planifié</p>
+          <div class="border border-dashed border-gray-300 rounded-lg p-3 mt-2 text-gray-400">
+            <p class="font-bold text-[13px]">Revue trimestrielle Q3</p>
+            <p class="text-[11px] mt-0.5">1 juillet → 30 septembre</p>
+            <p class="text-[12px] mt-2 italic">Périmètre à confirmer</p>
+            <p class="text-[11px] mt-1">Équipe non affectée</p>
+          </div>
+        </div>
+        <!-- Q4 -->
+        <div>
+          <div class="w-9 h-9 rounded-full bg-white border-2 border-gray-300 text-gray-400 flex items-center justify-center font-bold relative z-10">4</div>
+          <p class="text-[11px] font-semibold text-gray-500 uppercase mt-2">Q4 2026 — Prévisionnel</p>
+          <div class="border border-dashed border-gray-300 rounded-lg p-3 mt-2 text-gray-400">
+            <p class="font-bold text-[13px]">Revue trimestrielle Q4</p>
+            <p class="text-[11px] mt-0.5">1 octobre → 31 décembre</p>
+            <p class="text-[12px] mt-2 italic">Audit annuel ISO 27001</p>
+            <p class="text-[11px] mt-1">À planifier en septembre</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-forest-50 border border-forest-300 rounded-lg p-4 text-[13px] text-forest-900">
+      <p class="font-semibold mb-1">Différence avec un audit ponctuel</p>
+      <p>Une revue trimestrielle <strong>ne clôture pas la supervision</strong> : elle livre un instantané du score à T, alimente les plans d'action transverses, et passe le relais à la revue suivante. Les contrôles évalués gardent leur état entre les revues (pas de remise à zéro).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 5. PLANS D'ACTION TRANSVERSES -->
+<!-- ============================================================ -->
+<section id="plans" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">5 — Plans d'action transverses</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Persistance des CAR au-delà des cycles</h2>
+    <p class="text-gray-500 mt-1">Un plan d'action ouvert lors de Q1 2026 reste visible et actif tant qu'il n'est pas clôturé, même si Q2 est en cours.</p>
+  </header>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div>
+        <h3 class="text-base font-bold text-gray-900">Plans d'action — Démo Banque (toutes filiales)</h3>
+        <p class="text-[11px] text-gray-500 mt-0.5">12 plans ouverts · 3 en retard · 28 fermés à date</p>
+      </div>
+      <div class="flex gap-2 text-[12px]">
+        <span class="badge bg-red-50 text-red-700">3 en retard</span>
+        <span class="badge bg-amber-50 text-amber-700">9 ouverts</span>
+        <span class="badge bg-green-50 text-green-700">28 fermés</span>
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider text-gray-500">
+        <tr>
+          <th class="text-left px-4 py-2.5 font-semibold">Code</th>
+          <th class="text-left px-4 py-2.5 font-semibold">Origine</th>
+          <th class="text-left px-4 py-2.5 font-semibold">Contrôle</th>
+          <th class="text-left px-4 py-2.5 font-semibold">Type</th>
+          <th class="text-left px-4 py-2.5 font-semibold">Échéance</th>
+          <th class="text-left px-4 py-2.5 font-semibold">Statut</th>
+          <th class="text-left px-4 py-2.5 font-semibold">Responsable</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 text-[13px]">
+        <tr class="hover:bg-gray-50 cursor-pointer">
+          <td class="px-4 py-3 mono font-bold text-forest-700">CAR-001</td>
+          <td class="px-4 py-3"><span class="text-[11px] text-gray-500">Q1 2026</span></td>
+          <td class="px-4 py-3"><span class="mono text-[12px] font-semibold">A.7.4</span><br/><span class="text-[11px] text-gray-500">Surveillance physique</span></td>
+          <td class="px-4 py-3"><span class="badge bg-red-50 text-red-700">NC Maj.</span></td>
+          <td class="px-4 py-3 text-red-700 font-semibold">15 avr <span class="text-[10px] font-bold bg-red-100 px-1.5 py-0.5 rounded ml-1">RETARD</span></td>
+          <td class="px-4 py-3"><span class="badge bg-amber-50 text-amber-700">Ouvert</span></td>
+          <td class="px-4 py-3 text-[12px] text-gray-700">Karim Touré · DSI</td>
+        </tr>
+        <tr class="hover:bg-gray-50 cursor-pointer">
+          <td class="px-4 py-3 mono font-bold text-forest-700">CAR-004</td>
+          <td class="px-4 py-3"><span class="text-[11px] text-gray-500">Q1 2026</span></td>
+          <td class="px-4 py-3"><span class="mono text-[12px] font-semibold">A.6.3</span><br/><span class="text-[11px] text-gray-500">Sensibilisation</span></td>
+          <td class="px-4 py-3"><span class="badge bg-orange-50 text-orange-700">NC Min.</span></td>
+          <td class="px-4 py-3 text-red-700 font-semibold">22 avr <span class="text-[10px] font-bold bg-red-100 px-1.5 py-0.5 rounded ml-1">RETARD</span></td>
+          <td class="px-4 py-3"><span class="badge bg-blue-50 text-blue-700">À vérifier</span></td>
+          <td class="px-4 py-3 text-[12px] text-gray-700">Fatou Ndiaye · RH</td>
+        </tr>
+        <tr class="hover:bg-gray-50 cursor-pointer">
+          <td class="px-4 py-3 mono font-bold text-forest-700">CAR-007</td>
+          <td class="px-4 py-3"><span class="text-[11px] font-semibold text-gold-700">Q2 2026</span></td>
+          <td class="px-4 py-3"><span class="mono text-[12px] font-semibold">A.8.10</span><br/><span class="text-[11px] text-gray-500">Suppression info</span></td>
+          <td class="px-4 py-3"><span class="badge bg-red-50 text-red-700">NC Maj.</span></td>
+          <td class="px-4 py-3 text-gray-700">15 juin</td>
+          <td class="px-4 py-3"><span class="badge bg-amber-50 text-amber-700">Ouvert</span></td>
+          <td class="px-4 py-3 text-[12px] text-gray-700">Karim Touré · DSI</td>
+        </tr>
+        <tr class="hover:bg-gray-50 cursor-pointer">
+          <td class="px-4 py-3 mono font-bold text-forest-700">CAR-009</td>
+          <td class="px-4 py-3"><span class="text-[11px] font-semibold text-gold-700">Q2 2026</span></td>
+          <td class="px-4 py-3"><span class="mono text-[12px] font-semibold">A.5.12</span><br/><span class="text-[11px] text-gray-500">Classification</span></td>
+          <td class="px-4 py-3"><span class="badge bg-blue-50 text-blue-700">Obs.</span></td>
+          <td class="px-4 py-3 text-gray-700">30 août</td>
+          <td class="px-4 py-3"><span class="badge bg-amber-50 text-amber-700">Ouvert</span></td>
+          <td class="px-4 py-3 text-[12px] text-gray-700">Aïssa Diallo · Compliance</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="px-6 py-3 border-t border-gray-200 bg-gray-50 text-[11px] text-gray-500 flex items-center justify-between">
+      <span>4 sur 12 plans ouverts affichés · trier par échéance</span>
+      <button class="text-forest-700 font-semibold">Voir tous les plans →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 6. WIZARD CREATION -->
+<!-- ============================================================ -->
+<section id="wizard" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">6 — Wizard de création (étape 1)</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Choix du type d'engagement</h2>
+    <p class="text-gray-500 mt-1">Première étape du wizard de création de mission. Le choix oriente toute la suite (cycle, livrables, équipe, dashboard).</p>
+  </header>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-8 h-8 rounded-full bg-forest-700 text-white font-bold flex items-center justify-center">1</div>
+      <span class="text-sm font-semibold text-forest-700">Type d'engagement</span>
+      <div class="flex-1 h-px bg-gray-200"></div>
+      <div class="w-8 h-8 rounded-full bg-white border-2 border-gray-300 text-gray-400 font-bold flex items-center justify-center">2</div>
+      <span class="text-sm text-gray-400">Client / Filiale</span>
+      <div class="flex-1 h-px bg-gray-200"></div>
+      <div class="w-8 h-8 rounded-full bg-white border-2 border-gray-300 text-gray-400 font-bold flex items-center justify-center">3</div>
+      <span class="text-sm text-gray-400">Périmètre</span>
+      <div class="flex-1 h-px bg-gray-200"></div>
+      <div class="w-8 h-8 rounded-full bg-white border-2 border-gray-300 text-gray-400 font-bold flex items-center justify-center">4</div>
+      <span class="text-sm text-gray-400">Équipe</span>
+    </div>
+
+    <h3 class="text-xl font-bold text-gray-900 mb-2">Quel type d'engagement créez-vous ?</h3>
+    <p class="text-gray-500 mb-6">Ce choix configure le cycle de vie, les livrables attendus et la facturation.</p>
+
+    <div class="grid grid-cols-2 gap-5">
+      <!-- Audit ponctuel -->
+      <div class="border-2 border-gray-200 rounded-xl p-6 hover:border-forest-300 cursor-pointer">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-12 h-12 rounded-xl bg-forest-50 text-forest-700 flex items-center justify-center text-2xl">📋</div>
+          <div>
+            <p class="font-bold text-base text-gray-900">Audit ponctuel</p>
+            <p class="text-[11px] text-gray-500">Cabinet → Client externe</p>
+          </div>
+        </div>
+        <p class="text-[13px] text-gray-700 mb-3">Cycle classique d'audit avec rapport signé et clôture. Pour une prestation contractuelle facturée à un client tiers.</p>
+        <ul class="text-[12px] text-gray-600 space-y-1.5 mb-4">
+          <li class="flex gap-2"><span class="text-forest-500">✓</span> Cycle 6 phases : Cadrage → Travaux → Validation client → Clôture</li>
+          <li class="flex gap-2"><span class="text-forest-500">✓</span> Livrable : rapport PDF signé</li>
+          <li class="flex gap-2"><span class="text-forest-500">✓</span> Validation client requise</li>
+          <li class="flex gap-2"><span class="text-forest-500">✓</span> Mission archivée à la clôture</li>
+          <li class="flex gap-2"><span class="text-forest-500">✓</span> Plans d'action transmis au client puis clôture du dossier</li>
+        </ul>
+        <p class="text-[11px] text-gray-400">Exemples : audit ISO 27001 annuel, audit blanc, mission de conseil ponctuelle.</p>
+      </div>
+
+      <!-- Supervision continue -->
+      <div class="border-2 border-gold-500 rounded-xl p-6 bg-gold-50 cursor-pointer relative">
+        <span class="absolute top-3 right-3 pill bg-gold-500 text-forest-900">Module Groupe</span>
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-12 h-12 rounded-xl bg-gold-500 text-forest-900 flex items-center justify-center text-2xl">↻</div>
+          <div>
+            <p class="font-bold text-base text-gray-900">Supervision continue</p>
+            <p class="text-[11px] text-gold-700">Groupe → Filiale interne</p>
+          </div>
+        </div>
+        <p class="text-[13px] text-gray-700 mb-3">Suivi continu de conformité d'une filiale, organisé en cycles trimestriels. Pas de clôture définitive — la supervision se prolonge année après année.</p>
+        <ul class="text-[12px] text-gray-600 space-y-1.5 mb-4">
+          <li class="flex gap-2"><span class="text-gold-700">↻</span> Cycles trimestriels (Q1, Q2, Q3, Q4) renouvelés en continu</li>
+          <li class="flex gap-2"><span class="text-gold-700">↻</span> Pas de validation client (supervision interne)</li>
+          <li class="flex gap-2"><span class="text-gold-700">↻</span> Plans d'action transverses persistants</li>
+          <li class="flex gap-2"><span class="text-gold-700">↻</span> Dashboard temps réel avec KPI consolidés</li>
+          <li class="flex gap-2"><span class="text-gold-700">↻</span> Tendance trimestrielle du score</li>
+        </ul>
+        <p class="text-[11px] text-gold-700">Exemples : supervision permanente d'une filiale bancaire, suivi continu PSSI-ES sur un établissement de santé.</p>
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-2">
+      <button class="px-4 py-2 text-sm border border-gray-300 rounded-lg">Annuler</button>
+      <button class="px-4 py-2 text-sm bg-forest-700 text-white font-semibold rounded-lg">Continuer →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 7. MISSION CONTINUE -->
+<!-- ============================================================ -->
+<section id="superv" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">7 — Vue d'une mission de supervision continue</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Stepper et workflow différents</h2>
+    <p class="text-gray-500 mt-1">Comparé à un audit ponctuel : pas de "Validation client", pas de "Clôture définitive". Remplacés par "Cycles de revue" qui se renouvellent en continu.</p>
+  </header>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-forest-700 to-forest-900 text-white p-6 flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="pill bg-gold-500 text-forest-900">↻ Supervision continue</span>
+          <span class="pill bg-white/15 text-white">ISO 27001</span>
+        </div>
+        <h3 class="text-2xl font-bold">Supervision ISO 27001 — Démo Banque</h3>
+        <p class="text-white/70 text-[13px] mt-1">Initiée le 12 janvier 2026 · Lead actuel : Awa Sarr · 3 auditeurs affectés</p>
+      </div>
+      <div class="text-right">
+        <p class="text-[11px] uppercase tracking-wider text-white/60">Score Q2 2026</p>
+        <p class="text-4xl font-extrabold">87%</p>
+        <p class="text-[12px] text-green-300">+4 pts vs Q1</p>
+      </div>
+    </div>
+
+    <!-- Stepper continu (différent !) -->
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <div class="flex items-center gap-4">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Cycle Q2 2026 — En cours</span>
+        <div class="flex-1 flex items-center gap-3">
+          <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-green-600 text-white text-[11px] font-bold flex items-center justify-center">✓</div><span class="text-[12px] text-green-700 font-semibold">Cadrage</span></div>
+          <div class="flex-1 h-0.5 bg-green-600"></div>
+          <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-green-600 text-white text-[11px] font-bold flex items-center justify-center">✓</div><span class="text-[12px] text-green-700 font-semibold">Planification</span></div>
+          <div class="flex-1 h-0.5 bg-gradient-to-r from-green-600 to-gold-500"></div>
+          <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-gold-500 text-forest-900 text-[11px] font-bold flex items-center justify-center ring-4 ring-gold-50">3</div><span class="text-[12px] text-gold-700 font-bold">Travaux</span></div>
+          <div class="flex-1 h-0.5 bg-gray-200"></div>
+          <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-white border-2 border-gray-300 text-gray-400 text-[11px] font-bold flex items-center justify-center">4</div><span class="text-[12px] text-gray-400">Revue interne</span></div>
+          <div class="flex-1 h-0.5 bg-gray-200"></div>
+          <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-white border-2 border-gray-300 text-gray-400 text-[11px] font-bold flex items-center justify-center">5</div><span class="text-[12px] text-gray-400">Clôture revue</span></div>
+        </div>
+      </div>
+      <p class="text-[11px] text-gray-500 mt-3 italic">⚠ Pas de "Validation client" ni "Clôture définitive". À la fin du cycle, le système ouvre automatiquement Q3 2026.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6 grid grid-cols-3 gap-6">
+      <!-- Main: cycle current state -->
+      <div class="col-span-2 space-y-4">
+        <div class="border border-gray-200 rounded-xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-bold text-gray-900">Avancement du cycle Q2</h4>
+            <span class="text-[12px] text-gray-500">60% du périmètre couvert</span>
+          </div>
+          <div class="grid grid-cols-4 gap-3 mb-4">
+            <KPI label="Contrôles" value="142/156"/>
+            <KPI label="Soumis" value="89"/>
+            <KPI label="Approuvés" value="67"/>
+            <KPI label="Score partiel" value="87%"/>
+          </div>
+          <div class="text-[12px] text-gray-700 space-y-1.5">
+            <p><strong>Objectifs du cycle :</strong> couvrir les domaines A.5, A.6, A.7 ; vérifier la mise en œuvre des plans d'action de Q1.</p>
+            <p><strong>Période :</strong> 1 avril → 15 juin 2026 (47 jours restants)</p>
+          </div>
+        </div>
+
+        <div class="border border-gray-200 rounded-xl p-5">
+          <h4 class="font-bold text-gray-900 mb-3">Cycles précédents</h4>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between border border-gray-100 rounded-lg p-3">
+              <div>
+                <p class="font-semibold text-[13px]">Q1 2026 — Clos le 15 mars</p>
+                <p class="text-[11px] text-gray-500">Score final 83% · 6 NC traitées · Lead : Moussa Diop</p>
+              </div>
+              <button class="text-[11px] font-semibold text-forest-700">Voir le rapport →</button>
+            </div>
+            <div class="flex items-center justify-between border border-gray-100 rounded-lg p-3">
+              <div>
+                <p class="font-semibold text-[13px]">Q4 2025 — Clos le 22 décembre 2025</p>
+                <p class="text-[11px] text-gray-500">Score final 79% · Audit annuel ISO 27001 · Lead : Awa Sarr</p>
+              </div>
+              <button class="text-[11px] font-semibold text-forest-700">Voir le rapport →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar: cycle actions + persistent items -->
+      <div class="space-y-4">
+        <div class="border-2 border-gold-500 bg-gold-50 rounded-xl p-4">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-gold-700 mb-2">Action du cycle</p>
+          <button class="w-full bg-gold-500 text-forest-900 font-bold py-2.5 rounded-lg text-[13px] mb-2">Clôturer la revue Q2</button>
+          <p class="text-[11px] text-gold-700">À la clôture, Q3 2026 sera créé automatiquement avec le périmètre par défaut.</p>
+        </div>
+
+        <div class="border border-gray-200 rounded-xl p-4">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-3">Plans d'action transverses</p>
+          <p class="text-[12px] text-gray-700 mb-3">8 plans actifs sur la supervision (héritage Q1 et Q2 confondus).</p>
+          <ul class="space-y-1.5 text-[11px]">
+            <li class="flex justify-between"><span>Ouverts</span><strong class="text-amber-700">9</strong></li>
+            <li class="flex justify-between"><span>À vérifier</span><strong class="text-blue-700">2</strong></li>
+            <li class="flex justify-between"><span>En retard</span><strong class="text-red-700">3</strong></li>
+            <li class="flex justify-between border-t border-gray-100 pt-1.5"><span>Clos depuis le début</span><strong class="text-green-700">28</strong></li>
+          </ul>
+          <button class="mt-3 w-full text-[12px] font-semibold text-forest-700 border border-forest-300 rounded-lg py-1.5">Voir tous les plans →</button>
+        </div>
+
+        <div class="border border-gray-200 rounded-xl p-4">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Équipe affectée</p>
+          <ul class="space-y-2 text-[12px]">
+            <li class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-forest-100 text-forest-700 font-bold flex items-center justify-center text-[10px]">AS</div><span>Awa Sarr</span><span class="text-gray-400 text-[10px] ml-auto">Lead</span></li>
+            <li class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-[10px]">MD</div><span>Moussa Diop</span><span class="text-gray-400 text-[10px] ml-auto">Auditeur</span></li>
+            <li class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-[10px]">FN</div><span>Fatou Ndiaye</span><span class="text-gray-400 text-[10px] ml-auto">Auditrice</span></li>
+            <li class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-gold-50 text-gold-700 font-bold flex items-center justify-center text-[10px]">AF</div><span>Aminata Fall</span><span class="text-gray-400 text-[10px] ml-auto">Associée</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 8. RECAP -->
+<!-- ============================================================ -->
+<section id="recap" class="scroll-section">
+  <header class="mb-4">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-700">8 — Récap des changements</p>
+    <h2 class="text-2xl font-bold text-forest-700 mt-1">Ce que ça change concrètement</h2>
+  </header>
+  <div class="grid grid-cols-3 gap-4">
+    <div class="bg-white border border-gray-200 rounded-xl p-5">
+      <p class="text-[11px] font-bold uppercase text-forest-700 mb-2">DB</p>
+      <ul class="text-[13px] text-gray-700 space-y-2">
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Colonne <span class="mono bg-gray-100 px-1 rounded">missions.kind</span> avec valeurs <span class="mono">audit</span> (défaut) ou <span class="mono">continuous_supervision</span></li>
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Table <span class="mono bg-gray-100 px-1 rounded">supervision_cycles</span> (mission_id, period_label, period_start, period_end, status, score)</li>
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Champ <span class="mono bg-gray-100 px-1 rounded">cycle_id</span> sur <span class="mono">control_assessments</span> et <span class="mono">corrective_action_requests</span> (nullable, rempli pour les missions <span class="mono">continuous_supervision</span>)</li>
+        <li class="flex gap-2"><span class="text-gray-400">=</span> Tout le reste inchangé</li>
+      </ul>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-xl p-5">
+      <p class="text-[11px] font-bold uppercase text-forest-700 mb-2">UX</p>
+      <ul class="text-[13px] text-gray-700 space-y-2">
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Section "Module Groupe" dans la sidebar (visible si <span class="mono bg-gray-100 px-1 rounded">type=group</span>)</li>
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Pages "Filiales", "Revues continues", "Plans d'action transverses"</li>
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Wizard étape 1 = choix audit / supervision continue</li>
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Stepper différent pour les missions <span class="mono">continuous_supervision</span> (5 phases au lieu de 6)</li>
+        <li class="flex gap-2"><span class="text-forest-500">+</span> Bouton "Clôturer la revue Q2" (qui crée Q3 automatiquement) au lieu de "Clôturer la mission"</li>
+      </ul>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-xl p-5">
+      <p class="text-[11px] font-bold uppercase text-forest-700 mb-2">Réutilisation</p>
+      <ul class="text-[13px] text-gray-700 space-y-2">
+        <li class="flex gap-2"><span class="text-green-600">✓</span> Référentiels et contrôles : aucun changement</li>
+        <li class="flex gap-2"><span class="text-green-600">✓</span> Évaluations (control_assessments) : juste un champ cycle_id</li>
+        <li class="flex gap-2"><span class="text-green-600">✓</span> Plans d'action (CAR) : déjà transverses par mission, on ajoute la dimension cycle</li>
+        <li class="flex gap-2"><span class="text-green-600">✓</span> Rapports PDF / XLSX : réutilisés tels quels</li>
+        <li class="flex gap-2"><span class="text-green-600">✓</span> Le module Audit reste 100% fonctionnel pour les clients externes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bg-forest-700 text-white rounded-2xl p-6 mt-4">
+    <p class="text-[11px] font-bold uppercase tracking-wider text-gold-300 mb-2">Stratégie d'implémentation</p>
+    <p class="text-[14px] leading-relaxed">
+      Cette approche t'évite la duplication d'un module entièrement séparé tout en donnant une UX clairement différenciée à tes deux personae : <strong>cabinet d'audit</strong> (clients externes, livrables ponctuels) et <strong>holding</strong> (filiales internes, supervision continue). Si demain tu veux marketer la supervision groupe comme une SKU séparée, tu pourras packager tel quel — pas besoin de refonte.
+    </p>
+  </div>
+</section>
+
+</div>
+
+<script>
+  // helper components defined as plain HTML — KPI sub-component fake
+  document.querySelectorAll('KPI').forEach(el => {
+    const label = el.getAttribute('label');
+    const value = el.getAttribute('value');
+    const div = document.createElement('div');
+    div.className = 'border border-gray-200 rounded-lg p-3 text-center';
+    div.innerHTML = `<p class="text-lg font-bold text-forest-700">${value}</p><p class="text-[10px] uppercase text-gray-500 mt-0.5">${label}</p>`;
+    el.replaceWith(div);
+  });
+</script>
+
+</body>
+</html>

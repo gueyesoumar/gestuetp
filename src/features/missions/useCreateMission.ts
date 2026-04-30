@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import type { MissionKind } from '../../types/database.types'
 
 export interface CreateMissionPayload {
   name: string
@@ -11,6 +12,7 @@ export interface CreateMissionPayload {
   start_date: string
   end_date: string
   member_ids: string[]
+  kind?: MissionKind
 }
 
 interface UseCreateMissionResult {
