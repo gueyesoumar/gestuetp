@@ -54,21 +54,24 @@ export function describeVerdict(score: number, ncMajor: number): VerdictDescript
 // ── 01. Contexte de l'audit ───────────────────────────────────────────────
 
 export function generateContextNarrative(data: AuditReportData): string[] {
-  const fw = data.mission.framework_name ?? 'le référentiel applicable'
-  const fwAcronym = inferFrameworkAcronym(fw)
+  const fw = frameworkLabel(data)
   const sector = data.client?.sector ?? 'son secteur d\'activité'
   const auditPurpose = inferAuditPurpose(data.mission.description ?? '')
   const period = formatPeriod(data.mission.start_date, data.mission.end_date)
   const duration = computeDuration(data.mission.start_date, data.mission.end_date)
   const totalControls = data.totals.totalControls
   const lead = memberFullName(data, 'lead_auditor') ?? 'le chef de mission désigné'
-  const associate = memberFullName(data, 'associate') ?? 'l\'associé signataire'
-  const clientName = data.client?.name ?? data.mission.client_name ?? 'l\'organisation auditée'
+  const associate = memberFullName(data, 'associate')
+  const clientName = clientLabel(data)
+
+  const teamSentence = associate
+    ? `Les travaux ont mobilisé une équipe pluridisciplinaire placée sous la responsabilité de ${associate} en qualité d'associé signataire, et de ${lead} en qualité de chef de mission.`
+    : `Les travaux ont mobilisé une équipe d'audit placée sous la responsabilité de ${lead} en qualité de chef de mission.`
 
   return [
-    `L'audit faisant l'objet du présent rapport s'inscrit dans la démarche de conformité de ${clientName} aux exigences du référentiel ${fw}. ${fwAcronym} constitue, dans ${sector}, l'une des références normatives les plus structurantes en matière de sécurité et de gouvernance des systèmes d'information. Toute organisation revendiquant la conformité à ce référentiel est tenue de démontrer, de façon documentée et auditable, l'existence et l'efficacité opérationnelle du dispositif de contrôle interne associé.`,
+    `L'audit faisant l'objet du présent rapport s'inscrit dans la démarche de conformité de ${clientName} aux exigences du référentiel ${fw}. Ce référentiel constitue, dans ${sector}, l'une des références normatives les plus structurantes en matière de sécurité et de gouvernance des systèmes d'information. Toute organisation revendiquant la conformité à ${fw} est tenue de démontrer, de façon documentée et auditable, l'existence et l'efficacité opérationnelle du dispositif de contrôle interne associé.`,
     `Dans ce contexte, ${data.cabinetName} a été mandaté par ${clientName} pour conduire ${auditPurpose}. Cette intervention répond à un besoin d'évaluation objective et indépendante du niveau de maîtrise atteint par l'organisation, ainsi qu'à l'identification structurée des écarts résiduels susceptibles de compromettre la délivrance ou le maintien d'une attestation de conformité.`,
-    `L'audit a été conduit sur la période du ${period}, soit une durée d'intervention de ${duration}. Il a couvert l'ensemble des ${totalControls} contrôles formant le cadre de référence ${fwAcronym}, sans exclusion notable du périmètre. Les travaux ont mobilisé une équipe pluridisciplinaire placée sous la responsabilité de ${associate} en qualité d'associé signataire, et de ${lead} en qualité de chef de mission. La méthodologie d'intervention, détaillée en section 2, est conforme aux standards de la profession et aux bonnes pratiques d'audit interne reconnues.`,
+    `L'audit a été conduit sur la période du ${period}, soit une durée d'intervention de ${duration}. Il a couvert l'ensemble des ${totalControls} contrôles formant le cadre de référence ${fw}, sans exclusion notable du périmètre. ${teamSentence} La méthodologie d'intervention, détaillée en section 2, est conforme aux standards de la profession et aux bonnes pratiques d'audit interne reconnues.`,
     `Le présent rapport constitue le livrable terminal de la mission. Il a vocation à informer la direction générale de ${clientName} des conclusions de l'audit, à servir de support de communication aux instances de gouvernance et de comité d'audit, et à fonder le plan d'actions de remédiation. Conformément aux principes déontologiques de notre profession, sa diffusion est strictement restreinte à la liste de destinataires figurant en Annexe D. Toute reproduction, communication ou exploitation en dehors de ce périmètre nécessite l'accord préalable et écrit de ${data.cabinetName}.`,
   ]
 }
@@ -76,7 +79,7 @@ export function generateContextNarrative(data: AuditReportData): string[] {
 // ── 02. Méthodologie ──────────────────────────────────────────────────────
 
 export function generateMethodologyNarrative(data: AuditReportData): string[] {
-  const fw = data.mission.framework_name ?? 'le référentiel applicable'
+  const fw = frameworkLabel(data)
   return [
     `La mission a été conduite conformément aux normes professionnelles d'audit applicables, et en cohérence avec les principes énoncés par la norme ISO 19011:2018 « Lignes directrices pour l'audit des systèmes de management ». Notre approche s'inscrit dans une logique d'évaluation par les processus et par les preuves, à la croisée de l'audit de conformité (recherche d'écarts au référentiel) et de l'audit de performance (appréciation de l'efficacité opérationnelle des dispositifs).`,
     `La phase de préparation a donné lieu à l'élaboration d'un mémo de planification définissant les objectifs détaillés, le périmètre, le calendrier, l'équipe mobilisée et la stratégie d'échantillonnage. La sélection des contrôles a été opérée selon une approche par les risques : les contrôles à enjeu majeur (gouvernance, gestion des accès, continuité, gestion des fournisseurs critiques, sécurité du développement) ont fait l'objet de tests approfondis, tandis que les contrôles à faible criticité ont été couverts par revue documentaire ciblée.`,
@@ -91,7 +94,7 @@ export function generateMethodologyNarrative(data: AuditReportData): string[] {
 export function generateExecutiveNarrative(data: AuditReportData): string[] {
   const t = data.totals
   const verdict = describeVerdict(t.conformityScore, t.ncMajor)
-  const fw = data.mission.framework_name ?? 'le référentiel applicable'
+  const fw = frameworkLabel(data)
   const top = topDomains(data.domainStats, 'best', 2).map((d) => `${d.code} ${d.name}`).join(' et ')
   const weak = topDomains(data.domainStats, 'worst', 2).map((d) => `${d.code} ${d.name}`).join(' et ')
 
@@ -105,18 +108,53 @@ export function generateExecutiveNarrative(data: AuditReportData): string[] {
 
 // ── 04. Détail par domaine — narratif court par domaine ───────────────────
 
-export function generateDomainNarrative(domain: DomainStat, _data: AuditReportData): string {
-  const status = domain.score >= 80 ? 'maîtrisé' : domain.score >= 60 ? 'partiellement maîtrisé' : 'à renforcer'
+export function generateDomainNarrative(domain: DomainStat, data: AuditReportData): string[] {
+  const fw = frameworkLabel(data)
+  const status = domain.score >= 85 ? 'maîtrisé' : domain.score >= 70 ? 'globalement maîtrisé' : domain.score >= 55 ? 'partiellement maîtrisé' : 'à renforcer'
   const ncTotal = domain.ncMajor + domain.ncMinor
-  const findingClause = ncTotal === 0
-    ? `Aucune non-conformité formelle n'a été caractérisée sur ce domaine`
-    : ncTotal === 1
-    ? `Une seule non-conformité a été caractérisée sur ce domaine (${domain.ncMajor} majeure, ${domain.ncMinor} mineure)`
-    : `${ncTotal} non-conformités ont été caractérisées sur ce domaine (${domain.ncMajor} majeure(s), ${domain.ncMinor} mineure(s))`
-  const conformityClause = domain.scored > 0
-    ? `${domain.conformes} contrôles ont été jugés strictement conformes sur les ${domain.scored} évalués`
-    : `Aucun contrôle de ce domaine n'a fait l'objet d'une évaluation effective au cours de la mission`
-  return `Le domaine ${domain.code} couvre ${domain.total} contrôle${domain.total > 1 ? 's' : ''} du référentiel. ${conformityClause}, soit un score pondéré de ${domain.score}%. Au terme de l'évaluation, ce domaine est qualifié de « ${status} ». ${findingClause}.`
+
+  // Paragraphe 1 — couverture & score
+  const coverageClause = domain.scored > 0 && domain.scored < domain.total
+    ? `${domain.scored} contrôles sur ${domain.total} ont fait l'objet d'une évaluation effective au cours de la mission`
+    : domain.scored === domain.total && domain.total > 0
+    ? `L'ensemble des ${domain.total} contrôles du domaine a été couvert par les travaux d'audit`
+    : `Les contrôles de ce domaine n'ont pas été évalués au cours de la mission`
+  const p1 = `${coverageClause}, soit un score pondéré de ${domain.score}%. Au terme de l'évaluation, le domaine ${domain.code} (${domain.name}) est qualifié de « ${status} » au regard des exigences du référentiel ${fw}.`
+
+  // Paragraphe 2 — décomposition des résultats
+  let p2: string
+  if (domain.scored === 0) {
+    p2 = `Aucune appréciation ne peut être formulée à ce stade : ce domaine devra faire l'objet d'une évaluation au cours d'une mission ultérieure.`
+  } else {
+    const conformesClause = domain.conformes > 0
+      ? `${domain.conformes} contrôle${domain.conformes > 1 ? 's' : ''} ${domain.conformes > 1 ? 'ont été jugés' : 'a été jugé'} strictement conforme${domain.conformes > 1 ? 's' : ''}`
+      : `Aucun contrôle n'a été jugé strictement conforme`
+    const ncClause = ncTotal === 0
+      ? `et aucune non-conformité formelle n'a été caractérisée sur le périmètre`
+      : ncTotal === 1 && domain.ncMajor === 1
+      ? `et une non-conformité majeure a été caractérisée, justifiant une attention prioritaire`
+      : ncTotal === 1
+      ? `et une non-conformité mineure a été caractérisée`
+      : `${domain.ncMajor > 0 ? `${domain.ncMajor} non-conformité${domain.ncMajor > 1 ? 's' : ''} majeure${domain.ncMajor > 1 ? 's' : ''}` : ''}${domain.ncMajor > 0 && domain.ncMinor > 0 ? ' et ' : ''}${domain.ncMinor > 0 ? `${domain.ncMinor} non-conformité${domain.ncMinor > 1 ? 's' : ''} mineure${domain.ncMinor > 1 ? 's' : ''}` : ''} ont été caractérisée${ncTotal > 1 ? 's' : ''}`
+    const obsClause = domain.observations > 0
+      ? `, complétée${ncTotal > 1 ? 's' : ''} par ${domain.observations} observation${domain.observations > 1 ? 's' : ''} relevant d'opportunités d'amélioration sans qualification d'écart formel`
+      : ''
+    p2 = `${conformesClause} sur les ${domain.scored} évalués, ${ncClause}${obsClause}. Le détail des constats individuels est restitué dans les sections 5 (NC majeures) et 7 (plan d'action).`
+  }
+
+  // Paragraphe 3 — lecture qualitative + suite
+  let p3: string
+  if (domain.score >= 85) {
+    p3 = `La maîtrise observée sur ce domaine témoigne d'une appropriation aboutie des exigences du référentiel. Les éventuelles observations relevées seront intégrées au cycle d'amélioration continue, sans urgence opérationnelle.`
+  } else if (domain.score >= 70) {
+    p3 = `Le niveau de maîtrise observé est satisfaisant dans son ensemble, sous réserve de la prise en compte des écarts mineurs identifiés. Les recommandations associées sont à intégrer au plan d'action de l'année en cours.`
+  } else if (domain.score >= 55) {
+    p3 = `Le dispositif présente des fragilités significatives qui appellent un effort de remédiation ciblé. La séquence proposée privilégie le traitement des non-conformités majeures (P1) dans les 90 jours, suivi des mineures (P2) sur 180 jours.`
+  } else {
+    p3 = `Ce domaine concentre une part importante des écarts identifiés au cours de l'audit et constitue un axe d'effort prioritaire. La direction est invitée à mobiliser les ressources adéquates et à désigner un sponsor en responsabilité opérationnelle, afin de sécuriser la trajectoire de remédiation.`
+  }
+
+  return [p1, p2, p3]
 }
 
 // ── 05. Fiches NC majeures — sous-paragraphes ─────────────────────────────
@@ -133,7 +171,7 @@ export interface NCFactSheetSections {
 
 export function generateNCFactSheet(a: AssessmentWithControl, data: AuditReportData): NCFactSheetSections {
   const ctl = a.control
-  const fw = data.mission.framework_name ?? 'le référentiel'
+  const fw = frameworkLabel(data)
   const requirement = ctl.description?.trim()
     ? `Le contrôle ${ctl.code} du référentiel ${fw} stipule : « ${ctl.description.trim()} »`
     : `Le contrôle ${ctl.code} du référentiel ${fw} (« ${ctl.name} ») impose à l'organisation de définir, documenter et mettre en œuvre un dispositif permettant de garantir l'objectif visé par cette exigence.`
@@ -180,7 +218,7 @@ function generateRootCauseHypothesis(a: AssessmentWithControl): string {
 }
 
 function generateImpactAnalysis(a: AssessmentWithControl, data: AuditReportData): string {
-  const fw = data.mission.framework_name ?? 'le référentiel'
+  const fw = frameworkLabel(data)
   const sector = data.client?.sector ?? 'le secteur de l\'organisation'
   return `À court terme, cet écart expose l'organisation à un risque de non-conformité au référentiel ${fw}, susceptible de compromettre l'obtention ou le maintien de l'attestation correspondante. À moyen terme, l'absence du dispositif attendu peut générer une exposition opérationnelle accrue dans ${sector}, des difficultés à répondre aux contrôles externes (régulateur, partenaires, clients sensibles), ainsi qu'une perte de mémoire organisationnelle en cas de turnover sur les fonctions concernées. La criticité du contrôle ${a.control.code} dans le cadre du référentiel justifie la qualification en non-conformité majeure et la priorité accordée à sa remédiation.`
 }
@@ -212,7 +250,7 @@ export function generateActionPlanNarrative(data: AuditReportData): string[] {
 
 export function generateConclusionNarrative(data: AuditReportData): string[] {
   const v = describeVerdict(data.totals.conformityScore, data.totals.ncMajor)
-  const fw = data.mission.framework_name ?? 'le référentiel'
+  const fw = frameworkLabel(data)
   const period = formatPeriod(data.mission.start_date, data.mission.end_date)
   return [
     `Au terme de la mission conduite sur la période du ${period} et de l'évaluation des ${data.totals.totalControls} contrôles formant le cadre de référence ${fw}, l'équipe d'audit a obtenu une assurance raisonnable quant au niveau de conformité atteint par ${data.client?.name ?? 'l\'organisation auditée'}. Cette assurance s'appuie sur l'ensemble des éléments de preuve collectés, examinés et tracés au dossier de mission, dont la liste détaillée figure en Annexe B.`,
@@ -224,9 +262,9 @@ export function generateConclusionNarrative(data: AuditReportData): string[] {
 
 export function generateExecutiveLetterBody(data: AuditReportData): string[] {
   const v = describeVerdict(data.totals.conformityScore, data.totals.ncMajor)
-  const fw = data.mission.framework_name ?? 'le référentiel'
+  const fw = frameworkLabel(data)
   const period = formatPeriod(data.mission.start_date, data.mission.end_date)
-  const clientName = data.client?.name ?? data.mission.client_name ?? 'votre organisation'
+  const clientName = clientLabel(data)
   return [
     `Madame, Monsieur,`,
     `Conformément à la lettre de mission qui nous a été confiée, nos équipes ont conduit, sur la période du ${period}, l'audit de conformité de ${clientName} aux exigences du référentiel ${fw}. Le présent document constitue le rapport définitif de cette mission. Il restitue, de manière détaillée et tracée, les travaux conduits, les constats formulés, les recommandations associées ainsi que l'opinion d'audit retenue.`,
@@ -257,13 +295,27 @@ export function generateGlossary(): { term: string; def: string }[] {
 
 // ── Helpers narratifs ─────────────────────────────────────────────────────
 
-function inferFrameworkAcronym(fw: string): string {
-  if (/iso\s*27001/i.test(fw)) return 'ISO/IEC 27001'
-  if (/pssi/i.test(fw)) return 'la PSSI-ES'
-  if (/nist/i.test(fw)) return 'le NIST CSF'
-  if (/cobit/i.test(fw)) return 'COBIT'
-  if (/itil/i.test(fw)) return 'ITIL'
-  return fw
+/**
+ * Libellé du référentiel utilisé dans la prose. Source unique : la relation
+ * jointe `mission.framework.name` (cf. useMissionDetail). Fallback neutre
+ * si la jointure est manquante (ne devrait pas arriver en prod).
+ */
+export function frameworkLabel(data: AuditReportData): string {
+  const fw = (data.mission as unknown as { framework?: { name?: string | null } }).framework
+  const name = fw?.name?.trim()
+  return name && name.length > 0 ? name : 'le référentiel applicable'
+}
+
+/**
+ * Libellé du client utilisé dans la prose. Priorité : cabinet_clients.name
+ * (préféré car renseigné par le cabinet), fallback sur la relation jointe
+ * mission.client.name (organization), puis fallback neutre.
+ */
+export function clientLabel(data: AuditReportData): string {
+  if (data.client?.name?.trim()) return data.client.name.trim()
+  const org = (data.mission as unknown as { client?: { name?: string | null } }).client
+  if (org?.name?.trim()) return org.name.trim()
+  return 'l\'organisation auditée'
 }
 
 function inferAuditPurpose(missionDescription: string): string {

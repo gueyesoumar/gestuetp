@@ -24,12 +24,12 @@ DELETE FROM public.missions WHERE id::text LIKE '00000000-0000-0000-0099-200%';
 -- 4. Campagne
 DELETE FROM public.audit_campaigns WHERE id::text LIKE '00000000-0000-0000-0099-300%';
 
--- 5. Users RSSI (public.users d'abord pour casser la FK organization_id)
-DELETE FROM public.users WHERE id::text LIKE '00000000-0000-0000-0099-100%';
+-- 5. Users RSSI + Associé (public.users d'abord pour casser la FK organization_id)
+DELETE FROM public.users WHERE id::text LIKE '00000000-0000-0000-0099-100%' OR id::text LIKE '00000000-0000-0000-0099-110%';
 
--- 6. Auth identities + auth users
-DELETE FROM auth.identities WHERE user_id::text LIKE '00000000-0000-0000-0099-100%';
-DELETE FROM auth.users      WHERE id::text       LIKE '00000000-0000-0000-0099-100%';
+-- 6. Auth identities + auth users (RSSI + Associé)
+DELETE FROM auth.identities WHERE user_id::text LIKE '00000000-0000-0000-0099-100%' OR user_id::text LIKE '00000000-0000-0000-0099-110%';
+DELETE FROM auth.users      WHERE id::text       LIKE '00000000-0000-0000-0099-100%' OR id::text       LIKE '00000000-0000-0000-0099-110%';
 
 -- 7. Filiales (en dernier : la FK parent_org_id pointe vers Gëstu Advisory, pas l'inverse)
 DELETE FROM public.organizations WHERE id::text LIKE '00000000-0000-0000-0099-000%';

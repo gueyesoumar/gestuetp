@@ -120,6 +120,50 @@ JOIN public.organizations fil ON fil.id = v.fil_id
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
+-- 2.5. Associé signataire chez Gëstu Advisory (pour signer le rapport)
+-- =============================================================================
+-- Compte démo verrouillé, rattaché à Gëstu Advisory. Sera utilisé comme
+-- mission_member role='associate' sur toutes les missions démo.
+
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, aud, role, created_at, updated_at, confirmation_token
+)
+VALUES (
+  '00000000-0000-0000-0099-110000000001'::uuid,
+  '00000000-0000-0000-0000-000000000000'::uuid,
+  'associe+demo@gestugroup.com',
+  crypt(gen_random_uuid()::text, gen_salt('bf')),
+  now(),
+  '{"provider": "email", "providers": ["email"]}'::jsonb,
+  jsonb_build_object('first_name', 'Aminata', 'last_name', 'Fall'),
+  'authenticated', 'authenticated', now(), now(), ''
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
+VALUES (
+  '00000000-0000-0000-0099-110000000001'::uuid,
+  '00000000-0000-0000-0099-110000000001'::uuid,
+  jsonb_build_object('sub', '00000000-0000-0000-0099-110000000001', 'email', 'associe+demo@gestugroup.com', 'email_verified', true),
+  'email', 'associe+demo@gestugroup.com', NULL, now(), now()
+)
+ON CONFLICT (provider, provider_id) DO NOTHING;
+
+INSERT INTO public.users (id, auth_id, organization_id, email, first_name, last_name, job_title, is_active)
+SELECT '00000000-0000-0000-0099-110000000001'::uuid,
+       '00000000-0000-0000-0099-110000000001'::uuid,
+       advisory.id,
+       'associe+demo@gestugroup.com',
+       'Aminata', 'Fall',
+       'Associée signataire (démo)',
+       true
+FROM public.organizations advisory
+WHERE advisory.name = 'Gëstu Advisory'
+  AND 'cabinet' = ANY(advisory.types) AND 'group' = ANY(advisory.types)
+ON CONFLICT (id) DO NOTHING;
+
+-- =============================================================================
 -- 3. Campagne d'audit ISO 27001 en cours (rattachée à Gëstu Advisory)
 -- =============================================================================
 
@@ -190,6 +234,15 @@ BEGIN
     WHERE m.id::text LIKE '00000000-0000-0000-0099-200%'
     ON CONFLICT (mission_id, user_id) DO UPDATE SET role = EXCLUDED.role;
   END IF;
+
+  -- mission_members : associate (Aminata Fall) sur chaque mission démo
+  -- Permet à la lettre executive et aux signatures du PDF d'être correctement remplies.
+  INSERT INTO public.mission_members (mission_id, user_id, role)
+  SELECT m.id, '00000000-0000-0000-0099-110000000001'::uuid, 'associate'::public.mission_role
+  FROM public.missions m
+  JOIN public.users u ON u.id = '00000000-0000-0000-0099-110000000001'::uuid
+  WHERE m.id::text LIKE '00000000-0000-0000-0099-200%'
+  ON CONFLICT (mission_id, user_id) DO UPDATE SET role = EXCLUDED.role;
 END $$;
 
 -- =============================================================================

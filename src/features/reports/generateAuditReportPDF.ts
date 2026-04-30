@@ -15,6 +15,8 @@ import {
   generateConclusionNarrative,
   generateExecutiveLetterBody,
   generateGlossary,
+  frameworkLabel,
+  clientLabel,
 } from './auditReportNarratives'
 
 /**
@@ -131,8 +133,9 @@ export async function generateAuditReportPDF(data: AuditReportData): Promise<voi
   drawAnnexCReferences(ctx)
   drawAnnexDDistribution(ctx)
 
-  // Header/footer + watermark sont dessinés à la fin sur toutes les pages
-  // (sauf la couverture) pour bénéficier du nombre total de pages.
+  // Renseigner les numéros de page du sommaire, puis dessiner les
+  // header/footer/watermark sur toutes les pages (sauf couverture).
+  finalizeTOC(ctx)
   finalizeHeadersFooters(ctx)
 
   const safeName = (data.client?.name ?? data.mission.name).replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
@@ -171,6 +174,10 @@ interface DocContext {
   bareCoverPages: Set<number>
   /** Repère les pages de début de section pour le sommaire. */
   tocAnchors: { num: string; title: string; page: number }[]
+  /** Numéro de la page TOC, pour overwrite des numéros de page à la fin. */
+  tocPageNumber: number | null
+  /** Lignes TOC à compléter à la fin : (anchorKey, y) */
+  tocLines: { anchorKey: string; y: number }[]
 }
 
 function createContext(doc: jsPDF, data: AuditReportData): DocContext {
@@ -186,6 +193,8 @@ function createContext(doc: jsPDF, data: AuditReportData): DocContext {
     currentSection: 'Couverture',
     bareCoverPages: new Set([1]),
     tocAnchors: [],
+    tocPageNumber: null,
+    tocLines: [],
   }
 }
 
@@ -505,20 +514,42 @@ function drawPriorityMatrix(ctx: DocContext, x: number, y: number, w: number, h:
   doc.text('Faible enjeu', ix + 2, iy + ih - 2)
   doc.text('Coûteux', ix + iw - 2, iy + ih - 2, { align: 'right' })
 
-  // Items dots — heuristique : impact selon classification, effort selon hash
+  // Items dots — heuristique enrichie pour mieux étaler la nuée :
+  //   IMPACT = base par classification + bonus si NC sur domaine bas score
+  //   EFFORT = longueur de la reco + hash control_id pour étaler horizontalement
+  // Bornes [0.08 ; 0.92] pour éviter les bords. Ajout de jitter déterministe
+  // pour distinguer les points qui retomberaient sur les mêmes coordonnées.
+  const domainScoreById = new Map<string, number>()
+  for (const d of ctx.data.domainStats) {
+    const dom = ctx.data.domains.find((dd) => dd.code === d.code)
+    for (const c of dom?.controls ?? []) domainScoreById.set(c.id, d.score)
+  }
   for (const a of items) {
-    let impact = 0.7
-    if (a.finding_classification === 'major_nc') impact = 0.9
-    else if (a.finding_classification === 'minor_nc') impact = 0.6
-    else if (a.finding_classification === 'observation') impact = 0.4
+    const baseImpact = a.finding_classification === 'major_nc' ? 0.85
+      : a.finding_classification === 'minor_nc' ? 0.55
+      : a.finding_classification === 'observation' ? 0.30
+      : 0.5
+    const domScore = domainScoreById.get(a.control_id) ?? 75
+    // Domaine peu mature → impact bonus (la reco aura plus de levier)
+    const domBonus = (100 - domScore) / 400 // 0..0.25
+    const jitterImpact = ((hashStr(a.id + 'i') % 20) - 10) / 200 // ±0.05
+    const impact = clamp01(baseImpact + domBonus + jitterImpact)
+
     const recoLen = (a.recommendations ?? '').length
-    const effort = Math.min(0.95, Math.max(0.1, recoLen / 600 + 0.2 + ((hashStr(a.id) % 30) / 100)))
-    const px = ix + iw * effort
-    const py = iy + ih * (1 - impact)
+    const baseEffort = clamp01(0.25 + recoLen / 700)
+    const jitterEffort = ((hashStr(a.id + 'e') % 40) - 20) / 200 // ±0.10
+    const effort = clamp01(baseEffort + jitterEffort)
+
+    const px = ix + iw * Math.max(0.08, Math.min(0.92, effort))
+    const py = iy + ih * (1 - Math.max(0.08, Math.min(0.92, impact)))
     const color: RGB = a.finding_classification === 'major_nc' ? RED
       : a.finding_classification === 'minor_nc' ? ORANGE : BLUE
-    doc.setFillColor(...color); doc.circle(px, py, 1.5, 'F')
+    doc.setFillColor(...color); doc.circle(px, py, 1.6, 'F')
   }
+}
+
+function clamp01(n: number): number {
+  return n < 0 ? 0 : n > 1 ? 1 : n
 }
 
 function hashStr(s: string): number {
@@ -561,24 +592,33 @@ function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabinetLogo
 
   // Titre principal
   setText(doc, WHITE, 30, 'bold')
-  const fwName = data.mission.framework_name ?? '—'
-  const lines = doc.splitTextToSize(`Audit ${fwName}`, pageW - 2 * marginL) as string[]
-  let ty = 102
-  for (const l of lines) { doc.text(l, marginL, ty); ty += 11 }
+  const fwLabel = frameworkLabel(data)
+  const isFwGeneric = fwLabel === 'le référentiel applicable'
+  const titleLine1 = 'Rapport d’audit'
+  const titleLine2 = isFwGeneric ? 'de conformité' : fwLabel
+  doc.text(titleLine1, marginL, 102)
+  setText(doc, WHITE, 22, 'bold')
+  const subLines = doc.splitTextToSize(titleLine2, pageW - 2 * marginL) as string[]
+  let ty = 116
+  for (const l of subLines) { doc.text(l, marginL, ty); ty += 9 }
 
   // Client name
-  setText(doc, [220, 230, 225], 16, 'normal')
-  doc.text(data.client?.name ?? data.mission.client_name ?? '—', marginL, ty + 4)
+  setText(doc, [220, 230, 225], 14, 'normal')
+  doc.text(clientLabel(data), marginL, ty + 4)
 
-  // Bandeau infos clés (sur fond foncé, en bas du hero)
+  // Bandeau infos clés — colonnes calibrées (largeur dispo 174 mm)
+  // Colonnes : période 78mm | version 38mm | date 58mm
+  const COL1_X = marginL
+  const COL2_X = marginL + 78
+  const COL3_X = marginL + 78 + 38
   setText(doc, [200, 220, 210], 8, 'bold')
-  doc.text('PÉRIODE D’AUDIT', marginL, 152)
-  doc.text('VERSION', marginL + 70, 152)
-  doc.text('DATE D’ÉMISSION', marginL + 110, 152)
-  setText(doc, WHITE, 10, 'normal')
-  doc.text(formatPeriod(data.mission.start_date, data.mission.end_date), marginL, 159)
-  doc.text('Définitive — V1.0', marginL + 70, 159)
-  doc.text(formatDate(new Date().toISOString()), marginL + 110, 159)
+  doc.text('PÉRIODE D’AUDIT', COL1_X, 152)
+  doc.text('VERSION', COL2_X, 152)
+  doc.text('DATE D’ÉMISSION', COL3_X, 152)
+  setText(doc, WHITE, 9.5, 'normal')
+  doc.text(formatPeriodShort(data.mission.start_date, data.mission.end_date), COL1_X, 159)
+  doc.text('Définitive — V1.0', COL2_X, 159)
+  doc.text(formatDate(new Date().toISOString()), COL3_X, 159)
 
   // Zone basse blanche : équipe + logo client
   // Équipe d'audit
@@ -644,7 +684,8 @@ function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData | null)
 
   const { doc, marginL, contentW, pageW } = ctx
 
-  // Header cabinet
+  // Header cabinet : logo gauche, méta-infos droite. La méta-info droite
+  // n'affiche pas le nom cabinet quand il y a un logo (sinon doublon visuel).
   if (cabinetLogoLight) {
     doc.addImage(cabinetLogoLight.dataUrl, cabinetLogoLight.format, marginL, ctx.y, 32, 16, undefined, 'FAST')
   } else {
@@ -653,12 +694,16 @@ function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData | null)
   }
   setText(doc, TEXT_500, 7.5, 'normal')
   let cy = ctx.y + 4
-  doc.text(ctx.data.cabinetName, pageW - marginL, cy, { align: 'right' }); cy += 4
+  if (!cabinetLogoLight) {
+    // Pas de logo : on peut mettre nom + adresse en miroir à droite
+    doc.text(ctx.data.cabinetName, pageW - marginL, cy, { align: 'right' }); cy += 4
+  }
   if (ctx.data.cabinetAddress) {
     for (const l of ctx.data.cabinetAddress.split('\n')) { doc.text(l, pageW - marginL, cy, { align: 'right' }); cy += 4 }
   }
   if (ctx.data.cabinetPhone)   { doc.text(ctx.data.cabinetPhone, pageW - marginL, cy, { align: 'right' }); cy += 4 }
   if (ctx.data.cabinetWebsite) { doc.text(ctx.data.cabinetWebsite, pageW - marginL, cy, { align: 'right' }); cy += 4 }
+  if (ctx.data.cabinetSupportEmail) { doc.text(ctx.data.cabinetSupportEmail, pageW - marginL, cy, { align: 'right' }); cy += 4 }
   ctx.y += 24
 
   // Filet doré
@@ -671,7 +716,7 @@ function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData | null)
   doc.text(`Le ${formatDate(new Date().toISOString())}`, pageW - marginL, ctx.y, { align: 'right' })
   ctx.y += 10
   setText(doc, FOREST_900, 10.5, 'bold')
-  doc.text(`Direction de ${ctx.data.client?.name ?? ctx.data.mission.client_name ?? '—'}`, marginL, ctx.y); ctx.y += 5
+  doc.text(`Direction de ${clientLabel(ctx.data)}`, marginL, ctx.y); ctx.y += 5
   setText(doc, TEXT_500, 8.5, 'normal')
   doc.text('Comité d’audit & instances de gouvernance', marginL, ctx.y); ctx.y += 8
 
@@ -679,7 +724,11 @@ function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData | null)
   setText(doc, TEXT_900, 10, 'bold')
   doc.text('Objet :', marginL, ctx.y)
   setText(doc, TEXT_700, 10, 'normal')
-  doc.text(`Rapport d’audit ${ctx.data.mission.framework_name ?? ''} — Réf. ${ctx.reportRef}`, marginL + 14, ctx.y)
+  const fwForObjet = frameworkLabel(ctx.data)
+  const objetText = fwForObjet === 'le référentiel applicable'
+    ? `Rapport d’audit de conformité — Réf. ${ctx.reportRef}`
+    : `Rapport d’audit ${fwForObjet} — Réf. ${ctx.reportRef}`
+  doc.text(objetText, marginL + 14, ctx.y)
   ctx.y += 8
 
   // Corps
@@ -690,18 +739,21 @@ function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData | null)
     ctx.y += 3.5
   }
 
-  // Bloc signature Associé en bas droite
+  // Bloc signature : Associé prioritaire, sinon Chef de mission
   const sigY = ctx.pageH - 60
   ctx.y = Math.max(ctx.y, sigY - 4)
+  const associate = ctx.data.members.find((m) => m.role === 'associate')
+  const lead = ctx.data.members.find((m) => m.role === 'lead_auditor')
+  const signer = associate ?? lead
+  const signerRole = associate ? 'Associé signataire' : 'Chef de mission'
   setText(doc, TEXT_500, 8, 'bold')
-  doc.text('Signature de l’Associé signataire', pageW - marginL, sigY, { align: 'right' })
+  doc.text(`Signature — ${signerRole}`, pageW - marginL, sigY, { align: 'right' })
   doc.setDrawColor(...BORDER); doc.setLineWidth(0.4)
   doc.line(pageW - marginL - 60, sigY + 18, pageW - marginL, sigY + 18)
-  const associate = ctx.data.members.find((m) => m.role === 'associate')
   setText(doc, FOREST_900, 10.5, 'bold')
-  doc.text(associate ? memberName(associate) : '—', pageW - marginL, sigY + 24, { align: 'right' })
+  doc.text(signer ? memberName(signer) : '—', pageW - marginL, sigY + 24, { align: 'right' })
   setText(doc, TEXT_500, 8, 'normal')
-  doc.text('Associé signataire', pageW - marginL, sigY + 28, { align: 'right' })
+  doc.text(signerRole, pageW - marginL, sigY + 28, { align: 'right' })
   doc.text(ctx.data.cabinetName, pageW - marginL, sigY + 32, { align: 'right' })
 }
 
@@ -711,6 +763,7 @@ function drawTOC(ctx: DocContext): void {
   ctx.doc.addPage()
   ctx.y = 22
   setPageContext(ctx, 'Sommaire')
+  ctx.tocPageNumber = ctx.doc.getCurrentPageInfo().pageNumber
 
   const { doc, marginL, contentW } = ctx
   setText(doc, FOREST_900, 22, 'bold')
@@ -718,9 +771,9 @@ function drawTOC(ctx: DocContext): void {
   doc.setDrawColor(...GOLD_500); doc.setLineWidth(0.8)
   doc.line(marginL, ctx.y, marginL + 30, ctx.y); ctx.y += 14
 
-  // Lignes pré-renseignées (anchors construits au fil des sections par drawSectionBanner)
-  // Comme on ne connaît pas encore les pages des sections suivantes, on garde un placeholder
-  // que finalizeHeadersFooters vient remplir. On dessine juste un cadre stylisé.
+  // Items du sommaire avec leur anchorKey (résolu en numéro de page à la fin
+  // via ctx.tocAnchors). On stocke aussi la position y pour pouvoir overwriter
+  // le numéro précis dans finalizeTOC.
   const items: { label: string; anchorKey: string }[] = [
     { label: 'Lettre au comité d’audit', anchorKey: 'letter' },
     { label: '01 — Contexte et mandat', anchorKey: '01' },
@@ -741,18 +794,34 @@ function drawTOC(ctx: DocContext): void {
     setText(doc, TEXT_900, 11, 'bold')
     doc.text(item.label, marginL, ctx.y)
     setText(doc, TEXT_400, 10, 'normal')
-    // Pointillés
+    // Pointillés (laissent ~14mm pour le numéro à droite)
     const labelW = doc.getTextWidth(item.label)
     let dotsX = marginL + labelW + 3
     while (dotsX < marginL + contentW - 14) { doc.text('.', dotsX, ctx.y); dotsX += 1.6 }
-    // Page : on inscrit '—' ; finalizeHeadersFooters réécrit le numéro réel.
-    doc.text('—', marginL + contentW, ctx.y, { align: 'right' })
+    // Mémoriser la position pour overwrite à la fin
+    ctx.tocLines.push({ anchorKey: item.anchorKey, y: ctx.y })
     ctx.y += 7
   }
+}
 
-  // Watermark + pagination viendront en finalize.
-  // On stocke les ancres TOC dans ctx pour les remplir plus tard.
-  ctx.tocAnchors = ctx.tocAnchors // (placeholder, rempli au fil)
+/** Résout les numéros de page des entrées TOC après que toutes les sections aient été dessinées. */
+function finalizeTOC(ctx: DocContext): void {
+  if (ctx.tocPageNumber === null) return
+  ctx.doc.setPage(ctx.tocPageNumber)
+  setText(ctx.doc, FOREST_900, 11, 'bold')
+
+  for (const line of ctx.tocLines) {
+    let pageNum: number | null = null
+    if (line.anchorKey === 'letter') {
+      const a = ctx.tocAnchors.find((x) => x.title.startsWith('Lettre'))
+      pageNum = a?.page ?? null
+    } else {
+      const a = ctx.tocAnchors.find((x) => x.num === line.anchorKey)
+      pageNum = a?.page ?? null
+    }
+    const text = pageNum !== null ? String(pageNum) : '—'
+    ctx.doc.text(text, ctx.marginL + ctx.contentW, line.y, { align: 'right' })
+  }
 }
 
 // ── Section 01 — Contexte ─────────────────────────────────────────────────
@@ -854,7 +923,7 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   ctx.y += 6
 
   // Narratif
-  writeWrapped(ctx, generateDomainNarrative(d, ctx.data), { size: 9.5, lineHeight: 5 })
+  writeParagraphs(ctx, generateDomainNarrative(d, ctx.data), { gap: 2.5 })
 
   // Description du domaine si dispo
   if (d.description?.trim()) {
@@ -866,27 +935,32 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
 // ── Section 05 — Fiches NC majeures ───────────────────────────────────────
 
 function drawSection05NCFactSheets(ctx: DocContext): void {
-  drawSectionBanner(ctx, '05', 'Fiches de non-conformités majeures', 'Une fiche normalisée par NC majeure : exigence, constat, preuves, cause racine, impact, recommandation')
-
   const majors = ctx.data.assessments.filter((a) => a.finding_classification === 'major_nc')
   if (majors.length === 0) {
+    drawSectionBanner(ctx, '05', 'Fiches de non-conformités majeures', 'Aucune NC majeure caractérisée — synthèse')
     writeParagraphs(ctx, [
       `Au terme de l'audit, aucune non-conformité majeure n'a été caractérisée. L'organisation présente, sur l'intégralité du périmètre couvert, un dispositif de contrôle interne dont les éventuels écarts résiduels relèvent de non-conformités mineures ou d'observations dont le détail figure en section 4.`,
     ], { gap: 4 })
     return
   }
 
+  // Première fiche : on garde la même page que le banner pour ne pas
+  // laisser une page vide après l'en-tête de section.
+  drawSectionBanner(ctx, '05', 'Fiches de non-conformités majeures', 'Exigence, constat, preuves, cause racine, impact, recommandation')
   let i = 1
   for (const a of majors) {
-    drawNCFactSheet(ctx, a, i, majors.length)
+    drawNCFactSheet(ctx, a, i, majors.length, i === 1)
     i++
   }
 }
 
-function drawNCFactSheet(ctx: DocContext, a: AssessmentWithControl, idx: number, total: number): void {
-  // 1 fiche = 1 page idéalement
-  ctx.doc.addPage()
-  ctx.y = 22
+function drawNCFactSheet(ctx: DocContext, a: AssessmentWithControl, idx: number, total: number, sameAsBanner = false): void {
+  // 1 fiche = 1 page idéalement. Si sameAsBanner, on enchaîne sur la
+  // page courante (qui contient déjà le banner section).
+  if (!sameAsBanner) {
+    ctx.doc.addPage()
+    ctx.y = 22
+  }
   setPageContext(ctx, `05 Fiches NC majeures (${idx}/${total})`)
 
   const { doc, marginL, contentW, pageW } = ctx
@@ -1027,17 +1101,18 @@ function drawSection07ActionPlan(ctx: DocContext): void {
     return
   }
   drawH3(ctx, `Récapitulatif (${items.length} CAR)`)
+  // Tri : NC maj > NC min > obs, puis par code de contrôle
+  const order = (a: AssessmentWithControl): number => a.finding_classification === 'major_nc' ? 0 : a.finding_classification === 'minor_nc' ? 1 : 2
+  const sorted = [...items].sort((a, b) => order(a) - order(b) || a.control.code.localeCompare(b.control.code))
   drawTable(ctx,
-    ['Réf.', 'Domaine', 'Type', 'Description (extrait)'],
-    items.slice(0, 40).map((a) => {
-      const dom = ctx.data.domainStats.find((d) => ctx.data.domains.find((dd) => dd.code === d.code)?.controls.some((c) => c.id === a.control_id))
-      return [
-        a.control.code, dom?.code ?? '—',
-        a.finding_classification === 'major_nc' ? 'NC maj' : a.finding_classification === 'minor_nc' ? 'NC min' : 'Obs.',
-        truncate(a.findings ?? '—', 80),
-      ]
-    }),
-    [22, 22, 18, 112],
+    ['Réf.', 'Type', 'Contrôle', 'Constat (extrait)'],
+    sorted.slice(0, 40).map((a) => [
+      a.control.code,
+      a.finding_classification === 'major_nc' ? 'NC maj' : a.finding_classification === 'minor_nc' ? 'NC min' : 'Obs.',
+      truncate(a.control.name, 38),
+      truncate(a.findings ?? '—', 60),
+    ]),
+    [22, 18, 60, 74],
   )
   if (items.length > 40) {
     writeWrapped(ctx, `(${items.length - 40} actions supplémentaires accessibles via l'export Excel du plan d'action.)`, { color: TEXT_500, size: 8.5 })
@@ -1067,10 +1142,21 @@ function drawSection08Conclusion(ctx: DocContext, _clientLogo: LogoData | null):
   drawH3(ctx, 'Signatures')
   const lead = ctx.data.members.find((m) => m.role === 'lead_auditor')
   const associate = ctx.data.members.find((m) => m.role === 'associate')
+  const primaryClient = ctx.data.clientContacts[0] ?? null
   const cardW = (contentW - 8) / 3, cardH = 38
-  drawSignatureCard(doc, marginL + 0 * (cardW + 4), ctx.y, cardW, cardH, 'Associé signataire', associate ? memberName(associate) : '—', ctx.data.cabinetName)
-  drawSignatureCard(doc, marginL + 1 * (cardW + 4), ctx.y, cardW, cardH, 'Chef de mission', lead ? memberName(lead) : '—', ctx.data.cabinetName)
-  drawSignatureCard(doc, marginL + 2 * (cardW + 4), ctx.y, cardW, cardH, 'Pour l’entité auditée', '—', ctx.data.client?.name ?? ctx.data.mission.client_name ?? '—')
+  // Si pas d'associé en équipe, on remplace cette case par le chef de mission
+  // pour ne pas avoir une case vide.
+  if (associate) {
+    drawSignatureCard(doc, marginL + 0 * (cardW + 4), ctx.y, cardW, cardH, 'Associé signataire', memberName(associate), ctx.data.cabinetName)
+    drawSignatureCard(doc, marginL + 1 * (cardW + 4), ctx.y, cardW, cardH, 'Chef de mission', lead ? memberName(lead) : '—', ctx.data.cabinetName)
+  } else {
+    drawSignatureCard(doc, marginL + 0 * (cardW + 4), ctx.y, cardW, cardH, 'Chef de mission', lead ? memberName(lead) : '—', ctx.data.cabinetName)
+    drawSignatureCard(doc, marginL + 1 * (cardW + 4), ctx.y, cardW, cardH, 'Cabinet d’audit', '—', ctx.data.cabinetName)
+  }
+  drawSignatureCard(doc, marginL + 2 * (cardW + 4), ctx.y, cardW, cardH,
+    'Pour l’entité auditée',
+    primaryClient ? primaryClient.contact_name : '—',
+    primaryClient ? `${primaryClient.job_title ?? 'Contact'} · ${clientLabel(ctx.data)}` : clientLabel(ctx.data))
   ctx.y += cardH + 4
 }
 
@@ -1091,17 +1177,20 @@ function drawSignatureCard(doc: jsPDF, x: number, y: number, w: number, h: numbe
 
 function drawAnnexAGlossary(ctx: DocContext): void {
   drawSectionBanner(ctx, 'A', 'Glossaire', 'Définitions des termes techniques utilisés dans le rapport')
+  // Largeur de colonne terme : 44 mm pour absorber « Revue documentaire »
+  // (le plus long terme du glossaire) sans tronquer ni se coller à la def.
+  const TERM_W = 44
   for (const g of generateGlossary()) {
     checkPage(ctx, 12)
     setText(ctx.doc, FOREST_900, 9.5, 'bold')
     ctx.doc.text(g.term, ctx.marginL, ctx.y)
     setText(ctx.doc, TEXT_700, 9.2, 'normal')
-    const lines = ctx.doc.splitTextToSize(g.def, ctx.contentW - 30) as string[]
-    ctx.doc.text(lines[0] ?? '', ctx.marginL + 30, ctx.y)
+    const lines = ctx.doc.splitTextToSize(g.def, ctx.contentW - TERM_W) as string[]
+    ctx.doc.text(lines[0] ?? '', ctx.marginL + TERM_W, ctx.y)
     ctx.y += 4.6
     for (let i = 1; i < lines.length; i++) {
       checkPage(ctx, 5)
-      ctx.doc.text(lines[i], ctx.marginL + 30, ctx.y); ctx.y += 4.6
+      ctx.doc.text(lines[i], ctx.marginL + TERM_W, ctx.y); ctx.y += 4.6
     }
     ctx.y += 2
   }
@@ -1128,7 +1217,7 @@ function drawAnnexBEvidence(ctx: DocContext): void {
 
 function drawAnnexCReferences(ctx: DocContext): void {
   drawSectionBanner(ctx, 'C', 'Références normatives', 'Standards, normes et bonnes pratiques mobilisés au cours de l’audit')
-  const fw = ctx.data.mission.framework_name ?? ''
+  const fw = frameworkLabel(ctx.data)
   const refs: { ref: string; title: string }[] = [
     { ref: fw || 'Référentiel d’audit', title: 'Cadre de référence principal de la mission' },
     { ref: 'ISO 19011:2018', title: 'Lignes directrices pour l’audit des systèmes de management' },
@@ -1229,7 +1318,16 @@ function formatDate(iso: string | null | undefined): string {
 
 function formatPeriod(start: string | null | undefined, end: string | null | undefined): string {
   if (!start && !end) return '—'
-  return `${formatDate(start)} → ${formatDate(end)}`
+  // Helvetica jsPDF ne supporte pas la flèche U+2192 → "au"
+  return `${formatDate(start)} au ${formatDate(end)}`
+}
+
+function formatPeriodShort(start: string | null | undefined, end: string | null | undefined): string {
+  if (!start && !end) return '—'
+  const fmt = (iso: string | null | undefined): string => iso
+    ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : '—'
+  return `${fmt(start)} – ${fmt(end)}`
 }
 
 function truncate(s: string, max: number): string {
