@@ -63,6 +63,9 @@ export interface AuditReportData {
   cabinetWebsite: string | null
   cabinetSupportEmail: string | null
   cabinetFooterText: string | null
+  /** Couleurs de marque pour le rapport. Hex (#RRGGBB) ou null → fallback Forest/Gold. */
+  cabinetPrimaryColor: string | null
+  cabinetAccentColor: string | null
   evidenceDocs: EvidenceDoc[]
   /** Décoré par createContext, pas requis côté loader. */
   totals?: AuditTotals
@@ -159,9 +162,21 @@ export interface DomainStat {
   conformes: number; ncMajor: number; ncMinor: number; observations: number
 }
 
+interface Palette {
+  /** Couleur de marque dominante (sections, hero, scores). Fallback FOREST_900. */
+  primary: RGB
+  /** Variante claire (5-8 %) du primary pour blocs/encarts. */
+  primaryLight: RGB
+  /** Couleur d'accent (filets, badges, chiffres). Fallback GOLD_500. */
+  accent: RGB
+  /** Variante claire de l'accent pour bandeaux d'info. */
+  accentLight: RGB
+}
+
 interface DocContext {
   doc: jsPDF
   data: AuditReportData & { totals: AuditTotals; domainStats: DomainStat[] }
+  palette: Palette
   pageW: number; pageH: number
   marginL: number; marginR: number
   contentW: number
@@ -183,9 +198,11 @@ interface DocContext {
 function createContext(doc: jsPDF, data: AuditReportData): DocContext {
   const totals = computeTotals(data.assessments)
   const domainStats = computeDomainStats(data.domains, data.assessments)
+  const palette = buildPalette(data.cabinetPrimaryColor ?? null, data.cabinetAccentColor ?? null)
   return {
     doc,
     data: { ...data, totals, domainStats },
+    palette,
     pageW: 210, pageH: 297, marginL: 18, marginR: 18,
     contentW: 174, y: 0,
     reportRef: computeReportRef(data.mission.id, data.mission.end_date),
@@ -196,6 +213,32 @@ function createContext(doc: jsPDF, data: AuditReportData): DocContext {
     tocPageNumber: null,
     tocLines: [],
   }
+}
+
+function buildPalette(primaryHex: string | null, accentHex: string | null): Palette {
+  const primary = hexToRgb(primaryHex) ?? FOREST_900
+  const accent = hexToRgb(accentHex) ?? GOLD_500
+  return {
+    primary,
+    primaryLight: lightenRgb(primary, 0.92),
+    accent,
+    accentLight: lightenRgb(accent, 0.85),
+  }
+}
+
+function hexToRgb(hex: string | null | undefined): RGB | null {
+  if (!hex) return null
+  const m = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
+  if (!m) return null
+  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)]
+}
+
+function lightenRgb(rgb: RGB, ratio: number): RGB {
+  return [
+    Math.round(rgb[0] + (255 - rgb[0]) * ratio),
+    Math.round(rgb[1] + (255 - rgb[1]) * ratio),
+    Math.round(rgb[2] + (255 - rgb[2]) * ratio),
+  ]
 }
 
 function computeTotals(assessments: AssessmentWithControl[]): AuditTotals {
@@ -373,9 +416,9 @@ function drawSectionBanner(ctx: DocContext, num: string, title: string, lead: st
   newSection(ctx, num, title)
   const { doc, marginL, contentW } = ctx
   // Bandeau plein
-  fillRect(doc, marginL, ctx.y, contentW, 28, FOREST_900)
+  fillRect(doc, marginL, ctx.y, contentW, 28, ctx.palette.primary)
   // accent or
-  fillRect(doc, marginL, ctx.y + 28, contentW, 1.5, GOLD_500)
+  fillRect(doc, marginL, ctx.y + 28, contentW, 1.5, ctx.palette.accent)
   // Numéro géant
   setText(doc, GOLD_500, 28, 'bold')
   doc.text(num, marginL + 8, ctx.y + 20)
@@ -565,9 +608,9 @@ interface LogoData { dataUrl: string; width: number; height: number; format: 'PN
 function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabinetLogoLight: LogoData | null, cabinetLogoDark: LogoData | null): void {
   const { doc, data, pageW, pageH, marginL } = ctx
   // Hero plein (Deloitte-style : grande zone foncée)
-  fillRect(doc, 0, 0, pageW, 175, FOREST_900)
+  fillRect(doc, 0, 0, pageW, 175, ctx.palette.primary)
   // accent or épais
-  fillRect(doc, 0, 175, pageW, 4, GOLD_500)
+  fillRect(doc, 0, 175, pageW, 4, ctx.palette.accent)
 
   // Logo cabinet (version dark si dispo, sinon light dans cartouche blanc)
   const cabLogo = cabinetLogoDark ?? cabinetLogoLight
@@ -847,16 +890,16 @@ function drawSection03ExecutiveSummary(ctx: DocContext): void {
   const t = data.totals
   const v = describeVerdict(t.conformityScore, t.ncMajor)
 
-  // Bloc score / verdict (Deloitte-style : grand chiffre + bandeau)
+  // Bloc score / verdict (grand chiffre + bandeau)
   const blockH = 46
-  fillRounded(doc, marginL, ctx.y, contentW, blockH, 3, FOREST_900)
-  fillRect(doc, marginL, ctx.y, 4, blockH, GOLD_500)
+  fillRounded(doc, marginL, ctx.y, contentW, blockH, 3, ctx.palette.primary)
+  fillRect(doc, marginL, ctx.y, 4, blockH, ctx.palette.accent)
   setText(doc, [200, 220, 210], 8, 'bold')
-  doc.text('SCORE DE CONFORMITÉ PONDÉRÉ', marginL + 10, ctx.y + 9)
-  setText(doc, GOLD_500, 42, 'bold')
+  doc.text('SCORE DE CONFORMITÉ', marginL + 10, ctx.y + 9)
+  setText(doc, ctx.palette.accent, 42, 'bold')
   doc.text(`${t.conformityScore}%`, marginL + 10, ctx.y + 32)
   setText(doc, [200, 220, 210], 7.5, 'normal')
-  doc.text('c=100 / lc=75 / pc=50 / nc=0  ·  NA exclus', marginL + 10, ctx.y + 39)
+  doc.text('Pondération ISO · détail en Annexe A', marginL + 10, ctx.y + 39)
   // Verdict box à droite
   const vx = marginL + contentW - 78
   fillRounded(doc, vx, ctx.y + 7, 72, blockH - 14, 2, WHITE)
@@ -905,8 +948,8 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   checkPage(ctx, 70)
   const { doc, marginL, contentW } = ctx
   // En-tête domaine
-  fillRounded(doc, marginL, ctx.y, contentW, 16, 2, FOREST_50)
-  fillRect(doc, marginL, ctx.y, 4, 16, GOLD_500)
+  fillRounded(doc, marginL, ctx.y, contentW, 16, 2, ctx.palette.primaryLight)
+  fillRect(doc, marginL, ctx.y, 4, 16, ctx.palette.accent)
   setText(doc, FOREST_900, 12, 'bold')
   doc.text(`${d.code} — ${d.name}`, marginL + 8, ctx.y + 10)
   // Score badge
@@ -1130,8 +1173,8 @@ function drawSection08Conclusion(ctx: DocContext, _clientLogo: LogoData | null):
   const v = describeVerdict(ctx.data.totals.conformityScore, ctx.data.totals.ncMajor)
   checkPage(ctx, 28)
   const { doc, marginL, contentW } = ctx
-  fillRounded(doc, marginL, ctx.y, contentW, 22, 2.4, FOREST_900)
-  fillRect(doc, marginL, ctx.y, 4, 22, GOLD_500)
+  fillRounded(doc, marginL, ctx.y, contentW, 22, 2.4, ctx.palette.primary)
+  fillRect(doc, marginL, ctx.y, 4, 22, ctx.palette.accent)
   setText(doc, [200, 220, 210], 8, 'bold')
   doc.text('OPINION D’AUDIT FORMELLE', marginL + 10, ctx.y + 8)
   setText(doc, GOLD_500, 16, 'bold')
@@ -1285,7 +1328,7 @@ function drawTable(ctx: DocContext, headers: string[], rows: string[][], widths:
   const totalW = widths.reduce((s, w) => s + w, 0)
 
   checkPage(ctx, headerH + rowH * Math.min(rows.length, 3))
-  fillRect(doc, marginL, ctx.y, totalW, headerH, FOREST_900)
+  fillRect(doc, marginL, ctx.y, totalW, headerH, ctx.palette.primary)
   setText(doc, WHITE, 8, 'bold')
   let cx = marginL
   for (let i = 0; i < headers.length; i++) { doc.text(headers[i], cx + 2, ctx.y + 5.4); cx += widths[i] }

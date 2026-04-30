@@ -108,6 +108,8 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     cabinetAddress, cabinetPhone, cabinetWebsite,
     cabinetSupportEmail: br?.support_email ?? null,
     cabinetFooterText: br?.footer_text ?? null,
+    cabinetPrimaryColor: br?.primary_color ?? null,
+    cabinetAccentColor: br?.accent_color ?? null,
     evidenceDocs,
   }
 }

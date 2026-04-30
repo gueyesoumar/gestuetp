@@ -9,6 +9,69 @@
 
 import type { AuditReportData, AuditTotals, DomainStat, AssessmentWithControl } from './generateAuditReportPDF'
 
+// ── Extraction de contrôles spécifiques ───────────────────────────────────
+
+/**
+ * Renvoie les N premiers contrôles strictement conformes (level=c), triés
+ * par code de contrôle pour stabilité. Optionnellement filtré par domaine.
+ */
+function topConformingControls(data: AuditReportData, n = 3, domainCode?: string): AssessmentWithControl[] {
+  let pool = data.assessments.filter((a) => a.conformity_level === 'c')
+  if (domainCode) {
+    const dom = data.domains.find((d) => d.code === domainCode)
+    if (!dom) return []
+    const ids = new Set(dom.controls.map((c) => c.id))
+    pool = pool.filter((a) => ids.has(a.control_id))
+  }
+  return pool.sort((a, b) => a.control.code.localeCompare(b.control.code)).slice(0, n)
+}
+
+/**
+ * Renvoie les N premiers contrôles avec écart, NC majeures > NC mineures > obs,
+ * triés par code à priorité égale. Optionnellement scoped par domaine.
+ */
+function topWeakControls(data: AuditReportData, n = 3, domainCode?: string): AssessmentWithControl[] {
+  const order = (a: AssessmentWithControl): number =>
+    a.finding_classification === 'major_nc' ? 0
+    : a.finding_classification === 'minor_nc' ? 1
+    : a.finding_classification === 'observation' ? 2
+    : 3
+  let pool = data.assessments.filter((a) =>
+    a.finding_classification === 'major_nc'
+    || a.finding_classification === 'minor_nc'
+    || a.finding_classification === 'observation'
+  )
+  if (domainCode) {
+    const dom = data.domains.find((d) => d.code === domainCode)
+    if (!dom) return []
+    const ids = new Set(dom.controls.map((c) => c.id))
+    pool = pool.filter((a) => ids.has(a.control_id))
+  }
+  return pool.sort((a, b) => order(a) - order(b) || a.control.code.localeCompare(b.control.code)).slice(0, n)
+}
+
+/** Liste lisible : "A.5.1 Politiques…, A.7.2 Contrôles physiques…, A.8.7 Anti-malware". */
+function listControls(items: AssessmentWithControl[], maxNameLen = 40): string {
+  if (items.length === 0) return ''
+  const names = items.map((a) => `${a.control.code} (${truncateName(a.control.name, maxNameLen)})`)
+  if (names.length === 1) return names[0]
+  if (names.length === 2) return `${names[0]} et ${names[1]}`
+  return `${names.slice(0, -1).join(', ')} et ${names[names.length - 1]}`
+}
+
+function truncateName(s: string, max: number): string {
+  return s.length <= max ? s.toLowerCase().charAt(0) + s.slice(1) : s.slice(0, max - 1).toLowerCase().charAt(0) + s.slice(1, max - 1) + '…'
+}
+
+function classifLabel(c: string | null | undefined): string {
+  switch (c) {
+    case 'major_nc': return 'NC majeure'
+    case 'minor_nc': return 'NC mineure'
+    case 'observation': return 'observation'
+    default: return ''
+  }
+}
+
 // ── Verdict & qualifiers ──────────────────────────────────────────────────
 
 export interface VerdictDescriptor {
@@ -95,13 +158,29 @@ export function generateExecutiveNarrative(data: AuditReportData): string[] {
   const t = data.totals
   const verdict = describeVerdict(t.conformityScore, t.ncMajor)
   const fw = frameworkLabel(data)
-  const top = topDomains(data.domainStats, 'best', 2).map((d) => `${d.code} ${d.name}`).join(' et ')
-  const weak = topDomains(data.domainStats, 'worst', 2).map((d) => `${d.code} ${d.name}`).join(' et ')
+
+  // Points forts et points faibles concrets, basés sur les contrôles réels
+  const strengths = topConformingControls(data, 4)
+  const majors = topWeakControls(data, 4).filter((a) => a.finding_classification === 'major_nc')
+  const minorsAndObs = topWeakControls(data, 6).filter((a) => a.finding_classification !== 'major_nc')
+
+  // Paragraphe « points forts » : nomme les contrôles maîtrisés
+  const strengthsClause = strengths.length > 0
+    ? `Parmi les dispositifs maîtrisés au cours de l'audit figurent notamment ${listControls(strengths)}, qui témoignent d'une appropriation aboutie des exigences correspondantes.`
+    : ``
+
+  // Paragraphe « axes de progrès » : nomme les NC majeures + autres écarts
+  const majorClause = majors.length > 0
+    ? `Les non-conformités majeures portent en particulier sur ${listControls(majors)}.`
+    : `Aucune non-conformité majeure n'a été caractérisée.`
+  const minorClause = minorsAndObs.length > 0
+    ? `Les écarts résiduels (NC mineures et observations) concernent notamment ${listControls(minorsAndObs.slice(0, 4))}.`
+    : ``
 
   return [
-    `${verdict.toneOpening} Au terme de l'évaluation des ${t.totalControls} contrôles du référentiel ${fw}, ${data.client?.name ?? 'l\'organisation'} obtient un score de conformité pondéré de ${t.conformityScore}%, calculé selon la grille c=100 / lc=75 / pc=50 / nc=0 (les contrôles non-applicables étant exclus du calcul).`,
+    `${verdict.toneOpening} Au terme de l'évaluation des ${t.totalControls} contrôles du référentiel ${fw}, ${clientLabel(data)} obtient un score de conformité pondéré de ${t.conformityScore}%.`,
     `Sur les ${t.totalControls} contrôles évalués, ${t.conformes} ont été jugés strictement conformes, ${t.largement} largement conformes, ${t.partiels} partiellement conformes et ${t.nonConformes} non conformes. ${t.ncMajor} non-conformités majeures et ${t.ncMinor} non-conformités mineures ont été formellement caractérisées, complétées par ${t.observations} observations constituant des opportunités d'amélioration. Le détail individuel des non-conformités majeures est restitué en section 5 sous forme de fiches normalisées.`,
-    `Les domaines les mieux maîtrisés par l'organisation sont ${top || 'identifiés en section 4'}, qui présentent une appropriation aboutie des exigences du référentiel et un dispositif de contrôle interne efficient. À l'inverse, les domaines ${weak || 'détaillés en section 4'} concentrent l'essentiel des écarts identifiés et appellent un effort de remédiation prioritaire. Cette hétérogénéité, fréquente dans les démarches en montée en maturité, justifie l'établissement d'un plan d'action structuré dans le temps.`,
+    `${strengthsClause ? strengthsClause + ' ' : ''}${majorClause}${minorClause ? ' ' + minorClause : ''} L'analyse détaillée par domaine, restituée en section 4, distingue les dispositifs maîtrisés de ceux nécessitant un renforcement.`,
     `Au regard de l'ensemble des constats, l'opinion d'audit retenue est : « ${verdict.label} ». Cette opinion est argumentée en section 8 et intègre les constats, leur classification et l'engagement de l'organisation à mettre en œuvre les actions de remédiation. Une session de débrief avec la direction est proposée afin de présenter de vive voix les principaux enseignements et de sécuriser l'appropriation du plan d'action par les responsables désignés.`,
   ]
 }
@@ -142,16 +221,32 @@ export function generateDomainNarrative(domain: DomainStat, data: AuditReportDat
     p2 = `${conformesClause} sur les ${domain.scored} évalués, ${ncClause}${obsClause}. Le détail des constats individuels est restitué dans les sections 5 (NC majeures) et 7 (plan d'action).`
   }
 
-  // Paragraphe 3 — lecture qualitative + suite
-  let p3: string
+  // Paragraphe 3 — lecture qualitative + contrôles cités concrètement
+  const strengths = topConformingControls(data, 3, domain.code)
+  const weakness = topWeakControls(data, 3, domain.code)
+
+  let p3 = ''
   if (domain.score >= 85) {
-    p3 = `La maîtrise observée sur ce domaine témoigne d'une appropriation aboutie des exigences du référentiel. Les éventuelles observations relevées seront intégrées au cycle d'amélioration continue, sans urgence opérationnelle.`
+    p3 = `La maîtrise observée sur ce domaine témoigne d'une appropriation aboutie des exigences du référentiel.`
   } else if (domain.score >= 70) {
-    p3 = `Le niveau de maîtrise observé est satisfaisant dans son ensemble, sous réserve de la prise en compte des écarts mineurs identifiés. Les recommandations associées sont à intégrer au plan d'action de l'année en cours.`
+    p3 = `Le niveau de maîtrise observé est satisfaisant dans son ensemble, sous réserve de la prise en compte des écarts mineurs identifiés.`
   } else if (domain.score >= 55) {
-    p3 = `Le dispositif présente des fragilités significatives qui appellent un effort de remédiation ciblé. La séquence proposée privilégie le traitement des non-conformités majeures (P1) dans les 90 jours, suivi des mineures (P2) sur 180 jours.`
+    p3 = `Le dispositif présente des fragilités significatives qui appellent un effort de remédiation ciblé.`
   } else {
-    p3 = `Ce domaine concentre une part importante des écarts identifiés au cours de l'audit et constitue un axe d'effort prioritaire. La direction est invitée à mobiliser les ressources adéquates et à désigner un sponsor en responsabilité opérationnelle, afin de sécuriser la trajectoire de remédiation.`
+    p3 = `Ce domaine concentre une part importante des écarts identifiés au cours de l'audit et constitue un axe d'effort prioritaire.`
+  }
+
+  // Citations concrètes
+  const concreteParts: string[] = []
+  if (strengths.length > 0) {
+    concreteParts.push(`Les contrôles ${listControls(strengths)} ont notamment été jugés conformes`)
+  }
+  if (weakness.length > 0) {
+    const verb = strengths.length > 0 ? '. À l\'inverse,' : ' Les écarts identifiés portent sur'
+    concreteParts.push(`${verb} ${listControls(weakness)} ${weakness.length === 1 ? 'a fait l\'objet' : 'ont fait l\'objet'} d'un constat formel`)
+  }
+  if (concreteParts.length > 0) {
+    p3 += ' ' + concreteParts.join('') + '.'
   }
 
   return [p1, p2, p3]

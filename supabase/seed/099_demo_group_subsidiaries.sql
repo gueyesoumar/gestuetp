@@ -120,6 +120,23 @@ JOIN public.organizations fil ON fil.id = v.fil_id
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
+-- 2.4. Branding cabinet (couleurs de marque pour la personnalisation PDF)
+-- =============================================================================
+-- Permet au générateur de rapport d'audit de personnaliser les bandeaux
+-- foncés et les accents avec les couleurs du cabinet (charte Gëstu :
+-- vert forêt + or). Les logos seront uploadés via l'interface white-label.
+
+INSERT INTO public.organization_branding (organization_id, primary_color, accent_color, footer_text)
+SELECT advisory.id, '#1B4332', '#D4A843', 'Document confidentiel — propriété de Gëstu Advisory'
+FROM public.organizations advisory
+WHERE advisory.name = 'Gëstu Advisory'
+  AND 'cabinet' = ANY(advisory.types) AND 'group' = ANY(advisory.types)
+ON CONFLICT (organization_id) DO UPDATE
+  SET primary_color = EXCLUDED.primary_color,
+      accent_color = EXCLUDED.accent_color,
+      footer_text = COALESCE(public.organization_branding.footer_text, EXCLUDED.footer_text);
+
+-- =============================================================================
 -- 2.5. Associé signataire chez Gëstu Advisory (pour signer le rapport)
 -- =============================================================================
 -- Compte démo verrouillé, rattaché à Gëstu Advisory. Sera utilisé comme
