@@ -47,9 +47,9 @@ export function CARVerificationDialog({ car, canVerify, onClose, onChanged }: CA
         </Section>
 
         {hasResponse && (
-          <Section title="R&eacute;ponse du client">
+          <Section title="Réponse du client">
             {car.client_root_cause && <Field label="Cause racine" value={car.client_root_cause} />}
-            {car.client_action && <Field label="Action pr&eacute;vue" value={car.client_action} />}
+            {car.client_action && <Field label="Action prévue" value={car.client_action} />}
             {car.client_target_date && <Field label="Date cible" value={formatDate(car.client_target_date)} />}
           </Section>
         )}
@@ -81,14 +81,14 @@ export function CARVerificationDialog({ car, canVerify, onClose, onChanged }: CA
         {canAct && requireComment && (
           <div className="space-y-2 pt-2">
             <label className="block text-xs font-semibold text-gray-700">
-              {requireComment === 'reject' ? 'Motif du rejet' : 'Pr&eacute;cision attendue'} <span className="text-red-500">*</span>
+              {requireComment === 'reject' ? 'Motif du rejet' : 'Précision attendue'} <span className="text-red-500">*</span>
             </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               className="w-full text-sm border border-gray-300 rounded-lg p-2 focus:border-forest-700 focus:ring-1 focus:ring-forest-700"
-              placeholder="Min. 5 caract&egrave;res"
+              placeholder="Min. 5 caractères"
             />
             <div className="flex justify-end gap-2">
               <button onClick={() => { setRequireComment(null); setComment('') }} disabled={busy}
@@ -105,9 +105,9 @@ export function CARVerificationDialog({ car, canVerify, onClose, onChanged }: CA
 
         {!canAct && (
           <p className="text-xs text-gray-400 italic">
-            {car.status === 'open' && 'En attente de la r&eacute;ponse du client.'}
-            {car.status === 'verified' && 'Action corrective accept&eacute;e et clos&eacute;e.'}
-            {car.status === 'closed' && 'Action clos&eacute;e.'}
+            {car.status === 'open' && 'En attente de la réponse du client.'}
+            {car.status === 'verified' && 'Action corrective acceptée et clôturée.'}
+            {car.status === 'closed' && 'Action clôturée.'}
           </p>
         )}
       </div>

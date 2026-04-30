@@ -19,7 +19,7 @@ export function ActionPlanPreviewModal({ open, busy, findings, onClose, onConfir
   const hasFindings = total > 0
 
   return (
-    <Modal open={open} onClose={onClose} title="G&eacute;n&eacute;rer le plan d'action">
+    <Modal open={open} onClose={onClose} title="Générer le plan d'action">
       <div className="space-y-4">
         <p className="text-sm text-gray-600">
           Cette op&eacute;ration cr&eacute;e une demande d&apos;action corrective (CAR) pour chaque constat
@@ -60,7 +60,7 @@ export function ActionPlanPreviewModal({ open, busy, findings, onClose, onConfir
             disabled={busy || !hasFindings}
             className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-800 disabled:opacity-50"
           >
-            {busy ? 'G&eacute;n&eacute;ration...' : `G&eacute;n&eacute;rer ${total} action${total > 1 ? 's' : ''}`}
+            {busy ? 'Génération...' : `Générer ${total} action${total > 1 ? 's' : ''}`}
           </button>
         </div>
       </div>
