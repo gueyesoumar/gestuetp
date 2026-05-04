@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../../../lib/supabase'
 import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
 import { CONFORMITY_LEVELS } from '../../mission-constants'
+import { SafeMarkdown } from '../../../../components/ui/SafeMarkdown'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
 import type { Document } from '../../../../types/database.types'
 
@@ -235,15 +236,17 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
                     <span className="text-[9px] text-current/70 ml-auto">{f.proposed_deadline_days}j</span>
                   )}
                 </div>
-                <p className="text-[11px] text-gray-700 leading-relaxed line-clamp-3 whitespace-pre-wrap">{f.description}</p>
+                <SafeMarkdown className="text-[11px] text-gray-700 leading-relaxed">{f.description}</SafeMarkdown>
                 {f.risk && (
-                  <p className="text-[10px] text-gray-600 mt-1.5 leading-relaxed line-clamp-2">
-                    <span className="font-semibold">Risque :</span> {f.risk}
+                  <p className="text-[10px] text-gray-600 mt-1.5 leading-relaxed">
+                    <span className="font-semibold">Risque :</span>{' '}
+                    <SafeMarkdown inline>{f.risk}</SafeMarkdown>
                   </p>
                 )}
                 {f.recommendation && (
-                  <p className="text-[10px] text-gray-600 mt-1 leading-relaxed line-clamp-2">
-                    <span className="font-semibold">Reco :</span> {f.recommendation}
+                  <p className="text-[10px] text-gray-600 mt-1 leading-relaxed">
+                    <span className="font-semibold">Reco :</span>{' '}
+                    <SafeMarkdown inline>{f.recommendation}</SafeMarkdown>
                   </p>
                 )}
               </div>
