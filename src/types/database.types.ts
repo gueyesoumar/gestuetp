@@ -344,6 +344,12 @@ export interface Domain {
   updated_at: string
 }
 
+export interface AuditChecklistItem {
+  label: string
+  hint?: string
+  evidence_type?: 'document' | 'interview' | 'observation' | 'test'
+}
+
 export interface Control {
   id: string
   domain_id: string
@@ -351,6 +357,7 @@ export interface Control {
   name: string
   description: string | null
   guidance: string | null
+  audit_checklist?: AuditChecklistItem[]
   sort_order: number
   created_at: string
   updated_at: string

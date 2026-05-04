@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { ChevronUp, ChevronDown, Trash2, Sparkles } from 'lucide-react'
+import { MarkdownToolbar } from '../../../../components/ui/MarkdownToolbar'
 import type {
   AssessmentFinding,
   FindingClassification,
@@ -40,6 +41,9 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
     Boolean(finding.risk || finding.recommendation || finding.priority || finding.proposed_deadline),
   )
   const debounceRef = useRef<number | null>(null)
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const riskRef = useRef<HTMLTextAreaElement>(null)
+  const recommendationRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     setDescription(finding.description)
@@ -106,16 +110,24 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
       </div>
 
       {/* Description */}
-      <textarea
-        value={description}
-        onChange={(e) => {
-          setDescription(e.target.value)
-          debouncedSave({ description: e.target.value })
-        }}
-        disabled={readOnly}
-        placeholder="D&eacute;crire le constat (markdown : **gras**, *italique*, - liste)..."
-        className="w-full min-h-[64px] px-3 py-2 border border-gray-200 rounded-lg text-[12px] text-gray-900 leading-relaxed outline-none focus:border-forest-500 focus:ring-1 focus:ring-forest-200 resize-y disabled:bg-gray-50 bg-white"
-      />
+      <div>
+        <MarkdownToolbar
+          textareaRef={descriptionRef}
+          disabled={readOnly}
+          onChange={(v) => { setDescription(v); debouncedSave({ description: v }) }}
+        />
+        <textarea
+          ref={descriptionRef}
+          value={description}
+          onChange={(e) => {
+            setDescription(e.target.value)
+            debouncedSave({ description: e.target.value })
+          }}
+          disabled={readOnly}
+          placeholder="D&eacute;crire le constat..."
+          className="w-full min-h-[64px] px-3 py-2 border border-gray-200 rounded-b-lg text-[12px] text-gray-900 leading-relaxed outline-none focus:border-forest-500 focus:ring-1 focus:ring-forest-200 resize-y disabled:bg-gray-50 bg-white"
+        />
+      </div>
 
       {!readOnly && (
         <button type="button" onClick={() => setShowOptional((v) => !v)}
@@ -126,26 +138,42 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
 
       {showOptional && (
         <div className="mt-2 space-y-2">
-          <textarea
-            value={risk}
-            onChange={(e) => {
-              setRisk(e.target.value)
-              debouncedSave({ risk: e.target.value || null })
-            }}
-            disabled={readOnly}
-            placeholder="Risque associ&eacute; (optionnel)"
-            className="w-full min-h-[44px] px-3 py-2 border border-amber-200 bg-amber-50/30 rounded-lg text-[11px] text-gray-700 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-200 resize-y disabled:bg-gray-50"
-          />
-          <textarea
-            value={recommendation}
-            onChange={(e) => {
-              setRecommendation(e.target.value)
-              debouncedSave({ recommendation: e.target.value || null })
-            }}
-            disabled={readOnly}
-            placeholder="Recommandation (optionnel)"
-            className="w-full min-h-[44px] px-3 py-2 border border-gray-200 rounded-lg text-[11px] text-gray-700 outline-none focus:border-forest-500 focus:ring-1 focus:ring-forest-200 resize-y disabled:bg-gray-50 bg-white"
-          />
+          <div>
+            <MarkdownToolbar
+              textareaRef={riskRef}
+              disabled={readOnly}
+              onChange={(v) => { setRisk(v); debouncedSave({ risk: v || null }) }}
+            />
+            <textarea
+              ref={riskRef}
+              value={risk}
+              onChange={(e) => {
+                setRisk(e.target.value)
+                debouncedSave({ risk: e.target.value || null })
+              }}
+              disabled={readOnly}
+              placeholder="Risque associ&eacute; (optionnel)"
+              className="w-full min-h-[44px] px-3 py-2 border border-amber-200 bg-amber-50/30 rounded-b-lg text-[11px] text-gray-700 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-200 resize-y disabled:bg-gray-50"
+            />
+          </div>
+          <div>
+            <MarkdownToolbar
+              textareaRef={recommendationRef}
+              disabled={readOnly}
+              onChange={(v) => { setRecommendation(v); debouncedSave({ recommendation: v || null }) }}
+            />
+            <textarea
+              ref={recommendationRef}
+              value={recommendation}
+              onChange={(e) => {
+                setRecommendation(e.target.value)
+                debouncedSave({ recommendation: e.target.value || null })
+              }}
+              disabled={readOnly}
+              placeholder="Recommandation (optionnel)"
+              className="w-full min-h-[44px] px-3 py-2 border border-gray-200 rounded-b-lg text-[11px] text-gray-700 outline-none focus:border-forest-500 focus:ring-1 focus:ring-forest-200 resize-y disabled:bg-gray-50 bg-white"
+            />
+          </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex gap-1 flex-wrap">
               {PRIORITY_OPTIONS.map((opt) => (

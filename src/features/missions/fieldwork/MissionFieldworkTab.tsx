@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { ArrowRight, Check, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
@@ -7,9 +7,21 @@ import { useReviewAssessments } from '../useReviewAssessments'
 import { useFieldworkState } from './useFieldworkState'
 import { FieldworkSidebar } from './FieldworkSidebar'
 import { ControlWorkArea } from './ControlWorkArea'
+import { RightRail } from './right-rail/RightRail'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
+
+const RAIL_KEY = 'gestu:fieldwork-right-rail-open'
+
+function readRailDefault(): boolean {
+  try {
+    const stored = localStorage.getItem(RAIL_KEY)
+    if (stored !== null) return stored === 'true'
+  } catch { /* ignore */ }
+  // Auto default: open on desktop wide (>=1280px), closed below
+  return typeof window !== 'undefined' ? window.innerWidth >= 1280 : true
+}
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionMemberRow, ControlAssignmentRow, MissionDetail } from '../useMissionDetail'
 
@@ -49,6 +61,15 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
 
   const state = useFieldworkState(assessments, refetch)
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
+  const [railOpen, setRailOpen] = useState<boolean>(readRailDefault)
+  const toggleRail = useCallback(() => {
+    setRailOpen((prev) => {
+      const next = !prev
+      try { localStorage.setItem(RAIL_KEY, String(next)) } catch { /* ignore */ }
+      return next
+    })
+  }, [])
+  useEffect(() => { /* hydrate localStorage on first paint */ }, [])
 
   // Count controls and assessments
   const totalControls = domains.reduce((sum, d) => sum + d.controls.length, 0)
@@ -180,7 +201,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         />
       </div>
 
-      {/* Right panel */}
+      {/* Center panel */}
       {selectedAssessment ? (
         <ControlWorkArea
           assessment={selectedAssessment}
@@ -201,10 +222,29 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
           onReject={state.rejectAssessment}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center text-sm text-gray-300">
-          <ArrowLeft size={14} className="inline mr-1" />S{'\u00e9'}lectionnez un contr{'\u00f4'}le dans la liste
+        <div className="flex-1 flex items-center justify-center bg-[#FAFAF8]">
+          <div className="text-center max-w-sm px-6">
+            <div className="w-12 h-12 rounded-full bg-forest-50 border border-forest-200 mx-auto mb-3 flex items-center justify-center">
+              <ArrowLeft size={20} className="text-forest-700" />
+            </div>
+            <p className="text-sm font-semibold text-gray-700 mb-1">S&eacute;lectionnez un contr&ocirc;le</p>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              {assessments.length} contr&ocirc;le{assessments.length > 1 ? 's' : ''} disponible{assessments.length > 1 ? 's' : ''} dans la liste &agrave; gauche.
+              {draftCount > 0 && (
+                <> {draftCount} en brouillon &mdash; commencez ou reprenez votre travail.</>
+              )}
+            </p>
+          </div>
         </div>
       )}
+
+      {/* Right rail (collapsible) */}
+      <RightRail
+        missionId={mission.id}
+        controlId={selectedAssessment?.control_id ?? null}
+        collapsed={!railOpen}
+        onToggle={toggleRail}
+      />
     </div>
     </div>
   )
