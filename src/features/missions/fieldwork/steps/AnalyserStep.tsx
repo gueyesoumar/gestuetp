@@ -33,15 +33,46 @@ const LEVEL_COLORS: Record<string, { text: string }> = {
   na: { text: 'text-gray-400' },
 }
 
+type AiClassification = 'major_nc' | 'minor_nc' | 'observation' | 'strength'
+type AiPriority = 'critical' | 'high' | 'medium' | 'low'
+
+interface AiFinding {
+  classification: AiClassification
+  description: string
+  risk: string | null
+  recommendation: string | null
+  priority: AiPriority | null
+  proposed_deadline_days: number | null
+}
+
 interface AiAnalysis {
   analysis_summary: string
   confidence: number
   maturity_level: string
   maturity_justification: string
-  findings: string
-  recommendations: string
-  risk: string
+  findings: AiFinding[]
   docs_analyzed: number
+}
+
+const FINDING_CARD_COLORS: Record<AiClassification, string> = {
+  major_nc: 'bg-red-50 border-red-200 text-red-700',
+  minor_nc: 'bg-orange-50 border-orange-200 text-orange-700',
+  observation: 'bg-blue-50 border-blue-200 text-blue-700',
+  strength: 'bg-green-50 border-green-200 text-green-700',
+}
+
+const FINDING_CARD_LABELS: Record<AiClassification, string> = {
+  major_nc: 'NC majeure',
+  minor_nc: 'NC mineure',
+  observation: 'Observation',
+  strength: 'Point fort',
+}
+
+const PRIORITY_LABELS: Record<AiPriority, string> = {
+  critical: 'Critique',
+  high: 'Haute',
+  medium: 'Moyenne',
+  low: 'Faible',
 }
 
 const MATURITY_LABELS: Record<string, { label: string; color: string }> = {
@@ -91,28 +122,31 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
 
     if (fnErr || data?.error) {
       console.warn('smart-analyse fallback:', fnErr?.message ?? data?.error)
-      // Fallback local — show panel too
       const s = localSuggest(assessment, observations)
+      const conformityHint = observations.toLowerCase().includes('en place') || observations.toLowerCase().includes('conforme')
       setAiAnalysis({
         analysis_summary: `Analyse locale (l\u2019IA n\u2019a pas pu \u00eatre contact\u00e9e). Les suggestions sont bas\u00e9es sur les mots-cl\u00e9s des observations.`,
         confidence: observations.trim() ? 40 : 15,
-        maturity_level: observations.toLowerCase().includes('en place') || observations.toLowerCase().includes('conforme') ? 'largement_conforme' : 'partiel',
+        maturity_level: conformityHint ? 'largement_conforme' : 'partiel',
         maturity_justification: 'Estimation locale bas\u00e9e sur les observations.',
-        findings: s.findings,
-        recommendations: s.recommendations,
-        risk: s.risk,
+        findings: [{
+          classification: conformityHint ? 'observation' : 'minor_nc',
+          description: s.findings,
+          risk: s.risk,
+          recommendation: s.recommendations,
+          priority: conformityHint ? 'low' : 'medium',
+          proposed_deadline_days: conformityHint ? 365 : 90,
+        }],
         docs_analyzed: 0,
       })
     } else {
-      // Show analysis panel from AI
+      const rawFindings = Array.isArray(data.findings) ? (data.findings as AiFinding[]) : []
       setAiAnalysis({
         analysis_summary: data.analysis_summary ?? '',
         confidence: data.confidence ?? 0,
         maturity_level: data.maturity_level ?? 'partiel',
         maturity_justification: data.maturity_justification ?? '',
-        findings: data.findings ?? '',
-        recommendations: data.recommendations ?? '',
-        risk: data.risk ?? '',
+        findings: rawFindings,
         docs_analyzed: data.docs_analyzed ?? 0,
       })
     }
@@ -180,39 +214,67 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
             <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{aiAnalysis.analysis_summary}</p>
           </div>
 
-          {/* Preview of generated content */}
-          <div className="px-4 py-3 space-y-2.5">
-            <div>
-              <p className="text-[10px] font-semibold text-gray-500 mb-1">Constats propos{'\u00e9'}s</p>
-              <p className="text-[11px] text-gray-600 leading-relaxed line-clamp-3">{aiAnalysis.findings}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold text-gray-500 mb-1">Risque identifi{'\u00e9'}</p>
-              <p className="text-[11px] text-gray-600 leading-relaxed line-clamp-2">{aiAnalysis.risk}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold text-gray-500 mb-1">Recommandations</p>
-              <p className="text-[11px] text-gray-600 leading-relaxed line-clamp-3">{aiAnalysis.recommendations}</p>
-            </div>
+          {/* Preview of structured findings */}
+          <div className="px-4 py-3 space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+              Constats propos{'\u00e9'}s ({aiAnalysis.findings.length})
+            </p>
+            {aiAnalysis.findings.length === 0 && (
+              <p className="text-[11px] italic text-gray-400">Aucun constat &mdash; conformit{'\u00e9'} totale ou non applicable.</p>
+            )}
+            {aiAnalysis.findings.map((f, idx) => (
+              <div key={idx} className={`border rounded-lg px-3 py-2 ${FINDING_CARD_COLORS[f.classification]}`}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wide">{FINDING_CARD_LABELS[f.classification]}</span>
+                  {f.priority && (
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-white/60 border border-current/20">
+                      {PRIORITY_LABELS[f.priority]}
+                    </span>
+                  )}
+                  {f.proposed_deadline_days != null && (
+                    <span className="text-[9px] text-current/70 ml-auto">{f.proposed_deadline_days}j</span>
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-700 leading-relaxed line-clamp-3 whitespace-pre-wrap">{f.description}</p>
+                {f.risk && (
+                  <p className="text-[10px] text-gray-600 mt-1.5 leading-relaxed line-clamp-2">
+                    <span className="font-semibold">Risque :</span> {f.risk}
+                  </p>
+                )}
+                {f.recommendation && (
+                  <p className="text-[10px] text-gray-600 mt-1 leading-relaxed line-clamp-2">
+                    <span className="font-semibold">Reco :</span> {f.recommendation}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* Apply button */}
           <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
             <p className="text-[10px] text-gray-400">Vous pouvez modifier les champs apr{'\u00e8'}s application.</p>
             <button onClick={() => {
-              onFindingsChange(aiAnalysis.findings)
-              onRecommendationsChange(aiAnalysis.recommendations)
-              onRiskNotesChange(aiAnalysis.risk)
-              // Map AI maturity to conformity level
+              const findingsArr = aiAnalysis.findings
+              const concatDescriptions = findingsArr.map((f) => f.description).join('\n\n')
+              const concatRisks = findingsArr.filter((f) => f.risk).map((f) => f.risk).join('\n\n')
+              const concatRecos = findingsArr
+                .filter((f) => f.recommendation)
+                .map((f, i) => `${i + 1}. ${f.recommendation}`)
+                .join('\n')
+              onFindingsChange(concatDescriptions)
+              onRecommendationsChange(concatRecos)
+              onRiskNotesChange(concatRisks)
+              // Most severe classification wins for the assessment-level classification (transitional)
+              const severityRank: Record<AiClassification, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
+              const topFinding = findingsArr.reduce<AiFinding | null>((acc, f) => (
+                !acc || severityRank[f.classification] > severityRank[acc.classification] ? f : acc
+              ), null)
+              if (topFinding) onFindingClassificationChange(topFinding.classification)
               const maturityMap: Record<string, ConformityLevel> = {
                 non_conforme: 'nc', partiel: 'pc', largement_conforme: 'lc', conforme: 'c', non_applicable: 'na'
               }
               const mapped = maturityMap[aiAnalysis.maturity_level]
-              if (mapped) {
-                onConformityChange(mapped)
-                const suggestedClassification = CONFORMITY_TO_CLASSIFICATION[mapped]
-                if (suggestedClassification) onFindingClassificationChange(suggestedClassification)
-              }
+              if (mapped) onConformityChange(mapped)
               setAiAnalysis(null)
             }} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 transition-colors">
               {'\u2713'} Appliquer les suggestions
