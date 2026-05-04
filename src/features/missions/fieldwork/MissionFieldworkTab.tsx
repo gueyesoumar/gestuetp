@@ -238,10 +238,10 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         </div>
       )}
 
-      {/* Right rail (collapsible) */}
+      {/* Right rail (collapsible) — Validation / Discussion / Mission tabs */}
       <RightRail
-        missionId={mission.id}
-        controlId={selectedAssessment?.control_id ?? null}
+        mission={mission}
+        assessment={selectedAssessment ?? null}
         collapsed={!railOpen}
         onToggle={toggleRail}
       />

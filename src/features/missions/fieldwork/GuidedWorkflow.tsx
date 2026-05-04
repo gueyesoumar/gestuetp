@@ -5,7 +5,7 @@ import { DocumenterStep } from './steps/DocumenterStep'
 import { AnalyserStep } from './steps/AnalyserStep'
 import { ValidationStep } from './steps/ValidationStep'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
-import type { Document } from '../../../types/database.types'
+import type { Document, AuditChecklistItem } from '../../../types/database.types'
 import type { ConformityLevel } from '../mission-constants'
 import type { UseAssessmentFindingsReturn } from './findings/useAssessmentFindings'
 
@@ -24,6 +24,7 @@ interface GuidedWorkflowProps {
   conformityLevel: string | null
   onConformityChange: (v: string) => void
   findingsHook: UseAssessmentFindingsReturn
+  auditChecklist: AuditChecklistItem[]
   onSubmit: () => void
   saving: boolean
   readOnly: boolean
@@ -55,6 +56,7 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
           <ObserverStep
             assessment={assessment}
             observations={props.observations}
+            auditChecklist={props.auditChecklist}
             onObservationsChange={props.onObservationsChange}
             readOnly={readOnly}
           />

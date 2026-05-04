@@ -12,6 +12,8 @@ import { useToast } from '../../../hooks/useToast'
 import { useAutosave } from '../../../hooks/useAutosave'
 import { useAssessmentDeclineSource } from './useAssessmentDeclineSource'
 import { useAssessmentFindings } from './findings/useAssessmentFindings'
+import { useControlContext } from './right-rail/useControlContext'
+import { CadrageInline } from './right-rail/CadrageInline'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { FindingClassification } from './findings/useAssessmentFindings'
 
@@ -50,6 +52,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
   const [conformityLevel, setConformityLevel] = useState<string | null>(assessment.conformity_level ?? null)
 
   const findingsHook = useAssessmentFindings(assessment.id)
+  const controlContext = useControlContext(assessment.mission_id, assessment.control_id)
 
   const isSubmittedOrAbove = assessment.status === 'submitted' || assessment.status === 'in_review' || assessment.status === 'approved'
   const readOnly = isSubmittedOrAbove
@@ -162,6 +165,13 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
 
       {saveError && <div className="mx-6 mt-4"><ErrorAlert message={saveError} /></div>}
 
+      {/* Inline cadrage answers — visible across guided/libre views (not in review) */}
+      {!canReview && controlContext.cadrageAnswers.length > 0 && (
+        <div className="mx-6 mt-4">
+          <CadrageInline answers={controlContext.cadrageAnswers} />
+        </div>
+      )}
+
       {canReview ? (
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           <div className="flex items-center gap-2">
@@ -251,6 +261,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
           conformityLevel={conformityLevel}
           onConformityChange={setConformityLevel}
           findingsHook={findingsHook}
+          auditChecklist={controlContext.auditChecklist}
           onSubmit={handleSubmit}
           saving={saving}
           readOnly={readOnly}
