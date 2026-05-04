@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup &mdash; Phase 2 c&ocirc;t&eacute; cabinet (transposition handoff)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --forest-900: #1B4332; --forest-800: #234E3D; --forest-700: #2D6A4F;
+    --forest-500: #40916C; --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-700: #9A7B26; --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-100: #FAEFC9; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --surface: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --border-soft: #EFEFEC;
+    --success: #27AE60; --success-bg: #ECFDF5;
+    --error: #C0392B; --error-bg: #FEF2F2;
+    --warn: #B45309; --warn-bg: #FFFBEB;
+    --info: #1D4ED8; --info-bg: #EFF6FF;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; cursor: pointer; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Mockup harness */
+  .mock-bar { position: sticky; top: 0; z-index: 100; background: var(--forest-900); padding: 14px 24px; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.85); font-size: 12px; }
+  .mock-bar .lbl { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mock-bar .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.45); font-size: 11px; }
+
+  /* Shell */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 47px); }
+  .sidebar { background: var(--forest-900); color: rgba(255,255,255,0.78); display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 18px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-logo svg { width: 28px; height: 32px; }
+  .sidebar-logo .brand { font-weight: 800; font-size: 17px; color: white; line-height: 1; }
+  .sidebar-logo .brand .uml { color: var(--gold-500); }
+  .sidebar-logo .product { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-500); font-weight: 600; margin-top: 4px; }
+  .sidebar-section { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 14px 20px 6px; font-weight: 600; }
+  .sidebar-nav { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 1px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; }
+  .sidebar-item.active { background: rgba(255,255,255,0.08); color: white; position: relative; }
+  .sidebar-item.active::before { content: ''; position: absolute; left: -8px; top: 8px; bottom: 8px; width: 3px; background: var(--gold-500); border-radius: 0 3px 3px 0; }
+
+  /* Topbar */
+  .topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-500); }
+  .crumbs a { color: var(--text-500); text-decoration: none; }
+  .crumbs .here { color: var(--text-900); font-weight: 500; }
+  .crumbs .sep { color: var(--text-300); }
+
+  /* Mission detail header */
+  .mission-head { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px 0; }
+  .mission-head-top { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 16px; }
+  .mission-head h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: var(--text-900); }
+  .mission-head .mission-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--text-500); }
+  .mission-meta .pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+  .pill-mono-forest { background: var(--forest-50); color: var(--forest-700); }
+  .pill-fw { background: var(--bg); color: var(--text-700); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .mission-head .actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* Phase tabs (mission-level) */
+  .phase-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
+  .phase-tab { padding: 10px 14px; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-500); border-bottom: 2px solid transparent; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .phase-tab:hover { color: var(--text-900); }
+  .phase-tab.active { color: var(--text-900); border-bottom-color: var(--gold-500); font-weight: 600; }
+  .phase-tab.done { color: var(--text-500); }
+  .phase-tab.current-phase { color: var(--text-900); font-weight: 600; }
+  .phase-tab .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: 0.7; }
+  .phase-tab.done .num { color: var(--success); opacity: 1; }
+  .phase-tab .live-dot { width: 6px; height: 6px; background: var(--gold-500); border-radius: 50%; animation: pulse-gold 2s infinite; }
+  @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(212, 168, 67, 0.55); } 100% { box-shadow: 0 0 0 5px rgba(212, 168, 67, 0); } }
+
+  /* Sub-tab nav (cadrage) */
+  .subtab-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; align-items: center; gap: 4px; position: sticky; top: 100px; z-index: 30; }
+  .subtab { padding: 12px 16px; border: 0; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--text-500); border-bottom: 2px solid transparent; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; cursor: pointer; }
+  .subtab:hover { color: var(--text-900); }
+  .subtab.active { color: var(--forest-900); border-bottom-color: var(--gold-500); font-weight: 600; }
+  .subtab .badge-count { background: var(--bg); color: var(--text-500); font-size: 10px; padding: 0 6px; height: 17px; border-radius: 99px; display: inline-flex; align-items: center; font-weight: 600; }
+  .subtab.active .badge-count { background: var(--gold-100); color: var(--gold-700); }
+  .subtab .new-pill { font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--gold-500); color: var(--forest-900); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Layout: main + right sidebar */
+  .cadrage-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; padding: 24px 28px 60px; max-width: 1500px; margin: 0 auto; }
+  .cadrage-main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+
+  /* KPI tiles */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-500); font-weight: 600; }
+  .kpi .value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi .value .unit { font-size: 13px; color: var(--text-500); font-weight: 500; margin-left: 3px; }
+  .kpi .delta { font-size: 11px; color: var(--text-500); }
+  .kpi .delta.up { color: var(--success); }
+  .kpi .delta.warn { color: var(--warn); }
+  .kpi .progress-bar { height: 4px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-top: 4px; }
+  .kpi .progress-bar .fill { height: 100%; background: var(--forest-500); border-radius: 99px; transition: width 0.4s; }
+  .kpi.gold .progress-bar .fill { background: var(--gold-500); }
+  .kpi.warn .progress-bar .fill { background: var(--warn); }
+
+  /* Reminder banner (gold) */
+  .reminder-banner { background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; }
+  .reminder-banner .ico { width: 32px; height: 32px; border-radius: 8px; background: var(--gold-500); color: var(--forest-900); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .reminder-banner .body { flex: 1; }
+  .reminder-banner .title { font-size: 13px; font-weight: 600; color: var(--text-900); margin-bottom: 2px; }
+  .reminder-banner .desc { font-size: 12px; color: var(--text-700); line-height: 1.45; }
+  .reminder-banner .actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .card-head { padding: 14px 18px 12px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; }
+  .card-head h3 { margin: 0; font-size: 13px; font-weight: 600; }
+  .card-head .meta { margin-left: auto; font-size: 11px; color: var(--text-500); }
+
+  /* Domain progress table */
+  .domain-row { display: grid; grid-template-columns: 1fr 130px 90px 90px 24px; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--border-soft); align-items: center; transition: background 0.1s; cursor: pointer; }
+  .domain-row:hover { background: var(--bg); }
+  .domain-row:last-child { border-bottom: 0; }
+  .domain-row .name { font-size: 13px; font-weight: 500; color: var(--text-900); display: flex; flex-direction: column; gap: 2px; }
+  .domain-row .name .code { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-500); font-weight: 600; }
+  .domain-row .progress-cell { display: flex; flex-direction: column; gap: 4px; }
+  .domain-row .progress-bar { height: 4px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .domain-row .progress-bar .fill { height: 100%; background: var(--forest-500); border-radius: 99px; }
+  .domain-row .progress-bar .fill.warn { background: var(--warn); }
+  .domain-row .progress-bar .fill.gold { background: var(--gold-500); }
+  .domain-row .progress-text { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-500); font-variant-numeric: tabular-nums; }
+  .domain-row .docs-count { font-size: 12px; color: var(--text-700); font-variant-numeric: tabular-nums; }
+  .domain-row .status-pill { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 7px; border-radius: 4px; text-align: center; }
+  .status-ok { background: var(--success-bg); color: var(--success); }
+  .status-warn { background: var(--warn-bg); color: var(--warn); }
+  .status-todo { background: var(--bg); color: var(--text-500); }
+  .domain-row .chev { color: var(--text-300); }
+
+  /* Filter chips */
+  .chip-row { display: flex; gap: 6px; }
+  .filter-chip { font-size: 11px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text-700); cursor: pointer; font-family: inherit; font-weight: 500; }
+  .filter-chip.active { background: var(--forest-50); color: var(--forest-700); border-color: var(--forest-300); }
+
+  /* Two cols inside main: contacts + activity */
+  .double-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .contacts-card .contact-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border-soft); }
+  .contacts-card .contact-row:last-child { border-bottom: 0; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .contact-row .who { flex: 1; min-width: 0; }
+  .contact-row .who .name { font-size: 13px; font-weight: 500; color: var(--text-900); }
+  .contact-row .who .role { font-size: 11px; color: var(--text-500); }
+  .contact-row .last-seen { font-size: 10px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; text-align: right; display: flex; align-items: center; gap: 4px; }
+  .live-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; box-shadow: 0 0 0 3px rgba(34, 139, 87, 0.18); }
+
+  /* Activity feed */
+  .activity-list { padding: 8px 0; }
+  .activity-item { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 10px 16px; position: relative; }
+  .activity-item::before { content: ''; position: absolute; left: 29px; top: 32px; bottom: -10px; width: 1px; background: var(--border-soft); }
+  .activity-item:last-child::before { display: none; }
+  .activity-item .ico { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--forest-50); color: var(--forest-700); flex-shrink: 0; z-index: 1; }
+  .activity-item .ico.gold { background: var(--gold-50); color: var(--gold-700); }
+  .activity-item .ico.warn { background: var(--warn-bg); color: var(--warn); }
+  .activity-item .ico.success { background: var(--success-bg); color: var(--success); }
+  .activity-item .body { font-size: 12px; color: var(--text-700); line-height: 1.45; }
+  .activity-item .body strong { color: var(--text-900); font-weight: 600; }
+  .activity-item .body .when { font-size: 10px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; display: block; margin-top: 2px; }
+
+  /* Right sidebar: Scoping checklist (existing component) */
+  .scoping-sidebar { position: sticky; top: 152px; align-self: flex-start; display: flex; flex-direction: column; gap: 12px; }
+  .scope-progress { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .scope-progress .title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--text-500); margin-bottom: 10px; }
+  .scope-progress .ring-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .scope-progress .ring { width: 64px; height: 64px; position: relative; flex-shrink: 0; }
+  .scope-progress .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .scope-progress .ring .pct-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: var(--text-900); font-variant-numeric: tabular-nums; }
+  .scope-progress .legend { font-size: 12px; color: var(--text-700); }
+  .scope-progress .legend strong { color: var(--text-900); font-size: 14px; display: block; }
+  .scope-progress .legend .sub { color: var(--text-500); font-size: 11px; margin-top: 2px; }
+  .checklist-list { display: flex; flex-direction: column; gap: 8px; }
+  .check-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px; border-radius: 8px; }
+  .check-item .check { width: 16px; height: 16px; border: 1.5px solid var(--border); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--surface); margin-top: 1px; }
+  .check-item.done .check { background: var(--success); border-color: var(--success); color: white; }
+  .check-item.partial .check { background: var(--gold-100); border-color: var(--gold-500); color: var(--gold-700); }
+  .check-item .body { flex: 1; min-width: 0; }
+  .check-item .lbl { font-size: 12px; font-weight: 500; color: var(--text-900); }
+  .check-item.done .lbl { color: var(--text-500); text-decoration: line-through; text-decoration-color: var(--text-300); }
+  .check-item .sub { font-size: 11px; color: var(--text-500); margin-top: 2px; }
+  .check-item.partial .sub { color: var(--gold-700); font-weight: 500; }
+
+  /* Scope sidebar: action buttons */
+  .scope-actions { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .action-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 0; background: transparent; font-family: inherit; font-size: 12px; color: var(--text-700); font-weight: 500; cursor: pointer; text-align: left; }
+  .action-btn:hover { background: var(--bg); color: var(--text-900); }
+  .action-btn.primary { background: var(--gold-500); color: var(--forest-900); font-weight: 600; }
+  .action-btn.primary:hover { background: var(--gold-600); color: white; }
+  .action-btn .ico { width: 24px; height: 24px; border-radius: 6px; background: var(--bg); color: var(--text-500); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .action-btn.primary .ico { background: rgba(255,255,255,0.25); color: var(--forest-900); }
+  .action-btn .lbl { flex: 1; }
+  .action-btn .arrow { color: var(--text-300); }
+
+  /* Buttons */
+  .btn { height: 32px; padding: 0 12px; border-radius: 8px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; }
+  .btn-primary { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-gold { background: var(--gold-500); color: var(--forest-900); border-color: var(--gold-500); font-weight: 600; }
+  .btn-gold:hover { background: var(--gold-600); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text-700); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--forest-300); color: var(--forest-900); }
+  .btn-ghost { background: transparent; color: var(--text-700); border-color: transparent; }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+
+  /* Dot statuses */
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.green { background: var(--success); }
+  .status-dot.gold { background: var(--gold-500); }
+  .status-dot.gray { background: var(--text-300); }
+</style>
+</head>
+<body>
+
+<!-- Mockup harness bar -->
+<div class="mock-bar">
+  <span class="lbl">MOCKUP</span>
+  <span>Phase 2 c&ocirc;t&eacute; cabinet &mdash; synth&egrave;se en remplacement du contenu de l&apos;onglet &laquo; Vue d&apos;ensemble &raquo; (overview)</span>
+  <span class="meta">handoff-3-phase2-cabinet</span>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 28 32" fill="none">
+        <path d="M14 1.5L2 5.5v9c0 8 5.4 14 12 16 6.6-2 12-8 12-16v-9l-12-4z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+        <path d="M9 14a5 5 0 0110 0v3" stroke="#D4A843" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M11 14a3 3 0 016 0v3a4 4 0 01-1 2" stroke="#D4A843" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand">G<span class="uml">&euml;</span>stu</div>
+        <div class="product">Comply</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Espace cabinet</div>
+      <a class="sidebar-item active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+        <span>Missions</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Right column -->
+  <div>
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="handoff-1-hub-missions.html">Missions</a>
+        <span class="sep">&rsaquo;</span>
+        <a href="#">M-2026-018 &middot; Banque Atlantis</a>
+        <span class="sep">&rsaquo;</span>
+        <span class="here">Vue d&apos;ensemble</span>
+      </div>
+    </header>
+
+    <!-- Mission detail header -->
+    <div class="mission-head">
+      <div class="mission-head-top">
+        <div>
+          <h1>Audit COBIT 2019 &mdash; Banque Atlantis</h1>
+          <div class="mission-meta">
+            <span class="pill pill-mono-forest">M-2026-018</span>
+            <span class="pill-fw">COBIT 2019 &middot; 40 contr&ocirc;les</span>
+            <span>&middot;</span>
+            <span>Banque Atlantis (Finance)</span>
+            <span>&middot;</span>
+            <span>Mehdi Bensalem (chef de mission)</span>
+            <span>&middot;</span>
+            <span style="color:var(--warn); font-weight:600">&Eacute;ch&eacute;ance cadrage : 8 mai (J-6)</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+            Note de cadrage PDF
+          </button>
+          <button class="btn btn-primary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg>
+            Valider le cadrage
+          </button>
+        </div>
+      </div>
+      <!-- Phase tabs (mission-level) -->
+      <div class="phase-tabs">
+        <button class="phase-tab active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12L12 4l9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+          <span>Vue d&apos;ensemble</span>
+        </button>
+        <button class="phase-tab done">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+          <span class="num">01</span>
+          <span>Initialisation</span>
+        </button>
+        <button class="phase-tab current-phase">
+          <span class="live-dot"></span>
+          <span class="num">02</span>
+          <span>Cadrage &amp; collecte</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">03</span>
+          <span>Planification</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">04</span>
+          <span>Travaux terrain</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">05</span>
+          <span>Revue interne</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">06</span>
+          <span>Validation client</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">07</span>
+          <span>Cl&ocirc;ture</span>
+        </button>
+        <button class="phase-tab" style="margin-left:auto; padding-right:0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>Plan d&apos;action</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Layout: main + right sidebar -->
+    <div class="cadrage-layout">
+
+      <!-- Main column -->
+      <div class="cadrage-main">
+
+        <!-- Phase context hint -->
+        <div style="display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; font-size:12px">
+          <span class="live-dot"></span>
+          <span style="color:var(--text-500)">Synth&egrave;se dynamique &middot; cette vue refl&egrave;te la <strong style="color:var(--text-900); font-weight:600">phase 2 &middot; Cadrage</strong> en cours. Quand la mission passera en phase 3, les KPI et l&apos;activit&eacute; basculeront sur la planification.</span>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="kpi-row">
+          <div class="kpi gold">
+            <div class="label">Avancement client</div>
+            <div class="value">42<span class="unit">/ 78 questions</span></div>
+            <div class="progress-bar"><div class="fill" style="width:54%"></div></div>
+            <div class="delta up">&uarr; 12 r&eacute;ponses cette semaine</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Documents re&ccedil;us</div>
+            <div class="value">23<span class="unit">/ 36 attendus</span></div>
+            <div class="progress-bar"><div class="fill" style="width:64%"></div></div>
+            <div class="delta">3 en attente de validation</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Domaines couverts</div>
+            <div class="value">3<span class="unit">/ 5 domaines</span></div>
+            <div class="progress-bar"><div class="fill" style="width:60%"></div></div>
+            <div class="delta">EDM &amp; APO complets</div>
+          </div>
+          <div class="kpi warn">
+            <div class="label">D&eacute;lai restant</div>
+            <div class="value">6<span class="unit">jours</span></div>
+            <div class="progress-bar"><div class="fill" style="width:30%"></div></div>
+            <div class="delta warn">&Eacute;ch&eacute;ance le 8 mai 2026</div>
+          </div>
+        </div>
+
+        <!-- Reminder banner -->
+        <div class="reminder-banner">
+          <div class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </div>
+          <div class="body">
+            <div class="title">Relance recommand&eacute;e &mdash; section &laquo; BAI &middot; Build, Acquire, Implement &raquo;</div>
+            <div class="desc">Aucune r&eacute;ponse re&ccedil;ue depuis 6 jours sur ce domaine (12 questions ouvertes). Le RSSI Sylvie Rambeau peut &ecirc;tre relanc&eacute; directement, ou Pierre Vallot (resp. infrastructure) qu&apos;elle a invit&eacute; lundi.</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-gold btn-sm">Envoyer la relance</button>
+            <button class="btn btn-ghost btn-sm">Plus tard</button>
+          </div>
+        </div>
+
+        <!-- Domain progress card -->
+        <div class="card">
+          <div class="card-head">
+            <h3>Avancement par domaine COBIT</h3>
+            <div class="chip-row" style="margin-left:auto">
+              <button class="filter-chip active">Tous (5)</button>
+              <button class="filter-chip">En cours (2)</button>
+              <button class="filter-chip">Bloqu&eacute;s (0)</button>
+            </div>
+          </div>
+
+          <div class="domain-row">
+            <div class="name"><span class="code">EDM</span>&Eacute;valuer, diriger, surveiller</div>
+            <div class="progress-cell">
+              <div class="progress-bar"><div class="fill" style="width:100%"></div></div>
+              <div class="progress-text">5/5 &middot; 100%</div>
+            </div>
+            <div class="docs-count">8 docs</div>
+            <div class="status-pill status-ok">Complet</div>
+            <div class="chev">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+
+          <div class="domain-row">
+            <div class="name"><span class="code">APO</span>Aligner, planifier, organiser</div>
+            <div class="progress-cell">
+              <div class="progress-bar"><div class="fill" style="width:100%"></div></div>
+              <div class="progress-text">14/14 &middot; 100%</div>
+            </div>
+            <div class="docs-count">11 docs</div>
+            <div class="status-pill status-ok">Complet</div>
+            <div class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+          </div>
+
+          <div class="domain-row">
+            <div class="name"><span class="code">BAI</span>Build, acqu&eacute;rir, impl&eacute;menter</div>
+            <div class="progress-cell">
+              <div class="progress-bar"><div class="fill warn" style="width:25%"></div></div>
+              <div class="progress-text">3/12 &middot; 25%</div>
+            </div>
+            <div class="docs-count">2 / 8 docs</div>
+            <div class="status-pill status-warn">Relance</div>
+            <div class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+          </div>
+
+          <div class="domain-row">
+            <div class="name"><span class="code">DSS</span>D&eacute;livrer, servir, supporter</div>
+            <div class="progress-cell">
+              <div class="progress-bar"><div class="fill gold" style="width:55%"></div></div>
+              <div class="progress-text">11/20 &middot; 55%</div>
+            </div>
+            <div class="docs-count">2 / 6 docs</div>
+            <div class="status-pill status-warn">En cours</div>
+            <div class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+          </div>
+
+          <div class="domain-row">
+            <div class="name"><span class="code">MEA</span>Surveiller, &eacute;valuer, analyser</div>
+            <div class="progress-cell">
+              <div class="progress-bar"><div class="fill" style="width:0%; background:var(--border)"></div></div>
+              <div class="progress-text">0/27 &middot; 0%</div>
+            </div>
+            <div class="docs-count">0 / 6 docs</div>
+            <div class="status-pill status-todo">&Agrave; d&eacute;marrer</div>
+            <div class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+          </div>
+        </div>
+
+        <!-- Two-col: contacts + activity -->
+        <div class="double-col">
+          <div class="card contacts-card">
+            <div class="card-head">
+              <h3>Contacts client</h3>
+              <span class="meta">3 actifs sur le portail</span>
+            </div>
+            <div class="contact-row">
+              <div class="avatar" style="background:var(--forest-700)">SR</div>
+              <div class="who">
+                <div class="name">Sylvie Rambeau</div>
+                <div class="role">RSSI &middot; sponsor</div>
+              </div>
+              <div class="last-seen"><span class="live-dot"></span>EN LIGNE</div>
+            </div>
+            <div class="contact-row">
+              <div class="avatar" style="background:var(--forest-500)">TM</div>
+              <div class="who">
+                <div class="name">Thomas Mercier</div>
+                <div class="role">DSI</div>
+              </div>
+              <div class="last-seen">IL Y A 2J</div>
+            </div>
+            <div class="contact-row">
+              <div class="avatar" style="background:var(--gold-500); color:var(--forest-900)">EB</div>
+              <div class="who">
+                <div class="name">&Eacute;lise Beaumont</div>
+                <div class="role">Resp. conformit&eacute;</div>
+              </div>
+              <div class="last-seen">IL Y A 5J</div>
+            </div>
+            <div class="contact-row">
+              <div class="avatar" style="background:var(--text-300)">PV</div>
+              <div class="who">
+                <div class="name">Pierre Vallot</div>
+                <div class="role">Resp. infrastructure &middot; invit&eacute; le 28 avril</div>
+              </div>
+              <div class="last-seen" style="color:var(--warn)">EN ATTENTE</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Activit&eacute; client</h3>
+              <span class="meta">7 derniers jours</span>
+            </div>
+            <div class="activity-list">
+              <div class="activity-item">
+                <div class="ico success">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+                </div>
+                <div class="body">
+                  <strong>Sylvie Rambeau</strong> a termin&eacute; la section <strong>APO</strong> (14 r&eacute;ponses + 5 documents).
+                  <span class="when">IL Y A 2 HEURES</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="ico">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5M14 3l5 5M19 8v9a3 3 0 01-3 3H8a3 3 0 01-3-3V6a3 3 0 013-3h6"/></svg>
+                </div>
+                <div class="body">
+                  <strong>Thomas Mercier</strong> a upload&eacute; <em>Politique-RBAC-2026.pdf</em> (rattach&eacute; &agrave; DSS-05).
+                  <span class="when">IL Y A 5 HEURES</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="ico gold">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+                </div>
+                <div class="body">
+                  <strong>&Eacute;lise Beaumont</strong> a invit&eacute; <strong>Pierre Vallot</strong> &agrave; compl&eacute;ter la section BAI.
+                  <span class="when">HIER &middot; 16:42</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="ico warn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.01"/></svg>
+                </div>
+                <div class="body">
+                  Relance auto envoy&eacute;e &agrave; <strong>Sylvie Rambeau</strong> &mdash; domaine BAI.
+                  <span class="when">IL Y A 2 JOURS &middot; cron 07:00</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="ico">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l9 6 9-6M3 8v10a2 2 0 002 2h14a2 2 0 002-2V8M3 8l2-3a2 2 0 011.7-1h10.6a2 2 0 011.7 1l2 3"/></svg>
+                </div>
+                <div class="body">
+                  Questionnaire envoy&eacute; &agrave; <strong>Banque Atlantis</strong> (3 destinataires).
+                  <span class="when">IL Y A 9 JOURS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right sidebar (existing ScopingProgressSidebar pattern) -->
+      <aside class="scoping-sidebar">
+
+        <div class="scope-progress">
+          <div class="title">Avancement cadrage</div>
+          <div class="ring-wrap">
+            <div class="ring">
+              <svg viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--bg)" stroke-width="3.5"/>
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--gold-500)" stroke-width="3.5" stroke-dasharray="100" stroke-dashoffset="33" stroke-linecap="round"/>
+              </svg>
+              <div class="pct-label">67%</div>
+            </div>
+            <div class="legend">
+              <strong>4 / 6 &eacute;tapes</strong>
+              <div class="sub">Pr&ecirc;t pour la phase 3 quand tous les items sont valid&eacute;s</div>
+            </div>
+          </div>
+          <div class="checklist-list">
+            <div class="check-item done">
+              <span class="check">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+              </span>
+              <div class="body">
+                <div class="lbl">Profil client compl&eacute;t&eacute;</div>
+              </div>
+            </div>
+            <div class="check-item done">
+              <span class="check">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+              </span>
+              <div class="body">
+                <div class="lbl">P&eacute;rim&egrave;tre d&eacute;fini (38/40 contr&ocirc;les)</div>
+                <div class="sub">2 contr&ocirc;les exclus &middot; voir onglet P&eacute;rim&egrave;tre</div>
+              </div>
+            </div>
+            <div class="check-item done">
+              <span class="check">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+              </span>
+              <div class="body">
+                <div class="lbl">Questionnaire envoy&eacute; au client</div>
+              </div>
+            </div>
+            <div class="check-item partial">
+              <span class="check">&middot;</span>
+              <div class="body">
+                <div class="lbl">Questionnaire compl&eacute;t&eacute;</div>
+                <div class="sub">42 / 78 r&eacute;ponses (54%)</div>
+              </div>
+            </div>
+            <div class="check-item partial">
+              <span class="check">&middot;</span>
+              <div class="body">
+                <div class="lbl">Documents re&ccedil;us</div>
+                <div class="sub">23 / 36 attendus (64%)</div>
+              </div>
+            </div>
+            <div class="check-item">
+              <span class="check"></span>
+              <div class="body">
+                <div class="lbl">Risques initiaux valid&eacute;s</div>
+                <div class="sub">6 risques identifi&eacute;s, 0 valid&eacute;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scope-actions">
+          <button class="action-btn primary">
+            <span class="ico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+            </span>
+            <span class="lbl">Valider le cadrage</span>
+          </button>
+          <button class="action-btn">
+            <span class="ico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l9 6 9-6M3 8v10a2 2 0 002 2h14a2 2 0 002-2V8"/></svg>
+            </span>
+            <span class="lbl">Relancer le client</span>
+            <svg class="arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <button class="action-btn">
+            <span class="ico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+            <span class="lbl">Inviter au portail</span>
+            <svg class="arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <button class="action-btn">
+            <span class="ico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+            </span>
+            <span class="lbl">G&eacute;n&eacute;rer la note de cadrage</span>
+            <svg class="arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Regulations card -->
+        <div class="card" style="padding: 14px 16px">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--text-500); margin-bottom:10px">Exigences r&eacute;glementaires</div>
+          <div style="display:flex; flex-direction:column; gap:8px">
+            <div style="display:flex; align-items:center; gap:8px">
+              <span class="status-dot green"></span>
+              <span style="font-size:12px; font-weight:500; color:var(--text-900)">DORA</span>
+              <span style="margin-left:auto; font-size:10px; color:var(--success); font-weight:700; text-transform:uppercase">Couvert</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px">
+              <span class="status-dot gold"></span>
+              <span style="font-size:12px; font-weight:500; color:var(--text-900)">NIS2</span>
+              <span style="margin-left:auto; font-size:10px; color:var(--gold-700); font-weight:700; text-transform:uppercase">Partiel</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px">
+              <span class="status-dot gray"></span>
+              <span style="font-size:12px; font-weight:500; color:var(--text-900)">RGPD</span>
+              <span style="margin-left:auto; font-size:10px; color:var(--text-500); font-weight:700; text-transform:uppercase">Hors scope</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+
+    <!-- Decisions footer -->
+    <div style="padding:18px 28px; background:var(--surface); border-top:1px solid var(--border)">
+      <div style="max-width:1500px; margin:0 auto; padding:14px 18px; background:var(--bg); border:1px dashed var(--border); border-radius:10px; font-size:12px; color:var(--text-500); line-height:1.6">
+        <strong style="color:var(--text-900)">D&eacute;cisions retenues</strong>
+        <br>1. <strong>Synth&egrave;se = contenu de l&apos;onglet &laquo; Vue d&apos;ensemble &raquo;</strong> (overview), pas un nouveau sous-onglet. La synth&egrave;se est <strong>dynamique selon la phase</strong> : pendant cadrage on voit questionnaire/docs/relance, pendant travaux on verra contr&ocirc;les/observations/IA, etc.
+        <br>2. <strong>Cadrage = onglet inchang&eacute;</strong> avec ses 5 sous-onglets existants (Fiche client / P&eacute;rim&egrave;tre / Questionnaire / Documents / Risques) pour le travail d&eacute;taill&eacute;.
+        <br>3. <strong>Distinction onglet actif / phase courante</strong> : Vue d&apos;ensemble = bordure gold (o&ugrave; je suis), Cadrage = live-dot or pulsant (o&ugrave; en est la mission). Visuellement distincts donc lisibles m&ecirc;me quand on n&apos;est pas sur la phase courante.
+        <br>4. <strong>Reminder banner contextuel</strong> (gold) g&eacute;n&eacute;r&eacute; dynamiquement si un domaine est sans r&eacute;ponse depuis 5+ jours. Le bouton &laquo; Envoyer la relance &raquo; pr&eacute;-cible le bon contact.
+        <br>5. <strong>Activit&eacute; client</strong> aliment&eacute;e depuis : <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 6px; border-radius:4px; font-size:11px">questionnaire_responses</span>, <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 6px; border-radius:4px; font-size:11px">documents</span>, <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 6px; border-radius:4px; font-size:11px">notifications</span>. Agr&eacute;gation client-side, pas de nouvelle table d&eacute;di&eacute;e.
+        <br>6. <strong>Sidebar droite</strong> = `ScopingProgressSidebar` existant (donut + checklist 6 items + 4 actions + exigences r&eacute;glementaires). Reste affich&eacute;e sur Vue d&apos;ensemble car la checklist de la phase courante est l&apos;info la plus actionnable. Quand la mission change de phase, la sidebar bascule sur la checklist de la nouvelle phase.
+        <br>7. <strong>Plan d&apos;action</strong> est s&eacute;par&eacute; (&agrave; droite avec ic&ocirc;ne) car ce n&apos;est pas une phase, c&apos;est un livrable transversal accessible en continu.
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup &mdash; Wizard cr&eacute;ation mission (transposition handoff)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --forest-900: #1B4332; --forest-800: #234E3D; --forest-700: #2D6A4F;
+    --forest-500: #40916C; --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-700: #9A7B26; --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-100: #FAEFC9; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --surface: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --border-soft: #EFEFEC;
+    --success: #27AE60; --success-bg: #ECFDF5;
+    --error: #C0392B; --error-bg: #FEF2F2;
+    --warn: #B45309; --warn-bg: #FFFBEB;
+    --info: #1D4ED8; --info-bg: #EFF6FF;
+  }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text-900); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; cursor: pointer; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Mockup harness */
+  .mock-bar { position: sticky; top: 0; z-index: 100; background: var(--forest-900); padding: 14px 24px; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.85); font-size: 12px; }
+  .mock-bar .lbl { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mock-bar .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.45); font-size: 11px; }
+
+  /* Page shell */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 47px); }
+  .sidebar { background: var(--forest-900); color: rgba(255,255,255,0.78); display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 18px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-logo svg { width: 28px; height: 32px; }
+  .sidebar-logo .brand { font-weight: 800; font-size: 17px; color: white; line-height: 1; }
+  .sidebar-logo .brand .uml { color: var(--gold-500); }
+  .sidebar-logo .product { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-500); font-weight: 600; margin-top: 4px; }
+  .sidebar-section { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 14px 20px 6px; font-weight: 600; }
+  .sidebar-nav { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 1px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; }
+  .sidebar-item.active { background: rgba(255,255,255,0.08); color: white; position: relative; }
+  .sidebar-item.active::before { content: ''; position: absolute; left: -8px; top: 8px; bottom: 8px; width: 3px; background: var(--gold-500); border-radius: 0 3px 3px 0; }
+  .sidebar-item .count { margin-left: auto; font-size: 11px; background: rgba(255,255,255,0.1); padding: 1px 7px; border-radius: 99px; }
+
+  /* Topbar */
+  .topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-500); }
+  .crumbs a { color: var(--text-500); text-decoration: none; }
+  .crumbs .here { color: var(--text-900); font-weight: 500; }
+  .crumbs .sep { color: var(--text-300); }
+  .topbar-spacer { flex: 1; }
+  .topbar-btn { height: 32px; padding: 0 12px; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; color: var(--text-700); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+
+  /* Wizard layout (handoff style) */
+  .wizard { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 99px); }
+  .wizard-rail { background: var(--surface); border-right: 1px solid var(--border); padding: 32px 28px; overflow-y: auto; }
+  .wizard-rail h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--text-500); margin: 0 0 6px; }
+  .wizard-rail .subtitle { font-size: 13px; color: var(--text-700); margin: 0 0 28px; line-height: 1.5; }
+  .wizard-steps { position: relative; padding-left: 12px; }
+  .wizard-steps::before { content: ''; position: absolute; left: 17px; top: 12px; bottom: 12px; width: 2px; background: var(--border); }
+  .wizard-steps .progress-fill { position: absolute; left: 17px; top: 12px; width: 2px; background: var(--forest-500); transition: height 0.3s; }
+  .wizard-step { display: flex; gap: 14px; align-items: flex-start; padding: 10px 0; cursor: pointer; position: relative; z-index: 1; width: 100%; text-align: left; background: transparent; border: 0; font-family: inherit; color: inherit; }
+  .wizard-step .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); flex-shrink: 0; margin-top: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; color: white; }
+  .wizard-step[data-state="done"] .dot { background: var(--success); border-color: var(--success); }
+  .wizard-step[data-state="current"] .dot { background: var(--forest-700); border-color: var(--forest-700); box-shadow: 0 0 0 5px var(--forest-100); }
+  .wizard-step .body { flex: 1; min-width: 0; }
+  .wizard-step .label { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-500); font-weight: 600; letter-spacing: 0.04em; }
+  .wizard-step .title { font-size: 13px; font-weight: 600; color: var(--text-700); margin-top: 2px; line-height: 1.35; }
+  .wizard-step[data-state="current"] .title { color: var(--text-900); }
+  .wizard-step[data-state="done"] .title { color: var(--text-500); }
+  .wizard-step .hint { font-size: 11px; color: var(--text-500); margin-top: 2px; }
+
+  .wizard-content { overflow-y: auto; padding: 40px 56px 0; background: var(--bg); display: flex; flex-direction: column; }
+  .wizard-content .container { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; flex: 1 0 auto; }
+  .wizard-content .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-900); margin: 0 0 6px; }
+  .wizard-content .header p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-500); }
+
+  /* Step bodies (only one shown at a time) */
+  .step-panel { display: none; flex-direction: column; gap: 24px; }
+  .step-panel.active { display: flex; }
+
+  /* Choice cards */
+  .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .choice-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; text-align: left; font-family: inherit; transition: all 0.15s; position: relative; display: flex; flex-direction: column; gap: 10px; }
+  .choice-card:hover:not([disabled]) { border-color: var(--forest-300); }
+  .choice-card[aria-pressed="true"] { border-color: var(--forest-700); background: var(--forest-50); box-shadow: 0 0 0 3px var(--forest-100); }
+  .choice-card[disabled] { opacity: 0.55; cursor: not-allowed; }
+  .choice-card .ck { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface); color: white; }
+  .choice-card[aria-pressed="true"] .ck { background: var(--forest-700); border-color: var(--forest-700); }
+  .choice-card .ico { width: 36px; height: 36px; background: var(--forest-50); color: var(--forest-700); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .choice-card[aria-pressed="true"] .ico { background: var(--forest-700); color: white; }
+  .choice-card .name { font-size: 15px; font-weight: 700; color: var(--text-900); letter-spacing: -0.01em; }
+  .choice-card .desc { font-size: 12px; color: var(--text-500); line-height: 1.5; }
+  .choice-card .badge-line { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+  .choice-card .pill { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pill-gold { background: var(--gold-50); color: var(--gold-700); border: 1px solid var(--gold-200); }
+  .pill-forest { background: var(--forest-50); color: var(--forest-700); }
+  .pill-blocked { background: var(--bg); color: var(--text-500); border: 1px dashed var(--border); }
+  .pill-success { background: var(--success-bg); color: var(--success); }
+
+  /* Framework picker */
+  .fw-category { margin-bottom: 14px; }
+  .fw-category .cat-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--text-500); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .fw-category .cat-count { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-500); background: var(--bg); padding: 1px 6px; border-radius: 4px; }
+  .fw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fw-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all 0.15s; position: relative; display: flex; align-items: center; gap: 10px; }
+  .fw-card:hover { border-color: var(--forest-300); }
+  .fw-card[aria-pressed="true"] { border-color: var(--forest-700); background: var(--forest-50); }
+  .fw-card .ck { width: 18px; height: 18px; border: 1.5px solid var(--border); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--surface); color: white; }
+  .fw-card[aria-pressed="true"] .ck { background: var(--forest-700); border-color: var(--forest-700); }
+  .fw-card .info { flex: 1; min-width: 0; }
+  .fw-card .nm { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .fw-card .meta { font-size: 11px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; }
+
+  /* Form fields */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--text-700); }
+  .field label .req { color: var(--error); }
+  .field .hint { font-size: 11px; color: var(--text-500); margin-top: 2px; }
+  .field input[type=text], .field input[type=date], .field textarea, .field select { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 0 12px; height: 40px; font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text-900); transition: border-color 0.15s, box-shadow 0.15s; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* Client picker */
+  .client-search { position: relative; }
+  .client-search input { padding-left: 36px; }
+  .client-search .ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-300); }
+  .client-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+  .client-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.12s; }
+  .client-row:hover { border-color: var(--forest-300); }
+  .client-row[aria-pressed="true"] { border-color: var(--forest-700); background: var(--forest-50); }
+  .client-row .logo { width: 36px; height: 36px; border-radius: 8px; background: var(--forest-100); color: var(--forest-700); font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .client-row .info { flex: 1; min-width: 0; }
+  .client-row .name { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .client-row .meta { font-size: 11px; color: var(--text-500); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .client-row .meta .mp { padding: 1px 6px; background: var(--bg); border-radius: 4px; }
+  .client-row .ck { width: 18px; height: 18px; border: 1.5px solid var(--border); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--surface); color: white; }
+  .client-row[aria-pressed="true"] .ck { background: var(--forest-700); border-color: var(--forest-700); }
+
+  /* Team picker */
+  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .team-pill { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; font-family: inherit; transition: all 0.15s; text-align: left; }
+  .team-pill:hover { border-color: var(--forest-300); }
+  .team-pill[aria-pressed="true"] { border-color: var(--forest-700); background: var(--forest-50); }
+  .team-pill .who { flex: 1; min-width: 0; }
+  .team-pill .name { font-size: 12px; font-weight: 600; color: var(--text-900); }
+  .team-pill .role { font-size: 11px; color: var(--text-500); }
+  .team-pill .role-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 6px; border-radius: 4px; background: var(--bg); color: var(--text-500); }
+  .team-pill[aria-pressed="true"] .role-tag { background: var(--gold-200); color: var(--gold-700); }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--forest-500); color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* Suggestion banner */
+  .suggest-banner { background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .suggest-banner .ico { width: 28px; height: 28px; background: var(--gold-500); color: var(--forest-900); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .suggest-banner .body { flex: 1; }
+  .suggest-banner .title { font-size: 13px; font-weight: 600; color: var(--text-900); margin-bottom: 3px; }
+  .suggest-banner .desc { font-size: 12px; color: var(--text-700); line-height: 1.5; }
+  .suggest-banner .desc strong { color: var(--text-900); }
+
+  /* Phase estimation timeline */
+  .phase-est { display: flex; flex-direction: column; gap: 10px; }
+  .phase-est-bars { display: grid; grid-template-columns: 1fr 1.5fr 0.7fr 0.6fr; gap: 4px; height: 28px; }
+  .phase-est-bars .ph { display: flex; align-items: center; padding: 0 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: white; border-radius: 5px; overflow: hidden; }
+  .phase-est-bars .ph-cadrage { background: var(--gold-500); color: var(--forest-900); }
+  .phase-est-bars .ph-travaux { background: var(--forest-700); }
+  .phase-est-bars .ph-revue { background: #8B5CF6; }
+  .phase-est-bars .ph-client { background: var(--gold-700); }
+  .phase-est-meta { display: grid; grid-template-columns: 1fr 1.5fr 0.7fr 0.6fr; gap: 4px; font-size: 10px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; }
+
+  /* Confirmation summary */
+  .summary-list { display: flex; flex-direction: column; }
+  .summary-row { display: grid; grid-template-columns: 200px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); align-items: baseline; }
+  .summary-row:last-child { border-bottom: 0; }
+  .summary-row .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-500); font-weight: 600; }
+  .summary-row .v { font-size: 13px; color: var(--text-900); line-height: 1.5; }
+  .summary-row .v .mono { font-family: 'JetBrains Mono', monospace; background: var(--bg); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+  /* Auto side-effect callout (continuous_supervision) */
+  .auto-effect { background: var(--forest-50); border: 1px solid var(--forest-300); border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .auto-effect .ico { width: 28px; height: 28px; background: var(--forest-700); color: white; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .auto-effect .body { flex: 1; }
+  .auto-effect .title { font-size: 12px; font-weight: 700; color: var(--forest-900); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .auto-effect .desc { font-size: 12px; color: var(--text-700); line-height: 1.5; }
+
+  /* Footer */
+  .wizard-footer { position: sticky; bottom: 0; left: 0; right: 0; margin: 32px -56px 0; padding: 14px 56px; background: var(--surface); border-top: 1px solid var(--border); }
+  .wizard-footer-inner { max-width: 740px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+  .wizard-footer .step-meta { font-size: 12px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; }
+  .wizard-footer .spacer { flex: 1; }
+
+  .btn { height: 36px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; transition: all 0.12s; }
+  .btn-primary { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-gold { background: var(--gold-500); color: var(--forest-900); border-color: var(--gold-500); font-weight: 600; }
+  .btn-gold:hover { background: var(--gold-600); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text-700); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--forest-300); color: var(--forest-900); }
+  .btn-ghost { background: transparent; color: var(--text-700); border-color: transparent; }
+  .btn-ghost:hover { background: var(--bg); }
+
+  /* Live indicator */
+  .live-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+
+<!-- Mockup harness bar -->
+<div class="mock-bar">
+  <span class="lbl">MOCKUP</span>
+  <span>Wizard cr&eacute;ation mission &mdash; transposition handoff (7 &eacute;tapes &middot; lettre de mission ajout&eacute;e en step 6)</span>
+  <span class="meta">handoff-2-mission-create-wizard</span>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 28 32" fill="none">
+        <path d="M14 1.5L2 5.5v9c0 8 5.4 14 12 16 6.6-2 12-8 12-16v-9l-12-4z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+        <path d="M9 14a5 5 0 0110 0v3" stroke="#D4A843" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M11 14a3 3 0 016 0v3a4 4 0 01-1 2" stroke="#D4A843" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M13 14a1 1 0 012 0v4" stroke="#D4A843" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M8 19c1 2 3 3 6 3" stroke="#D4A843" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand">G<span class="uml">&euml;</span>stu</div>
+        <div class="product">Comply</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Espace cabinet</div>
+      <a class="sidebar-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 12L12 4l9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+        <span>Tableau de bord</span>
+      </a>
+      <a class="sidebar-item active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+        <span>Missions</span>
+        <span class="count">14</span>
+      </a>
+      <a class="sidebar-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="8" r="3.5"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/></svg>
+        <span>Clients</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Right column -->
+  <div>
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="#">Missions</a>
+        <span class="sep">&rsaquo;</span>
+        <span class="here">Nouvelle mission</span>
+      </div>
+      <div class="topbar-spacer"></div>
+      <a class="topbar-btn" href="handoff-1-hub-missions.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Retour aux missions
+      </a>
+    </header>
+
+    <div class="wizard">
+      <!-- Steps rail -->
+      <aside class="wizard-rail">
+        <h2>Nouvelle mission</h2>
+        <p class="subtitle">Cr&eacute;er une mission d&apos;audit ou d&apos;activer une supervision continue. Les informations saisies servent de socle aux phases suivantes.</p>
+        <div class="wizard-steps" id="wizard-steps">
+          <div class="progress-fill" id="progress-fill" style="height:0%"></div>
+          <button class="wizard-step" data-state="current" data-i="0" onclick="goStep(0)">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="label">&Eacute;TAPE 01</div>
+              <div class="title">Engagement</div>
+              <div class="hint">Audit ou supervision continue</div>
+            </div>
+          </button>
+          <button class="wizard-step" data-state="future" data-i="1" onclick="goStep(1)">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="label">&Eacute;TAPE 02</div>
+              <div class="title">R&eacute;f&eacute;rentiel</div>
+              <div class="hint">ISO, NIST, PSSI-ES, audit SI&hellip;</div>
+            </div>
+          </button>
+          <button class="wizard-step" data-state="future" data-i="2" onclick="goStep(2)">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="label">&Eacute;TAPE 03</div>
+              <div class="title">Client</div>
+              <div class="hint">Choix dans le portefeuille</div>
+            </div>
+          </button>
+          <button class="wizard-step" data-state="future" data-i="3" onclick="goStep(3)">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="label">&Eacute;TAPE 04</div>
+              <div class="title">&Eacute;quipe</div>
+              <div class="hint">Associ&eacute;, chef de mission, auditeurs</div>
+            </div>
+          </button>
+          <button class="wizard-step" data-state="future" data-i="4" onclick="goStep(4)">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="label">&Eacute;TAPE 05</div>
+              <div class="title">Calendrier</div>
+              <div class="hint">Dates de d&eacute;but et de fin</div>
+            </div>
+          </button>
+          <button class="wizard-step" data-state="future" data-i="5" onclick="goStep(5)">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="label">&Eacute;TAPE 06</div>
+              <div class="title">Lettre de mission</div>
+              <div class="hint">Aper&ccedil;u, ton, signature</div>
+            </div>
+          </button>
+          <button class="wizard-step" data-state="future" data-i="6" onclick="goStep(6)">
+            <div class="dot"></div>
+            <div class="body">
+              <div class="label">&Eacute;TAPE 07</div>
+              <div class="title">Confirmation</div>
+              <div class="hint">R&eacute;capitulatif et cr&eacute;ation</div>
+            </div>
+          </button>
+        </div>
+
+        <div style="margin-top:32px; padding:14px; background:var(--bg); border:1px solid var(--border); border-radius:10px">
+          <div style="font-size:11px; font-weight:700; color:var(--text-500); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Bon &agrave; savoir</div>
+          <div style="font-size:11px; color:var(--text-700); line-height:1.55">Le <strong>p&eacute;rim&egrave;tre d&eacute;taill&eacute;</strong> (domaines, contr&ocirc;les) sera d&eacute;fini en phase 2 (cadrage), pas ici. Les dates et l&apos;&eacute;quipe peuvent encore &eacute;voluer en phase 3 (planification).</div>
+        </div>
+      </aside>
+
+      <!-- Step content -->
+      <section class="wizard-content">
+        <div class="container">
+
+          <!-- ============== STEP 1: Engagement ============== -->
+          <div class="step-panel active" id="panel-0">
+            <div class="header">
+              <h1>Type d&apos;engagement</h1>
+              <p>Choisir si cette mission est un <strong>audit ponctuel</strong> ou une <strong>supervision continue</strong> (cycle r&eacute;current pour orgs Groupe). Le choix d&eacute;termine le flux de cr&eacute;ation et les modules disponibles.</p>
+            </div>
+            <div class="choice-grid">
+              <button class="choice-card" aria-pressed="true" onclick="selectChoice(this, '.choice-card')">
+                <span class="ck">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+                </span>
+                <div class="ico">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+                </div>
+                <div class="name">Audit ponctuel</div>
+                <div class="desc">Mission d&apos;audit avec un d&eacute;but, une fin, un livrable rapport. Suit les 7 phases standard.</div>
+                <div class="badge-line">
+                  <span class="pill pill-forest">Workflow 7 phases</span>
+                  <span class="pill pill-success">Disponible</span>
+                </div>
+              </button>
+              <button class="choice-card" onclick="selectChoice(this, '.choice-card')">
+                <span class="ck"></span>
+                <div class="ico">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0115-6.7M21 12a9 9 0 01-15 6.7"/><path d="M21 4v5h-5M3 20v-5h5"/></svg>
+                </div>
+                <div class="name">Supervision continue</div>
+                <div class="desc">Cycles r&eacute;currents (trimestriels) sur un groupe d&apos;entit&eacute;s. Cr&eacute;e automatiquement le 1<sup>er</sup> cycle Q.</div>
+                <div class="badge-line">
+                  <span class="pill pill-gold">Module Groupe</span>
+                  <span class="pill pill-success">Disponible (1 org Groupe)</span>
+                </div>
+              </button>
+            </div>
+
+            <div style="margin-top:6px; font-size:11px; color:var(--text-500); padding:10px 14px; background:var(--bg); border-radius:8px; border:1px dashed var(--border)">
+              <strong style="color:var(--text-900)">Si le cabinet n&apos;a aucune org de type &laquo; Groupe &raquo;</strong> &middot; la carte &laquo; Supervision continue &raquo; appara&icirc;t avec l&apos;&eacute;tat <span class="pill pill-blocked">D&eacute;sactiv&eacute;</span> et un lien &laquo; Cr&eacute;er une organisation Groupe &raquo;.
+            </div>
+          </div>
+
+          <!-- ============== STEP 2: Référentiel ============== -->
+          <div class="step-panel" id="panel-1">
+            <div class="header">
+              <h1>R&eacute;f&eacute;rentiel</h1>
+              <p>S&eacute;lectionner le r&eacute;f&eacute;rentiel d&apos;&eacute;valuation. Il d&eacute;termine la liste des contr&ocirc;les, les domaines et le questionnaire de prise de connaissance.</p>
+            </div>
+
+            <div class="fw-category">
+              <div class="cat-head">Conformit&eacute; &middot; sÃ©curit&eacute; <span class="cat-count">3 r&eacute;f&eacute;rentiels</span></div>
+              <div class="fw-grid">
+                <button class="fw-card" aria-pressed="true" onclick="selectChoice(this, '.fw-card')">
+                  <span class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></span>
+                  <div class="info">
+                    <div class="nm">ISO/IEC 27001:2022</div>
+                    <div class="meta">93 contr&ocirc;les &middot; 4 th&egrave;mes</div>
+                  </div>
+                </button>
+                <button class="fw-card" onclick="selectChoice(this, '.fw-card')">
+                  <span class="ck"></span>
+                  <div class="info">
+                    <div class="nm">NIST CSF 2.0</div>
+                    <div class="meta">108 contr&ocirc;les &middot; 6 fonctions</div>
+                  </div>
+                </button>
+                <button class="fw-card" onclick="selectChoice(this, '.fw-card')">
+                  <span class="ck"></span>
+                  <div class="info">
+                    <div class="nm">PSSI-ES (ANSSI)</div>
+                    <div class="meta">112 contr&ocirc;les &middot; secteur sant&eacute;</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="fw-category">
+              <div class="cat-head">Audit SI <span class="cat-count">1 r&eacute;f&eacute;rentiel</span></div>
+              <div class="fw-grid">
+                <button class="fw-card" onclick="selectChoice(this, '.fw-card')">
+                  <span class="ck"></span>
+                  <div class="info">
+                    <div class="nm">Audit SI g&eacute;n&eacute;rique</div>
+                    <div class="meta">42 contr&ocirc;les &middot; m&eacute;thode interne</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="fw-category">
+              <div class="cat-head">Due diligence <span class="cat-count">1 r&eacute;f&eacute;rentiel</span></div>
+              <div class="fw-grid">
+                <button class="fw-card" onclick="selectChoice(this, '.fw-card')">
+                  <span class="ck"></span>
+                  <div class="info">
+                    <div class="nm">Due diligence technique</div>
+                    <div class="meta">28 contr&ocirc;les &middot; M&amp;A</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="fw-category">
+              <div class="cat-head">&Eacute;valuation maturit&eacute; <span class="cat-count">1 r&eacute;f&eacute;rentiel</span></div>
+              <div class="fw-grid">
+                <button class="fw-card" onclick="selectChoice(this, '.fw-card')">
+                  <span class="ck"></span>
+                  <div class="info">
+                    <div class="nm">Maturit&eacute; digitale</div>
+                    <div class="meta">36 contr&ocirc;les &middot; auto-&eacute;val.</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============== STEP 3: Client ============== -->
+          <div class="step-panel" id="panel-2">
+            <div class="header">
+              <h1>Client</h1>
+              <p>Choisir le client dans le portefeuille du cabinet. Le nom de la mission sera pr&eacute;-rempli avec <span class="mono" style="font-family: 'JetBrains Mono', monospace; background:var(--bg); padding:1px 6px; border-radius:4px; font-size:12px">${"r&eacute;f&eacute;rentiel}"} &mdash; {client}</span>.</p>
+            </div>
+
+            <div class="card">
+              <div class="field client-search">
+                <label>Rechercher dans le portefeuille</label>
+                <input type="text" placeholder="Nom, secteur, ville&hellip;" value="banq"/>
+                <span class="ico">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                </span>
+              </div>
+
+              <div class="client-list">
+                <div class="client-row" aria-pressed="true" onclick="selectChoice(this, '.client-row')">
+                  <div class="logo">BA</div>
+                  <div class="info">
+                    <div class="name">Banque Atlantis</div>
+                    <div class="meta">
+                      <span class="mp">Finance</span>
+                      <span>Paris 8e</span>
+                      <span>&middot;</span>
+                      <span>1 200 employ&eacute;s</span>
+                      <span>&middot;</span>
+                      <span>DORA, NIS2</span>
+                    </div>
+                  </div>
+                  <span class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></span>
+                </div>
+                <div class="client-row" onclick="selectChoice(this, '.client-row')">
+                  <div class="logo" style="background:var(--gold-50); color:var(--gold-700)">BD</div>
+                  <div class="info">
+                    <div class="name">Banque du Delta</div>
+                    <div class="meta">
+                      <span class="mp">Finance</span>
+                      <span>Lyon</span>
+                      <span>&middot;</span>
+                      <span>340 employ&eacute;s</span>
+                      <span>&middot;</span>
+                      <span>DORA</span>
+                    </div>
+                  </div>
+                  <span class="ck"></span>
+                </div>
+              </div>
+
+              <a href="#" style="font-size:12px; color:var(--forest-700); font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:5px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Cr&eacute;er un nouveau client
+              </a>
+            </div>
+
+            <div class="card" style="background:var(--bg)">
+              <div style="font-size:11px; font-weight:700; color:var(--text-500); text-transform:uppercase; letter-spacing:0.06em">Mission auto-nomm&eacute;e</div>
+              <div class="field">
+                <input type="text" value="ISO/IEC 27001:2022 &mdash; Banque Atlantis"/>
+                <span class="hint">Vous pouvez modifier ce nom librement.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============== STEP 4: Équipe ============== -->
+          <div class="step-panel" id="panel-3">
+            <div class="header">
+              <h1>&Eacute;quipe mission</h1>
+              <p>D&eacute;signer l&apos;associ&eacute; responsable, le chef de mission et les auditeurs. La d&eacute;signation reste ajustable en phase 3 (planification).</p>
+            </div>
+
+            <div>
+              <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--text-500); margin-bottom:10px">Associ&eacute; responsable <span style="color:var(--error)">*</span></div>
+              <div class="team-grid">
+                <button class="team-pill" aria-pressed="true" onclick="selectChoice(this, '#panel-3 [data-group=\"associe\"]')" data-group="associe">
+                  <div class="avatar" style="width:32px; height:32px; font-size:12px; background:var(--forest-700)">PL</div>
+                  <div class="who">
+                    <div class="name">Patrick Lemoine</div>
+                    <div class="role">Associ&eacute;</div>
+                  </div>
+                  <span class="role-tag">Validateur</span>
+                </button>
+                <button class="team-pill" data-group="associe" onclick="selectChoice(this, '#panel-3 [data-group=\"associe\"]')">
+                  <div class="avatar" style="width:32px; height:32px; font-size:12px; background:var(--forest-700)">SA</div>
+                  <div class="who">
+                    <div class="name">Sarah Aymar</div>
+                    <div class="role">Associ&eacute;e</div>
+                  </div>
+                  <span class="role-tag">Validateur</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--text-500); margin-bottom:10px">Chef de mission <span style="color:var(--error)">*</span></div>
+              <div class="team-grid">
+                <button class="team-pill" aria-pressed="true" onclick="selectChoice(this, '#panel-3 [data-group=\"lead\"]')" data-group="lead">
+                  <div class="avatar" style="width:32px; height:32px; font-size:12px; background:var(--forest-500)">MB</div>
+                  <div class="who">
+                    <div class="name">Mehdi Bensalem</div>
+                    <div class="role">Manager</div>
+                  </div>
+                  <span class="role-tag">Pilote</span>
+                </button>
+                <button class="team-pill" data-group="lead" onclick="selectChoice(this, '#panel-3 [data-group=\"lead\"]')">
+                  <div class="avatar" style="width:32px; height:32px; font-size:12px; background:var(--forest-500)">CR</div>
+                  <div class="who">
+                    <div class="name">Camille Roussel</div>
+                    <div class="role">Sr Manager</div>
+                  </div>
+                  <span class="role-tag">Pilote</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:10px">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--text-500)">Auditeurs (multi-s&eacute;lection)</span>
+                <span style="font-size:11px; color:var(--text-500)">2 s&eacute;lectionn&eacute;(s)</span>
+              </div>
+              <div class="team-grid">
+                <button class="team-pill" aria-pressed="true" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">
+                  <div class="avatar" style="width:32px; height:32px; font-size:12px; background:var(--forest-500)">LM</div>
+                  <div class="who">
+                    <div class="name">L&eacute;a Mercier</div>
+                    <div class="role">S&eacute;nior</div>
+                  </div>
+                  <span class="role-tag">S&eacute;nior</span>
+                </button>
+                <button class="team-pill" aria-pressed="true" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">
+                  <div class="avatar" style="width:32px; height:32px; font-size:12px; background:var(--gold-500); color:var(--forest-900)">YD</div>
+                  <div class="who">
+                    <div class="name">Yann Doukour&eacute;</div>
+                    <div class="role">Junior</div>
+                  </div>
+                  <span class="role-tag">Junior</span>
+                </button>
+                <button class="team-pill" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">
+                  <div class="avatar" style="width:32px; height:32px; font-size:12px; background:var(--forest-500)">AT</div>
+                  <div class="who">
+                    <div class="name">A&iuml;cha Tour&eacute;</div>
+                    <div class="role">S&eacute;nior</div>
+                  </div>
+                  <span class="role-tag">S&eacute;nior</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="suggest-banner">
+              <div class="ico">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="body">
+                <div class="title">Suggestion de taille d&apos;&eacute;quipe</div>
+                <div class="desc">Pour ce r&eacute;f&eacute;rentiel (~93 contr&ocirc;les), nous recommandons <strong>2 &agrave; 3 auditeurs</strong>. Avec 2 auditeurs s&eacute;lectionn&eacute;s, la charge moyenne sera de ~4 j/h par personne.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============== STEP 5: Calendrier ============== -->
+          <div class="step-panel" id="panel-4">
+            <div class="header">
+              <h1>Calendrier</h1>
+              <p>D&eacute;finir les dates de d&eacute;but et de fin. Le calendrier d&eacute;taill&eacute; des entretiens et jalons sera pr&eacute;cis&eacute; en phase 3 (planification).</p>
+            </div>
+
+            <div class="card">
+              <div class="field-row">
+                <div class="field">
+                  <label>Date de d&eacute;but <span class="req">*</span></label>
+                  <input type="date" value="2026-05-12"/>
+                </div>
+                <div class="field">
+                  <label>Date de fin pr&eacute;vue <span class="req">*</span></label>
+                  <input type="date" value="2026-07-30"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--text-500); margin-bottom:8px">Estimation visuelle des phases</div>
+              <div class="phase-est">
+                <div class="phase-est-bars">
+                  <div class="ph ph-cadrage">02 &middot; Cadrage</div>
+                  <div class="ph ph-travaux">04 &middot; Travaux</div>
+                  <div class="ph ph-revue">05 &middot; Revue</div>
+                  <div class="ph ph-client">06 &middot; Client</div>
+                </div>
+                <div class="phase-est-meta">
+                  <span>2 sem.</span>
+                  <span>5 sem.</span>
+                  <span>2 sem.</span>
+                  <span>1.5 sem.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="suggest-banner">
+              <div class="ico">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              </div>
+              <div class="body">
+                <div class="title">Dur&eacute;e propos&eacute;e : 11 semaines</div>
+                <div class="desc">Pour une mission ISO 27001 type avec 2 auditeurs sur ~93 contr&ocirc;les, nous estimons <strong>10 &agrave; 13 semaines</strong>. La fen&ecirc;tre choisie respecte cette estimation.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============== STEP 6: Lettre de mission ============== -->
+          <div class="step-panel" id="panel-5">
+            <div class="header">
+              <h1>Lettre de mission</h1>
+              <p>Pr&eacute;-visualiser la lettre qui sera annex&eacute;e &agrave; la mission. Le ton, l&apos;introduction et la signature sont modifiables. Le PDF est enregistr&eacute; dans le dossier mission &agrave; la cr&eacute;ation.</p>
+            </div>
+
+            <div class="card">
+              <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--text-500); margin-bottom:8px">Ton de la lettre</div>
+              <div style="display:inline-flex; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:3px; gap:1px">
+                <button class="btn" style="height:28px; padding:0 12px; font-size:12px; background:var(--surface); color:var(--forest-900); box-shadow:0 1px 2px rgba(0,0,0,0.05); border-radius:6px; border:0">Standard</button>
+                <button class="btn" style="height:28px; padding:0 12px; font-size:12px; background:transparent; color:var(--text-500); border-radius:6px; border:0">Formel</button>
+                <button class="btn" style="height:28px; padding:0 12px; font-size:12px; background:transparent; color:var(--text-500); border-radius:6px; border:0">Concis</button>
+              </div>
+              <div style="font-size:11px; color:var(--text-500); margin-top:6px">Ajuste l&apos;introduction et les formules de politesse. Le contenu factuel (dates, &eacute;quipe, p&eacute;rim&egrave;tre) reste identique.</div>
+            </div>
+
+            <!-- Letter preview (paper) -->
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:32px 36px; font-size:13px; line-height:1.7; color:var(--text-700); max-height:380px; overflow-y:auto; position:relative; box-shadow:0 4px 16px rgba(0,0,0,0.04)">
+              <div style="position:absolute; top:14px; right:16px; font-size:10px; font-family:'JetBrains Mono', monospace; color:var(--text-300); text-transform:uppercase; letter-spacing:0.06em; font-weight:600">Aper&ccedil;u &middot; PDF</div>
+
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border)">
+                <svg width="24" height="28" viewBox="0 0 28 32" fill="none">
+                  <path d="M14 1.5L2 5.5v9c0 8 5.4 14 12 16 6.6-2 12-8 12-16v-9l-12-4z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+                </svg>
+                <div>
+                  <div style="font-weight:800; font-size:13px; color:var(--forest-900); letter-spacing:-0.01em">G&euml;stu Comply</div>
+                  <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-700); font-weight:600">Cabinet d&apos;audit SI</div>
+                </div>
+                <div style="margin-left:auto; font-size:11px; color:var(--text-500); text-align:right">
+                  <div>R&eacute;f. <span class="mono" style="font-family:'JetBrains Mono', monospace; font-weight:600; color:var(--text-900)">M-2026-018</span></div>
+                  <div>Paris, le 2 mai 2026</div>
+                </div>
+              </div>
+
+              <div style="font-weight:700; font-size:15px; color:var(--text-900); margin-bottom:14px">Lettre de mission &mdash; Audit ISO/IEC 27001:2022</div>
+
+              <p style="margin-bottom:10px">Madame, Monsieur,</p>
+              <p style="margin-bottom:10px">Nous avons le plaisir de vous confirmer la mission d&apos;audit de conformit&eacute; <strong>ISO/IEC 27001:2022</strong> de <strong>Banque Atlantis</strong>, conform&eacute;ment aux &eacute;changes pr&eacute;c&eacute;dents.</p>
+              <p style="margin-bottom:10px"><strong>P&eacute;rim&egrave;tre.</strong> Le p&eacute;rim&egrave;tre d&eacute;taill&eacute; (domaines, contr&ocirc;les, sites concern&eacute;s) sera arr&ecirc;t&eacute; lors de la r&eacute;union de cadrage. La pr&eacute;sente lettre couvre l&apos;ensemble du r&eacute;f&eacute;rentiel (93 contr&ocirc;les sur 4 th&egrave;mes).</p>
+              <p style="margin-bottom:10px"><strong>Calendrier.</strong> Les travaux d&eacute;buteront le <strong>12 mai 2026</strong> et se termineront au plus tard le <strong>30 juillet 2026</strong>, soit une dur&eacute;e de <strong>11 semaines</strong>.</p>
+              <p style="margin-bottom:10px"><strong>&Eacute;quipe.</strong> La mission sera supervis&eacute;e par <strong>Patrick Lemoine</strong> (associ&eacute;) et conduite par <strong>Mehdi Bensalem</strong> (chef de mission), avec le concours de 2 auditeurs.</p>
+              <p style="margin-bottom:10px"><strong>Confidentialit&eacute;.</strong> L&apos;ensemble des informations &eacute;chang&eacute;es sera trait&eacute; sous le sceau du secret professionnel, conform&eacute;ment au code de d&eacute;ontologie en vigueur.</p>
+              <p style="margin-bottom:10px">Nous restons &agrave; votre disposition pour toute pr&eacute;cision.</p>
+
+              <div style="margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:32px; font-size:12px; color:var(--text-700)">
+                <div>
+                  <div style="border-bottom:1px solid var(--border); padding-bottom:6px; margin-bottom:6px">&nbsp;</div>
+                  <strong style="color:var(--text-900)">Patrick Lemoine</strong><br>
+                  Associ&eacute;, G&euml;stu Comply
+                </div>
+                <div>
+                  <div style="border-bottom:1px solid var(--border); padding-bottom:6px; margin-bottom:6px">&nbsp;</div>
+                  <strong style="color:var(--text-900)">Sylvie Rambeau</strong><br>
+                  RSSI, Banque Atlantis
+                </div>
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div class="card">
+              <div style="display:flex; align-items:center; gap:12px; padding-bottom:12px; border-bottom:1px solid var(--border-soft)">
+                <div style="width:36px; height:36px; background:var(--forest-50); color:var(--forest-700); border-radius:8px; display:flex; align-items:center; justify-content:center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5M14 3l5 5M19 8v9a3 3 0 01-3 3H8a3 3 0 01-3-3V6a3 3 0 013-3h6"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:13px; font-weight:600; color:var(--text-900)">Mentions l&eacute;gales et RIB</div>
+                  <div style="font-size:11px; color:var(--text-500)">Inclure les conditions g&eacute;n&eacute;rales et les coordonn&eacute;es bancaires en annexe</div>
+                </div>
+                <button role="switch" aria-checked="true" style="position:relative; width:36px; height:20px; border:0; border-radius:99px; background:var(--forest-700); cursor:pointer">
+                  <span style="position:absolute; top:2px; left:18px; width:16px; height:16px; border-radius:50%; background:white; transition:left 0.15s"></span>
+                </button>
+              </div>
+            </div>
+
+            <div style="font-size:11px; color:var(--text-500); padding:10px 14px; background:var(--bg); border-radius:8px; border:1px dashed var(--border); line-height:1.55">
+              <strong style="color:var(--text-900)">Workflow v1</strong> &middot; la lettre est g&eacute;n&eacute;r&eacute;e en PDF et enregistr&eacute;e dans le dossier mission. Les signataires (associ&eacute; cabinet + sponsor client) signent manuellement, l&apos;auditeur d&eacute;pose le PDF sign&eacute; en preuve. La signature &eacute;lectronique sera &eacute;valu&eacute;e en v2.
+            </div>
+          </div>
+
+          <!-- ============== STEP 7: Confirmation ============== -->
+          <div class="step-panel" id="panel-6">
+            <div class="header">
+              <h1>Confirmation</h1>
+              <p>V&eacute;rifier le r&eacute;capitulatif puis cr&eacute;er la mission. Le chef de mission et les auditeurs recevront une notification.</p>
+            </div>
+
+            <div class="card">
+              <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:var(--text-500); margin-bottom:6px">R&eacute;capitulatif</div>
+              <div class="summary-list">
+                <div class="summary-row">
+                  <div class="k">Mission</div>
+                  <div class="v"><strong>ISO/IEC 27001:2022 &mdash; Banque Atlantis</strong></div>
+                </div>
+                <div class="summary-row">
+                  <div class="k">Engagement</div>
+                  <div class="v">Audit ponctuel <span style="color:var(--text-500)">&middot; workflow 7 phases</span></div>
+                </div>
+                <div class="summary-row">
+                  <div class="k">R&eacute;f&eacute;rentiel</div>
+                  <div class="v">ISO/IEC 27001:2022 <span class="mono">93 contr&ocirc;les</span></div>
+                </div>
+                <div class="summary-row">
+                  <div class="k">Client</div>
+                  <div class="v">Banque Atlantis <span style="color:var(--text-500)">&middot; Finance &middot; Paris 8e &middot; 1 200 employ&eacute;s</span></div>
+                </div>
+                <div class="summary-row">
+                  <div class="k">&Eacute;quipe</div>
+                  <div class="v">
+                    <strong>Patrick Lemoine</strong> (Associ&eacute;) &middot; <strong>Mehdi Bensalem</strong> (Chef de mission) &middot; 2 auditeurs (L&eacute;a M., Yann D.)
+                  </div>
+                </div>
+                <div class="summary-row">
+                  <div class="k">Calendrier</div>
+                  <div class="v">Du <strong>12 mai 2026</strong> au <strong>30 juillet 2026</strong> &middot; <span style="color:var(--text-500)">11 semaines</span></div>
+                </div>
+                <div class="summary-row">
+                  <div class="k">P&eacute;rim&egrave;tre d&eacute;taill&eacute;</div>
+                  <div class="v" style="color:var(--text-500); font-style:italic">Sera d&eacute;fini en phase 2 &middot; cadrage</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto side-effect (only shown if engagement = continuous_supervision) -->
+            <div class="auto-effect" style="display:none">
+              <div class="ico">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0115-6.7M21 12a9 9 0 01-15 6.7"/><path d="M21 4v5h-5M3 20v-5h5"/></svg>
+              </div>
+              <div class="body">
+                <div class="title">Cr&eacute;ation auto du 1<sup>er</sup> cycle</div>
+                <div class="desc">Cette mission &eacute;tant <strong>en supervision continue</strong>, un cycle <strong>Q2 2026</strong> sera ouvert automatiquement dans le module Groupe au moment de la cr&eacute;ation. Les contr&ocirc;les seront h&eacute;rit&eacute;s du r&eacute;f&eacute;rentiel s&eacute;lectionn&eacute;.</div>
+              </div>
+            </div>
+
+            <div style="padding:14px 16px; background:var(--bg); border-radius:10px; border:1px dashed var(--border); font-size:12px; color:var(--text-500); line-height:1.55">
+              <strong style="color:var(--text-900)">&Agrave; la cr&eacute;ation</strong> &middot; la lettre de mission est g&eacute;n&eacute;r&eacute;e en PDF et enregistr&eacute;e dans le dossier mission. Si la signature &eacute;lectronique est activ&eacute;e, les invitations DocuSign partent automatiquement aux signataires.
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="wizard-footer">
+            <div class="wizard-footer-inner">
+              <span class="step-meta" id="step-meta">&Eacute;TAPE 01 / 07</span>
+              <div class="spacer"></div>
+              <button class="btn btn-ghost">Annuler</button>
+              <button class="btn btn-secondary" id="btn-prev" onclick="goStep(currentStep - 1)" style="display:none">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Pr&eacute;c&eacute;dent
+              </button>
+              <button class="btn btn-primary" id="btn-next" onclick="goStep(currentStep + 1)">
+                Suivant
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Decisions footer -->
+    <div style="padding:18px 32px; background:var(--surface); border-top:1px solid var(--border)">
+      <div style="max-width:1100px; margin:0 auto; padding:14px 18px; background:var(--bg); border:1px dashed var(--border); border-radius:10px; font-size:12px; color:var(--text-500); line-height:1.6">
+        <strong style="color:var(--text-900)">D&eacute;cisions retenues</strong>
+        <br>1. <strong>7 &eacute;tapes</strong> &mdash; Engagement &rarr; R&eacute;f&eacute;rentiel &rarr; Client &rarr; &Eacute;quipe &rarr; Calendrier &rarr; <strong style="color:var(--gold-700)">Lettre de mission</strong> &rarr; Confirmation. Le step 6 est ajout&eacute; vs le code actuel (qui g&eacute;n&egrave;re la lettre seulement en phase 7 cl&ocirc;ture).
+        <br>2. <strong>Pas de step &laquo; P&eacute;rim&egrave;tre &raquo;</strong> &mdash; le scope d&eacute;taill&eacute; (domaines, contr&ocirc;les) est d&eacute;fini en phase 2 cadrage. Mention explicite dans le rail (&laquo; Bon &agrave; savoir &raquo;).
+        <br>3. <strong>Step 1 = Engagement (audit / supervision continue)</strong> &mdash; refl&egrave;te le code actuel (group-module, supervision continue).
+        <br>4. <strong>Step 2 = R&eacute;f&eacute;rentiel</strong> avec cat&eacute;gories (conformit&eacute; / audit-si / due-diligence / &eacute;valuation) &mdash; structure existante &agrave; conserver.
+        <br>5. <strong>Auto-effect callout (forest)</strong> en step 7 quand engagement=supervision continue : annonce la cr&eacute;ation automatique du 1<sup>er</sup> cycle. Distinct des suggestions gold pour signaler &laquo; action automatique &raquo; vs &laquo; suggestion &raquo;.
+        <br>6. <strong>Lettre de mission &middot; PDF seul en v1</strong> &mdash; pas de signature &eacute;lectronique pour l&apos;instant. Le PDF est g&eacute;n&eacute;r&eacute; et stock&eacute; dans le dossier mission, signature manuelle hors plateforme, l&apos;auditeur d&eacute;pose le PDF sign&eacute; comme preuve. DocuSign &agrave; r&eacute;&eacute;valuer plus tard.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentStep = 0;
+  const TOTAL = 7;
+
+  function selectChoice(el, selector) {
+    const root = el.closest('.step-panel') || document;
+    root.querySelectorAll(selector).forEach(x => x.setAttribute('aria-pressed', 'false'));
+    el.setAttribute('aria-pressed', 'true');
+  }
+
+  function goStep(i) {
+    if (i < 0 || i >= TOTAL) return;
+    currentStep = i;
+    document.querySelectorAll('.step-panel').forEach((p, idx) => {
+      p.classList.toggle('active', idx === i);
+    });
+    document.querySelectorAll('.wizard-step').forEach((s, idx) => {
+      const state = idx < i ? 'done' : idx === i ? 'current' : 'future';
+      s.setAttribute('data-state', state);
+      const dot = s.querySelector('.dot');
+      dot.innerHTML = state === 'done' ? '<svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M5 12l5 5L20 7"/></svg>' : '';
+    });
+    const fill = document.getElementById('progress-fill');
+    fill.style.height = (i / (TOTAL - 1) * 100) + '%';
+    document.getElementById('step-meta').textContent = `ÉTAPE ${String(i+1).padStart(2,'0')} / 07`;
+    document.getElementById('btn-prev').style.display = i === 0 ? 'none' : '';
+    const next = document.getElementById('btn-next');
+    if (i === TOTAL - 1) {
+      next.classList.remove('btn-primary');
+      next.classList.add('btn-gold');
+      next.innerHTML = 'Cr&eacute;er la mission <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>';
+    } else {
+      next.classList.remove('btn-gold');
+      next.classList.add('btn-primary');
+      next.innerHTML = 'Suivant <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 6l6 6-6 6"/></svg>';
+    }
+  }
+</script>
+</body>
+</html>

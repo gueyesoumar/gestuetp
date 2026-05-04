@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup &mdash; Phase 3 Planification (transposition handoff)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --forest-900: #1B4332; --forest-800: #234E3D; --forest-700: #2D6A4F;
+    --forest-500: #40916C; --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-700: #9A7B26; --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-100: #FAEFC9; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --surface: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --border-soft: #EFEFEC;
+    --success: #27AE60; --success-bg: #ECFDF5;
+    --error: #C0392B; --error-bg: #FEF2F2;
+    --warn: #B45309; --warn-bg: #FFFBEB;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; cursor: pointer; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .mock-bar { position: sticky; top: 0; z-index: 100; background: var(--forest-900); padding: 14px 24px; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.85); font-size: 12px; }
+  .mock-bar .lbl { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mock-bar .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.45); font-size: 11px; }
+
+  /* Shell */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 47px); }
+  .sidebar { background: var(--forest-900); color: rgba(255,255,255,0.78); display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 18px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-logo svg { width: 28px; height: 32px; }
+  .sidebar-logo .brand { font-weight: 800; font-size: 17px; color: white; line-height: 1; }
+  .sidebar-logo .brand .uml { color: var(--gold-500); }
+  .sidebar-logo .product { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-500); font-weight: 600; margin-top: 4px; }
+  .sidebar-section { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 14px 20px 6px; font-weight: 600; }
+  .sidebar-nav { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 1px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; }
+  .sidebar-item.active { background: rgba(255,255,255,0.08); color: white; position: relative; }
+  .sidebar-item.active::before { content: ''; position: absolute; left: -8px; top: 8px; bottom: 8px; width: 3px; background: var(--gold-500); border-radius: 0 3px 3px 0; }
+
+  /* Topbar */
+  .topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-500); }
+  .crumbs a { color: var(--text-500); text-decoration: none; }
+  .crumbs .here { color: var(--text-900); font-weight: 500; }
+  .crumbs .sep { color: var(--text-300); }
+
+  /* Mission detail header (reused from phase 2 cabinet) */
+  .mission-head { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px 0; }
+  .mission-head-top { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 16px; }
+  .mission-head h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: var(--text-900); }
+  .mission-head .mission-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--text-500); }
+  .mission-meta .pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+  .pill-mono-forest { background: var(--forest-50); color: var(--forest-700); }
+  .pill-fw { background: var(--bg); color: var(--text-700); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .mission-head .actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+
+  .phase-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
+  .phase-tab { padding: 10px 14px; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text-500); border-bottom: 2px solid transparent; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .phase-tab:hover { color: var(--text-900); }
+  .phase-tab.active { color: var(--text-900); border-bottom-color: var(--gold-500); font-weight: 600; }
+  .phase-tab.done { color: var(--text-500); }
+  .phase-tab.current-phase { color: var(--text-900); font-weight: 600; }
+  .phase-tab .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: 0.7; }
+  .phase-tab.done .num { color: var(--success); opacity: 1; }
+  .phase-tab .live-dot { width: 6px; height: 6px; background: var(--gold-500); border-radius: 50%; }
+
+  /* Sub-tab nav (planning internal) */
+  .subtab-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; align-items: center; gap: 4px; position: sticky; top: 100px; z-index: 30; }
+  .subtab { padding: 12px 16px; border: 0; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--text-500); border-bottom: 2px solid transparent; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; cursor: pointer; }
+  .subtab:hover { color: var(--text-900); }
+  .subtab.active { color: var(--forest-900); border-bottom-color: var(--gold-500); font-weight: 600; }
+  .subtab .badge-count { background: var(--bg); color: var(--text-500); font-size: 10px; padding: 0 6px; height: 17px; border-radius: 99px; display: inline-flex; align-items: center; font-weight: 600; }
+  .subtab.active .badge-count { background: var(--gold-100); color: var(--gold-700); }
+
+  /* Layout */
+  .planning-layout { display: grid; grid-template-columns: 1fr 340px; gap: 18px; padding: 24px 28px 80px; max-width: 1500px; margin: 0 auto; align-items: start; }
+  .planning-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+  /* SmartPlan AI banner — compact strip */
+  .ai-suggest { background: linear-gradient(90deg, var(--forest-900), var(--forest-700)); color: white; border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; }
+  .ai-suggest .ico { width: 24px; height: 24px; background: var(--gold-500); color: var(--forest-900); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ai-suggest .body { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+  .ai-suggest .title { font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .ai-suggest .title .pulse { width: 6px; height: 6px; background: var(--gold-400); border-radius: 50%; animation: pulse-gold 2s infinite; }
+  @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(212, 168, 67, 0.55); } 100% { box-shadow: 0 0 0 6px rgba(212, 168, 67, 0); } }
+  .ai-suggest .desc { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ai-suggest .desc b { color: var(--gold-400); font-weight: 600; }
+  .ai-suggest .actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .ai-suggest .btn-ai-primary { background: var(--gold-500); color: var(--forest-900); border: 1px solid var(--gold-500); height: 30px; padding: 0 14px; font-size: 12px; font-weight: 600; border-radius: 7px; cursor: pointer; }
+  .ai-suggest .btn-ai-primary:hover { background: var(--gold-400); }
+  .ai-suggest .btn-ai-ghost { background: transparent; color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.2); height: 30px; padding: 0 12px; font-size: 12px; font-weight: 500; border-radius: 7px; cursor: pointer; }
+  .ai-suggest .btn-ai-ghost:hover { background: rgba(255,255,255,0.08); }
+
+  /* KPI strip */
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; position: relative; }
+  .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-500); font-weight: 600; }
+  .kpi .value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi .value .unit { font-size: 13px; color: var(--text-500); font-weight: 500; margin-left: 3px; }
+  .kpi .delta { font-size: 11px; color: var(--text-500); }
+  .kpi .delta.warn { color: var(--warn); }
+  .kpi .delta.ok { color: var(--success); }
+  .kpi.spotlight { background: linear-gradient(180deg, var(--forest-900), var(--forest-800)); border-color: var(--forest-900); position: relative; overflow: hidden; }
+  .kpi.spotlight::after { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, rgba(212,168,67,0.18), transparent 70%); pointer-events: none; }
+  .kpi.spotlight .label { color: var(--forest-300); }
+  .kpi.spotlight .value { color: white; }
+  .kpi.spotlight .value .unit { color: rgba(255,255,255,0.6); }
+  .kpi.spotlight .delta { color: var(--gold-400); }
+
+  /* Toolbar */
+  .toolbar { background: var(--surface); border: 1px solid var(--border); border-bottom: 0; border-radius: 12px 12px 0 0; padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .search { position: relative; width: 240px; }
+  .search input { width: 100%; height: 30px; padding: 0 10px 0 30px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-family: inherit; font-size: 12px; color: var(--text-900); }
+  .search input:focus { outline: none; border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .search .ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-300); }
+  .group-label { font-size: 11px; color: var(--text-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-left: 4px; }
+  .filter-chip { font-size: 11px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text-700); cursor: pointer; font-family: inherit; font-weight: 500; }
+  .filter-chip:hover { border-color: var(--forest-300); }
+  .filter-chip.active { background: var(--forest-50); color: var(--forest-700); border-color: var(--forest-300); }
+  .toolbar .spacer { flex: 1; }
+  .toolbar .bulk-info { font-size: 12px; color: var(--text-500); margin-right: 6px; }
+  .toolbar .bulk-info b { color: var(--forest-700); font-variant-numeric: tabular-nums; }
+
+  /* Controls table */
+  .plan-table { background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 12px 12px; overflow: hidden; }
+  .plan-thead, .plan-row { display: grid; grid-template-columns: 28px 80px 1fr 160px 90px 28px; gap: 10px; padding: 9px 16px; align-items: center; }
+  .plan-thead { background: var(--bg); border-bottom: 1px solid var(--border); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-500); font-weight: 600; }
+  .plan-thead .sortable { cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+  .plan-thead .sortable:hover { color: var(--text-900); }
+
+  .plan-domain-head { background: var(--forest-50); padding: 8px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--forest-900); display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); cursor: pointer; }
+  .plan-domain-head .code { font-family: 'JetBrains Mono', monospace; background: var(--surface); color: var(--forest-700); padding: 1px 6px; border-radius: 3px; font-size: 10px; border: 1px solid var(--forest-300); }
+  .plan-domain-head .meta { margin-left: auto; font-size: 11px; color: var(--forest-700); font-weight: 500; font-family: 'JetBrains Mono', monospace; }
+  .plan-domain-head .chev { transition: transform 0.15s; color: var(--forest-700); }
+  .plan-domain-head[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+  .plan-domain-head .domain-assign { margin-left: 8px; font-size: 10px; padding: 3px 8px; border-radius: 4px; background: var(--surface); border: 1px solid var(--forest-300); color: var(--forest-700); font-weight: 600; cursor: pointer; }
+  .plan-domain-head .domain-assign:hover { background: var(--forest-100); }
+
+  .plan-row { border-bottom: 1px solid var(--border-soft); font-size: 13px; cursor: pointer; transition: background 0.1s; }
+  .plan-row:hover { background: var(--bg); }
+  .plan-row.selected { background: var(--gold-50); }
+  .plan-row .check { width: 16px; height: 16px; border: 1.5px solid var(--border); border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); flex-shrink: 0; }
+  .plan-row .check[aria-checked="true"] { background: var(--forest-700); border-color: var(--forest-700); color: white; }
+  .plan-row .ctrl-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--forest-700); background: var(--forest-50); padding: 3px 7px; border-radius: 4px; text-align: center; }
+  .plan-row .ctrl-name { font-size: 13px; color: var(--text-900); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .plan-row .priority { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; flex-shrink: 0; }
+  .priority.p1 { background: var(--error-bg); color: var(--error); }
+  .priority.p2 { background: var(--warn-bg); color: var(--warn); }
+  .priority.p3 { background: var(--bg); color: var(--text-500); }
+
+  .assignee-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 3px; border: 1px solid var(--border); border-radius: 99px; background: var(--surface); font-size: 12px; color: var(--text-900); cursor: pointer; max-width: 100%; }
+  .assignee-chip:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .assignee-chip .av { width: 20px; height: 20px; border-radius: 50%; font-size: 9px; font-weight: 700; color: white; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .assignee-chip .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .assignee-chip.empty { border-style: dashed; color: var(--text-500); font-style: italic; }
+  .assignee-chip.empty .av { background: var(--bg); color: var(--text-500); border: 1.5px dashed var(--border); }
+
+  .due-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 99px; background: var(--surface); font-size: 12px; color: var(--text-900); cursor: pointer; font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
+  .due-pill:hover { border-color: var(--forest-300); }
+  .due-pill.tight { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+  .due-pill.empty { border-style: dashed; color: var(--text-500); font-style: italic; }
+
+  .effort-cell { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-700); font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
+  .effort-cell .bars { display: inline-flex; gap: 2px; }
+  .effort-cell .bars span { width: 4px; height: 9px; background: var(--border); border-radius: 1px; }
+  .effort-cell .bars span.on { background: var(--forest-500); }
+  .effort-cell .bars span.on.gold { background: var(--gold-500); }
+
+  .plan-status { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 7px; border-radius: 4px; text-align: center; display: inline-block; }
+  .plan-status.assigned { background: var(--success-bg); color: var(--success); }
+  .plan-status.unassigned { background: var(--warn-bg); color: var(--warn); }
+
+  .plan-row .more { color: var(--text-500); cursor: pointer; width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; }
+  .plan-row .more:hover { background: var(--bg); color: var(--text-900); }
+
+  /* Right rail */
+  .plan-rail { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 152px; align-self: flex-start; }
+  .rail-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .rail-card-head { padding: 12px 16px 10px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; }
+  .rail-card-head h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--text-700); margin: 0; }
+  .rail-card-head .meta { margin-left: auto; font-size: 11px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; }
+  /* Rail tabs (workload + gantt merged) */
+  .rail-tabs { display: flex; padding: 4px; background: var(--bg); margin: 12px 12px 0; border-radius: 8px; gap: 2px; }
+  .rail-tabs button { flex: 1; padding: 6px 10px; border: 0; background: transparent; font-family: inherit; font-size: 11px; font-weight: 600; color: var(--text-500); border-radius: 6px; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; }
+  .rail-tabs button.active { background: var(--surface); color: var(--forest-900); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .rail-tab-content { display: none; }
+  .rail-tab-content.active { display: block; }
+
+  /* Risk callout */
+  .risk-callout { background: var(--warn-bg); border: 1px solid rgba(180, 83, 9, 0.2); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .risk-callout .head { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--warn); }
+  .risk-callout .head .ico { width: 22px; height: 22px; background: var(--warn); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .risk-callout .body { font-size: 12px; color: var(--text-900); line-height: 1.5; }
+  .risk-callout .body strong { color: var(--warn); }
+  .risk-callout .actions { display: flex; gap: 6px; }
+
+  /* Workload list */
+  .workload-list { padding: 8px 0; }
+  .workload-item { padding: 9px 16px; display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; }
+  .workload-item .av { width: 28px; height: 28px; border-radius: 50%; font-size: 10px; font-weight: 700; color: white; display: inline-flex; align-items: center; justify-content: center; }
+  .workload-item .who { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .workload-item .who .name { font-size: 12px; font-weight: 500; color: var(--text-900); display: flex; align-items: center; gap: 6px; }
+  .workload-item .who .role { font-size: 10px; font-weight: 500; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.04em; }
+  .workload-item .bar { height: 5px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .workload-item .bar .fill { height: 100%; background: var(--forest-500); border-radius: 99px; transition: width 0.4s; }
+  .workload-item .bar .fill.over { background: var(--error); }
+  .workload-item .bar .fill.tight { background: var(--gold-500); }
+  .workload-item .pct { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-700); font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; min-width: 50px; }
+  .workload-item .pct.over { color: var(--error); }
+  .workload-item .pct.tight { color: var(--gold-700); }
+
+  /* Mini Gantt */
+  .gantt-card { padding: 14px 16px; }
+  .gantt-card-head { padding: 0 0 12px; border-bottom: 1px solid var(--border-soft); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .gantt-card-head h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--text-700); margin: 0; }
+  .gantt-card-head .meta { margin-left: auto; font-size: 11px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; }
+  .gantt-weeks { display: grid; grid-template-columns: 60px repeat(8, 1fr); gap: 0; font-size: 10px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; border-bottom: 1px solid var(--border-soft); padding-bottom: 6px; margin-bottom: 6px; }
+  .gantt-weeks > div { text-align: center; padding: 0 2px; letter-spacing: 0.02em; }
+  .gantt-weeks > div:first-child { text-align: left; }
+  .gantt-weeks .now { color: var(--gold-700); font-weight: 700; }
+
+  .gantt-row { display: grid; grid-template-columns: 60px repeat(8, 1fr); align-items: center; height: 22px; position: relative; }
+  .gantt-row .label { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-700); font-weight: 600; }
+  .gantt-row .track { grid-column: 2 / -1; height: 22px; position: relative; }
+  .gantt-bar { position: absolute; top: 4px; bottom: 4px; background: var(--forest-500); border-radius: 4px; font-size: 9px; color: white; display: flex; align-items: center; padding: 0 6px; font-weight: 600; letter-spacing: 0.04em; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .gantt-bar.gold { background: var(--gold-500); color: var(--forest-900); }
+  .gantt-bar.dark { background: var(--forest-900); }
+  .gantt-bar.warn { background: var(--warn); }
+  .gantt-now-line { position: absolute; top: -16px; bottom: -4px; width: 2px; background: var(--gold-500); z-index: 2; pointer-events: none; }
+  .gantt-now-line::before { content: 'AUJ.'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 8px; font-family: 'JetBrains Mono', monospace; color: var(--gold-700); font-weight: 700; letter-spacing: 0.06em; }
+
+  /* Sticky footer */
+  .plan-action-bar { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 28px; display: flex; align-items: center; gap: 12px; margin: 0 -28px; box-shadow: 0 -2px 8px rgba(0,0,0,0.04); z-index: 10; }
+  .plan-action-bar .auto-save { font-size: 12px; color: var(--text-500); display: flex; align-items: center; gap: 6px; }
+  .plan-action-bar .auto-save .live-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; }
+  .plan-action-bar .summary { font-size: 12px; color: var(--text-700); border-left: 1px solid var(--border); padding-left: 14px; margin-left: 4px; }
+  .plan-action-bar .summary b { color: var(--text-900); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .plan-action-bar .spacer { flex: 1; }
+
+  /* Buttons */
+  .btn { height: 32px; padding: 0 14px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; transition: all 0.12s; }
+  .btn-primary { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-gold { background: var(--gold-500); color: var(--forest-900); border-color: var(--gold-500); font-weight: 600; }
+  .btn-gold:hover { background: var(--gold-600); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text-700); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--forest-300); color: var(--forest-900); }
+  .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <span class="lbl">MOCKUP</span>
+  <span>Phase 3 Planification &mdash; tableau contr&ocirc;les + due dates (nouveau) + multi-select bulk + AI SmartPlan + risk callout</span>
+  <span class="meta">handoff-5-phase3-planning</span>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 28 32" fill="none">
+        <path d="M14 1.5L2 5.5v9c0 8 5.4 14 12 16 6.6-2 12-8 12-16v-9l-12-4z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+      </svg>
+      <div>
+        <div class="brand">G<span class="uml">&euml;</span>stu</div>
+        <div class="product">Comply</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Espace cabinet</div>
+      <a class="sidebar-item active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+        <span>Missions</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div>
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="handoff-1-hub-missions.html">Missions</a>
+        <span class="sep">&rsaquo;</span>
+        <a href="#">M-2026-018 &middot; Banque Atlantis</a>
+        <span class="sep">&rsaquo;</span>
+        <span class="here">Planification</span>
+      </div>
+    </header>
+
+    <div class="mission-head">
+      <div class="mission-head-top">
+        <div>
+          <h1>Audit COBIT 2019 &mdash; Banque Atlantis</h1>
+          <div class="mission-meta">
+            <span class="pill pill-mono-forest">M-2026-018</span>
+            <span class="pill-fw">COBIT 2019 &middot; 40 contr&ocirc;les</span>
+            <span>&middot;</span>
+            <span>Mehdi Bensalem (chef de mission)</span>
+            <span>&middot;</span>
+            <span>5 auditeurs disponibles</span>
+            <span>&middot;</span>
+            <span>D&eacute;marrage 11 mai 2026</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary btn-sm">Importer un planning</button>
+          <button class="btn btn-secondary btn-sm">Vue Gantt compl&egrave;te</button>
+        </div>
+      </div>
+      <div class="phase-tabs">
+        <button class="phase-tab">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12L12 4l9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+          <span>Vue d&apos;ensemble</span>
+        </button>
+        <button class="phase-tab done">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+          <span class="num">01</span>
+          <span>Initialisation</span>
+        </button>
+        <button class="phase-tab done">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+          <span class="num">02</span>
+          <span>Cadrage</span>
+        </button>
+        <button class="phase-tab active current-phase">
+          <span class="live-dot"></span>
+          <span class="num">03</span>
+          <span>Planification</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">04</span>
+          <span>Travaux terrain</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">05</span>
+          <span>Revue interne</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">06</span>
+          <span>Validation client</span>
+        </button>
+        <button class="phase-tab">
+          <span class="num">07</span>
+          <span>Cl&ocirc;ture</span>
+        </button>
+        <button class="phase-tab" style="margin-left:auto; padding-right:0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>Plan d&apos;action</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sub-tabs (planning) -->
+    <div class="subtab-bar">
+      <button class="subtab active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Programme de travail
+        <span class="badge-count">28/40</span>
+      </button>
+      <button class="subtab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Entretiens
+        <span class="badge-count">8</span>
+      </button>
+      <button class="subtab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5M14 3l5 5M19 8v9a3 3 0 01-3 3H8a3 3 0 01-3-3V6a3 3 0 013-3h6"/></svg>
+        Livrables
+        <span class="badge-count">3</span>
+      </button>
+    </div>
+
+    <div class="planning-layout">
+      <div class="planning-main">
+
+        <!-- AI SmartPlan banner (compact) -->
+        <div class="ai-suggest">
+          <div class="ico">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="body">
+            <div class="title"><span class="pulse"></span>SmartPlan IA</div>
+            <div class="desc">propose une r&eacute;partition de <b>40 contr&ocirc;les</b> sur <b>5 auditeurs</b> &middot; charge moyenne <b>4,2 j/h</b> &middot; fin &agrave; <b>j-3</b></div>
+          </div>
+          <div class="actions">
+            <button class="btn-ai-ghost">Hypoth&egrave;ses</button>
+            <button class="btn-ai-primary">Appliquer</button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="kpi-row">
+          <div class="kpi spotlight">
+            <div class="label">Contr&ocirc;les affect&eacute;s</div>
+            <div class="value">28<span class="unit">/ 40</span></div>
+            <div class="delta">12 contr&ocirc;les &agrave; attribuer</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Charge totale</div>
+            <div class="value">21<span class="unit">j/h</span></div>
+            <div class="delta">Budget mission : 25 j/h</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Fin pr&eacute;vue</div>
+            <div class="value">3<span class="unit">juil.</span></div>
+            <div class="delta warn">&minus;3 j vs jalon contractuel</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search">
+            <svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" placeholder="Rechercher par code, nom, processus..."/>
+          </div>
+          <span class="group-label">Grouper par :</span>
+          <button class="filter-chip" style="display:inline-flex; align-items:center; gap:6px; padding-right:8px">
+            Domaine
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <span class="spacer"></span>
+          <span class="bulk-info"><b>3</b> s&eacute;lectionn&eacute;s</span>
+          <button class="btn btn-secondary btn-sm">Affecter en masse</button>
+          <button class="btn btn-secondary btn-sm">&Eacute;ch&eacute;ance commune</button>
+        </div>
+
+        <!-- Controls table -->
+        <div class="plan-table">
+          <div class="plan-thead">
+            <div></div>
+            <div class="sortable">Code</div>
+            <div class="sortable">Contr&ocirc;le</div>
+            <div>Auditeur</div>
+            <div>Charge</div>
+            <div></div>
+          </div>
+
+          <!-- EDM domain (collapsed view: showing 2 rows) -->
+          <div class="plan-domain-head" aria-expanded="true">
+            <span class="chev"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+            <span class="code">EDM</span>
+            &Eacute;valuer, diriger et surveiller
+            <span class="meta">5 contr&ocirc;les &middot; 5 affect&eacute;s &middot; 3 j/h</span>
+          </div>
+
+          <div class="plan-row">
+            <div class="check"></div>
+            <div class="ctrl-code">EDM01</div>
+            <div class="ctrl-name"><span class="priority p1">P1</span>Cadre de gouvernance des SI</div>
+            <div>
+              <button class="assignee-chip">
+                <span class="av" style="background:var(--forest-700)">PL</span>
+                <span class="name">Patrick L.</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on"></span><span></span><span></span></span>0,5j</div>
+            <div class="more">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg>
+            </div>
+          </div>
+
+          <div class="plan-row">
+            <div class="check"></div>
+            <div class="ctrl-code">EDM02</div>
+            <div class="ctrl-name"><span class="priority p1">P1</span>Cr&eacute;ation de valeur &mdash; pilotage des b&eacute;n&eacute;fices</div>
+            <div>
+              <button class="assignee-chip">
+                <span class="av" style="background:var(--forest-500)">CR</span>
+                <span class="name">Camille R.</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on"></span><span></span><span></span></span>0,5j</div>
+            <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+          </div>
+
+          <!-- APO domain -->
+          <div class="plan-domain-head" aria-expanded="true">
+            <span class="chev"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+            <span class="code">APO</span>
+            Aligner, planifier et organiser
+            <span class="meta">14 contr&ocirc;les &middot; 11 affect&eacute;s &middot; 8 j/h</span>
+          </div>
+
+          <div class="plan-row selected">
+            <div class="check" aria-checked="true">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+            </div>
+            <div class="ctrl-code">APO01</div>
+            <div class="ctrl-name"><span class="priority p1">P1</span>Cadre de gestion du SI</div>
+            <div>
+              <button class="assignee-chip">
+                <span class="av" style="background:var(--forest-500)">MB</span>
+                <span class="name">Mehdi B.</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on"></span><span class="on"></span><span class="on"></span></span>1,5j</div>
+            <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+          </div>
+
+          <div class="plan-row">
+            <div class="check"></div>
+            <div class="ctrl-code">APO12</div>
+            <div class="ctrl-name"><span class="priority p1">P1</span>Gestion des risques IT</div>
+            <div>
+              <button class="assignee-chip">
+                <span class="av" style="background:var(--forest-500)">CR</span>
+                <span class="name">Camille R.</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on gold"></span><span class="on gold"></span><span class="on gold"></span></span>2j</div>
+            <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+          </div>
+
+          <div class="plan-row">
+            <div class="check"></div>
+            <div class="ctrl-code">APO13</div>
+            <div class="ctrl-name"><span class="priority p1">P1</span>Gestion de la s&eacute;curit&eacute; de l&apos;information</div>
+            <div>
+              <button class="assignee-chip empty">
+                <span class="av">?</span>
+                <span class="name">Non affect&eacute;</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on gold"></span><span class="on gold"></span><span class="on gold"></span></span>2j</div>
+            <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+          </div>
+
+          <!-- BAI domain -->
+          <div class="plan-domain-head" aria-expanded="true">
+            <span class="chev"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+            <span class="code">BAI</span>
+            Construire, acqu&eacute;rir et impl&eacute;menter
+            <span class="meta">12 contr&ocirc;les &middot; 6 affect&eacute;s &middot; 4,5 j/h</span>
+          </div>
+
+          <div class="plan-row">
+            <div class="check"></div>
+            <div class="ctrl-code">BAI06</div>
+            <div class="ctrl-name"><span class="priority p1">P1</span>Gestion des changements</div>
+            <div>
+              <button class="assignee-chip empty">
+                <span class="av">?</span>
+                <span class="name">Non affect&eacute;</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on gold"></span><span class="on gold"></span><span class="on gold"></span></span>2j</div>
+            <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+          </div>
+
+          <div class="plan-row">
+            <div class="check"></div>
+            <div class="ctrl-code">BAI09</div>
+            <div class="ctrl-name"><span class="priority p2">P2</span>Gestion des actifs IT</div>
+            <div>
+              <button class="assignee-chip">
+                <span class="av" style="background:var(--gold-500); color:var(--forest-900)">YD</span>
+                <span class="name">Yann D.</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on"></span><span class="on"></span><span></span></span>1j</div>
+            <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+          </div>
+
+          <div class="plan-row">
+            <div class="check"></div>
+            <div class="ctrl-code">DSS05</div>
+            <div class="ctrl-name"><span class="priority p1">P1</span>Gestion des services de s&eacute;curit&eacute; (RBAC, IAM)</div>
+            <div>
+              <button class="assignee-chip empty">
+                <span class="av">?</span>
+                <span class="name">Non affect&eacute;</span>
+              </button>
+            </div>
+            <div class="effort-cell"><span class="bars"><span class="on gold"></span><span class="on gold"></span><span class="on gold"></span></span>2j</div>
+            <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+          </div>
+
+          <!-- MEA domain (collapsed) -->
+          <div class="plan-domain-head" aria-expanded="false">
+            <span class="chev"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+            <span class="code">MEA</span>
+            Surveiller, &eacute;valuer et analyser
+            <span class="meta">3 contr&ocirc;les &middot; 2 affect&eacute;s &middot; 2 j/h</span>
+          </div>
+        </div>
+
+        <!-- Sticky action bar -->
+        <div class="plan-action-bar">
+          <span class="auto-save">
+            <span class="live-dot"></span>
+            Sauvegard&eacute; &middot; il y a 12s
+          </span>
+          <span class="spacer"></span>
+          <button class="btn btn-secondary btn-sm">Notifier l&apos;&eacute;quipe</button>
+          <button class="btn btn-secondary btn-sm">Brouillon</button>
+          <button class="btn btn-gold btn-sm">Valider la planification &nbsp;&rsaquo;</button>
+        </div>
+
+      </div>
+
+      <!-- Right rail -->
+      <div class="plan-rail">
+
+        <div class="risk-callout">
+          <div class="head">
+            <span class="ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v4M12 17v.01M3 19h18L12 4z"/></svg></span>
+            Risque planning
+          </div>
+          <div class="body">
+            <strong>4 contr&ocirc;les critiques (P1)</strong> ne sont pas encore affect&eacute;s &mdash; dont <strong>APO13</strong>, <strong>BAI06</strong> et <strong>DSS05</strong>. Charge estim&eacute;e &agrave; <strong>6 j/h</strong> sur 2 sem. Reste 1 s&eacute;nior disponible : L&eacute;a Mercier (capacit&eacute; 5 j/h).
+          </div>
+          <div class="actions">
+            <button class="btn btn-secondary btn-sm">Voir le d&eacute;tail</button>
+            <button class="btn btn-gold btn-sm">Affecter &agrave; L&eacute;a</button>
+          </div>
+        </div>
+
+        <div class="rail-card">
+          <div class="rail-tabs">
+            <button class="active" onclick="switchRailTab(this, 'workload')">Charge &eacute;quipe</button>
+            <button onclick="switchRailTab(this, 'gantt')">Calendrier</button>
+          </div>
+          <div class="rail-tab-content active" id="tab-workload">
+          <div class="workload-list">
+            <div class="workload-item">
+              <div class="av" style="background:var(--forest-700)">PL</div>
+              <div class="who">
+                <div class="name">Patrick Lemoine <span class="role">AS</span></div>
+                <div class="bar"><div class="fill" style="width:40%"></div></div>
+              </div>
+              <div class="pct">2 j</div>
+            </div>
+            <div class="workload-item">
+              <div class="av" style="background:var(--forest-500)">CR</div>
+              <div class="who">
+                <div class="name">Camille Roussel <span class="role">SR MGR</span></div>
+                <div class="bar"><div class="fill tight" style="width:90%"></div></div>
+              </div>
+              <div class="pct tight">4,5 j</div>
+            </div>
+            <div class="workload-item">
+              <div class="av" style="background:var(--forest-500)">MB</div>
+              <div class="who">
+                <div class="name">Mehdi Bensalem <span class="role">MGR</span></div>
+                <div class="bar"><div class="fill" style="width:60%"></div></div>
+              </div>
+              <div class="pct">3 j</div>
+            </div>
+            <div class="workload-item">
+              <div class="av" style="background:var(--forest-500)">LM</div>
+              <div class="who">
+                <div class="name">L&eacute;a Mercier <span class="role">SR</span></div>
+                <div class="bar"><div class="fill" style="width:60%"></div></div>
+              </div>
+              <div class="pct">3 j</div>
+            </div>
+            <div class="workload-item">
+              <div class="av" style="background:var(--forest-500)">AT</div>
+              <div class="who">
+                <div class="name">A&iuml;cha Tour&eacute; <span class="role">SR</span></div>
+                <div class="bar"><div class="fill over" style="width:115%"></div></div>
+              </div>
+              <div class="pct over">5,75 j</div>
+            </div>
+            <div class="workload-item">
+              <div class="av" style="background:var(--gold-500); color:var(--forest-900)">YD</div>
+              <div class="who">
+                <div class="name">Yann Doukour&eacute; <span class="role">JR</span></div>
+                <div class="bar"><div class="fill" style="width:50%"></div></div>
+              </div>
+              <div class="pct">2,5 j</div>
+            </div>
+          </div>
+          </div><!-- /tab-workload -->
+
+          <div class="rail-tab-content" id="tab-gantt" style="padding: 14px 16px">
+          <div style="font-size:11px; color:var(--text-500); font-family:'JetBrains Mono', monospace; margin-bottom:10px; text-align:right">S20 - S27</div>
+          <div class="gantt-weeks">
+            <div></div>
+            <div>S20</div>
+            <div class="now">S21</div>
+            <div>S22</div>
+            <div>S23</div>
+            <div>S24</div>
+            <div>S25</div>
+            <div>S26</div>
+            <div>S27</div>
+          </div>
+          <div style="position:relative; padding-top:12px">
+            <div class="gantt-now-line" style="left: calc(60px + (100% - 60px) * 0.18);"></div>
+            <div class="gantt-row">
+              <div class="label">EDM</div>
+              <div class="track"><div class="gantt-bar" style="left:0%; width:25%;">5 ctrl</div></div>
+            </div>
+            <div class="gantt-row">
+              <div class="label">APO</div>
+              <div class="track"><div class="gantt-bar gold" style="left:12.5%; width:50%;">14 contr&ocirc;les</div></div>
+            </div>
+            <div class="gantt-row">
+              <div class="label">BAI</div>
+              <div class="track"><div class="gantt-bar dark" style="left:37.5%; width:37.5%;">12 contr&ocirc;les</div></div>
+            </div>
+            <div class="gantt-row">
+              <div class="label">DSS</div>
+              <div class="track"><div class="gantt-bar" style="left:50%; width:37.5%;">6 contr&ocirc;les</div></div>
+            </div>
+            <div class="gantt-row">
+              <div class="label">MEA</div>
+              <div class="track"><div class="gantt-bar warn" style="left:75%; width:25%;">3 ctrl</div></div>
+            </div>
+            <div class="gantt-row" style="height:26px; margin-top:8px">
+              <div class="label" style="color:var(--gold-700)">Revue</div>
+              <div class="track"><div class="gantt-bar gold" style="left:87.5%; width:12.5%;">P5</div></div>
+            </div>
+          </div>
+          </div><!-- /tab-gantt -->
+        </div><!-- /rail-card merged -->
+
+      </div>
+    </div>
+    <script>
+      function switchRailTab(btn, key) {
+        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const card = btn.closest('.rail-card');
+        card.querySelectorAll('.rail-tab-content').forEach(c => c.classList.remove('active'));
+        card.querySelector('#tab-' + key).classList.add('active');
+      }
+    </script>
+
+    <!-- Decisions footer -->
+    <div style="padding:18px 28px; background:var(--surface); border-top:1px solid var(--border)">
+      <div style="max-width:1500px; margin:0 auto; padding:14px 18px; background:var(--bg); border:1px dashed var(--border); border-radius:10px; font-size:12px; color:var(--text-500); line-height:1.6">
+        <strong style="color:var(--text-900)">D&eacute;cisions retenues</strong>
+        <br>1. <strong>Pas de due dates par contr&ocirc;le</strong> &mdash; on garde le mod&egrave;le actuel (ni `due_date` sur `mission_control_assignments`, ni nouvelle table). Le calendrier de mission (start_date / end_date) suffit, le pilotage temporel se fait au niveau Gantt par domaine.
+        <br>2. <strong>Multi-select bulk</strong> &mdash; checkbox par ligne + barre &laquo; X s&eacute;lectionn&eacute;s &raquo; + bouton &laquo; Affecter en masse &raquo;. S&apos;ajoute &agrave; l&apos;existant &laquo; Affecter tout le domaine &raquo; pour plus de flexibilit&eacute;.
+        <br>3. <strong>Priorit&eacute;s P1/P2/P3</strong> &mdash; d&eacute;riv&eacute;es de `control_planning.risk_level` (1-5). Mapping : 4-5 &rarr; P1 rouge, 3 &rarr; P2 orange, 1-2 &rarr; P3 gris. Pas de migration.
+        <br>4. <strong>Risk callout actionnable</strong> &mdash; logique &laquo; P1 unassigned + auditeur le moins charg&eacute; &raquo; &rarr; CTA pr&eacute;-cibl&eacute; &laquo; Affecter &agrave; L&eacute;a &raquo;. &Agrave; impl&eacute;menter.
+        <br>5. <strong>SmartPlan &laquo; Voir les hypoth&egrave;ses &raquo;</strong> &mdash; modale d&eacute;taillant les crit&egrave;res IA (comp&eacute;tences, charges historiques, secteur, capacit&eacute; restante) pour la transparence. &Agrave; impl&eacute;menter.
+        <br>6. <strong>Mini Gantt par domaine</strong> conserv&eacute;. Fusionn&eacute; avec la carte Charge &eacute;quipe en onglets (all&egrave;gement visuel).
+        <br>7. <strong>3 sous-onglets</strong> (Programme de travail / Entretiens / Livrables) maintenus s&eacute;par&eacute;ment.
+        <br>8. <strong>Validation</strong> passe la mission en `fieldwork` (existe d&eacute;j&agrave;).
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

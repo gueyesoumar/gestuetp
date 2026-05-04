@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup &mdash; Phase 2 c&ocirc;t&eacute; client (transposition handoff)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --forest-900: #1B4332; --forest-800: #234E3D; --forest-700: #2D6A4F;
+    --forest-500: #40916C; --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-700: #9A7B26; --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-100: #FAEFC9; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --surface: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --border-soft: #EFEFEC;
+    --success: #27AE60; --success-bg: #ECFDF5;
+    --error: #C0392B; --error-bg: #FEF2F2;
+    --warn: #B45309; --warn-bg: #FFFBEB;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; cursor: pointer; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .mock-bar { position: sticky; top: 0; z-index: 100; background: var(--forest-900); padding: 14px 24px; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.85); font-size: 12px; }
+  .mock-bar .lbl { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mock-bar .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.45); font-size: 11px; }
+
+  /* Client portal shell */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 47px); }
+  .sidebar { background: var(--forest-900); color: rgba(255,255,255,0.78); display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 18px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-logo svg { width: 28px; height: 32px; }
+  .sidebar-logo .brand { font-weight: 800; font-size: 17px; color: white; line-height: 1; }
+  .sidebar-logo .brand .uml { color: var(--gold-500); }
+  .sidebar-logo .product { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-500); font-weight: 600; margin-top: 4px; }
+  .sidebar-nav { padding: 12px 8px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .sidebar-section { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 14px 12px 6px; font-weight: 600; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.05); color: white; }
+  .sidebar-item.active { background: rgba(255,255,255,0.08); color: white; position: relative; }
+  .sidebar-item.active::before { content: ''; position: absolute; left: -8px; top: 8px; bottom: 8px; width: 3px; background: var(--gold-500); border-radius: 0 3px 3px 0; }
+  .sidebar-item .count { margin-left: auto; font-size: 11px; background: rgba(255,255,255,0.1); padding: 1px 7px; border-radius: 99px; }
+  .sidebar-user { border-top: 1px solid rgba(255,255,255,0.08); padding: 12px; display: flex; align-items: center; gap: 10px; }
+  .sidebar-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--forest-700); color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sidebar-user .who { flex: 1; min-width: 0; }
+  .sidebar-user .name { color: white; font-size: 13px; font-weight: 600; }
+  .sidebar-user .role { color: rgba(255,255,255,0.5); font-size: 11px; }
+
+  /* Topbar */
+  .topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-500); }
+  .crumbs a { color: var(--text-500); text-decoration: none; }
+  .crumbs .here { color: var(--text-900); font-weight: 500; }
+  .crumbs .sep { color: var(--text-300); }
+  .topbar-spacer { flex: 1; }
+
+  /* Page heading */
+  .page-head { padding: 24px 32px 8px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .page-head h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .page-head .sub { font-size: 13px; color: var(--text-500); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .page-head .sub .pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 7px; background: var(--forest-50); color: var(--forest-700); border-radius: 4px; font-weight: 600; }
+
+  /* Content layout */
+  .content { padding: 24px 32px 60px; max-width: 1300px; margin: 0 auto; }
+
+  /* Welcome banner */
+  .welcome-banner { background: var(--forest-50); border: 1px solid var(--forest-300); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .welcome-banner .ico { width: 32px; height: 32px; border-radius: 8px; background: var(--forest-700); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .welcome-banner .body { flex: 1; }
+  .welcome-banner .title { font-size: 13px; font-weight: 600; color: var(--text-900); margin-bottom: 2px; }
+  .welcome-banner .desc { font-size: 12px; color: var(--text-700); line-height: 1.45; }
+  .welcome-banner .desc strong { color: var(--text-900); }
+
+  /* Two-col layout: rail + main */
+  .questionnaire { display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start; }
+
+  /* Section rail (sticky) */
+  .q-rail { position: sticky; top: 24px; }
+  .q-rail-progress { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .q-rail-progress .label { font-size: 11px; color: var(--text-500); text-transform: uppercase; font-weight: 600; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .q-rail-progress .value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1; }
+  .q-rail-progress .value .total { font-size: 14px; color: var(--text-500); font-weight: 500; }
+  .q-rail-progress .progress-bar { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+  .q-rail-progress .progress-bar .fill { height: 100%; background: var(--gold-500); border-radius: 99px; transition: width 0.4s; }
+  .q-rail-progress .meta { font-size: 11px; color: var(--text-500); margin-top: 8px; }
+
+  .q-rail-nav { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .q-rail-section { padding: 12px 14px; border-bottom: 1px solid var(--border-soft); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-700); transition: all 0.12s; }
+  .q-rail-section:last-child { border-bottom: 0; }
+  .q-rail-section:hover { background: var(--bg); }
+  .q-rail-section.active { background: var(--forest-50); color: var(--forest-900); font-weight: 600; border-left: 3px solid var(--gold-500); padding-left: 11px; }
+  .q-rail-section .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .q-rail-section.done .dot { background: var(--success); color: white; }
+  .q-rail-section.partial .dot { background: var(--gold-500); }
+  .q-rail-section .info { flex: 1; min-width: 0; }
+  .q-rail-section .nm { font-weight: 500; }
+  .q-rail-section.active .nm { font-weight: 600; }
+  .q-rail-section .desc { font-size: 11px; color: var(--text-500); margin-top: 1px; }
+  .q-rail-section .count { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-500); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+  /* Help card */
+  .help-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-top: 14px; }
+  .help-card .title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--text-500); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .help-card .desc { font-size: 12px; color: var(--text-700); line-height: 1.55; }
+  .help-card a { color: var(--forest-700); font-weight: 600; text-decoration: none; }
+
+  /* Main content */
+  .q-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 16px; }
+  .q-section .section-head { margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
+  .q-section .section-head h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-900); margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+  .q-section .section-head h2 .code { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 3px 8px; background: var(--forest-50); color: var(--forest-700); border-radius: 4px; font-weight: 700; }
+  .q-section .section-head .desc { font-size: 13px; color: var(--text-500); line-height: 1.5; }
+
+  /* Question */
+  .q-question { padding: 18px 0; border-bottom: 1px solid var(--border-soft); }
+  .q-question:last-child { border-bottom: 0; padding-bottom: 0; }
+  .q-question.locked { opacity: 0.55; }
+  .q-question .label { display: flex; gap: 8px; font-size: 14px; font-weight: 500; color: var(--text-900); margin-bottom: 12px; align-items: flex-start; }
+  .q-question .label .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-500); font-weight: 600; flex-shrink: 0; padding-top: 1px; min-width: 50px; }
+  .q-question .label .req { color: var(--error); margin-left: 2px; }
+  .q-question .label .text { flex: 1; }
+  .q-question .help { font-size: 12px; color: var(--text-500); margin-top: 6px; line-height: 1.5; padding-left: 58px; }
+  .q-question .delegated { font-size: 11px; color: var(--gold-700); font-weight: 600; padding: 4px 8px; background: var(--gold-50); border-radius: 4px; margin-left: 8px; display: inline-flex; align-items: center; gap: 4px; }
+
+  /* Radio pills */
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; padding-left: 58px; }
+  .radio-pill { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-700); cursor: pointer; font-family: inherit; font-weight: 500; transition: all 0.12s; display: inline-flex; align-items: center; gap: 8px; }
+  .radio-pill:hover { border-color: var(--forest-300); }
+  .radio-pill[aria-pressed="true"] { background: var(--forest-50); color: var(--forest-900); border-color: var(--forest-700); }
+  .radio-pill .dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--text-300); position: relative; transition: all 0.12s; }
+  .radio-pill[aria-pressed="true"] .dot { border-color: var(--forest-700); background: white; }
+  .radio-pill[aria-pressed="true"] .dot::after { content: ''; position: absolute; inset: 2px; background: var(--forest-700); border-radius: 50%; }
+
+  /* Boolean buttons (yes/no big) */
+  .bool-group { display: flex; gap: 10px; padding-left: 58px; }
+  .bool-btn { padding: 12px 20px; min-width: 100px; border: 1.5px solid var(--border); background: var(--surface); border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text-700); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .bool-btn:hover { border-color: var(--forest-300); }
+  .bool-btn[aria-pressed="true"].yes { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+  .bool-btn[aria-pressed="true"].no { background: var(--error-bg); color: var(--error); border-color: var(--error); }
+  .bool-btn .ico { width: 16px; height: 16px; }
+
+  /* Checkbox group */
+  .check-group { display: flex; flex-direction: column; gap: 6px; padding-left: 58px; }
+  .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.12s; font-size: 13px; }
+  .check-item:hover { border-color: var(--forest-300); }
+  .check-item[aria-checked="true"] { background: var(--forest-50); border-color: var(--forest-700); }
+  .check-item .ck { width: 18px; height: 18px; border: 1.5px solid var(--text-300); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--surface); color: white; }
+  .check-item[aria-checked="true"] .ck { background: var(--forest-700); border-color: var(--forest-700); }
+
+  /* Text input / textarea */
+  .text-input-wrap { padding-left: 58px; }
+  .text-input-wrap input, .text-input-wrap textarea { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text-900); transition: border-color 0.15s, box-shadow 0.15s; }
+  .text-input-wrap input { height: 40px; padding: 0 14px; }
+  .text-input-wrap input:focus, .text-input-wrap textarea:focus { outline: none; border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .text-input-wrap textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .text-input-wrap .char-count { font-size: 11px; color: var(--text-500); margin-top: 4px; text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+  /* Follow-up question (conditional) */
+  .followup { margin-top: 12px; margin-left: 58px; padding: 14px 16px; background: var(--gold-50); border-left: 3px solid var(--gold-500); border-radius: 0 8px 8px 0; }
+  .followup .lbl { font-size: 12px; font-weight: 600; color: var(--gold-700); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .followup .lbl::before { content: '\21B3'; font-size: 14px; }
+
+  /* Upload zone */
+  .upload-zone { margin-top: 12px; margin-left: 58px; border: 1.5px dashed var(--border); border-radius: 10px; padding: 14px 18px; background: var(--bg); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.12s; }
+  .upload-zone:hover { border-color: var(--forest-300); background: var(--forest-50); }
+  .upload-zone .ico { width: 32px; height: 32px; border-radius: 8px; background: var(--forest-50); color: var(--forest-700); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .upload-zone .body { flex: 1; }
+  .upload-zone .title { font-size: 13px; font-weight: 600; color: var(--text-900); margin-bottom: 2px; }
+  .upload-zone .desc { font-size: 11px; color: var(--text-500); }
+  .upload-zone .browse { color: var(--forest-700); font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+  .uploaded-list { margin-top: 8px; margin-left: 58px; display: flex; flex-direction: column; gap: 6px; }
+  .uploaded-file { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 8px; }
+  .uploaded-file .ico { width: 24px; height: 24px; border-radius: 6px; background: var(--forest-50); color: var(--forest-700); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 9px; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .uploaded-file .name { font-size: 12px; color: var(--text-900); flex: 1; font-weight: 500; }
+  .uploaded-file .meta { font-size: 11px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; }
+  .uploaded-file .remove { background: transparent; border: 0; cursor: pointer; color: var(--text-500); padding: 4px; border-radius: 4px; font-size: 14px; line-height: 1; }
+  .uploaded-file .remove:hover { background: var(--bg); color: var(--error); }
+
+  /* Action bar */
+  .action-bar { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; gap: 12px; margin: 16px -32px -60px; box-shadow: 0 -2px 8px rgba(0,0,0,0.04); z-index: 10; }
+  .action-bar .auto-save { font-size: 12px; color: var(--text-500); display: flex; align-items: center; gap: 6px; }
+  .action-bar .auto-save .live-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; box-shadow: 0 0 0 3px rgba(34, 139, 87, 0.18); }
+  .action-bar .spacer { flex: 1; }
+
+  /* Buttons */
+  .btn { height: 36px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; transition: all 0.12s; }
+  .btn-primary { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-gold { background: var(--gold-500); color: var(--forest-900); border-color: var(--gold-500); font-weight: 600; }
+  .btn-gold:hover { background: var(--gold-600); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text-700); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--forest-300); color: var(--forest-900); }
+  .btn-ghost { background: transparent; color: var(--text-700); border-color: transparent; }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- Mockup harness -->
+<div class="mock-bar">
+  <span class="lbl">MOCKUP</span>
+  <span>Phase 2 c&ocirc;t&eacute; client &mdash; portail RSSI/sponsor (long-form par section, vs wizard une-question-&agrave;-la-fois actuel)</span>
+  <span class="meta">handoff-4-phase2-client</span>
+</div>
+
+<div class="app">
+  <!-- Client portal sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 28 32" fill="none">
+        <path d="M14 1.5L2 5.5v9c0 8 5.4 14 12 16 6.6-2 12-8 12-16v-9l-12-4z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+        <path d="M9 14a5 5 0 0110 0v3" stroke="#D4A843" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand">G<span class="uml">&euml;</span>stu</div>
+        <div class="product">Comply</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Banque Atlantis</div>
+      <a class="sidebar-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 12L12 4l9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+        <span>Tableau de bord</span>
+      </a>
+      <a class="sidebar-item active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+        <span>Mission en cours</span>
+        <span class="count">42/37</span>
+      </a>
+      <a class="sidebar-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 3v5h5M14 3l5 5M19 8v9a3 3 0 01-3 3H8a3 3 0 01-3-3V6a3 3 0 013-3h6"/></svg>
+        <span>Mes documents</span>
+        <span class="count">23</span>
+      </a>
+      <a class="sidebar-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 9a6 6 0 0112 0v5l2 3H4l2-3V9z"/><path d="M10 19a2 2 0 004 0"/></svg>
+        <span>Notifications</span>
+        <span class="count">2</span>
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar">SR</div>
+      <div class="who">
+        <div class="name">Sylvie Rambeau</div>
+        <div class="role">RSSI &middot; Banque Atlantis</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main column -->
+  <div>
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="#">Mission en cours</a>
+        <span class="sep">&rsaquo;</span>
+        <span class="here">Questionnaire de prise de connaissance</span>
+      </div>
+    </header>
+
+    <div class="page-head">
+      <h1>Questionnaire de prise de connaissance</h1>
+      <div class="sub">
+        <span class="pill">M-2026-018</span>
+        <span>Audit COBIT 2019 conduit par G&euml;stu Comply</span>
+        <span>&middot;</span>
+        <span style="color:var(--warn); font-weight:600">&Eacute;ch&eacute;ance le 8 mai 2026 (J-6)</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Welcome banner -->
+      <div class="welcome-banner">
+        <div class="ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <div class="body">
+          <div class="title">Bonjour Sylvie &mdash; vos r&eacute;ponses sont enregistr&eacute;es automatiquement</div>
+          <div class="desc">Vous pouvez r&eacute;pondre par &eacute;tapes et revenir plus tard. Les questions marqu&eacute;es <strong style="color:var(--error)">*</strong> sont obligatoires pour valider la section. Pour toute pr&eacute;cision, contactez <strong>Mehdi Bensalem</strong> (chef de mission G&euml;stu).</div>
+        </div>
+      </div>
+
+      <!-- Two columns: rail + main -->
+      <div class="questionnaire">
+
+        <!-- Section rail -->
+        <aside class="q-rail">
+          <div class="q-rail-progress">
+            <div class="label">Avancement total</div>
+            <div class="value">21<span class="total">/37</span></div>
+            <div class="progress-bar"><div class="fill" style="width:57%"></div></div>
+            <div class="meta">57% &middot; sauvegard&eacute; en continu</div>
+          </div>
+
+          <div class="q-rail-nav">
+            <div class="q-rail-section done">
+              <span class="dot">
+                <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M5 12l5 5L20 7"/></svg>
+              </span>
+              <div class="info">
+                <div class="nm">GOV</div>
+                <div class="desc">Gouvernance &amp; politique</div>
+              </div>
+              <span class="count">7/7</span>
+            </div>
+            <div class="q-rail-section done">
+              <span class="dot">
+                <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M5 12l5 5L20 7"/></svg>
+              </span>
+              <div class="info">
+                <div class="nm">MAT</div>
+                <div class="desc">Maturit&eacute; des processus</div>
+              </div>
+              <span class="count">8/8</span>
+            </div>
+            <div class="q-rail-section active partial">
+              <span class="dot"></span>
+              <div class="info">
+                <div class="nm">OPS</div>
+                <div class="desc">Op&eacute;rations &amp; s&eacute;curit&eacute;</div>
+              </div>
+              <span class="count">6/12</span>
+            </div>
+            <div class="q-rail-section">
+              <span class="dot"></span>
+              <div class="info">
+                <div class="nm">INC</div>
+                <div class="desc">Gestion des incidents</div>
+              </div>
+              <span class="count">0/6</span>
+            </div>
+            <div class="q-rail-section">
+              <span class="dot"></span>
+              <div class="info">
+                <div class="nm">ATT</div>
+                <div class="desc">Attentes &amp; enjeux</div>
+              </div>
+              <span class="count">0/4</span>
+            </div>
+          </div>
+
+          <div class="help-card">
+            <div class="title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13a2 2 0 002-2 2 2 0 10-4 0"/></svg>
+              Besoin d&apos;aide ?
+            </div>
+            <div class="desc">Une question vous bloque ? <a href="#">D&eacute;l&eacute;guer &agrave; un coll&egrave;gue</a> ou <a href="#">demander &agrave; Mehdi</a>.</div>
+          </div>
+        </aside>
+
+        <!-- Main: section content -->
+        <div>
+          <div class="q-section">
+            <div class="section-head">
+              <h2><span class="code">OPS</span>Op&eacute;rations &amp; s&eacute;curit&eacute;</h2>
+              <div class="desc">Cette section concerne vos op&eacute;rations IT au quotidien : SOC, gestion d&apos;identit&eacute;s, sauvegardes, infrastructure cloud. 12 questions au total &middot; 6 r&eacute;pondues &middot; 2 documents attendus.</div>
+            </div>
+
+            <!-- Q1: Boolean -->
+            <div class="q-question">
+              <div class="label">
+                <span class="num">OPS-01</span>
+                <span class="text">Disposez-vous d&apos;un Security Operations Center (SOC) op&eacute;rationnel ?<span class="req">*</span></span>
+              </div>
+              <div class="bool-group">
+                <button class="bool-btn yes" aria-pressed="true">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+                  Oui
+                </button>
+                <button class="bool-btn no">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                  Non
+                </button>
+              </div>
+              <div class="followup">
+                <div class="lbl">Question conditionnelle &middot; mod&egrave;le SOC</div>
+                <div class="radio-group" style="padding-left:0; margin-top:6px">
+                  <button class="radio-pill" aria-pressed="true"><span class="dot"></span>Interne 24/7</button>
+                  <button class="radio-pill"><span class="dot"></span>Interne en heures ouvr&eacute;es</button>
+                  <button class="radio-pill"><span class="dot"></span>Externalis&eacute; (MSSP)</button>
+                  <button class="radio-pill"><span class="dot"></span>Mixte</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Q2: Text + upload -->
+            <div class="q-question">
+              <div class="label">
+                <span class="num">OPS-02</span>
+                <span class="text">D&eacute;crivez votre architecture cloud principale (fournisseurs, r&eacute;gions, services critiques).<span class="req">*</span></span>
+              </div>
+              <div class="text-input-wrap">
+                <textarea rows="3" placeholder="Ex : AWS Paris (eu-west-3), 4 comptes prod, RDS Aurora multi-AZ, EKS pour les microservices&hellip;">Architecture multi-cloud : AWS (eu-west-3) pour la production avec 4 comptes (prod, staging, sandbox, security), Azure (West Europe) pour les workloads M365 et Power BI. Services critiques : RDS Aurora PostgreSQL (Atlantis Core), EKS pour les microservices m&eacute;tier, S3 pour archivage long terme.</textarea>
+                <div class="char-count">478 / 2000</div>
+              </div>
+              <div class="upload-zone">
+                <div class="ico">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5M14 3l5 5M19 8v9a3 3 0 01-3 3H8a3 3 0 01-3-3V6a3 3 0 013-3h6"/></svg>
+                </div>
+                <div class="body">
+                  <div class="title">Joindre un sch&eacute;ma d&apos;architecture (PDF, PNG, draw.io) <span style="font-weight:400; color:var(--text-500)">&mdash; optionnel</span></div>
+                  <div class="desc">Glissez un fichier ou <span class="browse">parcourez</span> &middot; 25 Mo max</div>
+                </div>
+              </div>
+              <div class="uploaded-list">
+                <div class="uploaded-file">
+                  <div class="ico">PDF</div>
+                  <div class="name">Schema-Architecture-Cloud-Atlantis-2026.pdf</div>
+                  <div class="meta">3.2 Mo &middot; uploadé hier</div>
+                  <button class="remove" aria-label="Supprimer">&times;</button>
+                </div>
+              </div>
+              <div style="margin-left:58px; margin-top:8px; font-size:11px; color:var(--forest-700); display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:var(--forest-50); border-radius:6px">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+                Votre r&eacute;ponse alimente l&apos;&eacute;valuation de <strong>3 contr&ocirc;les</strong> (A.5.10, A.8.1, DSS-05)
+              </div>
+            </div>
+
+            <!-- Q3: Multi-checkbox -->
+            <div class="q-question">
+              <div class="label">
+                <span class="num">OPS-04</span>
+                <span class="text">Quels outils de gestion des identit&eacute;s et acc&egrave;s utilisez-vous ? (plusieurs r&eacute;ponses possibles)<span class="req">*</span></span>
+              </div>
+              <div class="check-group">
+                <button class="check-item" aria-checked="true">
+                  <span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></span>
+                  <span>Microsoft Entra ID (ex-Azure AD)</span>
+                </button>
+                <button class="check-item" aria-checked="true">
+                  <span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></span>
+                  <span>Okta</span>
+                </button>
+                <button class="check-item">
+                  <span class="ck"></span>
+                  <span>SailPoint IdentityIQ</span>
+                </button>
+                <button class="check-item" aria-checked="true">
+                  <span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></span>
+                  <span>Solution interne / d&eacute;velopp&eacute;e en interne</span>
+                </button>
+                <button class="check-item">
+                  <span class="ck"></span>
+                  <span>Aucun outil sp&eacute;cifique &middot; LDAP / AD seul</span>
+                </button>
+              </div>
+              <div class="help">3 outils s&eacute;lectionn&eacute;s. Si plusieurs solutions coexistent, pr&eacute;ciser leur articulation dans la question OPS-05.</div>
+            </div>
+
+            <!-- Q4: Radio (5 levels) -->
+            <div class="q-question">
+              <div class="label">
+                <span class="num">OPS-06</span>
+                <span class="text">Quel est le niveau de maturit&eacute; de votre dispositif de sauvegarde et reprise d&apos;activit&eacute; ?<span class="req">*</span></span>
+              </div>
+              <div class="radio-group">
+                <button class="radio-pill"><span class="dot"></span>1 &middot; Inexistant</button>
+                <button class="radio-pill"><span class="dot"></span>2 &middot; Basique</button>
+                <button class="radio-pill" aria-pressed="true"><span class="dot"></span>3 &middot; D&eacute;fini</button>
+                <button class="radio-pill"><span class="dot"></span>4 &middot; G&eacute;r&eacute;</button>
+                <button class="radio-pill"><span class="dot"></span>5 &middot; Optimis&eacute;</button>
+              </div>
+              <div class="help">Niveau 3 &laquo; D&eacute;fini &raquo; : politique de sauvegarde formalis&eacute;e, tests de restauration p&eacute;riodiques, RPO/RTO connus mais non test&eacute;s en conditions r&eacute;elles.</div>
+            </div>
+
+            <!-- Q5: Pending (delegated) -->
+            <div class="q-question locked">
+              <div class="label">
+                <span class="num">OPS-07</span>
+                <span class="text">D&eacute;crivez votre dispositif de gestion des privil&egrave;ges (PAM) et des comptes &agrave; haute valeur.</span>
+                <span class="delegated">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/></svg>
+                  D&eacute;l&eacute;gu&eacute; &agrave; Pierre Vallot
+                </span>
+              </div>
+              <div class="help">Cette question a &eacute;t&eacute; assign&eacute;e &agrave; <strong>Pierre Vallot</strong> (Resp. infrastructure) le 28 avril. Il a &eacute;t&eacute; invit&eacute; au portail mais n&apos;a pas encore r&eacute;pondu. Vous pouvez relancer ou r&eacute;cup&eacute;rer la main.</div>
+            </div>
+
+            <!-- Q6: Currently writing (focus) -->
+            <div class="q-question">
+              <div class="label">
+                <span class="num">OPS-08</span>
+                <span class="text">Combien de personnes travaillent au sein de votre &eacute;quipe s&eacute;curit&eacute; (interne et prestataires) ?<span class="req">*</span></span>
+              </div>
+              <div class="text-input-wrap">
+                <input type="text" placeholder="Ex : 8 internes + 4 prestataires" value="6 internes (RSSI inclus) + 3 prestataires (SOC + audits ponctuels)" />
+                <div class="char-count">62 / 200</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Action bar -->
+          <div class="action-bar">
+            <span class="auto-save">
+              <span class="live-dot"></span>
+              Sauvegard&eacute; &middot; il y a 4 secondes
+            </span>
+            <div class="spacer"></div>
+            <button class="btn btn-secondary btn-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Section pr&eacute;c&eacute;dente (MAT)
+            </button>
+            <button class="btn btn-primary btn-sm">
+              Section suivante (INC)
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decisions footer -->
+      <div style="margin-top:48px; padding:14px 18px; background:var(--surface); border:1px dashed var(--border); border-radius:10px; font-size:12px; color:var(--text-500); line-height:1.6">
+        <strong style="color:var(--text-900)">D&eacute;cisions retenues</strong>
+        <br>1. <strong>Long-form par section</strong> &mdash; bascule du wizard une-question-&agrave;-la-fois actuel vers ce pattern. Plus rapide pour RSSI/DSI.
+        <br>2. <strong>Upload inline + lien question&harr;contr&ocirc;les</strong> &mdash; refactor architectural majeur valid&eacute; : cr&eacute;ation de la table <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--bg); padding:1px 6px; border-radius:4px; font-size:11px">question_controls</span> (many-to-many). Chaque r&eacute;ponse au cadrage alimente directement les contr&ocirc;les li&eacute;s, et l&apos;upload cr&eacute;e automatiquement les <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--bg); padding:1px 6px; border-radius:4px; font-size:11px">mission_evidence_requests</span>. Visible sur OPS-02 : badge forest &laquo; Votre r&eacute;ponse alimente 3 contr&ocirc;les &raquo;. Voir m&eacute;moire <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--bg); padding:1px 6px; border-radius:4px; font-size:11px">project_question_controls_link</span>.
+        <br>3. <strong>D&eacute;l&eacute;gation question-par-question</strong> &mdash; valid&eacute; comme chantier &agrave; faire. OPS-07 d&eacute;l&eacute;gu&eacute; &agrave; Pierre Vallot, lock&eacute; pour Sylvie. N&eacute;cessite : permissions par question, notifications cibl&eacute;es, statut <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--bg); padding:1px 6px; border-radius:4px; font-size:11px">delegated_to</span> sur la r&eacute;ponse.
+        <br>4. <strong>Estimation temps restant</strong> &mdash; <strong>retir&eacute;e</strong>. Risque de frustrer si l&apos;estimation est fausse.
+        <br>5. <strong>Indicateur &laquo; question conditionnelle &raquo; (bandeau gold)</strong> &mdash; valid&eacute;. Pattern clair pour les follow-ups d&eacute;clench&eacute;s par une r&eacute;ponse pr&eacute;c&eacute;dente.
+        <br>6. <strong>Aide contextuelle</strong> sous certaines questions (champ <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--bg); padding:1px 6px; border-radius:4px; font-size:11px">help_text</span> sur le template) &mdash; valid&eacute;.
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
