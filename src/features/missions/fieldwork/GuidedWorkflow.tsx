@@ -5,17 +5,15 @@ import { DocumenterStep } from './steps/DocumenterStep'
 import { AnalyserStep } from './steps/AnalyserStep'
 import { ValidationStep } from './steps/ValidationStep'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
-
 import type { Document } from '../../../types/database.types'
+import type { ConformityLevel } from '../mission-constants'
+import type { UseAssessmentFindingsReturn } from './findings/useAssessmentFindings'
 
 interface GuidedWorkflowProps {
   assessment: AssessmentWithControl
   currentStep: number
   observations: string
   evidenceNotes: string
-  findings: string
-  recommendations: string
-  riskNotes: string
   documents: Document[]
   uploading: boolean
   uploadError: string | null
@@ -23,24 +21,19 @@ interface GuidedWorkflowProps {
   onDeleteDoc: (docId: string, filePath: string) => Promise<boolean>
   onObservationsChange: (v: string) => void
   onEvidenceNotesChange: (v: string) => void
-  onFindingsChange: (v: string) => void
-  onRecommendationsChange: (v: string) => void
-  onRiskNotesChange: (v: string) => void
   conformityLevel: string | null
   onConformityChange: (v: string) => void
-  findingClassification: string | null
-  onFindingClassificationChange: (v: string | null) => void
+  findingsHook: UseAssessmentFindingsReturn
   onSubmit: () => void
   saving: boolean
   readOnly: boolean
 }
 
 export function GuidedWorkflow(props: GuidedWorkflowProps){
-  const { assessment, currentStep, saving, readOnly } = props
+  const { assessment, currentStep, saving, readOnly, findingsHook } = props
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Step pipeline */}
       <div className="flex items-center px-6 py-4 border-b border-gray-200 gap-0">
         {GUIDED_STEPS.map((step, i) => (
           <div key={step.key} className="flex items-center">
@@ -57,7 +50,6 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
         ))}
       </div>
 
-      {/* Step content */}
       <div className="flex-1 overflow-y-auto p-6">
         {currentStep === 0 && (
           <ObserverStep
@@ -84,17 +76,9 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
             assessment={assessment}
             observations={props.observations}
             evidenceNotes={props.evidenceNotes}
-            documents={props.documents}
-            findings={props.findings}
-            recommendations={props.recommendations}
-            riskNotes={props.riskNotes}
-            onFindingsChange={props.onFindingsChange}
-            onRecommendationsChange={props.onRecommendationsChange}
-            onRiskNotesChange={props.onRiskNotesChange}
-            conformityLevel={props.conformityLevel as import('../mission-constants').ConformityLevel | null}
-            onConformityChange={props.onConformityChange as (v: import('../mission-constants').ConformityLevel) => void}
-            findingClassification={props.findingClassification}
-            onFindingClassificationChange={props.onFindingClassificationChange}
+            findingsHook={findingsHook}
+            conformityLevel={props.conformityLevel as ConformityLevel | null}
+            onConformityChange={props.onConformityChange as (v: ConformityLevel) => void}
             readOnly={readOnly}
           />
         )}
@@ -102,8 +86,7 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
           <ValidationStep
             assessment={assessment}
             observations={props.observations}
-            findings={props.findings}
-            recommendations={props.recommendations}
+            findingsHook={findingsHook}
             onSubmit={props.onSubmit}
             saving={saving}
           />

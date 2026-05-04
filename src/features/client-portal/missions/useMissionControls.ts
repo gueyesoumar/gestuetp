@@ -110,7 +110,7 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
       // 4. Get assessments for this mission
       const { data: assessments } = await supabase
         .from('control_assessments')
-        .select('id, control_id, findings, recommendations, risk_notes, conformity_level, finding_classification, status')
+        .select('id, control_id, conformity_level, status')
         .eq('mission_id', missionId)
         .in('status', ['submitted', 'in_review', 'approved'])
         .abortSignal(controller.signal)
@@ -120,6 +120,24 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
       const assessmentMap = new Map<string, typeof assessments[0]>()
       for (const a of assessments ?? []) {
         assessmentMap.set(a.control_id, a)
+      }
+
+      // 4b. Get findings for these assessments (replaces legacy textareas)
+      const allAssessmentIds = (assessments ?? []).map((a) => a.id)
+      const findingsByAssessment = new Map<string, Array<{ classification: FindingClassification; description: string; risk: string | null; recommendation: string | null; ord: number }>>()
+      if (allAssessmentIds.length > 0) {
+        const { data: findingsRows } = await supabase
+          .from('assessment_findings')
+          .select('assessment_id, classification, description, risk, recommendation, ord')
+          .in('assessment_id', allAssessmentIds)
+          .order('ord', { ascending: true })
+          .abortSignal(controller.signal)
+        if (controller.signal.aborted) return
+        for (const f of (findingsRows ?? []) as Array<{ assessment_id: string; classification: FindingClassification; description: string; risk: string | null; recommendation: string | null; ord: number }>) {
+          const list = findingsByAssessment.get(f.assessment_id) ?? []
+          list.push({ classification: f.classification, description: f.description, risk: f.risk, recommendation: f.recommendation, ord: f.ord })
+          findingsByAssessment.set(f.assessment_id, list)
+        }
       }
 
       // 5. Get observations for these assessments
@@ -152,7 +170,8 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         }
       }
 
-      // 6. Build merged list
+      // 6. Build merged list (findings denormalized from assessment_findings)
+      const SEVERITY: Record<FindingClassification, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
       const domainMap = new Map(domains.map((d) => [d.id, d]))
       const result: ControlWithAssessment[] = allControls.map((ctrl) => {
         const domain = domainMap.get(ctrl.domain_id)!
@@ -160,6 +179,16 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         const obsList = assessment ? observationsByAssessment.get(assessment.id) ?? [] : []
         const myObs = myUserId ? obsList.find((o) => o.observation_by === myUserId) : null
         const hasResponse = obsList.some((o) => o.response_text !== null)
+
+        const findings = assessment ? (findingsByAssessment.get(assessment.id) ?? []) : []
+        const findingsText = findings.map((f) => f.description).join('\n\n') || null
+        const recommendationsText = findings.filter((f) => f.recommendation).map((f, i) => `${i + 1}. ${f.recommendation}`).join('\n') || null
+        const riskText = findings.filter((f) => f.risk).map((f) => f.risk).join('\n\n') || null
+        const topClassification = findings.length === 0
+          ? null
+          : findings.reduce<FindingClassification | null>((acc, f) => (
+            !acc || SEVERITY[f.classification] > SEVERITY[acc] ? f.classification : acc
+          ), null)
 
         return {
           controlId: ctrl.id,
@@ -173,11 +202,11 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
           domainSortOrder: domain.sort_order,
           assessmentId: assessment?.id ?? null,
           assessmentStatus: assessment?.status ?? null,
-          findings: assessment?.findings ?? null,
-          recommendations: assessment?.recommendations ?? null,
-          riskNotes: assessment?.risk_notes ?? null,
+          findings: findingsText,
+          recommendations: recommendationsText,
+          riskNotes: riskText,
           conformityLevel: assessment?.conformity_level ?? null,
-          classification: (assessment?.finding_classification ?? null) as FindingClassification | null,
+          classification: topClassification,
           observationCount: obsList.length,
           myObservationId: myObs?.id ?? null,
           hasResponse,

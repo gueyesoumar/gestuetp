@@ -1,26 +1,24 @@
-import { Star, Paperclip } from 'lucide-react'
+import { Paperclip } from 'lucide-react'
 import { CONFORMITY_LEVELS } from '../mission-constants'
+import { FindingsEditor } from './findings/FindingsEditor'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
+import type { UseAssessmentFindingsReturn } from './findings/useAssessmentFindings'
 
 interface FreeWorkFormProps {
   assessment: AssessmentWithControl
   observations: string
   evidenceNotes: string
-  findings: string
-  recommendations: string
+  findingsHook: UseAssessmentFindingsReturn
   onObservationsChange: (v: string) => void
   onEvidenceNotesChange: (v: string) => void
-  onFindingsChange: (v: string) => void
-  onRecommendationsChange: (v: string) => void
   readOnly: boolean
 }
 
 export function FreeWorkForm(props: FreeWorkFormProps){
-  const { assessment, readOnly } = props
+  const { assessment, readOnly, findingsHook } = props
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-5">
-      {/* Control description */}
       {assessment.control.description && (
         <div className="bg-[#FAFAF8] border border-gray-100 rounded-lg p-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Description</p>
@@ -28,15 +26,6 @@ export function FreeWorkForm(props: FreeWorkFormProps){
         </div>
       )}
 
-      {/* AI draft */}
-      {assessment.ai_draft && (
-        <div className="flex items-start gap-2.5 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="w-6 h-6 rounded-md bg-purple-500 text-white flex items-center justify-center shrink-0"><Star size={13} /></div>
-          <p className="flex-1 text-xs text-purple-800 leading-relaxed">{assessment.ai_draft}</p>
-        </div>
-      )}
-
-      {/* Conformity level */}
       <div>
         <p className="text-[13px] font-semibold text-gray-700 mb-2">Niveau de conformit&eacute;</p>
         <div className="flex gap-2">
@@ -49,23 +38,14 @@ export function FreeWorkForm(props: FreeWorkFormProps){
         </div>
       </div>
 
-      {/* Observations */}
       <Field label="Observations terrain" value={props.observations} onChange={props.onObservationsChange} disabled={readOnly}
         placeholder="Notez ce que vous avez observ&eacute;..." rows={3} />
 
-      {/* Findings */}
-      <Field label="Constats" value={props.findings} onChange={props.onFindingsChange} disabled={readOnly}
-        placeholder="D&eacute;crivez vos constats factuels..." rows={4} required />
+      <FindingsEditor findingsHook={findingsHook} readOnly={readOnly} />
 
-      {/* Recommendations */}
-      <Field label="Recommandations" value={props.recommendations} onChange={props.onRecommendationsChange} disabled={readOnly}
-        placeholder="Proposez des am&eacute;liorations..." rows={3} />
-
-      {/* Evidence notes */}
       <Field label="Notes sur les preuves" value={props.evidenceNotes} onChange={props.onEvidenceNotesChange} disabled={readOnly}
         placeholder="D&eacute;crivez les preuves collect&eacute;es..." rows={2} />
 
-      {/* Upload zone */}
       <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-forest-300 hover:bg-forest-50 transition-colors cursor-pointer">
         <div className="flex justify-center text-gray-300 mb-1"><Paperclip size={18} /></div>
         <p className="text-xs text-gray-500">Glissez-d&eacute;posez ou <span className="text-forest-700 font-medium underline">parcourir</span></p>

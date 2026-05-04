@@ -49,6 +49,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const [closeError, setCloseError] = useState<string | null>(null)
   const [scoring, setScoring] = useState<ScoringData | null>(null)
   const [assessments, setAssessments] = useState<ControlAssessment[]>([])
+  const [findingClassifications, setFindingClassifications] = useState<string[]>([])
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const isClosed = mission.status === 'closure'
   const reportFlag = useFeatureFlag('report_generator_advanced')
@@ -63,11 +64,26 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       const baseUrl = import.meta.env.VITE_SUPABASE_URL
       const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
       const res = await fetch(
-        `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${mission.id}&select=id,mission_id,control_id,auditor_id,status,findings,recommendations,ai_draft,evidence_notes,observations,risk_notes,conformity_level,finding_classification,created_at,updated_at`,
+        `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${mission.id}&select=id,mission_id,control_id,auditor_id,status,evidence_notes,observations,conformity_level,created_at,updated_at`,
         { headers: { 'apikey': apikey, 'Authorization': `Bearer ${token}` }, signal: controller.signal }
       )
       if (controller.signal.aborted) return
-      if (res.ok) setAssessments((await res.json()) as ControlAssessment[])
+      if (!res.ok) return
+      const assess = (await res.json()) as ControlAssessment[]
+      setAssessments(assess)
+
+      // Fetch findings classifications for the synthesis card
+      const ids = assess.map((a) => a.id)
+      if (ids.length === 0) {
+        setFindingClassifications([])
+        return
+      }
+      const { data: findingsRows } = await supabase
+        .from('assessment_findings')
+        .select('classification')
+        .in('assessment_id', ids)
+      if (controller.signal.aborted) return
+      setFindingClassifications((findingsRows ?? []).map((f: { classification: string }) => f.classification))
     }
     load()
     return () => controller.abort()
@@ -164,7 +180,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       {/* ISO 27001 closure enrichments */}
       {(isClosed || scoring) && (
         <>
-          <FindingSynthesis assessments={assessments} />
+          <FindingSynthesis classifications={findingClassifications} />
           <AuditConclusion
             missionId={mission.id}
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}

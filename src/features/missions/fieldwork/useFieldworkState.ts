@@ -15,7 +15,7 @@ interface FieldworkState {
   setMode: (mode: WorkMode) => void
   setGuidedStep: (step: number) => void
   toggleAutoAdvance: () => void
-  saveAssessment: (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }, opts?: { silent?: boolean }) => Promise<boolean>
+  saveAssessment: (id: string, data: { evidence_notes: string; observations: string; conformity_level: string | null }, opts?: { silent?: boolean }) => Promise<boolean>
   submitAssessment: (id: string) => Promise<boolean>
   approveAssessment: (id: string, comment: string, stage?: string) => Promise<boolean>
   rejectAssessment: (id: string, comment: string, stage?: string) => Promise<boolean>
@@ -76,7 +76,7 @@ export function useFieldworkState(
     }
   }, [autoAdvance, assessments, selectedId])
 
-  const saveAssessment = useCallback(async (id: string, data: { findings: string; recommendations: string; evidence_notes: string; observations: string; risk_notes: string; conformity_level: string | null; finding_classification: string | null }, opts?: { silent?: boolean }): Promise<boolean> => {
+  const saveAssessment = useCallback(async (id: string, data: { evidence_notes: string; observations: string; conformity_level: string | null }, opts?: { silent?: boolean }): Promise<boolean> => {
     const silent = opts?.silent === true
     if (!silent) {
       setSaving(true)
@@ -86,13 +86,9 @@ export function useFieldworkState(
     const { error } = await (supabase
       .from('control_assessments') as unknown as { update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } })
       .update({
-        findings: data.findings || null,
-        recommendations: data.recommendations || null,
         evidence_notes: data.evidence_notes || null,
         observations: data.observations || null,
-        risk_notes: data.risk_notes || null,
         conformity_level: data.conformity_level || null,
-        finding_classification: data.finding_classification || null,
       })
       .eq('id', id)
     if (error) {

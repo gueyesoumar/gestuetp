@@ -184,7 +184,7 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
       const missionIds = missionData.map((m) => m.id)
       const { data: assessmentData } = await supabase
         .from('control_assessments')
-        .select('id, mission_id, control_id, status, finding_classification')
+        .select('id, mission_id, control_id, status')
         .in('mission_id', missionIds)
 
       // 6. Fetch CARs for major NC count

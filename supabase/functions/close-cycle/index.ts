@@ -133,14 +133,13 @@ Deno.serve(async (req) => {
     // Calcul du score du cycle (sur les assessments rattachés)
     const { data: assessments } = await admin
       .from('control_assessments')
-      .select('conformity_level, finding_classification')
+      .select('id, conformity_level')
       .eq('cycle_id', cycle_id)
 
     const list = assessments ?? []
     let scoreSum = 0
     let scoreCount = 0
     let conformes = 0, partiels = 0, nonConformes = 0, nonApplicables = 0
-    let majorNc = 0, minorNc = 0, observations = 0
     for (const a of list) {
       const w = weightOf(a.conformity_level as string | null)
       if (w !== null) { scoreSum += w; scoreCount += 1 }
@@ -151,10 +150,22 @@ Deno.serve(async (req) => {
         case 'nc': nonConformes += 1; break
         case 'na': nonApplicables += 1; break
       }
-      switch (a.finding_classification) {
-        case 'major_nc': majorNc += 1; break
-        case 'minor_nc': minorNc += 1; break
-        case 'observation': observations += 1; break
+    }
+
+    // Compte des classifications via assessment_findings (modele findings-centric)
+    let majorNc = 0, minorNc = 0, observations = 0
+    const assessmentIds = list.map((a) => (a as { id: string }).id)
+    if (assessmentIds.length > 0) {
+      const { data: findingsRows } = await admin
+        .from('assessment_findings')
+        .select('classification')
+        .in('assessment_id', assessmentIds)
+      for (const f of (findingsRows ?? []) as Array<{ classification: string }>) {
+        switch (f.classification) {
+          case 'major_nc': majorNc += 1; break
+          case 'minor_nc': minorNc += 1; break
+          case 'observation': observations += 1; break
+        }
       }
     }
     const score = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : null

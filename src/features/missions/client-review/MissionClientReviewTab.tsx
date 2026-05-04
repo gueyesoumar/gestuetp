@@ -119,28 +119,43 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
   const [assessment, setAssessment] = useState<AssessmentContext | null>(null)
   const [responseText, setResponseText] = useState('')
 
-  // Fetch assessment context when expanded
+  // Fetch assessment context when expanded (findings denormalized from assessment_findings)
   const loadAssessment = async (): Promise<void> => {
     if (assessment) return
     const { data } = await supabase
       .from('control_assessments')
       .select(`
-        findings, recommendations, finding_classification,
+        id,
         control:controls(code, name)
       `)
       .eq('id', observation.assessment_id)
       .single()
 
-    if (data) {
-      const ctrl = (data.control as unknown as { code: string; name: string } | null)
-      setAssessment({
-        controlCode: ctrl?.code ?? '',
-        controlName: ctrl?.name ?? '',
-        findings: (data as { findings: string | null }).findings,
-        recommendations: (data as { recommendations: string | null }).recommendations,
-        classification: (data as { finding_classification: string | null }).finding_classification,
-      })
-    }
+    if (!data) return
+    const ctrl = (data.control as unknown as { code: string; name: string } | null)
+
+    const { data: findingsRows } = await supabase
+      .from('assessment_findings')
+      .select('classification, description, recommendation, ord')
+      .eq('assessment_id', observation.assessment_id)
+      .order('ord', { ascending: true })
+
+    type FindingRow = { classification: string; description: string; recommendation: string | null }
+    const findings = (findingsRows ?? []) as FindingRow[]
+    const SEVERITY: Record<string, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
+    const topClass = findings.length === 0
+      ? null
+      : findings.reduce<string>((acc, f) => ((SEVERITY[f.classification] ?? 0) > (SEVERITY[acc] ?? 0) ? f.classification : acc), findings[0].classification)
+    const findingsText = findings.map((f) => f.description).join('\n\n') || null
+    const recosText = findings.filter((f) => f.recommendation).map((f, i) => `${i + 1}. ${f.recommendation}`).join('\n') || null
+
+    setAssessment({
+      controlCode: ctrl?.code ?? '',
+      controlName: ctrl?.name ?? '',
+      findings: findingsText,
+      recommendations: recosText,
+      classification: topClass,
+    })
   }
 
   const isResponded = observation.response_text !== null

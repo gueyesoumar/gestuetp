@@ -1,6 +1,8 @@
 // Edge function: generate-action-plan
-// Crée idempotemment une CAR par assessment classifié (major_nc / minor_nc / observation).
-// Garde : seul le chef de mission ou l'associé peut déclencher.
+// Cree idempotemment une CAR par finding classifie (major_nc / minor_nc / observation).
+// Source : assessment_findings (modele findings-centric, 1 CAR par finding au lieu de
+// 1 par assessment). Idempotence : skip si une CAR existe deja pour ce finding_id.
+// Garde : seul le chef de mission ou l'associe peut declencher.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
@@ -8,11 +10,16 @@ import { sendEmail } from '../_shared/resend.ts'
 
 interface AssessmentRow {
   id: string
-  finding_classification: string | null
-  findings: string | null
-  recommendations: string | null
   control_id: string
   controls: { code: string | null; name: string | null } | null
+}
+
+interface FindingRow {
+  id: string
+  assessment_id: string
+  classification: string
+  description: string
+  proposed_deadline: string | null
 }
 
 interface MissionRow {
@@ -58,7 +65,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
+        JSON.stringify({ error: 'Non autorise' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -72,7 +79,7 @@ Deno.serve(async (req) => {
     const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
     if (authError || !caller) {
       return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
+        JSON.stringify({ error: 'Non autorise' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -113,28 +120,55 @@ Deno.serve(async (req) => {
 
     if (mission.lead_auditor_id !== callerProfile.id && mission.associate_id !== callerProfile.id) {
       return new Response(
-        JSON.stringify({ error: 'Seuls le chef de mission et l\'associé peuvent générer le plan d\'action' }),
+        JSON.stringify({ error: 'Seuls le chef de mission et l\'associe peuvent generer le plan d\'action' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Charger les assessments classifiés
+    // 1. Charger les assessments de la mission (pour resoudre control_id et controle)
     const { data: assessments, error: assessErr } = await supabaseAdmin
       .from('control_assessments')
-      .select('id, finding_classification, findings, recommendations, control_id, controls:control_id(code, name)')
+      .select('id, control_id, controls:control_id(code, name)')
       .eq('mission_id', mission_id)
-      .in('finding_classification', ['major_nc', 'minor_nc', 'observation'])
       .returns<AssessmentRow[]>()
 
     if (assessErr) {
       console.error('generate-action-plan assessments:', assessErr.message)
       return new Response(
-        JSON.stringify({ error: 'Lecture des évaluations impossible' }),
+        JSON.stringify({ error: 'Lecture des evaluations impossible' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    const candidates = assessments ?? []
+    const assessmentMap = new Map<string, AssessmentRow>()
+    for (const a of assessments ?? []) assessmentMap.set(a.id, a)
+    const assessmentIds = (assessments ?? []).map((a) => a.id)
+
+    if (assessmentIds.length === 0) {
+      return new Response(
+        JSON.stringify({ created: 0, skipped: 0, total: 0, cars: [] }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 2. Charger les findings classifies (NC majeure / mineure / observation)
+    const { data: findings, error: findingsErr } = await supabaseAdmin
+      .from('assessment_findings')
+      .select('id, assessment_id, classification, description, proposed_deadline')
+      .in('assessment_id', assessmentIds)
+      .in('classification', ['major_nc', 'minor_nc', 'observation'])
+      .order('ord', { ascending: true })
+      .returns<FindingRow[]>()
+
+    if (findingsErr) {
+      console.error('generate-action-plan findings:', findingsErr.message)
+      return new Response(
+        JSON.stringify({ error: 'Lecture des findings impossible' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const candidates = findings ?? []
     if (candidates.length === 0) {
       return new Response(
         JSON.stringify({ created: 0, skipped: 0, total: 0, cars: [] }),
@@ -142,10 +176,10 @@ Deno.serve(async (req) => {
       )
     }
 
-    // CAR existantes pour idempotence + numérotation
+    // 3. CAR existantes pour idempotence + numerotation
     const { data: existing, error: existErr } = await supabaseAdmin
       .from('corrective_action_requests')
-      .select('id, assessment_id, code')
+      .select('id, finding_id, assessment_id, code')
       .eq('mission_id', mission_id)
 
     if (existErr) {
@@ -156,7 +190,9 @@ Deno.serve(async (req) => {
       )
     }
 
-    const existingByAssessment = new Set((existing ?? []).map((c) => c.assessment_id))
+    const existingByFindingId = new Set(
+      (existing ?? []).filter((c) => c.finding_id).map((c) => c.finding_id as string)
+    )
     let nextSeq = 1
     for (const c of existing ?? []) {
       const m = /^CAR-(\d+)$/.exec(c.code)
@@ -166,31 +202,33 @@ Deno.serve(async (req) => {
       }
     }
 
-    const toCreate = candidates.filter((a) => !existingByAssessment.has(a.id))
+    const toCreate = candidates.filter((f) => !existingByFindingId.has(f.id))
 
     let created = 0
     const inserted: { id: string; code: string }[] = []
 
-    for (const a of toCreate) {
-      const cls = a.finding_classification ?? 'minor_nc'
+    for (const f of toCreate) {
+      const cls = f.classification
       const days = DEADLINE_DAYS[cls] ?? 90
-      const deadline = addDays(mission.end_date, days)
+      const deadline = f.proposed_deadline ?? addDays(mission.end_date, days)
       const code = `CAR-${String(nextSeq).padStart(3, '0')}`
       nextSeq += 1
 
-      const description = (a.findings && a.findings.trim().length > 0)
-        ? a.findings
-        : (a.recommendations ?? 'Constat à préciser.')
+      const description = (f.description && f.description.trim().length > 0)
+        ? f.description
+        : 'Constat a preciser.'
 
-      const ctrlCode = a.controls?.code ?? null
-      const ctrlName = a.controls?.name ?? null
+      const assess = assessmentMap.get(f.assessment_id)
+      const ctrlCode = assess?.controls?.code ?? null
+      const ctrlName = assess?.controls?.name ?? null
       const normRef = ctrlCode && ctrlName ? `${ctrlCode} — ${ctrlName}` : (ctrlCode ?? ctrlName)
 
       const { data: insRow, error: insErr } = await supabaseAdmin
         .from('corrective_action_requests')
         .insert({
           mission_id,
-          assessment_id: a.id,
+          assessment_id: f.assessment_id,
+          finding_id: f.id,
           code,
           finding_classification: cls,
           control_code: ctrlCode,
@@ -217,7 +255,7 @@ Deno.serve(async (req) => {
 
     const skipped = candidates.length - toCreate.length
 
-    // Email récap au RSSI client (best-effort, non bloquant)
+    // Email recap au RSSI client (best-effort, non bloquant)
     if (created > 0 && mission.client_id) {
       try {
         const [{ data: org }, { data: clientOrg }, { data: branding }, { data: contacts }] = await Promise.all([
@@ -232,14 +270,13 @@ Deno.serve(async (req) => {
             .limit(1),
         ])
 
-        const cabinetName = (org as { name: string } | null)?.name ?? 'Gëstu Comply'
+        const cabinetName = (org as { name: string } | null)?.name ?? 'Gestu Comply'
         const clientName = (clientOrg as { name: string } | null)?.name ?? 'Client'
         const primary = (branding as { primary_color: string | null } | null)?.primary_color ?? '#1B4332'
         const recipientEmail = ((contacts ?? []) as unknown as Array<{ email: string }>)[0]?.email ?? null
         const portalUrl = Deno.env.get('CLIENT_PORTAL_URL') ?? 'https://app.gestugroup.com/portal'
 
         if (recipientEmail) {
-          // Recharger les CAR insérées avec leurs détails pour la liste email
           const carIds = inserted.map((i) => i.id)
           const { data: createdCars } = await supabaseAdmin
             .from('corrective_action_requests')
@@ -264,18 +301,18 @@ Deno.serve(async (req) => {
                 <tr><td style="background:${escapeHtml(primary)}; color:white; padding:22px 28px; font-weight:700; font-size:15px;">${escapeHtml(cabinetName)}</td></tr>
                 <tr><td style="padding:28px; font-size:14px; color:#1F2937; line-height:1.6;">
                   <h1 style="margin:0 0 8px; font-size:18px; color:${escapeHtml(primary)};">Plan d'action — ${escapeHtml(mission.name)}</h1>
-                  <p>Suite à la clôture de l'audit, ${created} action${created > 1 ? 's' : ''} corrective${created > 1 ? 's' : ''} vous ${created > 1 ? 'sont' : 'est'} adressée${created > 1 ? 's' : ''}. Merci de répondre dans le portail dans les délais indiqués.</p>
+                  <p>Suite a la cloture de l'audit, ${created} action${created > 1 ? 's' : ''} corrective${created > 1 ? 's' : ''} vous ${created > 1 ? 'sont' : 'est'} adressee${created > 1 ? 's' : ''}. Merci de repondre dans le portail dans les delais indiques.</p>
                   <table role="presentation" width="100%" style="border-collapse:collapse; margin-top:16px; font-size:13px;">
                     <thead><tr style="background:#F9FAFB;">
                       <th style="text-align:left; padding:8px 10px; border-bottom:2px solid #E5E7EB; color:#6B7280;">Code</th>
-                      <th style="text-align:left; padding:8px 10px; border-bottom:2px solid #E5E7EB; color:#6B7280;">Contrôle</th>
+                      <th style="text-align:left; padding:8px 10px; border-bottom:2px solid #E5E7EB; color:#6B7280;">Controle</th>
                       <th style="text-align:left; padding:8px 10px; border-bottom:2px solid #E5E7EB; color:#6B7280;">Type</th>
-                      <th style="text-align:left; padding:8px 10px; border-bottom:2px solid #E5E7EB; color:#6B7280;">Échéance</th>
+                      <th style="text-align:left; padding:8px 10px; border-bottom:2px solid #E5E7EB; color:#6B7280;">Echeance</th>
                     </tr></thead>
                     <tbody>${rows}</tbody>
                   </table>
                   <div style="margin-top:24px;">
-                    <a href="${escapeHtml(portalUrl)}" style="display:inline-block; background:${escapeHtml(primary)}; color:white; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px;">Accéder au portail</a>
+                    <a href="${escapeHtml(portalUrl)}" style="display:inline-block; background:${escapeHtml(primary)}; color:white; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px;">Acceder au portail</a>
                   </div>
                 </td></tr>
                 <tr><td style="background:#FAFAF8; border-top:1px solid #E5E7EB; padding:16px 28px; font-size:11px; color:#6B7280;">

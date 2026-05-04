@@ -58,21 +58,29 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
       return
     }
 
-    // 2. Compte des constats classifiés (pour la preview avant génération)
-    const { data: assessRows, error: assessErr } = await supabase
+    // 2. Compte des findings classifiés (pour la preview avant génération)
+    //    Source : assessment_findings (1 row par finding) au lieu des textareas legacy.
+    const { data: missionAssessIds, error: assessErr } = await supabase
       .from('control_assessments')
-      .select('finding_classification, control_id')
+      .select('id')
       .eq('mission_id', mission.id)
-      .in('finding_classification', ['major_nc', 'minor_nc', 'observation'])
     if (signal?.aborted) return
     if (assessErr) {
       console.error('useActionPlan assessments:', assessErr.message)
     }
 
     const counts: FindingCounts = { major_nc: 0, minor_nc: 0, observation: 0 }
-    for (const a of assessRows ?? []) {
-      const k = a.finding_classification as keyof FindingCounts | null
-      if (k && k in counts) counts[k] += 1
+    const assessIdsForCount = (missionAssessIds ?? []).map((a) => a.id)
+    if (assessIdsForCount.length > 0) {
+      const { data: findingRows } = await supabase
+        .from('assessment_findings')
+        .select('classification')
+        .in('assessment_id', assessIdsForCount)
+        .in('classification', ['major_nc', 'minor_nc', 'observation'])
+      if (signal?.aborted) return
+      for (const f of (findingRows ?? []) as Array<{ classification: keyof FindingCounts }>) {
+        if (f.classification in counts) counts[f.classification] += 1
+      }
     }
     setFindings(counts)
 

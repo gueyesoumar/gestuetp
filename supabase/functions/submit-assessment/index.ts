@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     // 3. Charger l'assessment
     const { data: assessment, error: aErr } = await supabaseAdmin
       .from('control_assessments')
-      .select('id, auditor_id, mission_id, status, findings')
+      .select('id, auditor_id, mission_id, status')
       .eq('id', assessment_id)
       .single()
 
@@ -82,10 +82,14 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 6. Verifier que les constats sont remplis
-    if (!assessment.findings || assessment.findings.trim().length === 0) {
+    // 6. Verifier qu'au moins un constat (assessment_findings) est defini
+    const { count: findingCount } = await supabaseAdmin
+      .from('assessment_findings')
+      .select('id', { count: 'exact', head: true })
+      .eq('assessment_id', assessment_id)
+    if (!findingCount || findingCount === 0) {
       return new Response(
-        JSON.stringify({ error: 'Les constats doivent être renseignés avant soumission' }),
+        JSON.stringify({ error: 'Au moins un constat doit etre defini avant soumission' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

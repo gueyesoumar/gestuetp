@@ -151,13 +151,13 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     let assessmentId: string
-    const findings = buildFindings(request.evidence_catalog.name, reason, request.decline_justification)
-    const recommendations = buildRecommendation(request.evidence_catalog.name, reason)
-    const riskNotes = buildRisk(request.evidence_catalog.name, reason, suggestedClassif)
+    const findingDescription = buildFindings(request.evidence_catalog.name, reason, request.decline_justification)
+    const recommendation = buildRecommendation(request.evidence_catalog.name, reason)
+    const risk = buildRisk(request.evidence_catalog.name, reason, suggestedClassif)
+    const priority = suggestedClassif === 'major_nc' ? 'critical' : suggestedClassif === 'minor_nc' ? 'high' : 'medium'
 
     if (existing) {
       const e = existing as { id: string; status: string }
-      // On enrichit l'assessment existant (sauf s'il est déjà approved → on respecte)
       if (e.status === 'approved') {
         return jsonResponse({
           error: 'Un assessment validé existe déjà sur ce contrôle. Re-discutez-le manuellement.',
@@ -168,15 +168,10 @@ Deno.serve(async (req) => {
         .update({
           status: 'draft',
           conformity_level: conformityLevel,
-          finding_classification: suggestedClassif,
-          findings,
-          recommendations,
-          risk_notes: riskNotes,
         })
         .eq('id', e.id)
       assessmentId = e.id
     } else {
-      // Création
       // deno-lint-ignore no-explicit-any
       const { data: newAssess, error: insertErr } = await (admin.from('control_assessments') as any)
         .insert({
@@ -185,10 +180,6 @@ Deno.serve(async (req) => {
           auditor_id: cp.id,
           status: 'draft',
           conformity_level: conformityLevel,
-          finding_classification: suggestedClassif,
-          findings,
-          recommendations,
-          risk_notes: riskNotes,
         })
         .select('id')
         .single()
@@ -197,6 +188,29 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: 'Création de l\'assessment impossible' }, 500)
       }
       assessmentId = (newAssess as { id: string }).id
+    }
+
+    // Inserer la finding correspondante dans assessment_findings (modele findings-centric)
+    // deno-lint-ignore no-explicit-any
+    const { data: existingFindings } = await (admin.from('assessment_findings') as any)
+      .select('id, ord')
+      .eq('assessment_id', assessmentId)
+    const nextOrd = ((existingFindings as Array<{ ord: number }> | null) ?? []).reduce((max, f) => Math.max(max, f.ord), -1) + 1
+    // deno-lint-ignore no-explicit-any
+    const { error: findingErr } = await (admin.from('assessment_findings') as any)
+      .insert({
+        assessment_id: assessmentId,
+        ord: nextOrd,
+        classification: suggestedClassif,
+        description: findingDescription,
+        risk,
+        recommendation,
+        priority,
+        ai_generated: false,
+      })
+    if (findingErr) {
+      console.error('[respond-evidence-decline] insert finding:', findingErr.message)
+      // Non bloquant : l'assessment est cree, l'auditeur pourra ajouter manuellement
     }
 
     // Marquer la demande

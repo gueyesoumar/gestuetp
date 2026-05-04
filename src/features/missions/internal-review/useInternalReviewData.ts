@@ -56,10 +56,12 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
     setError(null)
 
     const fetchData = async (): Promise<void> => {
+      type FindingClassification = 'major_nc' | 'minor_nc' | 'observation' | 'strength'
+
       // 1. Fetch all assessments with control + domain info
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
-        .select('id, status, conformity_level, findings, finding_classification, control_id, control:controls(code, name, domain_id, domain:domains(code, name))')
+        .select('id, status, conformity_level, control_id, control:controls(code, name, domain_id, domain:domains(code, name))')
         .eq('mission_id', missionId)
         .abortSignal(abortController.signal)
 
@@ -69,7 +71,40 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
       const all = assessments ?? []
       const totalControls = all.length
       const approvedControls = all.filter((a) => a.status === 'approved').length
-      const withFindings = all.filter((a) => a.findings && a.findings.trim().length > 0).length
+
+      // 1b. Fetch findings from assessment_findings (replaces legacy findings/finding_classification)
+      const assessmentIds = all.map((a) => a.id)
+      const findingsByAssessment = new Map<string, Array<{ classification: FindingClassification; description: string }>>()
+      if (assessmentIds.length > 0) {
+        const { data: findingsRows } = await supabase
+          .from('assessment_findings')
+          .select('assessment_id, classification, description')
+          .in('assessment_id', assessmentIds)
+          .abortSignal(abortController.signal)
+        if (abortController.signal.aborted) return
+        for (const f of (findingsRows ?? []) as Array<{ assessment_id: string; classification: FindingClassification; description: string }>) {
+          const list = findingsByAssessment.get(f.assessment_id) ?? []
+          list.push({ classification: f.classification, description: f.description })
+          findingsByAssessment.set(f.assessment_id, list)
+        }
+      }
+
+      // Compute most severe classification per assessment (transitional logic)
+      const SEVERITY: Record<FindingClassification, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
+      const topClassByAssessment = new Map<string, FindingClassification | null>()
+      for (const a of all) {
+        const fs = findingsByAssessment.get(a.id) ?? []
+        if (fs.length === 0) {
+          topClassByAssessment.set(a.id, null)
+          continue
+        }
+        const top = fs.reduce<FindingClassification>((acc, f) => (
+          SEVERITY[f.classification] > SEVERITY[acc] ? f.classification : acc
+        ), fs[0].classification)
+        topClassByAssessment.set(a.id, top)
+      }
+
+      const withFindings = all.filter((a) => (findingsByAssessment.get(a.id) ?? []).length > 0).length
 
       // Pond\u00e9ration conformit\u00e9 : c=100, lc=75, pc=50, nc=0, NA exclus
       const weightOf = (level: string | null | undefined): number | null => {
@@ -115,10 +150,11 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
         }))
         .sort((a, b) => a.code.localeCompare(b.code))
 
-      // 4. Finding classification summary
+      // 4. Finding classification summary (based on most severe finding per assessment)
       const summary: FindingSummary = { conformes: 0, observations: 0, ncMinor: 0, ncMajor: 0, strengths: 0 }
       for (const a of all) {
-        switch (a.finding_classification) {
+        const top = topClassByAssessment.get(a.id) ?? null
+        switch (top) {
           case 'major_nc': summary.ncMajor++; break
           case 'minor_nc': summary.ncMinor++; break
           case 'observation': summary.observations++; break
@@ -127,17 +163,21 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
         }
       }
 
-      // 5. Major NCs list
-      const majorNCs: MajorNC[] = all
-        .filter((a) => a.finding_classification === 'major_nc')
-        .map((a) => {
-          const ctrl = a.control as unknown as { code: string; name: string } | null
-          return {
-            controlCode: ctrl?.code ?? '',
-            controlName: ctrl?.name ?? '',
-            findings: a.findings ?? '',
+      // 5. Major NCs list (one entry per major_nc finding)
+      const majorNCs: MajorNC[] = []
+      for (const a of all) {
+        const ctrl = a.control as unknown as { code: string; name: string } | null
+        const fs = findingsByAssessment.get(a.id) ?? []
+        for (const f of fs) {
+          if (f.classification === 'major_nc') {
+            majorNCs.push({
+              controlCode: ctrl?.code ?? '',
+              controlName: ctrl?.name ?? '',
+              findings: f.description,
+            })
           }
-        })
+        }
+      }
 
       // Score global : pondération c=100/lc=75/pc=50/nc=0, NA exclus
       let scoreSum = 0
