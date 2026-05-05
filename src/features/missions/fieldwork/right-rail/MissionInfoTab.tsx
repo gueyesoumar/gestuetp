@@ -25,7 +25,7 @@ export function MissionInfoTab({ mission }: MissionInfoTabProps) {
         <p className="text-[10px] font-mono text-forest-700">{mission.code ?? '—'}</p>
       </div>
 
-      <Row icon={<Briefcase size={11} />} label="R&eacute;f&eacute;rentiel">
+      <Row icon={<Briefcase size={11} />} label="Référentiel">
         {mission.framework?.name ?? '—'}
       </Row>
 
@@ -33,7 +33,7 @@ export function MissionInfoTab({ mission }: MissionInfoTabProps) {
         {mission.client?.name ?? '—'}
       </Row>
 
-      <Row icon={<Calendar size={11} />} label="P&eacute;riode">
+      <Row icon={<Calendar size={11} />} label="Période">
         Du {formatDate(mission.start_date)} au {formatDate(mission.end_date)}
       </Row>
 
@@ -41,7 +41,7 @@ export function MissionInfoTab({ mission }: MissionInfoTabProps) {
         {fullName(mission.lead_auditor_user as { first_name?: string | null; last_name?: string | null; email?: string | null } | null)}
       </Row>
 
-      <Row icon={<Users size={11} />} label="Associ&eacute;">
+      <Row icon={<Users size={11} />} label="Associé">
         {fullName(mission.associate_user as { first_name?: string | null; last_name?: string | null; email?: string | null } | null)}
       </Row>
     </div>
@@ -53,7 +53,7 @@ function Row({ icon, label, children }: { icon: React.ReactNode; label: string; 
     <div className="flex items-start gap-2 text-[11px]">
       <span className="text-gray-400 shrink-0 mt-0.5">{icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-[9px] uppercase tracking-wider font-bold text-gray-400" dangerouslySetInnerHTML={{ __html: label }} />
+        <p className="text-[9px] uppercase tracking-wider font-bold text-gray-400">{label}</p>
         <p className="text-[12px] text-gray-700 mt-0.5">{children}</p>
       </div>
     </div>

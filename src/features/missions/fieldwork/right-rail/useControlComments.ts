@@ -6,7 +6,8 @@ export interface ControlComment {
   id: string
   mission_id: string
   control_id: string
-  author_id: string
+  // null when the original author has been deleted (preserves audit trail)
+  author_id: string | null
   parent_id: string | null
   text: string
   mentioned_user_ids: string[]
@@ -34,9 +35,6 @@ export interface UseControlCommentsReturn {
 }
 
 const TABLE = 'control_comments'
-
-// deno-lint-ignore no-explicit-any
-const sb = supabase as unknown as { from: (t: string) => any }
 
 function lastReadKey(missionId: string, controlId: string): string {
   return `gestu:control-comments-read:${missionId}:${controlId}`
@@ -66,7 +64,7 @@ export function useControlComments(missionId: string | null, controlId: string |
     }
     setLoading(true)
     setError(null)
-    const result = await sb.from(TABLE)
+    const result = await supabase.from(TABLE)
       .select(`
         id, mission_id, control_id, author_id, parent_id, text, mentioned_user_ids,
         created_at, updated_at, deleted_at,
@@ -94,7 +92,7 @@ export function useControlComments(missionId: string | null, controlId: string |
     if (!missionId || !controlId || !profile?.id) return false
     const trimmed = text.trim()
     if (trimmed.length === 0 || trimmed.length > 5000) return false
-    const result = await sb.from(TABLE)
+    const result = await supabase.from(TABLE)
       .insert({
         mission_id: missionId,
         control_id: controlId,
@@ -124,7 +122,7 @@ export function useControlComments(missionId: string | null, controlId: string |
     const trimmed = text.trim()
     if (trimmed.length === 0 || trimmed.length > 5000) return false
     setComments((prev) => prev.map((c) => (c.id === id ? { ...c, text: trimmed } : c)))
-    const result = await sb.from(TABLE).update({ text: trimmed }).eq('id', id)
+    const result = await supabase.from(TABLE).update({ text: trimmed }).eq('id', id)
     if (result.error) {
       console.error('[useControlComments] edit:', result.error.message)
       setError("Erreur d'enregistrement")
@@ -137,7 +135,7 @@ export function useControlComments(missionId: string | null, controlId: string |
   const deleteComment = useCallback(async (id: string): Promise<boolean> => {
     const previous = comments
     setComments((prev) => prev.filter((c) => c.id !== id))
-    const result = await sb.from(TABLE).update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    const result = await supabase.from(TABLE).update({ deleted_at: new Date().toISOString() }).eq('id', id)
     if (result.error) {
       console.error('[useControlComments] delete:', result.error.message)
       setError('Erreur de suppression')

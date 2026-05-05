@@ -1,32 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../../../lib/supabase'
+import type {
+  AssessmentFinding,
+  AssessmentFindingUpdate,
+  FindingClassification,
+  FindingPriority,
+} from '../../../../types/database.types'
 
-export type FindingClassification = 'major_nc' | 'minor_nc' | 'observation' | 'strength'
-export type FindingPriority = 'critical' | 'high' | 'medium' | 'low'
+export type { AssessmentFinding, FindingClassification, FindingPriority }
 
-export interface AssessmentFinding {
-  id: string
-  assessment_id: string
-  ord: number
-  classification: FindingClassification
-  description: string
-  risk: string | null
-  recommendation: string | null
-  priority: FindingPriority | null
-  proposed_deadline: string | null
-  ai_generated: boolean
-  created_at: string
-  updated_at: string
-}
-
-export interface FindingPatch {
-  classification?: FindingClassification
-  description?: string
-  risk?: string | null
-  recommendation?: string | null
-  priority?: FindingPriority | null
-  proposed_deadline?: string | null
-}
+export type FindingPatch = AssessmentFindingUpdate
 
 export interface NewFindingInput extends FindingPatch {
   ai_generated?: boolean
@@ -46,12 +29,6 @@ export interface UseAssessmentFindingsReturn {
 
 const TABLE = 'assessment_findings'
 
-// Cast to bypass Supabase generated types: assessment_findings is not in database.types.ts yet
-// (ran in production via Migration 00099 but types regen is pending)
-type SbResult<T> = { data: T | null; error: { message: string } | null }
-// deno-lint-ignore no-explicit-any
-const sb = supabase as unknown as { from: (t: string) => any }
-
 export function useAssessmentFindings(assessmentId: string | null): UseAssessmentFindingsReturn {
   const [findings, setFindings] = useState<AssessmentFinding[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,10 +42,11 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
     }
     setLoading(true)
     setError(null)
-    const result = (await sb.from(TABLE)
+    const result = await supabase.from(TABLE)
       .select('*')
       .eq('assessment_id', assessmentId)
-      .order('ord', { ascending: true })) as SbResult<AssessmentFinding[]>
+      .order('ord', { ascending: true })
+      .returns<AssessmentFinding[]>()
     if (result.error) {
       console.error('[useAssessmentFindings] fetch:', result.error.message)
       setError('Erreur de chargement des constats')
@@ -97,10 +75,10 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
       proposed_deadline: input?.proposed_deadline ?? null,
       ai_generated: input?.ai_generated ?? false,
     }
-    const result = (await sb.from(TABLE)
+    const result = await supabase.from(TABLE)
       .insert(payload)
       .select()
-      .single()) as SbResult<AssessmentFinding>
+      .single<AssessmentFinding>()
     if (result.error || !result.data) {
       console.error('[useAssessmentFindings] add:', result.error?.message)
       setError("Erreur d'ajout du constat")
@@ -113,7 +91,7 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
 
   const updateFinding = useCallback(async (id: string, patch: FindingPatch): Promise<boolean> => {
     setFindings((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)))
-    const result = (await sb.from(TABLE).update(patch).eq('id', id)) as SbResult<unknown>
+    const result = await supabase.from(TABLE).update(patch).eq('id', id)
     if (result.error) {
       console.error('[useAssessmentFindings] update:', result.error.message)
       setError('Erreur de sauvegarde du constat')
@@ -126,7 +104,7 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
   const deleteFinding = useCallback(async (id: string): Promise<boolean> => {
     const previous = findings
     setFindings((prev) => prev.filter((f) => f.id !== id))
-    const result = (await sb.from(TABLE).delete().eq('id', id)) as SbResult<unknown>
+    const result = await supabase.from(TABLE).delete().eq('id', id)
     if (result.error) {
       console.error('[useAssessmentFindings] delete:', result.error.message)
       setError('Erreur de suppression du constat')
@@ -149,8 +127,8 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
       copy[targetIdx] = { ...b, ord: a.ord }
       return copy.sort((x, y) => x.ord - y.ord)
     })
-    const r1 = (await sb.from(TABLE).update({ ord: b.ord }).eq('id', a.id)) as SbResult<unknown>
-    const r2 = (await sb.from(TABLE).update({ ord: a.ord }).eq('id', b.id)) as SbResult<unknown>
+    const r1 = await supabase.from(TABLE).update({ ord: b.ord }).eq('id', a.id)
+    const r2 = await supabase.from(TABLE).update({ ord: a.ord }).eq('id', b.id)
     if (r1.error || r2.error) {
       console.error('[useAssessmentFindings] move:', r1.error?.message ?? r2.error?.message)
       void refetch()
@@ -173,14 +151,15 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
       proposed_deadline: d.proposed_deadline ?? null,
       ai_generated: d.ai_generated ?? true,
     }))
-    const result = (await sb.from(TABLE).insert(payload).select()) as SbResult<AssessmentFinding[]>
+    const result = await supabase.from(TABLE).insert(payload).select().returns<AssessmentFinding[]>()
     if (result.error || !result.data) {
       console.error('[useAssessmentFindings] bulk insert:', result.error?.message)
       setError("Erreur d'application des suggestions IA")
       return 0
     }
-    setFindings((prev) => [...prev, ...result.data!].sort((a, b) => a.ord - b.ord))
-    return result.data.length
+    const inserted = result.data
+    setFindings((prev) => [...prev, ...inserted].sort((a, b) => a.ord - b.ord))
+    return inserted.length
   }, [assessmentId, findings])
 
   return {

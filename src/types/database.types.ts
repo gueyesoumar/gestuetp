@@ -1137,6 +1137,101 @@ export interface InterviewScheduleUpdate {
 }
 
 // ============================================================
+// Question <-> Control link (migration 00098)
+// ============================================================
+
+export interface QuestionControlLink {
+  question_id: string
+  control_id: string
+  weight: number
+}
+
+export interface QuestionControlLinkInsert {
+  question_id: string
+  control_id: string
+  weight?: number
+}
+
+// ============================================================
+// Assessment Findings (migration 00099, hardened by 00104)
+// ============================================================
+// FindingClassification is already declared above (line ~564).
+
+export type FindingPriority = 'critical' | 'high' | 'medium' | 'low'
+
+export interface AssessmentFinding {
+  id: string
+  assessment_id: string
+  ord: number
+  classification: FindingClassification
+  description: string
+  risk: string | null
+  recommendation: string | null
+  priority: FindingPriority | null
+  proposed_deadline: string | null
+  ai_generated: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AssessmentFindingInsert {
+  id?: string
+  assessment_id: string
+  ord?: number
+  classification: FindingClassification
+  description: string
+  risk?: string | null
+  recommendation?: string | null
+  priority?: FindingPriority | null
+  proposed_deadline?: string | null
+  ai_generated?: boolean
+}
+
+export interface AssessmentFindingUpdate {
+  ord?: number
+  classification?: FindingClassification
+  description?: string
+  risk?: string | null
+  recommendation?: string | null
+  priority?: FindingPriority | null
+  proposed_deadline?: string | null
+}
+
+// ============================================================
+// Control Comments / Discussion (migration 00103, hardened by 00104)
+// ============================================================
+
+export interface ControlCommentRow {
+  id: string
+  mission_id: string
+  control_id: string
+  // null when the original author has been deleted (preserves audit trail)
+  author_id: string | null
+  parent_id: string | null
+  text: string
+  mentioned_user_ids: string[]
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
+export interface ControlCommentInsert {
+  id?: string
+  mission_id: string
+  control_id: string
+  author_id: string
+  parent_id?: string | null
+  text: string
+  mentioned_user_ids?: string[]
+}
+
+export interface ControlCommentUpdate {
+  text?: string
+  mentioned_user_ids?: string[]
+  deleted_at?: string | null
+}
+
+// ============================================================
 // Database type (pour Supabase client type)
 // ============================================================
 
@@ -1302,6 +1397,21 @@ export interface Database {
         Row: AuditHistoryEntry
         Insert: AuditHistoryInsert
         Update: never
+      }
+      question_controls: {
+        Row: QuestionControlLink
+        Insert: QuestionControlLinkInsert
+        Update: never
+      }
+      assessment_findings: {
+        Row: AssessmentFinding
+        Insert: AssessmentFindingInsert
+        Update: AssessmentFindingUpdate
+      }
+      control_comments: {
+        Row: ControlCommentRow
+        Insert: ControlCommentInsert
+        Update: ControlCommentUpdate
       }
     }
     Enums: {

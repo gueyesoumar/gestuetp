@@ -106,7 +106,7 @@ function TabButton({ active, onClick, icon, label, badge }: {
       onClick={onClick}
       className={`flex-1 px-2 py-2.5 text-[11px] font-medium inline-flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
         active
-          ? 'border-forest-700 text-forest-900 bg-white'
+          ? 'border-gold-500 text-forest-900 bg-white'
           : 'border-transparent text-gray-500 hover:text-forest-700 hover:bg-white'
       }`}
     >
