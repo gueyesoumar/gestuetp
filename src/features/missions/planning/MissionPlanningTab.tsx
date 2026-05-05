@@ -11,7 +11,6 @@ import { WorkProgramTable } from './WorkProgramTable'
 import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
-import { DeliverablesPanel } from './DeliverablesPanel'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningWorkloadSection } from './PlanningWorkloadSection'
 import { PlanningGanttSection } from './PlanningGanttSection'
@@ -30,7 +29,7 @@ interface MissionPlanningTabProps {
   onRefetch: () => void
 }
 
-type PlanTab = 'programme' | 'entretiens' | 'livrables'
+type PlanTab = 'programme' | 'entretiens'
 
 export function MissionPlanningTab({ mission, domains, members, assignments, onRefetch }: MissionPlanningTabProps) {
   const { plannings, interviews, contacts, loading, error, refetch: refetchPlanning } = usePlanningData(mission.id)
@@ -205,7 +204,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
           <TabBtn label="Programme de travail" count={totalControls} active={activeTab === 'programme'} onClick={() => setActiveTab('programme')} />
           <TabBtn label="Entretiens" count={interviews.length} active={activeTab === 'entretiens'} onClick={() => setActiveTab('entretiens')} />
-          <TabBtn label="Livrables" active={activeTab === 'livrables'} onClick={() => setActiveTab('livrables')} />
         </div>
 
         {/* Tab content */}
@@ -221,9 +219,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             onAutoGenerate={handleGenerateInterviews}
             generating={generatingInterviews}
             saving={interviewSaving} />
-        )}
-        {activeTab === 'livrables' && (
-          <DeliverablesPanel missionStatus={mission.status} />
         )}
       </div>
 
