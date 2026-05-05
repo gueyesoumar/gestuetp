@@ -2,16 +2,19 @@ import { Eye } from 'lucide-react'
 import { AuditChecklistTip } from './AuditChecklistTip'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
 import type { AuditChecklistItem } from '../../../../types/database.types'
+import type { CadrageAnswer } from '../right-rail/useControlContext'
 
 interface ObserverStepProps {
   assessment: AssessmentWithControl
   observations: string
   auditChecklist: AuditChecklistItem[]
+  cadrageAnswers?: CadrageAnswer[]
+  clientName?: string | null
   onObservationsChange: (value: string) => void
   readOnly: boolean
 }
 
-export function ObserverStep({ assessment, observations, auditChecklist, onObservationsChange, readOnly }: ObserverStepProps){
+export function ObserverStep({ assessment, observations, auditChecklist, cadrageAnswers, clientName, onObservationsChange, readOnly }: ObserverStepProps){
   return (
     <div className="space-y-4">
       <div>
@@ -22,13 +25,6 @@ export function ObserverStep({ assessment, observations, auditChecklist, onObser
           Notez ce que vous avez vu, entendu, v&eacute;rifi&eacute;. L&apos;IA s&apos;appuiera sur vos observations pour analyser ce contr&ocirc;le.
         </p>
       </div>
-
-      {assessment.control.description && (
-        <div className="bg-[#FAFAF8] border border-gray-100 rounded-lg p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Description du contr&ocirc;le</p>
-          <p className="text-[13px] text-gray-500 leading-relaxed">{assessment.control.description}</p>
-        </div>
-      )}
 
       <textarea
         value={observations}
@@ -42,6 +38,8 @@ export function ObserverStep({ assessment, observations, auditChecklist, onObser
         controlCode={assessment.control.code}
         controlName={assessment.control.name}
         items={auditChecklist}
+        cadrageAnswers={cadrageAnswers}
+        clientName={clientName}
       />
     </div>
   )

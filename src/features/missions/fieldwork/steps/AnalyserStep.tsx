@@ -112,17 +112,23 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
           <h4 className="text-[13px] font-semibold text-gray-900">&#x1F52C; Analyser</h4>
           <p className="text-xs text-gray-300 mt-0.5">&Eacute;valuez le contr&ocirc;le et r&eacute;digez vos constats.</p>
         </div>
-        {!readOnly && !aiFlag.loading && aiFlag.enabled && (
+        {!readOnly && !aiFlag.loading && aiFlag.enabled && !aiAnalysis && (
           <button onClick={handleAiSuggest} disabled={aiLoading}
-            className="text-[11px] font-semibold text-white bg-purple-500 px-3 py-1.5 rounded-lg hover:bg-purple-600 disabled:opacity-50 flex items-center gap-1.5 shrink-0">
-            {aiLoading && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+            className="text-[11px] font-semibold text-forest-900 bg-gold-500 hover:bg-gold-600 px-3 py-1.5 rounded-lg disabled:opacity-50 flex items-center gap-1.5 shrink-0 transition-colors">
+            {aiLoading && <span className="w-3 h-3 border-2 border-forest-900/30 border-t-forest-900 rounded-full animate-spin" />}
             {aiLoading ? 'Analyse...' : '✳ Suggestion IA'}
           </button>
         )}
       </div>
 
       {aiAnalysis && (
-        <AiAnalysisPanel aiAnalysis={aiAnalysis} onClose={() => setAiAnalysis(null)} onApply={handleApply} />
+        <AiAnalysisPanel
+          aiAnalysis={aiAnalysis}
+          onClose={() => setAiAnalysis(null)}
+          onApply={handleApply}
+          onRegenerate={handleAiSuggest}
+          regenerating={aiLoading}
+        />
       )}
 
       <div>

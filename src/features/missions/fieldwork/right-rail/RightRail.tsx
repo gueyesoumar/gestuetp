@@ -73,7 +73,7 @@ export function RightRail({ mission, assessment, collapsed, onToggle }: RightRai
       <div className="flex-1 overflow-hidden flex flex-col">
         {activeTab === 'validation' && (
           <div className="flex-1 overflow-y-auto">
-            <ValidationTab assessment={assessment} />
+            <ValidationTab assessment={assessment} missionEndDate={mission.end_date ?? null} />
           </div>
         )}
         {activeTab === 'discussion' && (

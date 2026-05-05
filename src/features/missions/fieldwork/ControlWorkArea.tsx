@@ -15,10 +15,12 @@ import { CadrageInline } from './right-rail/CadrageInline'
 import { ControlReviewView } from './ControlReviewView'
 import { ControlReviewActions } from './ControlReviewActions'
 import { ControlAuthoringFooter } from './ControlAuthoringFooter'
+import { ControlStatementCard } from './ControlStatementCard'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
 interface ControlWorkAreaProps {
   assessment: AssessmentWithControl
+  clientName?: string | null
   mode: 'guided' | 'libre'
   guidedStep: number
   autoAdvance: boolean
@@ -43,7 +45,7 @@ function labelForReason(reason: string | null): string {
   return 'Non disponible'
 }
 
-export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, saving, saveError, isReviewer, reviewerRole, leadApproved, onModeChange, onGuidedStepChange, onToggleAutoAdvance, onSave, onSubmit, onApprove, onReject }: ControlWorkAreaProps){
+export function ControlWorkArea({ assessment, clientName, mode, guidedStep, autoAdvance, saving, saveError, isReviewer, reviewerRole, leadApproved, onModeChange, onGuidedStepChange, onToggleAutoAdvance, onSave, onSubmit, onApprove, onReject }: ControlWorkAreaProps){
   const toast = useToast()
   const [observations, setObservations] = useState(assessment.observations ?? '')
   const [evidenceNotes, setEvidenceNotes] = useState(assessment.evidence_notes ?? '')
@@ -155,6 +157,14 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
 
       {saveError && <div className="mx-6 mt-4"><ErrorAlert message={saveError} /></div>}
 
+      <div className="mx-6 mt-4">
+        <ControlStatementCard
+          description={assessment.control.description}
+          guidance={assessment.control.guidance}
+          riskLevel={assessment.control.risk_level}
+        />
+      </div>
+
       {!canReview && controlContext.cadrageAnswers.length > 0 && (
         <div className="mx-6 mt-4">
           <CadrageInline answers={controlContext.cadrageAnswers} />
@@ -173,6 +183,7 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
         <GuidedWorkflow
           assessment={assessment}
           currentStep={guidedStep}
+          onStepChange={onGuidedStepChange}
           observations={observations}
           evidenceNotes={evidenceNotes}
           documents={documents}
@@ -186,6 +197,8 @@ export function ControlWorkArea({ assessment, mode, guidedStep, autoAdvance, sav
           onConformityChange={setConformityLevel}
           findingsHook={findingsHook}
           auditChecklist={controlContext.auditChecklist}
+          cadrageAnswers={controlContext.cadrageAnswers}
+          clientName={clientName}
           onSubmit={handleSubmit}
           saving={saving}
           readOnly={readOnly}

@@ -5,6 +5,7 @@ import type { AssessmentValidation, ValidationStage } from '../../../../types/da
 
 interface ValidationTabProps {
   assessment: AssessmentWithControl | null
+  missionEndDate?: string | null
 }
 
 const STAGE_LABELS: Record<ValidationStage, string> = {
@@ -42,7 +43,19 @@ function stageIconFor(stage: ValidationStage) {
   return null
 }
 
-export function ValidationTab({ assessment }: ValidationTabProps) {
+function daysUntil(iso: string): number {
+  const target = new Date(iso)
+  target.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+function formatDeadline(iso: string): string {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })
+}
+
+export function ValidationTab({ assessment, missionEndDate }: ValidationTabProps) {
   const { validations, validatorMap, loading, error } = useValidationTimeline(assessment?.id ?? null)
 
   if (!assessment) {
@@ -95,6 +108,43 @@ export function ValidationTab({ assessment }: ValidationTabProps) {
           <p className="text-[11px] text-gold-700 mt-0.5">Compl&eacute;tez et soumettez pour d&eacute;clencher la cascade.</p>
         </div>
       )}
+
+      <DeadlineCallout status={assessment.status} missionEndDate={missionEndDate ?? null} />
+    </div>
+  )
+}
+
+function DeadlineCallout({ status, missionEndDate }: { status: string; missionEndDate: string | null }) {
+  if (!missionEndDate) return null
+  // Only show callout while authoring or under review (not approved/rejected/internal_review)
+  if (status === 'approved' || status === 'rejected') return null
+
+  const days = daysUntil(missionEndDate)
+  // Show only when the deadline is approaching (≤7 days) or passed
+  if (days > 7) return null
+
+  if (days < 0) {
+    return (
+      <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-2.5">
+        <p className="text-[10px] uppercase tracking-wider font-bold text-red-700 inline-flex items-center gap-1">
+          <Calendar size={11} /> Échéance dépassée
+        </p>
+        <p className="text-[11px] text-red-700 mt-0.5">
+          Mission attendue le {formatDeadline(missionEndDate)} (J+{Math.abs(days)}).
+        </p>
+      </div>
+    )
+  }
+
+  const dayLabel = days === 0 ? 'aujourd’hui' : `J-${days}`
+  return (
+    <div className="mt-3 rounded-lg bg-gold-50 border border-gold-300 p-2.5">
+      <p className="text-[10px] uppercase tracking-wider font-bold text-gold-700 inline-flex items-center gap-1">
+        <Calendar size={11} /> Échéance proche
+      </p>
+      <p className="text-[11px] text-gold-700 mt-0.5">
+        À soumettre avant le {formatDeadline(missionEndDate)} ({dayLabel}).
+      </p>
     </div>
   )
 }

@@ -16,6 +16,7 @@ import {
   FieldworkLaunchReviewBanner,
   FieldworkTransitionBanner,
 } from './FieldworkProgressBanner'
+import { FieldworkPhaseRibbon } from './FieldworkPhaseRibbon'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionMemberRow, ControlAssignmentRow, MissionDetail } from '../useMissionDetail'
 
@@ -134,6 +135,11 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
 
   return (
     <div>
+      <FieldworkPhaseRibbon
+        mission={mission}
+        scopedTotal={totalReference}
+        scopedDone={submittedCount}
+      />
       <FieldworkProgressBanner
         visible={!canLaunchReview && mission.status === 'fieldwork' && isLeadOrAssociate && totalReference > 0}
         submittedCount={submittedCount}
@@ -167,6 +173,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         {selectedAssessment ? (
           <ControlWorkArea
             assessment={selectedAssessment}
+            clientName={mission.client?.name ?? null}
             mode={state.mode}
             guidedStep={state.guidedStep}
             autoAdvance={state.autoAdvance}

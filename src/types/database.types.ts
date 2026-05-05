@@ -358,6 +358,8 @@ export interface Control {
   description: string | null
   guidance: string | null
   audit_checklist?: AuditChecklistItem[]
+  // 1=very low, 5=critical. Default 3. From migration 00105.
+  risk_level?: number
   sort_order: number
   created_at: string
   updated_at: string
