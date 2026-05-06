@@ -25,7 +25,7 @@ insert into public.questions (template_id, code, text, description, question_typ
 ('00000000-0000-0000-0000-000000000025', 'CTX-02',
  'Quel est l''effectif de votre entite ?',
  null,
- 'single_choice', '["Moins de 50", "50 a 200", "200 a 500", "500 a 1000", "Plus de 1000"]', true, 2),
+ 'single_choice', '["Moins de 50","50 à 250","250 à 1 000","1 000 à 5 000","Plus de 5 000"]', true, 2),
 
 ('00000000-0000-0000-0000-000000000025', 'CTX-03',
  'Combien de sites geographiques sont concernes ?',
@@ -199,3 +199,16 @@ insert into public.questions (template_id, code, text, description, question_typ
  'Quels sont vos principaux enjeux et attentes vis-a-vis de cette mission de conformite PSSI-ES ?',
  null,
  'textarea', null, true, 30);
+
+-- Configuration prefill + skip logic (cf. migration 00111)
+update public.questions set prefill_source = 'client.effectifs'
+where template_id = '00000000-0000-0000-0000-000000000025' and code = 'CTX-02';
+
+update public.questions set prefill_source = 'client.nombre_sites'
+where template_id = '00000000-0000-0000-0000-000000000025' and code = 'CTX-03';
+
+update public.questions set show_if = '{"question_code":"CTX-04","operator":"truthy"}'::jsonb
+where template_id = '00000000-0000-0000-0000-000000000025' and code = 'CTX-05';
+
+update public.questions set show_if = '{"question_code":"ACT-01","operator":"truthy"}'::jsonb
+where template_id = '00000000-0000-0000-0000-000000000025' and code = 'ACT-02';
