@@ -43,8 +43,9 @@ Deno.serve(async (req) => {
         is_required?: boolean
       }>
       due_date?: string | null
+      section_assignees?: Record<string, string>
     }
-    const { mission_id, included_codes, custom_questions, due_date } = body
+    const { mission_id, included_codes, custom_questions, due_date, section_assignees } = body
     if (!mission_id) {
       return new Response(
         JSON.stringify({ error: 'mission_id requis' }),
@@ -52,10 +53,10 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 3. Charger la mission (incluant cabinet_client_id pour pre-fill)
+    // 3. Charger la mission
     const { data: mission, error: mErr } = await supabaseAdmin
       .from('missions')
-      .select('id, framework_id, cabinet_id, cabinet_client_id')
+      .select('id, framework_id, cabinet_id, client_id')
       .eq('id', mission_id)
       .single()
 
@@ -162,6 +163,7 @@ Deno.serve(async (req) => {
         template_id: template.id,
         snapshot,
         due_date: due_date ?? null,
+        section_assignees: section_assignees ?? {},
       })
       .select('id')
       .single()
@@ -175,13 +177,15 @@ Deno.serve(async (req) => {
     }
 
     // 9. Pre-remplir les questions avec un prefill_source defini
+    // On derive cabinet_client_id depuis cabinet_clients.client_org_id = mission.client_id
     let prefilledCount = 0
-    if (mission.cabinet_client_id) {
+    {
       const { data: client } = await supabaseAdmin
         .from('cabinet_clients')
-        .select('effectifs, nombre_sites, client_sector, client_country, activites_principales, it_environment, it_systems')
-        .eq('id', mission.cabinet_client_id)
-        .single()
+        .select('id, effectifs, nombre_sites, client_sector, client_country, activites_principales, it_environment, it_systems')
+        .eq('client_org_id', mission.client_id)
+        .eq('cabinet_id', mission.cabinet_id)
+        .maybeSingle()
 
       if (client) {
         const PREFILL_GETTERS: Record<string, () => unknown> = {

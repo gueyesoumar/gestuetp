@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Send, Calendar, Sparkles, Plus, X, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useTemplateQuestions } from './useTemplateQuestions'
+import { useClientContacts } from './useClientContacts'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { Question } from '../../../types/database.types'
@@ -9,6 +10,7 @@ import type { Question } from '../../../types/database.types'
 interface LaunchQuestionnairePanelProps {
   missionId: string
   frameworkId: string
+  clientOrgId: string | null
   onLaunched: () => void
 }
 
@@ -58,8 +60,9 @@ function groupBySection(questions: Question[]): Map<string, Question[]> {
   return groups
 }
 
-export function LaunchQuestionnairePanel({ missionId, frameworkId, onLaunched }: LaunchQuestionnairePanelProps) {
+export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, onLaunched }: LaunchQuestionnairePanelProps) {
   const { questions, templateName, loading, error } = useTemplateQuestions(frameworkId)
+  const { contacts } = useClientContacts(clientOrgId)
   const [includedCodes, setIncludedCodes] = useState<Set<string>>(new Set())
   const [hydrated, setHydrated] = useState(false)
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([])
@@ -68,6 +71,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, onLaunched }:
     code: '', text: '', question_type: 'textarea', options: null, is_required: false,
   })
   const [dueDate, setDueDate] = useState<string>(defaultDueDate)
+  const [sectionAssignees, setSectionAssignees] = useState<Record<string, string>>({})
   const [launching, setLaunching] = useState(false)
   const [launchError, setLaunchError] = useState<string | null>(null)
 
@@ -124,6 +128,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, onLaunched }:
         included_codes: Array.from(includedCodes),
         custom_questions: customQuestions.length > 0 ? customQuestions : undefined,
         due_date: dueDate || null,
+        section_assignees: Object.keys(sectionAssignees).length > 0 ? sectionAssignees : undefined,
       },
     })
     setLaunching(false)
@@ -169,15 +174,33 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, onLaunched }:
             const noneChecked = checked === 0
             return (
               <div key={prefix} className="border border-gray-100 rounded-lg overflow-hidden">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border-b border-gray-100">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border-b border-gray-100 flex-wrap">
                   <span className="text-[10px] font-bold text-forest-700 bg-forest-100 px-2 py-0.5 rounded font-mono">{prefix}</span>
-                  <span className="text-[12px] font-semibold text-gray-700 flex-1">{SECTION_LABELS[prefix] ?? prefix}</span>
+                  <span className="text-[12px] font-semibold text-gray-700 flex-1 min-w-0">{SECTION_LABELS[prefix] ?? prefix}</span>
+                  {contacts.length > 0 && (
+                    <select
+                      value={sectionAssignees[prefix] ?? ''}
+                      onChange={(e) => {
+                        const v = e.target.value
+                        setSectionAssignees((prev) => {
+                          const next = { ...prev }
+                          if (v === '') delete next[prefix]; else next[prefix] = v
+                          return next
+                        })
+                      }}
+                      className="text-[10px] px-2 py-0.5 border border-purple-200 rounded text-purple-700 bg-purple-50 outline-none focus:border-purple-500"
+                      title="Assigner cette section à un respondent"
+                    >
+                      <option value="">👤 Tous les contacts</option>
+                      {contacts.map((c) => (
+                        <option key={c.id} value={c.user_id ?? c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  )}
                   <button
                     type="button"
                     onClick={() => toggleSection(prefix)}
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      allChecked ? 'bg-success-bg text-success' : noneChecked ? 'bg-gray-100 text-gray-500' : 'bg-gold-50 text-gold-700'
-                    }`}
+                    className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                     style={{ background: allChecked ? '#E8F5EE' : noneChecked ? '#F4F4F4' : '#FBF3DC', color: allChecked ? '#27AE60' : noneChecked ? '#707070' : '#8E7128' }}
                   >
                     {allChecked ? 'Tout désactiver' : 'Tout activer'} · {checked}/{total}

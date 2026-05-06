@@ -11,6 +11,7 @@ export interface QuestionnaireInstanceData {
     questions: Question[]
   }
   due_date: string | null
+  section_assignees: Record<string, string>
   created_at: string
 }
 

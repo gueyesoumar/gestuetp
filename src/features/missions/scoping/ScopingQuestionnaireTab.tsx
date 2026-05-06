@@ -336,6 +336,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
         <LaunchQuestionnairePanel
           missionId={mission.id}
           frameworkId={mission.framework_id}
+          clientOrgId={mission.client_id}
           onLaunched={() => { onRefetch(); qRefetch() }}
         />
       )}
