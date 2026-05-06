@@ -13,6 +13,8 @@ import { ScopingScopeTab } from './ScopingScopeTab'
 import { ScopingQuestionnaireTab } from './ScopingQuestionnaireTab'
 import { ScopingDocumentsTab } from './ScopingDocumentsTab'
 import { ScopingRisksTab } from './ScopingRisksTab'
+import { ScopingActorsTab } from './ScopingActorsTab'
+import { useMissionActors } from './useMissionActors'
 import { ScopingProgressSidebar } from './ScopingProgressSidebar'
 import { PortalInviteModal } from './PortalInviteModal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -29,7 +31,7 @@ interface MissionScopingTabProps {
   onRefetch: () => void
 }
 
-type ScopingTab = 'scope' | 'questionnaire' | 'documents' | 'risks'
+type ScopingTab = 'scope' | 'questionnaire' | 'documents' | 'risks' | 'actors'
 
 export function MissionScopingTab({ mission, members, domains, client, onRefetch }: MissionScopingTabProps) {
   const { profile } = useAuth()
@@ -39,6 +41,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const { answeredCount, totalCount } = useMissionQuestionnaire(mission.id)
   const { documents } = useMissionDocuments(mission.id)
   const { requests } = useMissionEvidenceRequests(mission.id)
+  const { actors } = useMissionActors(mission.id)
   const [activeTab, setActiveTab] = useState<ScopingTab>('scope')
   const [actionLoading, setActionLoading] = useState(false)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
@@ -211,6 +214,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           <TabBtn label="Questionnaire" count={`${answeredCount}/${totalCount}`} active={activeTab === 'questionnaire'} onClick={() => setActiveTab('questionnaire')} />
           <TabBtn label="Documents" count={docsExpected > 0 ? `${docsReceived}/${docsExpected}` : undefined} active={activeTab === 'documents'} onClick={() => setActiveTab('documents')} />
           <TabBtn label="Risques" count={risks.length} active={activeTab === 'risks'} onClick={() => setActiveTab('risks')} />
+          <TabBtn label="Acteurs" count={actors.length} active={activeTab === 'actors'} onClick={() => setActiveTab('actors')} />
         </div>
 
         {saveError && <div className="mx-4 mt-3"><ErrorAlert message={saveError} /></div>}
@@ -228,6 +232,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         {activeTab === 'risks' && (
           <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} saving={saving} error={saveError} />
         )}
+        {activeTab === 'actors' && <ScopingActorsTab missionId={mission.id} />}
       </div>
 
       {/* RIGHT SIDEBAR */}

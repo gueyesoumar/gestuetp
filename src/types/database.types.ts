@@ -1143,6 +1143,15 @@ export interface ClientContactInsert {
   is_primary?: boolean
 }
 
+export interface ClientContactUpdate {
+  name?: string
+  job_title?: string | null
+  department?: string | null
+  email?: string | null
+  phone?: string | null
+  is_primary?: boolean
+}
+
 export interface InterviewSchedule {
   id: string
   mission_id: string
@@ -1281,6 +1290,51 @@ export interface ControlCommentUpdate {
   text?: string
   mentioned_user_ids?: string[]
   deleted_at?: string | null
+}
+
+// ============================================================
+// Audit topics — meta-themes regroupant N controles d'un referentiel
+// (ex: "Gestion des acces" couvre A.5.15-18, A.8.2, A.8.3, A.8.5).
+// framework_id non null = template plateforme, mission_id non null = custom mission.
+// ============================================================
+
+export interface AuditTopic {
+  id: string
+  framework_id: string | null
+  mission_id: string | null
+  name: string
+  description: string | null
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AuditTopicInsert {
+  id?: string
+  framework_id?: string | null
+  mission_id?: string | null
+  name: string
+  description?: string | null
+  is_active?: boolean
+  sort_order?: number
+}
+
+export interface AuditTopicUpdate {
+  name?: string
+  description?: string | null
+  is_active?: boolean
+  sort_order?: number
+}
+
+export interface TopicControlLink {
+  topic_id: string
+  control_id: string
+}
+
+export interface TopicControlLinkInsert {
+  topic_id: string
+  control_id: string
 }
 
 // ============================================================
@@ -1428,7 +1482,7 @@ export interface Database {
       client_contacts: {
         Row: ClientContact
         Insert: ClientContactInsert
-        Update: never
+        Update: ClientContactUpdate
       }
       interview_schedules: {
         Row: InterviewSchedule
@@ -1469,6 +1523,16 @@ export interface Database {
         Row: QuestionnaireResponseCommentRow
         Insert: QuestionnaireResponseCommentInsert
         Update: QuestionnaireResponseCommentUpdate
+      }
+      audit_topics: {
+        Row: AuditTopic
+        Insert: AuditTopicInsert
+        Update: AuditTopicUpdate
+      }
+      topic_controls: {
+        Row: TopicControlLink
+        Insert: TopicControlLinkInsert
+        Update: never
       }
     }
     Enums: {
