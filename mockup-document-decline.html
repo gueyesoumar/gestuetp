@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Déclarer un document non disponible — Gëstu Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAFAF8;--white:#fff;
+  --t9:#1A1A1A;--t7:#374151;--t5:#6B7280;--t3:#9CA3AF;--t1:#D1D5DB;
+  --border:#E5E7EB;--bg-soft:#F9FAFB;
+  --f9:#1B4332;--f7:#2D6A4F;--f5:#52B788;--f1:#D8F3DC;--f0:#F0FFF4;
+  --gold:#D4A843;--g2:#F2E2B1;--g0:#FDF8E8;
+  --ok:#27AE60;--ok-bg:#ECFDF5;
+  --warn:#B8922E;--warn-bg:#FEF3C7;
+  --err:#C0392B;--err-bg:#FDE8E8;
+  --info:#1E40AF;--info-bg:#DBEAFE;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t9);-webkit-font-smoothing:antialiased;padding:32px}
+.mono{font-family:'JetBrains Mono',monospace}
+.wrap{max-width:1280px;margin:0 auto}
+h1{font-size:22px;font-weight:800;margin-bottom:6px;letter-spacing:-0.3px}
+.subtitle{font-size:13px;color:var(--t5);margin-bottom:32px}
+.scene{margin-bottom:48px}
+.scene-label{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:8px;border-bottom:2px dashed var(--border)}
+.scene-label .num{width:28px;height:28px;border-radius:50%;background:var(--f9);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+.scene-label .lbl{font-size:13px;font-weight:700;color:var(--f9);text-transform:uppercase;letter-spacing:0.6px}
+.scene-label .role{font-size:11px;color:var(--t5);margin-left:auto;padding:3px 10px;background:var(--bg-soft);border-radius:99px;border:1px solid var(--border)}
+.split{display:grid;gap:24px}
+.split-2{grid-template-columns:1fr 1fr}
+.frame{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.frame-header{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg-soft);display:flex;align-items:center;gap:8px}
+.frame-header .dot{width:8px;height:8px;border-radius:50%;background:var(--t1)}
+.frame-header .lbl{margin-left:8px;font-size:11px;font-weight:600;color:var(--t5)}
+.frame-body{padding:24px}
+.label-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:10px;font-weight:600;border-radius:99px;text-transform:uppercase;letter-spacing:0.4px}
+.tag-pending{background:var(--bg-soft);color:var(--t5)}
+.tag-uploaded{background:var(--f1);color:var(--f9)}
+.tag-declined{background:var(--g0);color:var(--warn)}
+.tag-accepted{background:var(--info-bg);color:var(--info)}
+.tag-finding{background:var(--err-bg);color:var(--err)}
+.label-tag svg{width:10px;height:10px}
+
+/* Card document */
+.doc-card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:var(--white)}
+.doc-card.declined{border-color:var(--g2);background:var(--g0)}
+.doc-card.accepted{border-color:#bfdbfe;background:#eff6ff}
+.doc-icon{width:40px;height:40px;border-radius:8px;background:var(--bg-soft);display:grid;place-items:center;flex-shrink:0;color:var(--t5)}
+.doc-icon.pending{background:var(--g0);color:var(--warn)}
+.doc-icon.declined{background:var(--g2);color:var(--warn)}
+.doc-icon.uploaded{background:var(--f1);color:var(--f9)}
+.doc-meta{flex:1;min-width:0}
+.doc-name{font-size:13px;font-weight:600;color:var(--t9);margin-bottom:3px}
+.doc-desc{font-size:11px;color:var(--t5);line-height:1.5}
+.doc-controls{display:flex;gap:4px;margin-top:6px}
+.ctrl-chip{font-size:9px;font-weight:600;padding:2px 6px;background:var(--f0);color:var(--f9);border-radius:4px}
+.doc-actions{display:flex;gap:6px;flex-shrink:0}
+.btn{padding:6px 12px;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid;display:inline-flex;align-items:center;gap:5px;background:none;font-family:inherit}
+.btn-primary{background:var(--f9);color:#fff;border-color:var(--f9)}
+.btn-primary:hover{background:var(--f7)}
+.btn-soft{background:var(--white);color:var(--t7);border-color:var(--border)}
+.btn-soft:hover{background:var(--bg-soft)}
+.btn-ghost{background:transparent;color:var(--t5);border-color:transparent;padding-left:4px;padding-right:4px}
+.btn-ghost:hover{color:var(--t7)}
+.btn-warn{background:var(--white);color:var(--warn);border-color:var(--g2)}
+.btn-warn:hover{background:var(--g0)}
+.btn-err{background:var(--white);color:var(--err);border-color:#fecaca}
+.btn-err:hover{background:var(--err-bg)}
+.btn-ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn-ok:hover{filter:brightness(0.95)}
+
+/* Modal */
+.modal-overlay{position:relative;background:rgba(0,0,0,0.05);border-radius:12px;padding:30px;border:1px dashed var(--t1)}
+.modal{background:var(--white);border-radius:14px;border:1px solid var(--border);box-shadow:0 12px 32px rgba(0,0,0,0.10);max-width:480px;margin:0 auto}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-icon{width:32px;height:32px;border-radius:8px;background:var(--g0);color:var(--warn);display:grid;place-items:center;flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700}
+.modal-sub{font-size:11px;color:var(--t5);margin-top:2px}
+.modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.modal-question{font-size:13px;color:var(--t7);font-weight:500;margin-bottom:8px}
+.radio-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s}
+.radio-row:hover{border-color:var(--f5);background:var(--f0)}
+.radio-row.selected{border-color:var(--f7);background:var(--f0)}
+.radio-circle{width:16px;height:16px;border-radius:50%;border:2px solid var(--t1);flex-shrink:0;margin-top:1px;position:relative}
+.radio-row.selected .radio-circle{border-color:var(--f7)}
+.radio-row.selected .radio-circle::after{content:'';position:absolute;inset:3px;background:var(--f7);border-radius:50%}
+.radio-text{flex:1}
+.radio-title{font-size:12.5px;font-weight:600;color:var(--t9)}
+.radio-desc{font-size:11px;color:var(--t5);margin-top:2px;line-height:1.45}
+.field-label{font-size:11px;font-weight:600;color:var(--t7);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.3px}
+.field-textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;min-height:60px;color:var(--t9)}
+.field-textarea:focus{outline:none;border-color:var(--f5);box-shadow:0 0 0 3px var(--f0)}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);background:var(--bg-soft);display:flex;justify-content:flex-end;gap:8px;border-bottom-left-radius:14px;border-bottom-right-radius:14px}
+
+/* KPI bar */
+.kpi-row{display:flex;gap:12px;margin-bottom:18px}
+.kpi{flex:1;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--white)}
+.kpi-label{font-size:10px;font-weight:600;color:var(--t5);text-transform:uppercase;letter-spacing:0.4px}
+.kpi-value{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;margin-top:4px;color:var(--t9)}
+.kpi-trend{font-size:11px;color:var(--ok);margin-top:2px;font-weight:500}
+.kpi.warn{border-color:var(--g2);background:var(--g0)}
+.kpi.warn .kpi-value{color:var(--warn)}
+
+/* Section auditor */
+.section-title{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--t9);display:flex;align-items:center;gap:8px}
+.section-title .count{padding:2px 8px;font-size:11px;background:var(--g0);color:var(--warn);border-radius:99px;font-weight:600}
+
+/* Decline detail card (auditor side) */
+.decline-card{border:1px solid var(--g2);border-radius:12px;background:var(--white);overflow:hidden;margin-bottom:10px}
+.decline-card-head{padding:14px 18px;display:flex;align-items:center;gap:12px;background:var(--g0);border-bottom:1px solid var(--g2)}
+.decline-card-head .doc-icon{background:var(--white);border:1px solid var(--g2)}
+.decline-card-body{padding:14px 18px}
+.decline-block{margin-bottom:10px}
+.decline-block:last-child{margin-bottom:0}
+.decline-block-label{font-size:10px;font-weight:600;color:var(--t5);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.decline-block-text{font-size:12.5px;color:var(--t7);line-height:1.55}
+.decline-actions{display:flex;gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid #f3f4f6}
+.author-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--t5)}
+.author-tag .av{width:18px;height:18px;border-radius:50%;background:var(--f9);color:#fff;display:grid;place-items:center;font-size:9px;font-weight:700}
+
+.arrow-flow{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--white);border:1px solid var(--border);border-radius:99px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--f9);box-shadow:0 4px 8px rgba(0,0,0,0.06)}
+
+.legend{margin-top:8px;font-size:11px;color:var(--t3);padding:10px 14px;background:var(--bg-soft);border-radius:8px;border-left:3px solid var(--gold);line-height:1.55}
+.legend strong{color:var(--t7)}
+
+/* Finding form */
+.modal-lg{max-width:680px}
+.ai-banner{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#FDF8E8 0%,#F0FFF4 100%);border:1px solid var(--g2);border-radius:10px;margin-bottom:6px}
+.ai-banner-icon{width:28px;height:28px;border-radius:8px;background:var(--gold);color:#fff;display:grid;place-items:center;flex-shrink:0}
+.ai-banner-text{font-size:11.5px;color:var(--t7);line-height:1.5}
+.ai-banner-text strong{color:var(--f9)}
+.context-card{padding:10px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:10px}
+.context-card .doc-icon{width:30px;height:30px;background:var(--white);border:1px solid var(--border)}
+.context-card-meta{flex:1}
+.context-card-title{font-size:12px;font-weight:600;color:var(--t9)}
+.context-card-sub{font-size:10.5px;color:var(--t5);margin-top:2px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field-input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font-family:inherit;color:var(--t9)}
+.field-input:focus{outline:none;border-color:var(--f5);box-shadow:0 0 0 3px var(--f0)}
+.field-helper{font-size:10.5px;color:var(--t5)}
+.field-row{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+.pill-group{display:flex;gap:6px}
+.pill{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;background:var(--white);transition:all 0.15s}
+.pill-text{font-size:11.5px;font-weight:600;color:var(--t7)}
+.pill-desc{font-size:10px;color:var(--t3);margin-top:1px}
+.pill.selected.major{border-color:var(--err);background:var(--err-bg)}
+.pill.selected.major .pill-text{color:var(--err)}
+.pill.selected.minor{border-color:#f59e0b;background:#fef3c7}
+.pill.selected.minor .pill-text{color:#92400e}
+.pill.selected.obs{border-color:var(--info);background:var(--info-bg)}
+.pill.selected.obs .pill-text{color:var(--info)}
+.chip-control{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--f7);background:var(--f0);border-radius:99px;font-size:11px;font-weight:600;color:var(--f9)}
+.chip-control button{background:none;border:none;color:var(--f7);cursor:pointer;display:grid;place-items:center;padding:0;width:14px;height:14px;border-radius:50%}
+.chip-control button:hover{background:var(--f1)}
+.chip-add{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1.5px dashed var(--border);background:none;border-radius:99px;font-size:11px;color:var(--t5);cursor:pointer;font-family:inherit}
+.chip-add:hover{border-color:var(--f5);color:var(--f7)}
+.ai-edit-tag{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-left:6px}
+
+/* Finding card (after) */
+.finding-card{border:1px solid #fecaca;border-radius:12px;background:var(--white);padding:14px 16px;margin-bottom:10px}
+.finding-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.finding-id{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--err);padding:2px 8px;background:var(--err-bg);border-radius:4px}
+.finding-title{font-size:13px;font-weight:700;color:var(--t9);flex:1}
+.finding-body{font-size:12px;color:var(--t7);line-height:1.55;margin-bottom:8px}
+.finding-meta{display:flex;align-items:center;gap:14px;font-size:10.5px;color:var(--t3);padding-top:8px;border-top:1px solid #f3f4f6}
+.finding-link{display:inline-flex;align-items:center;gap:4px;color:var(--f7);font-weight:600;text-decoration:none}
+.finding-link:hover{color:var(--f9)}
+.linkback{font-size:10.5px;color:var(--t5);padding:6px 10px;background:var(--bg-soft);border-radius:6px;display:inline-flex;align-items:center;gap:6px}
+.linkback strong{color:var(--t7)}
+
+/* Audit grid (sidebar) */
+.grid-frame{display:grid;grid-template-columns:340px 1fr;min-height:520px}
+.grid-sidebar{border-right:1px solid var(--border);background:var(--bg-soft);padding:14px 0;overflow:hidden}
+.grid-filters{display:flex;gap:4px;padding:0 14px 12px;flex-wrap:wrap;border-bottom:1px solid var(--border);margin-bottom:8px}
+.filter-pill{padding:4px 9px;font-size:10.5px;font-weight:600;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--t5);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.filter-pill.active{background:var(--f9);color:#fff;border-color:var(--f9)}
+.filter-pill .cnt{padding:1px 5px;background:rgba(255,255,255,0.18);border-radius:99px;font-size:9.5px;font-weight:700}
+.filter-pill:not(.active) .cnt{background:var(--bg-soft);color:var(--t5)}
+.filter-pill.new{border-color:var(--gold);background:var(--g0);color:var(--warn);position:relative}
+.filter-pill.new::after{content:'NOUV.';position:absolute;top:-7px;right:-2px;font-size:7.5px;background:var(--gold);color:#fff;padding:1px 4px;border-radius:3px;letter-spacing:0.5px;font-weight:700}
+.domain-group{padding:0 8px}
+.domain-head{display:flex;align-items:center;gap:6px;padding:8px 10px;font-size:11px;font-weight:700;color:var(--t5);text-transform:uppercase;letter-spacing:0.4px}
+.domain-head .arrow{color:var(--t3);width:10px;height:10px}
+.ctrl-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;margin-bottom:2px}
+.ctrl-row:hover{background:var(--white)}
+.ctrl-row.selected{background:var(--white);box-shadow:0 0 0 1.5px var(--f5)}
+.ctrl-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-not-started{background:var(--t1)}
+.dot-draft{background:#9ca3af}
+.dot-submitted{background:var(--info);box-shadow:0 0 0 2px var(--info-bg)}
+.dot-approved{background:var(--ok)}
+.dot-nc{background:var(--err);box-shadow:0 0 0 2px var(--err-bg)}
+.ctrl-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--t9);flex-shrink:0;width:50px}
+.ctrl-name{font-size:11.5px;color:var(--t7);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrl-row.selected .ctrl-name{color:var(--t9);font-weight:600}
+.ctrl-icons{display:flex;gap:3px;flex-shrink:0}
+.ctrl-icon{width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:9px;font-weight:700;color:#fff}
+.ctrl-icon.warn{background:var(--gold)}
+.ctrl-icon.err{background:var(--err)}
+.ctrl-icon.ok{background:var(--ok)}
+.ctrl-icon.info{background:var(--info)}
+.ctrl-icon.gray{background:var(--t3)}
+.ctrl-icon[title]{cursor:help}
+
+/* Work area */
+.work-area{padding:18px 20px;overflow-y:auto}
+.work-banner{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;margin-bottom:14px}
+.work-banner.prefill{background:var(--g0);border:1px solid var(--g2)}
+.work-banner.linked{background:var(--info-bg);border:1px solid #bfdbfe}
+.work-banner-icon{width:26px;height:26px;border-radius:7px;color:#fff;display:grid;place-items:center;flex-shrink:0}
+.work-banner.prefill .work-banner-icon{background:var(--gold)}
+.work-banner.linked .work-banner-icon{background:var(--info)}
+.work-banner-text{font-size:11.5px;color:var(--t7);line-height:1.55}
+.work-banner-text strong{color:var(--t9)}
+.work-banner-text .link{color:var(--f7);font-weight:600;text-decoration:none}
+.work-section{padding:12px 0;border-bottom:1px solid var(--border)}
+.work-section:last-child{border-bottom:none}
+.work-section-label{font-size:10px;font-weight:700;color:var(--t5);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px}
+.work-classification-pills{display:flex;gap:5px}
+.classif-pill{padding:5px 10px;font-size:10.5px;font-weight:600;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--t5)}
+.classif-pill.selected.major{background:var(--err-bg);color:var(--err);border-color:var(--err)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Mockup — Déclarer un document non disponible</h1>
+  <p class="subtitle">3 scènes : avant déclaration · modale de motif · vue auditeur après déclaration</p>
+
+  <!-- ========================================
+       SCENE 1 — Avant : la nouvelle action
+  ======================================== -->
+  <div class="scene">
+    <div class="scene-label">
+      <div class="num">1</div>
+      <div class="lbl">Avant — La carte du document attendu</div>
+      <div class="role">Portail client · Onglet Échanges</div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="lbl">app.gestugroup.com/client/missions/iso27001-ism</div>
+      </div>
+      <div class="frame-body">
+        <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:700">Documents attendus</div>
+            <div style="font-size:11px;color:var(--t5);margin-top:2px">8 documents · 3 en attente · 5 fournis</div>
+          </div>
+          <span class="label-tag tag-pending">3 en attente</span>
+        </div>
+
+        <!-- Pending card -->
+        <div class="doc-card" style="margin-bottom:8px">
+          <div class="doc-icon pending">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="doc-meta">
+            <div class="doc-name">Politique de gestion des accès logiques</div>
+            <div class="doc-desc">Document décrivant les règles d'attribution, revue et révocation des comptes utilisateurs.</div>
+            <div class="doc-controls">
+              <span class="ctrl-chip">A.5.15</span>
+              <span class="ctrl-chip">A.5.18</span>
+              <span class="ctrl-chip">A.8.2</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="btn btn-primary"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Déposer</button>
+            <button class="btn btn-soft">Lier existant</button>
+            <!-- NOUVEAU bouton -->
+            <button class="btn btn-warn" style="border-style:dashed">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              Je n'ai pas ce document
+            </button>
+          </div>
+        </div>
+
+        <div class="legend">
+          <strong>Nouveau :</strong> à côté de <em>Déposer</em> et <em>Lier existant</em>, un troisième bouton (<em>Je n'ai pas ce document</em>) ouvre la modale de la scène 2. La carte arrête de polluer les relances email tant que la déclaration est en cours.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       SCENE 2 — La modale
+  ======================================== -->
+  <div class="scene">
+    <div class="scene-label">
+      <div class="num">2</div>
+      <div class="lbl">Modale — Choisir le motif</div>
+      <div class="role">Portail client</div>
+    </div>
+
+    <div class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </div>
+          <div>
+            <div class="modal-title">Déclarer le document non disponible</div>
+            <div class="modal-sub">Politique de gestion des accès logiques</div>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <div class="modal-question">Pourquoi ne pouvez-vous pas fournir ce document ?</div>
+
+          <label class="radio-row">
+            <span class="radio-circle"></span>
+            <div class="radio-text">
+              <div class="radio-title">Le document n'existe pas dans notre organisation</div>
+              <div class="radio-desc">Le processus n'est pas formalisé. Sera traité comme une potentielle non-conformité par l'auditeur.</div>
+            </div>
+          </label>
+
+          <label class="radio-row selected">
+            <span class="radio-circle"></span>
+            <div class="radio-text">
+              <div class="radio-title">Le contrôle ne s'applique pas à notre contexte</div>
+              <div class="radio-desc">Justifiez ci-dessous. L'auditeur validera ou demandera des éléments complémentaires.</div>
+            </div>
+          </label>
+
+          <label class="radio-row">
+            <span class="radio-circle"></span>
+            <div class="radio-text">
+              <div class="radio-title">Le document existe mais est soumis à confidentialité</div>
+              <div class="radio-desc">L'auditeur proposera une preuve alternative (entretien, walk-through, attestation).</div>
+            </div>
+          </label>
+
+          <div>
+            <label class="field-label">Précisions <span style="color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0">(recommandé)</span></label>
+            <textarea class="field-textarea" placeholder="Détaillez le contexte, les contraintes ou tout élément utile à l'auditeur…">Notre direction n'a pas d'utilisateurs externes — l'authentification multi-facteurs ne s'applique pas. Le périmètre se limite au SI interne.</textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-soft">Annuler</button>
+          <button class="btn btn-primary">Confirmer la déclaration</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <strong>3 motifs canoniques d'audit :</strong> inexistant · non applicable · confidentialité. La justification libre est mandatoire pour les motifs <em>Non applicable</em> et <em>Confidentialité</em> (où l'auditeur doit qualifier). Le bouton <em>Confirmer</em> appelle l'edge function <code>decline-evidence-request</code>.
+    </div>
+  </div>
+
+  <!-- ========================================
+       SCENE 3 — Vue auditeur
+  ======================================== -->
+  <div class="scene">
+    <div class="scene-label">
+      <div class="num">3</div>
+      <div class="lbl">Après — La vue auditeur</div>
+      <div class="role">Cabinet · Onglet Cadrage › Documents</div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="lbl">app.gestugroup.com/missions/iso27001-ism (auditeur)</div>
+      </div>
+      <div class="frame-body">
+
+        <!-- KPI row -->
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-label">Demandés</div>
+            <div class="kpi-value">8</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Uploadés</div>
+            <div class="kpi-value" style="color:var(--ok)">5</div>
+          </div>
+          <div class="kpi warn">
+            <div class="kpi-label">Déclarés non disponibles</div>
+            <div class="kpi-value">2</div>
+            <div class="kpi-trend" style="color:var(--warn)">+1 nouveau</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">En attente</div>
+            <div class="kpi-value" style="color:var(--t5)">1</div>
+          </div>
+        </div>
+
+        <!-- Section -->
+        <div class="section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          Documents déclarés non disponibles
+          <span class="count">2</span>
+        </div>
+
+        <!-- Card 1 — non applicable -->
+        <div class="decline-card">
+          <div class="decline-card-head">
+            <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700">Politique de gestion des accès logiques</div>
+              <div style="display:flex;gap:6px;margin-top:4px">
+                <span class="label-tag tag-declined">Non applicable</span>
+                <span class="ctrl-chip">A.5.15</span>
+                <span class="ctrl-chip">A.5.18</span>
+                <span class="ctrl-chip">A.8.2</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="author-tag"><div class="av">FD</div>Fatou Diop</div>
+              <div style="font-size:10px;color:var(--t3);margin-top:2px">Hier, 16:42</div>
+            </div>
+          </div>
+          <div class="decline-card-body">
+            <div class="decline-block">
+              <div class="decline-block-label">Justification du client</div>
+              <div class="decline-block-text">Notre direction n'a pas d'utilisateurs externes — l'authentification multi-facteurs ne s'applique pas. Le périmètre se limite au SI interne.</div>
+            </div>
+            <div class="decline-actions">
+              <button class="btn btn-ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Accepter la déclaration</button>
+              <button class="btn btn-soft"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>Insister / proposer alternative</button>
+              <button class="btn btn-err"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 22 20 2 20 12 2"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Transformer en constat</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 — inexistant -->
+        <div class="decline-card" style="border-color:#fecaca">
+          <div class="decline-card-head" style="background:var(--err-bg);border-bottom-color:#fecaca">
+            <div class="doc-icon" style="background:var(--white);border:1px solid #fecaca;color:var(--err)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700">Plan de continuité d'activité (PCA)</div>
+              <div style="display:flex;gap:6px;margin-top:4px">
+                <span class="label-tag tag-finding">Inexistant</span>
+                <span class="ctrl-chip">A.5.30</span>
+                <span class="ctrl-chip">A.8.14</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="author-tag"><div class="av" style="background:var(--err)">AS</div>Aïssatou Sow</div>
+              <div style="font-size:10px;color:var(--t3);margin-top:2px">Aujourd'hui, 09:15</div>
+            </div>
+          </div>
+          <div class="decline-card-body">
+            <div class="decline-block">
+              <div class="decline-block-label">Justification du client</div>
+              <div class="decline-block-text">Aucun PCA formalisé à ce jour. Le sujet est à l'ordre du jour du prochain comité de direction.</div>
+            </div>
+            <div class="decline-block" style="background:var(--err-bg);border:1px solid #fecaca;border-radius:8px;padding:10px 12px">
+              <div class="decline-block-label" style="color:var(--err)">⚠ Suggestion automatique</div>
+              <div class="decline-block-text" style="color:#7f1d1d">Motif <em>Inexistant</em> sur 2 contrôles. Cliquez <em>Transformer en constat</em> pour créer une NC majeure pré-rédigée sur A.5.30 et A.8.14.</div>
+            </div>
+            <div class="decline-actions">
+              <button class="btn btn-soft"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Accepter la déclaration</button>
+              <button class="btn btn-soft"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>Insister / proposer alternative</button>
+              <button class="btn btn-err" style="background:var(--err);color:#fff;border-color:var(--err)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 22 20 2 20 12 2"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Transformer en constat NC</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <strong>3 actions auditeur</strong> par déclaration : <em>Accepter</em> (sort la demande du périmètre, plus de relance) · <em>Insister</em> (renvoie en pending avec un commentaire qui notifie le client) · <em>Transformer en constat</em> (crée un finding pré-rempli sur les contrôles liés). Une notif Slack/email est envoyée au cabinet à chaque déclinaison côté client.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       SCENE 4 — Création du constat (formulaire pré-rédigé)
+  ======================================== -->
+  <div class="scene">
+    <div class="scene-label">
+      <div class="num">4</div>
+      <div class="lbl">Transformer en constat — Formulaire pré-rédigé</div>
+      <div class="role">Cabinet · clic sur « Transformer en constat NC »</div>
+    </div>
+
+    <div class="modal-overlay">
+      <div class="modal modal-lg">
+        <div class="modal-header" style="border-bottom-color:#fecaca;background:linear-gradient(90deg,#FDE8E8 0%,#FFF 100%)">
+          <div class="modal-icon" style="background:var(--err);color:#fff">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polygon points="12 2 22 20 2 20 12 2"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div>
+            <div class="modal-title">Créer un constat depuis la déclaration</div>
+            <div class="modal-sub">À partir de : Plan de continuité d'activité (PCA) · déclaré <em>Inexistant</em></div>
+          </div>
+        </div>
+
+        <div class="modal-body" style="gap:16px">
+
+          <!-- AI auto-rédaction banner -->
+          <div class="ai-banner">
+            <div class="ai-banner-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L20 11l-5.1 2.2L12 19l-2.9-5.8L4 11l6.1-2.2L12 3z"/></svg>
+            </div>
+            <div class="ai-banner-text">
+              <strong>Pré-rédigé par Gëstu IA</strong> à partir du document manquant, des contrôles liés et de la justification du client. Tous les champs restent éditables.
+            </div>
+          </div>
+
+          <!-- Source / context -->
+          <div class="context-card">
+            <div class="doc-icon" style="color:var(--err)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="context-card-meta">
+              <div class="context-card-title">Plan de continuité d'activité (PCA) — déclaré inexistant</div>
+              <div class="context-card-sub">« Aucun PCA formalisé à ce jour. Le sujet est à l'ordre du jour du prochain comité de direction. » — Aïssatou Sow</div>
+            </div>
+          </div>
+
+          <!-- Classification -->
+          <div class="field">
+            <label class="field-label">Classification du constat <span class="ai-edit-tag">⚡ Suggérée</span></label>
+            <div class="pill-group">
+              <div class="pill selected major">
+                <div class="pill-text">NC majeure</div>
+                <div class="pill-desc">Risque structurel élevé</div>
+              </div>
+              <div class="pill">
+                <div class="pill-text">NC mineure</div>
+                <div class="pill-desc">Écart ponctuel</div>
+              </div>
+              <div class="pill">
+                <div class="pill-text">Observation</div>
+                <div class="pill-desc">Recommandation</div>
+              </div>
+            </div>
+            <div class="field-helper">Suggéré <strong>NC majeure</strong> car le motif client est <em>Inexistant</em> et le contrôle A.5.30 est de gravité élevée.</div>
+          </div>
+
+          <!-- Contrôles impactés -->
+          <div class="field">
+            <label class="field-label">Contrôles impactés <span class="ai-edit-tag">⚡ Auto-mappés</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+              <span class="chip-control">
+                A.5.30 — Préparation aux TIC pour la continuité d'activité
+                <button><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+              </span>
+              <span class="chip-control">
+                A.8.14 — Redondance des installations de traitement
+                <button><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+              </span>
+              <button class="chip-add">+ Ajouter un contrôle</button>
+            </div>
+            <div class="field-helper">Mappés depuis l'<code class="mono" style="font-size:10px;background:var(--bg-soft);padding:1px 4px;border-radius:3px">evidence_catalog</code> du document manquant.</div>
+          </div>
+
+          <!-- Titre -->
+          <div class="field">
+            <label class="field-label">Titre du constat</label>
+            <input class="field-input" value="Absence de plan de continuité d'activité formalisé">
+          </div>
+
+          <!-- Description -->
+          <div class="field">
+            <label class="field-label">Constat (description) <span class="ai-edit-tag">⚡ Pré-rédigé</span></label>
+            <textarea class="field-textarea" style="min-height:90px">L'organisation ne dispose pas de Plan de Continuité d'Activité formalisé. Le client a déclaré le 28/04/2026 que ce document est inexistant et que le sujet est inscrit à l'ordre du jour du prochain comité de direction. Cette absence ne permet pas de démontrer la conformité aux exigences A.5.30 (Préparation aux TIC pour la continuité d'activité) et A.8.14 (Redondance des installations de traitement) de l'ISO/IEC 27001:2022.</textarea>
+          </div>
+
+          <!-- Recommandation -->
+          <div class="field">
+            <label class="field-label">Recommandation <span class="ai-edit-tag">⚡ Pré-rédigée</span></label>
+            <textarea class="field-textarea" style="min-height:75px">Élaborer et formaliser un PCA couvrant l'analyse d'impact (BIA), les stratégies de continuité, les procédures de bascule et les tests périodiques. Le PCA devra être validé par le comité de direction et testé au moins une fois par an. Échéance recommandée : 6 mois.</textarea>
+          </div>
+
+          <!-- Risque + échéance row -->
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">Niveau de risque résiduel</label>
+              <select class="field-input">
+                <option selected>Élevé</option>
+                <option>Moyen</option>
+                <option>Faible</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">Échéance proposée</label>
+              <input type="date" class="field-input" value="2026-10-28">
+            </div>
+          </div>
+
+          <div style="background:var(--info-bg);border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <div style="font-size:11px;color:#1e3a8a;line-height:1.5">
+              Une fois créé, ce constat sera relié à la déclaration source. La demande de document <strong>passe en statut <em>escalated_to_finding</em></strong> et sort de la file d'attente — plus de relances, le contrôle est marqué <em>NC</em> en attente de validation.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-soft">Annuler</button>
+          <button class="btn btn-primary" style="background:var(--err);border-color:var(--err)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Créer le constat NC
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       SCENE 5 — Après création (état résultat)
+  ======================================== -->
+  <div class="scene">
+    <div class="scene-label">
+      <div class="num">5</div>
+      <div class="lbl">Après — Le constat est créé et relié</div>
+      <div class="role">Cabinet · onglet Constats / Documents</div>
+    </div>
+
+    <div class="split split-2">
+
+      <!-- Left : declined doc card after -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <div class="lbl">Documents non disponibles</div>
+        </div>
+        <div class="frame-body">
+          <div style="font-size:10.5px;font-weight:600;color:var(--t5);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px">État de la déclaration</div>
+
+          <div class="decline-card" style="border-color:#fecaca;opacity:0.95">
+            <div class="decline-card-head" style="background:#FAFAF8;border-bottom-color:var(--border)">
+              <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700">Plan de continuité d'activité (PCA)</div>
+                <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+                  <span class="label-tag tag-finding">Inexistant</span>
+                  <span class="label-tag" style="background:var(--err);color:#fff">Constat créé</span>
+                  <span class="ctrl-chip">A.5.30</span>
+                  <span class="ctrl-chip">A.8.14</span>
+                </div>
+              </div>
+            </div>
+            <div class="decline-card-body">
+              <div class="decline-block">
+                <div class="decline-block-label">Décision auditeur</div>
+                <div class="decline-block-text" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  Transformé en constat NC majeure le 28/04/2026 par
+                  <span class="author-tag"><div class="av">OG</div>Oumar Gueye</span>
+                  →
+                  <a class="finding-link" style="font-family:'JetBrains Mono',monospace">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    NC-A.5.30-001
+                  </a>
+                </div>
+              </div>
+              <div class="linkback" style="margin-top:6px">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <strong>Statut :</strong> escalated_to_finding · plus de relance email · sorti du <em>pendingCount</em>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right : Findings list with the new entry -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <div class="lbl">Onglet Constats — Mission ISM</div>
+        </div>
+        <div class="frame-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700">Constats de la mission</div>
+            <span class="label-tag tag-finding">+1 nouveau</span>
+          </div>
+
+          <!-- Newly created finding -->
+          <div class="finding-card" style="background:linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 60%)">
+            <div class="finding-head">
+              <span class="finding-id">NC-A.5.30-001</span>
+              <span class="finding-title">Absence de plan de continuité d'activité formalisé</span>
+              <span class="label-tag tag-finding" style="font-size:9.5px">NC majeure</span>
+            </div>
+            <div class="finding-body">L'organisation ne dispose pas de Plan de Continuité d'Activité formalisé. Le client a déclaré le 28/04/2026 que ce document est inexistant et que le sujet est inscrit à l'ordre du jour du prochain comité de direction…</div>
+            <div class="finding-meta">
+              <span style="display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Échéance 28/10/2026</span>
+              <span style="display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Risque résiduel : Élevé</span>
+              <span style="margin-left:auto">
+                <a class="finding-link">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Source : déclaration PCA
+                </a>
+              </span>
+            </div>
+          </div>
+
+          <!-- Existing finding for context -->
+          <div class="finding-card" style="border-color:var(--border);opacity:0.6">
+            <div class="finding-head">
+              <span class="finding-id" style="background:#fef3c7;color:#92400e">NC-A.5.15-002</span>
+              <span class="finding-title" style="font-weight:600">Revue d'accès non documentée</span>
+              <span class="label-tag" style="background:#fef3c7;color:#92400e;font-size:9.5px">NC mineure</span>
+            </div>
+            <div class="finding-body" style="font-size:11.5px">Les revues d'accès sont effectuées mais non tracées dans le système…</div>
+            <div class="finding-meta" style="font-size:10px">
+              <span>Échéance 15/06/2026</span>
+              <span>Risque : Moyen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <strong>Lien bidirectionnel.</strong> Le constat connaît son origine (la déclaration), et la déclaration connaît le constat (lien <code class="mono" style="font-size:11px;background:var(--bg-soft);padding:1px 5px;border-radius:3px">finding_id</code>). Si le client réagit à la déclaration côté portail (« en fait nous avons commencé à rédiger »), il peut <em>ré-uploader</em> — ce qui notifie l'auditeur qui peut alors décider de clore ou réviser le constat.
+    </div>
+  </div>
+
+  <!-- ========================================
+       SCENE 6 — Impact sur la grille d'audit
+  ======================================== -->
+  <div class="scene">
+    <div class="scene-label">
+      <div class="num">6</div>
+      <div class="lbl">Impact sur la grille d'audit (onglet Travaux)</div>
+      <div class="role">Cabinet · Mission ISM · Phase Terrain</div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="lbl">app.gestugroup.com/missions/iso27001-ism — onglet Travaux</div>
+      </div>
+      <div class="grid-frame">
+
+        <!-- ========= Sidebar : list of controls ========= -->
+        <div class="grid-sidebar">
+          <!-- Filters -->
+          <div class="grid-filters">
+            <span class="filter-pill"><span>Tous</span><span class="cnt">93</span></span>
+            <span class="filter-pill"><span>À démarrer</span><span class="cnt">42</span></span>
+            <span class="filter-pill new active"><span>Prêts à évaluer</span><span class="cnt">8</span></span>
+            <span class="filter-pill"><span>En cours</span><span class="cnt">31</span></span>
+            <span class="filter-pill"><span>Validés</span><span class="cnt">12</span></span>
+          </div>
+
+          <!-- Domain A.5 -->
+          <div class="domain-group">
+            <div class="domain-head">
+              <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              A.5 — Politiques organisationnelles
+            </div>
+
+            <!-- A.5.15 : decline accepted → ready -->
+            <div class="ctrl-row">
+              <span class="ctrl-status-dot dot-not-started" title="Pas encore évalué"></span>
+              <span class="ctrl-code">A.5.15</span>
+              <span class="ctrl-name">Contrôle d'accès</span>
+              <div class="ctrl-icons">
+                <span class="ctrl-icon ok" title="1 doc déclaré ND, accepté par auditeur">✓</span>
+              </div>
+            </div>
+
+            <!-- A.5.18 : decline pending decision -->
+            <div class="ctrl-row">
+              <span class="ctrl-status-dot dot-not-started"></span>
+              <span class="ctrl-code">A.5.18</span>
+              <span class="ctrl-name">Droits d'accès</span>
+              <div class="ctrl-icons">
+                <span class="ctrl-icon warn" title="1 doc déclaré non disponible — décision auditeur requise">!</span>
+              </div>
+            </div>
+
+            <!-- A.5.30 : auto-NC from declination (selected) -->
+            <div class="ctrl-row selected">
+              <span class="ctrl-status-dot dot-nc" title="Pré-rempli en NC majeure"></span>
+              <span class="ctrl-code">A.5.30</span>
+              <span class="ctrl-name">Préparation TIC continuité</span>
+              <div class="ctrl-icons">
+                <span class="ctrl-icon err" title="NC majeure générée depuis une déclaration">NC</span>
+                <span class="ctrl-icon gray" title="Pré-rempli, en attente de revue">⚡</span>
+              </div>
+            </div>
+
+            <!-- A.5.31 : conformant -->
+            <div class="ctrl-row">
+              <span class="ctrl-status-dot dot-approved"></span>
+              <span class="ctrl-code">A.5.31</span>
+              <span class="ctrl-name">Exigences légales</span>
+              <div class="ctrl-icons"></div>
+            </div>
+          </div>
+
+          <!-- Domain A.8 -->
+          <div class="domain-group" style="margin-top:6px">
+            <div class="domain-head">
+              <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              A.8 — Contrôles techniques
+            </div>
+
+            <!-- A.8.2 : evidence pending uploaded -->
+            <div class="ctrl-row">
+              <span class="ctrl-status-dot dot-draft"></span>
+              <span class="ctrl-code">A.8.2</span>
+              <span class="ctrl-name">Privilèges d'accès</span>
+              <div class="ctrl-icons">
+                <span class="ctrl-icon info" title="Documents reçus">📎</span>
+              </div>
+            </div>
+
+            <!-- A.8.14 : also auto-NC from same decline -->
+            <div class="ctrl-row">
+              <span class="ctrl-status-dot dot-nc"></span>
+              <span class="ctrl-code">A.8.14</span>
+              <span class="ctrl-name">Redondance des installations</span>
+              <div class="ctrl-icons">
+                <span class="ctrl-icon err" title="NC majeure générée depuis une déclaration">NC</span>
+                <span class="ctrl-icon gray" title="Pré-rempli, en attente de revue">⚡</span>
+              </div>
+            </div>
+
+            <!-- A.8.15 : evidence missing, pending -->
+            <div class="ctrl-row">
+              <span class="ctrl-status-dot dot-not-started"></span>
+              <span class="ctrl-code">A.8.15</span>
+              <span class="ctrl-name">Journalisation</span>
+              <div class="ctrl-icons">
+                <span class="ctrl-icon gray" title="2 documents en attente d'upload client">2</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legend mini -->
+          <div style="margin-top:14px;padding:10px 14px;border-top:1px solid var(--border);font-size:10px;color:var(--t5);line-height:1.7">
+            <div style="font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;color:var(--t7)">Indicateurs de preuve</div>
+            <div style="display:flex;align-items:center;gap:6px"><span class="ctrl-icon ok">✓</span> ND accepté · contrôle prêt</div>
+            <div style="display:flex;align-items:center;gap:6px"><span class="ctrl-icon warn">!</span> ND déclaré · décision en attente</div>
+            <div style="display:flex;align-items:center;gap:6px"><span class="ctrl-icon err">NC</span> NC auto-créée depuis ND</div>
+            <div style="display:flex;align-items:center;gap:6px"><span class="ctrl-icon info">📎</span> Documents fournis</div>
+            <div style="display:flex;align-items:center;gap:6px"><span class="ctrl-icon gray">2</span> Docs en attente d'upload</div>
+          </div>
+        </div>
+
+        <!-- ========= Work area for selected control A.5.30 ========= -->
+        <div class="work-area">
+          <div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span class="ctrl-code" style="font-size:14px;width:auto">A.5.30</span>
+              <span class="label-tag tag-finding" style="font-size:9.5px">NC majeure</span>
+              <span class="label-tag" style="background:var(--bg-soft);color:var(--t5);font-size:9.5px">Pré-rempli · à valider</span>
+            </div>
+            <div style="font-size:14px;font-weight:700;color:var(--t9)">Préparation des TIC pour la continuité d'activité</div>
+            <div style="font-size:11px;color:var(--t5);margin-top:3px">L'organisation doit planifier, mettre en œuvre, maintenir et tester la disponibilité des TIC dans le cadre de son PCA.</div>
+          </div>
+
+          <!-- Banner : pre-filled from decline -->
+          <div class="work-banner prefill">
+            <div class="work-banner-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L20 11l-5.1 2.2L12 19l-2.9-5.8L4 11l6.1-2.2L12 3z"/></svg>
+            </div>
+            <div class="work-banner-text">
+              <strong>Évaluation pré-remplie automatiquement.</strong> Une déclaration <em>Inexistant</em> a été enregistrée par <strong>Aïssatou Sow</strong> (client) sur le document <em>Plan de continuité d'activité</em>. Gëstu IA a généré la classification, le constat et la recommandation. Vérifiez puis soumettez.
+              <br>
+              <a class="link">Voir la déclaration source →</a>
+            </div>
+          </div>
+
+          <!-- Banner : linked finding -->
+          <div class="work-banner linked">
+            <div class="work-banner-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div class="work-banner-text">
+              Constat de mission lié : <strong style="font-family:'JetBrains Mono',monospace">NC-A.5.30-001</strong> — couvre aussi <strong style="font-family:'JetBrains Mono',monospace">A.8.14</strong>. Toute modification du constat se reflètera ici et inversement.
+            </div>
+          </div>
+
+          <!-- Form pre-filled -->
+          <div class="work-section">
+            <div class="work-section-label">Niveau de conformité <span class="ai-edit-tag">⚡ Suggéré</span></div>
+            <div class="work-classification-pills">
+              <span class="classif-pill">C — Conforme</span>
+              <span class="classif-pill">LC — Largement</span>
+              <span class="classif-pill">PC — Partiellement</span>
+              <span class="classif-pill selected major">NC — Non conforme</span>
+              <span class="classif-pill">N/A</span>
+            </div>
+          </div>
+
+          <div class="work-section">
+            <div class="work-section-label">Constats <span class="ai-edit-tag">⚡ Pré-rédigé</span></div>
+            <div style="font-size:12px;color:var(--t7);line-height:1.6;padding:10px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px">L'organisation ne dispose pas de Plan de Continuité d'Activité formalisé. Le client a déclaré le 28/04/2026 que ce document est inexistant et que le sujet est inscrit à l'ordre du jour du prochain comité de direction. Cette absence ne permet pas de démontrer la conformité aux exigences A.5.30…</div>
+          </div>
+
+          <div class="work-section">
+            <div class="work-section-label">Recommandation <span class="ai-edit-tag">⚡ Pré-rédigée</span></div>
+            <div style="font-size:12px;color:var(--t7);line-height:1.6;padding:10px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px">Élaborer et formaliser un PCA couvrant l'analyse d'impact (BIA), les stratégies de continuité, les procédures de bascule et les tests périodiques…</div>
+          </div>
+
+          <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-soft">Modifier</button>
+            <button class="btn btn-primary"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>Soumettre pour revue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <strong>3 nouveaux signaux dans la grille</strong> · Le filtre <em>Prêts à évaluer</em> = contrôles dont toutes les preuves sont soit fournies, soit déclinées+acceptées (sortie du flux d'attente). Les badges sur la ligne <code class="mono" style="font-size:11px;background:var(--bg-soft);padding:1px 5px;border-radius:3px">!</code> (décision en attente), <code class="mono" style="font-size:11px;background:var(--bg-soft);padding:1px 5px;border-radius:3px">NC</code> (constat auto-créé) et <code class="mono" style="font-size:11px;background:var(--bg-soft);padding:1px 5px;border-radius:3px">⚡</code> (pré-rempli) permettent au lead de prioriser sa file. Quand un contrôle pré-rempli est ouvert, deux bandeaux contextuels rappellent l'origine et le constat lié.
+    </div>
+  </div>
+
+  <!-- ========================================
+       Footer note
+  ======================================== -->
+  <div style="margin-top:48px;padding:20px 24px;background:var(--white);border:1px solid var(--border);border-radius:12px">
+    <div style="font-size:12px;font-weight:700;color:var(--f9);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Conséquences workflow</div>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin:0;padding:0">
+      <li style="display:flex;gap:10px;font-size:12.5px;color:var(--t7);line-height:1.5"><span style="color:var(--f7);font-weight:700">✓</span><span><strong>Relances ciblées</strong> — l'edge function <code class="mono" style="font-size:11px;background:var(--bg-soft);padding:1px 5px;border-radius:3px">evidence-reminders</code> ignore les statuts <em>declined</em> et <em>accepted</em>. Plus de mails j+3, j+7, j+14 sur des documents inexistants.</span></li>
+      <li style="display:flex;gap:10px;font-size:12.5px;color:var(--t7);line-height:1.5"><span style="color:var(--f7);font-weight:700">✓</span><span><strong>Stat de couverture</strong> — la barre de progression côté client passe de <em>5/8 fournis</em> à <em>7/8 traités</em> (uploads + déclarations) — vision réelle de l'avancement.</span></li>
+      <li style="display:flex;gap:10px;font-size:12.5px;color:var(--t7);line-height:1.5"><span style="color:var(--f7);font-weight:700">✓</span><span><strong>Contrôles « prêts à évaluer »</strong> — un contrôle dont toutes les preuves sont soit uploadées soit déclinées (et acceptées) sort de la file d'attente, l'auditeur peut le commencer.</span></li>
+      <li style="display:flex;gap:10px;font-size:12.5px;color:var(--t7);line-height:1.5"><span style="color:var(--f7);font-weight:700">✓</span><span><strong>Note de cadrage / rapport</strong> — section dédiée <em>« Documents non fournis »</em> avec motif et justification — c'est une preuve d'audit en soi.</span></li>
+      <li style="display:flex;gap:10px;font-size:12.5px;color:var(--t7);line-height:1.5"><span style="color:var(--f7);font-weight:700">✓</span><span><strong>Audit trail</strong> — qui a déclaré quoi, quand, et qui a tranché côté auditeur. Défendable en revue qualité.</span></li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

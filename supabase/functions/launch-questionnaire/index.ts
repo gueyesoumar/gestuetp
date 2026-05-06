@@ -38,9 +38,10 @@ Deno.serve(async (req) => {
         code: string
         text: string
         description?: string | null
-        question_type: 'boolean' | 'single_choice' | 'multiple_choice' | 'text' | 'textarea'
+        question_type: 'boolean' | 'single_choice' | 'multiple_choice' | 'text' | 'textarea' | 'date' | 'number' | 'scale_percent' | 'file' | 'organigramme'
         options?: string[] | null
         is_required?: boolean
+        section?: string | null
       }>
       due_date?: string | null
       section_assignees?: Record<string, string>
@@ -119,26 +120,57 @@ Deno.serve(async (req) => {
       selectedQuestions = selectedQuestions.filter((q) => wanted.has(q.code))
     }
 
-    // 7b. Ajouter les custom questions a la suite, avec un code prefixe CUSTOM-
-    const baseSort = selectedQuestions.length > 0
+    // 7b. Ajouter les custom questions a la suite.
+    //   - Si une section est fournie : code = `${section}-CUSTOM-${slug}` (la question
+    //     apparait dans la section choisie cote client + multi-respondent)
+    //   - Sinon : code = `CUSTOM-${slug}` (apparait dans un bloc CUSTOM separe)
+    // sort_order est calque sur la section quand fournie pour que la question soit
+    // a la fin du bloc concerne, sinon repoussee tout en bas.
+    const templateSectionPrefixes = new Set(
+      (questions ?? []).map((q) => (q as { code: string }).code.split('-')[0])
+    )
+    const sectionMaxSort = new Map<string, number>()
+    for (const q of selectedQuestions) {
+      const prefix = q.code.split('-')[0] ?? ''
+      const sortVal = Number(q.sort_order ?? 0)
+      const cur = sectionMaxSort.get(prefix) ?? 0
+      if (sortVal > cur) sectionMaxSort.set(prefix, sortVal)
+    }
+    const globalMaxSort = selectedQuestions.length > 0
       ? Math.max(...selectedQuestions.map((q) => Number(q.sort_order ?? 0))) + 1
       : 1
-    const customNormalized = (custom_questions ?? []).map((cq, idx) => ({
-      id: `custom-${idx}`,
-      template_id: template.id,
-      code: cq.code.startsWith('CUSTOM-') ? cq.code : `CUSTOM-${cq.code}`,
-      text: cq.text,
-      description: cq.description ?? null,
-      question_type: cq.question_type,
-      options: cq.options ?? null,
-      is_required: cq.is_required ?? false,
-      sort_order: baseSort + idx,
-      prefill_source: null,
-      evidence_catalog_id: null,
-      is_custom: true,
-    }))
 
-    const finalQuestions = [...selectedQuestions, ...customNormalized]
+    const customNormalized = (custom_questions ?? []).map((cq, idx) => {
+      const rawSection = typeof cq.section === 'string' ? cq.section.trim().toUpperCase() : ''
+      const section = rawSection && templateSectionPrefixes.has(rawSection) ? rawSection : null
+      const slug = cq.code.replace(/^CUSTOM-/i, '').replace(/^[A-Z]+-CUSTOM-/i, '')
+      const finalCode = section
+        ? `${section}-CUSTOM-${slug}`
+        : (cq.code.startsWith('CUSTOM-') ? cq.code : `CUSTOM-${cq.code}`)
+      const sort = section
+        ? (sectionMaxSort.get(section) ?? 0) + 0.001 * (idx + 1)
+        : globalMaxSort + idx
+      return {
+        id: `custom-${idx}`,
+        template_id: template.id,
+        code: finalCode,
+        text: cq.text,
+        description: cq.description ?? null,
+        question_type: cq.question_type,
+        options: cq.options ?? null,
+        is_required: cq.is_required ?? false,
+        sort_order: sort,
+        prefill_source: null,
+        evidence_catalog_id: null,
+        is_custom: true,
+      }
+    })
+
+    // Trier la liste finale par sort_order pour que les customs avec section
+    // viennent juste apres la derniere question de leur section.
+    const finalQuestions = [...selectedQuestions, ...customNormalized].sort(
+      (a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0)
+    )
 
     // 7c. Creer le snapshot (copie figee du template + questions selectionnees + custom)
     const snapshot = {

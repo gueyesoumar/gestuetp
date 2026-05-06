@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Note de cadrage — Mockup C (Hybride premium)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #0d2f23;
+    --forest-700: #1B4332;
+    --forest-500: #2d6a4f;
+    --forest-300: #74c69d;
+    --forest-50: #f0fdf4;
+    --gold-500: #D4A843;
+    --gold-300: #ebc878;
+    --gold-50: #fdf8e8;
+    --text-900: #1a1a1a;
+    --text-700: #374151;
+    --text-500: #6b7280;
+    --text-400: #9ca3af;
+    --text-300: #d1d5db;
+    --border: #e5e7eb;
+    --bg: #fafaf8;
+    --paper: #fdfbf6;
+    --red: #c0392b;
+    --red-50: #fef2f2;
+    --orange: #e67e22;
+    --orange-50: #fff7ed;
+    --blue: #2563eb;
+    --blue-50: #eff6ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #d6d6d6; font-family: 'Inter', sans-serif; color: var(--text-900); }
+  body { padding: 30px 0; }
+  .page {
+    width: 210mm; min-height: 297mm; background: var(--paper);
+    margin: 0 auto 24px; padding: 22mm 22mm 18mm;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    position: relative;
+  }
+  .page-header {
+    position: absolute; top: 8mm; left: 22mm; right: 22mm;
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 3mm; border-bottom: 0.5pt solid var(--border);
+  }
+  .page-header-logo { font-size: 11pt; font-weight: 800; color: var(--forest-700); letter-spacing: -0.02em; }
+  .page-header-logo span { color: var(--gold-500); }
+  .page-header-meta { font-size: 7.5pt; color: var(--text-500); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+  .page-num {
+    position: absolute; bottom: 8mm; left: 22mm; right: 22mm;
+    display: flex; justify-content: space-between; padding-top: 3mm; border-top: 0.5pt solid var(--border);
+    font-size: 7.5pt; color: var(--text-500);
+  }
+  h1, h2, h3, h4 { font-weight: 700; }
+  p { font-family: 'Source Serif 4', Georgia, serif; font-size: 11pt; line-height: 1.7; color: var(--text-700); margin-bottom: 10pt; }
+  ul, ol { margin: 6pt 0 12pt 18pt; }
+  li { font-family: 'Source Serif 4', Georgia, serif; font-size: 11pt; line-height: 1.7; color: var(--text-700); margin-bottom: 4pt; }
+  li > b { font-family: 'Inter', sans-serif; font-weight: 700; }
+
+  /* ========== COVER ========== */
+  .cover { padding: 0; }
+  .cover-top {
+    background: var(--forest-900); color: white;
+    padding: 30mm 22mm 22mm; position: relative;
+    overflow: hidden;
+  }
+  .cover-top::before {
+    content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1.5mm;
+    background: linear-gradient(90deg, var(--gold-500) 0%, var(--gold-300) 100%);
+  }
+  .cover-emblem {
+    position: absolute; top: 22mm; right: 22mm; width: 28mm; height: 28mm;
+    border-radius: 50%; background: rgba(212, 168, 67, 0.15);
+    border: 1pt solid rgba(212, 168, 67, 0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 7pt; color: var(--gold-300);
+    letter-spacing: 0.1em; text-align: center; line-height: 1.4;
+  }
+  .cover-pretitle { font-family: 'JetBrains Mono', monospace; font-size: 8pt; color: var(--gold-300); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 6mm; }
+  .cover-logo { font-size: 24pt; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .cover-logo span { color: var(--gold-500); }
+  .cover-title { font-family: 'Source Serif 4', Georgia, serif; font-weight: 700; font-size: 32pt; margin-top: 12mm; line-height: 1.1; max-width: 130mm; letter-spacing: -0.01em; }
+  .cover-subtitle { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 13pt; opacity: 0.85; margin-top: 5mm; max-width: 130mm; line-height: 1.5; }
+
+  /* Cover middle — quick facts */
+  .cover-facts {
+    margin: 14mm 22mm 0;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;
+    border-top: 0.5pt solid var(--border);
+  }
+  .cover-fact {
+    padding: 6mm 6mm; border-bottom: 0.5pt solid var(--border);
+    border-right: 0.5pt solid var(--border);
+  }
+  .cover-fact:nth-child(2n) { border-right: none; }
+  .cover-fact-label { font-size: 7.5pt; font-weight: 700; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.12em; }
+  .cover-fact-value { font-size: 12pt; font-weight: 600; color: var(--text-900); margin-top: 2mm; }
+  .cover-fact-sub { font-size: 9pt; color: var(--text-500); margin-top: 1mm; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; }
+
+  .cover-kpi-row {
+    margin: 0 22mm; padding: 10mm 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm;
+  }
+  .cover-kpi {
+    text-align: center; padding: 5mm 4mm;
+    background: white; border: 0.5pt solid var(--border); border-radius: 2mm;
+  }
+  .cover-kpi-value { font-size: 22pt; font-weight: 800; color: var(--forest-700); line-height: 1; letter-spacing: -0.02em; }
+  .cover-kpi-label { font-size: 8pt; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-top: 2mm; }
+
+  .cover-quote {
+    margin: 8mm 22mm 0; padding: 6mm;
+    background: var(--gold-50); border-left: 3pt solid var(--gold-500);
+    border-radius: 0 2mm 2mm 0;
+    font-family: 'Source Serif 4', Georgia, serif; font-style: italic;
+    font-size: 11pt; color: #6f5523; line-height: 1.6;
+  }
+  .cover-quote-author { font-style: normal; font-family: 'Inter', sans-serif; font-size: 9pt; color: var(--text-500); margin-top: 3mm; font-weight: 600; }
+
+  .cover-bottom {
+    position: absolute; bottom: 18mm; left: 22mm; right: 22mm;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .cover-version-block { font-size: 8pt; color: var(--text-500); }
+  .cover-version-block b { color: var(--text-900); font-size: 9.5pt; }
+  .cover-classif {
+    background: var(--forest-900); color: white; padding: 2mm 5mm;
+    border-radius: 100mm; font-size: 8pt; font-weight: 700; letter-spacing: 0.15em;
+  }
+
+  /* ========== SECTIONS ========== */
+  .section-intro {
+    margin: 0 0 8mm;
+    padding-bottom: 6mm; border-bottom: 1.5pt solid var(--forest-700);
+    display: flex; align-items: flex-end; gap: 8mm;
+  }
+  .section-num {
+    font-family: 'Source Serif 4', Georgia, serif; font-weight: 700; font-size: 64pt;
+    color: var(--gold-500); line-height: 1; letter-spacing: -0.04em; flex-shrink: 0;
+  }
+  .section-title-block { flex: 1; padding-bottom: 4mm; }
+  .section-title-block .kicker { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; color: var(--text-500); letter-spacing: 0.15em; text-transform: uppercase; }
+  .section-title-block h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 700; font-size: 22pt; color: var(--forest-900); line-height: 1.1; margin-top: 2mm; letter-spacing: -0.01em; }
+  .section-title-block .lead { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 11pt; color: var(--text-500); margin-top: 3mm; line-height: 1.5; }
+
+  h3 { font-family: 'Source Serif 4', Georgia, serif; font-size: 14pt; color: var(--forest-700); margin: 8mm 0 3mm; font-weight: 700; }
+  h4 { font-size: 10.5pt; color: var(--text-900); margin: 5mm 0 2mm; font-weight: 700; }
+
+  .drop-cap::first-letter {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 36pt; font-weight: 700;
+    color: var(--forest-700); float: left;
+    line-height: 0.9; padding-right: 3mm; padding-top: 1.5mm;
+  }
+
+  /* TOC */
+  .toc { margin-top: 4mm; }
+  .toc-item { display: flex; padding: 3mm 0; border-bottom: 0.5pt dotted var(--border); align-items: baseline; }
+  .toc-num { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--gold-500); width: 18mm; flex-shrink: 0; font-size: 10pt; }
+  .toc-title { flex: 1; font-family: 'Source Serif 4', Georgia, serif; font-size: 11pt; color: var(--text-900); }
+  .toc-page { font-family: 'JetBrains Mono', monospace; font-size: 9pt; color: var(--text-500); font-weight: 600; }
+  .toc-sub { padding-left: 18mm; padding-bottom: 1mm; }
+  .toc-sub-item { display: flex; padding: 1.5mm 0; }
+  .toc-sub-item .toc-num { color: var(--text-500); width: 14mm; font-weight: 500; font-size: 9pt; }
+  .toc-sub-item .toc-title { color: var(--text-700); font-size: 10pt; }
+
+  /* TABLE */
+  table.std { width: 100%; border-collapse: collapse; margin: 4mm 0; }
+  table.std th { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-500); padding: 4mm 4mm; text-align: left; background: white;
+    border-bottom: 1pt solid var(--forest-700); }
+  table.std td { font-size: 10pt; color: var(--text-700); padding: 4mm 4mm; border-bottom: 0.5pt solid var(--border); }
+  table.std tr:hover td { background: var(--bg); }
+
+  .chip { display: inline-block; padding: 0.8mm 3mm; border-radius: 2mm; font-size: 8.5pt; font-weight: 700; letter-spacing: 0.02em; }
+  .chip-included { background: var(--forest-50); color: var(--forest-700); }
+  .chip-excluded { background: var(--red-50); color: var(--red); }
+  .chip-critical { background: var(--red-50); color: var(--red); }
+  .chip-high { background: var(--orange-50); color: var(--orange); }
+  .chip-medium { background: var(--gold-50); color: #a87a1f; }
+  .chip-low { background: var(--forest-50); color: var(--forest-700); }
+
+  /* PERIMETRE 4D */
+  .perim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin: 5mm 0; }
+  .perim-card {
+    background: white; border-radius: 3mm; padding: 6mm 6mm; position: relative; overflow: hidden;
+    border: 0.5pt solid var(--border);
+  }
+  .perim-axis { position: absolute; top: 0; left: 0; right: 0; height: 2mm; }
+  .perim-card.functional .perim-axis { background: var(--forest-700); }
+  .perim-card.org .perim-axis { background: var(--gold-500); }
+  .perim-card.time .perim-axis { background: var(--blue); }
+  .perim-card.tech .perim-axis { background: var(--forest-500); }
+  .perim-tag {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5pt; letter-spacing: 0.1em; color: var(--text-500);
+    text-transform: uppercase; font-weight: 700;
+  }
+  .perim-card h4 { font-family: 'Source Serif 4', Georgia, serif; font-size: 14pt; color: var(--forest-900); margin: 1mm 0 3mm; font-weight: 700; }
+  .perim-card p { font-size: 9.5pt; line-height: 1.6; color: var(--text-700); margin-bottom: 3mm; font-family: 'Inter', sans-serif; }
+  .perim-stats { display: flex; gap: 6mm; padding-top: 3mm; border-top: 0.5pt solid var(--border); margin-top: 2mm; }
+  .perim-stats .stat-num { font-size: 14pt; font-weight: 800; color: var(--forest-700); line-height: 1; }
+  .perim-stats .stat-lbl { font-size: 8pt; color: var(--text-500); margin-top: 0.5mm; }
+
+  /* OBJECTIFS NUMÉROTÉS */
+  .obj-list { counter-reset: obj-counter; margin-top: 5mm; }
+  .obj-item {
+    counter-increment: obj-counter;
+    padding: 6mm 6mm 6mm 22mm; position: relative;
+    border-left: 1pt solid var(--border); margin-bottom: 1mm;
+    background: white;
+  }
+  .obj-item::before {
+    content: counter(obj-counter, decimal-leading-zero);
+    position: absolute; left: 6mm; top: 6mm;
+    font-family: 'Source Serif 4', Georgia, serif; font-weight: 700; font-size: 22pt;
+    color: var(--gold-500); line-height: 1;
+  }
+  .obj-item h4 { font-family: 'Source Serif 4', Georgia, serif; font-size: 13pt; color: var(--forest-900); font-weight: 700; margin: 0 0 2mm; }
+  .obj-item p { font-size: 10pt; margin-bottom: 0; font-family: 'Inter', sans-serif; }
+
+  /* CALLOUT */
+  .callout {
+    margin: 4mm 0; padding: 5mm 6mm; background: white;
+    border-left: 3pt solid var(--forest-700); border-radius: 0 3mm 3mm 0;
+  }
+  .callout.gold { border-left-color: var(--gold-500); background: var(--gold-50); }
+  .callout-title { font-size: 8.5pt; font-weight: 800; color: var(--forest-700); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2mm; }
+  .callout.gold .callout-title { color: var(--gold-500); }
+  .callout p { font-size: 10pt; margin: 0; font-family: 'Source Serif 4', Georgia, serif; }
+  .callout-author { font-family: 'Inter', sans-serif; font-style: normal; font-size: 8.5pt; color: var(--text-500); margin-top: 3mm; font-weight: 600; }
+
+  /* RACI */
+  .raci { width: 100%; border-collapse: collapse; margin-top: 5mm; }
+  .raci th { font-size: 8pt; font-weight: 700; padding: 3mm; background: var(--forest-700); color: white; text-align: center; }
+  .raci th:first-child { text-align: left; }
+  .raci td { font-size: 9.5pt; padding: 3mm; border-bottom: 0.5pt solid var(--border); text-align: center; font-family: 'Inter', sans-serif; }
+  .raci td:first-child { text-align: left; font-weight: 600; }
+  .raci .pin { width: 6mm; height: 6mm; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 8pt; color: white; }
+  .pin-r { background: var(--forest-700); }
+  .pin-a { background: var(--gold-500); }
+  .pin-c { background: var(--blue); }
+  .pin-i { background: var(--text-300); color: var(--text-700); }
+
+  /* GANTT */
+  .gantt { margin: 5mm 0; border-radius: 3mm; overflow: hidden; border: 0.5pt solid var(--border); background: white; }
+  .gantt-row { display: grid; grid-template-columns: 50mm 1fr 22mm; align-items: center; }
+  .gantt-row.header { background: var(--forest-900); color: white; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .gantt-row.header > div { padding: 3mm 4mm; }
+  .gantt-row { border-bottom: 0.5pt solid var(--border); }
+  .gantt-row:last-child { border-bottom: none; }
+  .gantt-label { padding: 3mm 4mm; font-size: 9.5pt; font-weight: 600; color: var(--text-900); font-family: 'Inter', sans-serif; }
+  .gantt-bar-zone { padding: 0; height: 9mm; position: relative; display: flex; align-items: center; }
+  .gantt-bar-zone::before { content: ""; position: absolute; left: 4mm; right: 4mm; top: 50%; height: 0; border-top: 0.5pt dashed var(--border); }
+  .gantt-bar { position: absolute; height: 5mm; border-radius: 1mm; display: flex; align-items: center; padding: 0 3mm; font-size: 8pt; font-weight: 700; color: white; font-family: 'Inter', sans-serif; }
+  .gantt-bar.b1 { background: linear-gradient(90deg, var(--forest-500), var(--forest-700)); }
+  .gantt-bar.b2 { background: linear-gradient(90deg, var(--forest-700), var(--forest-900)); }
+  .gantt-bar.b3 { background: linear-gradient(90deg, var(--gold-500), var(--gold-300)); }
+  .gantt-status { padding: 3mm 4mm; font-size: 8pt; font-weight: 700; text-align: right; }
+
+  /* SIGNATURES */
+  .sign-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5mm; margin: 8mm 0; }
+  .sign-card { padding: 6mm 5mm; min-height: 55mm; display: flex; flex-direction: column; border: 0.5pt solid var(--border); border-radius: 3mm; background: white; }
+  .sign-card .role-tag { display: inline-block; padding: 1mm 3mm; border-radius: 100mm; font-size: 7.5pt; background: var(--gold-50); color: var(--gold-500); font-weight: 700; letter-spacing: 0.05em; }
+  .sign-card .name { font-family: 'Source Serif 4', Georgia, serif; font-size: 13pt; font-weight: 700; margin-top: 5mm; color: var(--text-900); }
+  .sign-card .fn { font-size: 9.5pt; color: var(--text-500); margin-top: 0.5mm; }
+  .sign-card .line { flex: 1; border-bottom: 0.5pt solid var(--border); margin-top: 4mm; min-height: 14mm; }
+  .sign-card .foot { font-size: 8pt; color: var(--text-500); margin-top: 3mm; line-height: 1.5; }
+
+  /* GLOSSARY */
+  .glossary { margin-top: 4mm; }
+  .glossary-item { display: grid; grid-template-columns: 30mm 1fr; gap: 6mm; padding: 3mm 0; border-bottom: 0.5pt solid var(--border); }
+  .glossary-term { font-family: 'Inter', sans-serif; font-size: 10pt; font-weight: 700; color: var(--forest-700); }
+  .glossary-def { font-family: 'Source Serif 4', Georgia, serif; font-size: 10pt; color: var(--text-700); line-height: 1.6; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== PAGE 1 — COUVERTURE ========== -->
+<div class="page cover">
+  <div class="cover-top">
+    <div class="cover-emblem">CONFIDENTIEL<br>GES-2026<br>0142</div>
+    <div class="cover-pretitle">Document de cadrage · v1.0</div>
+    <div class="cover-logo">Gë<span>•</span>stu</div>
+    <div class="cover-title">Note de cadrage<br>de la mission d'audit</div>
+    <div class="cover-subtitle">Évaluation de la conformité du Système de Management de la Sécurité de l'Information de la Banque Régionale Nationale aux exigences ISO/IEC 27001:2022.</div>
+  </div>
+
+  <div class="cover-facts">
+    <div class="cover-fact"><div class="cover-fact-label">Client</div><div class="cover-fact-value">Banque Régionale Nationale</div><div class="cover-fact-sub">Banque universelle — 1 247 collaborateurs — Dakar</div></div>
+    <div class="cover-fact"><div class="cover-fact-label">Référentiel</div><div class="cover-fact-value">ISO/IEC 27001:2022</div><div class="cover-fact-sub">Mappé contre BCEAO 2024-09 et Loi 2008-12</div></div>
+    <div class="cover-fact"><div class="cover-fact-label">Cabinet</div><div class="cover-fact-value">ISM Audit & Conseil</div><div class="cover-fact-sub">Mamadou Sarr (Associé) — Aïssatou Diop (Manager)</div></div>
+    <div class="cover-fact"><div class="cover-fact-label">Période</div><div class="cover-fact-value">15 mai → 30 juillet 2026</div><div class="cover-fact-sub">11 semaines · 6 jalons</div></div>
+  </div>
+
+  <div class="cover-kpi-row">
+    <div class="cover-kpi"><div class="cover-kpi-value">92</div><div class="cover-kpi-label">Contrôles audités</div></div>
+    <div class="cover-kpi"><div class="cover-kpi-value">28</div><div class="cover-kpi-label">Entretiens prévus</div></div>
+    <div class="cover-kpi"><div class="cover-kpi-value">8</div><div class="cover-kpi-label">Sites visités</div></div>
+    <div class="cover-kpi"><div class="cover-kpi-value">118</div><div class="cover-kpi-label">Jours-homme</div></div>
+  </div>
+
+  <div class="cover-quote">
+    « Cette mission constitue la première étape structurante d'un programme de conformité visant la certification ISO 27001 au quatrième trimestre 2026. Elle nous permettra de mesurer précisément l'écart résiduel et de prioriser les actions critiques. »
+    <div class="cover-quote-author">— Ibrahima Fall, Directeur des Risques de BRN, Sponsor</div>
+  </div>
+
+  <div class="cover-bottom">
+    <div class="cover-version-block">
+      <b>Version 1.0</b><br>
+      Édité le 13 mai 2026 — Soumis au sponsor pour validation<br>
+      Révisions précédentes : v0.3 du 8 mai (revue interne ISM)
+    </div>
+    <div class="cover-classif">CONFIDENTIEL</div>
+  </div>
+</div>
+
+<!-- ========== PAGE 2 — SOMMAIRE ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">—</div>
+    <div class="section-title-block">
+      <div class="kicker">Sommaire</div>
+      <h2>Plan du document</h2>
+      <div class="lead">12 sections principales et 4 annexes pour cadrer la mission de manière exhaustive.</div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <div class="toc-item"><div class="toc-num">01</div><div class="toc-title">Préambule et contexte</div><div class="toc-page">3</div></div>
+    <div class="toc-sub"><div class="toc-sub-item"><div class="toc-num">1.1</div><div class="toc-title">Présentation du client</div></div><div class="toc-sub-item"><div class="toc-num">1.2</div><div class="toc-title">Contexte de la mission</div></div><div class="toc-sub-item"><div class="toc-num">1.3</div><div class="toc-title">Cadre normatif et réglementaire</div></div></div>
+
+    <div class="toc-item"><div class="toc-num">02</div><div class="toc-title">Objectifs et enjeux</div><div class="toc-page">4</div></div>
+    <div class="toc-item"><div class="toc-num">03</div><div class="toc-title">Périmètre détaillé en quatre dimensions</div><div class="toc-page">5</div></div>
+    <div class="toc-item"><div class="toc-num">04</div><div class="toc-title">Méthodologie d'audit</div><div class="toc-page">7</div></div>
+    <div class="toc-item"><div class="toc-num">05</div><div class="toc-title">Critères d'évaluation et notation</div><div class="toc-page">8</div></div>
+    <div class="toc-item"><div class="toc-num">06</div><div class="toc-title">Risques initiaux et points d'attention</div><div class="toc-page">9</div></div>
+    <div class="toc-item"><div class="toc-num">07</div><div class="toc-title">Équipe, organisation et matrice RACI</div><div class="toc-page">10</div></div>
+    <div class="toc-item"><div class="toc-num">08</div><div class="toc-title">Planning et jalons</div><div class="toc-page">11</div></div>
+    <div class="toc-item"><div class="toc-num">09</div><div class="toc-title">Livrables et gouvernance</div><div class="toc-page">12</div></div>
+    <div class="toc-item"><div class="toc-num">10</div><div class="toc-title">Hypothèses, conditions et limitations</div><div class="toc-page">13</div></div>
+    <div class="toc-item"><div class="toc-num">11</div><div class="toc-title">Validation et signatures</div><div class="toc-page">14</div></div>
+    <div class="toc-item"><div class="toc-num">A.</div><div class="toc-title">Annexes — glossaire, pièces, plan d'entretien</div><div class="toc-page">15</div></div>
+  </div>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>2 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 3 — PRÉAMBULE ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">01</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 1</div>
+      <h2>Préambule et contexte</h2>
+      <div class="lead">Présentation succincte du client, du déclencheur de l'audit et du cadre normatif applicable.</div>
+    </div>
+  </div>
+
+  <h3>1.1 Présentation du client</h3>
+  <p class="drop-cap">La Banque Régionale Nationale (BRN), constituée en société anonyme de droit sénégalais, exerce une activité de banque universelle au Sénégal et dans deux pays d'Afrique de l'Ouest. À fin 2025, BRN comptait 1 247 collaborateurs répartis sur 38 agences, un siège à Dakar et un centre de production informatique à Diamniadio. Son produit net bancaire 2025 s'établit à 142 Md FCFA, en progression de 8,3 % sur un an.</p>
+  <p>Le système d'information regroupe une plate-forme cœur bancaire externalisée, un portail clients web et mobile, un espace agence et plusieurs applications métier (financements, conformité, ALM, trésorerie). BRN est régulée par la BCEAO et la Commission Bancaire de l'UMOA.</p>
+
+  <h3>1.2 Contexte de la mission</h3>
+  <p>L'établissement s'est engagé dans une trajectoire de certification ISO/IEC 27001 décidée par le Conseil d'Administration en septembre 2025, en réponse à plusieurs incidents majeurs de cybersécurité dans le secteur bancaire ouest-africain et à l'évolution du règlement BCEAO 2024-09 sur la sécurité des systèmes d'information bancaires.</p>
+  <p>Le présent audit constitue la première phase d'un programme de conformité visant l'obtention de la certification au quatrième trimestre 2026. Il s'inscrit dans la suite d'un diagnostic réalisé par le cabinet en février 2026 (réf. ISM-2026-038), dont les recommandations à fort impact ont commencé à être mises en œuvre. La mission vise à mesurer l'écart résiduel, identifier les non-conformités et formuler un plan de remédiation détaillé.</p>
+
+  <h3>1.3 Cadre normatif et réglementaire</h3>
+  <ul>
+    <li><b>ISO/IEC 27001:2022</b> — exigences relatives au système de management de la sécurité de l'information.</li>
+    <li><b>ISO/IEC 27002:2022</b> — bonnes pratiques pour les mesures de sécurité (référence pour l'évaluation des contrôles).</li>
+    <li><b>Règlement BCEAO 2024-09</b> sur la sécurité des SI bancaires, applicable aux banques de l'UMOA depuis le 1er janvier 2025.</li>
+    <li><b>Loi 2008-12 du 25 janvier 2008</b> sur la protection des données personnelles et délibérations associées de la CDP.</li>
+    <li><b>Référentiel cabinet ISM-RG-2024</b> — guide méthodologique d'audit SMSI.</li>
+  </ul>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>3 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 4 — OBJECTIFS ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">02</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 2</div>
+      <h2>Objectifs et enjeux</h2>
+      <div class="lead">Quatre objectifs primaires, trois enjeux stratégiques.</div>
+    </div>
+  </div>
+
+  <p>Cette section formalise ce qui sera attendu en restitution finale de la mission. Le sponsor a validé le 12 mai 2026 les quatre objectifs primaires énoncés ci-dessous, structurants pour la définition des livrables.</p>
+
+  <div class="obj-list">
+    <div class="obj-item"><h4>Mesurer la conformité du SMSI à ISO/IEC 27001:2022</h4><p>Évaluer chacun des 92 contrôles inclus sur l'échelle de maturité 0–5 explicitée en section 5, avec consolidation par domaine et représentation graphique en radar dans le rapport final.</p></div>
+    <div class="obj-item"><h4>Identifier et qualifier les non-conformités</h4><p>Tout écart sera classé majeure (compromettant la certification), mineure (ponctuel non systémique) ou observation. Une procédure de contradiction écrite est ouverte au RSSI avant qualification définitive.</p></div>
+    <div class="obj-item"><h4>Vérifier la conformité réglementaire BCEAO et DCP</h4><p>Cartographier les 18 exigences du règlement BCEAO 2024-09 contre les contrôles ISO testés, et qualifier le respect des principes de la Loi 2008-12 sur les données personnelles applicables.</p></div>
+    <div class="obj-item"><h4>Formuler un plan de remédiation priorisé</h4><p>Tableur exécutoire avec estimation de charge par écart, jalons recommandés, dépendances inter-écarts et identification du responsable interne BRN proposé.</p></div>
+  </div>
+
+  <div class="callout gold">
+    <div class="callout-title">Enjeu stratégique majeur</div>
+    <p>« La crédibilité de BRN auprès des correspondants bancaires internationaux dépend désormais d'une certification reconnue. Plusieurs lignes de financement ont été conditionnées en 2025 à un calendrier ferme de mise en conformité. »</p>
+    <div class="callout-author">— Note d'orientation stratégique BRN, février 2026</div>
+  </div>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>4 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 5 — PERIMÈTRE 4D ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">03</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 3</div>
+      <h2>Périmètre détaillé</h2>
+      <div class="lead">Découpage selon les quatre dimensions standards : fonctionnel, organisationnel, temporel, technique.</div>
+    </div>
+  </div>
+
+  <p>Le périmètre est défini dans le contrat de mission BRN-ISM-2026-AUDIT-014 et précisé ici par dimension. Toute évolution doit faire l'objet d'un avenant signé par le sponsor et l'associé en charge.</p>
+
+  <div class="perim-grid">
+    <div class="perim-card functional">
+      <div class="perim-axis"></div>
+      <div class="perim-tag">Dimension 1 / 4</div>
+      <h4>Fonctionnel</h4>
+      <p>Intégralité du SMSI tel que défini dans la <b>PSSI v0.1</b> (réf. BRN-PSSI-2026-001) : gouvernance, gestion des risques, gestion des actifs, sécurité opérationnelle, contrôle d'accès, gestion d'incidents, conformité, continuité d'activité.</p>
+      <div class="perim-stats"><div><div class="stat-num">8</div><div class="stat-lbl">processus SMSI</div></div></div>
+    </div>
+    <div class="perim-card org">
+      <div class="perim-axis"></div>
+      <div class="perim-tag">Dimension 2 / 4</div>
+      <h4>Organisationnel</h4>
+      <p>Siège Dakar (1 122 collaborateurs), datacenter Diamniadio, échantillon stratifié de 6 agences sur 38. Filiales Côte d'Ivoire et Mali hors scope phase 1, audit prévu T1 2027.</p>
+      <div class="perim-stats"><div><div class="stat-num">8 / 40</div><div class="stat-lbl">sites couverts</div></div></div>
+    </div>
+    <div class="perim-card time">
+      <div class="perim-axis"></div>
+      <div class="perim-tag">Dimension 3 / 4</div>
+      <h4>Temporel</h4>
+      <p>Période d'évaluation du <b>1er janvier 2025 au 30 avril 2026</b>, soit 16 mois d'historique couvrant les incidents BCEAO, exercices PCA réalisés, revues de management documentées et historique des changements significatifs.</p>
+      <div class="perim-stats"><div><div class="stat-num">16</div><div class="stat-lbl">mois d'historique</div></div></div>
+    </div>
+    <div class="perim-card tech">
+      <div class="perim-axis"></div>
+      <div class="perim-tag">Dimension 4 / 4</div>
+      <h4>Technique</h4>
+      <p>Cœur bancaire <b>Temenos T24</b> (revue contractuelle), portail clients web/mobile (pen-test), Active Directory hybride (4 200 comptes utilisateurs), MDM Intune, EDR CrowdStrike, SIEM Wazuh, sauvegardes Veeam.</p>
+      <div class="perim-stats"><div><div class="stat-num">6</div><div class="stat-lbl">familles de systèmes</div></div></div>
+    </div>
+  </div>
+
+  <h3>Domaines ISO et taux d'inclusion</h3>
+  <table class="std">
+    <thead><tr><th>Domaine</th><th>Libellé</th><th style="text-align:right;">Inclus / Total</th><th style="text-align:right;">Taux</th><th>Statut</th></tr></thead>
+    <tbody>
+      <tr><td><b>A.5</b></td><td>Politiques organisationnelles</td><td style="text-align:right;">37 / 37</td><td style="text-align:right; color: var(--forest-700); font-weight: 700;">100 %</td><td><span class="chip chip-included">Complet</span></td></tr>
+      <tr><td><b>A.6</b></td><td>Contrôles humains</td><td style="text-align:right;">8 / 8</td><td style="text-align:right; color: var(--forest-700); font-weight: 700;">100 %</td><td><span class="chip chip-included">Complet</span></td></tr>
+      <tr><td><b>A.7</b></td><td>Contrôles physiques</td><td style="text-align:right;">13 / 14</td><td style="text-align:right; color: var(--gold-500); font-weight: 700;">92,9 %</td><td><span class="chip chip-medium">A.7.4 exclu</span></td></tr>
+      <tr><td><b>A.8</b></td><td>Contrôles technologiques</td><td style="text-align:right;">34 / 34</td><td style="text-align:right; color: var(--forest-700); font-weight: 700;">100 %</td><td><span class="chip chip-included">Complet</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Exclusion justifiée — A.7.4 Surveillance vidéo physique</div>
+    <p>Le système de surveillance vidéo n'est pas installé au datacenter de Diamniadio à la date d'ouverture de la mission. L'équipement est programmé pour le quatrième trimestre 2026 dans le cadre du chantier de mise à niveau infrastructure. Le contrôle sera repris en phase 2 du programme de certification.</p>
+  </div>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>5 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 6 — MÉTHODO ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">04</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 4</div>
+      <h2>Méthodologie d'audit</h2>
+      <div class="lead">Approche fondée sur les standards ISO/IEC 19011, ISO/IEC 27007 et le référentiel cabinet ISM-RG-2024.</div>
+    </div>
+  </div>
+
+  <h3>Approche générale</h3>
+  <p>La mission s'appuie sur une démarche d'<b>audit basée sur les risques</b> (risk-based approach) conforme à l'ISO/IEC 27007:2020. Les contrôles sont priorisés par leur exposition au risque résiduel et leur criticité opérationnelle, déterminée à partir du registre des risques BRN et du contexte sectoriel bancaire ouest-africain.</p>
+
+  <h3>Cinq phases distinctes</h3>
+  <ol>
+    <li><b>Cadrage</b> (S1) — Présent document. Validation périmètre, équipe et planning par le sponsor.</li>
+    <li><b>Prise de connaissance</b> (S2-S3) — Questionnaire structuré, collecte documentaire, échantillonnage des contrôles à tester.</li>
+    <li><b>Exécution sur le terrain</b> (S4-S8) — Entretiens individuels et collectifs (28 prévus), observations sur sites (siège + 6 agences + datacenter), revue de configurations, tests techniques ciblés.</li>
+    <li><b>Synthèse et restitutions</b> (S9-S10) — Consolidation, qualification (NC majeure / mineure / observation), plan de remédiation, restitutions hebdomadaires + restitution COMEX.</li>
+    <li><b>Livraison</b> (S11) — Rapport définitif intégrant les commentaires factuels, transfert du dossier d'audit.</li>
+  </ol>
+
+  <h3>Techniques d'audit mobilisées</h3>
+  <ul>
+    <li><b>Entretiens semi-directifs</b> avec les 18 interlocuteurs identifiés, conduits selon une grille standardisée par contrôle.</li>
+    <li><b>Revue documentaire</b> exhaustive des politiques, procédures et livrables fournis via la plateforme Gëstu.</li>
+    <li><b>Observation sur site</b> de la salle informatique de Diamniadio et de 6 agences sélectionnées par échantillonnage stratifié.</li>
+    <li><b>Revue de configurations</b> (Active Directory, MDM Intune, EDR CrowdStrike) sous accès lecture seule supervisé.</li>
+    <li><b>Tests d'intrusion authentifiés</b> sur le portail clients, conduits par sous-traitant agréé selon convention encadrante.</li>
+    <li><b>Sondage culture sécurité</b> par questionnaire en ligne anonyme, sur échantillon représentatif de 250 collaborateurs.</li>
+  </ul>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>6 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 7 — CRITERES ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">05</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 5</div>
+      <h2>Critères d'évaluation et notation</h2>
+      <div class="lead">Échelle de maturité 0–5 alignée ISO/IEC 21827 et CMMI, qualification des écarts au sens de la norme.</div>
+    </div>
+  </div>
+
+  <h3>Échelle de maturité</h3>
+  <table class="std">
+    <thead><tr><th style="width: 14mm;">Niv.</th><th>Libellé</th><th>Critère</th></tr></thead>
+    <tbody>
+      <tr><td><b style="color: var(--red);">0</b></td><td>Inexistant</td><td>Aucun élément observable, contrôle ni défini ni mis en œuvre.</td></tr>
+      <tr><td><b style="color: var(--orange);">1</b></td><td>Initial</td><td>Mise en œuvre informelle, ad hoc, dépendante des individus, non documentée.</td></tr>
+      <tr><td><b style="color: #a87a1f;">2</b></td><td>Reproductible</td><td>Pratique documentée mais non systématique, application inégale selon les périmètres.</td></tr>
+      <tr><td><b style="color: var(--forest-500);">3</b></td><td>Défini</td><td>Procédure formalisée, déployée et appliquée de façon cohérente.</td></tr>
+      <tr><td><b style="color: var(--forest-700);">4</b></td><td>Maîtrisé</td><td>Contrôle mesuré, indicateurs suivis, revues d'efficacité formalisées.</td></tr>
+      <tr><td><b style="color: var(--forest-900);">5</b></td><td>Optimisé</td><td>Amélioration continue documentée, benchmarks externes, contrôle adaptatif.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Qualification des écarts</h3>
+  <table class="std">
+    <thead><tr><th>Type</th><th>Définition</th><th>Action attendue</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip chip-critical">NC Majeure</span></td><td>Absence ou défaillance significative compromettant l'aptitude du SMSI.</td><td>Plan d'action court terme bloquant pour la certification.</td></tr>
+      <tr><td><span class="chip chip-high">NC Mineure</span></td><td>Insuffisance ponctuelle non systémique.</td><td>Plan d'action moyen terme avant audit de surveillance.</td></tr>
+      <tr><td><span class="chip chip-medium">Observation</span></td><td>Point de progrès recommandé sans non-conformité avérée.</td><td>Suivi à discrétion du client.</td></tr>
+      <tr><td><span class="chip chip-low">Bonne pratique</span></td><td>Élément du SMSI dépassant l'exigence.</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout gold">
+    <div class="callout-title">Seuil de présentation au pré-audit certification</div>
+    <p><b>Score moyen ≥ 3,2 sur les 92 contrôles ET aucune NC majeure non remédiée.</b> Ce seuil est négocié avec le sponsor et conforme aux retours d'expérience cabinet sur les missions ISO 27001 dans le secteur bancaire UMOA.</p>
+  </div>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>7 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 8 — RACI ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">07</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 7</div>
+      <h2>Équipe & matrice RACI</h2>
+      <div class="lead">5 auditeurs ISM, 5 interlocuteurs BRN, attribution explicite des responsabilités par activité.</div>
+    </div>
+  </div>
+
+  <h3>Équipe d'audit ISM</h3>
+  <table class="std">
+    <thead><tr><th>Auditeur</th><th>Rôle</th><th>Charge</th><th>Domaines principaux</th></tr></thead>
+    <tbody>
+      <tr><td><b>Mamadou Sarr</b></td><td>Associé en charge</td><td>5 j/h</td><td>Pilotage senior, qualification des écarts, restitution COMEX</td></tr>
+      <tr><td><b>Aïssatou Diop</b></td><td>Chef de mission</td><td>32 j/h</td><td>Coordination, A.5 Politiques, restitutions hebdomadaires</td></tr>
+      <tr><td><b>Ousmane Bâ</b></td><td>Auditeur senior</td><td>45 j/h</td><td>A.7 Physiques, A.8 Technologiques, configurations</td></tr>
+      <tr><td><b>Fatou Sow</b></td><td>Auditrice junior</td><td>28 j/h</td><td>A.6 Humains, sondage culture, support documentaire</td></tr>
+      <tr><td><b>Khadim Niang</b></td><td>Pen-tester (sous-traitance ISM-Sec)</td><td>8 j/h</td><td>Tests d'intrusion authentifiés portail clients</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Matrice RACI (extrait)</h3>
+  <table class="raci">
+    <thead><tr><th>Activité</th><th>Sponsor</th><th>RSSI BRN</th><th>Chef miss.</th><th>Associé</th></tr></thead>
+    <tbody>
+      <tr><td>Validation périmètre</td><td><span class="pin pin-a">A</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Mise à dispo. documentation</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Conduite des entretiens</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Qualification des écarts</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-a">A</span></td></tr>
+      <tr><td>Plan de remédiation</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Validation rapport final</td><td><span class="pin pin-a">A</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-a">A</span></td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top: 4mm; font-size: 9pt; color: var(--text-500); font-family: 'Inter', sans-serif;">
+    <span class="pin pin-r" style="margin-right: 1.5mm;">R</span> Réalise &nbsp;
+    <span class="pin pin-a" style="margin-right: 1.5mm;">A</span> Approuve &nbsp;
+    <span class="pin pin-c" style="margin-right: 1.5mm;">C</span> Consulté &nbsp;
+    <span class="pin pin-i" style="margin-right: 1.5mm;">I</span> Informé
+  </p>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>10 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 9 — PLANNING ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">08</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 8</div>
+      <h2>Planning et jalons</h2>
+      <div class="lead">11 semaines, 6 jalons clés, restitution COMEX prévue le 24 juillet 2026.</div>
+    </div>
+  </div>
+
+  <p>Le planning s'articule autour de cinq phases (cf. méthodologie en section 4) et six jalons formels, chacun assorti de conditions de levée objectives. Le sponsor se réserve la possibilité de déclencher une revue de cadrage en cas de glissement supérieur à deux semaines sur le chemin critique.</p>
+
+  <div class="gantt">
+    <div class="gantt-row header">
+      <div>Phase</div>
+      <div style="display: flex; padding: 0 4mm;">
+        <div style="flex: 1; text-align: center;">MAI</div>
+        <div style="flex: 1; text-align: center;">JUIN</div>
+        <div style="flex: 1; text-align: center;">JUILLET</div>
+      </div>
+      <div style="text-align: right;">État</div>
+    </div>
+    <div class="gantt-row"><div class="gantt-label">1. Cadrage</div><div class="gantt-bar-zone"><div class="gantt-bar b1" style="left: 2%; width: 10%;">S1</div></div><div class="gantt-status" style="color: var(--forest-700);">EN COURS</div></div>
+    <div class="gantt-row"><div class="gantt-label">2. Prise de connaissance</div><div class="gantt-bar-zone"><div class="gantt-bar b1" style="left: 12%; width: 18%;">S2-S3</div></div><div class="gantt-status" style="color: var(--text-500);">À VENIR</div></div>
+    <div class="gantt-row"><div class="gantt-label">3. Exécution sur terrain</div><div class="gantt-bar-zone"><div class="gantt-bar b2" style="left: 30%; width: 35%;">S4-S8</div></div><div class="gantt-status" style="color: var(--text-500);">À VENIR</div></div>
+    <div class="gantt-row"><div class="gantt-label">4. Synthèse</div><div class="gantt-bar-zone"><div class="gantt-bar b1" style="left: 65%; width: 14%;">S9-S10</div></div><div class="gantt-status" style="color: var(--text-500);">À VENIR</div></div>
+    <div class="gantt-row"><div class="gantt-label">5. Livraison</div><div class="gantt-bar-zone"><div class="gantt-bar b3" style="left: 79%; width: 9%;">S11</div></div><div class="gantt-status" style="color: var(--text-500);">À VENIR</div></div>
+  </div>
+
+  <h3>Jalons clés et conditions de levée</h3>
+  <table class="std">
+    <thead><tr><th style="width: 10mm;">#</th><th>Jalon</th><th>Date</th><th>Conditions de levée</th></tr></thead>
+    <tbody>
+      <tr><td><b>J0</b></td><td>Validation du cadrage</td><td>22 mai 2026</td><td>Signature sponsor + chef de mission + associé</td></tr>
+      <tr><td><b>J1</b></td><td>Clôture prise de connaissance</td><td>5 juin 2026</td><td>Questionnaire complété, ≥ 80 % des pièces fournies</td></tr>
+      <tr><td><b>J2</b></td><td>Restitution intermédiaire 1</td><td>26 juin 2026</td><td>Premiers écarts identifiés, validation orientation</td></tr>
+      <tr><td><b>J3</b></td><td>Fin exécution</td><td>17 juillet 2026</td><td>Tous contrôles évalués, registre stabilisé</td></tr>
+      <tr><td><b>J4</b></td><td>Restitution COMEX</td><td>24 juillet 2026</td><td>Rapport provisoire présenté en COMEX</td></tr>
+      <tr><td><b>J5</b></td><td>Rapport définitif</td><td>30 juillet 2026</td><td>Commentaires factuels intégrés, signature</td></tr>
+    </tbody>
+  </table>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>11 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 10 — SIGNATURES ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">11</div>
+    <div class="section-title-block">
+      <div class="kicker">Section 11</div>
+      <h2>Validation et signatures</h2>
+      <div class="lead">Pour bon accord sur le cadrage, le périmètre, le planning et les conditions de la mission.</div>
+    </div>
+  </div>
+
+  <p>Les soussignés reconnaissent avoir pris connaissance de la présente note de cadrage et des engagements qu'elle décrit, et l'approuvent dans son intégralité. Toute évolution ultérieure du périmètre ou du planning fera l'objet d'un avenant signé par les trois parties.</p>
+
+  <div class="sign-grid">
+    <div class="sign-card">
+      <div class="role-tag">Sponsor BRN</div>
+      <div class="name">Ibrahima Fall</div>
+      <div class="fn">Directeur des Risques</div>
+      <div class="line"></div>
+      <div class="foot">Date : ___ / ___ / 2026<br>Signature et cachet</div>
+    </div>
+    <div class="sign-card">
+      <div class="role-tag">Chef de mission ISM</div>
+      <div class="name">Aïssatou Diop</div>
+      <div class="fn">Manager Audit & Conseil</div>
+      <div class="line"></div>
+      <div class="foot">Date : ___ / ___ / 2026<br>Signature</div>
+    </div>
+    <div class="sign-card">
+      <div class="role-tag">Associé ISM</div>
+      <div class="name">Mamadou Sarr</div>
+      <div class="fn">Associé Audit & Conseil</div>
+      <div class="line"></div>
+      <div class="foot">Date : ___ / ___ / 2026<br>Signature et cachet</div>
+    </div>
+  </div>
+
+  <div class="callout gold" style="margin-top: 14mm;">
+    <div class="callout-title">Référence contractuelle</div>
+    <p>La présente note s'inscrit en exécution du contrat de prestation de services référencé <b>BRN-ISM-2026-AUDIT-014</b> signé le 28 avril 2026. Elle complète et remplace les annexes 1 (périmètre détaillé) et 2 (planning prévisionnel) du contrat initial.</p>
+  </div>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>14 / 16</span></div>
+</div>
+
+<!-- ========== PAGE 11 — ANNEXES ========== -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">Gë<span>•</span>stu</div><div class="page-header-meta">GES-2026-0142 · Note de cadrage · v1.0</div></div>
+
+  <div class="section-intro">
+    <div class="section-num">A.</div>
+    <div class="section-title-block">
+      <div class="kicker">Annexes</div>
+      <h2>Glossaire et pièces demandées</h2>
+      <div class="lead">Lexique pour faciliter la lecture, liste indicative des pièces à transmettre.</div>
+    </div>
+  </div>
+
+  <h3>A.1 Glossaire</h3>
+  <div class="glossary">
+    <div class="glossary-item"><div class="glossary-term">SMSI</div><div class="glossary-def">Système de Management de la Sécurité de l'Information. Ensemble des politiques, procédures, ressources et organisation visant à assurer la confidentialité, l'intégrité et la disponibilité de l'information.</div></div>
+    <div class="glossary-item"><div class="glossary-term">PSSI</div><div class="glossary-def">Politique de Sécurité du Système d'Information. Document cadre validé par la Direction.</div></div>
+    <div class="glossary-item"><div class="glossary-term">NC majeure / mineure</div><div class="glossary-def">Non-conformité au sens de la norme. Une NC majeure compromet l'aptitude du SMSI à atteindre ses objectifs ; une NC mineure est ponctuelle et non systémique.</div></div>
+    <div class="glossary-item"><div class="glossary-term">SOC 2 Type II</div><div class="glossary-def">Rapport d'attestation indépendant publié par un fournisseur de services, couvrant l'efficacité opérationnelle de ses contrôles sur ≥ 6 mois.</div></div>
+    <div class="glossary-item"><div class="glossary-term">RACI</div><div class="glossary-def">Matrice d'attribution des responsabilités. R = Réalise, A = Approuve, C = Consulté, I = Informé.</div></div>
+  </div>
+
+  <h3>A.2 Liste indicative des pièces demandées</h3>
+  <table class="std">
+    <thead><tr><th style="width: 14mm;">Réf.</th><th>Document</th><th>Date butoir</th></tr></thead>
+    <tbody>
+      <tr><td><b>P-01</b></td><td>PSSI v0.1 signée</td><td>15 mai 2026</td></tr>
+      <tr><td><b>P-02</b></td><td>Politique de gestion des accès</td><td>22 mai 2026</td></tr>
+      <tr><td><b>P-03</b></td><td>Inventaire des actifs informationnels</td><td>22 mai 2026</td></tr>
+      <tr><td><b>P-04</b></td><td>Procédure de gestion des incidents</td><td>22 mai 2026</td></tr>
+      <tr><td><b>P-05</b></td><td>Compte-rendu de la dernière revue de management</td><td>29 mai 2026</td></tr>
+      <tr><td><b>P-06</b></td><td>Plan de continuité d'activité (PCA)</td><td>29 mai 2026</td></tr>
+      <tr><td><b>P-07</b></td><td>Rapports SOC 2 Temenos (2 derniers exercices)</td><td>30 mai 2026</td></tr>
+    </tbody>
+  </table>
+  <p style="font-style: italic; font-size: 9.5pt; color: var(--text-500);">Liste exhaustive consultable et mise à jour en temps réel sur la plateforme Gëstu, espace mission GES-2026-0142.</p>
+
+  <div class="page-num"><span>v1.0 — 13/05/2026</span><span>15 / 16</span></div>
+</div>
+
+</body>
+</html>

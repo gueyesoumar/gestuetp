@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Tableau de bord Mission (Client)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F3F3F0; color: #1A1A1A; }
+
+  /* Color tokens */
+  :root {
+    --forest-900: #1B4332;
+    --forest-700: #2D6A4F;
+    --forest-500: #40916C;
+    --forest-300: #74C69D;
+    --forest-100: #D8F3DC;
+    --forest-50: #F0FFF4;
+    --gold-600: #B8922E;
+    --gold-500: #D4A843;
+    --gold-400: #E2C26B;
+    --gold-200: #F2E2B1;
+    --gold-50: #FDF8E8;
+    --bg: #FAFAF8;
+    --border: #E5E7EB;
+    --text-900: #1A1A1A;
+    --text-700: #374151;
+    --text-500: #6B7280;
+    --text-300: #9CA3AF;
+    --success: #27AE60;
+    --error: #C0392B;
+  }
+
+  /* Tab navigation */
+  .option-tabs {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; gap: 0; background: var(--forest-900);
+    padding: 0 32px;
+  }
+  .option-tab {
+    padding: 16px 28px; cursor: pointer;
+    color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 600;
+    border-bottom: 3px solid transparent; transition: all 0.2s;
+  }
+  .option-tab:hover { color: rgba(255,255,255,0.9); }
+  .option-tab.active { color: #fff; border-bottom-color: var(--gold-500); }
+
+  .option-panel { display: none; padding: 32px; max-width: 1200px; margin: 0 auto; }
+  .option-panel.active { display: block; }
+
+  /* Shared components */
+  .card {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600; color: var(--text-700);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title svg { color: var(--text-300); }
+  .kpi-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .kpi-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--text-500); margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 24px; font-weight: 700; line-height: 1;
+  }
+  .kpi-sub {
+    font-size: 11px; color: var(--text-300); margin-top: 4px;
+  }
+  .progress-bar {
+    height: 4px; background: #F3F4F6; border-radius: 99px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 99px; transition: width 0.4s;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500;
+  }
+  .badge-forest { background: var(--forest-100); color: var(--forest-700); }
+  .badge-gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge-success { background: #E8F8EF; color: var(--success); }
+  .badge-error { background: #FDE8E8; color: var(--error); }
+  .badge-gray { background: #F3F4F6; color: var(--text-500); }
+
+  .section-title {
+    font-size: 16px; font-weight: 700; color: var(--text-900); margin-bottom: 20px;
+  }
+
+  /* Mission header mock */
+  .mission-header {
+    background: #fff; border-bottom: 1px solid var(--border);
+    padding: 20px 32px; margin: -32px -32px 24px -32px;
+  }
+  .mission-header h1 { font-size: 18px; font-weight: 700; color: var(--text-900); }
+  .mission-meta { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: var(--text-500); }
+
+  /* Tabs mock inside each option */
+  .inner-tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    margin: -20px -32px 24px -32px; padding: 0 32px;
+    background: #fff;
+  }
+  .inner-tab {
+    padding: 12px 16px; font-size: 12px; font-weight: 500; color: var(--text-500);
+    border-bottom: 2px solid transparent;
+  }
+  .inner-tab.active { color: var(--forest-700); font-weight: 600; border-bottom-color: var(--forest-700); }
+
+  /* Avatar */
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 11px;
+    font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+
+  /* Score ring */
+  .score-ring {
+    width: 120px; height: 120px; position: relative;
+  }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring-value {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .score-ring-number { font-size: 28px; font-weight: 700; color: var(--forest-700); }
+  .score-ring-label { font-size: 10px; color: var(--text-300); margin-top: 2px; }
+
+  /* Comparison label */
+  .option-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; background: var(--gold-50); border: 1px solid var(--gold-200);
+    border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--gold-600);
+    margin-bottom: 24px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Tab navigation -->
+<nav class="option-tabs">
+  <div class="option-tab active" onclick="showOption('a')">Option A &mdash; Suivi transparent</div>
+  <div class="option-tab" onclick="showOption('b')">Option B &mdash; R&eacute;sultats &amp; conformit&eacute;</div>
+  <div class="option-tab" onclick="showOption('c')">Option C &mdash; Collaboration active</div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- OPTION A — SUIVI TRANSPARENT                                  -->
+<!-- ============================================================ -->
+<div id="option-a" class="option-panel active">
+  <div class="option-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Option A &mdash; Suivi transparent : le client suit la progression et voit ce qu&rsquo;on attend de lui
+  </div>
+
+  <!-- Mission header -->
+  <div class="mission-header">
+    <h1>ISO/IEC 27001 &mdash; Groupe ISM</h1>
+    <div class="mission-meta">
+      <span>&#128197; Cabinet Demo</span>
+      <span>&#128196; ISO/IEC 27001</span>
+      <span>&#128337; 1 avr. 2026 &rarr; 15 mai 2026</span>
+      <span class="badge badge-forest">Travaux terrain</span>
+    </div>
+  </div>
+
+  <div class="inner-tabs">
+    <div class="inner-tab active">Tableau de bord</div>
+    <div class="inner-tab">&Eacute;changes</div>
+    <div class="inner-tab">R&eacute;sultats</div>
+    <div class="inner-tab">Rapports</div>
+  </div>
+
+  <!-- KPI Row -->
+  <div style="display:grid; grid-template-columns: repeat(4,1fr); gap:16px; margin-bottom:24px;">
+    <div class="kpi-card">
+      <div class="kpi-label">Avancement mission</div>
+      <div class="kpi-value" style="color:var(--forest-700)">62%</div>
+      <div class="progress-bar" style="margin-top:10px">
+        <div class="progress-fill" style="width:62%; background:var(--forest-500)"></div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Phase actuelle</div>
+      <div class="kpi-value" style="color:var(--forest-700); font-size:16px; margin-top:4px;">Travaux terrain</div>
+      <div class="kpi-sub">&Eacute;tape 3 sur 6</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Documents demand&eacute;s</div>
+      <div class="kpi-value" style="color:var(--gold-500)">8 <span style="font-size:14px;color:var(--text-300)">/ 14</span></div>
+      <div class="kpi-sub">6 en attente de votre part</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Jours restants</div>
+      <div class="kpi-value" style="color:var(--forest-700)">22</div>
+      <div class="kpi-sub">Fin pr&eacute;vue le 15 mai</div>
+    </div>
+  </div>
+
+  <!-- Two columns -->
+  <div style="display:grid; grid-template-columns: 1fr 340px; gap:24px;">
+    <!-- Left column -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+
+      <!-- Actions requises -->
+      <div class="card" style="border-left: 3px solid var(--gold-500);">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+          Actions requises
+          <span class="badge badge-gold" style="margin-left:auto;">3 en attente</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--gold-50); border-radius:8px; border:1px solid var(--gold-200);">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold-500);flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">Fournir la politique de s&eacute;curit&eacute; (PSSI)</div>
+              <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Domaine A.5 &mdash; Demand&eacute; le 3 avr.</div>
+            </div>
+            <button style="padding:6px 14px;background:var(--forest-700);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;">D&eacute;poser</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--gold-50); border-radius:8px; border:1px solid var(--gold-200);">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold-500);flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">Valider 4 constats en revue client</div>
+              <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Phase Validation client &mdash; En attente depuis le 10 avr.</div>
+            </div>
+            <button style="padding:6px 14px;background:var(--forest-700);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;">Voir</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--gold-50); border-radius:8px; border:1px solid var(--gold-200);">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold-500);flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">Planifier l&rsquo;entretien DSI</div>
+              <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Propos&eacute; : semaine du 21 avr.</div>
+            </div>
+            <button style="padding:6px 14px;border:1px solid var(--border);background:#fff;color:var(--text-700);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;">R&eacute;pondre</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline de la mission -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+          Chronologie de la mission
+        </div>
+        <div style="display:flex; flex-direction:column; gap:0; position:relative; padding-left:20px;">
+          <!-- Phase 1: Done -->
+          <div style="display:flex; align-items:flex-start; gap:16px; padding-bottom:24px; position:relative;">
+            <div style="position:absolute;left:-20px;top:0;width:2px;height:100%;background:var(--success);"></div>
+            <div style="position:absolute;left:-26px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;">
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--success);">Cadrage</div>
+              <div style="font-size:11px;color:var(--text-300);">1 &ndash; 5 avr. &bull; Termin&eacute;</div>
+            </div>
+          </div>
+          <!-- Phase 2: Done -->
+          <div style="display:flex; align-items:flex-start; gap:16px; padding-bottom:24px; position:relative;">
+            <div style="position:absolute;left:-20px;top:0;width:2px;height:100%;background:var(--success);"></div>
+            <div style="position:absolute;left:-26px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;">
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--success);">Planification</div>
+              <div style="font-size:11px;color:var(--text-300);">6 &ndash; 10 avr. &bull; Termin&eacute;</div>
+            </div>
+          </div>
+          <!-- Phase 3: Active -->
+          <div style="display:flex; align-items:flex-start; gap:16px; padding-bottom:24px; position:relative;">
+            <div style="position:absolute;left:-20px;top:0;width:2px;height:100%;background:var(--border);"></div>
+            <div style="position:absolute;left:-26px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--forest-700);box-shadow:0 0 0 4px var(--forest-100);"></div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--forest-700);">Travaux terrain</div>
+              <div style="font-size:11px;color:var(--forest-500);">11 avr. &ndash; en cours &bull; 45/93 contr&ocirc;les</div>
+            </div>
+          </div>
+          <!-- Phase 4-6: Locked -->
+          <div style="display:flex; align-items:flex-start; gap:16px; padding-bottom:24px; position:relative;">
+            <div style="position:absolute;left:-20px;top:0;width:2px;height:100%;background:var(--border);"></div>
+            <div style="position:absolute;left:-26px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--border);"></div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text-300);">Revue interne</div>
+              <div style="font-size:11px;color:var(--text-300);">&Agrave; venir</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:16px; padding-bottom:24px; position:relative;">
+            <div style="position:absolute;left:-20px;top:0;width:2px;height:100%;background:var(--border);"></div>
+            <div style="position:absolute;left:-26px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--border);"></div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text-300);">Validation client</div>
+              <div style="font-size:11px;color:var(--text-300);">&Agrave; venir</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:16px; position:relative;">
+            <div style="position:absolute;left:-26px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--border);"></div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text-300);">Restitution</div>
+              <div style="font-size:11px;color:var(--text-300);">&Agrave; venir</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      <!-- Equipe d'audit -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          &Eacute;quipe d&rsquo;audit
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="avatar" style="background:var(--forest-700);">OG</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;">Oumar Gueye</div>
+              <div style="font-size:11px;color:var(--text-300);">Chef de mission</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="avatar" style="background:var(--forest-500);">SM</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;">Sadio Man&eacute;</div>
+              <div style="font-size:11px;color:var(--text-300);">Auditeur</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="avatar" style="background:var(--gold-500);">IM</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;">Ibrahim Mbaye</div>
+              <div style="font-size:11px;color:var(--text-300);">Auditeur</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="avatar" style="background:var(--text-300);">PT</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;">Pape Thiaw</div>
+              <div style="font-size:11px;color:var(--text-300);">Associ&eacute;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prochaines echeances -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Prochaines &eacute;ch&eacute;ances
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px; padding:10px; background:var(--forest-50); border-radius:8px;">
+            <div style="font-size:11px;font-weight:700;color:var(--forest-700);min-width:50px;">25 avr.</div>
+            <div style="font-size:12px;color:var(--text-700);">Entretien DSI</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#fff; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-500);min-width:50px;">30 avr.</div>
+            <div style="font-size:12px;color:var(--text-700);">Remise documents A.8</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#fff; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-500);min-width:50px;">5 mai</div>
+            <div style="font-size:12px;color:var(--text-700);">D&eacute;but revue interne</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#fff; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-500);min-width:50px;">15 mai</div>
+            <div style="font-size:12px;color:var(--text-700);">Fin de mission</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- OPTION B — RESULTATS & CONFORMITE                             -->
+<!-- ============================================================ -->
+<div id="option-b" class="option-panel">
+  <div class="option-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    Option B &mdash; R&eacute;sultats &amp; conformit&eacute; : le client voit ses scores et constats en temps r&eacute;el
+  </div>
+
+  <div class="mission-header">
+    <h1>ISO/IEC 27001 &mdash; Groupe ISM</h1>
+    <div class="mission-meta">
+      <span>&#128197; Cabinet Demo</span>
+      <span>&#128196; ISO/IEC 27001</span>
+      <span>&#128337; 1 avr. 2026 &rarr; 15 mai 2026</span>
+      <span class="badge badge-forest">Travaux terrain</span>
+    </div>
+  </div>
+
+  <div class="inner-tabs">
+    <div class="inner-tab active">Tableau de bord</div>
+    <div class="inner-tab">&Eacute;changes</div>
+    <div class="inner-tab">R&eacute;sultats</div>
+    <div class="inner-tab">Rapports</div>
+  </div>
+
+  <!-- Top section: Score ring + KPIs -->
+  <div style="display:grid; grid-template-columns: auto 1fr; gap:24px; margin-bottom:24px;">
+    <!-- Score ring card -->
+    <div class="card" style="display:flex; align-items:center; gap:24px; min-width:320px;">
+      <div class="score-ring">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#F3F4F6" stroke-width="8"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--forest-500)" stroke-width="8"
+                  stroke-dasharray="326.7" stroke-dashoffset="114.3" stroke-linecap="round"/>
+        </svg>
+        <div class="score-ring-value">
+          <div class="score-ring-number">65%</div>
+          <div class="score-ring-label">Score global</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-900);margin-bottom:12px;">Score provisoire</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--success);"></div>
+            <span style="font-size:12px;color:var(--text-500);">45 conformes</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold-500);"></div>
+            <span style="font-size:12px;color:var(--text-500);">12 observations</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--error);"></div>
+            <span style="font-size:12px;color:var(--text-500);">3 NC majeures &bull; 8 NC mineures</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:16px;">
+      <div class="kpi-card">
+        <div class="kpi-label">Avancement</div>
+        <div class="kpi-value" style="color:var(--forest-700)">62%</div>
+        <div class="progress-bar" style="margin-top:10px">
+          <div class="progress-fill" style="width:62%; background:var(--forest-500)"></div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Contr&ocirc;les &eacute;valu&eacute;s</div>
+        <div class="kpi-value" style="color:var(--gold-500)">68 <span style="font-size:14px;color:var(--text-300)">/ 93</span></div>
+        <div class="kpi-sub">25 en attente</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Jours restants</div>
+        <div class="kpi-value" style="color:var(--forest-700)">22</div>
+        <div class="kpi-sub">Phase: Travaux terrain</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Domain scores + Constats -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
+    <!-- Domain bars -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="14" y="6" width="3" height="12"/></svg>
+        Conformit&eacute; par domaine
+      </div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text-700);">A.5 Politiques de s&eacute;curit&eacute;</span>
+            <span style="font-weight:600;color:var(--success);">88%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--success);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text-700);">A.6 Organisation</span>
+            <span style="font-weight:600;color:var(--forest-500);">72%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--forest-500);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text-700);">A.7 S&eacute;curit&eacute; RH</span>
+            <span style="font-weight:600;color:var(--forest-500);">65%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:65%;background:var(--forest-500);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text-700);">A.8 Gestion des actifs</span>
+            <span style="font-weight:600;color:var(--gold-500);">45%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--gold-500);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text-700);">A.9 Contr&ocirc;le d&rsquo;acc&egrave;s</span>
+            <span style="font-weight:600;color:var(--error);">32%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:32%;background:var(--error);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text-700);">A.10 Cryptographie</span>
+            <span style="font-weight:600;color:var(--forest-500);">70%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:70%;background:var(--forest-500);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Findings summary -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Synth&egrave;se des constats
+      </div>
+      <!-- Finding type cards -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px;">
+        <div style="padding:12px;background:var(--forest-50);border-radius:8px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:var(--success);">45</div>
+          <div style="font-size:11px;color:var(--text-500);margin-top:2px;">Conformes</div>
+        </div>
+        <div style="padding:12px;background:var(--gold-50);border-radius:8px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:var(--gold-600);">12</div>
+          <div style="font-size:11px;color:var(--text-500);margin-top:2px;">Observations</div>
+        </div>
+        <div style="padding:12px;background:#FEF3C7;border-radius:8px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#D97706;">8</div>
+          <div style="font-size:11px;color:var(--text-500);margin-top:2px;">NC mineures</div>
+        </div>
+        <div style="padding:12px;background:#FDE8E8;border-radius:8px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:var(--error);">3</div>
+          <div style="font-size:11px;color:var(--text-500);margin-top:2px;">NC majeures</div>
+        </div>
+      </div>
+
+      <!-- NC Majeures list -->
+      <div style="font-size:12px;font-weight:600;color:var(--text-700);margin-bottom:8px;">NC majeures identifi&eacute;es</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:flex-start;gap:8px;padding:10px;background:#FDE8E8;border-radius:8px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--error);margin-top:4px;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:12px;font-weight:500;">A.9.2 &mdash; Gestion des acc&egrave;s utilisateurs</div>
+            <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Absence de revue p&eacute;riodique des droits</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;padding:10px;background:#FDE8E8;border-radius:8px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--error);margin-top:4px;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:12px;font-weight:500;">A.12.4 &mdash; Journalisation</div>
+            <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Logs non centralis&eacute;s, pas de SIEM</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;padding:10px;background:#FDE8E8;border-radius:8px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--error);margin-top:4px;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:12px;font-weight:500;">A.18.1 &mdash; Conformit&eacute; l&eacute;gale</div>
+            <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Non-conformit&eacute; protection des donn&eacute;es</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom row: Team + Timeline compact -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+    <div class="card">
+      <div class="card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        &Eacute;quipe d&rsquo;audit
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="background:var(--forest-700);">OG</div>
+          <div><div style="font-size:13px;font-weight:500;">Oumar Gueye</div><div style="font-size:11px;color:var(--text-300);">Chef de mission</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="background:var(--forest-500);">SM</div>
+          <div><div style="font-size:13px;font-weight:500;">Sadio Man&eacute;</div><div style="font-size:11px;color:var(--text-300);">Auditeur</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="background:var(--gold-500);">IM</div>
+          <div><div style="font-size:13px;font-weight:500;">Ibrahim Mbaye</div><div style="font-size:11px;color:var(--text-300);">Auditeur</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="background:var(--text-300);">PT</div>
+          <div><div style="font-size:13px;font-weight:500;">Pape Thiaw</div><div style="font-size:11px;color:var(--text-300);">Associ&eacute;</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Jalons cl&eacute;s
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:11px;font-weight:600;color:var(--success);min-width:60px;">5 avr.</div>
+          <div style="font-size:12px;color:var(--text-500);text-decoration:line-through;">Cadrage termin&eacute;</div>
+          <span class="badge badge-success" style="margin-left:auto;">&#10003;</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:11px;font-weight:600;color:var(--success);min-width:60px;">10 avr.</div>
+          <div style="font-size:12px;color:var(--text-500);text-decoration:line-through;">Planification valid&eacute;e</div>
+          <span class="badge badge-success" style="margin-left:auto;">&#10003;</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:11px;font-weight:600;color:var(--forest-700);min-width:60px;">5 mai</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text-700);">Fin travaux terrain</div>
+          <span class="badge badge-forest" style="margin-left:auto;">En cours</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text-300);min-width:60px;">10 mai</div>
+          <div style="font-size:12px;color:var(--text-300);">Validation client</div>
+          <span class="badge badge-gray" style="margin-left:auto;">&Agrave; venir</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text-300);min-width:60px;">15 mai</div>
+          <div style="font-size:12px;color:var(--text-300);">Restitution finale</div>
+          <span class="badge badge-gray" style="margin-left:auto;">&Agrave; venir</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- OPTION C — COLLABORATION ACTIVE                               -->
+<!-- ============================================================ -->
+<div id="option-c" class="option-panel">
+  <div class="option-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Option C &mdash; Collaboration active : focus sur les &eacute;changes entre le cabinet et le client
+  </div>
+
+  <div class="mission-header">
+    <h1>ISO/IEC 27001 &mdash; Groupe ISM</h1>
+    <div class="mission-meta">
+      <span>&#128197; Cabinet Demo</span>
+      <span>&#128196; ISO/IEC 27001</span>
+      <span>&#128337; 1 avr. 2026 &rarr; 15 mai 2026</span>
+      <span class="badge badge-forest">Travaux terrain</span>
+    </div>
+  </div>
+
+  <div class="inner-tabs">
+    <div class="inner-tab active">Tableau de bord</div>
+    <div class="inner-tab">&Eacute;changes</div>
+    <div class="inner-tab">R&eacute;sultats</div>
+    <div class="inner-tab">Rapports</div>
+  </div>
+
+  <!-- Compact KPIs -->
+  <div style="display:grid; grid-template-columns: repeat(5,1fr); gap:12px; margin-bottom:24px;">
+    <div class="kpi-card" style="padding:12px 16px;">
+      <div class="kpi-label" style="font-size:9px;">Avancement</div>
+      <div class="kpi-value" style="font-size:20px;color:var(--forest-700);">62%</div>
+    </div>
+    <div class="kpi-card" style="padding:12px 16px;">
+      <div class="kpi-label" style="font-size:9px;">Score</div>
+      <div class="kpi-value" style="font-size:20px;color:var(--success);">65%</div>
+    </div>
+    <div class="kpi-card" style="padding:12px 16px;">
+      <div class="kpi-label" style="font-size:9px;">Docs fournis</div>
+      <div class="kpi-value" style="font-size:20px;color:var(--gold-500);">8<span style="font-size:12px;color:var(--text-300)">/14</span></div>
+    </div>
+    <div class="kpi-card" style="padding:12px 16px;">
+      <div class="kpi-label" style="font-size:9px;">&Agrave; valider</div>
+      <div class="kpi-value" style="font-size:20px;color:var(--gold-500);">4</div>
+    </div>
+    <div class="kpi-card" style="padding:12px 16px;">
+      <div class="kpi-label" style="font-size:9px;">Jours restants</div>
+      <div class="kpi-value" style="font-size:20px;color:var(--forest-700);">22</div>
+    </div>
+  </div>
+
+  <!-- Three columns -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr 340px; gap:24px;">
+
+    <!-- Col 1: Demandes de documents -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Documents demand&eacute;s
+        <span class="badge badge-gold" style="margin-left:auto;">6 en attente</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <!-- Pending -->
+        <div style="padding:10px;border:1px solid var(--gold-200);background:var(--gold-50);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:500;">Politique de s&eacute;curit&eacute; (PSSI)</div>
+            <span class="badge badge-gold">En attente</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-300);margin-top:4px;">A.5 &bull; Demand&eacute; le 3 avr.</div>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--forest-700);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">D&eacute;poser le document</button>
+        </div>
+        <div style="padding:10px;border:1px solid var(--gold-200);background:var(--gold-50);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:500;">Inventaire des actifs</div>
+            <span class="badge badge-gold">En attente</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-300);margin-top:4px;">A.8 &bull; Demand&eacute; le 8 avr.</div>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--forest-700);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">D&eacute;poser le document</button>
+        </div>
+        <div style="padding:10px;border:1px solid var(--gold-200);background:var(--gold-50);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:500;">Matrice des droits d&rsquo;acc&egrave;s</div>
+            <span class="badge badge-gold">En attente</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-300);margin-top:4px;">A.9 &bull; Demand&eacute; le 10 avr.</div>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--forest-700);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">D&eacute;poser le document</button>
+        </div>
+        <!-- Done -->
+        <div style="padding:10px;border:1px solid var(--border);background:#fff;border-radius:8px;opacity:0.7;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:500;color:var(--text-500);">Organigramme</div>
+            <span class="badge badge-success">Re&ccedil;u</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-300);margin-top:4px;">A.6 &bull; Fourni le 5 avr.</div>
+        </div>
+        <div style="padding:10px;border:1px solid var(--border);background:#fff;border-radius:8px;opacity:0.7;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:500;color:var(--text-500);">Charte informatique</div>
+            <span class="badge badge-success">Re&ccedil;u</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-300);margin-top:4px;">A.7 &bull; Fourni le 4 avr.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 2: Validation queue + Activity -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      <!-- Constats a valider -->
+      <div class="card" style="border-left:3px solid var(--gold-500);">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Constats &agrave; valider
+          <span class="badge badge-gold" style="margin-left:auto;">4</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--gold-50);border-radius:8px;cursor:pointer;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--forest-700);min-width:50px;">A.9.2</div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:500;">Gestion des acc&egrave;s</div>
+              <div style="font-size:11px;color:var(--text-300);">NC majeure</div>
+            </div>
+            <span class="badge badge-error">NC majeure</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--gold-50);border-radius:8px;cursor:pointer;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--forest-700);min-width:50px;">A.12.4</div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:500;">Journalisation</div>
+              <div style="font-size:11px;color:var(--text-300);">NC majeure</div>
+            </div>
+            <span class="badge badge-error">NC majeure</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#fff;border:1px solid var(--border);border-radius:8px;cursor:pointer;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--forest-700);min-width:50px;">A.8.1</div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:500;">Inventaire des actifs</div>
+              <div style="font-size:11px;color:var(--text-300);">Observation</div>
+            </div>
+            <span class="badge badge-gold">Observation</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#fff;border:1px solid var(--border);border-radius:8px;cursor:pointer;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--forest-700);min-width:50px;">A.10.1</div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:500;">Politique crypto</div>
+              <div style="font-size:11px;color:var(--text-300);">NC mineure</div>
+            </div>
+            <span class="badge badge-gold">NC mineure</span>
+          </div>
+        </div>
+        <button style="width:100%;margin-top:12px;padding:8px;background:var(--forest-700);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;">Voir tous les constats &rarr;</button>
+      </div>
+
+      <!-- Activite recente -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Activit&eacute; r&eacute;cente
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex;gap:10px;font-size:12px;">
+            <div style="font-size:11px;color:var(--text-300);min-width:40px;">2h</div>
+            <div>
+              <span style="font-weight:500;">Oumar G.</span>
+              <span style="color:var(--text-500);"> a soumis 3 constats pour revue client</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;font-size:12px;">
+            <div style="font-size:11px;color:var(--text-300);min-width:40px;">5h</div>
+            <div>
+              <span style="font-weight:500;">Sadio M.</span>
+              <span style="color:var(--text-500);"> a &eacute;valu&eacute; 5 contr&ocirc;les (A.8)</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;font-size:12px;">
+            <div style="font-size:11px;color:var(--text-300);min-width:40px;">1j</div>
+            <div>
+              <span style="font-weight:500;">Ibrahim M.</span>
+              <span style="color:var(--text-500);"> a demand&eacute; un document (Inventaire actifs)</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;font-size:12px;">
+            <div style="font-size:11px;color:var(--text-300);min-width:40px;">2j</div>
+            <div>
+              <span style="font-weight:500;">Pape T.</span>
+              <span style="color:var(--text-500);"> a valid&eacute; la revue du domaine A.5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 3: Team + Calendar -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      <div class="card">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Votre &eacute;quipe d&rsquo;audit
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar" style="background:var(--forest-700);">OG</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">Oumar Gueye</div>
+              <div style="font-size:11px;color:var(--text-300);">Chef de mission</div>
+            </div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--success);" title="En ligne"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar" style="background:var(--forest-500);">SM</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">Sadio Man&eacute;</div>
+              <div style="font-size:11px;color:var(--text-300);">Auditeur</div>
+            </div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--success);" title="En ligne"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar" style="background:var(--gold-500);">IM</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">Ibrahim Mbaye</div>
+              <div style="font-size:11px;color:var(--text-300);">Auditeur</div>
+            </div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--text-300);" title="Hors ligne"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar" style="background:var(--text-300);">PT</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">Pape Thiaw</div>
+              <div style="font-size:11px;color:var(--text-300);">Associ&eacute;</div>
+            </div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--text-300);" title="Hors ligne"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Prochains rendez-vous
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="padding:10px;background:var(--forest-50);border-radius:8px;border-left:3px solid var(--forest-700);">
+            <div style="font-size:12px;font-weight:600;color:var(--forest-700);">Entretien DSI</div>
+            <div style="font-size:11px;color:var(--text-500);margin-top:2px;">25 avr. &bull; 10h00 &ndash; 11h30</div>
+            <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Avec O. Gueye, S. Man&eacute;</div>
+          </div>
+          <div style="padding:10px;border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--border);">
+            <div style="font-size:12px;font-weight:500;color:var(--text-700);">Revue contr&ocirc;le d&rsquo;acc&egrave;s</div>
+            <div style="font-size:11px;color:var(--text-500);margin-top:2px;">28 avr. &bull; 14h00 &ndash; 15h00</div>
+            <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Avec I. Mbaye</div>
+          </div>
+          <div style="padding:10px;border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--border);">
+            <div style="font-size:12px;font-weight:500;color:var(--text-700);">Point de suivi hebdo</div>
+            <div style="font-size:11px;color:var(--text-500);margin-top:2px;">2 mai &bull; 09h00 &ndash; 09h30</div>
+            <div style="font-size:11px;color:var(--text-300);margin-top:2px;">Avec O. Gueye</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showOption(id) {
+  document.querySelectorAll('.option-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.option-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('option-' + id).classList.add('active');
+  document.querySelectorAll('.option-tab')[{a:0,b:1,c:2}[id]].classList.add('active');
+}
+</script>
+</body>
+</html>

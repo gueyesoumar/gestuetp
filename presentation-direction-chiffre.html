@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCSSI — Gestu Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAFAF8;--white:#fff;
+  --t9:#1A1A1A;--t7:#374151;--t5:#6B7280;--t3:#9CA3AF;
+  --border:#E5E7EB;
+  --f9:#1B4332;--f7:#2D6A4F;--f5:#40916C;--f1:#D8F3DC;--f0:#F0FFF4;
+  --gold:#D4A843;--g2:#F2E2B1;--g0:#FDF8E8;
+  --ok:#27AE60;--err:#C0392B;
+  --risk:#E07A5F;--priv:#7B68EE;--pol:#3B82F6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t9);-webkit-font-smoothing:antialiased;font-feature-settings:'cv01','cv03','cv04';overflow-x:hidden}
+
+.prog{position:fixed;top:0;left:0;height:2px;z-index:99;background:var(--f9);animation:p linear;animation-timeline:scroll()}
+@keyframes p{to{width:100%}}
+
+section{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8vh 5vw;position:relative}
+section.wide{padding:4vh 3vw}
+
+h1{font-size:clamp(2.8rem,6.5vw,5.5rem);font-weight:800;line-height:.96;letter-spacing:-.04em;color:var(--f9);text-wrap:balance}
+h2{font-size:clamp(1.8rem,4vw,3.2rem);font-weight:700;line-height:1.08;letter-spacing:-.025em;color:var(--t9);text-wrap:balance}
+.lead{font-size:clamp(1rem,1.5vw,1.2rem);line-height:1.7;color:var(--t5);max-width:36em}
+.label{font-size:.7rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.mono{font-family:'JetBrains Mono',monospace}
+.gold{color:var(--gold)}
+.forest{color:var(--f9)}
+.dim{color:var(--t3)}
+
+.r{opacity:0;transform:translateY(24px);animation:rv .6s cubic-bezier(.22,1,.36,1) forwards;animation-timeline:view();animation-range:entry 0% entry 25%}
+.r2{animation-delay:.08s}.r3{animation-delay:.16s}.r4{animation-delay:.24s}
+@keyframes rv{to{opacity:1;transform:none}}
+@supports not(animation-timeline:view()){.r{opacity:1;transform:none;animation:none}}
+
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px}
+.card-f9{background:var(--f9);border-color:var(--f9);color:#fff}
+
+.cta{display:inline-flex;align-items:center;gap:8px;padding:14px 36px;font-size:15px;font-weight:600;color:#fff;background:var(--f7);border:none;border-radius:10px;cursor:pointer;text-decoration:none;transition:background .2s}
+.cta:hover{background:var(--f9)}
+.cta-gold{background:var(--gold);color:var(--f9)}
+.cta-gold:hover{background:#c9a03e}
+
+.bar{height:5px;border-radius:3px;background:var(--border);overflow:hidden}
+.bf{height:100%;border-radius:3px}
+
+.hc{width:52px;height:34px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border-radius:6px;font-family:'JetBrains Mono',monospace}
+.hc-g{background:var(--f1);color:var(--f9)}
+.hc-a{background:var(--g0);color:var(--gold)}
+.hc-r{background:#FEE2E2;color:var(--err)}
+
+.badge{display:inline-flex;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500}
+.badge-g{background:var(--f1);color:var(--f9)}
+.badge-a{background:var(--g2);color:#92400e}
+.badge-r{background:#FEE2E2;color:var(--err)}
+
+.frame{border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.frame-bar{height:32px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%}
+.frame-url{flex:1;text-align:center;font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-shield{flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="prog" style="width:0"></div>
+
+<!-- ━━━ 01 · COUVERTURE ━━━ -->
+<section style="background:var(--f9)">
+  <!-- Logo top-left -->
+  <div style="position:absolute;top:40px;left:8vw" class="logo-mark">
+    <svg class="logo-shield" width="26" height="30" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="none" stroke="#D4A843" stroke-width="1.5"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 13C16 13 12 17.5 12 23.5" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity=".5"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <div><div style="font-size:15px;font-weight:800;color:#fff">G<span style="position:relative">e<span style="position:absolute;left:50%;transform:translateX(-50%);top:-1px;display:flex;gap:2.5px"><span style="width:2.5px;height:2.5px;border-radius:50%;background:#D4A843"></span><span style="width:2.5px;height:2.5px;border-radius:50%;background:#D4A843"></span></span></span>stu</div><div style="font-size:8px;font-weight:600;color:#D4A843;letter-spacing:2px">COMPLY</div></div>
+  </div>
+
+  <div style="text-align:center;max-width:800px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:28px">DCSSI · Présidence de la République du Sénégal</div>
+    <h1 style="color:#fff;margin-bottom:28px">Piloter la<br>cybersécurité<br><span style="color:var(--gold)">de l'État</span></h1>
+    <p style="font-size:clamp(15px,1.5vw,19px);color:rgba(255,255,255,.5);line-height:1.7;max-width:460px;margin:0 auto">Plateforme souveraine de supervision de la conformité PSSI-ES des entités étatiques.</p>
+  </div>
+
+  <div style="position:absolute;bottom:40px;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:11px;color:rgba(255,255,255,.2)">Avril 2026</span>
+    <div style="display:flex;gap:8px">
+      <span style="font-size:10px;padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4)">155 contrôles</span>
+      <span style="font-size:10px;padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4)">Hébergement local</span>
+      <span style="font-size:10px;padding:5px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4)">Marque blanche</span>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 02 · TENSION ━━━ -->
+<section>
+  <div class="r" style="text-align:center;max-width:700px">
+    <h2><span class="dim">155 règles. 45 entités. 11 domaines.</span></h2>
+    <h2 class="r r2" style="margin-top:8px">Comment <span style="color:var(--f9)">tout piloter</span><br>sans outil dédié ?</h2>
+  </div>
+</section>
+
+<!-- ━━━ 03 · CHIFFRES ━━━ -->
+<section>
+  <div style="display:flex;gap:clamp(48px,10vw,140px);align-items:baseline">
+    <div class="r" style="text-align:center">
+      <div class="mono" style="font-size:clamp(52px,8vw,88px);font-weight:700;color:var(--f9)">45<span style="color:var(--gold);font-size:.45em">+</span></div>
+      <div style="font-size:14px;color:var(--t5);margin-top:14px">entités<br>étatiques</div>
+    </div>
+    <div class="r r2" style="text-align:center">
+      <div class="mono" style="font-size:clamp(52px,8vw,88px);font-weight:700;color:var(--gold)">155</div>
+      <div style="font-size:14px;color:var(--t5);margin-top:14px">règles de<br>sécurité</div>
+    </div>
+    <div class="r r3" style="text-align:center">
+      <div class="mono" style="font-size:clamp(52px,8vw,88px);font-weight:700;color:var(--err)">0</div>
+      <div style="font-size:14px;color:var(--t5);margin-top:14px">outil de<br>suivi</div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 04 · PROMESSE ━━━ -->
+<section style="background:var(--f0)">
+  <div class="r" style="text-align:center;max-width:580px">
+    <div class="label" style="margin-bottom:20px">Gestu Comply</div>
+    <h2>Chaque entité.<br>Chaque domaine.<br><span style="color:var(--f9)">Un seul écran.</span></h2>
+  </div>
+</section>
+
+<!-- ━━━ 05 · PRODUIT ━━━ -->
+<section class="wide">
+  <div class="r" style="width:100%">
+    <div class="frame">
+      <div class="frame-bar">
+        <div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div>
+        <div class="frame-url">pssi.dcssi.gouv.sn / supervision</div>
+      </div>
+      <div style="display:flex;background:var(--white)">
+        <!-- Sidebar -->
+        <div style="width:156px;background:var(--f9);padding:14px 0;flex-shrink:0">
+          <div style="padding:8px 14px;display:flex;align-items:center;gap:6px;margin-bottom:14px">
+            <svg width="13" height="15" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="none" stroke="#D4A843" stroke-width="2"/></svg>
+            <span style="font-size:10px;font-weight:800;color:#fff">Gëstu</span>
+          </div>
+          <div style="font-size:10px;padding:6px 14px;color:rgba(255,255,255,.35)">Tableau de bord</div>
+          <div style="font-size:10px;padding:6px 10px;margin:2px 8px;border-radius:6px;color:#fff;background:rgba(255,255,255,.1);border-left:2px solid var(--gold)">Supervision</div>
+          <div style="font-size:10px;padding:6px 14px;color:rgba(255,255,255,.35)">Entités</div>
+          <div style="font-size:10px;padding:6px 14px;color:rgba(255,255,255,.35)">Référentiels</div>
+          <div style="font-size:10px;padding:6px 14px;color:rgba(255,255,255,.35)">Missions</div>
+        </div>
+        <!-- Main -->
+        <div style="flex:1;padding:20px 24px;background:var(--bg)">
+          <!-- KPI row -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+            <div class="card" style="padding:14px"><div style="font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Entités auditées</div><div class="mono" style="font-size:26px;font-weight:700;color:var(--t9);margin-top:4px">7</div><div style="display:flex;gap:3px;margin-top:6px"><span class="badge badge-g">2</span><span class="badge badge-a">3</span><span class="badge badge-r">2</span></div></div>
+            <div class="card" style="padding:14px"><div style="font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Conformité moy.</div><div class="mono" style="font-size:26px;font-weight:700;color:var(--gold);margin-top:4px">64%</div><div class="bar" style="margin-top:8px"><div class="bf" style="width:64%;background:var(--gold)"></div></div></div>
+            <div class="card" style="padding:14px"><div style="font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">NC majeures</div><div class="mono" style="font-size:26px;font-weight:700;color:var(--err);margin-top:4px">31</div></div>
+            <div class="card" style="padding:14px"><div style="font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Audits actifs</div><div class="mono" style="font-size:26px;font-weight:700;color:var(--ok);margin-top:4px">3</div></div>
+          </div>
+          <!-- Ranking -->
+          <div class="card" style="overflow:hidden;font-size:13px">
+            <div style="display:grid;grid-template-columns:24px 1fr 50px 120px 40px 80px;gap:8px;padding:10px 16px;background:var(--bg);font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)">#<span>Entité</span><span>Score</span><span></span><span>NC</span><span>Statut</span></div>
+            <div style="display:grid;grid-template-columns:24px 1fr 50px 120px 40px 80px;gap:8px;padding:9px 16px;align-items:center;border-bottom:1px solid #f3f4f6"><span style="color:var(--t3)" class="mono">1</span><span style="font-weight:600;color:var(--t9)">Min. Forces Armées</span><span class="mono" style="font-weight:700;color:var(--ok)">85%</span><span><div class="bar"><div class="bf" style="width:85%;background:var(--ok)"></div></div></span><span class="badge badge-g" style="font-size:8px;padding:1px 5px;justify-self:center">1</span><span class="badge badge-g" style="font-size:8px">Conforme</span></div>
+            <div style="display:grid;grid-template-columns:24px 1fr 50px 120px 40px 80px;gap:8px;padding:9px 16px;align-items:center;border-bottom:1px solid #f3f4f6"><span style="color:var(--t3)" class="mono">2</span><span style="font-weight:600;color:var(--t9)">ADIE</span><span class="mono" style="font-weight:700;color:var(--ok)">81%</span><span><div class="bar"><div class="bf" style="width:81%;background:var(--ok)"></div></div></span><span class="badge badge-g" style="font-size:8px;padding:1px 5px;justify-self:center">2</span><span class="badge badge-g" style="font-size:8px">Conforme</span></div>
+            <div style="display:grid;grid-template-columns:24px 1fr 50px 120px 40px 80px;gap:8px;padding:9px 16px;align-items:center;border-bottom:1px solid #f3f4f6"><span style="color:var(--t3)" class="mono">3</span><span style="font-weight:600;color:var(--t9)">Min. Finances</span><span class="mono" style="font-weight:700;color:#92400e">72%</span><span><div class="bar"><div class="bf" style="width:72%;background:var(--gold)"></div></div></span><span class="badge badge-a" style="font-size:8px;padding:1px 5px;justify-self:center">4</span><span class="badge badge-a" style="font-size:8px">Partiel</span></div>
+            <div style="display:grid;grid-template-columns:24px 1fr 50px 120px 40px 80px;gap:8px;padding:9px 16px;align-items:center;border-bottom:1px solid #f3f4f6"><span style="color:var(--t3)" class="mono">4</span><span style="font-weight:600;color:var(--t9)">Min. Santé</span><span class="mono" style="font-weight:700;color:var(--err)">48%</span><span><div class="bar"><div class="bf" style="width:48%;background:var(--err)"></div></div></span><span class="badge badge-r" style="font-size:8px;padding:1px 5px;justify-self:center">7</span><span class="badge badge-r" style="font-size:8px">Non conf.</span></div>
+            <div style="display:grid;grid-template-columns:24px 1fr 50px 120px 40px 80px;gap:8px;padding:9px 16px;align-items:center"><span style="color:var(--t3)" class="mono">5</span><span style="font-weight:600;color:var(--t9)">UCAD</span><span class="mono" style="font-weight:700;color:var(--err)">35%</span><span><div class="bar"><div class="bf" style="width:35%;background:var(--err)"></div></div></span><span class="badge badge-r" style="font-size:8px;padding:1px 5px;justify-self:center">6</span><span class="badge badge-r" style="font-size:8px">Non conf.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 06 · HEATMAP ━━━ -->
+<section class="wide">
+  <div style="width:100%">
+    <div class="label r">Diagnostic</div>
+    <h2 class="r r2" style="margin-bottom:32px">Où sont les failles ?</h2>
+    <div class="card r r3" style="padding:24px;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);letter-spacing:.5px"><th style="text-align:left;padding:4px 6px;width:110px"></th><th style="padding:2px;text-align:center">ORG</th><th style="padding:2px;text-align:center">PER</th><th style="padding:2px;text-align:center">ACQ</th><th style="padding:2px;text-align:center">ACT</th><th style="padding:2px;text-align:center">FRN</th><th style="padding:2px;text-align:center">PHY</th><th style="padding:2px;text-align:center">LOG</th><th style="padding:2px;text-align:center">EXP</th><th style="padding:2px;text-align:center">CLM</th><th style="padding:2px;text-align:center">INC</th><th style="padding:2px;text-align:center">AUD</th></tr></thead>
+        <tbody>
+          <tr><td style="padding:3px 6px;font-weight:500;font-size:12px;color:var(--t7)">Forces Armées</td><td style="padding:1px"><div class="hc hc-g">92</div></td><td style="padding:1px"><div class="hc hc-g">88</div></td><td style="padding:1px"><div class="hc hc-g">80</div></td><td style="padding:1px"><div class="hc hc-g">85</div></td><td style="padding:1px"><div class="hc hc-a">75</div></td><td style="padding:1px"><div class="hc hc-g">90</div></td><td style="padding:1px"><div class="hc hc-g">82</div></td><td style="padding:1px"><div class="hc hc-g">85</div></td><td style="padding:1px"><div class="hc hc-a">70</div></td><td style="padding:1px"><div class="hc hc-g">88</div></td><td style="padding:1px"><div class="hc hc-g">92</div></td></tr>
+          <tr><td style="padding:3px 6px;font-weight:500;font-size:12px;color:var(--t7)">ADIE</td><td style="padding:1px"><div class="hc hc-g">85</div></td><td style="padding:1px"><div class="hc hc-a">78</div></td><td style="padding:1px"><div class="hc hc-g">88</div></td><td style="padding:1px"><div class="hc hc-a">75</div></td><td style="padding:1px"><div class="hc hc-a">70</div></td><td style="padding:1px"><div class="hc hc-g">82</div></td><td style="padding:1px"><div class="hc hc-g">85</div></td><td style="padding:1px"><div class="hc hc-a">78</div></td><td style="padding:1px"><div class="hc hc-a">68</div></td><td style="padding:1px"><div class="hc hc-g">80</div></td><td style="padding:1px"><div class="hc hc-g">85</div></td></tr>
+          <tr><td style="padding:3px 6px;font-weight:500;font-size:12px;color:var(--t7)">Min. Finances</td><td style="padding:1px"><div class="hc hc-a">78</div></td><td style="padding:1px"><div class="hc hc-a">72</div></td><td style="padding:1px"><div class="hc hc-a">65</div></td><td style="padding:1px"><div class="hc hc-a">75</div></td><td style="padding:1px"><div class="hc hc-a">62</div></td><td style="padding:1px"><div class="hc hc-a">78</div></td><td style="padding:1px"><div class="hc hc-a">70</div></td><td style="padding:1px"><div class="hc hc-a">72</div></td><td style="padding:1px"><div class="hc hc-r">55</div></td><td style="padding:1px"><div class="hc hc-a">75</div></td><td style="padding:1px"><div class="hc hc-g">80</div></td></tr>
+          <tr><td style="padding:3px 6px;font-weight:500;font-size:12px;color:var(--t7)">Min. Santé</td><td style="padding:1px"><div class="hc hc-r">52</div></td><td style="padding:1px"><div class="hc hc-r">45</div></td><td style="padding:1px"><div class="hc hc-r">38</div></td><td style="padding:1px"><div class="hc hc-r">48</div></td><td style="padding:1px"><div class="hc hc-r">35</div></td><td style="padding:1px"><div class="hc hc-r">55</div></td><td style="padding:1px"><div class="hc hc-r">42</div></td><td style="padding:1px"><div class="hc hc-r">50</div></td><td style="padding:1px"><div class="hc hc-r">30</div></td><td style="padding:1px"><div class="hc hc-r">52</div></td><td style="padding:1px"><div class="hc hc-r">55</div></td></tr>
+          <tr><td style="padding:3px 6px;font-weight:500;font-size:12px;color:var(--t7)">UCAD</td><td style="padding:1px"><div class="hc hc-r">38</div></td><td style="padding:1px"><div class="hc hc-r">32</div></td><td style="padding:1px"><div class="hc hc-r">25</div></td><td style="padding:1px"><div class="hc hc-r">35</div></td><td style="padding:1px"><div class="hc hc-r">28</div></td><td style="padding:1px"><div class="hc hc-r">42</div></td><td style="padding:1px"><div class="hc hc-r">30</div></td><td style="padding:1px"><div class="hc hc-r">32</div></td><td style="padding:1px"><div class="hc hc-r">18</div></td><td style="padding:1px"><div class="hc hc-r">38</div></td><td style="padding:1px"><div class="hc hc-r">40</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="r r4" style="display:flex;gap:10px;margin-top:14px;justify-content:center;font-size:11px">
+      <span style="color:var(--err);font-weight:600">CLM 48%</span><span class="dim">·</span>
+      <span style="color:#92400e;font-weight:600">FRN 54%</span><span class="dim">·</span>
+      <span style="color:#92400e;font-weight:600">ACQ 59%</span>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 07 · WORKFLOW D'AUDIT ━━━ -->
+<section class="wide">
+  <div style="width:100%">
+    <div class="label r">Fonctionnement</div>
+    <h2 class="r r2" style="margin-bottom:40px">Un audit, <span style="color:var(--f9)">6 étapes</span></h2>
+    <div style="display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden" class="r r3">
+      <div style="flex:1;padding:24px 16px;background:var(--white);text-align:center"><div class="mono" style="font-size:20px;color:var(--gold);margin-bottom:8px">01</div><div style="font-size:13px;font-weight:600;color:var(--t9)">Création</div><div style="font-size:11px;color:var(--t5);margin-top:4px">Référentiel<br>+ entité cible</div></div>
+      <div style="flex:1;padding:24px 16px;background:var(--white);text-align:center"><div class="mono" style="font-size:20px;color:var(--gold);margin-bottom:8px">02</div><div style="font-size:13px;font-weight:600;color:var(--t9)">Cadrage</div><div style="font-size:11px;color:var(--t5);margin-top:4px">Périmètre<br>+ objectifs</div></div>
+      <div style="flex:1;padding:24px 16px;background:var(--white);text-align:center"><div class="mono" style="font-size:20px;color:var(--gold);margin-bottom:8px">03</div><div style="font-size:13px;font-weight:600;color:var(--t9)">Planification</div><div style="font-size:11px;color:var(--t5);margin-top:4px">Affectation<br>des contrôles</div></div>
+      <div style="flex:1;padding:24px 16px;background:var(--f0);text-align:center;border-top:3px solid var(--f9)"><div class="mono" style="font-size:20px;color:var(--f9);margin-bottom:8px">04</div><div style="font-size:13px;font-weight:700;color:var(--f9)">Terrain</div><div style="font-size:11px;color:var(--f7);margin-top:4px">Évaluation<br>des 155 contrôles</div></div>
+      <div style="flex:1;padding:24px 16px;background:var(--white);text-align:center"><div class="mono" style="font-size:20px;color:var(--gold);margin-bottom:8px">05</div><div style="font-size:13px;font-weight:600;color:var(--t9)">Revue</div><div style="font-size:11px;color:var(--t5);margin-top:4px">Validation<br>hiérarchique</div></div>
+      <div style="flex:1;padding:24px 16px;background:var(--white);text-align:center"><div class="mono" style="font-size:20px;color:var(--gold);margin-bottom:8px">06</div><div style="font-size:13px;font-weight:600;color:var(--t9)">Rapport</div><div style="font-size:11px;color:var(--t5);margin-top:4px">PDF structuré<br>+ constats</div></div>
+    </div>
+    <p class="lead r r4" style="text-align:center;margin:24px auto 0;font-size:14px">Chaque étape est tracée. Chaque décision est horodatée. L'auditeur principal valide, l'associé supervise.</p>
+  </div>
+</section>
+
+<!-- ━━━ 08 · PORTAIL ENTITÉS ━━━ -->
+<section class="wide" style="background:var(--f0)">
+  <div style="width:100%;max-width:900px">
+    <div class="label r">Collaboration</div>
+    <h2 class="r r2" style="margin-bottom:12px">Chaque entité a <span style="color:var(--f9)">son espace</span></h2>
+    <p class="lead r r3" style="margin-bottom:36px">Portail sécurisé pour les AQSSI et ASSI de chaque ministère.</p>
+    <div class="card r r4" style="overflow:hidden">
+      <div style="display:flex;gap:20px;padding:20px 24px;border-bottom:1px solid var(--border)"><div style="width:36px;height:36px;border-radius:10px;background:var(--f1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📋</div><div><div style="font-size:14px;font-weight:600;color:var(--t9)">Répondre aux questionnaires</div><div style="font-size:13px;color:var(--t5);margin-top:2px">L'entité remplit les questionnaires d'audit directement en ligne</div></div></div>
+      <div style="display:flex;gap:20px;padding:20px 24px;border-bottom:1px solid var(--border)"><div style="width:36px;height:36px;border-radius:10px;background:var(--g0);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📎</div><div><div style="font-size:14px;font-weight:600;color:var(--t9)">Fournir les preuves</div><div style="font-size:13px;color:var(--t5);margin-top:2px">Upload sécurisé de documents : politiques, configurations, captures</div></div></div>
+      <div style="display:flex;gap:20px;padding:20px 24px;border-bottom:1px solid var(--border)"><div style="width:36px;height:36px;border-radius:10px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🔧</div><div><div style="font-size:14px;font-weight:600;color:var(--t9)">Traiter les actions correctives</div><div style="font-size:13px;color:var(--t5);margin-top:2px">Cause racine, plan d'action, responsable, date cible, preuve de résolution</div></div></div>
+      <div style="display:flex;gap:20px;padding:20px 24px"><div style="width:36px;height:36px;border-radius:10px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">✅</div><div><div style="font-size:14px;font-weight:600;color:var(--t9)">Valider les constats</div><div style="font-size:13px;color:var(--t5);margin-top:2px">Revue contradictoire avant finalisation du rapport d'audit</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 09 · RAPPORT ━━━ -->
+<section class="wide">
+  <div style="display:flex;gap:60px;align-items:center;width:100%;max-width:1100px">
+    <div style="flex:1">
+      <div class="label r">Reporting</div>
+      <h2 class="r r2" style="margin-bottom:16px">Un rapport<br>pour le <span style="color:var(--f9)">Président</span></h2>
+      <p class="lead r r3" style="margin-bottom:24px">Conforme à la chaîne de remontée REG 30-3 de la PSSI-ES.</p>
+      <div class="r r4" style="font-size:13px;color:var(--t7);line-height:2.2">
+        <div style="display:flex;align-items:center;gap:10px"><span style="width:24px;height:24px;border-radius:50%;background:var(--f1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--f9);flex-shrink:0">1</span> L'auditeur évalue les contrôles</div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="width:24px;height:24px;border-radius:50%;background:var(--f1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--f9);flex-shrink:0">2</span> Le HFD reçoit le rapport d'entité</div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="width:24px;height:24px;border-radius:50%;background:var(--g0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">3</span> La DCSSI génère la synthèse nationale</div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--f9);flex-shrink:0">4</span> <strong style="color:var(--t9)">Le Président de la République est informé</strong></div>
+      </div>
+    </div>
+    <div class="card r r4" style="flex:1;padding:28px;max-width:380px">
+      <div style="text-align:center;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px">
+        <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">République du Sénégal</div>
+        <div style="font-size:11px;font-weight:600;color:var(--t5);margin-top:4px">Commission Nationale de Cryptologie</div>
+        <div style="font-size:14px;font-weight:700;color:var(--f9);margin-top:10px">Rapport de synthèse<br>Conformité PSSI-ES</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">Période 2025-2026</div>
+      </div>
+      <div style="font-size:11px;color:var(--t7);line-height:1.8">
+        <div style="display:flex;justify-content:space-between"><span>Entités auditées</span><strong>7</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Conformité moyenne</span><strong style="color:var(--gold)">64%</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>NC majeures ouvertes</span><strong style="color:var(--err)">31</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Entités conformes</span><strong style="color:var(--f9)">2</strong></div>
+      </div>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);text-align:center">
+        <div style="font-size:10px;color:var(--t3)">PDF · PPTX · Excel</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 10 · ACTIONS CORRECTIVES ━━━ -->
+<section class="wide" style="background:var(--f0)">
+  <div style="width:100%;max-width:1000px">
+    <div class="label r">Suivi</div>
+    <h2 class="r r2" style="margin-bottom:12px">Chaque non-conformité<br>est <span style="color:var(--f9)">suivie jusqu'à résolution</span></h2>
+    <p class="lead r r3" style="margin-bottom:36px">Classification ISO des constats et demandes d'actions correctives (CAR).</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="r r4">
+      <div class="card" style="padding:24px">
+        <div style="font-size:13px;font-weight:700;color:var(--t9);margin-bottom:12px">Classification des constats</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px"><span class="badge badge-r" style="min-width:90px;justify-content:center">NC majeure</span><span style="font-size:12px;color:var(--t5)">Exige une action corrective immédiate</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><span class="badge badge-a" style="min-width:90px;justify-content:center">NC mineure</span><span style="font-size:12px;color:var(--t5)">Action corrective dans un délai convenu</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><span class="badge" style="min-width:90px;justify-content:center;background:#DBEAFE;color:#1e40af">Observation</span><span style="font-size:12px;color:var(--t5)">Point d'amélioration recommandé</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><span class="badge badge-g" style="min-width:90px;justify-content:center">Point fort</span><span style="font-size:12px;color:var(--t5)">Bonne pratique identifiée</span></div>
+        </div>
+      </div>
+      <div class="card" style="padding:24px">
+        <div style="font-size:13px;font-weight:700;color:var(--t9);margin-bottom:12px">Cycle de vie d'une CAR</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--t7)">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:var(--err);flex-shrink:0"></span> Ouverte — constat émis par l'auditeur</div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0"></span> Réponse client — l'entité propose une action</div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0"></span> Vérification — l'auditeur contrôle la preuve</div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0"></span> Clôturée — non-conformité résolue</div>
+        </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--t5)">Chaque CAR a un responsable, une échéance et une preuve vérifiable.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 11 · RÉFÉRENTIEL ━━━ -->
+<section style="background:var(--f9)">
+  <div class="r" style="text-align:center;max-width:600px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:20px">Instruction N° 003/PR</div>
+    <h2 style="color:#fff;margin-bottom:32px"><span class="mono" style="color:var(--gold)">155</span> contrôles.<br><span class="mono" style="color:var(--gold)">11</span> domaines.<br>Mapping ISO 27001.</h2>
+    <p style="font-size:15px;color:rgba(255,255,255,.45);line-height:1.7;max-width:440px;margin:0 auto">Chaque règle transformée en point de contrôle auditable. Rapport automatique conforme REG 30-3.</p>
+  </div>
+</section>
+
+<!-- ━━━ 08 · SÉCURITÉ ━━━ -->
+<section>
+  <div style="max-width:700px;width:100%">
+    <div class="label r">Souveraineté</div>
+    <h2 class="r r2" style="margin-bottom:40px">Conçue pour les données<br><span style="color:var(--f9)">classifiées</span></h2>
+    <div class="card r r3" style="overflow:hidden">
+      <div style="display:flex;gap:20px;padding:20px 24px;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;min-width:180px;color:var(--f9)">Hébergement</div><div style="font-size:14px;color:var(--t5);line-height:1.6">ADIE ou datacenter national. REG 28-2.</div></div>
+      <div style="display:flex;gap:20px;padding:20px 24px;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;min-width:180px;color:var(--f9)">Chiffrement</div><div style="font-size:14px;color:var(--t5);line-height:1.6">AES-256 · TLS 1.3 · Algorithmes labellisés.</div></div>
+      <div style="display:flex;gap:20px;padding:20px 24px;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;min-width:180px;color:var(--f9)">Contrôle d'accès</div><div style="font-size:14px;color:var(--t5);line-height:1.6">RBAC + RLS. Besoin d'en connaître (REG 17-2).</div></div>
+      <div style="display:flex;gap:20px;padding:20px 24px"><div style="font-size:13px;font-weight:600;min-width:180px;color:var(--f9)">Stack</div><div style="font-size:14px;color:var(--t5);line-height:1.6">Open-source. PostgreSQL, React, Deno. Zéro cloud étranger.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 09 · DÉPLOIEMENT ━━━ -->
+<section style="background:var(--f0)">
+  <div class="r" style="text-align:center;max-width:600px">
+    <div class="label">Déploiement</div>
+    <h2 style="margin-bottom:16px">SaaS · On-Premise ·<br><span style="color:var(--f9)">Marque blanche</span></h2>
+    <p class="lead r r2" style="text-align:center;margin:0 auto">Recommandation : <strong style="color:var(--t9)">On-Premise souverain</strong> sur l'ADIE, aux couleurs de la DCSSI, domaine <span class="mono" style="color:var(--f9)">pssi.gouv.sn</span>.</p>
+  </div>
+</section>
+
+<!-- ━━━ 10 · PLANNING ━━━ -->
+<section>
+  <div style="max-width:900px;width:100%">
+    <div class="label r">Planning</div>
+    <h2 class="r r2" style="margin-bottom:40px">Opérationnel en <span style="color:var(--f9)">4 semaines</span></h2>
+    <div style="display:flex;gap:1px;background:var(--border);border-radius:12px;overflow:hidden" class="r r3">
+      <div style="flex:1;padding:28px;background:var(--white);border-top:3px solid var(--gold)"><div class="mono" style="font-size:24px;color:var(--gold);margin-bottom:10px">01</div><div style="font-size:15px;font-weight:600;color:var(--t9);margin-bottom:4px">Installation</div><div style="font-size:12px;color:var(--t5)">Sem. 1-2</div></div>
+      <div style="flex:1;padding:28px;background:var(--white);border-top:3px solid var(--gold)"><div class="mono" style="font-size:24px;color:var(--gold);margin-bottom:10px">02</div><div style="font-size:15px;font-weight:600;color:var(--t9);margin-bottom:4px">Formation</div><div style="font-size:12px;color:var(--t5)">Sem. 3-4</div></div>
+      <div style="flex:1;padding:28px;background:var(--white);border-top:3px solid var(--gold)"><div class="mono" style="font-size:24px;color:var(--gold);margin-bottom:10px">03</div><div style="font-size:15px;font-weight:600;color:var(--t9);margin-bottom:4px">Pilote</div><div style="font-size:12px;color:var(--t5)">Mois 2-3 · 5 entités</div></div>
+      <div style="flex:1;padding:28px;background:var(--white);border-top:3px solid var(--gold)"><div class="mono" style="font-size:24px;color:var(--gold);margin-bottom:10px">04</div><div style="font-size:15px;font-weight:600;color:var(--t9);margin-bottom:4px">National</div><div style="font-size:12px;color:var(--t5)">Mois 4+ · 45 entités</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━ 11 · VISION ━━━ -->
+<section>
+  <div class="r" style="text-align:center;max-width:640px">
+    <div class="label">Vision</div>
+    <h2 style="margin-bottom:16px"><span style="color:var(--gold)">Comply</span> aujourd'hui.<br><span style="color:var(--risk)">Risk</span> · <span style="color:var(--pol)">Policy</span> · <span style="color:var(--priv)">Privacy</span> demain.</h2>
+    <p class="lead r r2" style="text-align:center;margin:0 auto">Plateforme modulaire. Les constats d'audit alimentent les risques. Les politiques sont liées aux contrôles. Les traitements croisent les actifs.</p>
+  </div>
+</section>
+
+<!-- ━━━ 12 · CTA ━━━ -->
+<section style="background:var(--f9)">
+  <div style="text-align:center">
+    <div class="r" style="margin-bottom:36px">
+      <svg width="44" height="52" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="none" stroke="#D4A843" stroke-width="1.2"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 13C16 13 12 17.5 12 23.5" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity=".4"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </div>
+    <h1 class="r r2" style="font-size:clamp(2rem,4.5vw,3.6rem);color:#fff;margin-bottom:24px">Prêts ?</h1>
+    <p class="r r3" style="font-size:16px;color:rgba(255,255,255,.4);margin-bottom:44px">Démonstration sur vos données.</p>
+    <div class="r r4"><a class="cta-gold cta" href="mailto:contact@gestu.io">Demander une démo →</a></div>
+    <div class="r" style="margin-top:72px;font-size:12px;color:rgba(255,255,255,.15)">
+      Gestu ETP · Dakar · contact@gestu.io
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

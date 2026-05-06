@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Note de cadrage — Mockup B (révisé : aligné sur données disponibles)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #0d2f23;
+    --forest-700: #1B4332;
+    --forest-500: #2d6a4f;
+    --forest-300: #74c69d;
+    --forest-50: #f0fdf4;
+    --gold-500: #D4A843;
+    --gold-300: #ebc878;
+    --gold-50: #fdf8e8;
+    --text-900: #1a1a1a;
+    --text-700: #374151;
+    --text-500: #6b7280;
+    --text-400: #9ca3af;
+    --text-300: #d1d5db;
+    --border: #e5e7eb;
+    --bg: #fafaf8;
+    --red: #c0392b;
+    --red-50: #fef2f2;
+    --orange: #e67e22;
+    --orange-50: #fff7ed;
+    --blue: #2563eb;
+    --blue-50: #eff6ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #d6d6d6; font-family: 'Inter', sans-serif; color: var(--text-900); }
+  body { padding: 30px 0; }
+  .page {
+    width: 210mm; min-height: 297mm; background: white;
+    margin: 0 auto 24px; padding: 18mm 18mm 14mm;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    position: relative;
+  }
+  .page-num {
+    position: absolute; bottom: 8mm; right: 18mm;
+    font-size: 8pt; color: var(--text-400); font-weight: 600;
+  }
+  .source-tag {
+    display: inline-block; background: #fffbe8; color: #8a6d2c;
+    padding: 0.4mm 1.5mm; border-radius: 1mm;
+    font-family: 'JetBrains Mono', monospace; font-size: 6.5pt; font-weight: 600;
+    letter-spacing: 0.05em; vertical-align: 1mm; margin-left: 1mm;
+  }
+  h1, h2, h3, h4 { font-weight: 700; }
+  p { font-size: 10pt; line-height: 1.6; color: var(--text-700); margin-bottom: 8pt; }
+
+  /* ========== COVER ========== */
+  .cover { padding: 0; overflow: hidden; }
+  .cover-hero {
+    background: linear-gradient(135deg, var(--forest-900) 0%, var(--forest-700) 70%, var(--forest-500) 100%);
+    color: white; padding: 24mm 18mm 22mm; position: relative;
+  }
+  .cover-hero::before {
+    content: ""; position: absolute; top: -40mm; right: -40mm; width: 100mm; height: 100mm;
+    background: radial-gradient(circle, var(--gold-500) 0%, transparent 70%);
+    opacity: 0.18;
+  }
+  .cover-mission-id {
+    display: inline-block; padding: 1.5mm 4mm; border-radius: 100mm;
+    background: rgba(255,255,255,0.12); border: 0.5pt solid rgba(255,255,255,0.25);
+    font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; letter-spacing: 0.05em;
+    margin-bottom: 8mm;
+  }
+  .cover-logo { font-size: 26pt; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .cover-logo span { color: var(--gold-500); }
+  .cover-title {
+    font-size: 30pt; font-weight: 800; margin-top: 12mm; line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .cover-subtitle {
+    font-size: 13pt; font-weight: 400; opacity: 0.85; margin-top: 4mm; max-width: 130mm;
+  }
+  .cover-client-row {
+    display: flex; align-items: center; gap: 5mm; margin-top: 12mm;
+    padding-top: 8mm; border-top: 0.5pt solid rgba(255,255,255,0.2);
+  }
+  .cover-avatar {
+    width: 14mm; height: 14mm; border-radius: 50%;
+    background: var(--gold-500); color: var(--forest-900);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 12pt;
+  }
+  .cover-client { flex: 1; }
+  .cover-client-name { font-size: 13pt; font-weight: 700; }
+  .cover-client-meta { font-size: 9pt; opacity: 0.8; margin-top: 0.5mm; }
+
+  /* KPI strip */
+  .cover-kpis {
+    margin: -12mm 18mm 0; position: relative; z-index: 2;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    background: white; border-radius: 3mm; box-shadow: 0 4px 20px rgba(0,0,0,0.12); overflow: hidden;
+  }
+  .kpi { padding: 7mm 6mm; border-right: 1px solid var(--border); }
+  .kpi:last-child { border-right: none; }
+  .kpi-label { font-size: 7.5pt; font-weight: 700; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.08em; }
+  .kpi-value { font-size: 22pt; font-weight: 800; color: var(--forest-700); margin-top: 2mm; line-height: 1; letter-spacing: -0.02em; }
+  .kpi-sub { font-size: 8.5pt; color: var(--text-500); margin-top: 1mm; }
+
+  /* Cover bottom */
+  .cover-tags {
+    margin: 14mm 18mm 0; display: flex; flex-wrap: wrap; gap: 2mm;
+  }
+  .cover-tag {
+    background: var(--forest-50); color: var(--forest-700);
+    padding: 2mm 4mm; border-radius: 100mm; font-size: 8.5pt; font-weight: 600;
+  }
+
+  .cover-foot {
+    margin: 16mm 18mm 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12mm;
+    padding-top: 8mm; border-top: 0.5pt solid var(--border);
+  }
+  .cover-foot-block-label { font-size: 7.5pt; font-weight: 700; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.08em; }
+  .cover-foot-block-value { font-size: 10pt; font-weight: 600; color: var(--text-900); margin-top: 1.5mm; }
+  .cover-foot-block-sub { font-size: 8.5pt; color: var(--text-500); margin-top: 1mm; }
+
+  .cover-classif {
+    margin: 14mm 18mm 0; padding: 5mm 6mm;
+    background: var(--gold-50); border-left: 2pt solid var(--gold-500); border-radius: 0 2mm 2mm 0;
+    font-size: 8.5pt; color: #8a6d2c;
+  }
+  .cover-classif b { color: var(--gold-500); letter-spacing: 0.08em; }
+
+  /* ========== SECTIONS ========== */
+  .section-banner {
+    margin: 0 -18mm 8mm; padding: 8mm 18mm;
+    background: linear-gradient(90deg, var(--forest-700), var(--forest-500));
+    color: white; position: relative;
+  }
+  .section-banner::after {
+    content: ""; position: absolute; bottom: 0; left: 18mm; right: 18mm;
+    height: 1.5pt; background: var(--gold-500);
+  }
+  .section-banner-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 8pt; opacity: 0.7;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .section-banner-title { font-size: 20pt; font-weight: 800; line-height: 1.1; margin-top: 1.5mm; letter-spacing: -0.01em; }
+  .section-banner-lead { font-size: 9.5pt; opacity: 0.85; margin-top: 2mm; max-width: 150mm; line-height: 1.5; }
+
+  h3 { font-size: 12pt; color: var(--forest-700); margin: 8mm 0 3mm; font-weight: 700; }
+
+  /* ========== CARDS / VISUELS ========== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin: 4mm 0; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; margin: 4mm 0; }
+
+  .visual-card {
+    border: 1px solid var(--border); border-radius: 3mm;
+    padding: 6mm; background: white;
+  }
+  .visual-card-icon {
+    width: 10mm; height: 10mm; border-radius: 2.5mm;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14pt; font-weight: 800; margin-bottom: 3mm;
+  }
+  .visual-card-title { font-size: 10.5pt; font-weight: 700; color: var(--text-900); }
+  .visual-card-desc { font-size: 9pt; color: var(--text-500); margin-top: 2mm; line-height: 1.5; }
+
+  /* OBJECTIFS — cards numérotées */
+  .obj-card { border: 1px solid var(--border); border-radius: 3mm; padding: 5mm 6mm; margin-bottom: 3mm; display: flex; gap: 5mm; align-items: flex-start; }
+  .obj-num {
+    width: 9mm; height: 9mm; border-radius: 50%;
+    background: var(--forest-700); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 11pt; flex-shrink: 0;
+  }
+  .obj-content h4 { font-size: 10.5pt; color: var(--text-900); margin-bottom: 1.5mm; font-weight: 700; }
+  .obj-content p { font-size: 9.5pt; color: var(--text-500); margin: 0; line-height: 1.55; }
+
+  /* Périmètre 4D */
+  .perim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin: 4mm 0; }
+  .perim-card {
+    border-radius: 3mm; padding: 6mm; position: relative; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .perim-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1.5mm;
+  }
+  .perim-card.functional::before { background: var(--forest-700); }
+  .perim-card.org::before { background: var(--gold-500); }
+  .perim-card.time::before { background: var(--blue); }
+  .perim-card.tech::before { background: var(--forest-500); }
+  .perim-icon {
+    width: 9mm; height: 9mm; border-radius: 2mm;
+    background: var(--forest-50); color: var(--forest-700);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14pt; margin-bottom: 3mm;
+  }
+  .perim-card.org .perim-icon { background: var(--gold-50); color: var(--gold-500); }
+  .perim-card.time .perim-icon { background: var(--blue-50); color: var(--blue); }
+  .perim-card.tech .perim-icon { background: var(--forest-50); color: var(--forest-500); }
+  .perim-title { font-size: 11pt; font-weight: 700; color: var(--text-900); }
+  .perim-content { font-size: 9pt; color: var(--text-700); margin-top: 2mm; line-height: 1.55; }
+  .perim-stat { font-size: 16pt; font-weight: 800; color: var(--forest-700); margin-top: 3mm; line-height: 1; }
+  .perim-stat-label { font-size: 8pt; color: var(--text-500); margin-top: 1mm; }
+
+  /* TABLE + CHIPS */
+  table.std { width: 100%; border-collapse: collapse; margin: 3mm 0; }
+  table.std th { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-500); padding: 3mm 3.5mm; text-align: left; background: var(--bg); border-bottom: 1pt solid var(--border); }
+  table.std td { font-size: 9.5pt; color: var(--text-700); padding: 3mm 3.5mm; border-bottom: 0.5pt solid var(--border); }
+  .chip { display: inline-block; padding: 0.8mm 2.5mm; border-radius: 100mm; font-size: 8pt; font-weight: 700; }
+  .chip-included { background: var(--forest-50); color: var(--forest-700); }
+  .chip-excluded { background: var(--red-50); color: var(--red); }
+  .chip-critical { background: var(--red-50); color: var(--red); }
+  .chip-high { background: var(--orange-50); color: var(--orange); }
+  .chip-medium { background: var(--gold-50); color: #a87a1f; }
+  .chip-low { background: var(--forest-50); color: var(--forest-700); }
+
+  /* RISK CARDS */
+  .risk-card {
+    border-left: 3pt solid; padding: 5mm 6mm; border-radius: 0 3mm 3mm 0;
+    background: white; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    margin-bottom: 4mm;
+  }
+  .risk-card.critical { border-left-color: var(--red); }
+  .risk-card.high { border-left-color: var(--orange); }
+  .risk-card.medium { border-left-color: var(--gold-500); }
+  .risk-card.low { border-left-color: var(--forest-500); }
+  .risk-head { display: flex; align-items: center; gap: 3mm; margin-bottom: 2mm; }
+  .risk-title { font-size: 11pt; font-weight: 700; color: var(--text-900); flex: 1; }
+  .risk-desc { font-size: 9.5pt; color: var(--text-500); margin-bottom: 3mm; line-height: 1.55; }
+  .risk-mitig { font-size: 9pt; padding: 3mm 4mm; background: var(--bg); border-radius: 2mm; color: var(--text-700); }
+  .risk-mitig b { color: var(--forest-700); display: block; margin-bottom: 1mm; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* RACI */
+  .raci { width: 100%; border-collapse: collapse; margin-top: 4mm; }
+  .raci th { font-size: 8pt; font-weight: 700; padding: 3mm; background: var(--forest-700); color: white; text-align: center; }
+  .raci th:first-child { text-align: left; }
+  .raci td { font-size: 9pt; padding: 3mm; border-bottom: 0.5pt solid var(--border); text-align: center; }
+  .raci td:first-child { text-align: left; }
+  .raci .pin { width: 6mm; height: 6mm; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 8pt; color: white; }
+  .pin-r { background: var(--forest-700); }
+  .pin-a { background: var(--gold-500); }
+  .pin-c { background: var(--blue); }
+  .pin-i { background: var(--text-300); color: var(--text-700); }
+
+  /* GANTT */
+  .gantt { margin: 5mm 0; border-radius: 3mm; overflow: hidden; border: 1px solid var(--border); }
+  .gantt-row { display: grid; grid-template-columns: 50mm 1fr 24mm; align-items: center; }
+  .gantt-row.header { background: var(--forest-700); color: white; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .gantt-row.header > div { padding: 3mm 4mm; }
+  .gantt-row { border-bottom: 0.5pt solid var(--border); }
+  .gantt-row:last-child { border-bottom: none; }
+  .gantt-label { padding: 3mm 4mm; font-size: 9.5pt; font-weight: 600; color: var(--text-900); }
+  .gantt-bar-zone { padding: 0; height: 8mm; position: relative; display: flex; align-items: center; }
+  .gantt-bar-zone::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 0; border-top: 0.5pt dashed var(--border); }
+  .gantt-bar { position: absolute; height: 5mm; border-radius: 1mm; display: flex; align-items: center; padding: 0 3mm; font-size: 8pt; font-weight: 600; color: white; }
+  .gantt-bar.b1 { background: linear-gradient(90deg, var(--forest-500), var(--forest-700)); }
+  .gantt-bar.b2 { background: linear-gradient(90deg, var(--forest-700), var(--forest-900)); }
+  .gantt-bar.b3 { background: linear-gradient(90deg, var(--gold-500), var(--gold-300)); }
+  .gantt-status { padding: 3mm 4mm; font-size: 8pt; font-weight: 600; text-align: right; }
+
+  /* CALLOUT */
+  .callout {
+    margin: 4mm 0; padding: 5mm 6mm; border-radius: 3mm;
+    background: linear-gradient(90deg, var(--gold-50), white);
+    border-left: 3pt solid var(--gold-500);
+  }
+  .callout-title { font-size: 9pt; font-weight: 800; color: var(--gold-500); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2mm; }
+  .callout p { font-size: 9.5pt; margin: 0; }
+
+  /* SIGNATURE */
+  .sign-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5mm; margin: 8mm 0; }
+  .sign-card { border-radius: 3mm; padding: 5mm; min-height: 50mm; display: flex; flex-direction: column; background: white; border: 1px solid var(--border); }
+  .sign-card .role { font-size: 8pt; font-weight: 700; color: var(--gold-500); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sign-card .name { font-size: 11pt; font-weight: 700; margin-top: 1.5mm; }
+  .sign-card .fn { font-size: 9pt; color: var(--text-500); margin-top: 0.5mm; }
+  .sign-card .line { flex: 1; border-bottom: 0.5pt solid var(--border); margin-top: 4mm; }
+  .sign-card .foot { font-size: 8pt; color: var(--text-500); margin-top: 3mm; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Légende données : tag jaune indique un champ tiré directement de la BDD -->
+
+<!-- ========== COVER ========== -->
+<div class="page cover">
+  <div class="cover-hero">
+    <div class="cover-mission-id">MISSION · ges-2026-0142 · v1.0</div>
+    <div class="cover-logo">Gë<span>•</span>stu</div>
+    <div class="cover-title">Note de cadrage</div>
+    <div class="cover-subtitle">Évaluation de la conformité du Système de Management de la Sécurité de l'Information aux exigences <b>ISO/IEC 27001:2022</b><span class="source-tag">framework.name</span>, dans le cadre d'un programme de mise en conformité décidé par la Direction.</div>
+    <div class="cover-client-row">
+      <div class="cover-avatar">B</div>
+      <div class="cover-client">
+        <div class="cover-client-name">Banque Régionale Nationale<span class="source-tag">cabinet_clients.client_name</span></div>
+        <div class="cover-client-meta">Banque universelle<span class="source-tag">client_sector</span> · 1 247 collaborateurs<span class="source-tag">effectifs</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-kpis">
+    <div class="kpi"><div class="kpi-label">Contrôles audités</div><div class="kpi-value">92</div><div class="kpi-sub">/ 93 (98,9 %)<span class="source-tag">domains − exclusions</span></div></div>
+    <div class="kpi"><div class="kpi-label">Domaines</div><div class="kpi-value">4</div><div class="kpi-sub">A.5 · A.6 · A.7 · A.8<span class="source-tag">domains</span></div></div>
+    <div class="kpi"><div class="kpi-label">Équipe d'audit</div><div class="kpi-value">5</div><div class="kpi-sub">membres affectés<span class="source-tag">mission_members</span></div></div>
+    <div class="kpi"><div class="kpi-label">Durée</div><div class="kpi-value">11<span style="font-size: 13pt;"> sem.</span></div><div class="kpi-sub">15/05 → 30/07/26<span class="source-tag">start_date · end_date</span></div></div>
+  </div>
+
+  <div class="cover-tags">
+    <div class="cover-tag">ISO/IEC 27001:2022<span class="source-tag">framework</span></div>
+    <div class="cover-tag">BCEAO 2024-09<span class="source-tag">exigences_reglementaires</span></div>
+    <div class="cover-tag">Loi n° 2008-12 (DCP)<span class="source-tag">exigences_reglementaires</span></div>
+    <div class="cover-tag">Banque universelle<span class="source-tag">client_sector</span></div>
+  </div>
+
+  <div class="cover-foot">
+    <div>
+      <div class="cover-foot-block-label">Cabinet d'audit</div>
+      <div class="cover-foot-block-value">ISM Audit & Conseil<span class="source-tag">organizations.name</span></div>
+      <div class="cover-foot-block-sub">Mamadou Sarr — Associé en charge<span class="source-tag">mission_members.role=associate</span><br>Aïssatou Diop — Chef de mission<span class="source-tag">mission_members.role=lead_auditor</span></div>
+    </div>
+    <div>
+      <div class="cover-foot-block-label">Contexte de la mission</div>
+      <div class="cover-foot-block-value" style="font-size: 9.5pt; font-weight: 500;">Programme de mise en conformité préparant le pré-audit de certification ISO 27001, en réponse aux exigences réglementaires applicables au secteur.</div>
+      <div class="cover-foot-block-sub" style="font-style: italic; margin-top: 2mm;">Texte généré à partir de framework.name + exigences_reglementaires</div>
+    </div>
+  </div>
+
+  <div class="cover-classif">
+    <b>CONFIDENTIEL</b> · Distribution restreinte aux parties prenantes de la mission · Diffusion ouverte interdite sans accord conjoint client / cabinet
+  </div>
+</div>
+
+<!-- ========== PAGE PRÉAMBULE ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">01 — Préambule</div>
+    <div class="section-banner-title">Contexte de la mission</div>
+    <div class="section-banner-lead">Présentation succincte du client, du déclencheur de l'audit et du cadre normatif applicable. Texte composé automatiquement à partir des champs du dossier client et de la mission.</div>
+  </div>
+
+  <h3>1.1 Présentation du client</h3>
+  <p><b>Banque Régionale Nationale</b><span class="source-tag">client_name</span> exerce une activité dans le secteur <b>banque universelle</b><span class="source-tag">client_sector</span> et compte <b>1 247 collaborateurs</b><span class="source-tag">effectifs</span>. Son environnement SI repose sur les systèmes principaux suivants : <b>Temenos T24, portail clients web/mobile, Active Directory hybride, MDM Intune, EDR CrowdStrike, SIEM Wazuh</b><span class="source-tag">it_systems[]</span>. L'organisation IT est décrite ainsi : <i>« Plate-forme cœur bancaire externalisée en mode SaaS, datacenter local à Diamniadio, réseau d'agences interconnectées au siège, environnement bureautique Microsoft 365 et postes Windows 11 supervisés par MDM. »</i><span class="source-tag">it_environment</span></p>
+
+  <h3>1.2 Cadre réglementaire et normatif</h3>
+  <p>Le client est soumis aux réglementations suivantes, identifiées dans son dossier au moment du cadrage :<span class="source-tag">exigences_reglementaires[]</span></p>
+  <table class="std">
+    <thead><tr><th>Réglementation</th><th>Type</th><th>Impact</th></tr></thead>
+    <tbody>
+      <tr><td>BCEAO 2024-09 (sécurité des SI bancaires)</td><td>Sectorielle</td><td><span class="chip chip-critical">Fort</span></td></tr>
+      <tr><td>Loi n° 2008-12 (protection des données personnelles)</td><td>Nationale</td><td><span class="chip chip-high">Moyen</span></td></tr>
+      <tr><td>Recommandations BCEAO sur l'externalisation IT</td><td>Sectorielle</td><td><span class="chip chip-medium">Modéré</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.3 Déclencheur et finalité</h3>
+  <p>La présente mission est conduite dans le cadre d'une démarche de conformité au référentiel <b>ISO/IEC 27001:2022</b><span class="source-tag">framework.name + version</span>. Elle vise à <i>« Évaluer la conformité du SMSI aux exigences ISO 27001 et à formuler les recommandations nécessaires à la préparation d'une certification »</i><span class="source-tag">missions.audit_objectives</span>. Le périmètre est défini en section 3 et les critères d'évaluation sont précisés dans <b>missions.audit_criteria</b><span class="source-tag">audit_criteria</span>.</p>
+
+  <div class="callout">
+    <div class="callout-title">Référentiel d'audit</div>
+    <p>L'évaluation s'appuie sur l'intégralité des contrôles du référentiel <b>ISO/IEC 27001:2022</b><span class="source-tag">framework</span>, complétée par le mapping vers les exigences réglementaires identifiées ci-dessus.</p>
+  </div>
+
+  <div class="page-num">2 / 11</div>
+</div>
+
+<!-- ========== PAGE OBJECTIFS ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">02 — Objectifs</div>
+    <div class="section-banner-title">Que cherche-t-on à mesurer ?</div>
+    <div class="section-banner-lead">Texte libre du cadrage tiré du champ <code>audit_objectives</code>, complété par des objectifs structurels générés à partir du framework et des réglementations applicables.</div>
+  </div>
+
+  <h3>Objectifs énoncés par le sponsor</h3>
+  <div class="callout">
+    <div class="callout-title">Saisi dans missions.audit_objectives</div>
+    <p>« Évaluer le niveau de conformité du SMSI au référentiel ISO/IEC 27001:2022, identifier les écarts critiques avec les exigences de la norme et les attentes du règlement BCEAO 2024-09, et formuler un plan de remédiation priorisé en vue d'un pré-audit de certification au troisième trimestre 2026. »<span class="source-tag">audit_objectives</span></p>
+  </div>
+
+  <h3>Objectifs structurels (générés depuis le contexte)</h3>
+
+  <div class="obj-card">
+    <div class="obj-num">1</div>
+    <div class="obj-content">
+      <h4>Mesurer la conformité au référentiel ISO/IEC 27001:2022</h4>
+      <p>Évaluer chacun des 92 contrôles inclus dans le périmètre sur l'échelle de maturité du cabinet, avec consolidation par domaine et représentation graphique en radar dans le rapport final.<span class="source-tag">généré depuis framework.name + computed controls</span></p>
+    </div>
+  </div>
+
+  <div class="obj-card">
+    <div class="obj-num">2</div>
+    <div class="obj-content">
+      <h4>Identifier les non-conformités et les qualifier</h4>
+      <p>Tout écart sera classé majeure (compromettant la certification), mineure (ponctuel non systémique) ou observation, selon la grille d'audit standard du cabinet.<span class="source-tag">template cabinet</span></p>
+    </div>
+  </div>
+
+  <div class="obj-card">
+    <div class="obj-num">3</div>
+    <div class="obj-content">
+      <h4>Vérifier la conformité aux réglementations applicables</h4>
+      <p>Cartographier les exigences réglementaires pertinentes (BCEAO 2024-09, Loi 2008-12) contre les contrôles ISO testés, et qualifier le respect des principes applicables.<span class="source-tag">généré depuis exigences_reglementaires[]</span></p>
+    </div>
+  </div>
+
+  <div class="obj-card">
+    <div class="obj-num">4</div>
+    <div class="obj-content">
+      <h4>Formuler un plan de remédiation priorisé</h4>
+      <p>Tableur exécutoire avec estimation de charge par écart, jalons recommandés, dépendances inter-écarts et identification des responsables internes proposés.<span class="source-tag">template cabinet</span></p>
+    </div>
+  </div>
+
+  <div class="page-num">3 / 11</div>
+</div>
+
+<!-- ========== PAGE PÉRIMÈTRE 4D ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">03 — Périmètre</div>
+    <div class="section-banner-title">Quatre dimensions du périmètre</div>
+    <div class="section-banner-lead">Périmètre fonctionnel et technique généré depuis les champs IT du dossier client, périmètre temporel depuis les dates de la mission. Détail des inclusions/exclusions issu de mission_exclusions.</div>
+  </div>
+
+  <div class="perim-grid">
+    <div class="perim-card functional">
+      <div class="perim-icon">⚙</div>
+      <div class="perim-title">Fonctionnel</div>
+      <div class="perim-content">Intégralité du SMSI couvert par le référentiel <b>ISO/IEC 27001:2022</b><span class="source-tag">framework</span> : 4 domaines couvrant la gouvernance, les contrôles humains, physiques et technologiques.</div>
+      <div class="perim-stat">4</div>
+      <div class="perim-stat-label">domaines évalués<span class="source-tag">domains</span></div>
+    </div>
+    <div class="perim-card org">
+      <div class="perim-icon">⌂</div>
+      <div class="perim-title">Organisationnel</div>
+      <div class="perim-content">L'évaluation porte sur l'entité juridique <b>Banque Régionale Nationale</b><span class="source-tag">client_name</span> et son périmètre opérationnel (1 247 collaborateurs<span class="source-tag">effectifs</span>). Précisions complémentaires en zone <code>scoping_notes</code> de la mission.</div>
+      <div class="perim-stat">1 247</div>
+      <div class="perim-stat-label">collaborateurs concernés</div>
+    </div>
+    <div class="perim-card time">
+      <div class="perim-icon">⏱</div>
+      <div class="perim-title">Temporel</div>
+      <div class="perim-content">Mission conduite du <b>15 mai 2026</b><span class="source-tag">start_date</span> au <b>30 juillet 2026</b><span class="source-tag">end_date</span>. L'évaluation prend en compte l'historique disponible des incidents, des revues de management et des changements significatifs portés à la connaissance des auditeurs.</div>
+      <div class="perim-stat">11 sem.</div>
+      <div class="perim-stat-label">durée totale</div>
+    </div>
+    <div class="perim-card tech">
+      <div class="perim-icon">⚡</div>
+      <div class="perim-title">Technique</div>
+      <div class="perim-content">Systèmes principaux dans le périmètre : <b>Temenos T24, portail web/mobile, Active Directory, MDM Intune, EDR CrowdStrike, SIEM Wazuh</b><span class="source-tag">it_systems[]</span>. Environnement décrit dans <code>it_environment</code><span class="source-tag">it_environment</span>.</div>
+      <div class="perim-stat">6</div>
+      <div class="perim-stat-label">systèmes principaux</div>
+    </div>
+  </div>
+
+  <h3>Domaines et inclusion par contrôle</h3>
+  <table class="std">
+    <thead><tr><th>Domaine</th><th>Libellé</th><th style="text-align:right;">Inclus / Total</th><th style="text-align:right;">Couverture</th><th>Statut</th></tr></thead>
+    <tbody>
+      <tr><td><b>A.5</b></td><td>Politiques organisationnelles<span class="source-tag">domain.name</span></td><td style="text-align:right;">37 / 37</td><td style="text-align:right; color: var(--forest-700); font-weight: 700;">100 %</td><td><span class="chip chip-included">Complet</span></td></tr>
+      <tr><td><b>A.6</b></td><td>Contrôles humains</td><td style="text-align:right;">8 / 8</td><td style="text-align:right; color: var(--forest-700); font-weight: 700;">100 %</td><td><span class="chip chip-included">Complet</span></td></tr>
+      <tr><td><b>A.7</b></td><td>Contrôles physiques</td><td style="text-align:right;">13 / 14</td><td style="text-align:right; color: var(--gold-500); font-weight: 700;">92,9 %</td><td><span class="chip chip-medium">A.7.4 exclu</span></td></tr>
+      <tr><td><b>A.8</b></td><td>Contrôles technologiques</td><td style="text-align:right;">34 / 34</td><td style="text-align:right; color: var(--forest-700); font-weight: 700;">100 %</td><td><span class="chip chip-included">Complet</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Exclusion documentée</div>
+    <p><b>A.7.4 — Surveillance physique des locaux</b> · Motif (saisi par l'auditeur lors du cadrage) : <i>« Système de vidéosurveillance non déployé sur le datacenter à la date de la mission. Reprise programmée en phase 2 du programme de mise en conformité. »</i><span class="source-tag">mission_exclusions.reason</span></p>
+  </div>
+
+  <div class="page-num">4 / 11</div>
+</div>
+
+<!-- ========== PAGE MÉTHODO + CRITÈRES ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">04 — Méthodologie</div>
+    <div class="section-banner-title">Approche d'audit basée risques</div>
+    <div class="section-banner-lead">Méthodologie standardisée du cabinet, identique pour toutes les missions du même type. Texte intégralement issu d'un template (pas de champ BDD).</div>
+  </div>
+
+  <p>La mission s'appuie sur une démarche d'<b>audit basée sur les risques</b> (risk-based approach) conforme aux principes de l'ISO/IEC 27007:2020. Les contrôles sont priorisés par leur exposition au risque résiduel et leur criticité opérationnelle, selon la grille d'analyse standard du cabinet.</p>
+
+  <div class="grid-3">
+    <div class="visual-card" style="border-top: 3pt solid var(--forest-700);"><div class="visual-card-title">1. Cadrage</div><div class="visual-card-desc">Validation périmètre, équipe, planning.</div></div>
+    <div class="visual-card" style="border-top: 3pt solid var(--forest-500);"><div class="visual-card-title">2. Prise de connaissance</div><div class="visual-card-desc">Questionnaire structuré, collecte documentaire.</div></div>
+    <div class="visual-card" style="border-top: 3pt solid var(--gold-500);"><div class="visual-card-title">3. Exécution</div><div class="visual-card-desc">Entretiens, observations, revues de configuration.</div></div>
+  </div>
+  <div class="grid-2" style="grid-template-columns: 1fr 1fr;">
+    <div class="visual-card" style="border-top: 3pt solid var(--blue);"><div class="visual-card-title">4. Synthèse</div><div class="visual-card-desc">Qualification écarts, plan de remédiation, restitutions.</div></div>
+    <div class="visual-card" style="border-top: 3pt solid var(--forest-700);"><div class="visual-card-title">5. Livraison</div><div class="visual-card-desc">Rapport définitif et transfert du dossier d'audit.</div></div>
+  </div>
+
+  <h3>Échelle de maturité — niveaux 0 à 5</h3>
+  <table class="std">
+    <thead><tr><th style="width: 14mm;">Niveau</th><th>Libellé</th><th>Critère</th></tr></thead>
+    <tbody>
+      <tr><td><b style="color: var(--red);">0</b></td><td>Inexistant</td><td>Aucun élément observable.</td></tr>
+      <tr><td><b style="color: var(--orange);">1</b></td><td>Initial</td><td>Mise en œuvre informelle, ad hoc.</td></tr>
+      <tr><td><b style="color: #a87a1f;">2</b></td><td>Reproductible</td><td>Pratique documentée, application inégale.</td></tr>
+      <tr><td><b style="color: var(--forest-500);">3</b></td><td>Défini</td><td>Procédure formalisée et déployée.</td></tr>
+      <tr><td><b style="color: var(--forest-700);">4</b></td><td>Maîtrisé</td><td>Indicateurs mesurés, revues d'efficacité.</td></tr>
+      <tr><td><b style="color: var(--forest-900);">5</b></td><td>Optimisé</td><td>Amélioration continue documentée.</td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top: 4mm;">Les <b>critères d'évaluation</b> spécifiques à la mission, lorsqu'ils ont été précisés par le sponsor, sont consignés dans : <i>« Évaluation conformité ISO 27001:2022, mapping BCEAO 2024-09, exigences DCP applicables. »</i><span class="source-tag">missions.audit_criteria</span></p>
+
+  <div class="page-num">5 / 11</div>
+</div>
+
+<!-- ========== PAGE RISQUES ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">05 — Risques</div>
+    <div class="section-banner-title">Risques initiaux identifiés</div>
+    <div class="section-banner-lead">Risques saisis lors du cadrage dans la table mission_risks. Les phrases de mitigation sont générées automatiquement à partir du niveau de risque et du domaine concerné.</div>
+  </div>
+
+  <p>Au stade du cadrage, l'équipe a identifié <b>5 risques significatifs</b><span class="source-tag">mission_risks.length</span> susceptibles d'affecter la mission ou son exécution. Ces risques sont consignés ci-dessous avec leur niveau et la source d'identification.</p>
+
+  <div class="risk-card critical">
+    <div class="risk-head">
+      <span class="chip chip-critical">CRITIQUE<span class="source-tag" style="background: rgba(255,255,255,0.7);">risk_level</span></span>
+      <div class="risk-title">Indisponibilité de la documentation centrale<span class="source-tag">title</span></div>
+    </div>
+    <div class="risk-desc">La PSSI v0.1 est la seule politique formalisée à ce jour. Les politiques thématiques (gestion des accès, classification, gestion d'incidents) sont à l'état de brouillon.<span class="source-tag">description</span></div>
+    <div class="risk-mitig"><b>Recommandation initiale</b>Au regard du niveau critique, ce risque doit être traité prioritairement avant le démarrage de la phase d'exécution. Un plan d'action et des responsables doivent être désignés en COPIL hebdomadaire.<span class="source-tag">généré depuis risk_level</span></div>
+  </div>
+
+  <div class="risk-card high">
+    <div class="risk-head">
+      <span class="chip chip-high">ÉLEVÉ</span>
+      <div class="risk-title">Disponibilité des interlocuteurs métier</div>
+    </div>
+    <div class="risk-desc">Les directions Crédit et Conformité sont mobilisées par la campagne d'arrêté annuel jusqu'au 15 juin, période de pic d'activité.</div>
+    <div class="risk-mitig"><b>Recommandation initiale</b>Risque à traiter activement durant la mission. Suivi en COPIL et adaptation du planning pour limiter l'exposition.<span class="source-tag">généré depuis risk_level</span></div>
+  </div>
+
+  <div class="risk-card high">
+    <div class="risk-head">
+      <span class="chip chip-high">ÉLEVÉ</span>
+      <div class="risk-title">Externalisation cœur bancaire</div>
+    </div>
+    <div class="risk-desc">L'éditeur Temenos n'a pas confirmé la convention de collaboration audit. Risque d'absence de visibilité opérationnelle sur les contrôles techniques portés par le SaaS. Source d'identification : Questionnaire client Q12.<span class="source-tag">source</span></div>
+    <div class="risk-mitig"><b>Recommandation initiale</b>Risque à traiter activement durant la mission. Suivi en COPIL et adaptation du planning pour limiter l'exposition.</div>
+  </div>
+
+  <div class="risk-card medium">
+    <div class="risk-head">
+      <span class="chip chip-medium">MOYEN</span>
+      <div class="risk-title">Sensibilité des données pendant les tests d'intrusion</div>
+    </div>
+    <div class="risk-desc">Les tests authentifiés sur le portail clients comportent un risque résiduel d'incident en production.</div>
+    <div class="risk-mitig"><b>Recommandation initiale</b>Risque modéré, à surveiller. Encadrement contractuel et fenêtres horaires définies recommandés.</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Domaines impactés</div>
+    <p>Les risques identifiés concernent principalement les domaines <b>A.5 (Politiques)</b> et <b>A.8 (Technologiques)</b><span class="source-tag">domain_ids[]</span>. Une revue ciblée sera conduite en priorité sur ces deux domaines lors de la phase d'exécution.</p>
+  </div>
+
+  <div class="page-num">6 / 11</div>
+</div>
+
+<!-- ========== PAGE ÉQUIPE + RACI ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">06 — Organisation</div>
+    <div class="section-banner-title">Équipe & matrice RACI</div>
+    <div class="section-banner-lead">Composition de l'équipe extraite de mission_members + users. La matrice RACI ci-dessous est un template standard du cabinet, peuplé avec les noms réels lorsqu'ils sont connus.</div>
+  </div>
+
+  <h3>Équipe d'audit affectée</h3>
+  <p>L'équipe est composée de <b>5 membres</b><span class="source-tag">mission_members.length</span> couvrant l'ensemble des compétences nécessaires à la mission.</p>
+
+  <table class="std">
+    <thead><tr><th>Auditeur</th><th>Rôle</th><th>Coordonnées</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>Mamadou Sarr</b><span class="source-tag">user.first_name + last_name</span></td>
+        <td>Associé en charge<span class="source-tag">role + review_associate_label</span></td>
+        <td>m.sarr@ism-audit.sn<span class="source-tag">user.email</span></td>
+      </tr>
+      <tr>
+        <td><b>Aïssatou Diop</b></td>
+        <td>Chef de mission<span class="source-tag">role + review_lead_label</span></td>
+        <td>a.diop@ism-audit.sn — Manager Audit & Conseil<span class="source-tag">user.job_title</span></td>
+      </tr>
+      <tr>
+        <td><b>Ousmane Bâ</b></td><td>Auditeur</td><td>o.ba@ism-audit.sn — Senior Audit</td>
+      </tr>
+      <tr>
+        <td><b>Fatou Sow</b></td><td>Auditeur</td><td>f.sow@ism-audit.sn — Junior Audit</td>
+      </tr>
+      <tr>
+        <td><b>Khadim Niang</b></td><td>Spécialiste technique</td><td>k.niang@ism-sec.sn — Pen-tester</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Matrice RACI standard du cabinet</h3>
+  <p>La matrice ci-dessous est issue du modèle d'organisation du cabinet et applicable par défaut à toutes les missions d'audit ISO 27001. Elle peut être ajustée en COPIL si nécessaire.<span class="source-tag">template — pas de champ BDD</span></p>
+
+  <table class="raci">
+    <thead><tr><th>Activité</th><th>Sponsor client</th><th>Référent technique client</th><th>Chef de mission</th><th>Associé en charge</th></tr></thead>
+    <tbody>
+      <tr><td>Validation périmètre</td><td><span class="pin pin-a">A</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Mise à dispo. documentation</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Conduite des entretiens</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Qualification des écarts</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-a">A</span></td></tr>
+      <tr><td>Plan de remédiation</td><td><span class="pin pin-i">I</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-i">I</span></td></tr>
+      <tr><td>Validation rapport final</td><td><span class="pin pin-a">A</span></td><td><span class="pin pin-c">C</span></td><td><span class="pin pin-r">R</span></td><td><span class="pin pin-a">A</span></td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top: 3mm; font-size: 8.5pt; color: var(--text-500);">
+    <span class="pin pin-r" style="margin-right: 1.5mm;">R</span> Réalise &nbsp;
+    <span class="pin pin-a" style="margin-right: 1.5mm;">A</span> Approuve &nbsp;
+    <span class="pin pin-c" style="margin-right: 1.5mm;">C</span> Consulté &nbsp;
+    <span class="pin pin-i" style="margin-right: 1.5mm;">I</span> Informé
+  </p>
+
+  <div class="page-num">7 / 11</div>
+</div>
+
+<!-- ========== PAGE PLANNING ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">07 — Planning</div>
+    <div class="section-banner-title">11 semaines, 5 phases d'audit</div>
+    <div class="section-banner-lead">Découpage en 5 phases proportionnelles à la durée de la mission, calculé à partir de start_date et end_date. Les jalons clés sont déduits du même découpage.</div>
+  </div>
+
+  <p>La mission s'étend du <b>15 mai 2026</b><span class="source-tag">start_date</span> au <b>30 juillet 2026</b><span class="source-tag">end_date</span>, soit <b>11 semaines</b>. Le découpage standard du cabinet en cinq phases est proportionné à cette durée :</p>
+
+  <div class="gantt">
+    <div class="gantt-row header">
+      <div>Phase</div>
+      <div style="display: flex; padding: 0 4mm;">
+        <div style="flex: 1; text-align: center;">Mai</div>
+        <div style="flex: 1; text-align: center;">Juin</div>
+        <div style="flex: 1; text-align: center;">Juillet</div>
+      </div>
+      <div style="text-align: right;">Part durée</div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">1. Cadrage</div>
+      <div class="gantt-bar-zone"><div class="gantt-bar b1" style="left: 2%; width: 10%;">S1</div></div>
+      <div class="gantt-status" style="color: var(--forest-700);">10 %</div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">2. Prise de connaissance</div>
+      <div class="gantt-bar-zone"><div class="gantt-bar b1" style="left: 12%; width: 18%;">S2-S3</div></div>
+      <div class="gantt-status" style="color: var(--text-500);">18 %</div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">3. Exécution sur terrain</div>
+      <div class="gantt-bar-zone"><div class="gantt-bar b2" style="left: 30%; width: 35%;">S4-S8</div></div>
+      <div class="gantt-status" style="color: var(--text-500);">35 %</div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">4. Synthèse</div>
+      <div class="gantt-bar-zone"><div class="gantt-bar b1" style="left: 65%; width: 14%;">S9-S10</div></div>
+      <div class="gantt-status" style="color: var(--text-500);">14 %</div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">5. Livraison</div>
+      <div class="gantt-bar-zone"><div class="gantt-bar b3" style="left: 79%; width: 9%;">S11</div></div>
+      <div class="gantt-status" style="color: var(--text-500);">9 %</div>
+    </div>
+  </div>
+
+  <h3>Jalons clés (calculés)</h3>
+  <table class="std">
+    <thead><tr><th style="width: 14mm;">#</th><th>Jalon</th><th>Date estimée</th></tr></thead>
+    <tbody>
+      <tr><td><b>J0</b></td><td>Validation du cadrage</td><td>22 mai 2026<span class="source-tag">start + 10%</span></td></tr>
+      <tr><td><b>J1</b></td><td>Clôture prise de connaissance</td><td>5 juin 2026<span class="source-tag">start + 28%</span></td></tr>
+      <tr><td><b>J2</b></td><td>Restitution intermédiaire</td><td>3 juillet 2026<span class="source-tag">start + 60%</span></td></tr>
+      <tr><td><b>J3</b></td><td>Fin exécution terrain</td><td>17 juillet 2026<span class="source-tag">start + 82%</span></td></tr>
+      <tr><td><b>J4</b></td><td>Restitution finale et rapport</td><td>30 juillet 2026<span class="source-tag">end_date</span></td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top: 3mm; font-size: 9pt; color: var(--text-500);">Les dates exactes des jalons seront confirmées en première semaine de mission après échange avec le sponsor. La durée des phases peut être ajustée par avenant en cas de glissement supérieur à deux semaines sur le chemin critique.</p>
+
+  <div class="page-num">8 / 11</div>
+</div>
+
+<!-- ========== PAGE LIVRABLES + GOUVERNANCE ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">08 — Livrables & gouvernance</div>
+    <div class="section-banner-title">Ce que vous recevez, comment on travaille</div>
+    <div class="section-banner-lead">Liste de livrables et instances de pilotage standardisées au niveau cabinet — texte de template (pas de champ BDD).</div>
+  </div>
+
+  <h3>Livrables prévus</h3>
+  <table class="std">
+    <thead><tr><th>Livrable</th><th>Format</th><th>Date prévue</th></tr></thead>
+    <tbody>
+      <tr><td>Note de cadrage signée<span class="source-tag">document courant</span></td><td>PDF</td><td>~ 22 mai 2026</td></tr>
+      <tr><td>Rapport intermédiaire</td><td>PDF + restitution 90 min</td><td>~ 26 juin 2026</td></tr>
+      <tr><td>Rapport provisoire</td><td>PDF + restitution 60 min</td><td>~ 24 juillet 2026</td></tr>
+      <tr><td>Rapport définitif</td><td>PDF + version éditable</td><td>30 juillet 2026<span class="source-tag">end_date</span></td></tr>
+      <tr><td>Plan de remédiation</td><td>Tableur + PDF</td><td>30 juillet 2026</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Instances de pilotage</h3>
+  <div class="grid-3">
+    <div class="visual-card">
+      <div class="visual-card-icon" style="background: var(--forest-50); color: var(--forest-700);">📅</div>
+      <div class="visual-card-title">COPIL hebdomadaire</div>
+      <div class="visual-card-desc">Vendredi, 45 min. Avancement, levée des points bloquants. Sponsor + référent technique + chef de mission.</div>
+    </div>
+    <div class="visual-card">
+      <div class="visual-card-icon" style="background: var(--gold-50); color: var(--gold-500);">⚡</div>
+      <div class="visual-card-title">Stand-up quotidien</div>
+      <div class="visual-card-desc">15 min en phase d'exécution uniquement. Chef de mission + référent technique + auditeur senior.</div>
+    </div>
+    <div class="visual-card">
+      <div class="visual-card-icon" style="background: var(--blue-50); color: var(--blue);">✓</div>
+      <div class="visual-card-title">Revues qualité internes</div>
+      <div class="visual-card-desc">Mi-mission et avant restitution finale. Associé en charge selon référentiel cabinet.</div>
+    </div>
+  </div>
+
+  <h3>Règles d'escalade et de communication</h3>
+  <p>Tout point bloquant non levé sous 3 jours ouvrés est porté en COPIL. Les désaccords de qualification d'un écart sont arbitrés par l'associé en charge et le sponsor en bilatéral sous 5 jours ouvrés. Les conflits d'intérêts éventuels sont déclarés sans délai au comité d'éthique du cabinet et au sponsor. Les échanges documentaires se font via la plateforme Gëstu (espace mission dédié) ; les échanges synchrones par visioconférence ou téléphone.</p>
+
+  <p style="font-size: 9pt; color: var(--text-500); font-style: italic;">L'ensemble de cette section est issu du modèle d'organisation standard du cabinet, applicable par défaut. Toute adaptation est consignée en zone <code>scoping_notes</code> du dossier mission.<span class="source-tag">template + scoping_notes</span></p>
+
+  <div class="page-num">9 / 11</div>
+</div>
+
+<!-- ========== PAGE HYPOTHÈSES ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">09 — Hypothèses & limitations</div>
+    <div class="section-banner-title">Ce qui doit être vrai, ce qui ne l'est pas</div>
+    <div class="section-banner-lead">Cadre de validité de la mission. Hypothèses générées à partir du contexte ; limitations standardisées au niveau cabinet.</div>
+  </div>
+
+  <h3>Hypothèses retenues</h3>
+  <p>Les hypothèses suivantes conditionnent le bon déroulement de la mission. Elles découlent du contexte client et du référentiel applicable :</p>
+
+  <table class="std">
+    <thead><tr><th style="width: 12mm;">#</th><th>Hypothèse</th></tr></thead>
+    <tbody>
+      <tr><td><b>H1</b></td><td>Le client met à disposition de l'équipe d'audit l'ensemble des documents identifiés dans le périmètre du référentiel <b>ISO/IEC 27001:2022</b><span class="source-tag">framework</span> dans les délais convenus.</td></tr>
+      <tr><td><b>H2</b></td><td>Les ressources internes du client (DSI, RSSI, métiers) sont mobilisées au taux de disponibilité prévu et participent activement aux entretiens planifiés.</td></tr>
+      <tr><td><b>H3</b></td><td>Aucune évolution réglementaire majeure (BCEAO, DCP)<span class="source-tag">exigences_reglementaires[]</span> n'intervient pendant la durée de la mission qui modifierait substantiellement le périmètre d'évaluation.</td></tr>
+      <tr><td><b>H4</b></td><td>Les systèmes principaux du périmètre technique (<i>Temenos T24, AD, MDM, EDR, SIEM</i>)<span class="source-tag">it_systems[]</span> restent accessibles aux auditeurs en lecture supervisée durant la phase d'exécution.</td></tr>
+      <tr><td><b>H5</b></td><td>Aucun incident de sécurité majeur ne survient pendant la phase d'exécution, qui détournerait les équipes du suivi de la mission.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Conditions de réussite</h3>
+  <ol style="font-size: 9.5pt; line-height: 1.7; margin-left: 18pt;">
+    <li>Engagement formel du sponsor pour la levée rapide des points bloquants en COPIL.</li>
+    <li>Transparence des équipes opérationnelles dans les entretiens, garantie par la clause de confidentialité du contrat.</li>
+    <li>Disponibilité d'un référent technique unique côté client sur toute la durée.</li>
+    <li>Mise à disposition d'un espace de travail pour l'équipe d'audit pendant la phase d'exécution.</li>
+  </ol>
+
+  <h3>Limitations</h3>
+  <div class="callout">
+    <p style="font-size: 9.5pt;"><b>L'audit n'est pas un audit de certification.</b> Il ne donne pas droit à délivrance de certificat ISO 27001 ; sa conclusion ne lie que les parties.<br><br><b>Périmètre limité aux contrôles inclus.</b> Aucune conclusion ne peut être tirée sur les contrôles ou domaines explicitement exclus (cf. section 3).<br><br><b>Conclusions à date.</b> Les conclusions reposent sur les éléments fournis et observés à la date de la restitution finale ; toute évolution ultérieure du SMSI n'est pas reflétée.</p>
+    <p style="font-size: 8.5pt; color: var(--text-500); font-style: italic; margin-top: 3mm;">Texte standard du cabinet, identique pour toutes les missions d'audit normatif. Aucun champ BDD.</p>
+  </div>
+
+  <div class="page-num">10 / 11</div>
+</div>
+
+<!-- ========== PAGE SIGNATURES ========== -->
+<div class="page">
+  <div class="section-banner">
+    <div class="section-banner-num">10 — Validation</div>
+    <div class="section-banner-title">Signatures</div>
+    <div class="section-banner-lead">Pour bon accord sur le cadrage, le périmètre, le planning et les conditions de la mission.</div>
+  </div>
+
+  <p>Les soussignés reconnaissent avoir pris connaissance de la présente note de cadrage et des engagements qu'elle décrit, et l'approuvent dans son intégralité.</p>
+
+  <div class="sign-grid">
+    <div class="sign-card">
+      <div class="role">Sponsor client</div>
+      <div class="name">À désigner</div>
+      <div class="fn" style="font-style: italic;">Représentant habilité du client</div>
+      <div class="line"></div>
+      <div class="foot">Date : ___ / ___ / 2026<br>Signature et cachet</div>
+      <div class="source-tag" style="margin-top: 2mm;">À saisir manuellement — pas de champ BDD aujourd'hui</div>
+    </div>
+    <div class="sign-card">
+      <div class="role">Chef de mission</div>
+      <div class="name">Aïssatou Diop<span class="source-tag">user.first_name + last_name</span></div>
+      <div class="fn">Manager Audit & Conseil<span class="source-tag">user.job_title</span></div>
+      <div class="line"></div>
+      <div class="foot">Date : ___ / ___ / 2026<br>Signature</div>
+    </div>
+    <div class="sign-card">
+      <div class="role">Associé en charge</div>
+      <div class="name">Mamadou Sarr<span class="source-tag">role=associate</span></div>
+      <div class="fn">Associé Audit & Conseil</div>
+      <div class="line"></div>
+      <div class="foot">Date : ___ / ___ / 2026<br>Signature et cachet</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 14mm;">
+    <div class="callout-title">Observations complémentaires</div>
+    <p style="font-style: italic;">« Mission conduite dans le cadre du programme de mise en conformité ISO 27001 décidé par le Conseil d'Administration en septembre 2025. Pré-audit de certification prévu au T3 2026. »<span class="source-tag">missions.scoping_notes</span></p>
+  </div>
+
+  <div class="page-num">11 / 11</div>
+</div>
+
+</body>
+</html>

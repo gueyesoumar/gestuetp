@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Supervision multi-référentiels — Gestu Comply</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        forest: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#1B4332', 800:'#14532d', 900:'#0f3d2a' },
+        gold: { 200:'#fef3c7', 400:'#facc15', 500:'#D4A843', 600:'#ca8a04' },
+      }
+    }
+  }
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  body { font-family: 'Inter', sans-serif; background: #f8faf9; }
+  .heatmap-cell { width: 52px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border-radius: 6px; }
+  .hc-green { background: #dcfce7; color: #166534; }
+  .hc-gold { background: #fef3c7; color: #92400e; }
+  .hc-red { background: #fee2e2; color: #991b1b; }
+  .hc-na { background: #f3f4f6; color: #9ca3af; }
+  .bar { height: 8px; border-radius: 4px; background: #e5e7eb; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .tab-active { border-bottom: 2px solid #1B4332; color: #1B4332; font-weight: 600; }
+  .tab-inactive { border-bottom: 2px solid transparent; color: #9ca3af; }
+  .tab-inactive:hover { color: #6b7280; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.15s; }
+  .sidebar-item:hover { background: #f0fdf4; color: #1B4332; }
+  .sidebar-active { background: #1B4332 !important; color: white !important; }
+  .selector { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+</style>
+</head>
+<body>
+
+<div class="flex h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-[220px] bg-white border-r border-gray-200 flex flex-col py-4 px-3 shrink-0">
+    <div class="flex items-center gap-2.5 px-3 mb-6">
+      <div class="w-8 h-8 bg-forest-700 rounded-lg flex items-center justify-center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="text-sm font-extrabold text-forest-700 tracking-tight">Gestu</div>
+        <div class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">COMPLY</div>
+      </div>
+    </div>
+
+    <div class="space-y-1">
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Hub ETP
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Tableau de bord
+      </div>
+      <div class="sidebar-active sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        Supervision
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Clients
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        Référentiels
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Missions
+      </div>
+    </div>
+
+    <div class="mt-auto pt-4 border-t border-gray-100 px-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center text-[11px] font-bold">OG</div>
+        <div>
+          <div class="text-[12px] font-semibold text-gray-900">Oumar Gueye</div>
+          <div class="text-[10px] text-gray-400">admin@gestudemo.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 overflow-y-auto">
+    <div class="max-w-[1200px] mx-auto px-8 py-6">
+
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Supervision</h1>
+          <p class="text-[13px] text-gray-500 mt-0.5">Vue consolidée de la conformité par référentiel et périmètre</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Exporter
+          </button>
+          <button class="flex items-center gap-2 rounded-lg bg-forest-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-forest-900 transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Générer le rapport
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- FILTRES CONTEXTUELS                                          -->
+      <!-- ============================================================ -->
+      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <div class="flex flex-wrap items-end gap-4">
+          <!-- Référentiel -->
+          <div class="flex-1 min-w-[220px]">
+            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Référentiel</label>
+            <select id="select-framework" onchange="switchFramework()" class="selector w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] font-medium text-gray-900 outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100">
+              <option value="pssi-es" selected>PSSI-ES — Sénégal (155 contrôles)</option>
+              <option value="iso-27001">ISO/IEC 27001:2022 (93 contrôles)</option>
+              <option value="nist-csf">NIST CSF 2.0 (23 contrôles)</option>
+              <option value="audit-si">Audit SI — Composite (79 contrôles)</option>
+            </select>
+          </div>
+          <!-- Périmètre -->
+          <div class="flex-1 min-w-[220px]">
+            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Périmètre</label>
+            <select class="selector w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] font-medium text-gray-900 outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100">
+              <option>Toutes les entités (12)</option>
+              <option>Tutelle : Présidence (4)</option>
+              <option>Tutelle : Primature (5)</option>
+              <option>Secteur : Administration publique (8)</option>
+              <option>Secteur : Éducation / Recherche (2)</option>
+              <option>Secteur : Télécommunications (2)</option>
+            </select>
+          </div>
+          <!-- Période -->
+          <div class="min-w-[180px]">
+            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Période</label>
+            <select class="selector w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] font-medium text-gray-900 outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100">
+              <option>2025-2026 (en cours)</option>
+              <option>2024-2025</option>
+              <option>Toutes les périodes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Référentiel sélectionné — badge info -->
+        <div id="framework-info" class="mt-3 flex items-center gap-3">
+          <span id="fw-badge" class="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span id="fw-badge-text">PSSI-ES — 11 domaines, 155 contrôles</span>
+          </span>
+          <span id="fw-publisher" class="text-[11px] text-gray-400">Commission Nationale de Cryptologie / Présidence de la République</span>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Entités auditées</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-gray-900">12</span>
+            <span class="text-[12px] text-gray-400 mb-1">/ 45 identifiées</span>
+          </div>
+          <div class="mt-2 bar"><div class="bar-fill bg-forest-600" style="width:27%"></div></div>
+          <div class="mt-1 text-[10px] text-gray-400">27% de couverture</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Conformité moyenne</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-gold-500">58%</span>
+            <span class="text-[12px] text-emerald-600 mb-1">↑ +16 pts vs N-1</span>
+          </div>
+          <div class="mt-2 bar"><div class="bar-fill bg-gold-500" style="width:58%"></div></div>
+          <div class="mt-1 text-[10px] text-gray-400">Seuil cible : 80%</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">NC majeures ouvertes</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-red-600">47</span>
+            <span class="text-[12px] text-emerald-600 mb-1">↓ -42 vs N-1</span>
+          </div>
+          <div class="mt-2 flex gap-1">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">23 ouvertes</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">18 en cours</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">6 résolues</span>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Audits en cours</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-forest-700">5</span>
+            <span class="text-[12px] text-gray-400 mb-1">missions actives</span>
+          </div>
+          <div class="mt-2 flex gap-1">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-forest-100 text-forest-700 font-medium">2 terrain</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">2 revue</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">1 planif.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-6 border-b border-gray-200 mb-6">
+        <button class="tab-active pb-3 text-[13px]" onclick="showTab(this,'classement')">Classement</button>
+        <button class="tab-inactive pb-3 text-[13px]" onclick="showTab(this,'heatmap')">Heatmap</button>
+        <button class="tab-inactive pb-3 text-[13px]" onclick="showTab(this,'risques')">Risques systémiques</button>
+        <button class="tab-inactive pb-3 text-[13px]" onclick="showTab(this,'evolution')">Évolution</button>
+        <button class="tab-inactive pb-3 text-[13px]" onclick="showTab(this,'rapport')">Rapport</button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 1 — CLASSEMENT                                          -->
+      <!-- ============================================================ -->
+      <div id="panel-classement">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                <th class="px-5 py-3 w-8">#</th>
+                <th class="px-3 py-3">Entité</th>
+                <th class="px-3 py-3">Tutelle / Secteur</th>
+                <th class="px-3 py-3">Score</th>
+                <th class="px-3 py-3 w-[180px]">Conformité</th>
+                <th class="px-3 py-3">NC maj.</th>
+                <th class="px-3 py-3">Dernier audit</th>
+                <th class="px-3 py-3">Statut</th>
+              </tr>
+            </thead>
+            <tbody class="text-[13px]" id="ranking-body">
+              <!-- Rempli par JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3 flex gap-4 text-[11px] text-gray-400">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ≥ 80% Conforme</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> 60-79% Partiel</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> &lt; 60% Non conforme</span>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 2 — HEATMAP                                             -->
+      <!-- ============================================================ -->
+      <div id="panel-heatmap" class="hidden">
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-[14px] font-bold text-gray-900">Conformité par domaine × entité</h3>
+            <span id="heatmap-framework-label" class="text-[11px] text-gray-400"></span>
+          </div>
+          <div class="overflow-x-auto" id="heatmap-container">
+            <!-- Rempli par JS -->
+          </div>
+
+          <!-- Domaines les plus faibles -->
+          <div class="mt-6" id="weak-domains">
+            <!-- Rempli par JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 3 — RISQUES SYSTÉMIQUES                                 -->
+      <!-- ============================================================ -->
+      <div id="panel-risques" class="hidden">
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="text-[14px] font-bold text-gray-900">Risques systémiques identifiés</h3>
+          <span class="text-[11px] text-gray-400">Contrôles en échec sur ≥ 50% des entités auditées</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4" id="risks-container">
+          <!-- Rempli par JS -->
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 4 — ÉVOLUTION                                           -->
+      <!-- ============================================================ -->
+      <div id="panel-evolution" class="hidden">
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 class="text-[14px] font-bold text-gray-900 mb-4">Évolution de la conformité dans le temps</h3>
+
+          <!-- Graphique simplifié (barres horizontales par période) -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-4">
+              <span class="text-[12px] text-gray-500 w-[100px] text-right font-medium">2023-2024</span>
+              <div class="flex-1 bar h-7 rounded-lg">
+                <div class="bar-fill bg-red-400 rounded-lg flex items-center pl-3" style="width:32%">
+                  <span class="text-[11px] text-white font-bold">32%</span>
+                </div>
+              </div>
+              <span class="text-[11px] text-gray-400 w-[80px]">5 entités</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-[12px] text-gray-500 w-[100px] text-right font-medium">2024-2025</span>
+              <div class="flex-1 bar h-7 rounded-lg">
+                <div class="bar-fill bg-amber-400 rounded-lg flex items-center pl-3" style="width:42%">
+                  <span class="text-[11px] text-white font-bold">42%</span>
+                </div>
+              </div>
+              <span class="text-[11px] text-gray-400 w-[80px]">9 entités</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-[12px] text-gray-500 w-[100px] text-right font-medium">2025-2026</span>
+              <div class="flex-1 bar h-7 rounded-lg">
+                <div class="bar-fill bg-gold-500 rounded-lg flex items-center pl-3" style="width:58%">
+                  <span class="text-[11px] text-white font-bold">58%</span>
+                </div>
+              </div>
+              <span class="text-[11px] text-gray-400 w-[80px]">12 entités</span>
+            </div>
+            <div class="flex items-center gap-4 opacity-40">
+              <span class="text-[12px] text-gray-500 w-[100px] text-right font-medium">2026-2027</span>
+              <div class="flex-1 bar h-7 rounded-lg border-2 border-dashed border-forest-300">
+                <div class="bar-fill bg-forest-300 rounded-lg flex items-center pl-3" style="width:75%">
+                  <span class="text-[11px] text-forest-700 font-bold">Cible 75%</span>
+                </div>
+              </div>
+              <span class="text-[11px] text-gray-400 w-[80px]">Objectif 20</span>
+            </div>
+          </div>
+
+          <!-- Évolution par entité -->
+          <h4 class="text-[13px] font-bold text-gray-900 mt-8 mb-3">Progression par entité</h4>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 text-[12px]">
+              <span class="w-[180px] font-medium text-gray-900 truncate">Min. Forces Armées</span>
+              <span class="text-gray-400 w-[50px] text-right">55%</span>
+              <svg width="16" height="12" class="text-emerald-500"><polyline points="0,10 5,6 10,3 15,1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              <span class="font-bold text-emerald-700 w-[50px]">82%</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">+27 pts</span>
+            </div>
+            <div class="flex items-center gap-3 text-[12px]">
+              <span class="w-[180px] font-medium text-gray-900 truncate">Min. Finances</span>
+              <span class="text-gray-400 w-[50px] text-right">48%</span>
+              <svg width="16" height="12" class="text-emerald-500"><polyline points="0,10 5,6 10,3 15,1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              <span class="font-bold text-gold-500 w-[50px]">76%</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">+28 pts</span>
+            </div>
+            <div class="flex items-center gap-3 text-[12px]">
+              <span class="w-[180px] font-medium text-gray-900 truncate">Min. Santé</span>
+              <span class="text-gray-400 w-[50px] text-right">30%</span>
+              <svg width="16" height="12" class="text-emerald-500"><polyline points="0,10 5,6 10,3 15,1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              <span class="font-bold text-red-600 w-[50px]">54%</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">+24 pts</span>
+            </div>
+            <div class="flex items-center gap-3 text-[12px]">
+              <span class="w-[180px] font-medium text-gray-900 truncate">ARTP</span>
+              <span class="text-gray-400 w-[50px] text-right">35%</span>
+              <svg width="16" height="12" class="text-amber-500"><polyline points="0,6 5,7 10,5 15,6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              <span class="font-bold text-red-600 w-[50px]">38%</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">+3 pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 5 — RAPPORT                                             -->
+      <!-- ============================================================ -->
+      <div id="panel-rapport" class="hidden">
+        <!-- Configuration du rapport -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+          <h3 class="text-[13px] font-bold text-gray-900 mb-3">Paramètres du rapport</h3>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Destinataire</label>
+              <select class="selector w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none focus:border-forest-500">
+                <option>Président de la République</option>
+                <option>Premier Ministre</option>
+                <option>Ministre de tutelle</option>
+                <option>Directeur Général</option>
+                <option>Conseil d'Administration</option>
+                <option>Comité d'Audit</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Autorité émettrice</label>
+              <select class="selector w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none focus:border-forest-500">
+                <option>Commission Nationale de Cryptologie</option>
+                <option>Direction de l'Audit Interne</option>
+                <option>Cabinet de conseil (Gestu ETP)</option>
+                <option>RSSI Groupe</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Format</label>
+              <div class="flex gap-2 mt-1">
+                <button class="flex-1 rounded-lg border-2 border-forest-700 bg-forest-50 px-3 py-2 text-[12px] font-semibold text-forest-700 text-center">PDF</button>
+                <button class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] font-medium text-gray-500 text-center hover:border-gray-300">PPTX</button>
+                <button class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] font-medium text-gray-500 text-center hover:border-gray-300">Excel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aperçu du rapport -->
+        <div class="bg-white rounded-xl border border-gray-200 p-8 max-w-[800px]">
+          <div class="text-center border-b border-gray-200 pb-6 mb-6">
+            <div class="text-[11px] uppercase tracking-widest text-gray-400" id="rapport-header-1">République du Sénégal — Un Peuple, Un But, Une Foi</div>
+            <div class="text-[12px] font-semibold text-gray-500 mt-1" id="rapport-header-2">Présidence de la République — Commission Nationale de Cryptologie</div>
+            <div class="mt-4 text-[18px] font-extrabold text-forest-700" id="rapport-title">Rapport de synthèse — Conformité PSSI-ES</div>
+            <div class="text-[13px] text-gray-500 mt-1">Période : 2025-2026</div>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-[14px] font-bold text-gray-900 mb-3">I. Résumé exécutif</h3>
+            <div class="space-y-2 text-[13px] text-gray-700 leading-relaxed">
+              <p>Sur les <strong>45 entités</strong> identifiées, <strong>12</strong> ont été auditées (27% de couverture). Le score moyen de conformité au référentiel s'établit à <strong>58%</strong>, en progression de <strong>+16 points</strong> par rapport à l'exercice précédent.</p>
+              <p><strong>47 non-conformités majeures</strong> restent ouvertes, en baisse de 47% par rapport à N-1.</p>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-[14px] font-bold text-gray-900 mb-3">II. Répartition</h3>
+            <div class="grid grid-cols-3 gap-3 text-[12px]">
+              <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
+                <div class="font-bold text-emerald-700">3 entités conformes</div>
+                <div class="text-emerald-600 mt-1">Score ≥ 80%</div>
+              </div>
+              <div class="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <div class="font-bold text-amber-700">5 entités partielles</div>
+                <div class="text-amber-600 mt-1">Score 60-79%</div>
+              </div>
+              <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+                <div class="font-bold text-red-700">4 entités non conformes</div>
+                <div class="text-red-600 mt-1">Score &lt; 60%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-[14px] font-bold text-gray-900 mb-3">III. Recommandations</h3>
+            <ol class="list-decimal list-inside space-y-2 text-[13px] text-gray-700">
+              <li>Étendre le périmètre d'audit à 20 entités pour l'exercice suivant</li>
+              <li>Prioriser les domaines systémiquement faibles identifiés dans la heatmap</li>
+              <li>Exiger un plan de remédiation sous 90 jours pour les NC majeures ouvertes</li>
+              <li>Organiser un programme de formation pour les entités non conformes</li>
+            </ol>
+          </div>
+
+          <div class="border-t border-gray-200 pt-6 mt-8 text-center">
+            <div class="text-[12px] text-gray-400">Dakar, le 15 avril 2026</div>
+            <div class="text-[13px] font-semibold text-gray-700 mt-2" id="rapport-signatory">Le Président de la Commission Nationale de Cryptologie</div>
+          </div>
+
+          <div class="flex justify-center gap-3 mt-6">
+            <button class="flex items-center gap-2 rounded-lg border border-gray-200 px-5 py-2.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50">Aperçu complet</button>
+            <button class="flex items-center gap-2 rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-forest-900">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Générer le PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+// DONNÉES DE DÉMO PAR RÉFÉRENTIEL
+// ============================================================
+
+const FRAMEWORKS = {
+  'pssi-es': {
+    label: 'PSSI-ES — Sénégal',
+    badge: 'PSSI-ES — 11 domaines, 155 contrôles',
+    publisher: 'Commission Nationale de Cryptologie / Présidence de la République',
+    reportTitle: 'Rapport de synthèse — Conformité PSSI-ES',
+    domains: ['ORG','PER','ACQ','ACT','FRN','PHY','LOG','EXP','CLM','INC','AUD'],
+    domainNames: { ORG:'Organisation SSI', PER:'Sécurité du personnel', ACQ:'Acquisition/Développement', ACT:'Gestion des actifs', FRN:'Fournisseurs', PHY:'Sécurité physique', LOG:'Sécurité logique', EXP:'Exploitation', CLM:'Cloud/Mobile/Télétravail', INC:'Gestion des incidents', AUD:'Audit et conformité' },
+    entities: [
+      { name:'Min. Forces Armées', sector:'Présidence', score:82, nc:2, audit:'Mars 2026', scores:{ORG:90,PER:85,ACQ:78,ACT:82,FRN:70,PHY:88,LOG:75,EXP:80,CLM:65,INC:85,AUD:90}},
+      { name:'Min. Finances et Budget', sector:'Primature', score:76, nc:4, audit:'Fév. 2026', scores:{ORG:80,PER:72,ACQ:65,ACT:78,FRN:68,PHY:82,LOG:70,EXP:75,CLM:60,INC:78,AUD:85}},
+      { name:'ADIE', sector:'Présidence', score:71, nc:5, audit:'Jan. 2026', scores:{ORG:75,PER:70,ACQ:80,ACT:65,FRN:60,PHY:72,LOG:78,EXP:68,CLM:55,INC:70,AUD:75}},
+      { name:'Min. Santé', sector:'Primature', score:54, nc:7, audit:'Mars 2026', scores:{ORG:60,PER:55,ACQ:45,ACT:50,FRN:40,PHY:62,LOG:48,EXP:55,CLM:35,INC:58,AUD:60}},
+      { name:'Min. Éducation', sector:'Primature', score:43, nc:11, audit:'Déc. 2025', scores:{ORG:45,PER:40,ACQ:30,ACT:42,FRN:35,PHY:50,LOG:38,EXP:40,CLM:25,INC:45,AUD:48}},
+      { name:'ARTP', sector:'Présidence', score:38, nc:14, audit:'Nov. 2025', scores:{ORG:40,PER:35,ACQ:28,ACT:38,FRN:30,PHY:45,LOG:35,EXP:32,CLM:20,INC:40,AUD:42}},
+    ],
+    risks: [
+      { level:'critical', title:'Souveraineté numérique', desc:'8 entités hébergent des données sensibles hors territoire national', ref:'REG 28-2', count:8 },
+      { level:'critical', title:'Absence de RSSI / AQSSI', desc:'6 entités n\'ont pas nommé de Responsable SSI', ref:'REG 1-4', count:6 },
+      { level:'high', title:'Chiffrement non labellisé', desc:'10 entités utilisent des algorithmes non labellisés par la Commission', ref:'REG 19-9-1', count:10 },
+      { level:'high', title:'PCA jamais testé', desc:'9 entités n\'ont jamais testé leur plan de continuité', ref:'REG 29-6', count:9 },
+    ],
+  },
+  'iso-27001': {
+    label: 'ISO/IEC 27001:2022',
+    badge: 'ISO 27001 — 4 domaines, 93 contrôles',
+    publisher: 'ISO/IEC — Organisme international de normalisation',
+    reportTitle: 'Rapport de synthèse — Conformité ISO 27001',
+    domains: ['A.5','A.6','A.7','A.8'],
+    domainNames: { 'A.5':'Mesures organisationnelles', 'A.6':'Mesures liées aux personnes', 'A.7':'Mesures physiques', 'A.8':'Mesures technologiques' },
+    entities: [
+      { name:'Banque Atlantique SN', sector:'Banque / Finance', score:88, nc:1, audit:'Avr. 2026', scores:{'A.5':90,'A.6':85,'A.7':88,'A.8':89}},
+      { name:'Sonatel / Orange SN', sector:'Télécommunications', score:79, nc:3, audit:'Mars 2026', scores:{'A.5':82,'A.6':75,'A.7':80,'A.8':78}},
+      { name:'CBAO Groupe Attijariwafa', sector:'Banque / Finance', score:74, nc:5, audit:'Fév. 2026', scores:{'A.5':78,'A.6':70,'A.7':75,'A.8':72}},
+      { name:'Tigo / Free SN', sector:'Télécommunications', score:62, nc:8, audit:'Jan. 2026', scores:{'A.5':65,'A.6':58,'A.7':68,'A.8':56}},
+      { name:'Wave Mobile Money', sector:'Technologies / IT', score:55, nc:12, audit:'Déc. 2025', scores:{'A.5':60,'A.6':50,'A.7':58,'A.8':52}},
+    ],
+    risks: [
+      { level:'critical', title:'Gestion des vulnérabilités', desc:'3 entités n\'ont pas de programme de gestion des vulnérabilités', ref:'A.8.8', count:3 },
+      { level:'high', title:'Sensibilisation insuffisante', desc:'4 entités n\'ont pas de programme de formation SSI formalisé', ref:'A.6.3', count:4 },
+      { level:'high', title:'Revue des droits d\'accès', desc:'5 entités ne font pas de revue périodique des accès', ref:'A.5.18', count:5 },
+      { level:'high', title:'Journalisation incomplète', desc:'4 entités n\'ont pas de journalisation centralisée', ref:'A.8.15', count:4 },
+    ],
+  },
+  'nist-csf': {
+    label: 'NIST CSF 2.0',
+    badge: 'NIST CSF — 6 domaines, 23 contrôles',
+    publisher: 'NIST — National Institute of Standards and Technology (USA)',
+    reportTitle: 'Rapport de synthèse — Maturité NIST CSF',
+    domains: ['GV','ID','PR','DE','RS','RC'],
+    domainNames: { GV:'Govern', ID:'Identify', PR:'Protect', DE:'Detect', RS:'Respond', RC:'Recover' },
+    entities: [
+      { name:'Sonatel / Orange SN', sector:'Télécommunications', score:72, nc:4, audit:'Mars 2026', scores:{GV:75,ID:70,PR:78,DE:68,RS:65,RC:72}},
+      { name:'Wave Mobile Money', sector:'Technologies / IT', score:60, nc:7, audit:'Fév. 2026', scores:{GV:65,ID:58,PR:62,DE:55,RS:60,RC:58}},
+      { name:'Expresso SN', sector:'Télécommunications', score:48, nc:10, audit:'Jan. 2026', scores:{GV:50,ID:45,PR:52,DE:42,RS:48,RC:50}},
+    ],
+    risks: [
+      { level:'critical', title:'Détection insuffisante', desc:'2 entités n\'ont aucune capacité de détection d\'intrusion', ref:'DE.CM', count:2 },
+      { level:'high', title:'Plan de reprise absent', desc:'2 entités n\'ont pas de plan de reprise formalisé', ref:'RC.RP', count:2 },
+    ],
+  },
+  'audit-si': {
+    label: 'Audit SI — Composite',
+    badge: 'Audit SI — 6 domaines, 79 contrôles',
+    publisher: 'Gestu — Référentiel composite COBIT + ITIL + ISO 27001 + RGPD',
+    reportTitle: 'Rapport de synthèse — Audit SI',
+    domains: ['GO','GR','AE','GD','GS','MS'],
+    domainNames: { GO:'Gouvernance SI', GR:'Gestion des risques', AE:'Architecture', GD:'Gouvernance données', GS:'Gestion services', MS:'Management sécurité' },
+    entities: [
+      { name:'Groupe ISM', sector:'Éducation', score:65, nc:6, audit:'Mars 2026', scores:{GO:70,GR:62,AE:68,GD:60,GS:65,MS:63}},
+      { name:'SENELEC', sector:'Énergie', score:52, nc:9, audit:'Fév. 2026', scores:{GO:55,GR:48,AE:50,GD:52,GS:55,MS:50}},
+      { name:'Port Autonome de Dakar', sector:'Logistique / Transport', score:45, nc:13, audit:'Déc. 2025', scores:{GO:48,GR:42,AE:40,GD:45,GS:50,MS:42}},
+    ],
+    risks: [
+      { level:'critical', title:'Cartographie des risques SI absente', desc:'2 entités n\'ont aucune analyse de risques formalisée', ref:'GR.02', count:2 },
+      { level:'high', title:'Schéma directeur SI absent', desc:'2 entités opèrent sans schéma directeur', ref:'AE.01', count:2 },
+    ],
+  }
+};
+
+// ============================================================
+// RENDU
+// ============================================================
+
+function getStatusBadge(score) {
+  if (score >= 80) return '<span class="text-[11px] px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">Conforme</span>';
+  if (score >= 60) return '<span class="text-[11px] px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold">Partiel</span>';
+  return '<span class="text-[11px] px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-semibold">Non conforme</span>';
+}
+
+function getBarColor(score) {
+  if (score >= 80) return 'bg-emerald-500';
+  if (score >= 60) return 'bg-amber-400';
+  return 'bg-red-400';
+}
+
+function getScoreColor(score) {
+  if (score >= 80) return 'text-emerald-700';
+  if (score >= 60) return 'text-gold-500';
+  return 'text-red-600';
+}
+
+function hcClass(score) {
+  if (score === null || score === undefined) return 'hc-na';
+  if (score >= 80) return 'hc-green';
+  if (score >= 60) return 'hc-gold';
+  return 'hc-red';
+}
+
+function ncBadgeColor(nc) {
+  if (nc <= 3) return 'bg-green-100 text-green-700';
+  if (nc <= 8) return 'bg-amber-100 text-amber-700';
+  return 'bg-red-100 text-red-700';
+}
+
+function renderRanking(fw) {
+  const body = document.getElementById('ranking-body');
+  body.innerHTML = fw.entities.map((e, i) => `
+    <tr class="border-b border-gray-50 hover:bg-forest-50/30 cursor-pointer">
+      <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">${i+1}</td>
+      <td class="px-3 py-3 font-semibold text-gray-900">${e.name}</td>
+      <td class="px-3 py-3 text-gray-500">${e.sector}</td>
+      <td class="px-3 py-3 font-bold ${getScoreColor(e.score)}">${e.score}%</td>
+      <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill ${getBarColor(e.score)}" style="width:${e.score}%"></div></div></td>
+      <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full ${ncBadgeColor(e.nc)} font-medium">${e.nc}</span></td>
+      <td class="px-3 py-3 text-gray-500">${e.audit}</td>
+      <td class="px-3 py-3">${getStatusBadge(e.score)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderHeatmap(fw) {
+  const container = document.getElementById('heatmap-container');
+  document.getElementById('heatmap-framework-label').textContent = fw.label;
+
+  const domains = fw.domains;
+  let html = '<table class="w-full"><thead><tr class="text-[10px] font-semibold uppercase text-gray-400"><th class="text-left px-2 py-2 w-[200px]">Entité</th>';
+  domains.forEach(d => { html += `<th class="px-1 py-2">${d}</th>`; });
+  html += '<th class="px-2 py-2 font-bold">MOY.</th></tr></thead><tbody class="text-[12px]">';
+
+  fw.entities.forEach(e => {
+    html += `<tr class="border-t border-gray-50"><td class="px-2 py-2 font-medium text-gray-900 text-[12px]">${e.name}</td>`;
+    domains.forEach(d => {
+      const s = e.scores[d];
+      html += `<td class="px-1 py-1"><div class="heatmap-cell ${hcClass(s)}">${s ?? '—'}</div></td>`;
+    });
+    html += `<td class="px-2 py-1 font-bold ${getScoreColor(e.score)}">${e.score}%</td></tr>`;
+  });
+
+  // Moyenne nationale
+  const avgs = {};
+  domains.forEach(d => {
+    const vals = fw.entities.map(e => e.scores[d]).filter(v => v != null);
+    avgs[d] = vals.length ? Math.round(vals.reduce((a,b) => a+b, 0) / vals.length) : null;
+  });
+  const totalAvg = Math.round(fw.entities.reduce((a,e) => a + e.score, 0) / fw.entities.length);
+
+  html += '<tr class="border-t-2 border-forest-200 bg-forest-50/50"><td class="px-2 py-2 font-bold text-forest-700 text-[12px]">MOYENNE</td>';
+  domains.forEach(d => {
+    html += `<td class="px-1 py-1"><div class="heatmap-cell ${hcClass(avgs[d])} font-bold">${avgs[d] ?? '—'}</div></td>`;
+  });
+  html += `<td class="px-2 py-1 font-extrabold text-forest-700">${totalAvg}%</td></tr>`;
+  html += '</tbody></table>';
+
+  container.innerHTML = html;
+
+  // Domaines les plus faibles
+  const sorted = domains.map(d => ({ code: d, name: fw.domainNames[d], avg: avgs[d] })).filter(x => x.avg != null).sort((a,b) => a.avg - b.avg);
+  const weak = sorted.slice(0, 3);
+  const weakHtml = '<div class="grid grid-cols-3 gap-4">' + weak.map((w, i) => {
+    const border = i === 0 ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50';
+    const title = i === 0 ? 'text-red-400' : 'text-amber-400';
+    const name = i === 0 ? 'text-red-700' : 'text-amber-700';
+    const pct = i === 0 ? 'text-red-600' : 'text-amber-600';
+    return `<div class="rounded-lg border ${border} p-4">
+      <div class="text-[10px] font-semibold ${title} uppercase">${i === 0 ? 'Domaine le plus faible' : (i+1)+'e domaine faible'}</div>
+      <div class="mt-1 text-[14px] font-bold ${name}">${w.code} — ${w.name}</div>
+      <div class="mt-1 text-[12px] ${pct}">${w.avg}% de conformité moyenne</div>
+    </div>`;
+  }).join('') + '</div>';
+  document.getElementById('weak-domains').innerHTML = weakHtml;
+}
+
+function renderRisks(fw) {
+  const container = document.getElementById('risks-container');
+  container.innerHTML = fw.risks.map(r => {
+    const isCrit = r.level === 'critical';
+    const borderCls = isCrit ? 'border-red-200' : 'border-amber-200';
+    const iconBg = isCrit ? 'bg-red-100' : 'bg-amber-100';
+    const iconColor = isCrit ? '#dc2626' : '#d97706';
+    const labelCls = isCrit ? 'text-red-400' : 'text-amber-400';
+    const labelText = isCrit ? 'Risque critique' : 'Risque élevé';
+    const refBg = isCrit ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
+    return `<div class="bg-white rounded-xl border ${borderCls} p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-lg ${iconBg} flex items-center justify-center shrink-0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="text-[10px] font-semibold ${labelCls} uppercase">${labelText}</div>
+          <div class="text-[14px] font-bold text-gray-900 mt-0.5">${r.title}</div>
+          <div class="text-[12px] text-gray-600 mt-1">${r.desc}</div>
+          <div class="mt-2 flex gap-2">
+            <span class="text-[10px] px-2 py-0.5 rounded-full ${refBg} font-semibold">${r.ref}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">${r.count} entités concernées</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateFrameworkInfo(fw) {
+  document.getElementById('fw-badge-text').textContent = fw.badge;
+  document.getElementById('fw-publisher').textContent = fw.publisher;
+  document.getElementById('rapport-title').textContent = fw.reportTitle;
+}
+
+function switchFramework() {
+  const key = document.getElementById('select-framework').value;
+  const fw = FRAMEWORKS[key];
+  updateFrameworkInfo(fw);
+  renderRanking(fw);
+  renderHeatmap(fw);
+  renderRisks(fw);
+}
+
+function showTab(btn, name) {
+  document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
+  document.getElementById('panel-' + name).classList.remove('hidden');
+  document.querySelectorAll('[onclick^="showTab"]').forEach(t => { t.classList.remove('tab-active'); t.classList.add('tab-inactive'); });
+  btn.classList.remove('tab-inactive');
+  btn.classList.add('tab-active');
+}
+
+// Init
+switchFramework();
+
+// Auto-show tab from hash (for iframe embedding)
+if (location.hash) {
+  const panel = location.hash.replace('#', '');
+  const el = document.getElementById(panel);
+  if (el) {
+    document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
+    el.classList.remove('hidden');
+  }
+}
+</script>
+
+</body>
+</html>

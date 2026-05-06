@@ -1,0 +1,1291 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1280" />
+  <title>Gëstu Comply — Questionnaire refonte complète</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --forest-50: #ECF4EF; --forest-100: #C6DFCE; --forest-300: #6FA683;
+      --forest-500: #2D6A4F; --forest-700: #1B4332; --forest-900: #0E2A1F;
+      --gold-50: #FBF3DC; --gold-100: #F4E1A4; --gold-300: #E0BD63;
+      --gold-500: #D4A843; --gold-700: #8E7128;
+      --bg: #FFFFFF; --surface: #FAFAF8;
+      --border: #E5E2DD; --border-soft: #EFEDE8;
+      --text-900: #1A1A1A; --text-700: #404040; --text-500: #707070; --text-300: #A8A8A8;
+      --success: #27AE60; --success-bg: #E8F5EE;
+      --warn: #B45309; --warn-bg: #FEF3C7;
+      --error: #C0392B; --error-bg: #FDECEA;
+      --info: #2563EB; --info-bg: #EFF6FF;
+      --purple: #7C3AED; --purple-bg: #F3E8FF;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #F4F2EE;
+      color: var(--text-900);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 24px 24px 80px; }
+
+    /* Doc header */
+    .doc-banner {
+      background: var(--forest-900); color: white;
+      padding: 16px 24px; border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .doc-banner h1 { margin: 0 0 6px; font-size: 22px; font-weight: 800; }
+    .doc-banner p { margin: 0; color: rgba(255,255,255,0.85); font-size: 13px; }
+    .doc-banner strong { color: var(--gold-300); }
+
+    /* TOC */
+    .toc {
+      background: white; border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px;
+      margin-bottom: 24px;
+      display: flex; gap: 18px; flex-wrap: wrap;
+      font-size: 12px;
+    }
+    .toc strong { color: var(--forest-700); }
+    .toc a { color: var(--text-700); cursor: pointer; }
+
+    /* Section */
+    .section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .section-head {
+      padding: 16px 20px;
+      background: linear-gradient(180deg, var(--surface), white);
+      border-bottom: 2px solid var(--gold-500);
+      display: flex; align-items: center; gap: 14px;
+    }
+    .section-head .num {
+      width: 36px; height: 36px;
+      background: var(--forest-700); color: var(--gold-300);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .section-head h2 { margin: 0; font-size: 17px; font-weight: 700; flex: 1; }
+    .section-head .role-pill {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .role-pill.auditeur { background: var(--gold-50); color: var(--gold-700); }
+    .role-pill.client { background: var(--info-bg); color: var(--info); }
+    .role-pill.transverse { background: var(--purple-bg); color: var(--purple); }
+
+    .section-body { padding: 20px; }
+
+    /* Recommendation tags */
+    .reco-tags {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin: 0 20px 16px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border-radius: 8px;
+      font-size: 11px;
+    }
+    .reco-tags strong { color: var(--text-700); margin-right: 6px; }
+    .reco-tag {
+      background: var(--success-bg); color: var(--success);
+      font-weight: 700;
+      padding: 2px 8px; border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Mock UI shell */
+    .mock {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .mock-head {
+      padding: 8px 14px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px; color: var(--text-500); font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mock-head .breadcrumb {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+    }
+    .mock-body { padding: 16px; background: white; }
+
+    /* ======================== */
+    /* PART A — Préparation auditeur */
+    /* ======================== */
+    .prep-grid {
+      display: grid; grid-template-columns: 1fr 320px; gap: 14px;
+    }
+    .panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .panel-head {
+      padding: 10px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700;
+    }
+    .panel-body { padding: 12px 14px; }
+
+    /* Question template list */
+    .q-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-soft);
+      font-size: 12px;
+    }
+    .q-row:last-child { border-bottom: 0; }
+    .q-row .check {
+      width: 16px; height: 16px;
+      border: 1.5px solid var(--text-300); border-radius: 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .q-row .check.on {
+      background: var(--forest-700); border-color: var(--forest-700);
+    }
+    .q-row .check.on::after {
+      content: '✓'; color: white; font-size: 11px; font-weight: 800;
+    }
+    .q-row.disabled { opacity: 0.4; }
+    .q-row .code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 700;
+      color: var(--gold-700);
+      background: var(--gold-50);
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .q-row .qtxt { flex: 1; min-width: 0; color: var(--text-700); }
+    .q-row .qtype {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--info-bg); color: var(--info);
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .q-row .respondent {
+      font-size: 10px;
+      padding: 2px 7px;
+      background: var(--purple-bg); color: var(--purple);
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    /* Section header in question list */
+    .section-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 0 8px;
+      border-bottom: 2px solid var(--border);
+      margin-top: 8px;
+    }
+    .section-row:first-child { margin-top: 0; }
+    .section-row .pfx {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 800;
+      background: var(--forest-100); color: var(--forest-700);
+      padding: 3px 8px; border-radius: 4px;
+    }
+    .section-row .lbl { font-weight: 700; flex: 1; font-size: 12px; }
+    .section-row .toggle {
+      font-size: 10px; padding: 2px 8px;
+      background: var(--success-bg); color: var(--success);
+      border-radius: 99px; font-weight: 700;
+      cursor: pointer;
+    }
+    .section-row .toggle.off { background: var(--border-soft); color: var(--text-500); }
+    .section-row .assign {
+      font-size: 10px;
+      padding: 2px 8px;
+      background: var(--purple-bg); color: var(--purple);
+      border-radius: 99px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Right rail */
+    .rail-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .rail-card .rh {
+      font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-500);
+      margin-bottom: 8px;
+    }
+    .rail-card .row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 0; font-size: 12px;
+    }
+    .rail-card input, .rail-card select {
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 12px;
+      flex: 1;
+      font-family: inherit;
+    }
+    .rail-card .toggle-row {
+      display: flex; gap: 8px; align-items: center;
+      padding: 4px 0;
+    }
+    .switch {
+      width: 28px; height: 16px;
+      background: var(--success);
+      border-radius: 99px;
+      position: relative;
+    }
+    .switch::after {
+      content: ''; position: absolute; right: 2px; top: 2px;
+      width: 12px; height: 12px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    /* Send button */
+    .send-btn {
+      width: 100%;
+      background: var(--forest-700); color: white;
+      border: 0; padding: 10px 14px; border-radius: 6px;
+      font-size: 13px; font-weight: 700;
+      font-family: inherit;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .send-btn:hover { background: var(--forest-900); }
+
+    /* ======================== */
+    /* PART B — Wizard client */
+    /* ======================== */
+    .wizard-shell {
+      max-width: 720px; margin: 0 auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .wizard-top {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .wizard-top .brand {
+      font-weight: 800; font-size: 14px;
+      color: var(--forest-900);
+    }
+    .wizard-top .brand .gold { color: var(--gold-500); }
+    .wizard-top .save-pill {
+      font-size: 11px; color: var(--success);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    /* Section progress bar */
+    .wprogress {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .wprogress .bar {
+      width: 100%; height: 6px; background: var(--surface); border-radius: 99px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .wprogress .fill { height: 100%; background: var(--forest-500); }
+    .wprogress .meta {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--text-500);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Question card */
+    .question-card {
+      padding: 24px 22px;
+    }
+    .question-card .q-meta {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: var(--text-500);
+      margin-bottom: 8px;
+    }
+    .question-card .q-meta .sec-pill {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--gold-50); color: var(--gold-700);
+      font-weight: 700;
+      padding: 2px 7px; border-radius: 4px;
+    }
+    .question-card h3 {
+      font-size: 18px; font-weight: 700; margin: 6px 0 14px;
+      color: var(--text-900); line-height: 1.4;
+    }
+    .question-card .helper {
+      font-size: 12px; color: var(--text-500);
+      margin-bottom: 14px; line-height: 1.5;
+    }
+    .question-card .helper a { color: var(--forest-700); cursor: pointer; }
+
+    .answer-input {
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px; color: var(--text-900);
+    }
+    .answer-input.focused { border-color: var(--forest-500); background: white; }
+    .answer-input.prefilled {
+      background: var(--forest-50); border-color: var(--forest-300);
+      color: var(--forest-900); font-weight: 600;
+    }
+
+    .skip-row {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .skip-chip {
+      font-size: 10px; font-weight: 600;
+      padding: 4px 9px;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--text-500);
+      background: white;
+      cursor: pointer;
+    }
+    .skip-chip.active {
+      background: var(--gold-50); color: var(--gold-700);
+      border-color: var(--gold-300);
+    }
+    .skip-chip.opt {
+      background: var(--gold-50); color: var(--gold-700);
+      border-style: solid;
+    }
+
+    /* Choices */
+    .choice-row {
+      display: flex; gap: 8px; margin-top: 4px;
+    }
+    .choice {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .choice.sel { border-color: var(--forest-700); background: var(--forest-50); color: var(--forest-900); font-weight: 700; }
+
+    /* Scale */
+    .scale-row {
+      display: flex; gap: 6px;
+    }
+    .scale-dot {
+      flex: 1;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .scale-dot.sel {
+      border-color: var(--gold-500);
+      background: var(--gold-50);
+    }
+    .scale-dot .num { font-size: 22px; font-weight: 800; color: var(--gold-700); }
+    .scale-dot .lbl { font-size: 10px; color: var(--text-500); margin-top: 2px; }
+
+    /* File upload */
+    .file-zone {
+      border: 1.5px dashed var(--forest-300);
+      background: var(--forest-50);
+      border-radius: 8px;
+      padding: 18px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--forest-700);
+    }
+    .file-zone strong { color: var(--forest-900); }
+
+    /* Org chart */
+    .orgchart-result {
+      margin-top: 8px;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .actor-line {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0;
+      font-size: 11px;
+    }
+    .actor-line .av {
+      width: 22px; height: 22px;
+      background: var(--forest-100); color: var(--forest-700);
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 9px;
+    }
+
+    /* Question footer with prev/next */
+    .question-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .ghost-btn {
+      background: white; border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 6px;
+      font-size: 12px; color: var(--text-500); cursor: pointer;
+      font-family: inherit;
+    }
+    .primary-btn {
+      background: var(--forest-700); color: white;
+      border: 0; padding: 9px 16px; border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+
+    /* Comment thread */
+    .comment-thread {
+      margin-top: 14px;
+      background: var(--info-bg);
+      border: 1px solid var(--info);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .comment-thread .ch {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; color: var(--info);
+      margin-bottom: 8px;
+    }
+    .comment-line {
+      display: flex; gap: 6px; align-items: flex-start;
+      padding: 6px 0;
+      font-size: 11px;
+    }
+    .comment-line .av {
+      width: 22px; height: 22px;
+      background: var(--info); color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 9px;
+      flex-shrink: 0;
+    }
+    .comment-line .av.client { background: var(--forest-500); }
+    .comment-line .body strong { font-size: 11px; }
+    .comment-line .body .txt {
+      color: var(--text-700);
+      margin-top: 2px;
+    }
+    .comment-thread .reply-input {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-300);
+    }
+
+    /* Skip logic notice */
+    .skip-notice {
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px dashed var(--text-300);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-500);
+      text-align: center;
+    }
+    .skip-notice strong { color: var(--text-700); }
+
+    /* Multi-respondent banner */
+    .multi-banner {
+      padding: 10px 14px;
+      background: var(--purple-bg);
+      border: 1px solid var(--purple);
+      border-radius: 8px;
+      font-size: 12px;
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .multi-banner .avs {
+      display: flex; gap: -6px;
+    }
+    .multi-banner .av {
+      width: 24px; height: 24px;
+      background: var(--purple); color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 9px;
+      border: 2px solid white;
+      margin-left: -6px;
+    }
+    .multi-banner .av:first-child { margin-left: 0; }
+
+    /* ======================== */
+    /* PART C — Suivi auditeur */
+    /* ======================== */
+    .tracking-grid {
+      display: grid; grid-template-columns: 1fr 280px; gap: 14px;
+    }
+    .response-row {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .response-row:last-child { border-bottom: 0; }
+    .response-row .code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 700;
+      color: var(--gold-700); background: var(--gold-50);
+      padding: 3px 7px; border-radius: 4px;
+      width: fit-content;
+    }
+    .response-row .qtext { font-size: 12px; color: var(--text-700); }
+    .response-row .answer {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: var(--forest-50);
+      border-radius: 6px;
+      font-size: 12px; color: var(--forest-900);
+      line-height: 1.55;
+    }
+    .response-row .answer.skipped {
+      background: var(--gold-50); color: var(--gold-700);
+      font-style: italic;
+      font-weight: 600;
+    }
+    .response-row .meta-row {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-top: 6px; font-size: 10px;
+    }
+    .resp-pill {
+      font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 600;
+    }
+    .resp-pill.evidence { background: var(--forest-50); color: var(--forest-700); }
+    .resp-pill.who { background: var(--purple-bg); color: var(--purple); }
+    .resp-pill.ai { background: var(--gold-50); color: var(--gold-700); }
+    .response-row .actions {
+      display: flex; flex-direction: column; gap: 4px;
+      align-items: flex-end;
+    }
+    .icon-btn {
+      width: 26px; height: 26px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .icon-btn:hover { background: var(--surface); }
+    .icon-btn.has-comment {
+      background: var(--info-bg); color: var(--info); border-color: var(--info);
+    }
+    .icon-btn.relance { background: var(--gold-50); color: var(--gold-700); border-color: var(--gold-300); }
+
+    .auditor-fill-mode {
+      padding: 10px 14px;
+      background: var(--gold-50);
+      border-left: 3px solid var(--gold-500);
+      border-radius: 0 6px 6px 0;
+      font-size: 11px;
+      color: var(--gold-700);
+      margin: 8px 0 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .auditor-fill-mode strong { color: var(--gold-900); }
+
+    /* SLA dashboard */
+    .sla-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .sla-card .countdown {
+      font-size: 22px; font-weight: 800;
+      color: var(--warn);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sla-card .countdown.ok { color: var(--success); }
+    .sla-card .deadline {
+      font-size: 10px; color: var(--text-500);
+      margin-top: 4px;
+    }
+    .sla-card .relance-row {
+      display: flex; gap: 4px; align-items: center;
+      font-size: 11px; color: var(--text-700);
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .sla-card .relance-row:last-child { border-bottom: 0; }
+    .sla-card .relance-row .check-mini {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      background: var(--success);
+      color: white;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 800;
+    }
+    .sla-card .relance-row .check-mini.pending {
+      background: var(--border); color: transparent;
+    }
+
+    /* Respondent breakdown */
+    .respondent-bar {
+      display: flex; gap: 4px; margin-top: 4px;
+      height: 10px; border-radius: 99px; overflow: hidden;
+    }
+    .respondent-seg { height: 100%; }
+
+    /* Footer note */
+    .footer-note {
+      margin-top: 32px; padding: 18px 22px;
+      background: var(--forest-50); border: 1px solid var(--forest-300);
+      border-radius: 10px;
+      font-size: 12px; color: var(--forest-900);
+    }
+    .footer-note strong { color: var(--forest-700); }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="doc-banner">
+      <h1>Questionnaire de cadrage — refonte complète</h1>
+      <p>Mockup de l'interface intégrant les 7 axes d'amélioration : <strong>"Je ne sais pas"</strong> · <strong>pré-remplissage fiche client</strong> · <strong>SLA + relances auto</strong> · <strong>auditeur peut commenter / saisir</strong> · <strong>personnalisation au lancement</strong> · <strong>types étendus</strong> · <strong>logique conditionnelle</strong> · <strong>multi-respondent par section</strong>.</p>
+    </div>
+
+    <div class="toc">
+      <strong>Plan :</strong>
+      <a>Partie A · Préparation et envoi (auditeur)</a> ·
+      <a>Partie B · Wizard client enrichi</a> ·
+      <a>Partie C · Suivi & collaboration (auditeur)</a>
+    </div>
+
+    <!-- ======================== PART A ======================== -->
+    <div class="section">
+      <div class="section-head">
+        <span class="num">A</span>
+        <h2>Préparation et envoi du questionnaire</h2>
+        <span class="role-pill auditeur">Auditeur</span>
+      </div>
+      <div class="reco-tags">
+        <strong>Intègre :</strong>
+        <span class="reco-tag">Personnalisation</span>
+        <span class="reco-tag">SLA + relances</span>
+        <span class="reco-tag">Multi-respondent</span>
+        <span class="reco-tag">Pré-remplissage</span>
+      </div>
+      <div class="section-body">
+        <div class="mock">
+          <div class="mock-head">
+            <span class="breadcrumb">Mission M-2026-014 / Cadrage / Questionnaire</span>
+            <span style="margin-left:auto; color:var(--text-300);">Avant envoi · sélection des questions</span>
+          </div>
+          <div class="mock-body">
+            <div class="prep-grid">
+
+              <!-- Questions list -->
+              <div>
+                <div class="panel">
+                  <div class="panel-head">
+                    <span style="background:var(--gold-50); color:var(--gold-700); padding:3px 8px; border-radius:4px; font-family:'JetBrains Mono', monospace; font-size:11px;">📋</span>
+                    <span>Questions du template ISO 27001</span>
+                    <span style="margin-left:auto; font-size:11px; color:var(--text-500);"><strong>18/30</strong> sélectionnées</span>
+                  </div>
+                  <div class="panel-body">
+
+                    <div class="section-row">
+                      <span class="pfx">CTX</span>
+                      <span class="lbl">Contexte de l'entité</span>
+                      <span class="assign">👤 Marie L. (RSSI)</span>
+                      <span class="toggle">5/5</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">CTX-01</span>
+                      <span class="qtxt">Mission de votre entité</span>
+                      <span class="qtype">textarea</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">CTX-02</span>
+                      <span class="qtxt">Effectif total <span style="color:var(--success); font-weight:700;">· pré-rempli</span></span>
+                      <span class="qtype">number</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">CTX-03</span>
+                      <span class="qtxt">Sites géographiques <span style="color:var(--success); font-weight:700;">· pré-rempli</span></span>
+                      <span class="qtype">number</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">CTX-04</span>
+                      <span class="qtxt">Activité principale</span>
+                      <span class="qtype">single</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">CTX-05</span>
+                      <span class="qtxt">Organigramme DSI/Sécurité</span>
+                      <span class="qtype" style="background:var(--purple-bg); color:var(--purple);">organigramme</span>
+                    </div>
+
+                    <div class="section-row">
+                      <span class="pfx">GOV</span>
+                      <span class="lbl">Gouvernance SSI</span>
+                      <span class="assign">👤 Marie L. (RSSI)</span>
+                      <span class="toggle">6/6</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">GOV-01</span>
+                      <span class="qtxt">Politique SSI formalisée ?</span>
+                      <span class="qtype">boolean</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">GOV-02</span>
+                      <span class="qtxt">Date dernière révision politique <em style="color:var(--text-500);">— affichée si GOV-01 = oui</em></span>
+                      <span class="qtype" style="background:var(--purple-bg); color:var(--purple);">date</span>
+                    </div>
+
+                    <div class="section-row">
+                      <span class="pfx">PER</span>
+                      <span class="lbl">Sécurité physique <em style="color:var(--text-300); font-weight:400;">— hors-scope</em></span>
+                      <span class="toggle off">0/4 — désactivée</span>
+                    </div>
+                    <div class="q-row disabled">
+                      <span class="check"></span>
+                      <span class="code">PER-01</span>
+                      <span class="qtxt">Contrôle d'accès aux locaux</span>
+                      <span class="qtype">boolean</span>
+                    </div>
+
+                    <div class="section-row">
+                      <span class="pfx">LOG</span>
+                      <span class="lbl">Sécurité logique</span>
+                      <span class="assign">👤 Paul D. (Resp. infra)</span>
+                      <span class="toggle">7/7</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">LOG-01</span>
+                      <span class="qtxt">Solution MFA déployée ?</span>
+                      <span class="qtype">boolean</span>
+                    </div>
+                    <div class="q-row">
+                      <span class="check on"></span>
+                      <span class="code">LOG-02</span>
+                      <span class="qtxt">Couverture chiffrement disque (%)</span>
+                      <span class="qtype" style="background:var(--purple-bg); color:var(--purple);">scale 0-100</span>
+                    </div>
+
+                    <div style="padding:8px 0; margin-top:8px; border-top:1.5px dashed var(--gold-300); display:flex; gap:6px; align-items:center;">
+                      <span style="font-size:11px; color:var(--gold-700); font-weight:700;">+ Ajouter une question custom</span>
+                      <span style="font-size:10px; color:var(--text-500);">spécifique à cette mission, non issue du template</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right rail -->
+              <div>
+                <div class="rail-card">
+                  <div class="rh">📅 Échéance</div>
+                  <div class="row">
+                    <input value="2026-05-22" type="date" />
+                  </div>
+                  <div style="font-size:10px; color:var(--text-500); margin-top:4px;">Délai par défaut : 14 jours</div>
+                </div>
+
+                <div class="rail-card">
+                  <div class="rh">🔔 Relances automatiques</div>
+                  <div class="toggle-row">
+                    <span class="switch"></span>
+                    <span style="font-size:11px;">J-3 (rappel)</span>
+                  </div>
+                  <div class="toggle-row">
+                    <span class="switch"></span>
+                    <span style="font-size:11px;">J-1 (urgence)</span>
+                  </div>
+                  <div class="toggle-row">
+                    <span class="switch"></span>
+                    <span style="font-size:11px;">J+1 (escalade chef)</span>
+                  </div>
+                </div>
+
+                <div class="rail-card">
+                  <div class="rh">👥 Respondents par section</div>
+                  <div class="row">
+                    <span style="font-size:11px; flex:1;">CTX, GOV</span>
+                    <span class="resp-pill who">Marie L.</span>
+                  </div>
+                  <div class="row">
+                    <span style="font-size:11px; flex:1;">LOG, OPS</span>
+                    <span class="resp-pill who">Paul D.</span>
+                  </div>
+                  <div class="row">
+                    <span style="font-size:11px; flex:1;">CLM, AUD</span>
+                    <span class="resp-pill who">Sophie K. (DPO)</span>
+                  </div>
+                  <div style="font-size:10px; color:var(--text-500); margin-top:6px; line-height:1.4;">
+                    Issu de l'organigramme uploadé. Modifiable.
+                  </div>
+                </div>
+
+                <div class="rail-card">
+                  <div class="rh">📊 Aperçu envoi</div>
+                  <div class="row">
+                    <span style="font-size:11px; flex:1;">Questions actives</span>
+                    <span style="font-weight:700;">18 / 30</span>
+                  </div>
+                  <div class="row">
+                    <span style="font-size:11px; flex:1;">Pré-remplies</span>
+                    <span style="font-weight:700; color:var(--success);">3</span>
+                  </div>
+                  <div class="row">
+                    <span style="font-size:11px; flex:1;">Avec logique cond.</span>
+                    <span style="font-weight:700; color:var(--purple);">2</span>
+                  </div>
+                  <div class="row">
+                    <span style="font-size:11px; flex:1;">Respondents distincts</span>
+                    <span style="font-weight:700;">3</span>
+                  </div>
+                  <button class="send-btn">Envoyer le questionnaire</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== PART B ======================== -->
+    <div class="section">
+      <div class="section-head">
+        <span class="num">B</span>
+        <h2>Wizard côté client — types étendus + collaboration</h2>
+        <span class="role-pill client">Client</span>
+      </div>
+      <div class="reco-tags">
+        <strong>Intègre :</strong>
+        <span class="reco-tag">Pré-remplissage</span>
+        <span class="reco-tag">"Je ne sais pas"</span>
+        <span class="reco-tag">Types étendus (date, scale, file, organigramme)</span>
+        <span class="reco-tag">Skip logic</span>
+        <span class="reco-tag">Comments inline</span>
+      </div>
+      <div class="section-body">
+        <div class="mock">
+          <div class="mock-head">
+            <span class="breadcrumb">Portail client — Helios Industrie</span>
+            <span style="margin-left:auto; color:var(--text-300);">Wizard mission M-2026-014</span>
+          </div>
+          <div class="mock-body" style="background:#F4F2EE;">
+
+            <!-- Multi-respondent banner -->
+            <div style="max-width:720px; margin:0 auto 12px;">
+              <div class="multi-banner">
+                <div class="avs">
+                  <span class="av">ML</span>
+                  <span class="av">PD</span>
+                  <span class="av">SK</span>
+                </div>
+                <span style="flex:1;"><strong>3 personnes</strong> répondent à ce questionnaire — vous traitez la section <strong>LOG (Sécurité logique)</strong>.</span>
+              </div>
+            </div>
+
+            <!-- Wizard -->
+            <div class="wizard-shell">
+              <div class="wizard-top">
+                <span class="brand">Gëstu<span class="gold">.</span> <span style="font-weight:400; color:var(--text-300); font-size:11px;">· ISO 27001 · Helios</span></span>
+                <span class="save-pill">✓ Sauvegarde auto</span>
+              </div>
+
+              <div class="wprogress">
+                <div class="bar"><div class="fill" style="width:42%"></div></div>
+                <div class="meta">
+                  <span>LOG · Sécurité logique</span>
+                  <span>Q 5/12 répondues · 42%</span>
+                </div>
+              </div>
+
+              <!-- Question 1 : pré-rempli (number) -->
+              <div class="question-card" style="border-bottom:1px solid var(--border);">
+                <div class="q-meta">
+                  <span class="sec-pill">CTX-02</span>
+                  <span>Contexte · question 2/12</span>
+                  <span style="margin-left:auto; background:var(--success-bg); color:var(--success); padding:2px 8px; border-radius:99px; font-weight:700; font-size:10px;">✓ Pré-rempli depuis fiche client</span>
+                </div>
+                <h3>Quel est l'effectif de votre entité ?</h3>
+                <div class="answer-input prefilled">240 collaborateurs</div>
+                <div class="skip-row">
+                  <span class="skip-chip">✎ Modifier</span>
+                  <span style="font-size:10px; color:var(--text-500); align-self:center;">Vous pouvez corriger si la donnée est incorrecte.</span>
+                </div>
+              </div>
+
+              <!-- Question 2 : skip logic -->
+              <div class="question-card" style="border-bottom:1px solid var(--border);">
+                <div class="q-meta">
+                  <span class="sec-pill">GOV-02</span>
+                  <span>Gouvernance · question 4/12</span>
+                </div>
+                <div class="skip-notice">
+                  <strong>Question masquée</strong> — apparaîtra si <code>GOV-01 = Oui (politique SSI formalisée)</code>
+                </div>
+              </div>
+
+              <!-- Question 3 : scale -->
+              <div class="question-card" style="border-bottom:1px solid var(--border);">
+                <div class="q-meta">
+                  <span class="sec-pill">LOG-02</span>
+                  <span>Sécurité logique · question 5/12</span>
+                </div>
+                <h3>Couverture du chiffrement intégral des terminaux (BitLocker, FileVault) ?</h3>
+                <p class="helper">Pourcentage du parc total. <a>Voir la définition</a></p>
+                <div class="scale-row">
+                  <div class="scale-dot"><div class="num">0</div><div class="lbl">Aucun</div></div>
+                  <div class="scale-dot"><div class="num">25</div><div class="lbl">Faible</div></div>
+                  <div class="scale-dot sel"><div class="num">50</div><div class="lbl">Partiel</div></div>
+                  <div class="scale-dot"><div class="num">75</div><div class="lbl">Majoritaire</div></div>
+                  <div class="scale-dot"><div class="num">100</div><div class="lbl">Complet</div></div>
+                </div>
+                <div class="skip-row">
+                  <span class="skip-chip active">À valider avec le RSSI</span>
+                  <span class="skip-chip">Sans objet</span>
+                </div>
+                <!-- Comment thread -->
+                <div class="comment-thread">
+                  <div class="ch">💬 Discussion sur cette question · 1 message</div>
+                  <div class="comment-line">
+                    <span class="av">SO</span>
+                    <div class="body">
+                      <strong>Soumar G.</strong> · auditeur · il y a 2h
+                      <div class="txt">Pouvez-vous préciser si le chiffrement s'applique aussi aux postes BYOD ? Cela change l'interprétation du %.</div>
+                    </div>
+                  </div>
+                  <div class="reply-input">Répondre…</div>
+                </div>
+              </div>
+
+              <!-- Question 4 : date with optional -->
+              <div class="question-card" style="border-bottom:1px solid var(--border);">
+                <div class="q-meta">
+                  <span class="sec-pill">LOG-04</span>
+                  <span>Sécurité logique · question 7/12</span>
+                  <span style="margin-left:auto; background:var(--gold-50); color:var(--gold-700); padding:2px 8px; border-radius:99px; font-weight:700; font-size:10px;">Optionnel</span>
+                </div>
+                <h3>Date du dernier audit de pénétration externe</h3>
+                <div class="answer-input">2024-11-18</div>
+                <div class="skip-row">
+                  <span class="skip-chip">Jamais réalisé</span>
+                  <span class="skip-chip">À valider avec le RSSI</span>
+                </div>
+              </div>
+
+              <!-- Question 5 : file inline -->
+              <div class="question-card" style="border-bottom:1px solid var(--border);">
+                <div class="q-meta">
+                  <span class="sec-pill">LOG-05</span>
+                  <span>Sécurité logique · question 8/12</span>
+                </div>
+                <h3>Pouvez-vous fournir la politique de gestion des accès ?</h3>
+                <p class="helper">Document attendu · sera lié automatiquement à la collecte de preuves Phase 4.</p>
+                <div class="file-zone">
+                  📎 Glissez votre <strong>politique-acces-v2.pdf</strong> ici<br/>
+                  <span style="color:var(--text-500); font-weight:normal; font-size:11px;">ou <a style="color:var(--forest-700); cursor:pointer;">parcourir</a> · max 25 Mo · PDF, DOCX, XLSX</span>
+                </div>
+                <div class="skip-row">
+                  <span class="skip-chip">Document confidentiel — sera transmis sous accord NDA</span>
+                </div>
+              </div>
+
+              <!-- Question 6 : organigramme -->
+              <div class="question-card">
+                <div class="q-meta">
+                  <span class="sec-pill">CTX-05</span>
+                  <span>Contexte · question 12/12</span>
+                </div>
+                <h3>Organigramme DSI / direction Sécurité</h3>
+                <p class="helper">Notre IA extraira automatiquement les acteurs SI pour préparer les entretiens en Phase 3.</p>
+                <div class="file-zone">
+                  📎 Organigramme uploadé · <strong>orga-DSI-2026.pdf</strong><br/>
+                  <span style="color:var(--text-500); font-weight:normal; font-size:11px;">3 acteurs identifiés par IA</span>
+                </div>
+                <div class="orgchart-result">
+                  <div class="actor-line">
+                    <span class="av">ML</span>
+                    <span><strong>Marie Lefèvre</strong> · RSSI · Direction Sécurité</span>
+                    <span style="margin-left:auto; color:var(--success); font-size:10px;">✓ extrait IA</span>
+                  </div>
+                  <div class="actor-line">
+                    <span class="av">PD</span>
+                    <span><strong>Paul Dupont</strong> · Resp. infra · DSI</span>
+                    <span style="margin-left:auto; color:var(--success); font-size:10px;">✓ extrait IA</span>
+                  </div>
+                  <div class="actor-line">
+                    <span class="av">SK</span>
+                    <span><strong>Sophie Konaté</strong> · DPO · Direction Juridique</span>
+                    <span style="margin-left:auto; color:var(--success); font-size:10px;">✓ extrait IA</span>
+                  </div>
+                </div>
+                <div class="skip-row">
+                  <span class="skip-chip">+ Ajouter manuellement</span>
+                  <span class="skip-chip">Ré-extraire</span>
+                </div>
+              </div>
+
+              <div class="question-footer">
+                <button class="ghost-btn">← Précédent</button>
+                <span style="font-size:11px; color:var(--text-300);">Vous êtes responsable de la section LOG · 5/12 répondues</span>
+                <button class="primary-btn">Suivant →</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== PART C ======================== -->
+    <div class="section">
+      <div class="section-head">
+        <span class="num">C</span>
+        <h2>Suivi & collaboration côté auditeur</h2>
+        <span class="role-pill auditeur">Auditeur</span>
+      </div>
+      <div class="reco-tags">
+        <strong>Intègre :</strong>
+        <span class="reco-tag">Auditeur peut commenter</span>
+        <span class="reco-tag">Mode "saisir à la place du client"</span>
+        <span class="reco-tag">Relance ciblée</span>
+        <span class="reco-tag">SLA dashboard</span>
+        <span class="reco-tag">Vue par respondent</span>
+      </div>
+      <div class="section-body">
+        <div class="mock">
+          <div class="mock-head">
+            <span class="breadcrumb">Mission M-2026-014 / Cadrage / Suivi questionnaire</span>
+            <span style="margin-left:auto; color:var(--text-300);">12/18 répondues · échéance dans 5 jours</span>
+          </div>
+          <div class="mock-body">
+            <div class="tracking-grid">
+
+              <!-- Main : tableau réponses -->
+              <div class="panel">
+                <div class="panel-head">
+                  <span style="background:var(--forest-50); color:var(--forest-700); padding:3px 8px; border-radius:4px; font-family:'JetBrains Mono', monospace; font-size:11px;">📋</span>
+                  <span>Réponses du client — Section LOG (Sécurité logique)</span>
+                  <span style="margin-left:auto; font-size:11px; color:var(--text-500);">Filtre : <strong>Paul D. · 5/7 répondues</strong></span>
+                </div>
+
+                <!-- Auditor fill mode banner -->
+                <div class="auditor-fill-mode">
+                  <span style="background:var(--gold-500); color:white; padding:3px 7px; border-radius:4px; font-weight:800; font-size:10px;">⚡ MODE INTERVIEW</span>
+                  <span><strong>Vous saisissez à la place du client</strong> — utile pendant un entretien téléphonique. Les réponses sont marquées "saisies par l'auditeur".</span>
+                </div>
+
+                <div class="response-row">
+                  <span class="code">LOG-01</span>
+                  <div>
+                    <div class="qtext">Solution MFA déployée pour les accès distants ?</div>
+                    <div class="answer">Oui — Microsoft Authenticator déployé en Q3 2025</div>
+                    <div class="meta-row">
+                      <span class="resp-pill evidence">Doc fourni</span>
+                      <span class="resp-pill who">Paul D. · 14/05</span>
+                      <span class="resp-pill ai">IA confiance 92%</span>
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <span class="icon-btn has-comment" title="2 commentaires">💬</span>
+                    <span class="icon-btn relance" title="Relancer cette question">🔔</span>
+                  </div>
+                </div>
+
+                <div class="response-row">
+                  <span class="code">LOG-02</span>
+                  <div>
+                    <div class="qtext">Couverture chiffrement intégral des terminaux ?</div>
+                    <div class="answer">50% (Partiel) <span style="color:var(--gold-700); font-weight:600;">— marqué "À valider avec le RSSI"</span></div>
+                    <div class="meta-row">
+                      <span class="resp-pill" style="background:var(--gold-50); color:var(--gold-700);">À valider en interview</span>
+                      <span class="resp-pill who">Paul D. · 14/05</span>
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <span class="icon-btn has-comment" title="1 commentaire de l'auditeur">💬</span>
+                  </div>
+                </div>
+
+                <div class="response-row">
+                  <span class="code">LOG-03</span>
+                  <div>
+                    <div class="qtext">Politique de gestion des comptes à privilèges</div>
+                    <div class="answer skipped">Le client n'a pas répondu — relance ciblée envoyée hier</div>
+                    <div class="meta-row">
+                      <span class="resp-pill" style="background:var(--error-bg); color:var(--error);">Relancée 1×</span>
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <span class="icon-btn relance" title="Relancer encore">🔔</span>
+                    <span class="icon-btn" title="Saisir moi-même">✏</span>
+                  </div>
+                </div>
+
+                <div class="response-row">
+                  <span class="code">LOG-04</span>
+                  <div>
+                    <div class="qtext">Date dernier audit de pénétration externe</div>
+                    <div class="answer">18 novembre 2024 (par CyberSec Conseil)</div>
+                    <div class="meta-row">
+                      <span class="resp-pill" style="background:var(--gold-50); color:var(--gold-700);">Saisie auditeur</span>
+                      <span class="resp-pill who">Soumar G. · 16/05 — pendant interview</span>
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <span class="icon-btn" title="Modifier">✏</span>
+                  </div>
+                </div>
+
+                <div class="response-row">
+                  <span class="code">LOG-05</span>
+                  <div>
+                    <div class="qtext">Politique de gestion des accès</div>
+                    <div class="answer">📎 politique-acces-v2.pdf (1.2 Mo, fournie par le client)</div>
+                    <div class="meta-row">
+                      <span class="resp-pill evidence">Doc signé</span>
+                      <span class="resp-pill who">Paul D. · 15/05</span>
+                      <span class="resp-pill ai">IA conf. 88% · cohérent avec ISO A.5.15</span>
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <span class="icon-btn" title="Voir le document">👁</span>
+                    <span class="icon-btn" title="Marquer validé">✓</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right rail -->
+              <div>
+
+                <!-- SLA dashboard -->
+                <div class="sla-card" style="margin-bottom:10px;">
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-500); margin-bottom:6px;">⏱ Échéance</div>
+                  <div class="countdown">J-5</div>
+                  <div class="deadline">À soumettre avant le 22 mai 2026</div>
+                  <div style="margin-top:10px; font-size:10px; font-weight:700; color:var(--text-500); text-transform:uppercase;">Relances auto</div>
+                  <div class="relance-row">
+                    <span class="check-mini">✓</span>
+                    <span style="flex:1;">J-7 envoyée</span>
+                    <span style="color:var(--text-500);">15/05</span>
+                  </div>
+                  <div class="relance-row">
+                    <span class="check-mini pending">·</span>
+                    <span style="flex:1;">J-3 (programmée)</span>
+                    <span style="color:var(--text-500);">19/05</span>
+                  </div>
+                  <div class="relance-row">
+                    <span class="check-mini pending">·</span>
+                    <span style="flex:1;">J-1 (urgence)</span>
+                    <span style="color:var(--text-500);">21/05</span>
+                  </div>
+                </div>
+
+                <!-- Per-respondent breakdown -->
+                <div class="sla-card" style="margin-bottom:10px;">
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-500); margin-bottom:8px;">👥 Par respondent</div>
+                  <div style="margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px;">
+                      <span><strong>Marie L.</strong> · RSSI</span>
+                      <span style="color:var(--success); font-weight:700;">11/11 ✓</span>
+                    </div>
+                    <div class="respondent-bar">
+                      <div class="respondent-seg" style="width:100%; background:var(--success);"></div>
+                    </div>
+                  </div>
+                  <div style="margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px;">
+                      <span><strong>Paul D.</strong> · Resp. infra</span>
+                      <span style="color:var(--gold-700); font-weight:700;">5/7</span>
+                    </div>
+                    <div class="respondent-bar">
+                      <div class="respondent-seg" style="width:71%; background:var(--gold-500);"></div>
+                      <div class="respondent-seg" style="width:29%; background:var(--border);"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px;">
+                      <span><strong>Sophie K.</strong> · DPO</span>
+                      <span style="color:var(--error); font-weight:700;">0/3 ⚠</span>
+                    </div>
+                    <div class="respondent-bar">
+                      <div class="respondent-seg" style="width:100%; background:var(--border);"></div>
+                    </div>
+                    <button class="ghost-btn" style="width:100%; margin-top:6px; font-size:11px;">🔔 Relancer Sophie</button>
+                  </div>
+                </div>
+
+                <!-- Quick actions -->
+                <div class="sla-card">
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-500); margin-bottom:8px;">⚡ Actions</div>
+                  <button class="ghost-btn" style="width:100%; font-size:11px; margin-bottom:5px; text-align:left;">📧 Relance générale</button>
+                  <button class="ghost-btn" style="width:100%; font-size:11px; margin-bottom:5px; text-align:left;">⚡ Activer mode interview</button>
+                  <button class="ghost-btn" style="width:100%; font-size:11px; margin-bottom:5px; text-align:left;">📤 Exporter Excel</button>
+                  <button class="ghost-btn" style="width:100%; font-size:11px; text-align:left;">⏸ Mettre en pause SLA</button>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-note">
+      <strong>Récap des changements vs. interface actuelle :</strong><br/><br/>
+      <strong>Partie A · Préparation :</strong> nouvel écran "Personnaliser et envoyer" avec sélection sections / questions, ajout custom, désactivation d'une section hors-scope, multi-respondent par section, échéance et relances auto.<br/><br/>
+      <strong>Partie B · Wizard client :</strong> bandeau multi-respondent indiquant la responsabilité de la section, types étendus (date, scale, file, organigramme), pré-remplissage avec badge confirmable, "À valider RSSI" et "Sans objet", logique conditionnelle visible, comments inline auditeur ↔ client par question.<br/><br/>
+      <strong>Partie C · Suivi auditeur :</strong> tableau actionnable (commenter, relancer ciblé, saisir à la place du client en mode interview, marquer validé), SLA dashboard avec compte à rebours et relances programmées, breakdown par respondent, accès à la pause SLA.<br/><br/>
+      <strong>Effort total estimé :</strong> 6 sprints à exécuter dans cet ordre — 1 (quick wins ~1.5j) → 2 (collaboration auditeur ~2j) → 3 (personnalisation ~3j) → 4 (types étendus ~5j) → 5 (skip logic ~3j) → 6 (multi-respondent ~5j). Total ~20 jours.
+    </div>
+
+  </div>
+</body>
+</html>

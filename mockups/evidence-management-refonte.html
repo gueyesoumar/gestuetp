@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Gestion des preuves (refonte)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F3F3F0; color: #1A1A1A; }
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --border: #E5E7EB;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --success: #27AE60; --error: #C0392B;
+  }
+  .tab-nav { position: sticky; top: 0; z-index: 100; display: flex; background: var(--forest-900); padding: 0 32px; }
+  .tab-btn { padding: 14px 24px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+  .tab-btn.active { color: #fff; border-bottom-color: var(--gold-500); }
+  .panel { display: none; padding: 32px; max-width: 1200px; margin: 0 auto; }
+  .panel.active { display: block; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge-forest { background: var(--forest-100); color: var(--forest-700); }
+  .badge-gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge-success { background: #E8F8EF; color: var(--success); }
+  .badge-error { background: #FDE8E8; color: var(--error); }
+  .badge-gray { background: #F3F4F6; color: var(--text-500); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .option-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; background: var(--gold-50); border: 1px solid var(--gold-200);
+    border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--gold-600);
+    margin-bottom: 20px; line-height: 1.5;
+  }
+  .section-header { font-size: 14px; font-weight: 700; color: var(--text-900); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .filter-btn {
+    padding: 6px 14px; font-size: 11px; font-weight: 500; border-radius: 8px;
+    border: 1px solid var(--border); background: #fff; color: var(--text-500);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--forest-300); }
+  .filter-btn.active { background: var(--forest-700); color: #fff; border-color: var(--forest-700); }
+  .checkbox { width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .checkbox.checked { background: var(--forest-700); border-color: var(--forest-700); }
+  .checkbox.checked::after { content: '✓'; color: #fff; font-size: 10px; font-weight: 700; }
+  .progress-bar { height: 4px; background: #F3F4F6; border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; }
+  .tooltip { position: relative; }
+  .tooltip::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); padding: 4px 8px; background: var(--text-900); color: #fff; font-size: 10px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; margin-bottom: 4px; }
+  .tooltip:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<nav class="tab-nav">
+  <div class="tab-btn active" onclick="showPanel('auditor')">Vue Auditeur &mdash; Suivi des preuves</div>
+  <div class="tab-btn" onclick="showPanel('client')">Vue Client &mdash; Documents demand&eacute;s</div>
+  <div class="tab-btn" onclick="showPanel('compare')">Avant / Apr&egrave;s</div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VUE AUDITEUR — Evidence Tracker refont&eacute;           -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="auditor" class="panel active">
+  <div class="option-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Vue auditeur &mdash; Le catalogue complet est visible, mais l&rsquo;auditeur choisit ce qu&rsquo;il demande au client. Le client ne verra que les preuves explicitement demand&eacute;es.
+  </div>
+
+  <!-- Stats bar -->
+  <div class="card" style="padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; gap:24px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--forest-700)" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      <span style="font-size:13px; font-weight:600; color:var(--text-700);">Suivi des preuves</span>
+    </div>
+    <div style="display:flex; gap:8px; margin-left:auto;">
+      <span class="badge badge-forest">12 demand&eacute;es</span>
+      <span class="badge badge-success">5 re&ccedil;ues</span>
+      <span class="badge badge-gold">7 en attente</span>
+      <span class="badge badge-gray">170 non demand&eacute;es</span>
+    </div>
+  </div>
+
+  <!-- Filters + Bulk action -->
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+    <button class="filter-btn active">Demand&eacute;es <span style="font-size:10px;opacity:0.7;margin-left:2px;">12</span></button>
+    <button class="filter-btn">Catalogue complet <span style="font-size:10px;opacity:0.7;margin-left:2px;">182</span></button>
+    <button class="filter-btn">Re&ccedil;ues <span style="font-size:10px;opacity:0.7;margin-left:2px;">5</span></button>
+    <button class="filter-btn">En attente <span style="font-size:10px;opacity:0.7;margin-left:2px;">7</span></button>
+
+    <div style="margin-left:auto; display:flex; gap:8px;">
+      <button style="padding:6px 14px; font-size:11px; font-weight:600; border-radius:8px; border:1px solid var(--forest-300); background:var(--forest-50); color:var(--forest-700); cursor:pointer; display:flex; align-items:center; gap:4px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        Demander des preuves
+      </button>
+    </div>
+  </div>
+
+  <!-- Domain accordion: A.5 -->
+  <div class="card" style="margin-bottom:12px; overflow:hidden;">
+    <div style="padding:12px 16px; background:var(--forest-50); display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border); cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--forest-700)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.5</span>
+      <span style="font-size:12px; font-weight:600; color:var(--text-700);">Politiques de s&eacute;curit&eacute;</span>
+      <div style="margin-left:auto; display:flex; gap:6px;">
+        <span class="badge badge-forest" style="font-size:10px;">4 demand&eacute;es</span>
+        <span class="badge badge-success" style="font-size:10px;">2 re&ccedil;ues</span>
+      </div>
+    </div>
+
+    <!-- Row: demanded + received -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB; background:#FCFDF9;">
+      <div class="checkbox checked"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-900);">Politique de s&eacute;curit&eacute; de l&rsquo;information approuv&eacute;e</span>
+        <span style="font-size:10px; color:var(--text-300); margin-left:8px;">Document sign&eacute; par la direction</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.1</span>
+      <span style="font-size:10px; font-weight:500; color:var(--success); display:flex; align-items:center; gap:3px;">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        PSSI_v3.pdf
+      </span>
+      <span class="badge badge-success" style="font-size:9px;">Re&ccedil;u</span>
+    </div>
+
+    <!-- Row: demanded + received -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB; background:#FCFDF9;">
+      <div class="checkbox checked"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><circle cx="12" cy="12"/><path d="M9 12l2 2 4-4"/></svg>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-900);">Preuve de diffusion aux collaborateurs</span>
+        <span style="font-size:10px; color:var(--text-300); margin-left:8px;">Email, accus&eacute; de r&eacute;ception ou PV</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.1</span>
+      <span style="font-size:10px; font-weight:500; color:var(--success); display:flex; align-items:center; gap:3px;">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        diffusion_PSSI.pdf
+      </span>
+      <span class="badge badge-success" style="font-size:9px;">Re&ccedil;u</span>
+    </div>
+
+    <!-- Row: demanded + pending -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB;">
+      <div class="checkbox checked"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-900);">PV de revue p&eacute;riodique de la politique</span>
+        <span style="font-size:10px; color:var(--text-300); margin-left:8px;">Compte-rendu de la derni&egrave;re revue</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.1</span>
+      <span class="badge badge-gold" style="font-size:9px;">En attente</span>
+    </div>
+
+    <!-- Row: demanded + pending -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB;">
+      <div class="checkbox checked"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-900);">Organigramme avec r&ocirc;les s&eacute;curit&eacute;</span>
+        <span style="font-size:10px; color:var(--text-300); margin-left:8px;">Organigramme identifiant le RSSI et responsables</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.2</span>
+      <span class="badge badge-gold" style="font-size:9px;">En attente</span>
+    </div>
+  </div>
+
+  <!-- Domain accordion: A.8 (collapsed but showing "Catalogue complet" view) -->
+  <div class="card" style="margin-bottom:12px; overflow:hidden;">
+    <div style="padding:12px 16px; background:var(--forest-50); display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border); cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--forest-700)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.8</span>
+      <span style="font-size:12px; font-weight:600; color:var(--text-700);">Gestion des actifs</span>
+      <div style="margin-left:auto; display:flex; gap:6px;">
+        <span class="badge badge-forest" style="font-size:10px;">3 demand&eacute;es</span>
+        <span class="badge badge-success" style="font-size:10px;">1 re&ccedil;ue</span>
+        <span class="badge badge-gray" style="font-size:10px;">5 non demand&eacute;es</span>
+      </div>
+    </div>
+
+    <!-- Row: demanded + received -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB; background:#FCFDF9;">
+      <div class="checkbox checked"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500;">Inventaire des actifs informationnels</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.8.1</span>
+      <span style="font-size:10px; font-weight:500; color:var(--success);">inventaire_SI.xlsx</span>
+      <span class="badge badge-success" style="font-size:9px;">Re&ccedil;u</span>
+    </div>
+
+    <!-- Row: demanded + pending -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB;">
+      <div class="checkbox checked"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500;">R&egrave;gles de classification des actifs</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.8.2</span>
+      <span class="badge badge-gold" style="font-size:9px;">En attente</span>
+    </div>
+
+    <!-- Row: demanded + pending -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB;">
+      <div class="checkbox checked"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500;">Proc&eacute;dure de gestion des supports amovibles</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.8.3</span>
+      <span class="badge badge-gold" style="font-size:9px;">En attente</span>
+    </div>
+
+    <!-- Separator: non-demanded items -->
+    <div style="padding:6px 16px; background:#FAFAFA; border-bottom:1px solid #F3F4F6; border-top:1px solid #F3F4F6;">
+      <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-300);">Non demand&eacute;es &mdash; catalogue</span>
+    </div>
+
+    <!-- Row: NOT demanded (greyed out, with checkbox to select) -->
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB; opacity:0.5;">
+      <div class="checkbox"></div>
+      <div style="width:14px;"></div>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-300);">Proc&eacute;dure de restitution des actifs en fin de contrat</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:#F3F4F6; color:var(--text-300); padding:2px 6px; border-radius:4px;">A.8.1</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB; opacity:0.5;">
+      <div class="checkbox"></div>
+      <div style="width:14px;"></div>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-300);">Politique d&rsquo;utilisation acceptable des actifs</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:#F3F4F6; color:var(--text-300); padding:2px 6px; border-radius:4px;">A.8.1</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB; opacity:0.5;">
+      <div class="checkbox"></div>
+      <div style="width:14px;"></div>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-300);">Registre des propri&eacute;taires d&rsquo;actifs</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:#F3F4F6; color:var(--text-300); padding:2px 6px; border-radius:4px;">A.8.1</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F9FAFB; opacity:0.5;">
+      <div class="checkbox"></div>
+      <div style="width:14px;"></div>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-300);">Proc&eacute;dure d&rsquo;&eacute;limination s&eacute;curis&eacute;e des m&eacute;dias</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:#F3F4F6; color:var(--text-300); padding:2px 6px; border-radius:4px;">A.8.3</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; opacity:0.5;">
+      <div class="checkbox"></div>
+      <div style="width:14px;"></div>
+      <div style="flex:1;">
+        <span style="font-size:12px; font-weight:500; color:var(--text-300);">Proc&eacute;dure de transfert s&eacute;curis&eacute; des supports</span>
+      </div>
+      <span class="mono" style="font-size:9px; font-weight:600; background:#F3F4F6; color:var(--text-300); padding:2px 6px; border-radius:4px;">A.8.3</span>
+    </div>
+  </div>
+
+  <!-- Floating action bar when checkboxes are selected -->
+  <div class="card" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 20px; display:flex; align-items:center; gap:16px; box-shadow:0 8px 32px rgba(0,0,0,0.12); border-radius:12px; z-index:50;">
+    <span style="font-size:12px; font-weight:500; color:var(--text-500);">
+      <span style="font-weight:700; color:var(--forest-700);">3</span> preuves s&eacute;lectionn&eacute;es
+    </span>
+    <button style="padding:8px 18px; font-size:12px; font-weight:600; border-radius:8px; border:none; background:var(--forest-700); color:#fff; cursor:pointer; display:flex; align-items:center; gap:6px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      Demander au client
+    </button>
+    <button style="padding:8px 14px; font-size:12px; font-weight:500; border-radius:8px; border:1px solid var(--border); background:#fff; color:var(--text-500); cursor:pointer;">
+      Annuler
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VUE CLIENT — Documents demand&eacute;s uniquement        -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="client" class="panel">
+  <div class="option-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Vue client &mdash; Le client ne voit que les documents explicitement demand&eacute;s par l&rsquo;auditeur. Liste courte et actionnable.
+  </div>
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+    <div>
+      <h2 style="font-size:16px; font-weight:700;">Documents demand&eacute;s</h2>
+      <p style="font-size:12px; color:var(--text-300); margin-top:4px;">L&rsquo;&eacute;quipe d&rsquo;audit a besoin des documents suivants pour avancer.</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <span class="badge badge-success">5 d&eacute;pos&eacute;s</span>
+      <span class="badge badge-gold">7 en attente</span>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="card" style="padding:14px 20px; margin-bottom:20px; display:flex; align-items:center; gap:16px;">
+    <div style="flex:1;">
+      <div class="progress-bar" style="height:6px;">
+        <div class="progress-fill" style="width:42%; background:var(--forest-500);"></div>
+      </div>
+    </div>
+    <span style="font-size:13px; font-weight:700; color:var(--forest-700);">5 / 12</span>
+    <span style="font-size:11px; color:var(--text-300);">documents fournis</span>
+  </div>
+
+  <!-- Pending docs (action needed) -->
+  <div style="margin-bottom:24px;">
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:12px;">
+      <div style="width:8px; height:8px; border-radius:50%; background:var(--gold-500);"></div>
+      <span style="font-size:12px; font-weight:600; color:var(--text-700);">En attente de votre part</span>
+      <span class="badge badge-gold">7</span>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <!-- Pending doc card -->
+      <div class="card" style="padding:14px; border-left:3px solid var(--gold-500);">
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2" style="margin-top:2px; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:12px; font-weight:600; color:var(--text-900);">PV de revue p&eacute;riodique de la politique</p>
+            <p style="font-size:10px; color:var(--text-300); margin-top:3px;">Compte-rendu de la derni&egrave;re revue</p>
+            <div style="display:flex; gap:4px; margin-top:6px;">
+              <span class="mono" style="font-size:8px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.1</span>
+            </div>
+          </div>
+          <button style="padding:6px 12px; background:var(--forest-700); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0;">D&eacute;poser</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:14px; border-left:3px solid var(--gold-500);">
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2" style="margin-top:2px; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:12px; font-weight:600; color:var(--text-900);">Organigramme avec r&ocirc;les s&eacute;curit&eacute;</p>
+            <p style="font-size:10px; color:var(--text-300); margin-top:3px;">Organigramme identifiant le RSSI et responsables</p>
+            <div style="display:flex; gap:4px; margin-top:6px;">
+              <span class="mono" style="font-size:8px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.2</span>
+            </div>
+          </div>
+          <button style="padding:6px 12px; background:var(--forest-700); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0;">D&eacute;poser</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:14px; border-left:3px solid var(--gold-500);">
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2" style="margin-top:2px; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:12px; font-weight:600; color:var(--text-900);">R&egrave;gles de classification des actifs</p>
+            <p style="font-size:10px; color:var(--text-300); margin-top:3px;">Document d&eacute;finissant les niveaux de classification</p>
+            <div style="display:flex; gap:4px; margin-top:6px;">
+              <span class="mono" style="font-size:8px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.8.2</span>
+            </div>
+          </div>
+          <button style="padding:6px 12px; background:var(--forest-700); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0;">D&eacute;poser</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:14px; border-left:3px solid var(--gold-500);">
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2" style="margin-top:2px; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:12px; font-weight:600; color:var(--text-900);">Proc&eacute;dure de gestion des supports amovibles</p>
+            <div style="display:flex; gap:4px; margin-top:6px;">
+              <span class="mono" style="font-size:8px; font-weight:600; background:var(--forest-50); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.8.3</span>
+            </div>
+          </div>
+          <button style="padding:6px 12px; background:var(--forest-700); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0;">D&eacute;poser</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Received docs -->
+  <div>
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:12px;">
+      <div style="width:8px; height:8px; border-radius:50%; background:var(--success);"></div>
+      <span style="font-size:12px; font-weight:600; color:var(--text-700);">Documents fournis</span>
+      <span class="badge badge-success">5</span>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="card" style="padding:14px; background:var(--forest-50); border-color:#C8E6C9;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:12px; font-weight:500; color:var(--text-700);">Politique de s&eacute;curit&eacute; de l&rsquo;information approuv&eacute;e</p>
+            <p style="font-size:10px; color:var(--success); margin-top:3px; display:flex; align-items:center; gap:3px;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              PSSI_v3.pdf
+            </p>
+          </div>
+          <span class="mono" style="font-size:8px; font-weight:600; background:var(--forest-100); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.1</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:14px; background:var(--forest-50); border-color:#C8E6C9;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:12px; font-weight:500; color:var(--text-700);">Preuve de diffusion aux collaborateurs</p>
+            <p style="font-size:10px; color:var(--success); margin-top:3px; display:flex; align-items:center; gap:3px;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              diffusion_PSSI.pdf
+            </p>
+          </div>
+          <span class="mono" style="font-size:8px; font-weight:600; background:var(--forest-100); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.5.1</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:14px; background:var(--forest-50); border-color:#C8E6C9;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:12px; font-weight:500; color:var(--text-700);">Inventaire des actifs informationnels</p>
+            <p style="font-size:10px; color:var(--success); margin-top:3px; display:flex; align-items:center; gap:3px;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              inventaire_SI.xlsx
+            </p>
+          </div>
+          <span class="mono" style="font-size:8px; font-weight:600; background:var(--forest-100); color:var(--forest-700); padding:2px 6px; border-radius:4px;">A.8.1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- AVANT / APR&Egrave;S                                     -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="compare" class="panel">
+  <div class="option-label" style="width:100%;">
+    Comparaison &mdash; Le probl&egrave;me actuel et la solution propos&eacute;e
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <!-- BEFORE -->
+    <div>
+      <div style="padding:10px 16px; background:var(--error); color:#fff; font-size:13px; font-weight:700; border-radius:10px 10px 0 0; text-align:center;">
+        &#x2717; AVANT &mdash; Probl&egrave;me actuel
+      </div>
+      <div class="card" style="border-radius:0 0 10px 10px; padding:20px;">
+        <p style="font-size:13px; font-weight:600; margin-bottom:12px; color:var(--error);">Le client voit les 182 documents du catalogue</p>
+
+        <div style="padding:12px; background:#FDE8E8; border-radius:8px; margin-bottom:12px;">
+          <p style="font-size:12px; font-weight:600; color:var(--error); margin-bottom:6px;">Probl&egrave;mes :</p>
+          <ul style="font-size:11px; color:var(--text-700); list-style:none; display:flex; flex-direction:column; gap:6px;">
+            <li>&#x26A0; <b>182 documents</b> affich&eacute;s, dont ~170 inutiles pour cette mission</li>
+            <li>&#x26A0; Le client est submerg&eacute; et ne sait pas par o&ugrave; commencer</li>
+            <li>&#x26A0; Pas de distinction entre &laquo; demand&eacute; &raquo; et &laquo; catalogue &raquo;</li>
+            <li>&#x26A0; <code>mission_evidence_requests</code> existe mais n&rsquo;est pas utilis&eacute; comme filtre</li>
+            <li>&#x26A0; Le KPI &laquo; 8/182 documents &raquo; est anxiog&egrave;ne (faux 4%)</li>
+          </ul>
+        </div>
+
+        <div style="font-size:11px; color:var(--text-500); padding:10px; background:#F9FAFB; border-radius:8px;">
+          <b>Flux actuel :</b><br/>
+          evidence_catalog (182 items) &rarr; affich&eacute; tel quel au client<br/>
+          mission_evidence_requests &rarr; <span style="color:var(--error); font-weight:600;">ignor&eacute;</span>
+        </div>
+
+        <div style="margin-top:16px; padding:12px; border:2px dashed var(--border); border-radius:8px; text-align:center;">
+          <p style="font-size:28px; font-weight:800; color:var(--error);">8 / 182</p>
+          <p style="font-size:11px; color:var(--text-300);">Le client voit un taux de 4% alors qu&rsquo;il a fourni tout ce qu&rsquo;on lui a demand&eacute;</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div>
+      <div style="padding:10px 16px; background:var(--success); color:#fff; font-size:13px; font-weight:700; border-radius:10px 10px 0 0; text-align:center;">
+        &#x2713; APR&Egrave;S &mdash; Solution propos&eacute;e
+      </div>
+      <div class="card" style="border-radius:0 0 10px 10px; padding:20px;">
+        <p style="font-size:13px; font-weight:600; margin-bottom:12px; color:var(--success);">Le client ne voit que ce qu&rsquo;on lui demande</p>
+
+        <div style="padding:12px; background:#E8F8EF; border-radius:8px; margin-bottom:12px;">
+          <p style="font-size:12px; font-weight:600; color:var(--success); margin-bottom:6px;">Am&eacute;liorations :</p>
+          <ul style="font-size:11px; color:var(--text-700); list-style:none; display:flex; flex-direction:column; gap:6px;">
+            <li>&#x2713; L&rsquo;auditeur <b>s&eacute;lectionne</b> les preuves pertinentes depuis le catalogue</li>
+            <li>&#x2713; Le client ne voit que les <b>12 documents demand&eacute;s</b></li>
+            <li>&#x2713; Liste courte, actionnable, avec boutons &laquo; D&eacute;poser &raquo;</li>
+            <li>&#x2713; <code>mission_evidence_requests</code> utilis&eacute; comme <b>filtre</b></li>
+            <li>&#x2713; Le KPI &laquo; 5/12 documents &raquo; est r&eacute;aliste et motivant</li>
+          </ul>
+        </div>
+
+        <div style="font-size:11px; color:var(--text-500); padding:10px; background:#F9FAFB; border-radius:8px;">
+          <b>Nouveau flux :</b><br/>
+          evidence_catalog (182) &rarr; <span style="color:var(--forest-700); font-weight:600;">auditeur s&eacute;lectionne</span> &rarr; mission_evidence_requests (12)<br/>
+          Client ne voit que &rarr; <span style="color:var(--success); font-weight:600;">mission_evidence_requests</span>
+        </div>
+
+        <div style="margin-top:16px; padding:12px; border:2px solid var(--forest-300); border-radius:8px; text-align:center; background:var(--forest-50);">
+          <p style="font-size:28px; font-weight:800; color:var(--forest-700);">5 / 12</p>
+          <p style="font-size:11px; color:var(--forest-500);">Le client voit un taux de 42% &mdash; clair, motiv&eacute;, actionnable</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = {auditor:0, client:1, compare:2}[id];
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+// Toggle checkboxes
+document.querySelectorAll('.checkbox').forEach(cb => {
+  cb.addEventListener('click', () => cb.classList.toggle('checked'));
+});
+</script>
+</body>
+</html>

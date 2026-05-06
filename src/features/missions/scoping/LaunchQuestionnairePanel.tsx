@@ -3,6 +3,7 @@ import { Send, Calendar, Sparkles, Plus, X, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useTemplateQuestions } from './useTemplateQuestions'
 import { useClientContacts } from './useClientContacts'
+import { AiSuggestPanel, type AiSuggestion } from './AiSuggestPanel'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { Question } from '../../../types/database.types'
@@ -22,6 +23,7 @@ interface CustomQuestion {
   question_type: QuestionTypeLite
   options: string[] | null
   is_required: boolean
+  section: string | null
 }
 
 const SECTION_LABELS: Record<string, string> = {
@@ -67,8 +69,9 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
   const [hydrated, setHydrated] = useState(false)
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([])
   const [showCustomForm, setShowCustomForm] = useState(false)
+  const [showAiPanel, setShowAiPanel] = useState(false)
   const [customDraft, setCustomDraft] = useState<CustomQuestion>({
-    code: '', text: '', question_type: 'textarea', options: null, is_required: false,
+    code: '', text: '', question_type: 'textarea', options: null, is_required: false, section: null,
   })
   const [dueDate, setDueDate] = useState<string>(defaultDueDate)
   const [sectionAssignees, setSectionAssignees] = useState<Record<string, string>>({})
@@ -82,6 +85,19 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
   }
 
   const sections = useMemo(() => groupBySection(questions), [questions])
+
+  const customsBySection = useMemo(() => {
+    const map = new Map<string, CustomQuestion[]>()
+    for (const cq of customQuestions) {
+      const key = cq.section ?? '__none__'
+      const list = map.get(key) ?? []
+      list.push(cq)
+      map.set(key, list)
+    }
+    return map
+  }, [customQuestions])
+
+  const standaloneCustoms = customsBySection.get('__none__') ?? []
 
   const totalIncluded = includedCodes.size + customQuestions.length
 
@@ -111,13 +127,46 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
   const handleAddCustom = () => {
     if (customDraft.code.trim().length === 0 || customDraft.text.trim().length === 0) return
     setCustomQuestions((prev) => [...prev, { ...customDraft }])
-    setCustomDraft({ code: '', text: '', question_type: 'textarea', options: null, is_required: false })
+    setCustomDraft({ code: '', text: '', question_type: 'textarea', options: null, is_required: false, section: null })
     setShowCustomForm(false)
   }
 
   const handleRemoveCustom = (code: string) => {
     setCustomQuestions((prev) => prev.filter((q) => q.code !== code))
   }
+
+  const handleAddFromAi = (picked: AiSuggestion[]) => {
+    const existing = new Set(customQuestions.map((q) => q.code.toUpperCase()))
+    const additions: CustomQuestion[] = []
+    for (const s of picked) {
+      let code = s.code.toUpperCase()
+      let n = 1
+      while (existing.has(code)) {
+        code = `${s.code.toUpperCase()}-${n++}`
+      }
+      existing.add(code)
+      additions.push({
+        code,
+        text: s.text,
+        question_type: s.question_type,
+        options: null,
+        is_required: false,
+        section: s.section,
+      })
+    }
+    setCustomQuestions((prev) => [...prev, ...additions])
+    setShowAiPanel(false)
+  }
+
+  const sectionsForAi = useMemo(
+    () => [...sections.keys()].map((code) => ({ code, label: SECTION_LABELS[code] })),
+    [sections]
+  )
+
+  const allExistingCodes = useMemo(
+    () => [...questions.map((q) => q.code), ...customQuestions.map((q) => q.code)],
+    [questions, customQuestions]
+  )
 
   const handleLaunch = async (): Promise<void> => {
     setLaunching(true)
@@ -233,21 +282,36 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
                       </button>
                     )
                   })}
+                  {(customsBySection.get(prefix) ?? []).map((cq) => (
+                    <div key={cq.code} className="flex items-start gap-2.5 px-3 py-2 border-b border-gray-50 last:border-b-0 bg-gold-50/40">
+                      <span className="mt-0.5 w-4 h-4 rounded border-1.5 bg-gold-500 border-gold-500 flex items-center justify-center shrink-0">
+                        <Check size={11} className="text-white" />
+                      </span>
+                      <span className="font-mono text-[10px] font-bold text-gold-700 mt-0.5 shrink-0 w-14">{cq.code}</span>
+                      <span className="flex-1 text-[12px] text-gray-700">{cq.text}</span>
+                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-gold-50 text-gold-700 border border-gold-300 mt-0.5">
+                        custom
+                      </span>
+                      <button onClick={() => handleRemoveCustom(cq.code)} className="text-gray-300 hover:text-red-500" aria-label="Retirer">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )
           })}
 
-          {/* Custom questions */}
-          {customQuestions.length > 0 && (
+          {/* Custom questions sans section */}
+          {standaloneCustoms.length > 0 && (
             <div className="border border-gold-300 rounded-lg overflow-hidden">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gold-50 border-b border-gold-200">
                 <span className="text-[10px] font-bold text-gold-700 bg-gold-100 px-2 py-0.5 rounded font-mono">CUSTOM</span>
-                <span className="text-[12px] font-semibold text-gold-700 flex-1">Questions custom mission</span>
-                <span className="text-[10px] font-semibold text-gold-700">{customQuestions.length}</span>
+                <span className="text-[12px] font-semibold text-gold-700 flex-1">Questions hors section</span>
+                <span className="text-[10px] font-semibold text-gold-700">{standaloneCustoms.length}</span>
               </div>
               <div>
-                {customQuestions.map((cq) => (
+                {standaloneCustoms.map((cq) => (
                   <div key={cq.code} className="flex items-start gap-2.5 px-3 py-2 border-b border-gold-100 last:border-b-0">
                     <span className="mt-0.5 w-4 h-4 rounded border-1.5 bg-gold-500 border-gold-500 flex items-center justify-center shrink-0">
                       <Check size={11} className="text-white" />
@@ -273,13 +337,26 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
             <div className="border-2 border-dashed border-gold-300 rounded-lg p-3 bg-gold-50/40">
               <p className="text-[11px] font-bold text-gold-700 uppercase tracking-wide mb-2">Nouvelle question custom</p>
               <div className="space-y-2">
-                <input
-                  type="text"
-                  value={customDraft.code}
-                  onChange={(e) => setCustomDraft({ ...customDraft, code: e.target.value })}
-                  placeholder="Code (ex: SECU-CLOUD-1)"
-                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded text-[12px] font-mono outline-none focus:border-gold-500"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={customDraft.code}
+                    onChange={(e) => setCustomDraft({ ...customDraft, code: e.target.value })}
+                    placeholder="Code court (ex: SOC-1)"
+                    className="flex-1 px-2.5 py-1.5 border border-gray-200 rounded text-[12px] font-mono outline-none focus:border-gold-500"
+                  />
+                  <select
+                    value={customDraft.section ?? ''}
+                    onChange={(e) => setCustomDraft({ ...customDraft, section: e.target.value === '' ? null : e.target.value })}
+                    className="px-2 py-1.5 border border-gray-200 rounded text-[11px] outline-none focus:border-gold-500"
+                    title="Rattacher la question a une section du questionnaire"
+                  >
+                    <option value="">Hors section</option>
+                    {[...sections.keys()].map((prefix) => (
+                      <option key={prefix} value={prefix}>{prefix} &middot; {SECTION_LABELS[prefix] ?? prefix}</option>
+                    ))}
+                  </select>
+                </div>
                 <textarea
                   value={customDraft.text}
                   onChange={(e) => setCustomDraft({ ...customDraft, text: e.target.value })}
@@ -322,13 +399,22 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
               </div>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => setShowCustomForm(true)}
-              className="w-full border-2 border-dashed border-gold-300 rounded-lg py-2.5 text-[12px] font-semibold text-gold-700 hover:bg-gold-50 transition-colors inline-flex items-center justify-center gap-1.5"
-            >
-              <Plus size={13} /> Ajouter une question custom
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCustomForm(true)}
+                className="border-2 border-dashed border-gold-300 rounded-lg py-2.5 text-[12px] font-semibold text-gold-700 hover:bg-gold-50 transition-colors inline-flex items-center justify-center gap-1.5"
+              >
+                <Plus size={13} /> Ajouter manuellement
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAiPanel(true)}
+                className="border-2 border-dashed border-forest-300 rounded-lg py-2.5 text-[12px] font-semibold text-forest-700 hover:bg-forest-50 transition-colors inline-flex items-center justify-center gap-1.5"
+              >
+                <Sparkles size={13} /> Suggérer avec l&apos;IA
+              </button>
+            </div>
           )}
         </div>
 
@@ -354,6 +440,17 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
           </button>
         </div>
       </div>
+
+      {showAiPanel && (
+        <AiSuggestPanel
+          missionId={missionId}
+          frameworkId={frameworkId}
+          sections={sectionsForAi}
+          existingCodes={allExistingCodes}
+          onAdd={handleAddFromAi}
+          onClose={() => setShowAiPanel(false)}
+        />
+      )}
     </div>
   )
 }

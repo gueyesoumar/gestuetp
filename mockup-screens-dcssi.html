@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup Screens DCSSI — Gestu Comply</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: { colors: {
+  forest: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 500:'#22c55e', 600:'#16a34a', 700:'#1B4332', 800:'#14532d', 900:'#0f3d2a' },
+  gold: { 200:'#fef3c7', 400:'#facc15', 500:'#D4A843', 600:'#ca8a04' },
+}}}}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#f8faf9; }
+.screen { display:none; }
+.screen.active { display:flex; }
+.sidebar { width:240px; background:#0f3d2a; color:white; flex-shrink:0; display:flex; flex-direction:column; min-height:100vh; }
+.sidebar .nav-item { display:flex; align-items:center; gap:12px; padding:10px 14px; margin:2px 12px; border-radius:10px; font-size:13px; font-weight:500; color:rgba(255,255,255,0.45); cursor:pointer; transition:all 0.15s; position:relative; }
+.sidebar .nav-item:hover { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.8); }
+.sidebar .nav-item.active { background:rgba(255,255,255,0.12); color:white; }
+.sidebar .nav-item.active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:20px; background:#D4A843; border-radius:0 3px 3px 0; }
+.main { flex:1; overflow-y:auto; padding:24px 32px; }
+.badge { display:inline-flex; align-items:center; padding:2px 10px; border-radius:9999px; font-size:11px; font-weight:600; }
+.badge-green { background:#dcfce7; color:#166534; }
+.badge-gold { background:#fef3c7; color:#92400e; }
+.badge-red { background:#fee2e2; color:#991b1b; }
+.badge-blue { background:#dbeafe; color:#1e40af; }
+.badge-gray { background:#f3f4f6; color:#6b7280; }
+.bar { height:8px; border-radius:4px; background:#e5e7eb; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; }
+.hc { width:48px; height:32px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; border-radius:6px; }
+.hc-g { background:#dcfce7; color:#166534; }
+.hc-o { background:#fef3c7; color:#92400e; }
+.hc-r { background:#fee2e2; color:#991b1b; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- SCREEN 1: SUPERVISION                                        -->
+<!-- ============================================================ -->
+<div id="supervision" class="screen active" style="display:flex;">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:10px;">
+      <svg width="22" height="26" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="none" stroke="#D4A843" stroke-width="1.5"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 13C16 13 12 17.5 12 23.5" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div><div style="font-size:15px; font-weight:800;">G<span style="position:relative;">e<span style="position:absolute;left:50%;transform:translateX(-50%);top:-1px;display:flex;gap:2px;"><span style="width:2.5px;height:2.5px;border-radius:50%;background:#D4A843;"></span><span style="width:2.5px;height:2.5px;border-radius:50%;background:#D4A843;"></span></span></span>stu</div><div style="font-size:8px;font-weight:600;color:#D4A843;letter-spacing:2px;text-transform:uppercase;">COMPLY</div></div>
+    </div>
+    <div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+      <div class="nav-item" style="color:rgba(255,255,255,0.3);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Hub ETP</div>
+    </div>
+    <nav style="flex:1; padding:8px 0;">
+      <div class="nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg> Tableau de bord</div>
+      <div class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg> Supervision</div>
+      <div class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg> Clients</div>
+      <div class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg> Référentiels</div>
+      <div class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Missions</div>
+    </nav>
+    <div style="border-top:1px solid rgba(255,255,255,0.1); padding:12px 16px; display:flex; align-items:center; gap:10px;">
+      <div style="width:32px; height:32px; border-radius:50%; background:#1B4332; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">DC</div>
+      <div><div style="font-size:12px; font-weight:600;">DCSSI</div><div style="font-size:10px; color:rgba(255,255,255,0.35);">superviseur@dcssi.gouv.sn</div></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
+      <div>
+        <h1 style="font-size:20px; font-weight:700; color:#111827;">Supervision</h1>
+        <p style="font-size:13px; color:#6b7280; margin-top:2px;">Vue consolidée de la conformité par référentiel et périmètre</p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button style="display:flex; align-items:center; gap:6px; border:1px solid #e5e7eb; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:500; color:#374151; background:white; cursor:pointer;">Exporter</button>
+        <button style="display:flex; align-items:center; gap:6px; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:500; color:white; background:#1B4332; cursor:pointer;">Générer le rapport</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:20px;">
+      <div style="display:flex; gap:16px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:220px;">
+          <div style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Référentiel</div>
+          <div style="border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:13px; font-weight:500; color:#111827; background:white;">PSSI-ES — Sénégal v2017</div>
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <div style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Périmètre</div>
+          <div style="border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:13px; font-weight:500; color:#111827;">Toutes les entités (7)</div>
+        </div>
+        <div style="min-width:160px;">
+          <div style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Période</div>
+          <div style="border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:13px; font-weight:500; color:#111827;">2025-2026</div>
+        </div>
+      </div>
+      <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+        <span class="badge badge-green" style="gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> PSSI-ES — 11 domaines, 155 contrôles</span>
+        <span style="font-size:11px; color:#9ca3af;">Commission Nationale de Cryptologie / Présidence de la République</span>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px;">
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+        <div style="font-size:11px; font-weight:500; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Entités auditées</div>
+        <div style="font-size:28px; font-weight:800; color:#111827; margin-top:8px;">7</div>
+        <div style="display:flex; gap:4px; margin-top:8px; flex-wrap:wrap;">
+          <span class="badge badge-green">2 conformes</span>
+          <span class="badge badge-gold">3 partiels</span>
+          <span class="badge badge-red">2 non conformes</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+        <div style="font-size:11px; font-weight:500; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Conformité moyenne</div>
+        <div style="font-size:28px; font-weight:800; color:#D4A843; margin-top:8px;">64%</div>
+        <div class="bar" style="margin-top:8px;"><div class="bar-fill" style="width:64%; background:#D4A843;"></div></div>
+        <div style="font-size:10px; color:#9ca3af; margin-top:4px;">Seuil cible : 80%</div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+        <div style="font-size:11px; font-weight:500; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">NC majeures ouvertes</div>
+        <div style="font-size:28px; font-weight:800; color:#dc2626; margin-top:8px;">31</div>
+        <div style="display:flex; gap:4px; margin-top:8px;">
+          <span class="badge badge-red">18 ouvertes</span>
+          <span class="badge badge-gold">9 en cours</span>
+          <span class="badge badge-green">4 résolues</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+        <div style="font-size:11px; font-weight:500; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Audits en cours</div>
+        <div style="font-size:28px; font-weight:800; color:#1B4332; margin-top:8px;">3</div>
+        <div style="display:flex; gap:4px; margin-top:8px;">
+          <span class="badge badge-green">1 terrain</span>
+          <span class="badge badge-blue">1 revue</span>
+          <span class="badge badge-gray">1 planif.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex; gap:24px; border-bottom:1px solid #e5e7eb; margin-bottom:20px;">
+      <span style="padding-bottom:12px; font-size:13px; font-weight:600; color:#1B4332; border-bottom:2px solid #1B4332;">Classement</span>
+      <span style="padding-bottom:12px; font-size:13px; color:#9ca3af;">Heatmap</span>
+      <span style="padding-bottom:12px; font-size:13px; color:#9ca3af;">Risques systémiques</span>
+      <span style="padding-bottom:12px; font-size:13px; color:#9ca3af;">Évolution</span>
+      <span style="padding-bottom:12px; font-size:13px; color:#9ca3af;">Rapport</span>
+    </div>
+
+    <!-- Ranking Table -->
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+            <th style="text-align:left; padding:12px 16px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px; width:30px;">#</th>
+            <th style="text-align:left; padding:12px 8px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;">Entité</th>
+            <th style="text-align:left; padding:12px 8px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;">Secteur</th>
+            <th style="text-align:left; padding:12px 8px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;">Score</th>
+            <th style="text-align:left; padding:12px 8px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase; width:160px;">Conformité</th>
+            <th style="text-align:left; padding:12px 8px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;">NC maj.</th>
+            <th style="text-align:left; padding:12px 8px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;">Dernier audit</th>
+            <th style="text-align:left; padding:12px 8px; font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;">Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:12px 16px; color:#9ca3af; font-family:monospace; font-size:11px;">1</td><td style="padding:12px 8px; font-weight:600; color:#111827;">Min. des Forces Armées</td><td style="padding:12px 8px; color:#6b7280;">Présidence</td><td style="padding:12px 8px; font-weight:700; color:#166534;">85%</td><td style="padding:12px 8px;"><div class="bar"><div class="bar-fill" style="width:85%; background:#22c55e;"></div></div></td><td style="padding:12px 8px;"><span class="badge badge-green">1</span></td><td style="padding:12px 8px; color:#6b7280;">Mars 2026</td><td style="padding:12px 8px;"><span class="badge badge-green">Conforme</span></td></tr>
+          <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:12px 16px; color:#9ca3af; font-family:monospace; font-size:11px;">2</td><td style="padding:12px 8px; font-weight:600; color:#111827;">ADIE</td><td style="padding:12px 8px; color:#6b7280;">Présidence</td><td style="padding:12px 8px; font-weight:700; color:#166534;">81%</td><td style="padding:12px 8px;"><div class="bar"><div class="bar-fill" style="width:81%; background:#22c55e;"></div></div></td><td style="padding:12px 8px;"><span class="badge badge-green">2</span></td><td style="padding:12px 8px; color:#6b7280;">Fév. 2026</td><td style="padding:12px 8px;"><span class="badge badge-green">Conforme</span></td></tr>
+          <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:12px 16px; color:#9ca3af; font-family:monospace; font-size:11px;">3</td><td style="padding:12px 8px; font-weight:600; color:#111827;">Min. des Finances et du Budget</td><td style="padding:12px 8px; color:#6b7280;">Primature</td><td style="padding:12px 8px; font-weight:700; color:#D4A843;">72%</td><td style="padding:12px 8px;"><div class="bar"><div class="bar-fill" style="width:72%; background:#D4A843;"></div></div></td><td style="padding:12px 8px;"><span class="badge badge-gold">4</span></td><td style="padding:12px 8px; color:#6b7280;">Jan. 2026</td><td style="padding:12px 8px;"><span class="badge badge-gold">Partiel</span></td></tr>
+          <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:12px 16px; color:#9ca3af; font-family:monospace; font-size:11px;">4</td><td style="padding:12px 8px; font-weight:600; color:#111827;">Min. de la Justice</td><td style="padding:12px 8px; color:#6b7280;">Primature</td><td style="padding:12px 8px; font-weight:700; color:#D4A843;">68%</td><td style="padding:12px 8px;"><div class="bar"><div class="bar-fill" style="width:68%; background:#D4A843;"></div></div></td><td style="padding:12px 8px;"><span class="badge badge-gold">5</span></td><td style="padding:12px 8px; color:#6b7280;">Déc. 2025</td><td style="padding:12px 8px;"><span class="badge badge-gold">Partiel</span></td></tr>
+          <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:12px 16px; color:#9ca3af; font-family:monospace; font-size:11px;">5</td><td style="padding:12px 8px; font-weight:600; color:#111827;">ARTP</td><td style="padding:12px 8px; color:#6b7280;">Présidence</td><td style="padding:12px 8px; font-weight:700; color:#D4A843;">63%</td><td style="padding:12px 8px;"><div class="bar"><div class="bar-fill" style="width:63%; background:#D4A843;"></div></div></td><td style="padding:12px 8px;"><span class="badge badge-gold">6</span></td><td style="padding:12px 8px; color:#6b7280;">Nov. 2025</td><td style="padding:12px 8px;"><span class="badge badge-gold">Partiel</span></td></tr>
+          <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:12px 16px; color:#9ca3af; font-family:monospace; font-size:11px;">6</td><td style="padding:12px 8px; font-weight:600; color:#111827;">Min. de la Santé</td><td style="padding:12px 8px; color:#6b7280;">Primature</td><td style="padding:12px 8px; font-weight:700; color:#dc2626;">48%</td><td style="padding:12px 8px;"><div class="bar"><div class="bar-fill" style="width:48%; background:#ef4444;"></div></div></td><td style="padding:12px 8px;"><span class="badge badge-red">7</span></td><td style="padding:12px 8px; color:#6b7280;">Oct. 2025</td><td style="padding:12px 8px;"><span class="badge badge-red">Non conforme</span></td></tr>
+          <tr><td style="padding:12px 16px; color:#9ca3af; font-family:monospace; font-size:11px;">7</td><td style="padding:12px 8px; font-weight:600; color:#111827;">Université Cheikh Anta Diop</td><td style="padding:12px 8px; color:#6b7280;">MESRI</td><td style="padding:12px 8px; font-weight:700; color:#dc2626;">35%</td><td style="padding:12px 8px;"><div class="bar"><div class="bar-fill" style="width:35%; background:#ef4444;"></div></div></td><td style="padding:12px 8px;"><span class="badge badge-red">6</span></td><td style="padding:12px 8px; color:#6b7280;">Sept. 2025</td><td style="padding:12px 8px;"><span class="badge badge-red">Non conforme</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px; display:flex; gap:16px; font-size:11px; color:#9ca3af;">
+      <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#22c55e;"></span> ≥ 80% Conforme</span>
+      <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#D4A843;"></span> 60-79% Partiel</span>
+      <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span> &lt; 60% Non conforme</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 2: HEATMAP                                            -->
+<!-- ============================================================ -->
+<div id="heatmap" class="screen">
+  <div style="background:white; padding:24px; min-height:100vh;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h3 style="font-size:14px; font-weight:700; color:#111827;">Conformité par domaine PSSI-ES × Entité</h3>
+      <span style="font-size:11px; color:#9ca3af;">PSSI-ES — Sénégal v2017</span>
+    </div>
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+      <thead>
+        <tr style="font-size:10px; font-weight:600; text-transform:uppercase; color:#9ca3af;">
+          <th style="text-align:left; padding:8px; width:180px;">Entité</th>
+          <th style="padding:4px; text-align:center;">ORG</th><th style="padding:4px; text-align:center;">PER</th><th style="padding:4px; text-align:center;">ACQ</th><th style="padding:4px; text-align:center;">ACT</th><th style="padding:4px; text-align:center;">FRN</th><th style="padding:4px; text-align:center;">PHY</th><th style="padding:4px; text-align:center;">LOG</th><th style="padding:4px; text-align:center;">EXP</th><th style="padding:4px; text-align:center;">CLM</th><th style="padding:4px; text-align:center;">INC</th><th style="padding:4px; text-align:center;">AUD</th>
+          <th style="padding:8px; font-weight:700;">MOY.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px; font-weight:500; color:#111827;">Min. Forces Armées</td><td style="padding:4px;"><div class="hc hc-g">92</div></td><td style="padding:4px;"><div class="hc hc-g">88</div></td><td style="padding:4px;"><div class="hc hc-g">80</div></td><td style="padding:4px;"><div class="hc hc-g">85</div></td><td style="padding:4px;"><div class="hc hc-o">75</div></td><td style="padding:4px;"><div class="hc hc-g">90</div></td><td style="padding:4px;"><div class="hc hc-g">82</div></td><td style="padding:4px;"><div class="hc hc-g">85</div></td><td style="padding:4px;"><div class="hc hc-o">70</div></td><td style="padding:4px;"><div class="hc hc-g">88</div></td><td style="padding:4px;"><div class="hc hc-g">92</div></td><td style="padding:8px; font-weight:700; color:#166534;">85%</td></tr>
+        <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px; font-weight:500; color:#111827;">ADIE</td><td style="padding:4px;"><div class="hc hc-g">85</div></td><td style="padding:4px;"><div class="hc hc-o">78</div></td><td style="padding:4px;"><div class="hc hc-g">88</div></td><td style="padding:4px;"><div class="hc hc-o">75</div></td><td style="padding:4px;"><div class="hc hc-o">70</div></td><td style="padding:4px;"><div class="hc hc-g">82</div></td><td style="padding:4px;"><div class="hc hc-g">85</div></td><td style="padding:4px;"><div class="hc hc-o">78</div></td><td style="padding:4px;"><div class="hc hc-o">68</div></td><td style="padding:4px;"><div class="hc hc-g">80</div></td><td style="padding:4px;"><div class="hc hc-g">85</div></td><td style="padding:8px; font-weight:700; color:#166534;">81%</td></tr>
+        <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px; font-weight:500; color:#111827;">Min. Finances</td><td style="padding:4px;"><div class="hc hc-o">78</div></td><td style="padding:4px;"><div class="hc hc-o">72</div></td><td style="padding:4px;"><div class="hc hc-o">65</div></td><td style="padding:4px;"><div class="hc hc-o">75</div></td><td style="padding:4px;"><div class="hc hc-o">62</div></td><td style="padding:4px;"><div class="hc hc-o">78</div></td><td style="padding:4px;"><div class="hc hc-o">70</div></td><td style="padding:4px;"><div class="hc hc-o">72</div></td><td style="padding:4px;"><div class="hc hc-r">55</div></td><td style="padding:4px;"><div class="hc hc-o">75</div></td><td style="padding:4px;"><div class="hc hc-g">80</div></td><td style="padding:8px; font-weight:700; color:#92400e;">72%</td></tr>
+        <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px; font-weight:500; color:#111827;">Min. Justice</td><td style="padding:4px;"><div class="hc hc-o">72</div></td><td style="padding:4px;"><div class="hc hc-o">65</div></td><td style="padding:4px;"><div class="hc hc-r">55</div></td><td style="padding:4px;"><div class="hc hc-o">68</div></td><td style="padding:4px;"><div class="hc hc-r">58</div></td><td style="padding:4px;"><div class="hc hc-o">75</div></td><td style="padding:4px;"><div class="hc hc-o">65</div></td><td style="padding:4px;"><div class="hc hc-o">68</div></td><td style="padding:4px;"><div class="hc hc-r">50</div></td><td style="padding:4px;"><div class="hc hc-o">70</div></td><td style="padding:4px;"><div class="hc hc-o">72</div></td><td style="padding:8px; font-weight:700; color:#92400e;">68%</td></tr>
+        <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px; font-weight:500; color:#111827;">ARTP</td><td style="padding:4px;"><div class="hc hc-o">68</div></td><td style="padding:4px;"><div class="hc hc-o">62</div></td><td style="padding:4px;"><div class="hc hc-r">52</div></td><td style="padding:4px;"><div class="hc hc-o">65</div></td><td style="padding:4px;"><div class="hc hc-r">55</div></td><td style="padding:4px;"><div class="hc hc-o">70</div></td><td style="padding:4px;"><div class="hc hc-o">60</div></td><td style="padding:4px;"><div class="hc hc-o">62</div></td><td style="padding:4px;"><div class="hc hc-r">48</div></td><td style="padding:4px;"><div class="hc hc-o">65</div></td><td style="padding:4px;"><div class="hc hc-o">68</div></td><td style="padding:8px; font-weight:700; color:#92400e;">63%</td></tr>
+        <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px; font-weight:500; color:#111827;">Min. Santé</td><td style="padding:4px;"><div class="hc hc-r">52</div></td><td style="padding:4px;"><div class="hc hc-r">45</div></td><td style="padding:4px;"><div class="hc hc-r">38</div></td><td style="padding:4px;"><div class="hc hc-r">48</div></td><td style="padding:4px;"><div class="hc hc-r">35</div></td><td style="padding:4px;"><div class="hc hc-r">55</div></td><td style="padding:4px;"><div class="hc hc-r">42</div></td><td style="padding:4px;"><div class="hc hc-r">50</div></td><td style="padding:4px;"><div class="hc hc-r">30</div></td><td style="padding:4px;"><div class="hc hc-r">52</div></td><td style="padding:4px;"><div class="hc hc-r">55</div></td><td style="padding:8px; font-weight:700; color:#991b1b;">48%</td></tr>
+        <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px; font-weight:500; color:#111827;">UCAD</td><td style="padding:4px;"><div class="hc hc-r">38</div></td><td style="padding:4px;"><div class="hc hc-r">32</div></td><td style="padding:4px;"><div class="hc hc-r">25</div></td><td style="padding:4px;"><div class="hc hc-r">35</div></td><td style="padding:4px;"><div class="hc hc-r">28</div></td><td style="padding:4px;"><div class="hc hc-r">42</div></td><td style="padding:4px;"><div class="hc hc-r">30</div></td><td style="padding:4px;"><div class="hc hc-r">32</div></td><td style="padding:4px;"><div class="hc hc-r">18</div></td><td style="padding:4px;"><div class="hc hc-r">38</div></td><td style="padding:4px;"><div class="hc hc-r">40</div></td><td style="padding:8px; font-weight:700; color:#991b1b;">35%</td></tr>
+        <!-- Moyenne -->
+        <tr style="border-top:2px solid #dcfce7; background:#f0fdf4;">
+          <td style="padding:8px; font-weight:700; color:#1B4332;">MOYENNE NATIONALE</td>
+          <td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">69</div></td><td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">63</div></td><td style="padding:4px;"><div class="hc hc-r" style="font-weight:700;">58</div></td><td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">64</div></td><td style="padding:4px;"><div class="hc hc-r" style="font-weight:700;">55</div></td><td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">70</div></td><td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">62</div></td><td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">64</div></td><td style="padding:4px;"><div class="hc hc-r" style="font-weight:700;">48</div></td><td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">67</div></td><td style="padding:4px;"><div class="hc hc-o" style="font-weight:700;">70</div></td>
+          <td style="padding:8px; font-weight:800; color:#1B4332;">64%</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Weak domains -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:24px;">
+      <div style="border:1px solid #fecaca; background:#fef2f2; border-radius:12px; padding:16px;">
+        <div style="font-size:10px; font-weight:600; color:#f87171; text-transform:uppercase;">Domaine le plus faible</div>
+        <div style="font-size:14px; font-weight:700; color:#991b1b; margin-top:4px;">CLM — Cloud, Mobile, Télétravail</div>
+        <div style="font-size:12px; color:#dc2626; margin-top:2px;">48% de conformité moyenne</div>
+      </div>
+      <div style="border:1px solid #fde68a; background:#fffbeb; border-radius:12px; padding:16px;">
+        <div style="font-size:10px; font-weight:600; color:#f59e0b; text-transform:uppercase;">2e domaine faible</div>
+        <div style="font-size:14px; font-weight:700; color:#92400e; margin-top:4px;">FRN — Relation fournisseurs</div>
+        <div style="font-size:12px; color:#d97706; margin-top:2px;">55% de conformité moyenne</div>
+      </div>
+      <div style="border:1px solid #fde68a; background:#fffbeb; border-radius:12px; padding:16px;">
+        <div style="font-size:10px; font-weight:600; color:#f59e0b; text-transform:uppercase;">3e domaine faible</div>
+        <div style="font-size:14px; font-weight:700; color:#92400e; margin-top:4px;">ACQ — Acquisition / Développement</div>
+        <div style="font-size:12px; color:#d97706; margin-top:2px;">58% de conformité moyenne</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 3: REFERENTIEL PSSI-ES                                -->
+<!-- ============================================================ -->
+<div id="referentiel" class="screen">
+  <div class="sidebar" style="min-height:100vh;">
+    <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:10px;">
+      <svg width="22" height="26" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="none" stroke="#D4A843" stroke-width="1.5"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div><div style="font-size:15px; font-weight:800;">G<span style="position:relative;">e<span style="position:absolute;left:50%;transform:translateX(-50%);top:-1px;display:flex;gap:2px;"><span style="width:2.5px;height:2.5px;border-radius:50%;background:#D4A843;"></span><span style="width:2.5px;height:2.5px;border-radius:50%;background:#D4A843;"></span></span></span>stu</div><div style="font-size:8px;font-weight:600;color:#D4A843;letter-spacing:2px;">COMPLY</div></div>
+    </div>
+    <nav style="flex:1; padding:8px 0;">
+      <div class="nav-item" style="color:rgba(255,255,255,0.3); margin-top:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Hub ETP</div>
+      <div class="nav-item" style="margin-top:8px;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg> Tableau de bord</div>
+      <div class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg> Supervision</div>
+      <div class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg> Clients</div>
+      <div class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg> Référentiels</div>
+      <div class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Missions</div>
+    </nav>
+  </div>
+  <div class="main">
+    <div style="margin-bottom:20px;">
+      <p style="font-size:13px; color:#6b7280;"><span style="cursor:pointer;">Référentiels</span> › <strong style="color:#111827;">PSSI-ES — Sénégal</strong></p>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:24px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <span style="background:#dcfce7; color:#166534; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">SN</span>
+          <h1 style="font-size:20px; font-weight:700; color:#111827;">PSSI-ES — Sénégal</h1>
+          <span class="badge badge-green">v2017</span>
+          <span class="badge badge-blue">Conformité</span>
+        </div>
+        <p style="font-size:13px; color:#6b7280; max-width:700px; line-height:1.6;">Politique de Sécurité des Systèmes d'Information de l'État du Sénégal. Instruction présidentielle N° 003/PR du 03 janvier 2017.</p>
+        <p style="font-size:11px; color:#9ca3af; margin-top:4px;">Publié par : Commission Nationale de Cryptologie / Présidence de la République du Sénégal</p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; margin-bottom:24px;">
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:20px; text-align:center; flex:1;">
+        <div style="font-size:28px; font-weight:800; color:#1B4332;">11</div>
+        <div style="font-size:12px; color:#6b7280;">Domaines</div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:20px; text-align:center; flex:1;">
+        <div style="font-size:28px; font-weight:800; color:#1B4332;">155</div>
+        <div style="font-size:12px; color:#6b7280;">Contrôles</div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:20px; text-align:center; flex:1;">
+        <div style="font-size:28px; font-weight:800; color:#1B4332;">30</div>
+        <div style="font-size:12px; color:#6b7280;">Objectifs</div>
+      </div>
+    </div>
+
+    <!-- Domains list -->
+    <div style="space-y:8px;">
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; cursor:pointer;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">ORG</span><span style="font-size:14px; font-weight:600; color:#111827;">Organisation de la sécurité des SI</span></div>
+          <span class="badge badge-gray">6 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">PER</span><span style="font-size:14px; font-weight:600; color:#111827;">Sécurité du personnel</span></div>
+          <span class="badge badge-gray">13 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">ACQ</span><span style="font-size:14px; font-weight:600; color:#111827;">Acquisition et développement des SI</span></div>
+          <span class="badge badge-gray">4 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">ACT</span><span style="font-size:14px; font-weight:600; color:#111827;">Gestion des actifs</span></div>
+          <span class="badge badge-gray">7 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">FRN</span><span style="font-size:14px; font-weight:600; color:#111827;">Relation avec les fournisseurs</span></div>
+          <span class="badge badge-gray">9 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">PHY</span><span style="font-size:14px; font-weight:600; color:#111827;">Sécurité physique</span></div>
+          <span class="badge badge-gray">61 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">LOG</span><span style="font-size:14px; font-weight:600; color:#111827;">Sécurité logique</span></div>
+          <span class="badge badge-gray">31 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">EXP</span><span style="font-size:14px; font-weight:600; color:#111827;">Sécurité de l'exploitation</span></div>
+          <span class="badge badge-gray">54 contrôles (8 objectifs)</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">CLM</span><span style="font-size:14px; font-weight:600; color:#111827;">Cloud, appareils mobiles et télétravail</span></div>
+          <span class="badge badge-gray">10 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">INC</span><span style="font-size:14px; font-weight:600; color:#111827;">Gestion des incidents</span></div>
+          <span class="badge badge-gray">11 contrôles</span>
+        </div>
+      </div>
+      <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:monospace; font-size:13px; font-weight:700; color:#1B4332; background:#f0fdf4; padding:4px 10px; border-radius:6px;">AUD</span><span style="font-size:14px; font-weight:600; color:#111827;">Audit et conformité</span></div>
+          <span class="badge badge-gray">7 contrôles</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Show screen based on hash
+function showScreen() {
+  const hash = location.hash.replace('#','') || 'supervision';
+  document.querySelectorAll('.screen').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
+  const el = document.getElementById(hash);
+  if (el) { el.style.display = 'flex'; el.classList.add('active'); }
+}
+window.addEventListener('hashchange', showScreen);
+showScreen();
+</script>
+
+</body>
+</html>
