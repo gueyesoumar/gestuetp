@@ -35,7 +35,7 @@ export function useAuditTopics(
     void (async () => {
       let query = supabase
         .from('audit_topics')
-        .select('id, framework_id, mission_id, name, description, is_active, sort_order, created_at, updated_at')
+        .select('id, framework_id, mission_id, name, description, is_active, sort_order, default_questions, created_at, updated_at')
         .eq('is_active', true)
         .order('sort_order')
 

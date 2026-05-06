@@ -3,7 +3,8 @@ import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { generateCompteRendu } from './interviewHelpers'
 import { generateInterviewCRPDF } from '../../reports/generateInterviewCRPDF'
-import type { ClientContact, InterviewScheduleUpdate } from '../../../types/database.types'
+import { PvEditor } from './PvEditor'
+import type { ClientContact, InterviewScheduleUpdate, PvNotes } from '../../../types/database.types'
 import type { MissionMemberRow } from '../useMissionDetail'
 import type { AuditTopicWithControls } from './useAuditTopics'
 import type { InterviewWithRelations } from './usePlanningData'
@@ -33,6 +34,7 @@ export function InterviewEditModal({
   const [duration, setDuration] = useState(interview.duration_minutes)
   const [location, setLocation] = useState(interview.location ?? '')
   const [notes, setNotes] = useState(interview.notes ?? '')
+  const [pvNotes, setPvNotes] = useState<PvNotes | null>(interview.pv_notes ?? null)
   const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set(interview.topic_ids))
   const [selectedActorIds, setSelectedActorIds] = useState<Set<string>>(new Set(interview.actor_ids))
 
@@ -47,6 +49,7 @@ export function InterviewEditModal({
       duration_minutes: duration,
       location: location || null,
       notes: notes || null,
+      pv_notes: pvNotes,
     })
     if (!ok) return
     const topicsOk = await onSyncTopics(interview.id, Array.from(selectedTopicIds))
@@ -178,10 +181,20 @@ export function InterviewEditModal({
           )}
         </div>
 
-        {/* Compte-rendu */}
+        {/* PV pré-rempli structuré */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1.5">PV pr&eacute;-rempli (par sujet)</label>
+          <PvEditor
+            template={interview.pv_template}
+            notes={pvNotes}
+            onChange={setPvNotes}
+          />
+        </div>
+
+        {/* Notes libres / synthèse globale */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="text-xs font-medium text-gray-700">Compte-rendu / Notes</label>
+            <label className="text-xs font-medium text-gray-700">Synth&egrave;se globale</label>
             <div className="flex gap-1.5">
               <button type="button" onClick={handleGenerateCR} disabled={!notes.trim()}
                 className="text-[10px] font-semibold text-white bg-purple-500 px-2.5 py-1 rounded-lg hover:bg-purple-600 disabled:opacity-30 transition-colors">

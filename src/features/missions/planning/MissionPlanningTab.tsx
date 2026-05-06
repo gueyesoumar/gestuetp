@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { usePlanningData } from './usePlanningData'
@@ -13,6 +13,7 @@ import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
 import { InterviewMatrixPanel } from './InterviewMatrixPanel'
+import { buildPvTemplate } from './buildPvTemplate'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningWorkloadSection } from './PlanningWorkloadSection'
 import { PlanningGanttSection } from './PlanningGanttSection'
@@ -52,6 +53,11 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
+  const controlIdToCode = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const d of domains) for (const c of d.controls) m.set(c.id, c.code)
+    return m
+  }, [domains])
 
   const handlePlanningChange = useCallback((controlId: string, field: string, value: unknown) => {
     upsertPlanning(mission.id, controlId, { [field]: value })
@@ -209,6 +215,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           actors={contacts}
           topics={auditTopics}
           onCreateInterview={async (data) => {
+            const pvTemplate = buildPvTemplate(data.topic_ids, auditTopics, controlIdToCode)
             const ok = await createInterview({
               mission_id: data.mission_id,
               title: data.title,
@@ -218,6 +225,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
               duration_minutes: data.duration_minutes,
               location: data.location || undefined,
               notes: data.notes || undefined,
+              pv_template: pvTemplate,
             }, { topicIds: data.topic_ids, actorIds: data.actor_ids })
             return ok
           }}
@@ -236,6 +244,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           actors={contacts}
           topics={auditTopics}
           members={members}
+          controlIdToCode={controlIdToCode}
           onGenerate={async (specs) => {
             setGeneratingMatrix(true)
             let created = 0

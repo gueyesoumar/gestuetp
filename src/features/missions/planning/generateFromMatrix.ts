@@ -1,5 +1,6 @@
 import type { ClientContact, InterviewScheduleInsert } from '../../../types/database.types'
 import type { AuditTopicWithControls } from './useAuditTopics'
+import { buildPvTemplate } from './buildPvTemplate'
 
 // Phase C.b : genere une liste d'entretiens depuis la matrice acteurs x sujets.
 //
@@ -29,7 +30,8 @@ export function generateFromMatrix(
   cells: MatrixCell[],
   defaultAuditorId: string,
   startDate: string | null,
-  endDate: string | null
+  endDate: string | null,
+  controlIdToCode: Map<string, string> = new Map()
 ): GeneratedInterview[] {
   const actorsById = new Map(actors.map((a) => [a.id, a]))
   const topicsById = new Map(topics.map((t) => [t.id, t]))
@@ -61,6 +63,8 @@ export function generateFromMatrix(
     const titleSuffix = linkedTopics.length > 2 ? ` (+${linkedTopics.length - 2})` : ''
     const title = `${actor.name} — ${titleTopics}${titleSuffix}`
 
+    const pvTemplate = buildPvTemplate(topicIds, topics, controlIdToCode)
+
     return {
       base: {
         mission_id: missionId,
@@ -70,6 +74,7 @@ export function generateFromMatrix(
         scheduled_time: idx % 2 === 0 ? '09:00:00' : '14:00:00',
         duration_minutes: duration,
         status: 'scheduled',
+        pv_template: pvTemplate,
       },
       topicIds,
       actorIds: [actorId],

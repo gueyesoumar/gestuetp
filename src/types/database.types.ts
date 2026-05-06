@@ -1152,6 +1152,30 @@ export interface ClientContactUpdate {
   is_primary?: boolean
 }
 
+// Phase D : PV pre-rempli structure par sujet (snapshot a la creation).
+export interface PvTemplateSection {
+  topic_id: string
+  topic_name: string
+  control_codes: string[]
+  questions: string[]
+}
+
+export interface PvTemplate {
+  sections: PvTemplateSection[]
+}
+
+// Saisie progressive de l'auditeur. Les indices de question_responses
+// correspondent aux indices de pv_template.sections[i].questions.
+export interface PvNotesSection {
+  topic_id: string
+  summary: string
+  question_responses: Record<string, string>
+}
+
+export interface PvNotes {
+  sections: PvNotesSection[]
+}
+
 export interface InterviewSchedule {
   id: string
   mission_id: string
@@ -1163,6 +1187,8 @@ export interface InterviewSchedule {
   location: string | null
   notes: string | null
   status: InterviewStatus
+  pv_template: PvTemplate | null
+  pv_notes: PvNotes | null
   created_at: string
   updated_at: string
 }
@@ -1178,6 +1204,8 @@ export interface InterviewScheduleInsert {
   location?: string | null
   notes?: string | null
   status?: InterviewStatus
+  pv_template?: PvTemplate | null
+  pv_notes?: PvNotes | null
 }
 
 export interface InterviewScheduleUpdate {
@@ -1189,6 +1217,7 @@ export interface InterviewScheduleUpdate {
   location?: string | null
   notes?: string | null
   status?: InterviewStatus
+  pv_notes?: PvNotes | null
 }
 
 // ============================================================
@@ -1315,6 +1344,7 @@ export interface AuditTopic {
   description: string | null
   is_active: boolean
   sort_order: number
+  default_questions: string[]
   created_at: string
   updated_at: string
 }

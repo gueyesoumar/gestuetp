@@ -12,13 +12,14 @@ interface InterviewMatrixPanelProps {
   actors: ClientContact[]
   topics: AuditTopicWithControls[]
   members: MissionMemberRow[]
+  controlIdToCode: Map<string, string>
   onGenerate: (specs: ReturnType<typeof generateFromMatrix>) => Promise<void>
   onClose: () => void
   generating: boolean
 }
 
 export function InterviewMatrixPanel({
-  missionId, startDate, endDate, actors, topics, members,
+  missionId, startDate, endDate, actors, topics, members, controlIdToCode,
   onGenerate, onClose, generating,
 }: InterviewMatrixPanelProps) {
   // Sujets actifs dans la matrice (par defaut tous coches)
@@ -77,8 +78,8 @@ export function InterviewMatrixPanel({
   )
 
   const previewSpecs = useMemo(
-    () => generateFromMatrix(missionId, actors, topics, cellList, auditorId, startDate, endDate),
-    [missionId, actors, topics, cellList, auditorId, startDate, endDate]
+    () => generateFromMatrix(missionId, actors, topics, cellList, auditorId, startDate, endDate, controlIdToCode),
+    [missionId, actors, topics, cellList, auditorId, startDate, endDate, controlIdToCode]
   )
 
   const canGenerate = previewSpecs.length > 0 && auditorId.length > 0 && !generating
