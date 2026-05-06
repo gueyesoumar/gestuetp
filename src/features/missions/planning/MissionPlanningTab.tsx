@@ -12,6 +12,7 @@ import { WorkProgramTable } from './WorkProgramTable'
 import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
+import { InterviewMatrixPanel } from './InterviewMatrixPanel'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningWorkloadSection } from './PlanningWorkloadSection'
 import { PlanningGanttSection } from './PlanningGanttSection'
@@ -43,6 +44,8 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [activeTab, setActiveTab] = useState<PlanTab>('programme')
   const [showInterviewModal, setShowInterviewModal] = useState(false)
   const [editingInterview, setEditingInterview] = useState<InterviewWithRelations | null>(null)
+  const [showMatrix, setShowMatrix] = useState(false)
+  const [generatingMatrix, setGeneratingMatrix] = useState(false)
   const [generating, setGenerating] = useState(false)
   const planFlag = useFeatureFlag('smart_plan_mission')
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
@@ -193,7 +196,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             onEdit={(iv) => setEditingInterview(iv)}
             onStatusChange={(id, status) => updateInterview(id, { status })}
             onDelete={(id) => deleteInterview(id)}
-            onOpenMatrix={() => { /* TODO phase C.b: matrice */ }}
+            onOpenMatrix={() => setShowMatrix(true)}
             saving={interviewSaving} />
         )}
       </div>
@@ -221,6 +224,32 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           onClose={() => setShowInterviewModal(false)}
           saving={interviewSaving}
           error={interviewError}
+        />
+      )}
+
+      {/* Matrix modal */}
+      {showMatrix && (
+        <InterviewMatrixPanel
+          missionId={mission.id}
+          startDate={mission.start_date}
+          endDate={mission.end_date}
+          actors={contacts}
+          topics={auditTopics}
+          members={members}
+          onGenerate={async (specs) => {
+            setGeneratingMatrix(true)
+            let created = 0
+            for (const spec of specs) {
+              const ok = await createInterview(spec.base, { topicIds: spec.topicIds, actorIds: spec.actorIds })
+              if (ok) created++
+            }
+            setGeneratingMatrix(false)
+            setShowMatrix(false)
+            setGenSuccess(`${created} entretien${created > 1 ? 's' : ''} généré${created > 1 ? 's' : ''} depuis la matrice.`)
+            refetchPlanning()
+          }}
+          onClose={() => setShowMatrix(false)}
+          generating={generatingMatrix}
         />
       )}
 
