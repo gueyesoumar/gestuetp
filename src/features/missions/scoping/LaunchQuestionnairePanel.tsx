@@ -12,10 +12,12 @@ interface LaunchQuestionnairePanelProps {
   onLaunched: () => void
 }
 
+type QuestionTypeLite = 'boolean' | 'text' | 'textarea' | 'date' | 'number' | 'scale_percent' | 'file' | 'organigramme'
+
 interface CustomQuestion {
   code: string
   text: string
-  question_type: 'boolean' | 'single_choice' | 'multiple_choice' | 'text' | 'textarea'
+  question_type: QuestionTypeLite
   options: string[] | null
   is_required: boolean
 }
@@ -265,12 +267,17 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, onLaunched }:
                 <div className="flex items-center gap-2">
                   <select
                     value={customDraft.question_type}
-                    onChange={(e) => setCustomDraft({ ...customDraft, question_type: e.target.value as CustomQuestion['question_type'] })}
+                    onChange={(e) => setCustomDraft({ ...customDraft, question_type: e.target.value as QuestionTypeLite })}
                     className="px-2 py-1 border border-gray-200 rounded text-[11px] outline-none focus:border-gold-500"
                   >
                     <option value="textarea">Texte long</option>
                     <option value="text">Texte court</option>
                     <option value="boolean">Oui / Non</option>
+                    <option value="date">Date</option>
+                    <option value="number">Nombre</option>
+                    <option value="scale_percent">Échelle 0-100%</option>
+                    <option value="file">Document</option>
+                    <option value="organigramme">Organigramme</option>
                   </select>
                   <label className="text-[11px] inline-flex items-center gap-1 text-gray-600">
                     <input

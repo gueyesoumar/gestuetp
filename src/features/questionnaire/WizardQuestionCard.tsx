@@ -80,6 +80,24 @@ export function WizardQuestionCard({ question, sectionLabel, value, skipReason, 
       {question.question_type === 'text' && (
         <TextAnswer value={(value ?? '') as string} onChange={onChange} readOnly={readOnly} />
       )}
+      {question.question_type === 'textarea' && (
+        <TextareaAnswer value={(value ?? '') as string} onChange={onChange} readOnly={readOnly} />
+      )}
+      {question.question_type === 'date' && (
+        <DateAnswer value={(value ?? '') as string} onChange={onChange} readOnly={readOnly} />
+      )}
+      {question.question_type === 'number' && (
+        <NumberAnswer value={(value ?? '') as string | number} onChange={onChange} readOnly={readOnly} />
+      )}
+      {question.question_type === 'scale_percent' && (
+        <ScalePercentAnswer value={(value ?? null) as number | null} onChange={onChange} readOnly={readOnly} />
+      )}
+      {question.question_type === 'file' && (
+        <FileAnswer value={(value ?? '') as string} onChange={onChange} readOnly={readOnly} />
+      )}
+      {question.question_type === 'organigramme' && (
+        <OrganigrammeAnswer value={(value ?? '') as string} onChange={onChange} readOnly={readOnly} />
+      )}
 
       {/* Follow-up for boolean YES */}
       {question.question_type === 'boolean' && value === true && question.code === 'GOV-01' && (
@@ -201,6 +219,125 @@ function TextAnswer({ value, onChange, readOnly }: { value: string; onChange: (v
   return (
     <input type="text" value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly}
       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-[13px] outline-none focus:border-forest-500 disabled:bg-gray-50" />
+  )
+}
+
+function TextareaAnswer({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) {
+  return (
+    <textarea value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly} rows={4}
+      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-[13px] outline-none focus:border-forest-500 disabled:bg-gray-50 resize-y" />
+  )
+}
+
+function DateAnswer({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) {
+  return (
+    <input type="date" value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly}
+      className="px-4 py-3 border-2 border-gray-200 rounded-xl text-[13px] outline-none focus:border-forest-500 disabled:bg-gray-50" />
+  )
+}
+
+function NumberAnswer({ value, onChange, readOnly }: { value: string | number; onChange: (v: number | null) => void; readOnly?: boolean }) {
+  return (
+    <input
+      type="number"
+      value={value === null || value === undefined ? '' : String(value)}
+      onChange={(e) => {
+        const v = e.target.value
+        if (v === '') { onChange(null); return }
+        const n = Number(v)
+        if (!Number.isNaN(n)) onChange(n)
+      }}
+      disabled={readOnly}
+      className="px-4 py-3 border-2 border-gray-200 rounded-xl text-[13px] outline-none focus:border-forest-500 disabled:bg-gray-50 w-48"
+    />
+  )
+}
+
+function ScalePercentAnswer({ value, onChange, readOnly }: { value: number | null; onChange: (v: number) => void; readOnly?: boolean }) {
+  const STEPS: { num: number; label: string }[] = [
+    { num: 0, label: 'Aucun' },
+    { num: 25, label: 'Faible' },
+    { num: 50, label: 'Partiel' },
+    { num: 75, label: 'Majoritaire' },
+    { num: 100, label: 'Complet' },
+  ]
+  return (
+    <div className="flex gap-2">
+      {STEPS.map((step) => {
+        const isSelected = value === step.num
+        return (
+          <button
+            key={step.num}
+            type="button"
+            onClick={() => !readOnly && onChange(step.num)}
+            disabled={readOnly}
+            className={`flex-1 py-3 px-2 border-2 rounded-xl text-center transition-all ${
+              isSelected ? 'border-gold-500 bg-gold-50' : 'border-gray-200 hover:border-forest-300 hover:bg-forest-50'
+            } disabled:opacity-60`}
+          >
+            <p className={`text-xl font-bold ${isSelected ? 'text-gold-700' : 'text-gray-500'}`}>{step.num}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">{step.label}</p>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function FileAnswer({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) {
+  return (
+    <div>
+      <label className="block border-2 border-dashed border-forest-300 bg-forest-50/50 rounded-xl p-6 text-center cursor-pointer hover:bg-forest-50 transition-colors">
+        <input
+          type="file"
+          className="sr-only"
+          disabled={readOnly}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onChange(file.name)
+          }}
+        />
+        <p className="text-[13px] text-forest-700 font-medium">
+          📎 {value ? value : 'Glissez votre document ici'}
+        </p>
+        <p className="text-[11px] text-gray-400 mt-1">PDF, DOCX, XLSX · max 25 Mo</p>
+        {value && (
+          <button type="button" onClick={(e) => { e.preventDefault(); onChange('') }} className="text-[10px] text-red-600 mt-2">Retirer</button>
+        )}
+      </label>
+      <p className="text-[10px] text-gray-400 mt-2 italic">
+        L'envoi du fichier au stockage Supabase est prévu en Sprint 4.5 — pour l'instant le nom du fichier est enregistré comme référence.
+      </p>
+    </div>
+  )
+}
+
+function OrganigrammeAnswer({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) {
+  return (
+    <div>
+      <label className="block border-2 border-dashed border-purple-300 bg-purple-50/30 rounded-xl p-6 text-center cursor-pointer hover:bg-purple-50/60 transition-colors">
+        <input
+          type="file"
+          className="sr-only"
+          disabled={readOnly}
+          accept=".pdf,.png,.jpg,.jpeg"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onChange(file.name)
+          }}
+        />
+        <p className="text-[13px] text-purple-700 font-semibold">
+          🏢 {value ? value : "Uploadez votre organigramme"}
+        </p>
+        <p className="text-[11px] text-gray-500 mt-1">PDF, PNG, JPG · L'IA extraira automatiquement les acteurs SI</p>
+        {value && (
+          <button type="button" onClick={(e) => { e.preventDefault(); onChange('') }} className="text-[10px] text-red-600 mt-2">Retirer</button>
+        )}
+      </label>
+      <p className="text-[10px] text-gray-400 mt-2 italic">
+        Extraction IA des acteurs (Nom · Fonction · Direction) prévue dans la refonte Entretiens.
+      </p>
+    </div>
   )
 }
 
