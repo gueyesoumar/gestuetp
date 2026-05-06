@@ -114,7 +114,7 @@ export function generateInterviewCRPDF(data: CRData): void {
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...FOREST_700)
-    doc.text(`Contr\u00f4les couverts : ${controlCodes.join(' \u00b7 ')}`, mL + 5, y + 6.5)
+    doc.text(`Sujets couverts : ${controlCodes.join(' \u00b7 ')}`, mL + 5, y + 6.5)
     y += 14
   }
 

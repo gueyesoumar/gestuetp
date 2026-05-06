@@ -1,25 +1,28 @@
 import { useMemo } from 'react'
 import { InterviewCard } from './InterviewCard'
 import { EmptyState } from '../../../components/ui/EmptyState'
-import type { InterviewSchedule, ClientContact, InterviewStatus } from '../../../types/database.types'
+import type { ClientContact, InterviewStatus } from '../../../types/database.types'
+import type { AuditTopicWithControls } from './useAuditTopics'
+import type { InterviewWithRelations } from './usePlanningData'
 
 interface InterviewsPanelProps {
-  interviews: InterviewSchedule[]
+  interviews: InterviewWithRelations[]
   contacts: ClientContact[]
+  topics: AuditTopicWithControls[]
   onAdd: () => void
-  onEdit: (interview: InterviewSchedule) => void
+  onEdit: (interview: InterviewWithRelations) => void
   onStatusChange: (id: string, status: InterviewStatus) => void
   onDelete: (id: string) => void
-  onAutoGenerate: () => void
-  generating: boolean
+  onOpenMatrix: () => void
   saving: boolean
 }
 
-export function InterviewsPanel({ interviews, contacts, onAdd, onEdit, onStatusChange, onDelete, onAutoGenerate, generating, saving }: InterviewsPanelProps) {
+export function InterviewsPanel({ interviews, contacts, topics, onAdd, onEdit, onStatusChange, onDelete, onOpenMatrix, saving }: InterviewsPanelProps) {
   const contactMap = useMemo(() => new Map(contacts.map((c) => [c.id, c])), [contacts])
+  const topicLabels = useMemo(() => new Map(topics.map((t) => [t.id, t.name])), [topics])
 
   const weeks = useMemo(() => {
-    const grouped = new Map<string, InterviewSchedule[]>()
+    const grouped = new Map<string, InterviewWithRelations[]>()
     for (const iv of interviews) {
       const d = new Date(iv.scheduled_date)
       const weekStart = new Date(d)
@@ -36,10 +39,9 @@ export function InterviewsPanel({ interviews, contacts, onAdd, onEdit, onStatusC
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
         <span className="text-[13px] font-semibold text-gray-900">Calendrier des entretiens</span>
         <div className="flex gap-2">
-          <button onClick={onAutoGenerate} disabled={generating}
-            className="text-xs font-semibold text-white bg-purple-500 hover:bg-purple-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5">
-            {generating && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-            {generating ? 'G\u00e9n\u00e9ration...' : '\u2733 G\u00e9n\u00e9rer les entretiens'}
+          <button onClick={onOpenMatrix}
+            className="text-xs font-semibold text-white bg-forest-700 hover:bg-forest-900 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+            \u229e Matrice acteurs \u00d7 sujets
           </button>
           <button onClick={onAdd} className="text-xs font-semibold text-forest-700 bg-forest-50 border border-forest-300 px-3 py-1.5 rounded-lg hover:bg-forest-100 transition-colors">
             + Manuel
@@ -70,7 +72,8 @@ export function InterviewsPanel({ interviews, contacts, onAdd, onEdit, onStatusC
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2 pb-1.5 border-b border-gray-200">{label}</p>
                 {weekInterviews.map((iv) => (
                   <InterviewCard key={iv.id} interview={iv}
-                    contact={iv.contact_id ? contactMap.get(iv.contact_id) : undefined}
+                    actors={iv.actor_ids.map((aid) => contactMap.get(aid)).filter((a): a is ClientContact => Boolean(a))}
+                    topicLabels={topicLabels}
                     onEdit={onEdit} onStatusChange={onStatusChange} onDelete={onDelete} saving={saving} />
                 ))}
               </div>

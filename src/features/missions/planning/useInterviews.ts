@@ -1,20 +1,23 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
-import type { InterviewScheduleInsert, InterviewScheduleUpdate, ClientContactInsert } from '../../../types/database.types'
+import type { InterviewScheduleInsert, InterviewScheduleUpdate } from '../../../types/database.types'
 
-// Helper type: Supabase generated types resolve to `never` for new tables
-type SupabaseResult = { error: { message: string } | null }
-type SupabaseResultWithData<T> = { data: T | null; error: { message: string } | null }
+// Le client Supabase v2 type emet "never" pour les inserts sur les tables de
+// ce projet (PostgrestVersion 12 + types non synchronises). On utilise des
+// casts unknown comme dans le reste du codebase (cf useSavePlanning).
 
-function fromTable(name: string): unknown {
-  return supabase.from(name as 'missions')
+type SupaResult = { error: { message: string } | null }
+type SupaResultWithData<T> = { data: T | null; error: { message: string } | null }
+
+interface CreateRelations {
+  topicIds?: string[]
+  actorIds?: string[]
 }
 
 interface UseInterviewsResult {
-  createInterview: (data: InterviewScheduleInsert) => Promise<boolean>
+  createInterview: (data: InterviewScheduleInsert, relations?: CreateRelations) => Promise<boolean>
   updateInterview: (id: string, data: InterviewScheduleUpdate) => Promise<boolean>
   deleteInterview: (id: string) => Promise<boolean>
-  createContact: (data: ClientContactInsert) => Promise<string | null>
   saving: boolean
   error: string | null
 }
@@ -23,15 +26,31 @@ export function useInterviews(onSuccess?: () => void): UseInterviewsResult {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createInterview = useCallback(async (data: InterviewScheduleInsert): Promise<boolean> => {
+  const createInterview = useCallback(async (data: InterviewScheduleInsert, relations?: CreateRelations): Promise<boolean> => {
     setSaving(true)
     setError(null)
-    const { error: insertError } = await (fromTable('interview_schedules') as { insert: (v: Record<string, unknown>) => Promise<SupabaseResult> }).insert(data as unknown as Record<string, unknown>)
-    if (insertError) {
-      console.error('createInterview:', insertError.message)
-      setError('Erreur lors de la cr\u00e9ation de l\u2019entretien.')
+    const ins = await (supabase.from('interview_schedules') as unknown as {
+      insert: (v: Record<string, unknown>) => { select: (cols: string) => { single: () => Promise<SupaResultWithData<{ id: string }>> } }
+    }).insert(data as unknown as Record<string, unknown>).select('id').single()
+    if (ins.error || !ins.data) {
+      console.error('createInterview:', ins.error?.message)
+      setError('Erreur lors de la création de l’entretien.')
       setSaving(false)
       return false
+    }
+    const interviewId = ins.data.id
+
+    if (relations?.topicIds && relations.topicIds.length > 0) {
+      const tIns = await (supabase.from('interview_topics') as unknown as {
+        insert: (v: Record<string, unknown>[]) => Promise<SupaResult>
+      }).insert(relations.topicIds.map((tid) => ({ interview_id: interviewId, topic_id: tid })))
+      if (tIns.error) console.error('createInterview topics:', tIns.error.message)
+    }
+    if (relations?.actorIds && relations.actorIds.length > 0) {
+      const aIns = await (supabase.from('interview_actors') as unknown as {
+        insert: (v: Record<string, unknown>[]) => Promise<SupaResult>
+      }).insert(relations.actorIds.map((aid) => ({ interview_id: interviewId, actor_id: aid })))
+      if (aIns.error) console.error('createInterview actors:', aIns.error.message)
     }
     setSaving(false)
     onSuccess?.()
@@ -41,12 +60,12 @@ export function useInterviews(onSuccess?: () => void): UseInterviewsResult {
   const updateInterview = useCallback(async (id: string, data: InterviewScheduleUpdate): Promise<boolean> => {
     setSaving(true)
     setError(null)
-    const { error: updateError } = await (fromTable('interview_schedules') as {
-      update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<SupabaseResult> }
+    const up = await (supabase.from('interview_schedules') as unknown as {
+      update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<SupaResult> }
     }).update(data as unknown as Record<string, unknown>).eq('id', id)
-    if (updateError) {
-      console.error('updateInterview:', updateError.message)
-      setError('Erreur lors de la mise \u00e0 jour.')
+    if (up.error) {
+      console.error('updateInterview:', up.error.message)
+      setError('Erreur lors de la mise à jour.')
       setSaving(false)
       return false
     }
@@ -58,11 +77,11 @@ export function useInterviews(onSuccess?: () => void): UseInterviewsResult {
   const deleteInterview = useCallback(async (id: string): Promise<boolean> => {
     setSaving(true)
     setError(null)
-    const { error: delError } = await (fromTable('interview_schedules') as {
-      delete: () => { eq: (col: string, val: string) => Promise<SupabaseResult> }
+    const del = await (supabase.from('interview_schedules') as unknown as {
+      delete: () => { eq: (col: string, val: string) => Promise<SupaResult> }
     }).delete().eq('id', id)
-    if (delError) {
-      console.error('deleteInterview:', delError.message)
+    if (del.error) {
+      console.error('deleteInterview:', del.error.message)
       setError('Erreur lors de la suppression.')
       setSaving(false)
       return false
@@ -72,22 +91,5 @@ export function useInterviews(onSuccess?: () => void): UseInterviewsResult {
     return true
   }, [onSuccess])
 
-  const createContact = useCallback(async (data: ClientContactInsert): Promise<string | null> => {
-    setSaving(true)
-    setError(null)
-    const { data: result, error: insertError } = await (fromTable('client_contacts') as {
-      insert: (v: Record<string, unknown>) => { select: (cols: string) => { single: () => Promise<SupabaseResultWithData<{ id: string }>> } }
-    }).insert(data as unknown as Record<string, unknown>).select('id').single()
-    if (insertError || !result) {
-      console.error('createContact:', insertError?.message)
-      setError('Erreur lors de la cr\u00e9ation du contact.')
-      setSaving(false)
-      return null
-    }
-    setSaving(false)
-    onSuccess?.()
-    return result.id
-  }, [onSuccess])
-
-  return { createInterview, updateInterview, deleteInterview, createContact, saving, error }
+  return { createInterview, updateInterview, deleteInterview, saving, error }
 }

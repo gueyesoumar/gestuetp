@@ -5,8 +5,9 @@ import { usePlanningData } from './usePlanningData'
 import { useSavePlanning } from './useSavePlanning'
 import { useAssignControls } from '../useAssignControls'
 import { useInterviews } from './useInterviews'
+import { useInterviewRelations } from './useInterviewRelations'
+import { useAuditTopics } from './useAuditTopics'
 import { generateWorkProgram } from './generateWorkProgram'
-import { generateInterviewPlan } from './generateInterviews'
 import { WorkProgramTable } from './WorkProgramTable'
 import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
@@ -20,6 +21,7 @@ import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionMemberRow, ControlAssignmentRow, MissionDetail } from '../useMissionDetail'
+import type { InterviewWithRelations } from './usePlanningData'
 
 interface MissionPlanningTabProps {
   mission: MissionDetail
@@ -35,11 +37,12 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const { plannings, interviews, contacts, loading, error, refetch: refetchPlanning } = usePlanningData(mission.id)
   const { upsertPlanning, batchUpsert } = useSavePlanning(refetchPlanning)
   const { assignControls } = useAssignControls(onRefetch)
-  const { createInterview, updateInterview, deleteInterview, createContact, saving: interviewSaving, error: interviewError } = useInterviews(refetchPlanning)
+  const { createInterview, updateInterview, deleteInterview, saving: interviewSaving, error: interviewError } = useInterviews(refetchPlanning)
+  const { syncTopics, syncActors } = useInterviewRelations()
+  const { topics: auditTopics } = useAuditTopics(mission.framework_id, mission.id)
   const [activeTab, setActiveTab] = useState<PlanTab>('programme')
   const [showInterviewModal, setShowInterviewModal] = useState(false)
-  const [editingInterview, setEditingInterview] = useState<import('../../../types/database.types').InterviewSchedule | null>(null)
-  const [generatingInterviews, setGeneratingInterviews] = useState(false)
+  const [editingInterview, setEditingInterview] = useState<InterviewWithRelations | null>(null)
   const [generating, setGenerating] = useState(false)
   const planFlag = useFeatureFlag('smart_plan_mission')
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
@@ -58,32 +61,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const handleAssignDomain = useCallback((controlIds: string[], auditorId: string) => {
     assignControls(mission.id, controlIds.map((id) => ({ control_id: id, auditor_id: auditorId })))
   }, [mission.id, assignControls])
-
-  const handleGenerateInterviews = useCallback(async () => {
-    setGeneratingInterviews(true)
-    setGenSuccess(null)
-
-    const plan = generateInterviewPlan(
-      mission.id, domains, plannings, assignments, contacts,
-      mission.start_date, mission.end_date
-    )
-
-    if (plan.length === 0) {
-      setGenSuccess('Aucun entretien \u00e0 g\u00e9n\u00e9rer. V\u00e9rifiez que le programme de travail contient des contr\u00f4les avec la technique "entretien".')
-      setGeneratingInterviews(false)
-      return
-    }
-
-    let created = 0
-    for (const entry of plan) {
-      const ok = await createInterview(entry)
-      if (ok) created++
-    }
-
-    setGeneratingInterviews(false)
-    setGenSuccess(`${created} entretien${created > 1 ? 's' : ''} g\u00e9n\u00e9r\u00e9${created > 1 ? 's' : ''} automatiquement.`)
-    refetchPlanning()
-  }, [mission, domains, plannings, assignments, contacts, createInterview, refetchPlanning])
 
   const handleGenerate = useCallback(async () => {
     setGenerating(true)
@@ -211,43 +188,35 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           <WorkProgramTable domains={domains} plannings={plannings} assignments={assignments} members={members} onPlanningChange={handlePlanningChange} onAssign={handleAssign} onAssignDomain={handleAssignDomain} />
         )}
         {activeTab === 'entretiens' && (
-          <InterviewsPanel interviews={interviews} contacts={contacts}
+          <InterviewsPanel interviews={interviews} contacts={contacts} topics={auditTopics}
             onAdd={() => setShowInterviewModal(true)}
             onEdit={(iv) => setEditingInterview(iv)}
             onStatusChange={(id, status) => updateInterview(id, { status })}
             onDelete={(id) => deleteInterview(id)}
-            onAutoGenerate={handleGenerateInterviews}
-            generating={generatingInterviews}
+            onOpenMatrix={() => { /* TODO phase C.b: matrice */ }}
             saving={interviewSaving} />
         )}
       </div>
 
-      {/* Interview modal */}
+      {/* Interview create modal */}
       {showInterviewModal && (
         <InterviewFormModal
           missionId={mission.id}
           members={members}
-          contacts={contacts}
+          actors={contacts}
+          topics={auditTopics}
           onCreateInterview={async (data) => {
-            return createInterview({
+            const ok = await createInterview({
               mission_id: data.mission_id,
               title: data.title,
               auditor_id: data.auditor_id,
-              contact_id: data.contact_id ?? undefined,
               scheduled_date: data.scheduled_date,
               scheduled_time: data.scheduled_time,
               duration_minutes: data.duration_minutes,
               location: data.location || undefined,
               notes: data.notes || undefined,
-            })
-          }}
-          onCreateContact={async (data) => {
-            return createContact({
-              mission_id: data.mission_id,
-              name: data.name,
-              job_title: data.job_title || undefined,
-              department: data.department || undefined,
-            })
+            }, { topicIds: data.topic_ids, actorIds: data.actor_ids })
+            return ok
           }}
           onClose={() => setShowInterviewModal(false)}
           saving={interviewSaving}
@@ -260,10 +229,12 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
         <InterviewEditModal
           interview={editingInterview}
           members={members}
-          contacts={contacts}
-          domains={domains}
+          actors={contacts}
+          topics={auditTopics}
           missionName={mission.name}
           onUpdate={updateInterview}
+          onSyncTopics={syncTopics}
+          onSyncActors={syncActors}
           onClose={() => setEditingInterview(null)}
           saving={interviewSaving}
           error={interviewError}
@@ -276,7 +247,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           <PlanningBudgetBanner assignments={assignments} totalControls={totalControls} />
           <PlanningWorkloadSection members={members} assignments={assignments} totalControls={totalControls} />
           <PlanningGanttSection domains={domains} startDate={mission.start_date} endDate={mission.end_date} />
-          <PlanningNextInterview interviews={interviews} />
+          <PlanningNextInterview interviews={interviews} topics={auditTopics} />
           <PlanningActionsSection assignedCount={assignments.length} totalControls={totalControls} onValidate={async () => {
             const session = await supabase.auth.getSession()
             const token = session.data.session?.access_token

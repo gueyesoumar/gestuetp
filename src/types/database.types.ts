@@ -1155,14 +1155,12 @@ export interface ClientContactUpdate {
 export interface InterviewSchedule {
   id: string
   mission_id: string
-  contact_id: string | null
   auditor_id: string
   title: string
   scheduled_date: string
   scheduled_time: string
   duration_minutes: number
   location: string | null
-  control_ids: string[]
   notes: string | null
   status: InterviewStatus
   created_at: string
@@ -1172,29 +1170,40 @@ export interface InterviewSchedule {
 export interface InterviewScheduleInsert {
   id?: string
   mission_id: string
-  contact_id?: string | null
   auditor_id: string
   title: string
   scheduled_date: string
   scheduled_time: string
   duration_minutes?: number
   location?: string | null
-  control_ids?: string[]
   notes?: string | null
   status?: InterviewStatus
 }
 
 export interface InterviewScheduleUpdate {
-  contact_id?: string | null
   auditor_id?: string
   title?: string
   scheduled_date?: string
   scheduled_time?: string
   duration_minutes?: number
   location?: string | null
-  control_ids?: string[]
   notes?: string | null
   status?: InterviewStatus
+}
+
+// ============================================================
+// Interview matrix : N:N entretien <-> sujet, entretien <-> acteur
+// (migration 00113 - phase C refonte Entretiens)
+// ============================================================
+
+export interface InterviewTopicLink {
+  interview_id: string
+  topic_id: string
+}
+
+export interface InterviewActorLink {
+  interview_id: string
+  actor_id: string
 }
 
 // ============================================================
@@ -1532,6 +1541,16 @@ export interface Database {
       topic_controls: {
         Row: TopicControlLink
         Insert: TopicControlLinkInsert
+        Update: never
+      }
+      interview_topics: {
+        Row: InterviewTopicLink
+        Insert: InterviewTopicLink
+        Update: never
+      }
+      interview_actors: {
+        Row: InterviewActorLink
+        Insert: InterviewActorLink
         Update: never
       }
     }

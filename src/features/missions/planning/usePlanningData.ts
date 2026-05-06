@@ -2,10 +2,17 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 import type { ControlPlanning, ClientContact, InterviewSchedule } from '../../../types/database.types'
 
+// Apres phase C : un entretien est associe a N sujets et N acteurs (M:N).
+// Les liens sont prechargues ici pour eviter des fetches granulaires en UI.
+export interface InterviewWithRelations extends InterviewSchedule {
+  topic_ids: string[]
+  actor_ids: string[]
+}
+
 interface UsePlanningDataResult {
   plannings: ControlPlanning[]
   contacts: ClientContact[]
-  interviews: InterviewSchedule[]
+  interviews: InterviewWithRelations[]
   loading: boolean
   error: string | null
   refetch: () => void
@@ -14,7 +21,7 @@ interface UsePlanningDataResult {
 export function usePlanningData(missionId: string | undefined): UsePlanningDataResult {
   const [plannings, setPlannings] = useState<ControlPlanning[]>([])
   const [contacts, setContacts] = useState<ClientContact[]>([])
-  const [interviews, setInterviews] = useState<InterviewSchedule[]>([])
+  const [interviews, setInterviews] = useState<InterviewWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -49,7 +56,43 @@ export function usePlanningData(missionId: string | undefined): UsePlanningDataR
 
       setPlannings((cpRes.data ?? []) as unknown as ControlPlanning[])
       setContacts((ccRes.data ?? []) as unknown as ClientContact[])
-      setInterviews((isRes.data ?? []) as unknown as InterviewSchedule[])
+
+      const baseInterviews = (isRes.data ?? []) as unknown as InterviewSchedule[]
+
+      // Charger les liens M:N (topics, actors) si on a au moins un entretien
+      if (baseInterviews.length === 0) {
+        setInterviews([])
+        setLoading(false)
+        return
+      }
+
+      const interviewIds = baseInterviews.map((i) => i.id)
+      const [topicsRes, actorsRes] = await Promise.all([
+        supabase.from('interview_topics').select('interview_id, topic_id').in('interview_id', interviewIds).abortSignal(ac.signal),
+        supabase.from('interview_actors').select('interview_id, actor_id').in('interview_id', interviewIds).abortSignal(ac.signal),
+      ])
+
+      if (ac.signal.aborted) return
+
+      const topicsByInterview = new Map<string, string[]>()
+      for (const row of (topicsRes.data ?? []) as Array<{ interview_id: string; topic_id: string }>) {
+        const list = topicsByInterview.get(row.interview_id) ?? []
+        list.push(row.topic_id)
+        topicsByInterview.set(row.interview_id, list)
+      }
+
+      const actorsByInterview = new Map<string, string[]>()
+      for (const row of (actorsRes.data ?? []) as Array<{ interview_id: string; actor_id: string }>) {
+        const list = actorsByInterview.get(row.interview_id) ?? []
+        list.push(row.actor_id)
+        actorsByInterview.set(row.interview_id, list)
+      }
+
+      setInterviews(baseInterviews.map((i) => ({
+        ...i,
+        topic_ids: topicsByInterview.get(i.id) ?? [],
+        actor_ids: actorsByInterview.get(i.id) ?? [],
+      })))
       setLoading(false)
     }
 

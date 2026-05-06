@@ -54,28 +54,32 @@ export function useMissionActors(missionId: string | null | undefined): UseMissi
   const add = useCallback(async (data: Omit<ClientContactInsert, 'mission_id'>): Promise<ClientContact | null> => {
     if (!missionId) return null
     setSaving(true)
-    const { data: row, error: insErr } = await supabase
-      .from('client_contacts')
-      .insert({ ...data, mission_id: missionId })
+    const ins = await (supabase.from('client_contacts') as unknown as {
+      insert: (v: Record<string, unknown>) => {
+        select: (cols: string) => {
+          single: () => Promise<{ data: ClientContact | null; error: { message: string } | null }>
+        }
+      }
+    }).insert({ ...data, mission_id: missionId })
       .select('id, mission_id, name, job_title, department, email, phone, is_primary, created_at')
       .single()
     setSaving(false)
-    if (insErr) {
-      console.error('[useMissionActors] add:', insErr.message)
+    if (ins.error || !ins.data) {
+      console.error('[useMissionActors] add:', ins.error?.message)
       setError('Erreur lors de l’ajout')
       return null
     }
     refetch()
-    return row as ClientContact
+    return ins.data
   }, [missionId, refetch])
 
   const update = useCallback(async (id: string, patch: ClientContactUpdate): Promise<boolean> => {
     setSaving(true)
-    const { error: upErr } = await supabase
-      .from('client_contacts')
-      .update(patch)
-      .eq('id', id)
+    const up = await (supabase.from('client_contacts') as unknown as {
+      update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> }
+    }).update(patch as unknown as Record<string, unknown>).eq('id', id)
     setSaving(false)
+    const upErr = up.error
     if (upErr) {
       console.error('[useMissionActors] update:', upErr.message)
       setError('Erreur lors de la mise à jour')

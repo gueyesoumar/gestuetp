@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Pencil, Check, RefreshCw, X, FileEdit, Calendar, Trash2 } from 'lucide-react'
-import type { InterviewSchedule, ClientContact, InterviewStatus } from '../../../types/database.types'
+import type { ClientContact, InterviewStatus } from '../../../types/database.types'
+import type { InterviewWithRelations } from './usePlanningData'
 
 interface InterviewCardProps {
-  interview: InterviewSchedule
-  contact: ClientContact | undefined
-  onEdit: (interview: InterviewSchedule) => void
+  interview: InterviewWithRelations
+  actors: ClientContact[]
+  topicLabels: Map<string, string>
+  onEdit: (interview: InterviewWithRelations) => void
   onStatusChange: (id: string, status: InterviewStatus) => void
   onDelete: (id: string) => void
   saving: boolean
@@ -18,7 +20,7 @@ const STATUS_CONFIG: Record<InterviewStatus, { label: string; cls: string }> = {
   rescheduled: { label: 'Report\u00e9', cls: 'bg-amber-50 text-amber-600' },
 }
 
-export function InterviewCard({ interview, contact, onEdit, onStatusChange, onDelete }: InterviewCardProps) {
+export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatusChange, onDelete }: InterviewCardProps) {
   const [showMenu, setShowMenu] = useState(false)
   const d = new Date(interview.scheduled_date)
   const day = d.getDate()
@@ -46,16 +48,20 @@ export function InterviewCard({ interview, contact, onEdit, onStatusChange, onDe
         <p className="text-[10px] text-gray-300 mt-0.5">
           {time} {'\u2014'} {endTime} ({interview.duration_minutes}min)
           {interview.location && <>{' \u00b7 '}{interview.location}</>}
-          {contact && <>{' \u00b7 '}<strong>{contact.name}</strong>{contact.job_title ? ` (${contact.job_title})` : ''}</>}
+          {actors.length > 0 && (
+            <>{' \u00b7 '}<strong>{actors.map((a) => a.name).join(', ')}</strong></>
+          )}
         </p>
 
-        {/* Control tags */}
-        {interview.control_ids.length > 0 && (
+        {/* Topic tags */}
+        {interview.topic_ids.length > 0 && (
           <div className="flex gap-1 mt-1.5 flex-wrap">
-            {interview.control_ids.slice(0, 4).map((id) => (
-              <span key={id} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono">{id.slice(0, 8)}</span>
+            {interview.topic_ids.slice(0, 4).map((id) => (
+              <span key={id} className="text-[9px] px-1.5 py-0.5 rounded bg-gold-50 text-gold-700 border border-gold-200">
+                {topicLabels.get(id) ?? id.slice(0, 8)}
+              </span>
             ))}
-            {interview.control_ids.length > 4 && <span className="text-[9px] text-gray-300">+{interview.control_ids.length - 4}</span>}
+            {interview.topic_ids.length > 4 && <span className="text-[9px] text-gray-300">+{interview.topic_ids.length - 4}</span>}
           </div>
         )}
 
