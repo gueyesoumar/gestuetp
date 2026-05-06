@@ -14,15 +14,6 @@ export function QuestionnaireClientPage() {
   if (error) return <div className="p-8"><ErrorAlert message={error} /></div>
   if (!instance) return <div className="p-8"><ErrorAlert message="Questionnaire introuvable." /></div>
 
-  // Build initial responses map from existing data
-  const initialResponses = new Map<string, unknown>()
-  for (const r of responses) {
-    const val = r.response
-    if (val && typeof val === 'object' && 'value' in val) {
-      initialResponses.set(r.question_code, (val as { value: unknown }).value)
-    }
-  }
-
   const snapshot = instance.snapshot as { template?: { name?: string } } | null
   const templateName = snapshot?.template?.name ?? 'Questionnaire'
 
@@ -38,7 +29,8 @@ export function QuestionnaireClientPage() {
           questions={questions}
           instanceId={instance.id}
           userId={profile?.id ?? null}
-          initialResponses={initialResponses}
+          initialRows={responses}
+          dueDate={instance.due_date ?? null}
           onComplete={() => { window.location.href = '/missions' }}
         />
       </div>

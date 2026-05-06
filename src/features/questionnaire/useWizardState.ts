@@ -1,11 +1,14 @@
 import { useState, useCallback, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Question } from '../../types/database.types'
+import type { Question, QuestionnaireSkipReason } from '../../types/database.types'
+import type { QuestionnaireResponseData } from '../missions/useMissionQuestionnaire'
 
 interface UseWizardStateResult {
   currentIndex: number
   currentQuestion: Question | null
   responses: Map<string, unknown>
+  skipReasons: Map<string, QuestionnaireSkipReason>
+  prefilled: Set<string>
   currentSection: number
   sections: { label: string; code: string; count: number }[]
   sectionLabel: string
@@ -13,6 +16,7 @@ interface UseWizardStateResult {
   canGoPrev: boolean
   isLast: boolean
   setResponse: (code: string, value: unknown) => void
+  setSkip: (code: string, reason: QuestionnaireSkipReason | null) => void
   goNext: () => void
   goPrev: () => void
   goTo: (index: number) => void
@@ -21,20 +25,42 @@ interface UseWizardStateResult {
 
 const SECTION_LABELS: Record<string, string> = {
   GOV: 'Gouvernance SSI',
-  MAT: 'Maturit\u00e9 & historique',
-  OPS: 'S\u00e9curit\u00e9 op\u00e9rationnelle',
-  INC: 'Incidents & continuit\u00e9',
+  MAT: 'Maturité & historique',
+  OPS: 'Sécurité opérationnelle',
+  INC: 'Incidents & continuité',
   ATT: 'Attentes & contraintes',
+}
+
+function buildInitialMaps(rows: QuestionnaireResponseData[] | undefined): {
+  responses: Map<string, unknown>
+  skipReasons: Map<string, QuestionnaireSkipReason>
+  prefilled: Set<string>
+} {
+  const responses = new Map<string, unknown>()
+  const skipReasons = new Map<string, QuestionnaireSkipReason>()
+  const prefilled = new Set<string>()
+  for (const r of rows ?? []) {
+    const val = r.response
+    if (val && typeof val === 'object' && 'value' in val && (val as { value: unknown }).value !== null) {
+      responses.set(r.question_code, (val as { value: unknown }).value)
+    }
+    if (r.skip_reason) skipReasons.set(r.question_code, r.skip_reason)
+    if (r.is_prefilled) prefilled.add(r.question_code)
+  }
+  return { responses, skipReasons, prefilled }
 }
 
 export function useWizardState(
   questions: Question[],
   instanceId: string | null,
   userId: string | null,
-  initialResponses?: Map<string, unknown>
+  initialRows?: QuestionnaireResponseData[],
 ): UseWizardStateResult {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [responses, setResponses] = useState<Map<string, unknown>>(initialResponses ?? new Map())
+  const initial = useMemo(() => buildInitialMaps(initialRows), [initialRows])
+  const [responses, setResponses] = useState<Map<string, unknown>>(initial.responses)
+  const [skipReasons, setSkipReasons] = useState<Map<string, QuestionnaireSkipReason>>(initial.skipReasons)
+  const [prefilled] = useState<Set<string>>(initial.prefilled)
   const [saving, setSaving] = useState(false)
 
   const sections = useMemo(() => {
@@ -58,31 +84,25 @@ export function useWizardState(
   const canGoNext = currentIndex < questions.length - 1
   const canGoPrev = currentIndex > 0
 
-  const saveResponse = useCallback(async (code: string, value: unknown) => {
+  const persist = useCallback(async (
+    code: string,
+    value: unknown,
+    skipReason: QuestionnaireSkipReason | null,
+  ): Promise<void> => {
     if (!instanceId || !userId) return
     setSaving(true)
-
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL
-    const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-
-    await fetch(`${baseUrl}/rest/v1/questionnaire_responses`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': apikey,
-        'Authorization': `Bearer ${token}`,
-        'Prefer': 'resolution=merge-duplicates,return=minimal',
-      },
-      body: JSON.stringify({
+    const { error } = await supabase
+      .from('questionnaire_responses')
+      .upsert({
         instance_id: instanceId,
         question_code: code,
         response: { value },
+        skip_reason: skipReason,
         responded_by: userId,
-      }),
-    })
-
+      }, { onConflict: 'instance_id,question_code' })
+    if (error) {
+      console.error('[useWizardState] persist:', error.message)
+    }
     setSaving(false)
   }, [instanceId, userId])
 
@@ -92,8 +112,30 @@ export function useWizardState(
       next.set(code, value)
       return next
     })
-    saveResponse(code, value)
-  }, [saveResponse])
+    setSkipReasons((prev) => {
+      if (!prev.has(code)) return prev
+      const next = new Map(prev)
+      next.delete(code)
+      return next
+    })
+    void persist(code, value, null)
+  }, [persist])
+
+  const setSkip = useCallback((code: string, reason: QuestionnaireSkipReason | null) => {
+    setSkipReasons((prev) => {
+      const next = new Map(prev)
+      if (reason === null) next.delete(code)
+      else next.set(code, reason)
+      return next
+    })
+    setResponses((prev) => {
+      if (!prev.has(code)) return prev
+      const next = new Map(prev)
+      next.delete(code)
+      return next
+    })
+    void persist(code, null, reason)
+  }, [persist])
 
   const goNext = useCallback(() => {
     if (canGoNext) setCurrentIndex((i) => i + 1)
@@ -108,8 +150,8 @@ export function useWizardState(
   }, [questions.length])
 
   return {
-    currentIndex, currentQuestion, responses, currentSection, sections,
-    sectionLabel, canGoNext, canGoPrev, isLast,
-    setResponse, goNext, goPrev, goTo, saving,
+    currentIndex, currentQuestion, responses, skipReasons, prefilled,
+    currentSection, sections, sectionLabel, canGoNext, canGoPrev, isLast,
+    setResponse, setSkip, goNext, goPrev, goTo, saving,
   }
 }

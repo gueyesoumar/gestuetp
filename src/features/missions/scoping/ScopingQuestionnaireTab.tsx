@@ -13,6 +13,12 @@ const EVIDENCE_META: Record<EvidenceType, { label: string; icon: typeof ShieldCh
   declared_only: { label: 'Déclaratif', icon: MessageSquare, classes: 'bg-gray-100 text-gray-600 border border-gray-200' },
 }
 
+const SKIP_LABELS: Record<'rssi_validation' | 'no_object' | 'unknown', string> = {
+  rssi_validation: 'À valider avec le RSSI',
+  no_object: 'Sans objet',
+  unknown: 'Je ne sais pas',
+}
+
 function EvidenceBadge({ type }: { type: EvidenceType }): JSX.Element {
   const meta = EVIDENCE_META[type]
   const Icon = meta.icon
@@ -62,16 +68,22 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
       evidenceType: EvidenceType | null
       sourceDocs: string[]
       aiConfidence: number | null
+      skipReason: 'rssi_validation' | 'no_object' | 'unknown' | null
+      isPrefilled: boolean
     }>()
     for (const r of responses) {
       const val = r.response
-      if (val && typeof val === 'object' && 'value' in val) {
-        const v = String((val as { value: unknown }).value)
+      const hasValue = val && typeof val === 'object' && 'value' in val && (val as { value: unknown }).value !== null
+      // Include responses that have a value OR a skip_reason (the client marked it explicitly)
+      if (hasValue || r.skip_reason) {
+        const v = hasValue ? String((val as { value: unknown }).value) : ''
         map.set(r.question_code, {
           value: v,
           evidenceType: r.evidence_type,
           sourceDocs: r.source_documents ?? [],
           aiConfidence: r.ai_confidence,
+          skipReason: r.skip_reason,
+          isPrefilled: r.is_prefilled,
         })
       }
     }
@@ -158,26 +170,35 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                         <p className="text-xs text-gray-700">{q.text}</p>
                         {resp ? (
                           <>
-                            <p className="text-[11px] text-forest-900 mt-1 bg-forest-50 rounded px-2 py-1.5 leading-relaxed">
-                              {resp.value}
-                            </p>
-                            {(resp.evidenceType || resp.sourceDocs.length > 0 || resp.aiConfidence !== null) && (
-                              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                                {resp.evidenceType && <EvidenceBadge type={resp.evidenceType} />}
-                                {resp.aiConfidence !== null && (
-                                  <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
-                                    resp.aiConfidence >= 80 ? 'bg-forest-50 text-forest-700' :
-                                    resp.aiConfidence >= 60 ? 'bg-gold-50 text-gold-700' :
-                                    'bg-red-50 text-red-500'
-                                  }`}>{resp.aiConfidence}%</span>
-                                )}
-                                {resp.sourceDocs.length > 0 && (
-                                  <span className="text-[9px] text-gray-400 truncate" title={resp.sourceDocs.join(', ')}>
-                                    Sources : {resp.sourceDocs.length === 1 ? resp.sourceDocs[0] : `${resp.sourceDocs[0]} +${resp.sourceDocs.length - 1}`}
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            {resp.skipReason ? (
+                              <p className="text-[11px] text-gold-700 mt-1 bg-gold-50 border border-gold-200 rounded px-2 py-1.5 leading-relaxed font-semibold">
+                                {SKIP_LABELS[resp.skipReason]}
+                              </p>
+                            ) : resp.value ? (
+                              <p className="text-[11px] text-forest-900 mt-1 bg-forest-50 rounded px-2 py-1.5 leading-relaxed">
+                                {resp.value}
+                              </p>
+                            ) : null}
+                            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                              {resp.isPrefilled && (
+                                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-200">
+                                  ✓ Pré-rempli
+                                </span>
+                              )}
+                              {resp.evidenceType && <EvidenceBadge type={resp.evidenceType} />}
+                              {resp.aiConfidence !== null && (
+                                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+                                  resp.aiConfidence >= 80 ? 'bg-forest-50 text-forest-700' :
+                                  resp.aiConfidence >= 60 ? 'bg-gold-50 text-gold-700' :
+                                  'bg-red-50 text-red-500'
+                                }`}>{resp.aiConfidence}%</span>
+                              )}
+                              {resp.sourceDocs.length > 0 && (
+                                <span className="text-[9px] text-gray-400 truncate" title={resp.sourceDocs.join(', ')}>
+                                  Sources : {resp.sourceDocs.length === 1 ? resp.sourceDocs[0] : `${resp.sourceDocs[0]} +${resp.sourceDocs.length - 1}`}
+                                </span>
+                              )}
+                            </div>
                           </>
                         ) : null}
                       </div>
@@ -185,9 +206,15 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                       {/* Status */}
                       <div className="shrink-0 mt-0.5">
                         {resp ? (
-                          <span className="text-[9px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">
-                            <Check size={10} /> R&eacute;pondu
-                          </span>
+                          resp.skipReason ? (
+                            <span className="text-[9px] font-semibold text-gold-700 bg-gold-50 border border-gold-300 px-2 py-0.5 rounded-full">
+                              À creuser
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">
+                              <Check size={10} /> Répondu
+                            </span>
+                          )
                         ) : (
                           <span className="text-[9px] font-medium text-gray-300 bg-gray-50 px-2 py-0.5 rounded-full">
                             En attente

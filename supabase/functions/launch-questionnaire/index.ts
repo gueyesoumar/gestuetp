@@ -39,10 +39,10 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 3. Charger la mission
+    // 3. Charger la mission (incluant cabinet_client_id pour pre-fill)
     const { data: mission, error: mErr } = await supabaseAdmin
       .from('missions')
-      .select('id, framework_id, cabinet_id')
+      .select('id, framework_id, cabinet_id, cabinet_client_id')
       .eq('id', mission_id)
       .single()
 
@@ -129,14 +129,72 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 9. Mettre a jour le statut de la mission vers 'scoping'
+    // 9. Pre-remplir les questions avec un prefill_source defini
+    let prefilledCount = 0
+    if (mission.cabinet_client_id) {
+      const { data: client } = await supabaseAdmin
+        .from('cabinet_clients')
+        .select('effectifs, nombre_sites, client_sector, client_country, activites_principales, it_environment, it_systems')
+        .eq('id', mission.cabinet_client_id)
+        .single()
+
+      if (client) {
+        const PREFILL_GETTERS: Record<string, () => unknown> = {
+          'client.effectifs': () => client.effectifs,
+          'client.nombre_sites': () => client.nombre_sites,
+          'client.client_sector': () => client.client_sector,
+          'client.client_country': () => client.client_country,
+          'client.activites_principales': () => client.activites_principales,
+          'client.it_environment': () => client.it_environment,
+          'client.it_systems': () => client.it_systems,
+        }
+
+        const prefillRows: Array<{
+          instance_id: string
+          question_code: string
+          response: { value: unknown }
+          responded_by: string
+          is_prefilled: boolean
+        }> = []
+
+        for (const q of questions ?? []) {
+          const source = (q as { prefill_source?: string | null }).prefill_source
+          if (!source) continue
+          const getter = PREFILL_GETTERS[source]
+          if (!getter) continue
+          const value = getter()
+          if (value === null || value === undefined || (Array.isArray(value) && value.length === 0)) continue
+          prefillRows.push({
+            instance_id: instance.id,
+            question_code: q.code,
+            response: { value },
+            responded_by: caller.id,
+            is_prefilled: true,
+          })
+        }
+
+        if (prefillRows.length > 0) {
+          const { error: prefErr } = await supabaseAdmin
+            .from('questionnaire_responses')
+            .insert(prefillRows)
+          if (prefErr) {
+            console.error('launch-questionnaire prefill:', prefErr.message)
+            // Non-bloquant : l'instance existe deja, le client pourra repondre normalement
+          } else {
+            prefilledCount = prefillRows.length
+          }
+        }
+      }
+    }
+
+    // 10. Mettre a jour le statut de la mission vers 'scoping'
     await supabaseAdmin
       .from('missions')
       .update({ status: 'scoping' })
       .eq('id', mission_id)
 
     return new Response(
-      JSON.stringify({ success: true, instance_id: instance.id }),
+      JSON.stringify({ success: true, instance_id: instance.id, prefilled_count: prefilledCount }),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {

@@ -659,11 +659,14 @@ export interface AssessmentValidationInsert {
   created_at?: string
 }
 
+export type QuestionnaireSkipReason = 'rssi_validation' | 'no_object' | 'unknown'
+
 export interface QuestionnaireInstance {
   id: string
   mission_id: string
   template_id: string
   snapshot: Record<string, unknown>
+  due_date: string | null
   created_at: string
 }
 
@@ -672,6 +675,7 @@ export interface QuestionnaireInstanceInsert {
   mission_id: string
   template_id: string
   snapshot: Record<string, unknown>
+  due_date?: string | null
   created_at?: string
 }
 
@@ -681,6 +685,8 @@ export interface QuestionnaireResponse {
   question_code: string
   response: Record<string, unknown> | null
   responded_by: string
+  skip_reason: QuestionnaireSkipReason | null
+  is_prefilled: boolean
   created_at: string
   updated_at: string
 }
@@ -691,12 +697,15 @@ export interface QuestionnaireResponseInsert {
   question_code: string
   response?: Record<string, unknown> | null
   responded_by: string
+  skip_reason?: QuestionnaireSkipReason | null
+  is_prefilled?: boolean
   created_at?: string
   updated_at?: string
 }
 
 export interface QuestionnaireResponseUpdate {
   response?: Record<string, unknown> | null
+  skip_reason?: QuestionnaireSkipReason | null
 }
 
 export interface PartieInteressee {

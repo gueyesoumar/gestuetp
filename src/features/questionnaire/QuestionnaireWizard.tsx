@@ -1,23 +1,31 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Calendar } from 'lucide-react'
 import { WizardProgress } from './WizardProgress'
 import { WizardCompletedSummary } from './WizardCompletedSummary'
 import { WizardQuestionCard } from './WizardQuestionCard'
 import { useWizardState } from './useWizardState'
 import type { Question } from '../../types/database.types'
+import type { QuestionnaireResponseData } from '../missions/useMissionQuestionnaire'
 
 interface QuestionnaireWizardProps {
   questions: Question[]
   instanceId: string | null
   userId: string | null
   missionName?: string
-  initialResponses?: Map<string, unknown>
+  initialRows?: QuestionnaireResponseData[]
+  dueDate?: string | null
   readOnly?: boolean
   onComplete?: () => void
 }
 
-export function QuestionnaireWizard({ questions, instanceId, userId, missionName, initialResponses, readOnly, onComplete }: QuestionnaireWizardProps) {
-  const state = useWizardState(questions, instanceId, userId, initialResponses)
+function daysUntilDue(iso: string): number {
+  const target = new Date(iso); target.setHours(0, 0, 0, 0)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  return Math.round((target.getTime() - today.getTime()) / 86400000)
+}
+
+export function QuestionnaireWizard({ questions, instanceId, userId, missionName, initialRows, dueDate, readOnly, onComplete }: QuestionnaireWizardProps) {
+  const state = useWizardState(questions, instanceId, userId, initialRows)
   const [completed, setCompleted] = useState(false)
 
   if (questions.length === 0) {
@@ -87,13 +95,35 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
         onGoTo={state.goTo}
       />
 
+      {/* Due date pill */}
+      {dueDate && (() => {
+        const days = daysUntilDue(dueDate)
+        const formatted = new Date(dueDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })
+        const tone = days < 0 ? 'bg-red-50 border-red-200 text-red-700'
+          : days <= 3 ? 'bg-gold-50 border-gold-300 text-gold-700'
+          : 'bg-forest-50 border-forest-200 text-forest-700'
+        const label = days < 0
+          ? `Échéance dépassée le ${formatted} (J+${Math.abs(days)})`
+          : days === 0
+            ? `À soumettre aujourd’hui (${formatted})`
+            : `À soumettre avant le ${formatted} (J-${days})`
+        return (
+          <div className={`flex items-center gap-2 mx-6 mt-3 px-3 py-2 border rounded-lg text-[12px] ${tone}`}>
+            <Calendar size={13} /> {label}
+          </div>
+        )
+      })()}
+
       {/* Current question */}
       {state.currentQuestion && (
         <WizardQuestionCard
           question={state.currentQuestion}
           sectionLabel={state.sectionLabel}
           value={state.responses.get(state.currentQuestion.code) ?? null}
+          skipReason={state.skipReasons.get(state.currentQuestion.code) ?? null}
+          isPrefilled={state.prefilled.has(state.currentQuestion.code)}
           onChange={(v) => state.setResponse(state.currentQuestion!.code, v)}
+          onSkip={(reason) => state.setSkip(state.currentQuestion!.code, reason)}
           readOnly={readOnly}
         />
       )}

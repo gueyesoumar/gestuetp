@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Question } from '../../types/database.types'
+import type { Question, QuestionnaireSkipReason } from '../../types/database.types'
 
 export interface QuestionnaireInstanceData {
   id: string
@@ -10,6 +10,7 @@ export interface QuestionnaireInstanceData {
     template: { id: string; name: string; description: string | null; version: string | null }
     questions: Question[]
   }
+  due_date: string | null
   created_at: string
 }
 
@@ -24,6 +25,8 @@ export interface QuestionnaireResponseData {
   evidence_type: EvidenceType | null
   source_documents: string[] | null
   ai_confidence: number | null
+  skip_reason: QuestionnaireSkipReason | null
+  is_prefilled: boolean
   created_at: string
   updated_at: string
 }

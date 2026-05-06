@@ -1,14 +1,23 @@
 import { useState } from 'react'
 import { CircleCheck, CircleX } from 'lucide-react'
-import type { Question } from '../../types/database.types'
+import type { Question, QuestionnaireSkipReason } from '../../types/database.types'
 
 interface WizardQuestionCardProps {
   question: Question
   sectionLabel: string
   value: unknown
+  skipReason?: QuestionnaireSkipReason | null
+  isPrefilled?: boolean
   onChange: (value: unknown) => void
+  onSkip?: (reason: QuestionnaireSkipReason | null) => void
   readOnly?: boolean
 }
+
+const SKIP_OPTIONS: { reason: QuestionnaireSkipReason; label: string }[] = [
+  { reason: 'rssi_validation', label: 'À valider avec le RSSI' },
+  { reason: 'no_object', label: 'Sans objet' },
+  { reason: 'unknown', label: 'Je ne sais pas' },
+]
 
 const SECTION_ICONS: Record<string, string> = {
   GOV: '\uD83D\uDCDA',
@@ -18,18 +27,42 @@ const SECTION_ICONS: Record<string, string> = {
   ATT: '\uD83C\uDFAF',
 }
 
-export function WizardQuestionCard({ question, sectionLabel, value, onChange, readOnly }: WizardQuestionCardProps) {
+export function WizardQuestionCard({ question, sectionLabel, value, skipReason, isPrefilled, onChange, onSkip, readOnly }: WizardQuestionCardProps) {
   const sectionCode = question.code.split('-')[0]
   const icon = SECTION_ICONS[sectionCode] ?? '\u2753'
+  const skipped = skipReason !== null && skipReason !== undefined
+
+  const handleSkipClick = (reason: QuestionnaireSkipReason) => {
+    if (!onSkip || readOnly) return
+    onSkip(skipReason === reason ? null : reason)
+  }
 
   return (
     <div className="px-6 py-7">
-      <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-forest-700 bg-forest-100 px-2.5 py-1 rounded-full mb-4">
-        {icon} {sectionLabel}
-      </span>
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-forest-700 bg-forest-100 px-2.5 py-1 rounded-full">
+          {icon} {sectionLabel}
+        </span>
+        {isPrefilled && (
+          <span className="text-[10px] font-bold text-forest-700 bg-forest-50 border border-forest-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+            \u2713 Pr\u00e9-rempli depuis la fiche client
+          </span>
+        )}
+        {!question.is_required && (
+          <span className="text-[10px] font-bold text-gold-700 bg-gold-50 border border-gold-300 px-2 py-0.5 rounded-full">
+            Optionnel
+          </span>
+        )}
+      </div>
       <h2 className="text-lg font-bold text-gray-900 mb-1.5 leading-snug">{question.text}</h2>
       {question.description && (
         <p className="text-[13px] text-gray-300 mb-5 leading-relaxed">{question.description}</p>
+      )}
+      {skipped && (
+        <div className="mb-3 p-2.5 bg-gold-50 border border-gold-300 rounded-lg text-xs text-gold-700">
+          <strong>Question marqu\u00e9e :</strong> {SKIP_OPTIONS.find((o) => o.reason === skipReason)?.label}
+          <span className="text-[11px] text-gold-600 ml-2">(cliquez \u00e0 nouveau sur la m\u00eame puce pour r\u00e9activer)</span>
+        </div>
       )}
 
       {question.question_type === 'boolean' && (
@@ -54,6 +87,34 @@ export function WizardQuestionCard({ question, sectionLabel, value, onChange, re
       )}
       {question.question_type === 'single_choice' && typeof value === 'string' && value.startsWith('Oui') && question.code === 'GOV-03' && (
         <FollowUp label="Date d&rsquo;expiration de la certification" type="date" readOnly={readOnly} />
+      )}
+
+      {/* Skip chips */}
+      {!readOnly && onSkip && (
+        <div className="mt-5 pt-4 border-t border-dashed border-gray-200">
+          <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-2">
+            Vous ne pouvez pas répondre maintenant ?
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {SKIP_OPTIONS.map((opt) => {
+              const active = skipReason === opt.reason
+              return (
+                <button
+                  key={opt.reason}
+                  type="button"
+                  onClick={() => handleSkipClick(opt.reason)}
+                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                    active
+                      ? 'bg-gold-500 border-gold-500 text-forest-900'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-gold-300 hover:bg-gold-50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       )}
     </div>
   )
