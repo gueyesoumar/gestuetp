@@ -11,7 +11,9 @@ import { useAutosave } from '../../../hooks/useAutosave'
 import { useAssessmentDeclineSource } from './useAssessmentDeclineSource'
 import { useAssessmentFindings } from './findings/useAssessmentFindings'
 import { useControlContext } from './right-rail/useControlContext'
+import { useInterviewNotesForControl } from './right-rail/useInterviewNotesForControl'
 import { CadrageInline } from './right-rail/CadrageInline'
+import { InterviewNotesInline } from './right-rail/InterviewNotesInline'
 import { ControlReviewView } from './ControlReviewView'
 import { ControlReviewActions } from './ControlReviewActions'
 import { ControlAuthoringFooter } from './ControlAuthoringFooter'
@@ -53,6 +55,7 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
 
   const findingsHook = useAssessmentFindings(assessment.id)
   const controlContext = useControlContext(assessment.mission_id, assessment.control_id)
+  const { snippets: interviewNotes } = useInterviewNotesForControl(assessment.mission_id, assessment.control.code)
 
   const isSubmittedOrAbove = assessment.status === 'submitted' || assessment.status === 'in_review' || assessment.status === 'approved'
   const readOnly = isSubmittedOrAbove
@@ -168,6 +171,12 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
       {!canReview && controlContext.cadrageAnswers.length > 0 && (
         <div className="mx-6 mt-4">
           <CadrageInline answers={controlContext.cadrageAnswers} />
+        </div>
+      )}
+
+      {!canReview && interviewNotes.length > 0 && (
+        <div className="mx-6 mt-4">
+          <InterviewNotesInline snippets={interviewNotes} />
         </div>
       )}
 
