@@ -1,11 +1,13 @@
 import { useState, useCallback, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
+import { evaluateShowIf } from './showIf'
 import type { Question, QuestionnaireSkipReason } from '../../types/database.types'
 import type { QuestionnaireResponseData } from '../missions/useMissionQuestionnaire'
 
 interface UseWizardStateResult {
   currentIndex: number
   currentQuestion: Question | null
+  visibleQuestions: Question[]
   responses: Map<string, unknown>
   skipReasons: Map<string, QuestionnaireSkipReason>
   prefilled: Set<string>
@@ -63,9 +65,15 @@ export function useWizardState(
   const [prefilled] = useState<Set<string>>(initial.prefilled)
   const [saving, setSaving] = useState(false)
 
+  // Filter visible questions based on show_if conditions
+  const visibleQuestions = useMemo(
+    () => questions.filter((q) => evaluateShowIf(q.show_if, responses)),
+    [questions, responses],
+  )
+
   const sections = useMemo(() => {
     const seen = new Map<string, number>()
-    for (const q of questions) {
+    for (const q of visibleQuestions) {
       const code = q.code.split('-')[0]
       seen.set(code, (seen.get(code) ?? 0) + 1)
     }
@@ -74,15 +82,17 @@ export function useWizardState(
       label: SECTION_LABELS[code] ?? code,
       count,
     }))
-  }, [questions])
+  }, [visibleQuestions])
 
-  const currentQuestion = questions[currentIndex] ?? null
+  // Clamp currentIndex if it falls outside the visible list (after a condition flips)
+  const safeIndex = Math.min(currentIndex, Math.max(0, visibleQuestions.length - 1))
+  const currentQuestion = visibleQuestions[safeIndex] ?? null
   const currentSectionCode = currentQuestion?.code.split('-')[0] ?? ''
   const currentSection = sections.findIndex((s) => s.code === currentSectionCode)
   const sectionLabel = SECTION_LABELS[currentSectionCode] ?? ''
-  const isLast = currentIndex === questions.length - 1
-  const canGoNext = currentIndex < questions.length - 1
-  const canGoPrev = currentIndex > 0
+  const isLast = safeIndex === visibleQuestions.length - 1
+  const canGoNext = safeIndex < visibleQuestions.length - 1
+  const canGoPrev = safeIndex > 0
 
   const persist = useCallback(async (
     code: string,
@@ -138,19 +148,19 @@ export function useWizardState(
   }, [persist])
 
   const goNext = useCallback(() => {
-    if (canGoNext) setCurrentIndex((i) => i + 1)
-  }, [canGoNext])
+    setCurrentIndex((i) => Math.min(i + 1, visibleQuestions.length - 1))
+  }, [visibleQuestions.length])
 
   const goPrev = useCallback(() => {
-    if (canGoPrev) setCurrentIndex((i) => i - 1)
-  }, [canGoPrev])
+    setCurrentIndex((i) => Math.max(i - 1, 0))
+  }, [])
 
   const goTo = useCallback((index: number) => {
-    if (index >= 0 && index < questions.length) setCurrentIndex(index)
-  }, [questions.length])
+    if (index >= 0 && index < visibleQuestions.length) setCurrentIndex(index)
+  }, [visibleQuestions.length])
 
   return {
-    currentIndex, currentQuestion, responses, skipReasons, prefilled,
+    currentIndex: safeIndex, currentQuestion, visibleQuestions, responses, skipReasons, prefilled,
     currentSection, sections, sectionLabel, canGoNext, canGoPrev, isLast,
     setResponse, setSkip, goNext, goPrev, goTo, saving,
   }

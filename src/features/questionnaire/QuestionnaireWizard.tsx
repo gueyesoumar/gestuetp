@@ -42,7 +42,7 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
 
   // === Ecran de fin ===
   if (completed) {
-    const answeredCount = questions.filter((q) => state.responses.has(q.code)).length
+    const answeredCount = state.visibleQuestions.filter((q) => state.responses.has(q.code)).length
     return (
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="py-16 px-8 text-center">
@@ -85,14 +85,14 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
       {/* Progress */}
       <WizardProgress
         currentStep={state.currentIndex + 1}
-        totalSteps={questions.length}
+        totalSteps={state.visibleQuestions.length}
         sections={state.sections}
         currentSection={state.currentSection}
       />
 
       {/* Completed summary */}
       <WizardCompletedSummary
-        questions={questions}
+        questions={state.visibleQuestions}
         responses={state.responses}
         currentIndex={state.currentIndex}
         onGoTo={state.goTo}

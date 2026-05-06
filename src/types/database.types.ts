@@ -425,6 +425,14 @@ export interface QuestionnaireTemplate {
   updated_at: string
 }
 
+export type ShowIfOperator = 'equals' | 'not_equals' | 'truthy' | 'falsy'
+
+export interface ShowIfCondition {
+  question_code: string
+  operator: ShowIfOperator
+  value?: unknown
+}
+
 export interface Question {
   id: string
   template_id: string
@@ -435,6 +443,8 @@ export interface Question {
   options: string[] | null
   is_required: boolean
   sort_order: number
+  prefill_source?: string | null
+  show_if?: ShowIfCondition | null
   created_at: string
   updated_at: string
 }
