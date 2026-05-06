@@ -27,6 +27,7 @@ export interface QuestionnaireResponseData {
   ai_confidence: number | null
   skip_reason: QuestionnaireSkipReason | null
   is_prefilled: boolean
+  entered_by_auditor: boolean
   created_at: string
   updated_at: string
 }

@@ -4,6 +4,8 @@ import { WizardProgress } from './WizardProgress'
 import { WizardCompletedSummary } from './WizardCompletedSummary'
 import { WizardQuestionCard } from './WizardQuestionCard'
 import { useWizardState } from './useWizardState'
+import { useResponseComments } from './comments/useResponseComments'
+import { ResponseCommentThread } from './comments/ResponseCommentThread'
 import type { Question } from '../../types/database.types'
 import type { QuestionnaireResponseData } from '../missions/useMissionQuestionnaire'
 
@@ -26,6 +28,7 @@ function daysUntilDue(iso: string): number {
 
 export function QuestionnaireWizard({ questions, instanceId, userId, missionName, initialRows, dueDate, readOnly, onComplete }: QuestionnaireWizardProps) {
   const state = useWizardState(questions, instanceId, userId, initialRows)
+  const commentsHook = useResponseComments(instanceId)
   const [completed, setCompleted] = useState(false)
 
   if (questions.length === 0) {
@@ -116,16 +119,25 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
 
       {/* Current question */}
       {state.currentQuestion && (
-        <WizardQuestionCard
-          question={state.currentQuestion}
-          sectionLabel={state.sectionLabel}
-          value={state.responses.get(state.currentQuestion.code) ?? null}
-          skipReason={state.skipReasons.get(state.currentQuestion.code) ?? null}
-          isPrefilled={state.prefilled.has(state.currentQuestion.code)}
-          onChange={(v) => state.setResponse(state.currentQuestion!.code, v)}
-          onSkip={(reason) => state.setSkip(state.currentQuestion!.code, reason)}
-          readOnly={readOnly}
-        />
+        <>
+          <WizardQuestionCard
+            question={state.currentQuestion}
+            sectionLabel={state.sectionLabel}
+            value={state.responses.get(state.currentQuestion.code) ?? null}
+            skipReason={state.skipReasons.get(state.currentQuestion.code) ?? null}
+            isPrefilled={state.prefilled.has(state.currentQuestion.code)}
+            onChange={(v) => state.setResponse(state.currentQuestion!.code, v)}
+            onSkip={(reason) => state.setSkip(state.currentQuestion!.code, reason)}
+            readOnly={readOnly}
+          />
+          <div className="px-6 pb-4">
+            <ResponseCommentThread
+              questionCode={state.currentQuestion.code}
+              hook={commentsHook}
+              variant="inline"
+            />
+          </div>
+        </>
       )}
 
       {/* Navigation footer */}

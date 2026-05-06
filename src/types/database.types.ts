@@ -687,8 +687,39 @@ export interface QuestionnaireResponse {
   responded_by: string
   skip_reason: QuestionnaireSkipReason | null
   is_prefilled: boolean
+  entered_by_auditor: boolean
   created_at: string
   updated_at: string
+}
+
+export interface QuestionnaireResponseCommentRow {
+  id: string
+  instance_id: string
+  question_code: string
+  // null when the original author has been deleted (preserves audit trail)
+  author_id: string | null
+  parent_id: string | null
+  text: string
+  mentioned_user_ids: string[]
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
+export interface QuestionnaireResponseCommentInsert {
+  id?: string
+  instance_id: string
+  question_code: string
+  author_id: string
+  parent_id?: string | null
+  text: string
+  mentioned_user_ids?: string[]
+}
+
+export interface QuestionnaireResponseCommentUpdate {
+  text?: string
+  mentioned_user_ids?: string[]
+  deleted_at?: string | null
 }
 
 export interface QuestionnaireResponseInsert {
@@ -1423,6 +1454,11 @@ export interface Database {
         Row: ControlCommentRow
         Insert: ControlCommentInsert
         Update: ControlCommentUpdate
+      }
+      questionnaire_response_comments: {
+        Row: QuestionnaireResponseCommentRow
+        Insert: QuestionnaireResponseCommentInsert
+        Update: QuestionnaireResponseCommentUpdate
       }
     }
     Enums: {
