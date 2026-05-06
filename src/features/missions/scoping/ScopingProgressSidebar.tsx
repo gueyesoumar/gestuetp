@@ -17,25 +17,23 @@ interface ScopingProgressSidebarProps {
   onGenerateNote: () => void
   onValidateScoping: () => void
   onInvitePortal: () => void
-  onNavigate: (tab: 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks') => void
+  onNavigate: (tab: 'scope' | 'questionnaire' | 'documents' | 'risks') => void
   actionLoading: boolean
   actionSuccess: string | null
 }
 
-type ChecklistTab = 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks'
+type ChecklistTab = 'scope' | 'questionnaire' | 'documents' | 'risks'
 interface CheckItem { label: string; done: boolean; active: boolean; tab?: ChecklistTab }
 
 export function ScopingProgressSidebar({ mission, client, risks, questionnaireProgress, documentsReceived, documentsExpected, onRemindClient, onGenerateNote, onValidateScoping, onInvitePortal, onNavigate, actionLoading, actionSuccess }: ScopingProgressSidebarProps) {
   const checklist = useMemo((): CheckItem[] => {
-    const hasClient = !!client
     const hasScope = mission.status !== 'initialization'
     const questSent = mission.status !== 'initialization'
     const questDone = questionnaireProgress === 100
     const docsDone = documentsExpected > 0 && documentsReceived >= documentsExpected
     const risksValidated = risks.length > 0
     return [
-      { label: 'Fiche client compl\u00e9t\u00e9e', done: hasClient, active: !hasClient, tab: 'client' },
-      { label: 'P\u00e9rim\u00e8tre d\u00e9fini', done: hasScope, active: hasClient && !hasScope, tab: 'scope' },
+      { label: 'P\u00e9rim\u00e8tre d\u00e9fini', done: hasScope, active: !hasScope, tab: 'scope' },
       { label: 'Questionnaire envoy\u00e9', done: questSent, active: hasScope && !questSent, tab: 'questionnaire' },
       { label: `Questionnaire compl\u00e9t\u00e9 (${questionnaireProgress}%)`, done: questDone, active: questSent && !questDone, tab: 'questionnaire' },
       {
@@ -49,7 +47,7 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
       { label: 'Risques initiaux valid\u00e9s', done: risksValidated, active: !risksValidated, tab: 'risks' },
       { label: 'Note de cadrage valid\u00e9e', done: false, active: false },
     ]
-  }, [mission, client, questionnaireProgress, documentsReceived, documentsExpected, risks])
+  }, [mission, questionnaireProgress, documentsReceived, documentsExpected, risks])
 
   const doneCount = checklist.filter((c) => c.done).length
   const pct = Math.round((doneCount / checklist.length) * 100)

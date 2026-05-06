@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
-import type { MissionExclusion, MissionRisk, AuditHistoryEntry } from '../../../types/database.types'
+import type { MissionExclusion, MissionRisk } from '../../../types/database.types'
 
 // Helper: Supabase generated types resolve to `never` for new tables
 type QueryResult = { data: unknown[] | null; error: { message: string } | null }
@@ -12,16 +12,14 @@ function queryTable(name: string) {
 interface UseScopingDataResult {
   exclusions: MissionExclusion[]
   risks: MissionRisk[]
-  auditHistory: AuditHistoryEntry[]
   loading: boolean
   error: string | null
   refetch: () => void
 }
 
-export function useScopingData(missionId: string | undefined, cabinetClientId: string | undefined): UseScopingDataResult {
+export function useScopingData(missionId: string | undefined): UseScopingDataResult {
   const [exclusions, setExclusions] = useState<MissionExclusion[]>([])
   const [risks, setRisks] = useState<MissionRisk[]>([])
-  const [auditHistory, setAuditHistory] = useState<AuditHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -39,11 +37,6 @@ export function useScopingData(missionId: string | undefined, cabinetClientId: s
       const exRes = await queryTable('mission_exclusions').select('*').eq('mission_id', missionId).abortSignal(ac.signal) as unknown as QueryResult
       const riskRes = await queryTable('mission_risks').select('*').eq('mission_id', missionId).order('created_at').abortSignal(ac.signal) as unknown as QueryResult
 
-      let histRes: QueryResult | null = null
-      if (cabinetClientId) {
-        histRes = await queryTable('audit_history').select('*').eq('cabinet_client_id', cabinetClientId).order('year', { ascending: false }).abortSignal(ac.signal) as unknown as QueryResult
-      }
-
       if (ac.signal.aborted) return
 
       if (exRes.error) console.error('useScopingData exclusions:', exRes.error.message)
@@ -51,13 +44,12 @@ export function useScopingData(missionId: string | undefined, cabinetClientId: s
 
       setExclusions((exRes.data ?? []) as unknown as MissionExclusion[])
       setRisks((riskRes.data ?? []) as unknown as MissionRisk[])
-      if (histRes) setAuditHistory((histRes.data ?? []) as unknown as AuditHistoryEntry[])
       setLoading(false)
     }
 
     fetchAll()
     return () => ac.abort()
-  }, [missionId, cabinetClientId, refreshKey])
+  }, [missionId, refreshKey])
 
-  return { exclusions, risks, auditHistory, loading, error, refetch }
+  return { exclusions, risks, loading, error, refetch }
 }

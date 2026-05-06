@@ -9,7 +9,6 @@ import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionQuestionnaire } from '../useMissionQuestionnaire'
-import { ScopingClientTab } from './ScopingClientTab'
 import { ScopingScopeTab } from './ScopingScopeTab'
 import { ScopingQuestionnaireTab } from './ScopingQuestionnaireTab'
 import { ScopingDocumentsTab } from './ScopingDocumentsTab'
@@ -30,17 +29,17 @@ interface MissionScopingTabProps {
   onRefetch: () => void
 }
 
-type ScopingTab = 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks'
+type ScopingTab = 'scope' | 'questionnaire' | 'documents' | 'risks'
 
 export function MissionScopingTab({ mission, members, domains, client, onRefetch }: MissionScopingTabProps) {
   const { profile } = useAuth()
   const { lead, associate } = useReviewLabels()
-  const { exclusions, risks, auditHistory, loading, error, refetch: refetchScoping } = useScopingData(mission.id, client?.id)
+  const { exclusions, risks, loading, error, refetch: refetchScoping } = useScopingData(mission.id)
   const { addExclusion, removeExclusion, addRisk, removeRisk, saving, error: saveError } = useSaveScoping(refetchScoping)
   const { answeredCount, totalCount } = useMissionQuestionnaire(mission.id)
   const { documents } = useMissionDocuments(mission.id)
   const { requests } = useMissionEvidenceRequests(mission.id)
-  const [activeTab, setActiveTab] = useState<ScopingTab>('client')
+  const [activeTab, setActiveTab] = useState<ScopingTab>('scope')
   const [actionLoading, setActionLoading] = useState(false)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
   const [showPortalModal, setShowPortalModal] = useState(false)
@@ -208,7 +207,6 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
 
         {/* Tabs */}
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
-          <TabBtn label="Fiche client" active={activeTab === 'client'} onClick={() => setActiveTab('client')} />
           <TabBtn label="P&eacute;rim&egrave;tre" count={domains.length} active={activeTab === 'scope'} onClick={() => setActiveTab('scope')} />
           <TabBtn label="Questionnaire" count={`${answeredCount}/${totalCount}`} active={activeTab === 'questionnaire'} onClick={() => setActiveTab('questionnaire')} />
           <TabBtn label="Documents" count={docsExpected > 0 ? `${docsReceived}/${docsExpected}` : undefined} active={activeTab === 'documents'} onClick={() => setActiveTab('documents')} />
@@ -218,7 +216,6 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         {saveError && <div className="mx-4 mt-3"><ErrorAlert message={saveError} /></div>}
 
         {/* Tab content */}
-        {activeTab === 'client' && <ScopingClientTab client={client} auditHistory={auditHistory} />}
         {activeTab === 'scope' && (
           <ScopingScopeTab mission={mission} domains={domains} exclusions={exclusions} client={client} onAddExclusion={handleAddExclusion} onRemoveExclusion={removeExclusion} saving={saving} />
         )}
