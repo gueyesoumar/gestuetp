@@ -31,7 +31,20 @@ Deno.serve(async (req) => {
     }
 
     // 2. Parser le payload
-    const { mission_id } = await req.json()
+    const body = await req.json() as {
+      mission_id?: string
+      included_codes?: string[]
+      custom_questions?: Array<{
+        code: string
+        text: string
+        description?: string | null
+        question_type: 'boolean' | 'single_choice' | 'multiple_choice' | 'text' | 'textarea'
+        options?: string[] | null
+        is_required?: boolean
+      }>
+      due_date?: string | null
+    }
+    const { mission_id, included_codes, custom_questions, due_date } = body
     if (!mission_id) {
       return new Response(
         JSON.stringify({ error: 'mission_id requis' }),
@@ -98,7 +111,35 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 7. Creer le snapshot (copie figee du template + questions)
+    // 7a. Filtrer les questions du template selon included_codes (si fourni)
+    let selectedQuestions = (questions ?? []) as Array<{ code: string; sort_order?: number; [k: string]: unknown }>
+    if (Array.isArray(included_codes) && included_codes.length > 0) {
+      const wanted = new Set(included_codes)
+      selectedQuestions = selectedQuestions.filter((q) => wanted.has(q.code))
+    }
+
+    // 7b. Ajouter les custom questions a la suite, avec un code prefixe CUSTOM-
+    const baseSort = selectedQuestions.length > 0
+      ? Math.max(...selectedQuestions.map((q) => Number(q.sort_order ?? 0))) + 1
+      : 1
+    const customNormalized = (custom_questions ?? []).map((cq, idx) => ({
+      id: `custom-${idx}`,
+      template_id: template.id,
+      code: cq.code.startsWith('CUSTOM-') ? cq.code : `CUSTOM-${cq.code}`,
+      text: cq.text,
+      description: cq.description ?? null,
+      question_type: cq.question_type,
+      options: cq.options ?? null,
+      is_required: cq.is_required ?? false,
+      sort_order: baseSort + idx,
+      prefill_source: null,
+      evidence_catalog_id: null,
+      is_custom: true,
+    }))
+
+    const finalQuestions = [...selectedQuestions, ...customNormalized]
+
+    // 7c. Creer le snapshot (copie figee du template + questions selectionnees + custom)
     const snapshot = {
       template: {
         id: template.id,
@@ -106,7 +147,10 @@ Deno.serve(async (req) => {
         description: template.description,
         version: template.version,
       },
-      questions: questions ?? [],
+      questions: finalQuestions,
+      total_template: (questions ?? []).length,
+      total_included: selectedQuestions.length,
+      total_custom: customNormalized.length,
       created_at: new Date().toISOString(),
     }
 
@@ -117,6 +161,7 @@ Deno.serve(async (req) => {
         mission_id,
         template_id: template.id,
         snapshot,
+        due_date: due_date ?? null,
       })
       .select('id')
       .single()
@@ -157,7 +202,7 @@ Deno.serve(async (req) => {
           is_prefilled: boolean
         }> = []
 
-        for (const q of questions ?? []) {
+        for (const q of selectedQuestions) {
           const source = (q as { prefill_source?: string | null }).prefill_source
           if (!source) continue
           const getter = PREFILL_GETTERS[source]

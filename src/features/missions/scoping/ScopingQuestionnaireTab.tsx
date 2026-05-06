@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react'
-import { User, Check, Mail, Send, ShieldCheck, FileText, MessageSquare, Pencil, X } from 'lucide-react'
+import { User, Check, ShieldCheck, FileText, MessageSquare, Pencil, X } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../hooks/useAuth'
 import { Badge } from '../../../components/ui/Badge'
 import { useMissionQuestionnaire, type EvidenceType } from '../useMissionQuestionnaire'
 import { useResponseComments } from '../../questionnaire/comments/useResponseComments'
 import { ResponseCommentThread } from '../../questionnaire/comments/ResponseCommentThread'
+import { LaunchQuestionnairePanel } from './LaunchQuestionnairePanel'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
-import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { MissionDetail } from '../useMissionDetail'
 
 const EVIDENCE_META: Record<EvidenceType, { label: string; icon: typeof ShieldCheck; classes: string }> = {
@@ -61,8 +61,6 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
   const { profile } = useAuth()
   const { instance, questions, responses, loading, answeredCount, totalCount, refetch: qRefetch } = useMissionQuestionnaire(mission.id)
   const commentsHook = useResponseComments(instance?.id ?? null)
-  const [launching, setLaunching] = useState(false)
-  const [launchError, setLaunchError] = useState<string | null>(null)
   const [openThreadCode, setOpenThreadCode] = useState<string | null>(null)
   const [editingCode, setEditingCode] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
@@ -132,26 +130,10 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
 
   const sections = useMemo(() => groupBySection(questions), [questions])
 
-  const handleLaunch = async (): Promise<void> => {
-    setLaunching(true)
-    setLaunchError(null)
-    const { data, error: fnError } = await supabase.functions.invoke('launch-questionnaire', { body: { mission_id: mission.id } })
-    if (fnError || data?.error) {
-      setLaunchError(fnError?.message ?? data?.error ?? 'Erreur.')
-      setLaunching(false)
-      return
-    }
-    setLaunching(false)
-    onRefetch()
-    qRefetch()
-  }
-
   if (loading) return <LoadingSpinner />
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {launchError && <ErrorAlert message={launchError} />}
-
       {hasQuestionnaire || instance ? (
         <>
           {/* Status header */}
@@ -351,17 +333,11 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
           })}
         </>
       ) : (
-        <div className="space-y-3">
-          <div className="bg-gold-50 border border-gold-200 rounded-xl p-5 text-center">
-            <div className="flex justify-center mb-3"><Send size={28} className="text-gold-500" /></div>
-            <h3 className="text-[15px] font-bold text-gray-900 mb-1">Questionnaire non envoy&eacute;</h3>
-            <p className="text-[13px] text-gray-400 mb-4">Envoyez le questionnaire pour d&eacute;marrer la collecte d&rsquo;informations aupr&egrave;s du client.</p>
-            <button onClick={handleLaunch} disabled={launching}
-              className="bg-forest-700 text-white px-6 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors">
-              {launching ? 'Envoi...' : <><Mail size={14} className="inline mr-1" />Envoyer le questionnaire</>}
-            </button>
-          </div>
-        </div>
+        <LaunchQuestionnairePanel
+          missionId={mission.id}
+          frameworkId={mission.framework_id}
+          onLaunched={() => { onRefetch(); qRefetch() }}
+        />
       )}
     </div>
   )
