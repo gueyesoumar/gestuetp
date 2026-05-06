@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Star, X, Check, UserCircle2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Star, X, Check, UserCircle2, Sparkles } from 'lucide-react'
 import { useMissionActors } from './useMissionActors'
+import { OrgChartImportModal } from './OrgChartImportModal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
-import type { ClientContact } from '../../../types/database.types'
+import type { ClientContact, ClientContactInsert } from '../../../types/database.types'
 
 interface ScopingActorsTabProps {
   missionId: string
@@ -38,6 +39,7 @@ function fromActor(a: ClientContact): DraftActor {
 export function ScopingActorsTab({ missionId }: ScopingActorsTabProps) {
   const { actors, loading, error, saving, add, update, remove } = useMissionActors(missionId)
   const [draft, setDraft] = useState<DraftActor | null>(null)
+  const [showImport, setShowImport] = useState(false)
 
   const handleSave = async (): Promise<void> => {
     if (!draft || draft.name.trim().length === 0) return
@@ -67,13 +69,22 @@ export function ScopingActorsTab({ missionId }: ScopingActorsTabProps) {
           </p>
         </div>
         {!draft && (
-          <button
-            type="button"
-            onClick={() => setDraft({ ...EMPTY_DRAFT })}
-            className="bg-forest-700 text-white px-3 py-1.5 rounded-lg text-[12px] font-semibold hover:bg-forest-900 inline-flex items-center gap-1.5"
-          >
-            <Plus size={13} /> Ajouter
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowImport(true)}
+              className="border border-forest-300 text-forest-700 px-3 py-1.5 rounded-lg text-[12px] font-semibold hover:bg-forest-50 inline-flex items-center gap-1.5"
+            >
+              <Sparkles size={13} /> Importer organigramme
+            </button>
+            <button
+              type="button"
+              onClick={() => setDraft({ ...EMPTY_DRAFT })}
+              className="bg-forest-700 text-white px-3 py-1.5 rounded-lg text-[12px] font-semibold hover:bg-forest-900 inline-flex items-center gap-1.5"
+            >
+              <Plus size={13} /> Ajouter
+            </button>
+          </div>
         )}
       </div>
 
@@ -173,6 +184,19 @@ export function ScopingActorsTab({ missionId }: ScopingActorsTabProps) {
             />
           ))}
         </div>
+      )}
+
+      {showImport && (
+        <OrgChartImportModal
+          missionId={missionId}
+          onAdd={async (newActors: Omit<ClientContactInsert, 'mission_id'>[]) => {
+            for (const a of newActors) {
+              await add(a)
+            }
+            setShowImport(false)
+          }}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   )
