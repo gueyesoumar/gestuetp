@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
+import { Columns2, X } from 'lucide-react'
 import { ErrorAlert } from '../../../../components/ui/ErrorAlert'
+import { SplitDocumentPreview } from '../SplitDocumentPreview'
 import type { Document } from '../../../../types/database.types'
 
 interface DocumenterStepProps {
@@ -18,6 +20,7 @@ export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents
   const [desc, setDesc] = useState('')
   const [dragOver, setDragOver] = useState(false)
   const [sizeWarning, setSizeWarning] = useState<string | null>(null)
+  const [splitView, setSplitView] = useState(false)
 
   const MAX_SIZE_IA = 5 * 1024 * 1024 // 5 Mo — limite Edge Function free tier
 
@@ -32,12 +35,34 @@ export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents
 
   return (
     <div>
-      <h4 className="text-[13px] font-semibold text-gray-900 mb-1 flex items-center gap-1.5">
-        {'\uD83D\uDCCE'} Documenter
-      </h4>
-      <p className="text-xs text-gray-300 mb-4 leading-relaxed">
-        Ajoutez les preuves. Les documents seront analys{'\u00e9'}s par l{'\u2019'}IA lors de l{'\u2019'}{'\u00e9'}tape Analyser.
-      </p>
+      <div className="flex items-start justify-between mb-4 gap-3">
+        <div className="flex-1">
+          <h4 className="text-[13px] font-semibold text-gray-900 mb-1 flex items-center gap-1.5">
+            {'\uD83D\uDCCE'} Documenter
+          </h4>
+          <p className="text-xs text-gray-300 leading-relaxed">
+            Ajoutez les preuves. Les documents seront analys{'\u00e9'}s par l{'\u2019'}IA lors de l{'\u2019'}{'\u00e9'}tape Analyser.
+          </p>
+        </div>
+        {documents.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setSplitView(!splitView)}
+            className={`shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors hidden lg:inline-flex ${
+              splitView
+                ? 'bg-forest-700 text-white hover:bg-forest-900'
+                : 'bg-white text-forest-700 border border-forest-300 hover:bg-forest-50'
+            }`}
+            title={splitView ? 'Retour \u00E0 la vue normale' : 'Afficher le document \u00E0 c\u00F4t\u00e9'}
+          >
+            {splitView ? <X size={12} /> : <Columns2 size={12} />}
+            {splitView ? 'Fermer la vue split' : 'Vue split document'}
+          </button>
+        )}
+      </div>
+
+      <div className={splitView ? 'flex gap-3 h-[640px]' : ''}>
+        <div className={splitView ? 'flex-1 min-w-0 overflow-y-auto pr-1' : ''}>
 
       {uploadError && <div className="mb-3"><ErrorAlert message={uploadError} /></div>}
       {sizeWarning && (
@@ -114,6 +139,14 @@ export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents
         <textarea value={evidenceNotes} onChange={(e) => onEvidenceNotesChange(e.target.value)} disabled={readOnly}
           placeholder="Ex : La PSSI v2 couvre 10 domaines mais ne mentionne pas le BYOD..."
           className="w-full min-h-[80px] px-4 py-3 border border-gray-200 rounded-xl text-[13px] text-gray-700 leading-relaxed outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 resize-y disabled:bg-gray-50" />
+      </div>
+
+        </div>
+        {splitView && (
+          <div className="w-1/2 min-w-0 rounded-xl overflow-hidden border border-gray-200">
+            <SplitDocumentPreview documents={documents} />
+          </div>
+        )}
       </div>
     </div>
   )

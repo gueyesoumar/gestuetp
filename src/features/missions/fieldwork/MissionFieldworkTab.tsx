@@ -1,12 +1,14 @@
 import { useMemo, useState, useCallback } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Keyboard } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { useAuditorAssessments } from '../useAuditorAssessments'
 import { useReviewAssessments } from '../useReviewAssessments'
 import { useFieldworkState } from './useFieldworkState'
+import { useFieldworkShortcuts } from './useFieldworkShortcuts'
 import { FieldworkSidebar } from './FieldworkSidebar'
 import { ControlWorkArea } from './ControlWorkArea'
+import { ShortcutsHelpModal } from './ShortcutsHelpModal'
 import { RightRail } from './right-rail/RightRail'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
@@ -133,6 +135,37 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     (v) => v.stage === 'lead_review' && v.decision === 'approved'
   ) ?? false
 
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false)
+
+  const triggerSave = useCallback(() => {
+    if (!selectedAssessment) return
+    void state.saveAssessment(selectedAssessment.id, {
+      evidence_notes: selectedAssessment.evidence_notes ?? '',
+      observations: selectedAssessment.observations ?? '',
+      conformity_level: selectedAssessment.conformity_level ?? null,
+    })
+  }, [selectedAssessment, state])
+
+  const triggerSubmit = useCallback(() => {
+    if (!selectedAssessment) return
+    if (selectedAssessment.status === 'draft') {
+      void state.submitAssessment(selectedAssessment.id)
+    }
+  }, [selectedAssessment, state])
+
+  useFieldworkShortcuts({
+    assessments,
+    selectedId: state.selectedId,
+    guidedStep: state.guidedStep,
+    mode: state.mode,
+    enabled: !isReviewerForSelected,
+    onSelectControl: state.selectControl,
+    onSetGuidedStep: state.setGuidedStep,
+    onSave: triggerSave,
+    onSubmit: triggerSubmit,
+    onShowHelp: () => setShowShortcutsHelp(true),
+  })
+
   return (
     <div>
       <FieldworkPhaseRibbon
@@ -213,7 +246,20 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
           collapsed={!railOpen}
           onToggle={toggleRail}
         />
+
+        {/* Floating shortcuts help button */}
+        <button
+          type="button"
+          onClick={() => setShowShortcutsHelp(true)}
+          className="fixed bottom-4 right-4 z-30 w-9 h-9 rounded-full bg-forest-700 text-white shadow-lg hover:bg-forest-900 flex items-center justify-center transition-colors"
+          title="Raccourcis clavier (?)"
+          aria-label="Raccourcis clavier"
+        >
+          <Keyboard size={15} />
+        </button>
       </div>
+
+      {showShortcutsHelp && <ShortcutsHelpModal onClose={() => setShowShortcutsHelp(false)} />}
     </div>
   )
 }

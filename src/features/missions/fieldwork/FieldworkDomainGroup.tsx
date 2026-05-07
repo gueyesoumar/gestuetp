@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { computeDisplayStatus } from './computeDisplayStatus'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { ControlAssignmentRow } from '../useMissionDetail'
@@ -33,11 +34,11 @@ export function FieldworkDomainGroup({ domain, assessments, assignments, auditor
   const visibleControls = useMemo(() => {
     return domain.controls.filter((c) => {
       const assessment = assessmentMap.get(c.id)
-      const status = assessment?.status ?? 'not_started'
+      const status = computeDisplayStatus(assessment ?? null)
 
       // Filter
       if (filter === 'not_started' && status !== 'not_started') return false
-      if (filter === 'draft' && status !== 'draft' && status !== 'rejected') return false
+      if (filter === 'draft' && status !== 'draft' && status !== 'in_progress' && status !== 'rejected') return false
       if (filter === 'submitted' && status !== 'submitted' && status !== 'in_review') return false
       if (filter === 'approved' && status !== 'approved') return false
 
@@ -74,7 +75,7 @@ export function FieldworkDomainGroup({ domain, assessments, assignments, auditor
       {open && visibleControls.map((control) => {
         const assessment = assessmentMap.get(control.id)
         const isSelected = selectedControlId === control.id
-        const status = assessment?.status ?? 'not_started'
+        const status = computeDisplayStatus(assessment ?? null)
 
         return (
           <button
@@ -104,6 +105,7 @@ function StatusDot({ status }: { status: string }): JSX.Element {
   const colors: Record<string, string> = {
     not_started: 'bg-gray-200 border-2 border-gray-300',
     draft: 'bg-gray-400',
+    in_progress: 'bg-gold-400 ring-2 ring-gold-100',
     submitted: 'bg-blue-500',
     in_review: 'bg-gold-500',
     approved: 'bg-green-600',
@@ -115,6 +117,7 @@ function StatusDot({ status }: { status: string }): JSX.Element {
 function StatusLabel({ status }: { status: string }): JSX.Element | null {
   if (status === 'not_started') return <span className="text-[9px] text-gray-300">Non commenc&eacute;</span>
   if (status === 'draft') return <span className="text-[9px] text-gray-400">Brouillon</span>
+  if (status === 'in_progress') return <span className="text-[9px] text-gold-700 font-medium">En cours</span>
   if (status === 'submitted' || status === 'in_review') return <span className="text-[9px] text-blue-500 font-medium">Soumis</span>
   if (status === 'approved') return <span className="text-[9px] text-green-600 font-medium">Valid&eacute;</span>
   if (status === 'rejected') return <span className="text-[9px] text-red-500 font-medium">Rejet&eacute;</span>
