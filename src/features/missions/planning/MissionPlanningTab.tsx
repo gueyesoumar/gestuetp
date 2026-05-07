@@ -61,29 +61,40 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [preview, setPreview] = useState<{ proposals: SmartPlanProposal[]; assignments: SmartPlanAssignment[] } | null>(null)
   const [applyingPreview, setApplyingPreview] = useState(false)
   const [validating, setValidating] = useState(false)
+  const [serverMissing, setServerMissing] = useState<{ key: string; label: string; count: number; total: number }[] | null>(null)
 
   const handleValidatePlanning = useCallback(async (): Promise<void> => {
     setValidating(true)
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/missions?id=eq.${mission.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify({ status: 'fieldwork' }),
+    setServerMissing(null)
+    const { data, error: rpcError } = await supabase.rpc('transition_mission_to_fieldwork', {
+      p_mission_id: mission.id,
     })
     setValidating(false)
-    if (res.ok) {
+
+    if (rpcError) {
+      console.error('transition_mission_to_fieldwork:', rpcError.message)
+      setGenSuccess('Erreur lors de la validation.')
+      return
+    }
+
+    const result = data as { ok: boolean; error?: string; missing?: { key: string; label: string; count: number; total: number }[] } | null
+    if (result?.ok) {
       setGenSuccess('Planification validée. La mission passe en phase Travaux.')
       onRefetch()
-    } else {
-      setGenSuccess('Erreur lors de la validation.')
+      refetchPlanning()
+      return
     }
-  }, [mission.id, onRefetch])
+
+    // Server rejected the transition — show the missing items
+    if (result?.missing && result.missing.length > 0) {
+      setServerMissing(result.missing)
+      setGenSuccess('Validation refusée par le serveur. Vérifiez les prérequis ci-dessus.')
+      refetchPlanning()
+    } else {
+      const errCode = result?.error ?? 'unknown'
+      setGenSuccess(`Validation refusée (${errCode}).`)
+    }
+  }, [mission.id, onRefetch, refetchPlanning])
 
   const handleCalloutSelect = useCallback((ids: string[]) => {
     setSelection(new Set(ids))
@@ -270,6 +281,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             interviews={interviews}
             topics={auditTopics}
             validating={validating}
+            serverMissing={serverMissing}
             onValidate={handleValidatePlanning}
           />
         )}

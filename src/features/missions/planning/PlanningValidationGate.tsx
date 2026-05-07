@@ -14,6 +14,7 @@ interface PlanningValidationGateProps {
   interviews: InterviewWithRelations[]
   topics: AuditTopicWithControls[]
   validating: boolean
+  serverMissing?: { key: string; label: string; count: number; total: number }[] | null
   onValidate: () => Promise<void>
 }
 
@@ -26,7 +27,7 @@ interface CheckItem {
   countLabel: string
 }
 
-export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, onValidate }: PlanningValidationGateProps) {
+export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate }: PlanningValidationGateProps) {
   const [confirming, setConfirming] = useState(false)
 
   const checks = useMemo<CheckItem[]>(() => {
@@ -182,6 +183,24 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
           {validating ? <><Loader2 size={12} className="animate-spin" /> Validation...</> : <>Valider et passer en Travaux <ArrowRight size={12} /></>}
         </button>
       </div>
+
+      {serverMissing && serverMissing.length > 0 && (
+        <div className="mx-4 my-2 p-2.5 rounded-lg bg-red-50 border border-red-200">
+          <p className="text-[11px] font-bold text-red-800 mb-1 flex items-center gap-1.5">
+            <Lock size={11} /> Le serveur a refusé la validation
+          </p>
+          <ul className="space-y-0.5">
+            {serverMissing.map((m) => (
+              <li key={m.key} className="text-[11px] text-red-700 flex items-center gap-1.5">
+                <X size={10} /> {m.label} <span className="text-[10px] font-mono text-red-500">({m.count}/{m.total})</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[10px] text-red-600 mt-1 italic">
+            Les données ont peut-être changé pendant que vous travailliez. La page sera rafraîchie.
+          </p>
+        </div>
+      )}
 
       <ul className="px-4 py-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5">
         {checks.map((c) => (
