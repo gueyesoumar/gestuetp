@@ -24,7 +24,11 @@ Règles affectation IMPORTANTES :
 - Équilibre le NOMBRE DE CONTRÔLES entre auditeurs (pas les heures)
 - Le chef de mission (lead_auditor) prend les domaines de gouvernance/politique
 
-Réponds UNIQUEMENT en JSON : {"controls":[{"id":"...","risk_level":"...","techniques":["..."],"auditor_id":"...","notes":null}]}`
+Champ "reasoning" (OBLIGATOIRE) :
+- 1 phrase max (≤120 caractères) qui justifie le risk_level retenu pour ce contrôle, en référençant la réponse du questionnaire ou le contexte client si applicable
+- Exemples : "Client déclare absence de PSSI formalisée → critique" / "Maturité élevée déclarée sur la GIA → low"
+
+Réponds UNIQUEMENT en JSON : {"controls":[{"id":"...","risk_level":"...","techniques":["..."],"auditor_id":"...","notes":null,"reasoning":"..."}]}`
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -136,7 +140,7 @@ IMPORTANT: Utilise les réponses du questionnaire pour ajuster les niveaux de ri
 ${controls.length} contrôles (id|code|nom|domaine):
 ${controls.join('\n')}
 
-Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_level":"critical|high|medium|low","techniques":["inspection","entretien"],"auditor_id":"uuid","notes":null}]}`
+Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_level":"critical|high|medium|low","techniques":["inspection","entretien"],"auditor_id":"uuid","notes":null,"reasoning":"≤120 chars"}]}`
 
     console.log(`[smart-plan] Calling Claude with ${controls.length} controls...`)
 
@@ -179,7 +183,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
     const fullJson = '{"controls":[' + rawContent
 
     // Parse response — try multiple strategies
-    let parsed: { controls: { id: string; risk_level: string; techniques: string[]; auditor_id: string; notes: string | null }[] }
+    let parsed: { controls: { id: string; risk_level: string; techniques: string[]; auditor_id: string; notes: string | null; reasoning?: string | null }[] }
     try {
       // Strategy 1: direct parse (ideal case)
       parsed = JSON.parse(fullJson)
@@ -215,6 +219,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
       sampling_population: null,
       sampling_size: null,
       notes: c.notes,
+      reasoning: typeof c.reasoning === 'string' ? c.reasoning.slice(0, 200) : null,
     }))
 
     const resultAssignments = (parsed.controls ?? [])

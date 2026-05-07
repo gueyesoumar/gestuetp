@@ -15,6 +15,9 @@ import { InterviewEditModal } from './InterviewEditModal'
 import { InterviewMatrixPanel } from './InterviewMatrixPanel'
 import { buildPvTemplate } from './buildPvTemplate'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
+import { PlanningRiskCallout } from './PlanningRiskCallout'
+import { SmartPlanPreviewModal } from './SmartPlanPreviewModal'
+import type { SmartPlanProposal, SmartPlanAssignment } from './SmartPlanPreviewModal'
 import { PlanningWorkloadSection } from './PlanningWorkloadSection'
 import { PlanningGanttSection } from './PlanningGanttSection'
 import { PlanningNextInterview } from './PlanningNextInterview'
@@ -24,6 +27,7 @@ import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionMemberRow, ControlAssignmentRow, MissionDetail } from '../useMissionDetail'
 import type { InterviewWithRelations } from './usePlanningData'
+import type { RiskLevel, AuditTechnique, ControlPlanningInsert } from '../../../types/database.types'
 
 interface MissionPlanningTabProps {
   mission: MissionDetail
@@ -37,8 +41,9 @@ type PlanTab = 'programme' | 'entretiens'
 
 export function MissionPlanningTab({ mission, domains, members, assignments, onRefetch }: MissionPlanningTabProps) {
   const { plannings, interviews, contacts, loading, error, refetch: refetchPlanning } = usePlanningData(mission.id)
-  const { upsertPlanning, batchUpsert } = useSavePlanning(refetchPlanning)
-  const { assignControls } = useAssignControls(onRefetch)
+  const { upsertPlanning, batchUpsert, saving: planSaving } = useSavePlanning(refetchPlanning)
+  const { assignControls, assigning } = useAssignControls(onRefetch)
+  const bulkSaving = planSaving || assigning
   const { createInterview, updateInterview, deleteInterview, saving: interviewSaving, error: interviewError } = useInterviews(refetchPlanning)
   const { syncTopics, syncActors } = useInterviewRelations()
   const { topics: auditTopics } = useAuditTopics(mission.framework_id, mission.id)
@@ -51,6 +56,14 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const planFlag = useFeatureFlag('smart_plan_mission')
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [selection, setSelection] = useState<Set<string>>(new Set())
+  const [preview, setPreview] = useState<{ proposals: SmartPlanProposal[]; assignments: SmartPlanAssignment[] } | null>(null)
+  const [applyingPreview, setApplyingPreview] = useState(false)
+
+  const handleCalloutSelect = useCallback((ids: string[]) => {
+    setSelection(new Set(ids))
+    setActiveTab('programme')
+  }, [])
 
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
   const controlIdToCode = useMemo(() => {
@@ -69,6 +82,21 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
 
   const handleAssignDomain = useCallback((controlIds: string[], auditorId: string) => {
     assignControls(mission.id, controlIds.map((id) => ({ control_id: id, auditor_id: auditorId })))
+  }, [mission.id, assignControls])
+
+  const handleBulkPlanning = useCallback(async (controlIds: string[], data: { risk_level?: RiskLevel; audit_techniques?: AuditTechnique[] }): Promise<boolean> => {
+    if (controlIds.length === 0) return true
+    const entries: ControlPlanningInsert[] = controlIds.map((id) => ({
+      mission_id: mission.id,
+      control_id: id,
+      ...data,
+    }))
+    return batchUpsert(entries)
+  }, [mission.id, batchUpsert])
+
+  const handleBulkAssign = useCallback(async (controlIds: string[], auditorId: string): Promise<void> => {
+    if (controlIds.length === 0) return
+    await assignControls(mission.id, controlIds.map((id) => ({ control_id: id, auditor_id: auditorId })))
   }, [mission.id, assignControls])
 
   const handleGenerate = useCallback(async () => {
@@ -105,36 +133,57 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
       return
     }
 
-    // 2. Save AI-generated plannings
-    const aiControls = (data.controls ?? []) as { id: string; risk_level: string; audit_techniques: string[]; estimated_hours: number; sampling_population: number | null; sampling_size: number | null; notes: string | null }[]
+    // 2. Open preview modal — user decides what to apply
+    const aiControls = (data.controls ?? []) as { id: string; risk_level: string; audit_techniques: string[]; estimated_hours: number; sampling_population: number | null; sampling_size: number | null; notes: string | null; reasoning?: string | null }[]
     const aiAssignments = (data.assignments ?? []) as { control_id: string; auditor_id: string }[]
 
-    const planEntries = aiControls.map((c) => ({
+    const proposals: SmartPlanProposal[] = aiControls.map((c) => ({
+      id: c.id,
+      risk_level: c.risk_level as RiskLevel,
+      audit_techniques: c.audit_techniques as AuditTechnique[],
+      estimated_hours: c.estimated_hours,
+      sampling_population: c.sampling_population,
+      sampling_size: c.sampling_size,
+      notes: c.notes,
+      reasoning: c.reasoning ?? null,
+    }))
+
+    setGenerating(false)
+    setPreview({ proposals, assignments: aiAssignments })
+  }, [mission.id, domains, members, assignments, batchUpsert, assignControls, refetchPlanning, onRefetch])
+
+  const handleApplyPreview = useCallback(async (selectedIds: Set<string>): Promise<void> => {
+    if (!preview) return
+    setApplyingPreview(true)
+
+    const filteredProposals = preview.proposals.filter((p) => selectedIds.has(p.id))
+    const filteredAssignments = preview.assignments.filter((a) => selectedIds.has(a.control_id))
+
+    const planEntries: ControlPlanningInsert[] = filteredProposals.map((c) => ({
       mission_id: mission.id,
       control_id: c.id,
-      risk_level: c.risk_level as 'critical' | 'high' | 'medium' | 'low',
-      audit_techniques: c.audit_techniques as ('inspection' | 'entretien' | 'observation' | 'reexecution' | 'echantillon' | 'analytique')[],
+      risk_level: c.risk_level,
+      audit_techniques: c.audit_techniques,
       estimated_hours: c.estimated_hours,
       sampling_population: c.sampling_population ?? undefined,
       sampling_size: c.sampling_size ?? undefined,
       notes: c.notes ?? undefined,
     }))
 
-    const planOk = await batchUpsert(planEntries)
+    const planOk = planEntries.length === 0 ? true : await batchUpsert(planEntries)
 
-    // 3. Save all assignments (upsert — reassigne si deja affecte)
-    if (aiAssignments.length > 0) {
-      await assignControls(mission.id, aiAssignments)
+    if (filteredAssignments.length > 0) {
+      await assignControls(mission.id, filteredAssignments)
     }
 
-    setGenerating(false)
+    setApplyingPreview(false)
+    setPreview(null)
     if (planOk) {
-      const stats = data.stats ?? {}
-      setGenSuccess(`Programme IA g\u00e9n\u00e9r\u00e9 : ${stats.planned ?? aiControls.length} contr\u00f4les analys\u00e9s, ${aiAssignments.length} affectations.`)
+      setGenSuccess(`SmartPlan appliqu\u00e9 : ${filteredProposals.length} contr\u00f4le${filteredProposals.length > 1 ? 's' : ''} mis \u00e0 jour, ${filteredAssignments.length} affectation${filteredAssignments.length > 1 ? 's' : ''}.`)
       refetchPlanning()
       onRefetch()
     }
-  }, [mission.id, domains, members, assignments, batchUpsert, assignControls, refetchPlanning, onRefetch])
+  }, [preview, mission.id, batchUpsert, assignControls, refetchPlanning, onRefetch])
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
@@ -186,6 +235,18 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           </div>
         )}
 
+        {/* Risk callout */}
+        {activeTab === 'programme' && (
+          <PlanningRiskCallout
+            domains={domains}
+            plannings={plannings}
+            assignments={assignments}
+            topics={auditTopics}
+            interviews={interviews}
+            onSelectControls={handleCalloutSelect}
+          />
+        )}
+
         {/* Sub-tabs */}
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
           <TabBtn label="Programme de travail" count={totalControls} active={activeTab === 'programme'} onClick={() => setActiveTab('programme')} />
@@ -194,7 +255,21 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
 
         {/* Tab content */}
         {activeTab === 'programme' && (
-          <WorkProgramTable domains={domains} plannings={plannings} assignments={assignments} members={members} onPlanningChange={handlePlanningChange} onAssign={handleAssign} onAssignDomain={handleAssignDomain} />
+          <WorkProgramTable
+            missionId={mission.id}
+            domains={domains}
+            plannings={plannings}
+            assignments={assignments}
+            members={members}
+            onPlanningChange={handlePlanningChange}
+            onAssign={handleAssign}
+            onAssignDomain={handleAssignDomain}
+            onBulkPlanning={handleBulkPlanning}
+            onBulkAssign={handleBulkAssign}
+            bulkSaving={bulkSaving}
+            externalSelection={selection}
+            onSelectionChange={setSelection}
+          />
         )}
         {activeTab === 'entretiens' && (
           <InterviewsPanel interviews={interviews} contacts={contacts} topics={auditTopics}
@@ -206,6 +281,21 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             saving={interviewSaving} />
         )}
       </div>
+
+      {/* SmartPlan preview modal */}
+      {preview && (
+        <SmartPlanPreviewModal
+          proposals={preview.proposals}
+          assignments={preview.assignments}
+          domains={domains}
+          currentPlannings={plannings}
+          currentAssignments={assignments}
+          members={members}
+          applying={applyingPreview}
+          onApply={handleApplyPreview}
+          onClose={() => setPreview(null)}
+        />
+      )}
 
       {/* Interview create modal */}
       {showInterviewModal && (

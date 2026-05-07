@@ -8,11 +8,13 @@ interface WorkProgramControlRowProps {
   auditors: MissionMemberRow[]
   onPlanningChange: (controlId: string, field: string, value: unknown) => void
   onAssign: (controlId: string, auditorId: string) => void
+  selected: boolean
+  onToggleSelect: () => void
 }
 
 const RISK_CONFIG: Record<RiskLevel, { label: string; short: string; bg: string; text: string }> = {
   critical: { label: 'Critique', short: 'C', bg: 'bg-red-600', text: 'text-white' },
-  high: { label: '\u00c9lev\u00e9', short: 'E', bg: 'bg-amber-500', text: 'text-white' },
+  high: { label: 'Élevé', short: 'E', bg: 'bg-amber-500', text: 'text-white' },
   medium: { label: 'Moyen', short: 'M', bg: 'bg-yellow-400', text: 'text-yellow-900' },
   low: { label: 'Faible', short: 'F', bg: 'bg-gray-300', text: 'text-gray-600' },
 }
@@ -21,22 +23,33 @@ const TECHNIQUE_STYLES: Record<AuditTechnique, { short: string; cls: string }> =
   inspection: { short: 'Inspection', cls: 'bg-blue-50 text-blue-600' },
   entretien: { short: 'Entretien', cls: 'bg-green-50 text-green-700' },
   observation: { short: 'Observation', cls: 'bg-yellow-50 text-yellow-700' },
-  reexecution: { short: 'Re-ex\u00e9c.', cls: 'bg-purple-50 text-purple-600' },
-  echantillon: { short: '\u00c9chantillon', cls: 'bg-orange-50 text-orange-600' },
+  reexecution: { short: 'Re-exéc.', cls: 'bg-purple-50 text-purple-600' },
+  echantillon: { short: 'Échantillon', cls: 'bg-orange-50 text-orange-600' },
   analytique: { short: 'Analytique', cls: 'bg-gray-100 text-gray-500' },
 }
 
-export function WorkProgramControlRow({ control, planning, assignment, auditors, onPlanningChange, onAssign }: WorkProgramControlRowProps) {
+export function WorkProgramControlRow({ control, planning, assignment, auditors, onPlanningChange, onAssign, selected, onToggleSelect }: WorkProgramControlRowProps) {
   const risk = planning?.risk_level ?? 'medium'
   const techniques = planning?.audit_techniques ?? []
   const riskCfg = RISK_CONFIG[risk]
+  const rowCls = selected ? 'bg-forest-50/60 hover:bg-forest-50' : 'hover:bg-forest-50/50'
 
   return (
     <>
-      {/* Ligne 1 : Code + Nom + Risque + Heures + Auditeur */}
-      <tr className="hover:bg-forest-50/50 transition-colors border-b-0">
+      {/* Ligne 1 : Checkbox + Code + Nom + Risque + Auditeur */}
+      <tr className={`${rowCls} transition-colors border-b-0`}>
+        <td className="pl-4 pr-1 py-2.5 align-top" onClick={(e) => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={onToggleSelect}
+            className="w-3.5 h-3.5 accent-forest-700 cursor-pointer"
+            aria-label={`Sélectionner ${control.code}`}
+          />
+        </td>
+
         {/* Code */}
-        <td className="pl-4 pr-2 py-2.5 align-top">
+        <td className="px-2 py-2.5 align-top">
           <span className="font-mono text-[12px] font-semibold text-forest-700 whitespace-nowrap">{control.code}</span>
         </td>
 
@@ -79,7 +92,8 @@ export function WorkProgramControlRow({ control, planning, assignment, auditors,
       </tr>
 
       {/* Ligne 2 : Techniques + Echantillonnage + Description */}
-      <tr className="hover:bg-forest-50/50 transition-colors">
+      <tr className={`${rowCls} transition-colors`}>
+        <td></td>
         <td></td>
         <td colSpan={3} className="pl-2 pr-4 pb-3 pt-0">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -90,10 +104,10 @@ export function WorkProgramControlRow({ control, planning, assignment, auditors,
             ))}
             {techniques.length === 0 && <span className="text-[10px] text-gray-300 italic">Aucune technique</span>}
             {planning?.sampling_population && (
-              <span className="text-[10px] text-gray-400">{'\u00b7'} {'\u00c9'}ch. {planning.sampling_size}/{planning.sampling_population}</span>
+              <span className="text-[10px] text-gray-400">{'·'} {'É'}ch. {planning.sampling_size}/{planning.sampling_population}</span>
             )}
             {control.description && (
-              <span className="text-[10px] text-gray-300 truncate max-w-[400px]" title={control.description}>{'\u00b7'} {control.description}</span>
+              <span className="text-[10px] text-gray-300 truncate max-w-[400px]" title={control.description}>{'·'} {control.description}</span>
             )}
           </div>
         </td>
