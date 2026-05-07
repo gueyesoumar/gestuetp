@@ -88,30 +88,37 @@ export function useControlContext(missionId: string | null, controlId: string | 
         setLoading(false)
         return
       }
-      const questionIds = links.map((l) => l.question_id)
+      const questionCodes = links
+        .map((l) => l.question?.code)
+        .filter((c): c is string => Boolean(c))
+      if (questionCodes.length === 0) {
+        setCadrageAnswers([])
+        setLoading(false)
+        return
+      }
 
-      // 4. Get responses for these questions in this instance
+      // 4. Get responses for these questions in this instance — note: questionnaire_responses keys by question_code, not question_id
       const respRes = await supabase.from('questionnaire_responses')
-        .select('question_id, response')
+        .select('question_code, response')
         .eq('instance_id', instanceId)
-        .in('question_id', questionIds)
+        .in('question_code', questionCodes)
         .abortSignal(controller.signal)
       if (controller.signal.aborted) return
-      const responses = (respRes?.data ?? []) as Array<{ question_id: string; response: { value?: unknown } | null }>
+      const responses = (respRes?.data ?? []) as Array<{ question_code: string; response: { value?: unknown } | null }>
       const responseMap = new Map<string, unknown>()
       for (const r of responses) {
-        responseMap.set(r.question_id, r.response?.value ?? null)
+        responseMap.set(r.question_code, r.response?.value ?? null)
       }
 
       // 5. Merge : keep only links that have a response
       const merged: CadrageAnswer[] = links
-        .filter((l) => responseMap.has(l.question_id))
+        .filter((l) => l.question?.code && responseMap.has(l.question.code))
         .map((l) => ({
           question_id: l.question_id,
           question_code: l.question?.code ?? '?',
           question_text: l.question?.text ?? '',
           weight: l.weight,
-          response_value: responseMap.get(l.question_id) ?? null,
+          response_value: responseMap.get(l.question?.code ?? '') ?? null,
         }))
         .sort((a, b) => b.weight - a.weight)
 
