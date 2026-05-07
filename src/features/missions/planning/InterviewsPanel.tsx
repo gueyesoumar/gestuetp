@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { LayoutGrid } from 'lucide-react'
 import { InterviewCard } from './InterviewCard'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import type { ClientContact, InterviewStatus } from '../../../types/database.types'
@@ -41,7 +42,7 @@ export function InterviewsPanel({ interviews, contacts, topics, onAdd, onEdit, o
         <div className="flex gap-2">
           <button onClick={onOpenMatrix}
             className="text-xs font-semibold text-white bg-forest-700 hover:bg-forest-900 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
-            \u229e Matrice acteurs \u00d7 sujets
+            <LayoutGrid size={13} /> Matrice acteurs &times; sujets
           </button>
           <button onClick={onAdd} className="text-xs font-semibold text-forest-700 bg-forest-50 border border-forest-300 px-3 py-1.5 rounded-lg hover:bg-forest-100 transition-colors">
             + Manuel
