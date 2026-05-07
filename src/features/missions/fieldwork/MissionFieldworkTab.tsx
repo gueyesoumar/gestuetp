@@ -116,17 +116,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
       .filter((d) => d.controls.length > 0)
   }, [domains, filteredAssignments, isLeadOrAssociate])
 
-  if (loading) return <LoadingSpinner />
-  if (error) return <ErrorAlert message={error} />
-  if (!isLeadOrAssociate && filteredAssignments.length === 0 && assessments.length === 0) {
-    return (
-      <EmptyState
-        title="Aucun contrôle affecté"
-        description="Les contrôles vous seront affectés par le chef de mission dans l’onglet Planification."
-      />
-    )
-  }
-
+  // Compute selected assessment + reviewer role BEFORE any early return so hooks below stay above the rule-of-hooks line
   const selectedAssessment = assessments.find((a) => a.control_id === state.selectedId)
   const reviewerRole: 'lead' | 'associate' | 'none' = isLead ? 'lead' : isAssociate ? 'associate' : 'none'
   const isReviewerForSelected = isLeadOrAssociate && !!selectedAssessment && selectedAssessment.auditor_id !== profile?.id
@@ -165,6 +155,17 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     onSubmit: triggerSubmit,
     onShowHelp: () => setShowShortcutsHelp(true),
   })
+
+  if (loading) return <LoadingSpinner />
+  if (error) return <ErrorAlert message={error} />
+  if (!isLeadOrAssociate && filteredAssignments.length === 0 && assessments.length === 0) {
+    return (
+      <EmptyState
+        title="Aucun contrôle affecté"
+        description="Les contrôles vous seront affectés par le chef de mission dans l’onglet Planification."
+      />
+    )
+  }
 
   return (
     <div>
