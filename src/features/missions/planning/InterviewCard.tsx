@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Check, RefreshCw, X, FileEdit, Calendar, Trash2 } from 'lucide-react'
+import { Pencil, Check, RefreshCw, X, FileEdit, Calendar, Trash2, MoreVertical } from 'lucide-react'
 import type { ClientContact, InterviewStatus } from '../../../types/database.types'
 import type { InterviewWithRelations } from './usePlanningData'
 
@@ -32,7 +32,13 @@ export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatus
   const isCancelled = interview.status === 'cancelled'
 
   return (
-    <div className={`flex items-start gap-3 py-3 border-b border-gray-100 last:border-b-0 ${isCancelled ? 'opacity-50' : ''}`}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onEdit(interview)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit(interview) } }}
+      className={`flex items-start gap-3 py-3 px-2 -mx-2 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-forest-50/40 rounded-md transition-colors ${isCancelled ? 'opacity-50' : ''}`}
+    >
       {/* Date badge */}
       <div className={`w-11 text-center rounded-md py-1 px-1.5 shrink-0 ${interview.status === 'completed' ? 'bg-green-50' : isCancelled ? 'bg-gray-100' : 'bg-forest-50'}`}>
         <p className={`text-base font-bold leading-none ${interview.status === 'completed' ? 'text-green-600' : isCancelled ? 'text-gray-400' : 'text-forest-700'}`}>{day}</p>
@@ -72,13 +78,18 @@ export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatus
       </div>
 
       {/* Actions menu */}
-      <div className="relative shrink-0">
-        <button onClick={() => setShowMenu(!showMenu)} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:bg-gray-100 hover:text-gray-500 transition-colors text-sm">
-          {'\u22EE'}
+      <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu) }}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+          aria-label="Actions"
+        >
+          <MoreVertical size={14} />
         </button>
         {showMenu && (
           <>
-            <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+            <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setShowMenu(false) }} />
             <div className="absolute right-0 top-8 z-20 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1">
               <MenuBtn label="Modifier" icon={<Pencil size={12} />} onClick={() => { setShowMenu(false); onEdit(interview) }} />
               {interview.status === 'scheduled' && (
@@ -118,7 +129,7 @@ function NotePreview({ notes }: { notes: string }): JSX.Element {
   const isLong = notes.length > 150
 
   return (
-    <div className="mt-2 p-2 bg-gray-50 rounded-lg text-[10px] text-gray-500 leading-relaxed">
+    <div className="mt-2 p-2 bg-gray-50 rounded-lg text-[10px] text-gray-500 leading-relaxed" onClick={(e) => e.stopPropagation()}>
       {expanded || !isLong ? notes : `${notes.slice(0, 150)}...`}
       {isLong && (
         <button onClick={() => setExpanded(!expanded)} className="ml-1 text-forest-700 font-medium hover:underline">
