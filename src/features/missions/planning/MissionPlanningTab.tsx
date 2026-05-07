@@ -16,6 +16,7 @@ import { InterviewMatrixPanel } from './InterviewMatrixPanel'
 import { buildPvTemplate } from './buildPvTemplate'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningRiskCallout } from './PlanningRiskCallout'
+import { PlanningValidationGate } from './PlanningValidationGate'
 import { SmartPlanPreviewModal } from './SmartPlanPreviewModal'
 import type { SmartPlanProposal, SmartPlanAssignment } from './SmartPlanPreviewModal'
 import { PlanningWorkloadSection } from './PlanningWorkloadSection'
@@ -59,6 +60,30 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [selection, setSelection] = useState<Set<string>>(new Set())
   const [preview, setPreview] = useState<{ proposals: SmartPlanProposal[]; assignments: SmartPlanAssignment[] } | null>(null)
   const [applyingPreview, setApplyingPreview] = useState(false)
+  const [validating, setValidating] = useState(false)
+
+  const handleValidatePlanning = useCallback(async (): Promise<void> => {
+    setValidating(true)
+    const session = await supabase.auth.getSession()
+    const token = session.data.session?.access_token
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/missions?id=eq.${mission.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ status: 'fieldwork' }),
+    })
+    setValidating(false)
+    if (res.ok) {
+      setGenSuccess('Planification validée. La mission passe en phase Travaux.')
+      onRefetch()
+    } else {
+      setGenSuccess('Erreur lors de la validation.')
+    }
+  }, [mission.id, onRefetch])
 
   const handleCalloutSelect = useCallback((ids: string[]) => {
     setSelection(new Set(ids))
@@ -235,6 +260,20 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           </div>
         )}
 
+        {/* Validation gate */}
+        {activeTab === 'programme' && (
+          <PlanningValidationGate
+            domains={domains}
+            plannings={plannings}
+            assignments={assignments}
+            contacts={contacts}
+            interviews={interviews}
+            topics={auditTopics}
+            validating={validating}
+            onValidate={handleValidatePlanning}
+          />
+        )}
+
         {/* Risk callout */}
         {activeTab === 'programme' && (
           <PlanningRiskCallout
@@ -376,21 +415,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           <PlanningWorkloadSection members={members} assignments={assignments} totalControls={totalControls} />
           <PlanningGanttSection domains={domains} startDate={mission.start_date} endDate={mission.end_date} />
           <PlanningNextInterview interviews={interviews} topics={auditTopics} />
-          <PlanningActionsSection assignedCount={assignments.length} totalControls={totalControls} onValidate={async () => {
-            const session = await supabase.auth.getSession()
-            const token = session.data.session?.access_token
-            const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/missions?id=eq.${mission.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
-              body: JSON.stringify({ status: 'fieldwork' }),
-            })
-            if (res.ok) {
-              setGenSuccess('Planification valid\u00e9e. La mission passe en phase Travaux.')
-              onRefetch()
-            } else {
-              setGenSuccess('Erreur lors de la validation.')
-            }
-          }} />
+          <PlanningActionsSection />
         </div>
       )}
     </div>
