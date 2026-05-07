@@ -18,7 +18,7 @@ export function FreeWorkForm(props: FreeWorkFormProps){
   const { assessment, readOnly, findingsHook } = props
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-5">
+    <div className="p-6 space-y-5">
       {assessment.control.description && (
         <div className="bg-[#FAFAF8] border border-gray-100 rounded-lg p-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Description</p>

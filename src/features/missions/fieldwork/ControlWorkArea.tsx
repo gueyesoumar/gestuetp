@@ -115,8 +115,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
   }, [assessment.id, assessment.control.code, findingsCount, formData, onSave, onSubmit, toast])
 
   return (
-    <div className="flex flex-col overflow-y-auto flex-1">
-      <div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-200 bg-white sticky top-0 z-10">
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-200 bg-white shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="font-mono text-sm font-semibold text-forest-700">{assessment.control.code}</span>
           <span className="text-[15px] font-semibold text-gray-900 truncate">{assessment.control.name}</span>
@@ -133,6 +133,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           </div>
         )}
       </div>
+
+      <div className="flex-1 overflow-y-auto min-h-0 pb-4">
 
       {assessment.status === 'rejected' && (
         <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5">
@@ -223,6 +225,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           readOnly={readOnly}
         />
       )}
+
+      </div>
 
       {canReview ? (
         <ControlReviewActions

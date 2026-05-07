@@ -45,8 +45,8 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
   const { assessment, currentStep, onStepChange, saving, readOnly, findingsHook } = props
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
+    <div className="flex flex-col">
+      <div className="px-6 pt-4">
         <div className="grid grid-cols-4 gap-2 p-3 bg-[#FAFAF8] border border-gray-200 rounded-xl">
           {GUIDED_STEPS.map((step, i) => {
             const isDone = i < currentStep
@@ -77,7 +77,7 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="p-6">
         {currentStep === 0 && (
           <ObserverStep
             assessment={assessment}

@@ -21,8 +21,8 @@ export function InterviewNotesInline({ snippets }: InterviewNotesInlineProps) {
         </span>
       </div>
       <div className="px-2 py-2 space-y-1.5">
-        {snippets.map((s, idx) => (
-          <SnippetCard key={`${s.interview_id}-${s.topic_id}`} snippet={s} defaultOpen={idx === 0} />
+        {snippets.map((s) => (
+          <SnippetCard key={`${s.interview_id}-${s.topic_id}`} snippet={s} defaultOpen={false} />
         ))}
       </div>
     </div>

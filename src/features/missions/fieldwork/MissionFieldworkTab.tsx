@@ -158,7 +158,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
       />
       <FieldworkTransitionBanner message={reviewTransition} />
 
-      <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
+      <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}>
         <div className="w-80 shrink-0 overflow-y-auto">
           <FieldworkSidebar
             domains={filteredDomains}

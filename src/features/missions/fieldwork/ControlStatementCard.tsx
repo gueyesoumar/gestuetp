@@ -1,4 +1,5 @@
-import { Info } from 'lucide-react'
+import { useState } from 'react'
+import { Info, ChevronDown, ChevronRight } from 'lucide-react'
 
 interface ControlStatementCardProps {
   description: string | null
@@ -27,6 +28,7 @@ function dotClass(bucket: 'low' | 'mid' | 'high'): string {
 }
 
 export function ControlStatementCard({ description, guidance, riskLevel }: ControlStatementCardProps) {
+  const [open, setOpen] = useState(false)
   if (!description && !guidance) return null
 
   const level = Math.max(1, Math.min(5, riskLevel ?? 3))
@@ -35,7 +37,13 @@ export function ControlStatementCard({ description, guidance, riskLevel }: Contr
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 hover:bg-gray-50 transition-colors text-left"
+        aria-expanded={open}
+      >
+        {open ? <ChevronDown size={14} className="text-gray-400 shrink-0" /> : <ChevronRight size={14} className="text-gray-400 shrink-0" />}
         <span className="w-6 h-6 rounded-md bg-forest-50 text-forest-700 flex items-center justify-center shrink-0">
           <Info size={13} />
         </span>
@@ -51,20 +59,22 @@ export function ControlStatementCard({ description, guidance, riskLevel }: Contr
             Risque {level}/5 &middot; {RISK_LABELS[level]}
           </span>
         </div>
-      </div>
-      <div className="px-4 py-3">
-        {description && (
-          <p className="text-[13px] text-gray-700 leading-relaxed">{description}</p>
-        )}
-        {guidance && (
-          <>
-            <p className="text-[10px] uppercase tracking-wide font-bold text-gray-500 mt-3 mb-1">
-              Objectif d&apos;audit
-            </p>
-            <p className="text-[12px] text-gray-700 leading-relaxed">{guidance}</p>
-          </>
-        )}
-      </div>
+      </button>
+      {open && (
+        <div className="px-4 py-3">
+          {description && (
+            <p className="text-[13px] text-gray-700 leading-relaxed">{description}</p>
+          )}
+          {guidance && (
+            <>
+              <p className="text-[10px] uppercase tracking-wide font-bold text-gray-500 mt-3 mb-1">
+                Objectif d&apos;audit
+              </p>
+              <p className="text-[12px] text-gray-700 leading-relaxed">{guidance}</p>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

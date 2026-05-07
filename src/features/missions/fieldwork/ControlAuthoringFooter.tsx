@@ -39,7 +39,7 @@ export function ControlAuthoringFooter({
   const canGoPrev = guidedStep > 0
 
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-[#FAFAFA] sticky bottom-0">
+    <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-[#FAFAFA] shrink-0">
       <div className="flex items-center gap-4 text-xs text-gray-500">
         <label className="flex items-center gap-1.5 cursor-pointer">
           <div onClick={onToggleAutoAdvance} className={`w-8 h-[18px] rounded-full relative cursor-pointer transition-colors ${autoAdvance ? 'bg-forest-500' : 'bg-gray-200'}`}>

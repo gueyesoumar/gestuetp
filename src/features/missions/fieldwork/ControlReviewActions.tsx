@@ -49,7 +49,7 @@ export function ControlReviewActions({
   }
 
   return (
-    <div className="px-6 py-4 border-t border-gray-200 bg-[#FAFAFA] sticky bottom-0">
+    <div className="px-6 py-4 border-t border-gray-200 bg-[#FAFAFA] shrink-0">
       {waitingForLead && (
         <div className="flex items-center gap-2 p-2.5 mb-3 bg-gold-50 border border-gold-200 rounded-lg">
           <AlertTriangle size={15} className="text-gold-600" />

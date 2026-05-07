@@ -40,7 +40,7 @@ export function ControlReviewView({
   const hasContent = observations || findings.length > 0 || evidenceNotes || documents.length > 0
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+    <div className="px-6 py-4 space-y-4">
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-semibold uppercase text-gray-400">Niveau de conformit&eacute;</span>
         <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${conformity?.color ?? 'bg-gray-50 text-gray-300'}`}>
