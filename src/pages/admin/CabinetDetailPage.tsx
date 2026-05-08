@@ -106,7 +106,7 @@ export function CabinetDetailPage() {
         <TabBtn k="missions" label={`Missions · ${cabinet.missions.length}`} active={activeTab === 'missions'} onClick={setActiveTab} />
         <TabBtn k="billing" label="Facturation" active={activeTab === 'billing'} onClick={setActiveTab} />
         <TabBtn k="whitelabel" label="Marque blanche" active={activeTab === 'whitelabel'} onClick={setActiveTab} />
-        <TabBtn k="flags" label="Feature flags" active={activeTab === 'flags'} onClick={setActiveTab} />
+        <TabBtn k="flags" label="Fonctionnalités" active={activeTab === 'flags'} onClick={setActiveTab} />
         <TabBtn k="audit" label="Audit log" active={activeTab === 'audit'} onClick={setActiveTab} />
       </div>
 
