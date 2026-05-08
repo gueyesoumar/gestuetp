@@ -37,7 +37,6 @@ import { CabinetDetailPage } from './pages/admin/CabinetDetailPage'
 import { UsersSearchPage } from './pages/admin/UsersSearchPage'
 import { UserDetailPage } from './pages/admin/UserDetailPage'
 import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
-import { FeatureFlagsPage } from './pages/admin/FeatureFlagsPage'
 import { AdminPlansPage } from './pages/admin/AdminPlansPage'
 import { MonitoringPage } from './pages/admin/MonitoringPage'
 import { FrameworksAdminListPage } from './pages/admin/FrameworksAdminListPage'
@@ -132,7 +131,6 @@ function App() {
             <Route path="cabinets/:id" element={<CabinetDetailPage />} />
             <Route path="utilisateurs" element={<UsersSearchPage />} />
             <Route path="utilisateurs/:id" element={<UserDetailPage />} />
-            <Route path="feature-flags" element={<FeatureFlagsPage />} />
             <Route path="plans" element={<AdminPlansPage />} />
             <Route path="monitoring" element={<MonitoringPage />} />
             <Route path="frameworks" element={<FrameworksAdminListPage />} />

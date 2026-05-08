@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 
 export type FeatureCategory = 'ai' | 'reporting' | 'branding' | 'security' | 'collab' | 'general'
@@ -37,12 +37,14 @@ interface Result {
   groups: FeatureCategoryGroup[]
   loading: boolean
   error: string | null
+  refetch: () => void
 }
 
 export function useFeatureCatalog(): Result {
   const [items, setItems] = useState<FeatureCatalogItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [tick, setTick] = useState(0)
 
   useEffect(() => {
     const abort = new AbortController()
@@ -69,7 +71,7 @@ export function useFeatureCatalog(): Result {
     })()
 
     return () => abort.abort()
-  }, [])
+  }, [tick])
 
   const groups: FeatureCategoryGroup[] = CATEGORY_ORDER
     .map((cat) => ({
@@ -79,5 +81,7 @@ export function useFeatureCatalog(): Result {
     }))
     .filter((g) => g.items.length > 0)
 
-  return { items, groups, loading, error }
+  const refetch = useCallback(() => setTick((t) => t + 1), [])
+
+  return { items, groups, loading, error, refetch }
 }
