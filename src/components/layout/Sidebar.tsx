@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
+import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
 import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
@@ -190,6 +191,9 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
             </>
           )}
         </nav>
+
+        {/* Co-branding cabinet footer */}
+        <CoBrandingFooter collapsed={collapsed} />
 
         {/* Profile area with popup menu */}
         {profile && (

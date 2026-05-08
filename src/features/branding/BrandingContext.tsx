@@ -1,6 +1,7 @@
 import { createContext, useEffect, useLayoutEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '../../lib/supabase'
+import { generatePalette } from './colorUtils'
 
 /**
  * BrandingProvider — résolution du tenant par hostname AVANT auth.
@@ -94,8 +95,35 @@ export function BrandingProvider({ children }: BrandingProviderProps): JSX.Eleme
     const root = document.documentElement
     const primary = state.branding?.primary_color ?? DEFAULT_PRIMARY
     const accent = state.branding?.accent_color ?? DEFAULT_ACCENT
+
+    // Variables sémantiques (consommées par composants explicites)
     root.style.setProperty('--brand-primary', primary)
     root.style.setProperty('--brand-accent', accent)
+
+    // Override des CSS vars Tailwind theme — propagation automatique sur toutes
+    // les classes `forest-*` et `gold-*` de l'app. Les shades sont dérivées
+    // par décalage de luminosité depuis la couleur cabinet.
+    if (state.branding) {
+      const forestPalette = generatePalette(primary)
+      const goldPalette = generatePalette(accent)
+      if (forestPalette) {
+        for (const [shade, hex] of Object.entries(forestPalette)) {
+          root.style.setProperty(`--color-forest-${shade}`, hex)
+        }
+      }
+      if (goldPalette) {
+        for (const [shade, hex] of Object.entries(goldPalette)) {
+          root.style.setProperty(`--color-gold-${shade}`, hex)
+        }
+      }
+    } else {
+      // Pas de branding : retire les overrides pour retomber sur les valeurs par défaut du @theme
+      const shades: Array<'50' | '100' | '300' | '500' | '700' | '900'> = ['50', '100', '300', '500', '700', '900']
+      for (const s of shades) {
+        root.style.removeProperty(`--color-forest-${s}`)
+        root.style.removeProperty(`--color-gold-${s}`)
+      }
+    }
   }, [state.branding])
 
   return <BrandingContext.Provider value={state}>{children}</BrandingContext.Provider>

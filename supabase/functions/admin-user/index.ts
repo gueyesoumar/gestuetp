@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { passwordResetTemplate } from '../_shared/email-templates/auth.ts'
+import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
  * Edge Function : admin-user
@@ -64,10 +65,13 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: 'Génération du lien de réinitialisation impossible' }, 500)
       }
 
+      const branding = await loadCabinetEmailBranding(admin, u.organization_id)
       const result = await sendEmail({
         to: u.email,
-        subject: 'Réinitialisation de votre mot de passe — Gëstu Comply',
+        subject: `Réinitialisation de votre mot de passe — ${branding?.cabinetName ?? 'Gëstu Comply'}`,
         html: passwordResetTemplate({ firstName: u.first_name || u.email, link }),
+        from: buildEmailFrom(branding),
+        replyTo: branding?.supportEmail ?? undefined,
       })
       if (result.error) {
         console.error('[admin-user] reset_password sendEmail error:', result.error)

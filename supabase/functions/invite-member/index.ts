@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { memberInviteTemplate } from '../_shared/email-templates/auth.ts'
+import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
  * Edge Function : invite-member
@@ -85,6 +86,9 @@ Deno.serve(async (req) => {
       .single()
     const cabinetName = (orgData as { name: string } | null)?.name ?? 'votre cabinet'
 
+    // Branding cabinet pour l'enveloppe email (from-name + reply-to)
+    const branding = await loadCabinetEmailBranding(supabaseAdmin, organization_id)
+
     const cleanEmail = email.trim().toLowerCase()
     const cleanFirstName = first_name.trim()
     const cleanLastName = last_name.trim()
@@ -101,13 +105,15 @@ Deno.serve(async (req) => {
 
       const sendResult = await sendEmail({
         to: cleanEmail,
-        subject: `Invitation Gëstu Comply — ${cabinetName}`,
+        subject: `Invitation ${branding?.cabinetName ?? 'Gëstu Comply'} — ${cabinetName}`,
         html: memberInviteTemplate({
           firstName: cleanFirstName,
           cabinetName,
           link: linkResult.link,
           isResend: true,
         }),
+        from: buildEmailFrom(branding),
+        replyTo: branding?.supportEmail ?? undefined,
       })
       if (sendResult.error) {
         console.error('[invite-member] resend sendEmail failed:', sendResult.error)
@@ -192,12 +198,14 @@ Deno.serve(async (req) => {
     } else {
       const sendResult = await sendEmail({
         to: cleanEmail,
-        subject: `Invitation Gëstu Comply — ${cabinetName}`,
+        subject: `Invitation ${branding?.cabinetName ?? 'Gëstu Comply'} — ${cabinetName}`,
         html: memberInviteTemplate({
           firstName: cleanFirstName,
           cabinetName,
           link: linkResult.link,
         }),
+        from: buildEmailFrom(branding),
+        replyTo: branding?.supportEmail ?? undefined,
       })
       if (sendResult.error) {
         console.warn('[invite-member] sendEmail warning:', sendResult.error)

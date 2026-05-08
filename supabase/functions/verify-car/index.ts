@@ -4,6 +4,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
+import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 import {
   renderCARAcceptedEmail,
   renderCARRejectedEmail,
@@ -225,7 +226,14 @@ Deno.serve(async (req) => {
         else if (action === 'reject') rendered = renderCARRejectedEmail({ ...ctx, verifierComment: comment ?? '' })
         else rendered = renderCARPrecisionEmail({ ...ctx, verifierComment: comment ?? '' })
 
-        await sendEmail({ to: recipientEmail, subject: rendered.subject, html: rendered.html })
+        const emailBranding = await loadCabinetEmailBranding(admin, mission.cabinet_id)
+        await sendEmail({
+          to: recipientEmail,
+          subject: rendered.subject,
+          html: rendered.html,
+          from: buildEmailFrom(emailBranding),
+          replyTo: emailBranding?.supportEmail ?? undefined,
+        })
       }
     } catch (mailErr) {
       console.error('verify-car email (non bloquant):', mailErr)

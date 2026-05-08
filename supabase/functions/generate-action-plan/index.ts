@@ -7,6 +7,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
+import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 interface AssessmentRow {
   id: string
@@ -322,10 +323,13 @@ Deno.serve(async (req) => {
             </td></tr></table>
           </body></html>`
 
+          const emailBranding = await loadCabinetEmailBranding(supabaseAdmin, mission.cabinet_id)
           await sendEmail({
             to: recipientEmail,
             subject: `[${cabinetName}] Plan d'action — ${mission.name}`,
             html,
+            from: buildEmailFrom(emailBranding),
+            replyTo: emailBranding?.supportEmail ?? undefined,
           })
         }
       } catch (mailErr) {
