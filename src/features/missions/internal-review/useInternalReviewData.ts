@@ -23,6 +23,33 @@ export interface MajorNC {
   findings: string
 }
 
+export type FindingClassification = 'major_nc' | 'minor_nc' | 'observation' | 'strength'
+
+export interface ValidationEvent {
+  stage: 'auditor_submitted' | 'lead_review' | 'associate_review' | 'client_review'
+  decision: 'approved' | 'rejected'
+  comment: string | null
+  authorName: string
+  createdAt: string
+}
+
+export interface AssessmentDetail {
+  assessmentId: string
+  controlId: string
+  controlCode: string
+  controlName: string
+  domainCode: string
+  status: string
+  conformityLevel: string | null
+  observations: string | null
+  evidenceNotes: string | null
+  findingsCount: number
+  topClassification: FindingClassification | null
+  hasMissingPriority: boolean
+  hasMissingRecommendation: boolean
+  validations: ValidationEvent[]
+}
+
 export interface InternalReviewData {
   totalControls: number
   approvedControls: number
@@ -32,6 +59,7 @@ export interface InternalReviewData {
   findingSummary: FindingSummary
   majorNCs: MajorNC[]
   globalScore: number
+  assessmentDetails: AssessmentDetail[]
   loading: boolean
   error: string | null
   refetch: () => void
@@ -41,7 +69,7 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
   const [data, setData] = useState<Omit<InternalReviewData, 'loading' | 'error' | 'refetch'>>({
     totalControls: 0, approvedControls: 0, withFindings: 0, withEvidence: 0,
     domainScores: [], findingSummary: { conformes: 0, observations: 0, ncMinor: 0, ncMajor: 0, strengths: 0 },
-    majorNCs: [], globalScore: 0,
+    majorNCs: [], globalScore: 0, assessmentDetails: [],
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -56,12 +84,11 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
     setError(null)
 
     const fetchData = async (): Promise<void> => {
-      type FindingClassification = 'major_nc' | 'minor_nc' | 'observation' | 'strength'
 
-      // 1. Fetch all assessments with control + domain info
+      // 1. Fetch all assessments with control + domain info + raw fields needed for quality checks
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
-        .select('id, status, conformity_level, control_id, control:controls(code, name, domain_id, domain:domains(code, name))')
+        .select('id, status, conformity_level, observations, evidence_notes, control_id, control:controls(code, name, domain_id, domain:domains(code, name))')
         .eq('mission_id', missionId)
         .abortSignal(abortController.signal)
 
@@ -72,20 +99,43 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
       const totalControls = all.length
       const approvedControls = all.filter((a) => a.status === 'approved').length
 
-      // 1b. Fetch findings from assessment_findings (replaces legacy findings/finding_classification)
+      // 1b. Fetch findings from assessment_findings (with priority + recommendation for quality checks)
       const assessmentIds = all.map((a) => a.id)
-      const findingsByAssessment = new Map<string, Array<{ classification: FindingClassification; description: string }>>()
+      const findingsByAssessment = new Map<string, Array<{ classification: FindingClassification; description: string; priority: string | null; recommendation: string | null }>>()
       if (assessmentIds.length > 0) {
         const { data: findingsRows } = await supabase
           .from('assessment_findings')
-          .select('assessment_id, classification, description')
+          .select('assessment_id, classification, description, priority, recommendation')
           .in('assessment_id', assessmentIds)
           .abortSignal(abortController.signal)
         if (abortController.signal.aborted) return
-        for (const f of (findingsRows ?? []) as Array<{ assessment_id: string; classification: FindingClassification; description: string }>) {
+        for (const f of (findingsRows ?? []) as Array<{ assessment_id: string; classification: FindingClassification; description: string; priority: string | null; recommendation: string | null }>) {
           const list = findingsByAssessment.get(f.assessment_id) ?? []
-          list.push({ classification: f.classification, description: f.description })
+          list.push({ classification: f.classification, description: f.description, priority: f.priority, recommendation: f.recommendation })
           findingsByAssessment.set(f.assessment_id, list)
+        }
+      }
+
+      // 1c. Fetch validations per assessment (with author user info)
+      const validationsByAssessment = new Map<string, ValidationEvent[]>()
+      if (assessmentIds.length > 0) {
+        const { data: validationRows } = await supabase
+          .from('assessment_validations')
+          .select('assessment_id, stage, decision, comment, created_at, validated_by, user:users!assessment_validations_validated_by_fkey(first_name, last_name)')
+          .in('assessment_id', assessmentIds)
+          .order('created_at', { ascending: true })
+          .abortSignal(abortController.signal)
+        if (abortController.signal.aborted) return
+        for (const v of (validationRows ?? []) as Array<{ assessment_id: string; stage: ValidationEvent['stage']; decision: ValidationEvent['decision']; comment: string | null; created_at: string; user: { first_name: string; last_name: string } | null }>) {
+          const list = validationsByAssessment.get(v.assessment_id) ?? []
+          list.push({
+            stage: v.stage,
+            decision: v.decision,
+            comment: v.comment,
+            authorName: v.user ? `${v.user.first_name} ${v.user.last_name}` : 'Utilisateur',
+            createdAt: v.created_at,
+          })
+          validationsByAssessment.set(v.assessment_id, list)
         }
       }
 
@@ -188,10 +238,38 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
       }
       const globalScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0
 
+      // 6. Build per-assessment detail records (for timeline + quality callout)
+      const assessmentDetails: AssessmentDetail[] = []
+      for (const a of all) {
+        const ctrl = a.control as unknown as { code: string; name: string; domain: { code: string; name: string } | null } | null
+        const fs = findingsByAssessment.get(a.id) ?? []
+        const top = topClassByAssessment.get(a.id) ?? null
+        const hasMissingPriority = fs.some((f) => (f.classification === 'major_nc' || f.classification === 'minor_nc') && !f.priority)
+        const hasMissingRecommendation = fs.some((f) => (f.classification === 'major_nc' || f.classification === 'minor_nc') && (!f.recommendation || f.recommendation.trim().length === 0))
+        assessmentDetails.push({
+          assessmentId: a.id,
+          controlId: a.control_id ?? '',
+          controlCode: ctrl?.code ?? '',
+          controlName: ctrl?.name ?? '',
+          domainCode: ctrl?.domain?.code ?? '',
+          status: a.status as string,
+          conformityLevel: (a.conformity_level as string | null) ?? null,
+          observations: (a as { observations?: string | null }).observations ?? null,
+          evidenceNotes: (a as { evidence_notes?: string | null }).evidence_notes ?? null,
+          findingsCount: fs.length,
+          topClassification: top,
+          hasMissingPriority,
+          hasMissingRecommendation,
+          validations: validationsByAssessment.get(a.id) ?? [],
+        })
+      }
+      assessmentDetails.sort((x, y) => x.controlCode.localeCompare(y.controlCode))
+
       setData({
         totalControls, approvedControls, withFindings,
         withEvidence: evidenceCount ?? 0,
         domainScores, findingSummary: summary, majorNCs, globalScore,
+        assessmentDetails,
       })
       setLoading(false)
     }

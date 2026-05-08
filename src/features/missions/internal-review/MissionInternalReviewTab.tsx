@@ -7,6 +7,9 @@ import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../hooks/useAuth'
 import { useInternalReviewData } from './useInternalReviewData'
+import { ValidationTimeline } from './ValidationTimeline'
+import { ReviewQualityCallout } from './ReviewQualityCallout'
+import { ReviewDiscussionPanel } from './ReviewDiscussionPanel'
 import type { MissionDetail } from '../useMissionDetail'
 import type { DomainScore, MajorNC } from './useInternalReviewData'
 
@@ -99,6 +102,11 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
         </div>
       </div>
 
+      {/* Quality callout (B) */}
+      <div className="mb-5">
+        <ReviewQualityCallout assessments={review.assessmentDetails} />
+      </div>
+
       <div className="grid grid-cols-[2fr_1fr] gap-6">
         {/* Left column */}
         <div className="space-y-5">
@@ -108,12 +116,18 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           {/* Findings summary */}
           <FindingsSection summary={review.findingSummary} majorNCs={review.majorNCs} />
 
+          {/* Validation timeline (A) */}
+          <ValidationTimeline assessments={review.assessmentDetails} />
+
           {/* Report preview */}
           <ReportPreview mission={mission} review={review} />
         </div>
 
         {/* Right column */}
         <div className="space-y-5">
+          {/* Discussion panel (C) */}
+          <ReviewDiscussionPanel missionId={mission.id} />
+
           {/* Checklist */}
           <Checklist review={review} />
 
