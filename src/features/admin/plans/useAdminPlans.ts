@@ -113,6 +113,9 @@ export function useAdminPlans(): Result {
       const res = data as { success?: boolean; error?: string; plan_id?: string } | null
       if (res?.error) return { ok: false, error: res.error }
       if (!res?.success) return { ok: false, error: 'Réponse inattendue' }
+      // Toute action sur un plan peut affecter la résolution plan-based
+      // côté useFeatureFlag. On purge les entrées ff:* pour éviter du stale.
+      purgeFeatureFlagCache()
       refetch()
       return { ok: true, planId: res.plan_id }
     } catch (err) {
@@ -133,4 +136,17 @@ export function useAdminPlans(): Result {
     callAdminPlans({ action: 'set_features', reason, plan_id: planId, flag_ids: flagIds }), [callAdminPlans])
 
   return { plans, featuresByPlan, loading, error, refetch, createPlan, updatePlan, deletePlan, setPlanFeatures }
+}
+
+function purgeFeatureFlagCache(): void {
+  try {
+    const keys: string[] = []
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+      const k = sessionStorage.key(i)
+      if (k && k.startsWith('ff:')) keys.push(k)
+    }
+    keys.forEach((k) => sessionStorage.removeItem(k))
+  } catch {
+    // sessionStorage indisponible — ignorer
+  }
 }
