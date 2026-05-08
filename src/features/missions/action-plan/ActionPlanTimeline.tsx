@@ -1,5 +1,5 @@
 import { isOverdue } from './ActionPlanKPIs'
-import type { ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
+import { getEffectiveClassification, type ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 
 interface ActionPlanTimelineProps {
   cars: ActionPlanCAR[]
@@ -56,7 +56,8 @@ export function ActionPlanTimeline({ cars, onSelect }: ActionPlanTimelineProps):
           <div className="space-y-2">
             {items.map(({ car, due }) => {
               const overdue = isOverdue(car)
-              const colorClass = CLASS_COLORS[car.finding_classification] ?? 'border-gray-200 bg-gray-50'
+              const classKey = getEffectiveClassification(car) ?? car.finding_classification
+              const colorClass = CLASS_COLORS[classKey] ?? 'border-gray-200 bg-gray-50'
               return (
                 <button
                   key={car.id}

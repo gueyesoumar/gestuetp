@@ -1,7 +1,23 @@
-import type { CorrectiveActionRequest } from '../../types/database.types'
+import type { AssessmentFinding, CorrectiveActionRequest, FindingClassification } from '../../types/database.types'
 
 export interface ActionPlanCAR extends CorrectiveActionRequest {
   domain_name?: string | null
+  /** Finding source de verite (resolu via finding_id). null pour les CARs legacy. */
+  finding?: AssessmentFinding | null
+}
+
+/**
+ * Classification effective d'une CAR : finding (source de verite) sinon denorm legacy.
+ * Le denorm sur corrective_action_requests.finding_classification reste utilise comme
+ * fallback pour les CARs creees avant le backfill 00100 ou si la jointure echoue.
+ */
+export function getEffectiveClassification(car: ActionPlanCAR): FindingClassification | null {
+  if (car.finding) return car.finding.classification
+  const legacy = car.finding_classification
+  if (legacy === 'major_nc' || legacy === 'minor_nc' || legacy === 'observation' || legacy === 'strength') {
+    return legacy
+  }
+  return null
 }
 
 export interface ActionPlanXLSXData {
@@ -109,11 +125,12 @@ export async function generateActionPlanXLSX(data: ActionPlanXLSXData): Promise<
     const ctrl = car.control_code && car.control_name
       ? `${car.control_code} — ${car.control_name}`
       : (car.control_code ?? car.control_name ?? '')
+    const classKey = getEffectiveClassification(car) ?? car.finding_classification
     const row = ws.addRow([
       car.code,
       car.domain_name ?? '',
       ctrl,
-      CLASS_LABEL[car.finding_classification] ?? car.finding_classification,
+      CLASS_LABEL[classKey] ?? classKey,
       car.description ?? '',
       car.client_root_cause ?? '',
       car.client_action ?? '',
@@ -142,13 +159,13 @@ export async function generateActionPlanXLSX(data: ActionPlanXLSXData): Promise<
 
     // Couleur du badge "Type" selon classification
     const typeCell = row.getCell(4)
-    if (car.finding_classification === 'major_nc') {
+    if (classKey === 'major_nc') {
       typeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }
       typeCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFB91C1C' } }
-    } else if (car.finding_classification === 'minor_nc') {
+    } else if (classKey === 'minor_nc') {
       typeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFEDD5' } }
       typeCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFC2410C' } }
-    } else if (car.finding_classification === 'observation') {
+    } else if (classKey === 'observation') {
       typeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } }
       typeCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1D4ED8' } }
     }

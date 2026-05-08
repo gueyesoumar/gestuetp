@@ -1,5 +1,5 @@
 import { isOverdue } from './ActionPlanKPIs'
-import type { ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
+import { getEffectiveClassification, type ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 
 interface ActionPlanListProps {
   cars: ActionPlanCAR[]
@@ -50,7 +50,8 @@ export function ActionPlanList({ cars, onSelect }: ActionPlanListProps): JSX.Ele
         </thead>
         <tbody className="divide-y divide-gray-100">
           {cars.map((car) => {
-            const cls = CLASS_BADGES[car.finding_classification] ?? { label: car.finding_classification, color: 'text-gray-500 bg-gray-50' }
+            const classKey = getEffectiveClassification(car) ?? car.finding_classification
+            const cls = CLASS_BADGES[classKey] ?? { label: classKey, color: 'text-gray-500 bg-gray-50' }
             const st = STATUS_BADGES[car.status] ?? STATUS_BADGES.open
             const overdue = isOverdue(car)
             const due = car.client_target_date ?? car.deadline

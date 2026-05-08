@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
 import { generateActionPlanXLSX, type ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 import type { MissionDetail } from '../useMissionDetail'
+import type { AssessmentFinding } from '../../../types/database.types'
 
 interface FindingCounts {
   major_nc: number
@@ -120,10 +121,27 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
       for (const a of aRows ?? []) ctrlByAssess.set(a.id, a.control_id)
     }
 
+    // 5b. Resoudre les findings via finding_id (source de verite pour la classification)
+    const findingIds = (carRows ?? [])
+      .map((c) => c.finding_id)
+      .filter((id): id is string => !!id)
+    const findingById = new Map<string, AssessmentFinding>()
+    if (findingIds.length > 0) {
+      const { data: fRows } = await supabase
+        .from('assessment_findings')
+        .select('*')
+        .in('id', findingIds)
+      if (signal?.aborted) return
+      for (const f of (fRows ?? []) as AssessmentFinding[]) {
+        findingById.set(f.id, f)
+      }
+    }
+
     const enriched: ActionPlanCAR[] = (carRows ?? []).map((c) => {
       const ctrlId = ctrlByAssess.get(c.assessment_id)
       const domain = ctrlId ? map.get(ctrlId) : null
-      return { ...(c as ActionPlanCAR), domain_name: domain ?? null }
+      const finding = c.finding_id ? findingById.get(c.finding_id) ?? null : null
+      return { ...(c as ActionPlanCAR), domain_name: domain ?? null, finding }
     })
     setCars(enriched)
 

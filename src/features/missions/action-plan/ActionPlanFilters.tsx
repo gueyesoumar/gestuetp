@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import type { ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
+import { getEffectiveClassification, type ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 
 export interface ActionPlanFilterState {
   status: 'all' | 'open' | 'client_responded' | 'verified' | 'closed' | 'overdue'
@@ -62,7 +62,7 @@ export function ActionPlanFilters({ state, onChange }: ActionPlanFiltersProps): 
 export function applyFilters(cars: ActionPlanCAR[], state: ActionPlanFilterState): ActionPlanCAR[] {
   const q = state.search.trim().toLowerCase()
   return cars.filter((c) => {
-    if (state.classification !== 'all' && c.finding_classification !== state.classification) return false
+    if (state.classification !== 'all' && getEffectiveClassification(c) !== state.classification) return false
     if (state.status === 'overdue') {
       if (c.status === 'verified' || c.status === 'closed') return false
       const due = c.client_target_date ?? c.deadline

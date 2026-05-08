@@ -3,6 +3,7 @@ import { supabase } from '../../../../lib/supabase'
 import { useToast } from '../../../../hooks/useToast'
 import { generateActionPlanXLSX, type ActionPlanCAR } from '../../../reports/generateActionPlanXLSX'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
+import type { AssessmentFinding } from '../../../../types/database.types'
 
 interface ClientContact {
   id: string
@@ -97,10 +98,27 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
       if (signal?.aborted) return
       for (const a of aRows ?? []) ctrlByAssess.set(a.id, a.control_id)
     }
+    // 4b. Resoudre les findings via finding_id (source de verite pour la classification)
+    const findingIds = (carRows ?? [])
+      .map((c) => c.finding_id)
+      .filter((id): id is string => !!id)
+    const findingById = new Map<string, AssessmentFinding>()
+    if (findingIds.length > 0) {
+      const { data: fRows } = await supabase
+        .from('assessment_findings')
+        .select('*')
+        .in('id', findingIds)
+      if (signal?.aborted) return
+      for (const f of (fRows ?? []) as AssessmentFinding[]) {
+        findingById.set(f.id, f)
+      }
+    }
+
     const enriched: ActionPlanCAR[] = (carRows ?? []).map((c) => {
       const ctrlId = ctrlByAssess.get(c.assessment_id)
       const domain = ctrlId ? domainByControl.get(ctrlId) : null
-      return { ...(c as ActionPlanCAR), domain_name: domain ?? null }
+      const finding = c.finding_id ? findingById.get(c.finding_id) ?? null : null
+      return { ...(c as ActionPlanCAR), domain_name: domain ?? null, finding }
     })
     setCars(enriched)
 
