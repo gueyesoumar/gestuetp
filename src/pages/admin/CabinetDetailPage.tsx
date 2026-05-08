@@ -13,9 +13,10 @@ import { CabinetMissionsTab } from '../../features/admin/CabinetMissionsTab'
 import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
+import { CabinetHealthTab } from '../../features/admin/health/CabinetHealthTab'
 import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
 
-type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
+type TabKey = 'overview' | 'health' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -100,6 +101,7 @@ export function CabinetDetailPage() {
 
       <div className="flex gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
         <TabBtn k="overview" label="Vue d'ensemble" active={activeTab === 'overview'} onClick={setActiveTab} />
+        <TabBtn k="health" label="Santé" active={activeTab === 'health'} onClick={setActiveTab} />
         <TabBtn k="members" label={`Membres · ${cabinet.members.length}`} active={activeTab === 'members'} onClick={setActiveTab} />
         <TabBtn k="missions" label={`Missions · ${cabinet.missions.length}`} active={activeTab === 'missions'} onClick={setActiveTab} />
         <TabBtn k="billing" label="Facturation" active={activeTab === 'billing'} onClick={setActiveTab} />
@@ -158,6 +160,7 @@ export function CabinetDetailPage() {
         </div>
       )}
 
+      {activeTab === 'health' && <CabinetHealthTab cabinetId={cabinet.id} />}
       {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}
       {activeTab === 'missions' && <CabinetMissionsTab cabinetId={cabinet.id} />}
       {activeTab === 'billing' && <CabinetBillingTab cabinet={cabinet} />}
