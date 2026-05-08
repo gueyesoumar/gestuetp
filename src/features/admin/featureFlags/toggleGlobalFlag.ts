@@ -1,4 +1,4 @@
-import { supabase } from '../../../lib/supabase'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 
 /**
  * Toggle global d'une fonctionnalité (kill switch plateforme).
@@ -14,15 +14,10 @@ export async function toggleGlobalFlag(
 ): Promise<{ ok: boolean; error?: string }> {
   if (!reason.trim()) return { ok: false, error: 'Motif requis' }
 
-  const { data, error: fnError } = await supabase.functions.invoke('admin-feature-flags', {
-    body: { action: 'toggle', slug, enabled, reason },
+  const res = await invokeEdgeFunction<{ success?: boolean }>('admin-feature-flags', {
+    action: 'toggle', slug, enabled, reason,
   })
-  if (fnError) {
-    console.error('toggleGlobalFlag:', fnError.message)
-    return { ok: false, error: fnError.message }
-  }
-  const res = data as { error?: string } | null
-  if (res?.error) return { ok: false, error: res.error }
+  if (!res.ok) return { ok: false, error: res.error }
 
   try {
     const keys: string[] = []

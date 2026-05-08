@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 
 export type PlanTier = 'free' | 'standard' | 'enterprise' | 'custom'
 
@@ -107,20 +108,14 @@ export function useAdminPlans(): Result {
   const refetch = useCallback(() => setTick((t) => t + 1), [])
 
   const callAdminPlans = useCallback(async (body: Record<string, unknown>): Promise<{ ok: boolean; error?: string; planId?: string }> => {
-    try {
-      const { data, error: fnErr } = await supabase.functions.invoke('admin-plans', { body })
-      if (fnErr) return { ok: false, error: fnErr.message }
-      const res = data as { success?: boolean; error?: string; plan_id?: string } | null
-      if (res?.error) return { ok: false, error: res.error }
-      if (!res?.success) return { ok: false, error: 'Réponse inattendue' }
-      // Toute action sur un plan peut affecter la résolution plan-based
-      // côté useFeatureFlag. On purge les entrées ff:* pour éviter du stale.
-      purgeFeatureFlagCache()
-      refetch()
-      return { ok: true, planId: res.plan_id }
-    } catch (err) {
-      return { ok: false, error: err instanceof Error ? err.message : 'Erreur inconnue' }
-    }
+    const res = await invokeEdgeFunction<{ success?: boolean; plan_id?: string }>('admin-plans', body)
+    if (!res.ok) return { ok: false, error: res.error }
+    if (!res.data?.success) return { ok: false, error: 'Réponse inattendue' }
+    // Toute action sur un plan peut affecter la résolution plan-based
+    // côté useFeatureFlag. On purge les entrées ff:* pour éviter du stale.
+    purgeFeatureFlagCache()
+    refetch()
+    return { ok: true, planId: res.data.plan_id }
   }, [refetch])
 
   const createPlan = useCallback((input: PlanInput, reason: string) =>
