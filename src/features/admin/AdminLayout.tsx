@@ -14,7 +14,7 @@ const NAV: NavItem[] = [
   { to: '/admin/utilisateurs', label: 'Utilisateurs', icon: <Users size={16} strokeWidth={1.5} /> },
   { to: '/admin/frameworks', label: 'Référentiels', icon: <BookMarked size={16} strokeWidth={1.5} /> },
   { to: '/admin/plans', label: 'Plans', icon: <Tag size={16} strokeWidth={1.5} /> },
-  { to: '/admin/feature-flags', label: 'Feature flags', icon: <Flag size={16} strokeWidth={1.5} /> },
+  { to: '/admin/feature-flags', label: 'Fonctionnalités', icon: <Flag size={16} strokeWidth={1.5} /> },
   { to: '/admin/monitoring', label: 'Santé / Monitoring', icon: <Activity size={16} strokeWidth={1.5} /> },
   { to: '/admin/audit-log', label: 'Audit log', icon: <ClipboardList size={16} strokeWidth={1.5} /> },
 ]
