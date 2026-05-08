@@ -58,7 +58,7 @@ export function FlagCard({ flag, onAction }: FlagCardProps): JSX.Element {
         </div>
       )}
 
-      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+      <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
         <span className="text-[10.5px] text-gray-400">
           {flag.in_plan ? 'Inclus dans le plan' : 'Hors plan'}
           {!flag.is_globally_enabled && ' · kill switch global OFF'}
