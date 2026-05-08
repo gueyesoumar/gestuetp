@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, LayoutGrid, Table2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAdminPlans, type AdminPlan, type PlanInput } from '../../features/admin/plans/useAdminPlans'
 import { PlanCard } from '../../features/admin/plans/PlanCard'
 import { PlanFormModal } from '../../features/admin/plans/PlanFormModal'
 import { PlanDeleteModal } from '../../features/admin/plans/PlanDeleteModal'
+import { PlansMatrixView } from '../../features/admin/plans/PlansMatrixView'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
 
+type ViewMode = 'cards' | 'matrix'
+
 export function AdminPlansPage(): JSX.Element {
-  const { plans, loading, error, createPlan, updatePlan, deletePlan } = useAdminPlans()
+  const { plans, featuresByPlan, loading, error, createPlan, updatePlan, deletePlan, setPlanFeatures } = useAdminPlans()
   const [totalFeatures, setTotalFeatures] = useState(0)
   const [editing, setEditing] = useState<AdminPlan | null>(null)
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<AdminPlan | null>(null)
+  const [view, setView] = useState<ViewMode>('cards')
   const toast = useToast()
 
   useEffect(() => {
@@ -100,11 +104,16 @@ export function AdminPlansPage(): JSX.Element {
         <KpiCard label="MRR estimé" value={`${stats.mrr.toLocaleString('fr-FR')} €`} accent="border-gray-200" textClass="text-emerald-700" mono hint="paiement non intégré" />
       </div>
 
+      <div className="flex gap-1 mb-4">
+        <ViewBtn active={view === 'cards'} onClick={() => setView('cards')} icon={<LayoutGrid size={13} />}>Plans (cartes)</ViewBtn>
+        <ViewBtn active={view === 'matrix'} onClick={() => setView('matrix')} icon={<Table2 size={13} />}>Matrice fonctionnalités</ViewBtn>
+      </div>
+
       {plans.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl px-6 py-12 text-center text-[12.5px] text-gray-300">
           Aucun plan créé.
         </div>
-      ) : (
+      ) : view === 'cards' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {plans.map((plan) => (
             <PlanCard
@@ -117,14 +126,22 @@ export function AdminPlansPage(): JSX.Element {
             />
           ))}
         </div>
+      ) : (
+        <PlansMatrixView plans={plans} featuresByPlan={featuresByPlan} onSetFeatures={setPlanFeatures} />
       )}
 
       {(creating || (editing && !creating)) && (
         <PlanFormModal
           plan={creating ? null : editing}
+          initialFeatureIds={
+            creating
+              ? new Set()
+              : (editing && featuresByPlan.get(editing.id)) ?? new Set()
+          }
           cabinetsImpact={editing && !creating ? editing.cabinets_count : undefined}
           onClose={() => { setEditing(null); setCreating(false) }}
           onSubmit={creating ? handleCreate : handleUpdate}
+          onSetFeatures={setPlanFeatures}
         />
       )}
 
@@ -147,6 +164,21 @@ interface KpiCardProps {
   hint?: string
   mono?: boolean
   small?: boolean
+}
+
+function ViewBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: JSX.Element; children: React.ReactNode }): JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border inline-flex items-center gap-1.5 transition-colors ${
+        active ? 'bg-forest-700 text-white border-forest-700' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+      }`}
+    >
+      {icon}
+      {children}
+    </button>
+  )
 }
 
 function KpiCard({ label, value, accent, textClass, hint, mono, small }: KpiCardProps): JSX.Element {

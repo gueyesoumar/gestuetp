@@ -30,10 +30,11 @@ export interface PlanInput {
 
 interface Result {
   plans: AdminPlan[]
+  featuresByPlan: Map<string, Set<string>>
   loading: boolean
   error: string | null
   refetch: () => void
-  createPlan: (input: PlanInput, reason: string) => Promise<{ ok: boolean; error?: string }>
+  createPlan: (input: PlanInput, reason: string) => Promise<{ ok: boolean; error?: string; planId?: string }>
   updatePlan: (planId: string, input: Partial<PlanInput>, reason: string) => Promise<{ ok: boolean; error?: string }>
   deletePlan: (planId: string, reason: string) => Promise<{ ok: boolean; error?: string }>
   setPlanFeatures: (planId: string, flagIds: string[], reason: string) => Promise<{ ok: boolean; error?: string }>
@@ -41,6 +42,7 @@ interface Result {
 
 export function useAdminPlans(): Result {
   const [plans, setPlans] = useState<AdminPlan[]>([])
+  const [featuresByPlan, setFeaturesByPlan] = useState<Map<string, Set<string>>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
@@ -65,7 +67,7 @@ export function useAdminPlans(): Result {
             .abortSignal(abort.signal),
           supabase
             .from('plan_features')
-            .select('plan_id')
+            .select('plan_id, flag_id')
             .abortSignal(abort.signal),
         ])
         if (abort.signal.aborted) return
@@ -76,18 +78,20 @@ export function useAdminPlans(): Result {
           cabinetsByPlan.set(o.plan_id, (cabinetsByPlan.get(o.plan_id) ?? 0) + 1)
         }
 
-        const featuresByPlan = new Map<string, number>()
-        for (const pf of (pfRows ?? []) as Array<{ plan_id: string }>) {
-          featuresByPlan.set(pf.plan_id, (featuresByPlan.get(pf.plan_id) ?? 0) + 1)
+        const flagsByPlan = new Map<string, Set<string>>()
+        for (const pf of (pfRows ?? []) as Array<{ plan_id: string; flag_id: string }>) {
+          if (!flagsByPlan.has(pf.plan_id)) flagsByPlan.set(pf.plan_id, new Set())
+          flagsByPlan.get(pf.plan_id)!.add(pf.flag_id)
         }
 
         const enriched: AdminPlan[] = ((plansData ?? []) as AdminPlan[]).map((p) => ({
           ...p,
           cabinets_count: cabinetsByPlan.get(p.id) ?? 0,
-          features_count: featuresByPlan.get(p.id) ?? 0,
+          features_count: flagsByPlan.get(p.id)?.size ?? 0,
         }))
 
         setPlans(enriched)
+        setFeaturesByPlan(flagsByPlan)
         setLoading(false)
       } catch (err) {
         if (abort.signal.aborted) return
@@ -102,15 +106,15 @@ export function useAdminPlans(): Result {
 
   const refetch = useCallback(() => setTick((t) => t + 1), [])
 
-  const callAdminPlans = useCallback(async (body: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> => {
+  const callAdminPlans = useCallback(async (body: Record<string, unknown>): Promise<{ ok: boolean; error?: string; planId?: string }> => {
     try {
       const { data, error: fnErr } = await supabase.functions.invoke('admin-plans', { body })
       if (fnErr) return { ok: false, error: fnErr.message }
-      const res = data as { success?: boolean; error?: string } | null
+      const res = data as { success?: boolean; error?: string; plan_id?: string } | null
       if (res?.error) return { ok: false, error: res.error }
       if (!res?.success) return { ok: false, error: 'Réponse inattendue' }
       refetch()
-      return { ok: true }
+      return { ok: true, planId: res.plan_id }
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : 'Erreur inconnue' }
     }
@@ -128,5 +132,5 @@ export function useAdminPlans(): Result {
   const setPlanFeatures = useCallback((planId: string, flagIds: string[], reason: string) =>
     callAdminPlans({ action: 'set_features', reason, plan_id: planId, flag_ids: flagIds }), [callAdminPlans])
 
-  return { plans, loading, error, refetch, createPlan, updatePlan, deletePlan, setPlanFeatures }
+  return { plans, featuresByPlan, loading, error, refetch, createPlan, updatePlan, deletePlan, setPlanFeatures }
 }

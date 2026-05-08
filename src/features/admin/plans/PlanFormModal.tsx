@@ -1,33 +1,40 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import type { AdminPlan, PlanInput, PlanTier } from './useAdminPlans'
+import { PlanFeaturesPicker } from './PlanFeaturesPicker'
+import { PlanGeneralTab } from './PlanGeneralTab'
+import { PlanLimitsTab } from './PlanLimitsTab'
 
 interface PlanFormModalProps {
   plan: AdminPlan | null
-  onClose: () => void
-  onSubmit: (input: PlanInput, reason: string) => Promise<{ ok: boolean; error?: string }>
+  initialFeatureIds: Set<string>
   cabinetsImpact?: number
+  onClose: () => void
+  onSubmit: (input: PlanInput, reason: string) => Promise<{ ok: boolean; error?: string; planId?: string }>
+  onSetFeatures: (planId: string, flagIds: string[], reason: string) => Promise<{ ok: boolean; error?: string }>
 }
 
-const TIERS: Array<{ value: PlanTier; label: string }> = [
-  { value: 'free', label: 'Free — gratuit, démo / découverte' },
-  { value: 'standard', label: 'Standard — payant, usage régulier' },
-  { value: 'enterprise', label: 'Enterprise — grands comptes' },
-  { value: 'custom', label: 'Custom — sur devis / accord spécifique' },
-]
+type TabKey = 'general' | 'features' | 'limits'
 
-export function PlanFormModal({ plan, onClose, onSubmit, cabinetsImpact }: PlanFormModalProps): JSX.Element {
+export function PlanFormModal(props: PlanFormModalProps): JSX.Element {
+  const { plan, initialFeatureIds, cabinetsImpact, onClose, onSubmit, onSetFeatures } = props
   const isEdit = plan !== null
+
+  const [tab, setTab] = useState<TabKey>('general')
   const [name, setName] = useState(plan?.name ?? '')
   const [description, setDescription] = useState(plan?.description ?? '')
-  const [price, setPrice] = useState(String(plan?.monthly_price_eur ?? 0))
   const [tier, setTier] = useState<PlanTier>(plan?.tier ?? 'standard')
+  const [price, setPrice] = useState(String(plan?.monthly_price_eur ?? 0))
   const [maxUsers, setMaxUsers] = useState(plan?.max_users != null ? String(plan.max_users) : '')
   const [maxMissions, setMaxMissions] = useState(plan?.max_missions != null ? String(plan.max_missions) : '')
   const [isDefault, setIsDefault] = useState(plan?.is_default ?? false)
+  const [featureIds, setFeatureIds] = useState<Set<string>>(initialFeatureIds)
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  const featuresChanged = !setsEqual(featureIds, initialFeatureIds)
+  const featuresCount = featureIds.size
 
   const handleSubmit = async (): Promise<void> => {
     if (!name.trim() || !reason.trim()) return
@@ -38,6 +45,7 @@ export function PlanFormModal({ plan, onClose, onSubmit, cabinetsImpact }: PlanF
     }
     setSubmitting(true)
     setErrorMsg(null)
+
     const input: PlanInput = {
       name: name.trim(),
       description: description.trim() || null,
@@ -47,11 +55,29 @@ export function PlanFormModal({ plan, onClose, onSubmit, cabinetsImpact }: PlanF
       max_missions: maxMissions === '' ? null : Number(maxMissions),
       is_default: isDefault,
     }
+
     const res = await onSubmit(input, reason)
+    if (!res.ok) {
+      setSubmitting(false)
+      setErrorMsg(res.error ?? 'Action impossible')
+      return
+    }
+
+    const targetPlanId = isEdit ? plan.id : res.planId
+    if (targetPlanId && (featuresChanged || (!isEdit && featureIds.size > 0))) {
+      const setRes = await onSetFeatures(targetPlanId, [...featureIds], reason)
+      if (!setRes.ok) {
+        setSubmitting(false)
+        setErrorMsg(`Plan enregistré mais features partiellement appliquées: ${setRes.error ?? 'erreur'}`)
+        return
+      }
+    }
+
     setSubmitting(false)
-    if (res.ok) onClose()
-    else setErrorMsg(res.error ?? 'Action impossible')
+    onClose()
   }
+
+  const submitDisabled = submitting || !name.trim() || !reason.trim()
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -67,157 +93,90 @@ export function PlanFormModal({ plan, onClose, onSubmit, cabinetsImpact }: PlanF
                 : 'Le slug technique est auto-généré à partir du nom et non modifiable après création.'}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1">
-            <X size={18} />
-          </button>
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1"><X size={18} /></button>
         </div>
 
-        <div className="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Nom du plan *">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Pro"
-                className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
-                disabled={submitting}
-              />
-            </Field>
+        <div className="flex border-b border-gray-200 px-6 gap-1">
+          <TabButton active={tab === 'general'} onClick={() => setTab('general')}>Général</TabButton>
+          <TabButton active={tab === 'features'} onClick={() => setTab('features')}>
+            Fonctionnalités <span className="ml-1 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">{featuresCount}</span>
+          </TabButton>
+          <TabButton active={tab === 'limits'} onClick={() => setTab('limits')}>Limites</TabButton>
+        </div>
 
-            {isEdit && (
-              <Field label="Slug (immutable)">
-                <input
-                  type="text"
-                  value={plan.slug}
-                  disabled
-                  className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg font-mono bg-gray-50 text-gray-500"
-                />
-              </Field>
-            )}
-          </div>
-
-          <Field label="Description">
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              placeholder="Décrit le plan et son public cible…"
-              className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
+        <div className="max-h-[55vh] overflow-y-auto">
+          {tab === 'general' && (
+            <PlanGeneralTab
+              isEdit={isEdit}
+              slug={plan?.slug ?? ''}
+              name={name} setName={setName}
+              description={description} setDescription={setDescription}
+              tier={tier} setTier={setTier}
+              price={price} setPrice={setPrice}
+              isDefault={isDefault} setIsDefault={setIsDefault}
+              cabinetsImpact={isEdit ? cabinetsImpact : undefined}
               disabled={submitting}
             />
-          </Field>
-
-          <Field label="Tier *">
-            <select
-              value={tier}
-              onChange={(e) => setTier(e.target.value as PlanTier)}
-              className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
-              disabled={submitting}
-            >
-              {TIERS.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
-            </select>
-          </Field>
-
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Prix mensuel (€) *">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
-                disabled={submitting}
-              />
-            </Field>
-            <Field label="Max utilisateurs (vide = ∞)">
-              <input
-                type="number"
-                min="1"
-                value={maxUsers}
-                onChange={(e) => setMaxUsers(e.target.value)}
-                placeholder="∞"
-                className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
-                disabled={submitting}
-              />
-            </Field>
-            <Field label="Max missions (vide = ∞)">
-              <input
-                type="number"
-                min="1"
-                value={maxMissions}
-                onChange={(e) => setMaxMissions(e.target.value)}
-                placeholder="∞"
-                className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
-                disabled={submitting}
-              />
-            </Field>
-          </div>
-
-          <label className="flex items-center gap-2 text-[12.5px] text-gray-700 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isDefault}
-              onChange={(e) => setIsDefault(e.target.checked)}
-              className="w-4 h-4 accent-forest-700"
-              disabled={submitting}
-            />
-            <span>Plan par défaut pour les nouveaux cabinets (un seul plan peut être défaut)</span>
-          </label>
-
-          {isEdit && cabinetsImpact !== undefined && cabinetsImpact > 0 && (
-            <div className="bg-gold-50 border border-gold-300 rounded-lg p-3">
-              <p className="text-[11.5px] text-gold-900">
-                <b>Impact :</b> {cabinetsImpact} cabinet{cabinetsImpact > 1 ? 's' : ''} sur ce plan verront les modifications immédiatement.
-              </p>
-            </div>
           )}
+          {tab === 'features' && (
+            <PlanFeaturesPicker selected={featureIds} onChange={setFeatureIds} disabled={submitting} />
+          )}
+          {tab === 'limits' && (
+            <PlanLimitsTab
+              maxUsers={maxUsers} setMaxUsers={setMaxUsers}
+              maxMissions={maxMissions} setMaxMissions={setMaxMissions}
+              disabled={submitting}
+            />
+          )}
+        </div>
 
-          <Field label="Motif (obligatoire) *">
+        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 space-y-2.5">
+          <div>
+            <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1">
+              Motif <span className="text-red-500">*</span>
+            </label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={2}
               placeholder="Pourquoi cette modification ? (tracé dans l'audit log)"
-              className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
+              className="w-full px-3 py-2 text-[12.5px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
               disabled={submitting}
             />
-          </Field>
-
+          </div>
           {errorMsg && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 text-[12px] text-red-700">{errorMsg}</div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-2 text-[11.5px] text-red-700">{errorMsg}</div>
           )}
-        </div>
-
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting || !name.trim() || !reason.trim()}
-            className="px-3.5 py-2 text-[12.5px] font-semibold bg-forest-700 hover:bg-forest-900 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'En cours…' : isEdit ? 'Enregistrer' : 'Créer le plan'}
-          </button>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} disabled={submitting}
+              className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">
+              Annuler
+            </button>
+            <button type="button" onClick={handleSubmit} disabled={submitDisabled}
+              className="px-3.5 py-2 text-[12.5px] font-semibold bg-forest-700 hover:bg-forest-900 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+              {submitting ? 'En cours…' : isEdit ? 'Enregistrer' : 'Créer le plan'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }): JSX.Element {
   return (
-    <div>
-      <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">{label}</label>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-2.5 text-[12px] border-b-2 -mb-px transition-colors ${active ? 'border-gold-500 text-forest-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'}`}
+    >
       {children}
-    </div>
+    </button>
   )
+}
+
+function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
+  if (a.size !== b.size) return false
+  for (const v of a) if (!b.has(v)) return false
+  return true
 }
