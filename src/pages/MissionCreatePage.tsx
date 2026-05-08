@@ -81,7 +81,7 @@ export function MissionCreatePage() {
   }
 
   const handleSubmit = async () => {
-    const ok = await createMission({
+    const res = await createMission({
       name: missionName,
       description: '',
       cabinet_client_id: clientId,
@@ -93,14 +93,14 @@ export function MissionCreatePage() {
       member_ids: allMemberIds,
       kind,
     })
-    if (ok) {
+    if (res.ok) {
       toast.success('Mission créée', {
         description: missionName,
         action: { label: 'Voir', onClick: () => navigate('/missions') },
       })
       navigate('/missions')
     } else {
-      toast.error('Création impossible')
+      toast.error('Création impossible', { description: res.error })
     }
   }
 
