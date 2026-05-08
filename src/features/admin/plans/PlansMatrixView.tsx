@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Info, Power } from 'lucide-react'
+import { Info, Power, RotateCcw, AlertCircle } from 'lucide-react'
 import type { AdminPlan } from './useAdminPlans'
 import { useFeatureCatalog, type FeatureCatalogItem, type FeatureCategory } from './useFeatureCatalog'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -44,7 +44,7 @@ export function PlansMatrixView({ plans, featuresByPlan, onSetFeatures }: PlansM
     if (!pendingKill) return { ok: false, error: 'Aucune action en attente' }
     const res = await toggleGlobalFlag(pendingKill.item.slug, pendingKill.nextEnabled, motif)
     if (res.ok) {
-      toast.success(pendingKill.nextEnabled ? 'Activée globalement' : 'Désactivée globalement', { description: pendingKill.item.name })
+      toast.success(pendingKill.nextEnabled ? 'Réactivée globalement' : 'Coupée globalement', { description: pendingKill.item.name })
       refetchCatalog()
     }
     return res
@@ -55,19 +55,10 @@ export function PlansMatrixView({ plans, featuresByPlan, onSetFeatures }: PlansM
       <ReasonBar reason={reason} setReason={setReason} />
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto">
-        <table className="w-full min-w-[720px]">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="text-left text-[11px] uppercase tracking-wider font-bold text-gray-500 px-5 py-3 sticky left-0 bg-gray-50">
-                Fonctionnalité
-              </th>
-              <th className="text-center text-[11px] uppercase tracking-wider font-bold text-red-700 px-3 py-3 w-24 bg-red-50/40 border-r-2 border-red-100">
-                <div className="flex flex-col items-center gap-0.5">
-                  <Power size={13} className="mb-0.5" />
-                  <span>Global</span>
-                  <span className="text-[9.5px] font-normal normal-case text-red-600 tracking-normal">kill switch</span>
-                </div>
-              </th>
+              <th className="text-left text-[11px] uppercase tracking-wider font-bold text-gray-500 px-5 py-3">Fonctionnalité</th>
               {plans.map((p) => <PlanHeaderCell key={p.id} plan={p} saving={savingPlans.has(p.id)} />)}
             </tr>
           </thead>
@@ -90,11 +81,6 @@ export function PlansMatrixView({ plans, featuresByPlan, onSetFeatures }: PlansM
           <tfoot className="bg-gray-50 border-t border-gray-200">
             <tr>
               <td className="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Total inclus</td>
-              <td className="text-center bg-red-50/40 border-r-2 border-red-100">
-                <span className="text-[12px] font-bold font-mono text-gray-900">
-                  {groups.flatMap((g) => g.items).filter((i) => i.is_globally_enabled).length}
-                </span>
-              </td>
               {plans.map((p) => (
                 <td key={p.id} className="text-center">
                   <span className="text-[12px] font-bold font-mono text-gray-900">{featuresByPlan.get(p.id)?.size ?? 0}</span>
@@ -136,7 +122,7 @@ function ReasonBar({ reason, setReason }: { reason: string; setReason: (v: strin
           className="w-full px-3 py-1.5 text-[12.5px] border border-gold-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
         />
         <p className="text-[10.5px] text-gold-700 mt-1">
-          Tracé dans l&apos;audit log pour les modifications de cellules plan. Le kill switch global utilise un motif dédié par action.
+          Tracé pour les modifications de cellules plan. Le kill switch global utilise un motif dédié par action.
         </p>
       </div>
     </div>
@@ -173,35 +159,114 @@ function CategorySection({ label, items, plans, featuresByPlan, onPlanToggle, on
   return (
     <>
       <tr className="bg-gray-50">
-        <td colSpan={plans.length + 2} className="px-5 py-2 text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">
+        <td colSpan={plans.length + 1} className="px-5 py-2 text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">
           {label}
         </td>
       </tr>
       {items.map((item) => (
-        <tr key={item.id} className={`hover:bg-gray-50/50 ${!item.is_globally_enabled ? 'opacity-60' : ''}`}>
-          <td className="px-5 py-3 sticky left-0 bg-white">
-            <div className="text-[12.5px] font-semibold text-gray-900 flex items-center gap-1.5">
-              {item.name}
-              {item.maturity === 'beta' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-gold-100 text-gold-700">Beta</span>}
-              {item.maturity === 'new' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">Nouveau</span>}
-            </div>
-            <div className="text-[10.5px] text-gray-400 font-mono">{item.slug}</div>
-          </td>
-          <td className="text-center bg-red-50/40 border-r-2 border-red-100">
-            <KillSwitchCell on={item.is_globally_enabled} onClick={() => onKillToggle(item)} />
-          </td>
-          {plans.map((plan) => {
-            const isOn = featuresByPlan.get(plan.id)?.has(item.id) ?? false
-            const cellDisabled = disabled || savingPlans.has(plan.id) || !item.is_globally_enabled
-            return (
-              <td key={plan.id} className={`text-center ${plan.is_default ? 'bg-gold-50/30' : ''}`}>
-                <Cell on={isOn} disabled={cellDisabled} maturity={item.maturity} onClick={() => onPlanToggle(plan.id, item.id)} />
-              </td>
-            )
-          })}
-        </tr>
+        <FeatureRow
+          key={item.id}
+          item={item}
+          plans={plans}
+          featuresByPlan={featuresByPlan}
+          onPlanToggle={onPlanToggle}
+          onKillToggle={onKillToggle}
+          disabled={disabled}
+          savingPlans={savingPlans}
+        />
       ))}
     </>
+  )
+}
+
+interface FeatureRowProps {
+  item: FeatureCatalogItem
+  plans: AdminPlan[]
+  featuresByPlan: Map<string, Set<string>>
+  onPlanToggle: (planId: string, flagId: string) => void
+  onKillToggle: (item: FeatureCatalogItem) => void
+  disabled: boolean
+  savingPlans: Set<string>
+}
+
+function FeatureRow({ item, plans, featuresByPlan, onPlanToggle, onKillToggle, disabled, savingPlans }: FeatureRowProps): JSX.Element {
+  if (!item.is_globally_enabled) {
+    return (
+      <>
+        <tr className="bg-red-50">
+          <td colSpan={plans.length + 1} className="px-5 py-1.5 text-[10.5px] font-bold text-red-700 uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1.5">
+              <AlertCircle size={12} />
+              Kill switch actif — coupée pour tous les cabinets
+            </span>
+          </td>
+        </tr>
+        <tr className="bg-red-50/40 hover:bg-red-50/60 border-b border-red-100">
+          <td className="px-5 py-3">
+            <div className="flex-1">
+              <div className="text-[12.5px] font-semibold text-red-900 line-through opacity-80 inline-flex items-center gap-1.5">
+                {item.name}
+                {item.maturity === 'beta' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700 no-underline">Beta</span>}
+                {item.maturity === 'new' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-emerald-100 text-emerald-700 no-underline">Nouveau</span>}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10.5px] text-red-400 font-mono">{item.slug}</span>
+                <button
+                  type="button"
+                  onClick={() => onKillToggle(item)}
+                  className="text-red-600 hover:text-red-700 inline-flex items-center gap-1 text-[10.5px] font-semibold"
+                >
+                  <RotateCcw size={11} />
+                  Réactiver
+                </button>
+              </div>
+            </div>
+          </td>
+          {plans.map((plan) => (
+            <td key={plan.id} className={`text-center ${plan.is_default ? 'bg-gold-50/30' : ''}`}>
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-400 font-bold opacity-60" title="Coupée par kill switch">
+                ✗
+              </span>
+            </td>
+          ))}
+        </tr>
+      </>
+    )
+  }
+
+  return (
+    <tr className="hover:bg-gray-50/50 group">
+      <td className="px-5 py-3">
+        <div className="flex-1">
+          <div className="text-[12.5px] font-semibold text-gray-900 inline-flex items-center gap-1.5">
+            {item.name}
+            {item.maturity === 'beta' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700">Beta</span>}
+            {item.maturity === 'new' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-emerald-100 text-emerald-700">Nouveau</span>}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[10.5px] text-gray-400 font-mono">{item.slug}</span>
+            <button
+              type="button"
+              onClick={() => onKillToggle(item)}
+              title="Couper globalement (kill switch)"
+              aria-label="Kill switch global"
+              className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-400 hover:text-red-600"
+            >
+              <Power size={12} />
+            </button>
+          </div>
+        </div>
+      </td>
+      {plans.map((plan) => {
+        const isOn = featuresByPlan.get(plan.id)?.has(item.id) ?? false
+        const cellDisabled = disabled || savingPlans.has(plan.id)
+        return (
+          <td key={plan.id} className={`text-center ${plan.is_default ? 'bg-gold-50/30' : ''}`}>
+            <Cell on={isOn} disabled={cellDisabled} maturity={item.maturity} onClick={() => onPlanToggle(plan.id, item.id)} />
+          </td>
+        )
+      })}
+    </tr>
   )
 }
 
@@ -224,33 +289,9 @@ function Cell({ on, disabled, maturity, onClick }: { on: boolean; disabled: bool
   )
 }
 
-function KillSwitchCell({ on, onClick }: { on: boolean; onClick: () => void }): JSX.Element {
-  const cls = on
-    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-    : 'bg-red-100 text-red-700 hover:bg-red-200'
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={on ? 'Cliquer pour couper globalement' : 'Cliquer pour réactiver globalement'}
-      className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-bold transition-colors cursor-pointer ${cls}`}
-    >
-      {on ? 'ON' : 'OFF'}
-    </button>
-  )
-}
-
 function Legend(): JSX.Element {
   return (
     <div className="flex flex-wrap items-center gap-4 text-[11px] text-gray-500 px-1">
-      <span className="inline-flex items-center gap-1.5">
-        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[9px]">ON</span>
-        Active globalement
-      </span>
-      <span className="inline-flex items-center gap-1.5">
-        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 font-bold text-[9px]">OFF</span>
-        Kill switch actif
-      </span>
       <span className="inline-flex items-center gap-1.5">
         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span>
         Inclus dans le plan
@@ -262,6 +303,10 @@ function Legend(): JSX.Element {
       <span className="inline-flex items-center gap-1.5">
         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-50 text-gray-300 font-bold">—</span>
         Non inclus
+      </span>
+      <span className="inline-flex items-center gap-1.5 ml-auto">
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-400 font-bold">✗</span>
+        Coupée par kill switch (action ⚡ au survol de la ligne)
       </span>
     </div>
   )
