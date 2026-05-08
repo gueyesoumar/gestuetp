@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
 import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { FindingsList } from '../fieldwork/findings/FindingsList'
 import { ASSESSMENT_STATUS_CONFIG } from '../mission-constants'
 import type { ReviewAssessment } from '../useReviewAssessments'
 import type { ValidationStage } from '../../../types/database.types'
@@ -81,8 +82,14 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
         </div>
 
         {/* Findings */}
-        <Section label="Constats" text={assessment.findings} />
-        {assessment.recommendations && <Section label="Recommandations" text={assessment.recommendations} />}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">Constats</p>
+          <FindingsList
+            findings={assessment.findings}
+            emptyMessage="Aucun constat enregistr&eacute; sur cette &eacute;valuation."
+            density="compact"
+          />
+        </div>
 
         {/* Review actions */}
         {canReview && (
@@ -117,17 +124,6 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
         )}
       </div>
     </Modal>
-  )
-}
-
-function Section({ label, text }: { label: string; text: string | null }){
-  return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">{label}</p>
-      <div className="bg-[#FAFAF8] border border-gray-100 rounded-lg p-3 text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">
-        {text || '\u2014'}
-      </div>
-    </div>
   )
 }
 

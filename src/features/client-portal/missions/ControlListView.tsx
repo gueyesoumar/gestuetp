@@ -73,7 +73,7 @@ export function ControlListView({
       list = list.filter((c) =>
         c.controlCode.toLowerCase().includes(q) ||
         c.controlName.toLowerCase().includes(q) ||
-        (c.findings ?? '').toLowerCase().includes(q)
+        c.findings.some((f) => f.description.toLowerCase().includes(q))
       )
     }
 

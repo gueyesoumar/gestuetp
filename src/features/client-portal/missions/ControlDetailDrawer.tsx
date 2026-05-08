@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, ChevronLeft, ChevronRight, AlertTriangle, MessageSquare, Send, Clock, CheckCircle2, FileEdit, Sparkles } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { FindingsList } from '../../missions/fieldwork/findings/FindingsList'
 import type { AssessmentObservation, FindingClassification } from '../../../types/database.types'
 import type { ControlWithAssessment } from './useMissionControls'
 
@@ -264,33 +265,13 @@ export function ControlDetailDrawer({
             </p>
           </div>
 
-          {/* Constat */}
-          {control.findings && (
+          {/* Constats d'audit */}
+          {control.findings.length > 0 && (
             <div className="mb-5">
-              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                {'\u{1F50D}'} Constat d{'’'}audit
+              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                {'\u{1F50D}'} Constats d{'’'}audit
               </div>
-              <p className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">{control.findings}</p>
-            </div>
-          )}
-
-          {/* Risque */}
-          {control.riskNotes && (
-            <div className="mb-5">
-              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                {'⚠'} Risque
-              </div>
-              <p className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">{control.riskNotes}</p>
-            </div>
-          )}
-
-          {/* Recommandation */}
-          {control.recommendations && (
-            <div className="mb-5">
-              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                {'\u{1F4A1}'} Recommandation
-              </div>
-              <p className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">{control.recommendations}</p>
+              <FindingsList findings={control.findings} density="compact" />
             </div>
           )}
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
-import type { AssessmentObservation, FindingClassification } from '../../../types/database.types'
+import type { AssessmentObservation, AssessmentFinding, FindingClassification } from '../../../types/database.types'
 
 export interface ControlWithAssessment {
   controlId: string
@@ -15,9 +15,7 @@ export interface ControlWithAssessment {
   assessmentId: string | null
   /** Statut de l'assessment côté serveur : 'submitted' | 'in_review' | 'approved' (les autres ne sont pas chargés). */
   assessmentStatus: string | null
-  findings: string | null
-  recommendations: string | null
-  riskNotes: string | null
+  findings: AssessmentFinding[]
   conformityLevel: string | null
   classification: FindingClassification | null
   observationCount: number
@@ -55,9 +53,11 @@ interface UseMissionControlsReturn {
   refetch: () => void
 }
 
+const SEVERITY: Record<FindingClassification, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
+
 /**
- * Loads all controls of the mission's framework with their assessment data
- * and observation state. Used by the client-side results tab.
+ * Loads all controls of the mission's framework with their assessment data,
+ * findings (assessment_findings), and observation state. Used by the client-side results tab.
  */
 export function useMissionControls(missionId: string | undefined): UseMissionControlsReturn {
   const [controls, setControls] = useState<ControlWithAssessment[]>([])
@@ -122,20 +122,20 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         assessmentMap.set(a.control_id, a)
       }
 
-      // 4b. Get findings for these assessments (replaces legacy textareas)
+      // 4b. Get findings for these assessments
       const allAssessmentIds = (assessments ?? []).map((a) => a.id)
-      const findingsByAssessment = new Map<string, Array<{ classification: FindingClassification; description: string; risk: string | null; recommendation: string | null; ord: number }>>()
+      const findingsByAssessment = new Map<string, AssessmentFinding[]>()
       if (allAssessmentIds.length > 0) {
         const { data: findingsRows } = await supabase
           .from('assessment_findings')
-          .select('assessment_id, classification, description, risk, recommendation, ord')
+          .select('*')
           .in('assessment_id', allAssessmentIds)
           .order('ord', { ascending: true })
           .abortSignal(controller.signal)
         if (controller.signal.aborted) return
-        for (const f of (findingsRows ?? []) as Array<{ assessment_id: string; classification: FindingClassification; description: string; risk: string | null; recommendation: string | null; ord: number }>) {
+        for (const f of (findingsRows ?? []) as AssessmentFinding[]) {
           const list = findingsByAssessment.get(f.assessment_id) ?? []
-          list.push({ classification: f.classification, description: f.description, risk: f.risk, recommendation: f.recommendation, ord: f.ord })
+          list.push(f)
           findingsByAssessment.set(f.assessment_id, list)
         }
       }
@@ -170,8 +170,7 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         }
       }
 
-      // 6. Build merged list (findings denormalized from assessment_findings)
-      const SEVERITY: Record<FindingClassification, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
+      // 6. Build merged list
       const domainMap = new Map(domains.map((d) => [d.id, d]))
       const result: ControlWithAssessment[] = allControls.map((ctrl) => {
         const domain = domainMap.get(ctrl.domain_id)!
@@ -181,9 +180,6 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         const hasResponse = obsList.some((o) => o.response_text !== null)
 
         const findings = assessment ? (findingsByAssessment.get(assessment.id) ?? []) : []
-        const findingsText = findings.map((f) => f.description).join('\n\n') || null
-        const recommendationsText = findings.filter((f) => f.recommendation).map((f, i) => `${i + 1}. ${f.recommendation}`).join('\n') || null
-        const riskText = findings.filter((f) => f.risk).map((f) => f.risk).join('\n\n') || null
         const topClassification = findings.length === 0
           ? null
           : findings.reduce<FindingClassification | null>((acc, f) => (
@@ -202,9 +198,7 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
           domainSortOrder: domain.sort_order,
           assessmentId: assessment?.id ?? null,
           assessmentStatus: assessment?.status ?? null,
-          findings: findingsText,
-          recommendations: recommendationsText,
-          riskNotes: riskText,
+          findings,
           conformityLevel: assessment?.conformity_level ?? null,
           classification: topClassification,
           observationCount: obsList.length,

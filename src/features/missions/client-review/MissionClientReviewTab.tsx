@@ -4,8 +4,10 @@ import { useAssessmentObservations } from '../observations/useAssessmentObservat
 import { supabase } from '../../../lib/supabase'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { FindingsList } from '../fieldwork/findings/FindingsList'
 import type { MissionDetail } from '../useMissionDetail'
 import type { ObservationWithAuthor } from '../observations/useAssessmentObservations'
+import type { AssessmentFinding } from '../../../types/database.types'
 
 interface MissionClientReviewTabProps {
   mission: MissionDetail
@@ -16,9 +18,7 @@ type FilterKey = 'pending' | 'responded' | 'all'
 interface AssessmentContext {
   controlCode: string
   controlName: string
-  findings: string | null
-  recommendations: string | null
-  classification: string | null
+  findings: AssessmentFinding[]
 }
 
 export function MissionClientReviewTab({ mission }: MissionClientReviewTabProps): JSX.Element {
@@ -119,7 +119,7 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
   const [assessment, setAssessment] = useState<AssessmentContext | null>(null)
   const [responseText, setResponseText] = useState('')
 
-  // Fetch assessment context when expanded (findings denormalized from assessment_findings)
+  // Fetch assessment context when expanded
   const loadAssessment = async (): Promise<void> => {
     if (assessment) return
     const { data } = await supabase
@@ -136,25 +136,14 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
 
     const { data: findingsRows } = await supabase
       .from('assessment_findings')
-      .select('classification, description, recommendation, ord')
+      .select('*')
       .eq('assessment_id', observation.assessment_id)
       .order('ord', { ascending: true })
-
-    type FindingRow = { classification: string; description: string; recommendation: string | null }
-    const findings = (findingsRows ?? []) as FindingRow[]
-    const SEVERITY: Record<string, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
-    const topClass = findings.length === 0
-      ? null
-      : findings.reduce<string>((acc, f) => ((SEVERITY[f.classification] ?? 0) > (SEVERITY[acc] ?? 0) ? f.classification : acc), findings[0].classification)
-    const findingsText = findings.map((f) => f.description).join('\n\n') || null
-    const recosText = findings.filter((f) => f.recommendation).map((f, i) => `${i + 1}. ${f.recommendation}`).join('\n') || null
 
     setAssessment({
       controlCode: ctrl?.code ?? '',
       controlName: ctrl?.name ?? '',
-      findings: findingsText,
-      recommendations: recosText,
-      classification: topClass,
+      findings: (findingsRows ?? []) as AssessmentFinding[],
     })
   }
 
@@ -205,17 +194,17 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
           {/* Assessment context */}
           {assessment && (
             <div className="px-4 py-3 border-b border-gray-200 bg-white">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-2">
                 <span className="font-mono text-[11px] font-semibold text-forest-700 bg-forest-50 px-1.5 py-0.5 rounded">
                   {assessment.controlCode}
                 </span>
                 <span className="text-[13px] font-semibold">{assessment.controlName}</span>
               </div>
-              {assessment.findings && (
-                <p className="text-[12px] text-gray-600 leading-relaxed">
-                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Constat :</span> {assessment.findings}
-                </p>
-              )}
+              <FindingsList
+                findings={assessment.findings}
+                emptyMessage="Aucun constat enregistr&eacute; sur ce contr&ocirc;le."
+                density="compact"
+              />
             </div>
           )}
 

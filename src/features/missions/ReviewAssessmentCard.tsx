@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Badge } from '../../components/ui/Badge'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { FindingsList } from './fieldwork/findings/FindingsList'
 import { useReviewLabels } from '../organization-settings/useReviewLabels'
 import type { ReviewAssessment } from './useReviewAssessments'
 import type { AssessmentStatus, ValidationStage } from '../../types/database.types'
@@ -65,16 +66,13 @@ export function ReviewAssessmentCard({ assessment, reviewStage, onReview, review
 
       <div className="px-5 py-4 space-y-3">
         <div>
-          <p className="text-xs font-medium uppercase text-gray-500">Constats</p>
-          <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{assessment.findings || '\u2014'}</p>
+          <p className="text-xs font-medium uppercase text-gray-500 mb-2">Constats</p>
+          <FindingsList
+            findings={assessment.findings}
+            emptyMessage="Aucun constat enregistr&eacute; sur cette &eacute;valuation."
+            density="compact"
+          />
         </div>
-
-        {assessment.recommendations && (
-          <div>
-            <p className="text-xs font-medium uppercase text-gray-500">Recommandations</p>
-            <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{assessment.recommendations}</p>
-          </div>
-        )}
 
         {assessment.validations.length > 0 && (
           <div>

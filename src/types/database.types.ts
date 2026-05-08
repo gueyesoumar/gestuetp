@@ -545,14 +545,9 @@ export interface ControlAssessment {
   control_id: string
   auditor_id: string
   status: AssessmentStatus
-  findings: string | null
-  recommendations: string | null
-  ai_draft: string | null
   evidence_notes: string | null
   observations: string | null
-  risk_notes: string | null
   conformity_level: string | null
-  finding_classification: string | null
   cycle_id: string | null
   created_at: string
   updated_at: string
@@ -564,9 +559,6 @@ export interface ControlAssessmentInsert {
   control_id: string
   auditor_id: string
   status?: AssessmentStatus
-  findings?: string | null
-  recommendations?: string | null
-  ai_draft?: string | null
   evidence_notes?: string | null
   cycle_id?: string | null
   created_at?: string
@@ -580,21 +572,19 @@ export type AuditConclusion = 'conformant' | 'partially_conformant' | 'non_confo
 
 export interface ControlAssessmentUpdate {
   status?: AssessmentStatus
-  findings?: string | null
-  recommendations?: string | null
-  ai_draft?: string | null
   evidence_notes?: string | null
   observations?: string | null
-  risk_notes?: string | null
   conformity_level?: string | null
-  finding_classification?: FindingClassification | null
 }
 
 export interface CorrectiveActionRequest {
   id: string
   mission_id: string
   assessment_id: string
+  /** FK vers assessment_findings.id depuis migration 00100 (source de verite). */
+  finding_id: string | null
   code: string
+  /** Snapshot denormalise au moment de la creation. Source de verite : finding_id. */
   finding_classification: string
   control_code: string | null
   control_name: string | null

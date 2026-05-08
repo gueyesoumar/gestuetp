@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf'
 import type { MissionDetail, MissionMemberRow } from '../missions/useMissionDetail'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
-import type { CabinetClient, ControlAssessment } from '../../types/database.types'
+import type { AssessmentFinding, CabinetClient, ControlAssessment } from '../../types/database.types'
 import { ROLE_LABELS } from '../missions/mission-constants'
 import {
   describeVerdict,
@@ -31,6 +31,16 @@ import {
 
 export interface AssessmentWithControl extends ControlAssessment {
   control: { id: string; code: string; name: string; description: string | null; domain_id: string }
+  /**
+   * Champs synthetises a partir de assessment_findings par loadAuditReportData
+   * pour le rendu du PDF (findings concatenes, classification top-severite).
+   * Ne PAS utiliser ces champs hors du generateur PDF — preferer findings_list.
+   */
+  findings: string | null
+  recommendations: string | null
+  risk_notes: string | null
+  finding_classification: string | null
+  findings_list: AssessmentFinding[]
 }
 
 export interface ClientContact {

@@ -1,7 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import type { MissionDetail, MissionMemberRow } from '../missions/useMissionDetail'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
-import type { CabinetClient } from '../../types/database.types'
+import type { AssessmentFinding, CabinetClient } from '../../types/database.types'
 import type { AssessmentWithControl, AuditReportData, ClientContact, EvidenceDoc } from './generateAuditReportPDF'
 
 /**
@@ -41,19 +41,20 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
 
   const assessments = (assessRaw ?? []) as unknown as AssessmentWithControl[]
 
-  // 3b. Synthese des findings (assessment_findings) vers les champs legacy
-  // pour compatibilite avec auditReportNarratives + generateAuditReportPDF.
+  // 3b. Charge les findings (assessment_findings) et synthetise les champs legacy
+  // attendus par auditReportNarratives + generateAuditReportPDF (textes concatenes
+  // + classification top-severite). findings_list expose la liste structuree pour
+  // les futurs rendus PDF.
   const assessmentIds = assessments.map((a) => a.id)
   if (assessmentIds.length > 0) {
     const { data: findingsRaw } = await supabase
       .from('assessment_findings')
-      .select('assessment_id, classification, description, risk, recommendation, ord')
+      .select('*')
       .in('assessment_id', assessmentIds)
       .order('ord', { ascending: true })
 
-    type FindingRow = { assessment_id: string; classification: string; description: string; risk: string | null; recommendation: string | null }
-    const byAssessment = new Map<string, FindingRow[]>()
-    for (const f of (findingsRaw ?? []) as FindingRow[]) {
+    const byAssessment = new Map<string, AssessmentFinding[]>()
+    for (const f of (findingsRaw ?? []) as AssessmentFinding[]) {
       const list = byAssessment.get(f.assessment_id) ?? []
       list.push(f)
       byAssessment.set(f.assessment_id, list)
@@ -62,12 +63,11 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     const SEVERITY: Record<string, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
     for (const a of assessments) {
       const fs = byAssessment.get(a.id) ?? []
-      // deno-lint-ignore no-explicit-any
-      const aw = a as unknown as { findings: string | null; recommendations: string | null; risk_notes: string | null; finding_classification: string | null }
-      aw.findings = fs.map((f) => f.description).join('\n\n') || null
-      aw.recommendations = fs.filter((f) => f.recommendation).map((f, i) => `${i + 1}. ${f.recommendation}`).join('\n') || null
-      aw.risk_notes = fs.filter((f) => f.risk).map((f) => f.risk).join('\n\n') || null
-      aw.finding_classification = fs.length === 0
+      a.findings_list = fs
+      a.findings = fs.map((f) => f.description).join('\n\n') || null
+      a.recommendations = fs.filter((f) => f.recommendation).map((f, i) => `${i + 1}. ${f.recommendation}`).join('\n') || null
+      a.risk_notes = fs.filter((f) => f.risk).map((f) => f.risk).join('\n\n') || null
+      a.finding_classification = fs.length === 0
         ? null
         : fs.reduce<string>((acc, f) => ((SEVERITY[f.classification] ?? 0) > (SEVERITY[acc] ?? 0) ? f.classification : acc), fs[0].classification)
     }
