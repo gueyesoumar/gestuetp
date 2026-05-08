@@ -31,7 +31,7 @@ export function FlagCard({ flag, onAction }: FlagCardProps): JSX.Element {
     isOverrideOff ? 'border-l-4 border-l-red-400' : ''
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-4 ${borderClass} hover:shadow-sm transition-shadow`}>
+    <div className={`bg-white rounded-xl border border-gray-200 p-4 ${borderClass} hover:shadow-sm transition-shadow h-full flex flex-col`}>
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
