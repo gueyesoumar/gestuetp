@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Vue d'ensemble fusionnée (revamp moderne)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-50: #F0F5F2; --forest-100: #DCE8E2; --forest-300: #6E8C7E;
+    --forest-500: #2D5A47; --forest-700: #1B4332; --forest-900: #0F2920;
+    --gold-100: #FAEFD0; --gold-300: #E8C474; --gold-500: #D4A843; --gold-700: #A37F2F;
+  }
+  body { font-family: 'Inter', sans-serif; background: #F7F8F7; color: #111827; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .bg-forest-50 { background:#F0F5F2 } .bg-forest-100{background:#DCE8E2}
+  .bg-forest-500{background:#2D5A47} .bg-forest-700{background:#1B4332}
+  .text-forest-700{color:#1B4332} .text-forest-900{color:#0F2920}
+  .text-forest-500{color:#2D5A47} .border-forest-200{border-color:#C9DBD0}
+  .bg-gold-100{background:#FAEFD0} .bg-gold-500{background:#D4A843}
+  .text-gold-700{color:#A37F2F}
+  .border-gold-500{border-color:#D4A843}
+  .ring-soft { box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04); }
+  .ring-soft-hover:hover { box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.06); transition: all .2s; }
+  .sparkline { fill: none; stroke-width: 1.8; }
+  .pulse-dot { animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1 }
+    50% { opacity: .4 }
+  }
+  /* Onglet actif underline gold */
+  .tab-active { border-bottom: 2px solid #D4A843; color: #0F2920; font-weight: 700; }
+  .tab-inactive { border-bottom: 2px solid transparent; color: #6B7280; }
+</style>
+</head>
+<body class="px-7 py-6">
+
+  <!-- ─────────── Breadcrumb + retour ─────────── -->
+  <div class="text-[12px] text-forest-700 font-semibold mb-3">
+    ← Retour aux organisations
+  </div>
+
+  <!-- ─────────── Header organisation ─────────── -->
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-[16px] font-extrabold bg-forest-100 text-forest-700">G</div>
+    <div>
+      <h1 class="text-[19px] font-bold text-gray-900">Gëstu Advisory</h1>
+      <div class="text-[11.5px] text-gray-500">Cabinet · onboardé le 12 octobre 2024 · Plan Pro Cabinet (89 €/mois)</div>
+    </div>
+    <div class="ml-auto flex items-center gap-2">
+      <span class="px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-[11px] font-semibold flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 bg-green-500 rounded-full pulse-dot"></span>
+        Actif
+      </span>
+    </div>
+  </div>
+
+  <!-- ─────────── Tabs (Santé fusionnée disparait) ─────────── -->
+  <div class="flex gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
+    <button class="px-4 py-2 text-[12.5px] tab-active whitespace-nowrap">Vue d'ensemble</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Membres · 7</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Missions · 12</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Facturation</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Marque blanche</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Feature flags</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Audit log</button>
+  </div>
+
+  <!-- ─────────── HERO STRIP : 4 KPIs en gros ─────────── -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <!-- KPI 1 : Membres actifs -->
+    <div class="bg-white rounded-xl ring-soft p-4 ring-soft-hover">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">Membres actifs</span>
+        <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-[26px] font-extrabold text-gray-900">6</span>
+        <span class="text-[12px] text-gray-400 font-medium">/ 7</span>
+      </div>
+      <div class="text-[11px] text-gray-500 mt-0.5">86% actifs · dernière connexion <span class="text-gray-700 font-medium">il y a 2h</span></div>
+    </div>
+
+    <!-- KPI 2 : Missions actives -->
+    <div class="bg-white rounded-xl ring-soft p-4 ring-soft-hover">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">Missions</span>
+        <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-[26px] font-extrabold text-gray-900">12</span>
+        <span class="text-[12px] text-emerald-600 font-semibold">+3</span>
+      </div>
+      <div class="text-[11px] text-gray-500 mt-0.5">3 créées sur 30 derniers jours</div>
+    </div>
+
+    <!-- KPI 3 : Coût IA -->
+    <div class="bg-white rounded-xl ring-soft p-4 ring-soft-hover">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">Coût IA · 30j</span>
+        <div class="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1z"/></svg>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-[26px] font-extrabold text-gray-900 mono">$24.30</span>
+      </div>
+      <div class="text-[11px] text-gray-500 mt-0.5">147 appels · 380K tokens</div>
+    </div>
+
+    <!-- KPI 4 : Stockage -->
+    <div class="bg-white rounded-xl ring-soft p-4 ring-soft-hover">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">Stockage</span>
+        <div class="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-[26px] font-extrabold text-gray-900 mono">1.4 Go</span>
+      </div>
+      <div class="text-[11px] text-gray-500 mt-0.5">523 documents</div>
+    </div>
+  </div>
+
+  <!-- ─────────── BLOC PRINCIPAL : 2 colonnes ─────────── -->
+  <div class="grid grid-cols-[1fr_360px] gap-5 mb-5">
+
+    <!-- COLONNE GAUCHE : Activité + Consommation détaillée + Erreurs -->
+    <div class="space-y-4">
+
+      <!-- Activité (avec graphe sparkline missions sur 30j) -->
+      <section class="bg-white rounded-xl ring-soft overflow-hidden">
+        <header class="px-5 py-3 border-b border-gray-100 flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <h3 class="text-[13.5px] font-bold text-gray-900">Activité de l'organisation</h3>
+          <span class="ml-auto text-[10.5px] text-gray-400 font-medium">30 derniers jours</span>
+        </header>
+        <div class="px-5 py-4 grid grid-cols-[1fr_180px] gap-5 items-center">
+          <!-- liste -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="text-gray-400">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-[12.5px] text-gray-700">Dernière connexion d'un membre</p>
+                <p class="text-[10.5px] text-gray-400">soumar.gueye@gestu.io</p>
+              </div>
+              <span class="text-[12.5px] mono font-semibold text-gray-900">il y a 2h</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-gray-400">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-[12.5px] text-gray-700">Membres connectés ces 30j</p>
+                <p class="text-[10.5px] text-gray-400">5 sur 7 (71%)</p>
+              </div>
+              <div class="w-20 bg-gray-100 rounded-full h-1.5">
+                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 71%"></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-gray-400">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-[12.5px] text-gray-700">Missions créées</p>
+                <p class="text-[10.5px] text-gray-400">3 nouvelles · 12 au total</p>
+              </div>
+              <span class="text-[12.5px] mono font-semibold text-gray-900">+3</span>
+            </div>
+          </div>
+          <!-- mini sparkline missions création par jour -->
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Créations/jour</p>
+            <svg width="170" height="50" viewBox="0 0 170 50">
+              <polyline class="sparkline" stroke="#1B4332"
+                points="5,42 15,40 25,38 35,42 45,30 55,32 65,28 75,38 85,20 95,25 105,15 115,22 125,12 135,18 145,8 155,15 165,5"/>
+              <circle cx="165" cy="5" r="3" fill="#D4A843"/>
+            </svg>
+            <p class="text-[10px] text-gray-400 mt-0.5">Pic le 4 mai · 5 missions</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Consommation IA détaillée -->
+      <section class="bg-white rounded-xl ring-soft overflow-hidden">
+        <header class="px-5 py-3 border-b border-gray-100 flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1z"/></svg>
+          </div>
+          <h3 class="text-[13.5px] font-bold text-gray-900">Consommation IA</h3>
+          <span class="ml-auto text-[10.5px] text-gray-400 font-medium">30 derniers jours</span>
+        </header>
+        <div class="px-5 py-4">
+          <!-- Stats inline -->
+          <div class="grid grid-cols-3 gap-3 mb-4">
+            <div class="bg-gray-50 rounded-lg p-3">
+              <p class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-1">Appels</p>
+              <p class="text-[18px] font-extrabold text-gray-900 mono">147</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+              <p class="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-1">Tokens</p>
+              <p class="text-[18px] font-extrabold text-gray-900 mono">380 412</p>
+              <p class="text-[10px] text-gray-500 mt-0.5">in: 245K · out: 135K</p>
+            </div>
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
+              <p class="text-[10px] uppercase tracking-wider text-purple-700 font-bold mb-1">Coût estimé</p>
+              <p class="text-[18px] font-extrabold text-purple-900 mono">$24.30</p>
+            </div>
+          </div>
+          <!-- Top fonctions IA utilisées -->
+          <p class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold mb-2">Top fonctions appelées</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-3">
+              <span class="text-[11.5px] mono text-gray-700 w-40 truncate">smart-plan</span>
+              <div class="flex-1 bg-gray-100 rounded-full h-2">
+                <div class="bg-purple-500 h-2 rounded-full" style="width: 64%"></div>
+              </div>
+              <span class="text-[11px] mono font-semibold text-gray-700 w-12 text-right">94 calls</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-[11.5px] mono text-gray-700 w-40 truncate">generate-action-plan</span>
+              <div class="flex-1 bg-gray-100 rounded-full h-2">
+                <div class="bg-purple-500 h-2 rounded-full" style="width: 28%"></div>
+              </div>
+              <span class="text-[11px] mono font-semibold text-gray-700 w-12 text-right">41 calls</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-[11.5px] mono text-gray-700 w-40 truncate">verify-car</span>
+              <div class="flex-1 bg-gray-100 rounded-full h-2">
+                <div class="bg-purple-500 h-2 rounded-full" style="width: 8%"></div>
+              </div>
+              <span class="text-[11px] mono font-semibold text-gray-700 w-12 text-right">12 calls</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Erreurs -->
+      <section class="bg-white rounded-xl ring-soft overflow-hidden">
+        <header class="px-5 py-3 border-b border-gray-100 flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-700">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <h3 class="text-[13.5px] font-bold text-gray-900">Erreurs techniques</h3>
+          <span class="ml-auto px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-[10px] font-bold">3 erreurs · 30j</span>
+        </header>
+        <div class="px-5 py-4 space-y-2.5">
+          <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10.5px] uppercase tracking-wider text-red-700 font-bold">Top fonction en échec</span>
+              <span class="text-[10.5px] text-red-600 font-semibold">2 échecs</span>
+            </div>
+            <p class="text-[12.5px] mono text-red-800 font-semibold">smart-plan</p>
+            <p class="text-[11px] text-gray-600 italic mt-1">« OpenAI rate limit exceeded — retry after 60s »</p>
+          </div>
+          <p class="text-[10.5px] text-gray-400 italic">Les erreurs côté edge functions et auth ne sont pas encore loggées centralement.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- COLONNE DROITE : Identité + Configuration + Zone sensible -->
+    <div class="space-y-4">
+
+      <!-- Identité -->
+      <section class="bg-white rounded-xl ring-soft overflow-hidden">
+        <header class="px-4 py-3 border-b border-gray-100">
+          <span class="text-[12.5px] font-bold text-gray-900">Identité</span>
+        </header>
+        <div class="px-4 py-3">
+          <dl class="space-y-2 text-[12px]">
+            <div class="flex justify-between"><dt class="text-gray-500">Slug</dt><dd class="text-gray-900 mono text-[11.5px]">gestu-advisory</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Plan</dt><dd class="text-gray-900 font-medium">Pro Cabinet</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Onboardé</dt><dd class="text-gray-900">12 oct. 2024</dd></div>
+            <div class="flex justify-between items-center">
+              <dt class="text-gray-500">Types</dt>
+              <dd class="text-gray-900 flex items-center gap-1.5">
+                <span>Cabinet · Groupe</span>
+                <button class="text-[10.5px] text-forest-700 font-semibold hover:text-forest-900">Modifier</button>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Configuration (santé visuelle) -->
+      <section class="bg-white rounded-xl ring-soft overflow-hidden">
+        <header class="px-4 py-3 border-b border-gray-100 flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-forest-100 text-forest-700 flex items-center justify-center">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </div>
+          <h3 class="text-[12.5px] font-bold text-gray-900">Configuration</h3>
+          <span class="ml-auto text-[10px] text-emerald-700 font-bold">5/6 OK</span>
+        </header>
+        <div class="px-4 py-3 space-y-2">
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</div>
+            <span class="flex-1 text-[12px] text-gray-700">Logo principal</span>
+            <span class="text-[10.5px] text-emerald-700 font-semibold">OK</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded bg-gray-100 text-gray-400 flex items-center justify-center text-[10px] font-bold">—</div>
+            <span class="flex-1 text-[12px] text-gray-700">Logo sombre</span>
+            <span class="text-[10.5px] text-gray-400 font-semibold">absent</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</div>
+            <span class="flex-1 text-[12px] text-gray-700">Couleur primaire</span>
+            <span class="text-[10.5px] text-emerald-700 font-semibold">OK</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold">!</div>
+            <span class="flex-1 text-[12px] text-gray-700">Domaines custom</span>
+            <span class="text-[10.5px] text-amber-700 font-semibold mono">0/1 vérifié</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</div>
+            <span class="flex-1 text-[12px] text-gray-700">Plan</span>
+            <span class="text-[10.5px] text-gray-700 font-semibold">Pro</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded bg-forest-100 text-forest-700 flex items-center justify-center text-[10px] font-bold">3</div>
+            <span class="flex-1 text-[12px] text-gray-700">Feature flags actifs</span>
+            <span class="text-[10.5px] text-forest-700 font-semibold">3</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Zone sensible -->
+      <section class="bg-red-50 border border-red-200 rounded-xl p-4">
+        <h4 class="text-[11.5px] uppercase tracking-wider text-red-700 font-bold mb-1.5">Zone sensible</h4>
+        <p class="text-[11px] text-red-700 leading-relaxed mb-3">Toute action est tracée dans l'audit log avec le motif que vous saisirez.</p>
+        <div class="flex flex-col gap-2">
+          <button class="px-3 py-2 border border-red-400 bg-white text-red-700 rounded-lg text-[12px] font-semibold hover:bg-red-50 text-left">Suspendre</button>
+          <button class="px-3 py-2 border border-red-200 bg-white text-red-700 rounded-lg text-[12px] font-semibold hover:bg-red-50 inline-flex items-center gap-1.5">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter CSV
+          </button>
+          <button class="px-3 py-2 bg-red-600 text-white rounded-lg text-[12px] font-semibold hover:bg-red-700 inline-flex items-center gap-1.5">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            Supprimer définitivement
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ─────────── Légende du redesign ─────────── -->
+  <div class="bg-gradient-to-br from-forest-50 to-white border border-forest-200 rounded-xl p-5 mt-6">
+    <h3 class="text-[14px] font-bold text-forest-900 mb-2">Logique du revamp</h3>
+    <ul class="text-[12px] text-gray-700 space-y-1.5 leading-relaxed">
+      <li><b>1. Hero KPI strip</b> — les 4 chiffres qui comptent en un coup d'œil (<i>membres actifs · missions · coût IA · stockage</i>). Plus besoin de scroll pour avoir le pouls de l'organisation.</li>
+      <li><b>2. Colonne gauche = signal vivant</b> — Activité (avec sparkline 30j), Consommation IA (top fonctions barchart), Erreurs (top failure callout). C'est la "santé" qui demande lecture.</li>
+      <li><b>3. Colonne droite = identité statique</b> — Identité, Configuration (visuel ✓/!/—), Zone sensible. C'est ce qu'on consulte ponctuellement.</li>
+      <li><b>4. Suppression de l'onglet "Santé"</b> — la vraie info est ici. Plus besoin de switcher entre 2 onglets pour avoir une vision complète.</li>
+      <li><b>5. Visualisations légères</b> — sparkline missions, barchart top fonctions IA, progress bar membres actifs : ratio info/encombrement maximisé sans Chart.js.</li>
+    </ul>
+  </div>
+
+</body>
+</html>

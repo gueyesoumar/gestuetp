@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Gestion des plans + Matrice fonctionnalités</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background: #F7F8F7; color: #111827; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .bg-forest-50 { background:#F0F5F2 } .bg-forest-100{background:#DCE8E2}
+  .bg-forest-500{background:#2D5A47} .bg-forest-700{background:#1B4332}
+  .text-forest-700{color:#1B4332} .text-forest-900{color:#0F2920}
+  .text-forest-500{color:#2D5A47} .border-forest-300{border-color:#A4C0AF}
+  .bg-gold-50{background:#FBF5DD} .bg-gold-100{background:#FAEFD0}
+  .bg-gold-500{background:#D4A843}
+  .text-gold-700{color:#A37F2F} .text-gold-900{color:#5C4519}
+  .border-gold-500{border-color:#D4A843}
+  .ring-soft { box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04); }
+  .card-hover:hover { box-shadow: 0 0 0 1px rgba(212,168,67,.4), 0 4px 14px rgba(0,0,0,.06); transition: all .2s; }
+
+  .toggle { position: relative; width: 36px; height: 20px; background: #d1d5db; border-radius: 999px; transition: background .2s; cursor: pointer; flex-shrink: 0; }
+  .toggle.on { background: #1B4332; }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; background: white; border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .2s;
+  }
+  .toggle.on::after { left: 18px; }
+
+  .seg-btn-active { background: #1B4332; color: white; }
+  .seg-btn-inactive { background: white; color: #4B5563; }
+
+  .badge-default { background: linear-gradient(135deg, #FAEFD0, #E8C474); color: #5C4519; }
+
+  .matrix-cell-on { background: #DCFCE7; color: #166534; }
+  .matrix-cell-off { background: #F9FAFB; color: #D1D5DB; }
+  .matrix-cell-beta { background: #FAEFD0; color: #A37F2F; }
+
+  /* Section dividers */
+  section.demo {
+    margin-bottom: 3rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04);
+  }
+  section.demo > h2.section-title {
+    color: #5C4519;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    padding: 6px 12px;
+    background: #FAEFD0;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+  }
+</style>
+</head>
+<body class="px-7 py-6 space-y-6">
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION A : Page principale /admin/plans                           -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">A. Page /admin/plans — vue principale</h2>
+
+  <!-- Breadcrumb + header -->
+  <div class="text-[11.5px] text-gray-500 mb-1"><b class="text-forest-900 font-semibold">Admin</b> &rsaquo; Plans</div>
+  <div class="flex items-end justify-between mb-5">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Plans tarifaires</h1>
+      <p class="text-[12.5px] text-gray-500 mt-0.5">Définit les offres commerciales et les fonctionnalités incluses dans chacune.</p>
+    </div>
+    <button class="px-3.5 py-2 bg-forest-700 hover:bg-forest-900 text-white rounded-lg text-[12.5px] font-semibold inline-flex items-center gap-1.5">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Créer un plan
+    </button>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-xl ring-soft p-4 border-l-4 border-forest-700">
+      <p class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold mb-1">Plans actifs</p>
+      <p class="text-[22px] font-extrabold text-gray-900">3</p>
+      <p class="text-[11px] text-gray-500">+ 1 brouillon</p>
+    </div>
+    <div class="bg-white rounded-xl ring-soft p-4 border-l-4 border-gold-500">
+      <p class="text-[10.5px] uppercase tracking-wider text-gold-700 font-bold mb-1">Plan par défaut</p>
+      <p class="text-[16px] font-extrabold text-gold-900 mt-2">Découverte</p>
+      <p class="text-[11px] text-gray-500">Assigné aux nouveaux cabinets</p>
+    </div>
+    <div class="bg-white rounded-xl ring-soft p-4">
+      <p class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold mb-1">Cabinets total</p>
+      <p class="text-[22px] font-extrabold text-gray-900">28</p>
+      <p class="text-[11px] text-gray-500">répartis sur les plans</p>
+    </div>
+    <div class="bg-white rounded-xl ring-soft p-4">
+      <p class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold mb-1">MRR estimé</p>
+      <p class="text-[22px] font-extrabold text-emerald-700 mono">12 800 €</p>
+      <p class="text-[11px] text-gray-500">paiement non intégré</p>
+    </div>
+  </div>
+
+  <!-- Toggle vue : Plans (cards) | Matrice fonctionnalités -->
+  <div class="flex gap-1 mb-4">
+    <button class="seg-btn-active px-3.5 py-1.5 rounded-lg text-[12px] font-semibold border border-forest-700">
+      Plans (cartes)
+    </button>
+    <button class="seg-btn-inactive px-3.5 py-1.5 rounded-lg text-[12px] font-semibold border border-gray-200">
+      Matrice fonctionnalités
+    </button>
+  </div>
+
+  <!-- Liste des plans (cards) -->
+  <div class="grid grid-cols-3 gap-4">
+
+    <!-- Plan 1 — Découverte (défaut) -->
+    <div class="bg-white rounded-xl ring-soft card-hover p-5 relative">
+      <span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide badge-default">★ Défaut</span>
+      <div class="flex items-center gap-2 mb-1">
+        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div>
+          <h3 class="text-[15px] font-bold text-gray-900">Découverte</h3>
+          <span class="text-[10.5px] mono text-gray-400">decouverte</span>
+        </div>
+      </div>
+      <p class="text-[11.5px] text-gray-500 mt-1.5 mb-3 leading-relaxed">Cabinet en démo · pour évaluer la plateforme avant signature.</p>
+
+      <div class="flex items-baseline gap-1 mb-3">
+        <span class="text-[24px] font-extrabold text-gray-900 mono">0 €</span>
+        <span class="text-[11px] text-gray-500">/mois</span>
+      </div>
+
+      <div class="space-y-1.5 mb-3 pb-3 border-b border-gray-100">
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Cabinets sur ce plan</span>
+          <span class="font-semibold text-gray-900">12</span>
+        </div>
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Fonctionnalités incluses</span>
+          <span class="font-semibold text-gray-900">5 / 14</span>
+        </div>
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Limites</span>
+          <span class="font-semibold text-gray-900">3 users · 1 mission</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <button class="text-[11.5px] text-forest-700 font-semibold hover:text-forest-900">Modifier</button>
+        <div class="flex gap-1">
+          <button class="p-1.5 text-gray-400 hover:text-gray-700 rounded" title="Dupliquer">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+          <button class="p-1.5 text-gray-300 cursor-not-allowed rounded" title="Suppression bloquée — 12 cabinets sur ce plan">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan 2 — Pro -->
+    <div class="bg-white rounded-xl ring-soft card-hover p-5 ring-2 ring-emerald-200 relative">
+      <span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">Recommandé</span>
+      <div class="flex items-center gap-2 mb-1">
+        <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div>
+          <h3 class="text-[15px] font-bold text-gray-900">Pro</h3>
+          <span class="text-[10.5px] mono text-gray-400">pro</span>
+        </div>
+      </div>
+      <p class="text-[11.5px] text-gray-500 mt-1.5 mb-3 leading-relaxed">Cabinet payant · missions illimitées · adapté aux structures de 5 à 50 personnes.</p>
+
+      <div class="flex items-baseline gap-1 mb-3">
+        <span class="text-[24px] font-extrabold text-gray-900 mono">800 €</span>
+        <span class="text-[11px] text-gray-500">/mois</span>
+      </div>
+
+      <div class="space-y-1.5 mb-3 pb-3 border-b border-gray-100">
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Cabinets sur ce plan</span>
+          <span class="font-semibold text-gray-900">14</span>
+        </div>
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Fonctionnalités incluses</span>
+          <span class="font-semibold text-gray-900">11 / 14</span>
+        </div>
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Limites</span>
+          <span class="font-semibold text-gray-900">20 users · ∞ missions</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <button class="text-[11.5px] text-forest-700 font-semibold hover:text-forest-900">Modifier</button>
+        <div class="flex gap-1">
+          <button class="p-1.5 text-gray-400 hover:text-gray-700 rounded" title="Dupliquer">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+          <button class="p-1.5 text-gray-300 cursor-not-allowed rounded" title="Suppression bloquée — 14 cabinets">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan 3 — Régulateur -->
+    <div class="bg-white rounded-xl ring-soft card-hover p-5">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-[15px] font-bold text-gray-900">Régulateur</h3>
+          <span class="text-[10.5px] mono text-gray-400">regulateur</span>
+        </div>
+      </div>
+      <p class="text-[11.5px] text-gray-500 mt-1.5 mb-3 leading-relaxed">État · supervision multi-entités · accès complet aux KPIs cross-cabinet.</p>
+
+      <div class="flex items-baseline gap-1 mb-3">
+        <span class="text-[20px] font-extrabold text-gray-900">Sur devis</span>
+      </div>
+
+      <div class="space-y-1.5 mb-3 pb-3 border-b border-gray-100">
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Cabinets sur ce plan</span>
+          <span class="font-semibold text-gray-900">2</span>
+        </div>
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Fonctionnalités incluses</span>
+          <span class="font-semibold text-gray-900">14 / 14</span>
+        </div>
+        <div class="flex justify-between text-[11.5px]">
+          <span class="text-gray-500">Limites</span>
+          <span class="font-semibold text-gray-900">∞ users · ∞ missions</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <button class="text-[11.5px] text-forest-700 font-semibold hover:text-forest-900">Modifier</button>
+        <div class="flex gap-1">
+          <button class="p-1.5 text-gray-400 hover:text-gray-700 rounded" title="Dupliquer">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+          <button class="p-1.5 text-gray-300 cursor-not-allowed rounded" title="Suppression bloquée — 2 cabinets">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION B : Vue Matrice des fonctionnalités                        -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">B. Vue Matrice — quel plan inclut quelle fonctionnalité</h2>
+
+  <!-- Header + view toggle -->
+  <div class="flex items-end justify-between mb-5">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Matrice plans × fonctionnalités</h1>
+      <p class="text-[12.5px] text-gray-500 mt-0.5">Vue tabulaire éditable : coche pour inclure une fonctionnalité dans un plan.</p>
+    </div>
+    <div class="flex gap-1">
+      <button class="seg-btn-inactive px-3.5 py-1.5 rounded-lg text-[12px] font-semibold border border-gray-200">Plans (cartes)</button>
+      <button class="seg-btn-active px-3.5 py-1.5 rounded-lg text-[12px] font-semibold border border-forest-700">Matrice fonctionnalités</button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl ring-soft overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-left text-[11px] uppercase tracking-wider font-bold text-gray-500 px-5 py-3">Fonctionnalité</th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32">
+            <div class="flex flex-col items-center gap-0.5">
+              <span>Découverte</span>
+              <span class="text-[10px] mono text-gray-400 normal-case tracking-normal">0 €</span>
+            </div>
+          </th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32 bg-emerald-50/50">
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="text-emerald-700">Pro</span>
+              <span class="text-[10px] mono text-gray-400 normal-case tracking-normal">800 €</span>
+            </div>
+          </th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32">
+            <div class="flex flex-col items-center gap-0.5">
+              <span>Régulateur</span>
+              <span class="text-[10px] mono text-gray-400 normal-case tracking-normal">Devis</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 text-[12.5px]">
+
+        <!-- Catégorie : IA & Productivité -->
+        <tr class="bg-gray-50">
+          <td colspan="4" class="px-5 py-2 text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">
+            <span class="inline-flex items-center gap-1.5">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1z"/></svg>
+              IA &amp; Productivité
+            </span>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[13px] font-semibold text-gray-900">Plan d'action généré par IA</div>
+            <div class="text-[11px] text-gray-500 mono">smart_action_plan</div>
+          </td>
+          <td class="text-center"><MatrixCell state="off"/></td>
+          <td class="text-center bg-emerald-50/30"><MatrixCell state="on"/></td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[13px] font-semibold text-gray-900">Assistant conversationnel <span class="ml-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-gold-100 text-gold-700">Beta</span></div>
+            <div class="text-[11px] text-gray-500 mono">ai_chat_assistant</div>
+          </td>
+          <td class="text-center"><MatrixCell state="off"/></td>
+          <td class="text-center bg-emerald-50/30"><MatrixCell state="beta"/></td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[13px] font-semibold text-gray-900">Vérification CAR par IA <span class="ml-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">Nouveau</span></div>
+            <div class="text-[11px] text-gray-500 mono">car_ai_verification</div>
+          </td>
+          <td class="text-center"><MatrixCell state="off"/></td>
+          <td class="text-center bg-emerald-50/30"><MatrixCell state="on"/></td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+        </tr>
+
+        <!-- Catégorie : Reporting -->
+        <tr class="bg-gray-50">
+          <td colspan="4" class="px-5 py-2 text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">
+            <span class="inline-flex items-center gap-1.5">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Reporting &amp; Exports
+            </span>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[13px] font-semibold text-gray-900">Rapport PDF mission</div>
+            <div class="text-[11px] text-gray-500 mono">mission_pdf_export</div>
+          </td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+          <td class="text-center bg-emerald-50/30"><MatrixCell state="on"/></td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[13px] font-semibold text-gray-900">Tableau de bord exécutif</div>
+            <div class="text-[11px] text-gray-500 mono">executive_dashboard</div>
+          </td>
+          <td class="text-center"><MatrixCell state="off"/></td>
+          <td class="text-center bg-emerald-50/30"><MatrixCell state="off"/></td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+        </tr>
+
+        <!-- Catégorie : Marque blanche -->
+        <tr class="bg-gray-50">
+          <td colspan="4" class="px-5 py-2 text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">
+            <span class="inline-flex items-center gap-1.5">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
+              Marque blanche &amp; Branding
+            </span>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[13px] font-semibold text-gray-900">Logo &amp; couleurs personnalisés</div>
+            <div class="text-[11px] text-gray-500 mono">white_label_branding</div>
+          </td>
+          <td class="text-center"><MatrixCell state="off"/></td>
+          <td class="text-center bg-emerald-50/30"><MatrixCell state="on"/></td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[13px] font-semibold text-gray-900">Domaine custom (CNAME)</div>
+            <div class="text-[11px] text-gray-500 mono">custom_domain</div>
+          </td>
+          <td class="text-center"><MatrixCell state="off"/></td>
+          <td class="text-center bg-emerald-50/30"><MatrixCell state="off"/></td>
+          <td class="text-center"><MatrixCell state="on"/></td>
+        </tr>
+
+      </tbody>
+      <tfoot class="bg-gray-50 border-t border-gray-200">
+        <tr class="text-[11px] text-gray-500">
+          <td class="px-5 py-2.5 font-semibold uppercase tracking-wider">Total inclus</td>
+          <td class="text-center font-bold text-gray-900 mono">5</td>
+          <td class="text-center font-bold text-emerald-700 mono bg-emerald-50/30">11</td>
+          <td class="text-center font-bold text-gray-900 mono">14</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Légende -->
+  <div class="mt-3 flex items-center gap-4 text-[11px] text-gray-500">
+    <span class="inline-flex items-center gap-1.5">
+      <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span>
+      Inclus
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+      <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gold-100 text-gold-700 font-bold">β</span>
+      Beta (inclus mais en test)
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+      <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-50 text-gray-300 font-bold">—</span>
+      Non inclus
+    </span>
+    <span class="ml-auto text-[10.5px] text-gray-400">Clic sur une cellule pour basculer · auto-save</span>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION C : Modal Créer/Éditer un plan                              -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">C. Modal — Éditer un plan (avec fonctionnalités incluses)</h2>
+
+  <div class="bg-black/5 p-6 rounded-xl">
+    <div class="bg-white rounded-xl shadow-2xl overflow-hidden max-w-2xl mx-auto">
+      <!-- Modal header -->
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
+          <h3 class="text-[15px] font-bold text-gray-900">Modifier le plan</h3>
+          <p class="text-[11.5px] text-gray-500 mt-0.5">Les modifications s'appliquent immédiatement à tous les cabinets sur ce plan.</p>
+        </div>
+        <button class="text-gray-400 hover:text-gray-700">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal tabs -->
+      <div class="flex border-b border-gray-200 px-6 gap-1">
+        <button class="px-3 py-2.5 text-[12px] font-semibold border-b-2 border-gold-500 text-forest-900">Général</button>
+        <button class="px-3 py-2.5 text-[12px] font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Fonctionnalités <span class="ml-1 px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">11/14</span></button>
+        <button class="px-3 py-2.5 text-[12px] font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Limites</button>
+      </div>
+
+      <!-- Onglet Général -->
+      <div class="px-6 py-5 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Nom du plan</label>
+            <input type="text" value="Pro" class="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300">
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Slug technique</label>
+            <input type="text" value="pro" class="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg mono focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300" disabled>
+            <p class="text-[10.5px] text-gray-400 mt-1">Auto-généré, non modifiable une fois créé.</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Description</label>
+          <textarea rows="2" class="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300">Cabinet payant · missions illimitées · adapté aux structures de 5 à 50 personnes.</textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Prix mensuel (€)</label>
+            <div class="relative">
+              <input type="number" value="800" class="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg mono focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-gray-400">€/mois</span>
+            </div>
+            <p class="text-[10.5px] text-gray-400 mt-1">0 = gratuit · vide = sur devis</p>
+          </div>
+          <div class="flex items-end">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <div class="toggle"></div>
+              <span class="text-[12px] text-gray-700">Plan par défaut pour les nouveaux cabinets</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Aperçu cabinets impactés -->
+        <div class="bg-gold-50 border border-gold-300 rounded-lg p-3 mt-2">
+          <div class="flex items-center gap-2 mb-1">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="text-gold-700"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="text-[11px] uppercase tracking-wider font-bold text-gold-700">Impact</span>
+          </div>
+          <p class="text-[11.5px] text-gold-900">14 cabinets sur ce plan vont voir les modifications immédiatement.</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+        <button class="text-[11.5px] text-red-600 hover:text-red-700 font-semibold inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed" disabled title="Suppression bloquée — 14 cabinets utilisent ce plan">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+          Supprimer ce plan
+        </button>
+        <div class="flex gap-2">
+          <button class="px-3.5 py-2 text-[12px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>
+          <button class="px-3.5 py-2 text-[12px] font-semibold bg-forest-700 hover:bg-forest-900 text-white rounded-lg">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION D : Onglet Fonctionnalités du modal                          -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">D. Modal — Onglet "Fonctionnalités" (sélection en groupes)</h2>
+
+  <div class="bg-black/5 p-6 rounded-xl">
+    <div class="bg-white rounded-xl shadow-2xl overflow-hidden max-w-2xl mx-auto">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-[15px] font-bold text-gray-900">Modifier le plan — Fonctionnalités incluses</h3>
+        <p class="text-[11.5px] text-gray-500 mt-0.5">Coche pour inclure une fonctionnalité dans ce plan.</p>
+      </div>
+
+      <div class="flex border-b border-gray-200 px-6 gap-1">
+        <button class="px-3 py-2.5 text-[12px] font-medium border-b-2 border-transparent text-gray-500">Général</button>
+        <button class="px-3 py-2.5 text-[12px] font-semibold border-b-2 border-gold-500 text-forest-900">Fonctionnalités <span class="ml-1 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">11/14</span></button>
+        <button class="px-3 py-2.5 text-[12px] font-medium border-b-2 border-transparent text-gray-500">Limites</button>
+      </div>
+
+      <div class="max-h-[420px] overflow-y-auto">
+        <!-- IA Group -->
+        <div class="border-b border-gray-100">
+          <div class="bg-gray-50 px-6 py-2 flex items-center justify-between">
+            <span class="text-[10.5px] uppercase tracking-wider font-bold text-gray-600 inline-flex items-center gap-1.5">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1z"/></svg>
+              IA &amp; Productivité
+            </span>
+            <button class="text-[10.5px] font-semibold text-forest-700 hover:text-forest-900">Tout cocher</button>
+          </div>
+
+          <label class="flex items-start gap-3 px-6 py-3 hover:bg-gray-50/50 cursor-pointer border-b border-gray-50">
+            <input type="checkbox" checked class="mt-0.5 accent-forest-700 w-4 h-4">
+            <div class="flex-1">
+              <div class="text-[13px] font-semibold text-gray-900">Plan d'action généré par IA</div>
+              <div class="text-[11px] text-gray-500 mt-0.5">Génère un plan d'action depuis les findings · <span class="mono">smart_action_plan</span></div>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 px-6 py-3 hover:bg-gray-50/50 cursor-pointer border-b border-gray-50">
+            <input type="checkbox" checked class="mt-0.5 accent-forest-700 w-4 h-4">
+            <div class="flex-1">
+              <div class="text-[13px] font-semibold text-gray-900 flex items-center gap-1.5">
+                Assistant conversationnel
+                <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-gold-100 text-gold-700">Beta</span>
+              </div>
+              <div class="text-[11px] text-gray-500 mt-0.5">Chatbot IA pour interroger les données · <span class="mono">ai_chat_assistant</span></div>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 px-6 py-3 hover:bg-gray-50/50 cursor-pointer">
+            <input type="checkbox" checked class="mt-0.5 accent-forest-700 w-4 h-4">
+            <div class="flex-1">
+              <div class="text-[13px] font-semibold text-gray-900 flex items-center gap-1.5">
+                Vérification CAR par IA
+                <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">Nouveau</span>
+              </div>
+              <div class="text-[11px] text-gray-500 mt-0.5">Évalue la complétude des CAR avant validation · <span class="mono">car_ai_verification</span></div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Reporting Group -->
+        <div class="border-b border-gray-100">
+          <div class="bg-gray-50 px-6 py-2 flex items-center justify-between">
+            <span class="text-[10.5px] uppercase tracking-wider font-bold text-gray-600 inline-flex items-center gap-1.5">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Reporting &amp; Exports
+            </span>
+            <button class="text-[10.5px] font-semibold text-forest-700 hover:text-forest-900">Tout cocher</button>
+          </div>
+          <label class="flex items-start gap-3 px-6 py-3 hover:bg-gray-50/50 cursor-pointer border-b border-gray-50">
+            <input type="checkbox" checked class="mt-0.5 accent-forest-700 w-4 h-4">
+            <div class="flex-1">
+              <div class="text-[13px] font-semibold text-gray-900">Rapport PDF mission</div>
+              <div class="text-[11px] text-gray-500 mt-0.5">PDF complet depuis les données de la mission · <span class="mono">mission_pdf_export</span></div>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 px-6 py-3 hover:bg-gray-50/50 cursor-pointer">
+            <input type="checkbox" class="mt-0.5 accent-forest-700 w-4 h-4">
+            <div class="flex-1">
+              <div class="text-[13px] font-semibold text-gray-700">Tableau de bord exécutif</div>
+              <div class="text-[11px] text-gray-500 mt-0.5">KPIs synthétiques cross-missions · <span class="mono">executive_dashboard</span></div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
+        <button class="px-3.5 py-2 text-[12px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>
+        <button class="px-3.5 py-2 text-[12px] font-semibold bg-forest-700 hover:bg-forest-900 text-white rounded-lg">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION E : Confirmation suppression                                 -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">E. Suppression d'un plan — garde-fou</h2>
+
+  <div class="grid grid-cols-2 gap-4">
+    <!-- Cas bloqué -->
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-lg bg-red-100 text-red-700 flex items-center justify-center shrink-0">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div>
+          <h4 class="text-[13.5px] font-bold text-red-900">Suppression bloquée</h4>
+          <p class="text-[11.5px] text-red-800 mt-1 leading-relaxed">14 cabinets utilisent le plan <b>Pro</b>. Migrez-les vers un autre plan avant de supprimer celui-ci.</p>
+          <button class="mt-2 px-3 py-1.5 bg-white border border-red-300 text-red-700 rounded-lg text-[11.5px] font-semibold hover:bg-red-50">Voir les cabinets concernés</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cas autorisé -->
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+        </div>
+        <div>
+          <h4 class="text-[13.5px] font-bold text-gray-900">Confirmer la suppression de <b>"Plan obsolète"</b> ?</h4>
+          <p class="text-[11.5px] text-gray-600 mt-1 leading-relaxed">Aucun cabinet ne l'utilise actuellement. Cette action est irréversible.</p>
+          <div class="flex gap-2 mt-2">
+            <button class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-[11.5px] font-semibold hover:bg-gray-50">Annuler</button>
+            <button class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-[11.5px] font-semibold hover:bg-red-700">Supprimer définitivement</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- LÉGENDE / Logique du revamp                                         -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="bg-gradient-to-br from-forest-50 to-white border border-forest-300 rounded-xl p-5">
+  <h3 class="text-[14px] font-bold text-forest-900 mb-3">Architecture proposée — Piste B</h3>
+
+  <h4 class="text-[12px] font-bold text-forest-700 mt-3 mb-1.5">📦 Migrations DB</h4>
+  <ul class="text-[12px] text-gray-700 space-y-1 leading-relaxed mb-3">
+    <li>1. <b>Étendre <code class="mono bg-white px-1 rounded text-[11px]">plans</code></b> avec <code class="mono">max_users</code>, <code class="mono">max_missions</code>, <code class="mono">tier</code> (free/standard/enterprise/custom).</li>
+    <li>2. <b>Créer <code class="mono bg-white px-1 rounded text-[11px]">plan_features</code></b> (table de jonction) : <code class="mono">plan_id</code> + <code class="mono">flag_id</code>.</li>
+    <li>3. <b>Étendre <code class="mono bg-white px-1 rounded text-[11px]">feature_flags</code></b> avec <code class="mono">category</code> (ai/reporting/branding/security/collab) et <code class="mono">maturity</code> (stable/beta/new).</li>
+  </ul>
+
+  <h4 class="text-[12px] font-bold text-forest-700 mt-4 mb-1.5">🖥️ Pages admin</h4>
+  <ul class="text-[12px] text-gray-700 space-y-1 leading-relaxed mb-3">
+    <li><b><code class="mono bg-white px-1 rounded text-[11px]">/admin/plans</code></b> — Liste cards + Vue matrice + CRUD avec garde-fou suppression.</li>
+    <li><b><code class="mono bg-white px-1 rounded text-[11px]">/admin/feature-flags</code></b> (existant) — Garde la gestion globale ON/OFF + ajoute la <code class="mono">category</code>/<code class="mono">maturity</code>.</li>
+    <li><b><code class="mono bg-white px-1 rounded text-[11px]">/admin/cabinets/:id</code> onglet "Fonctionnalités"</b> — refonte plan-based : "Inclus dans le plan", "Personnalisations", "Hors plan disponibles".</li>
+  </ul>
+
+  <h4 class="text-[12px] font-bold text-forest-700 mt-4 mb-1.5">🔒 Logique RLS</h4>
+  <ul class="text-[12px] text-gray-700 space-y-1 leading-relaxed">
+    <li><b>Lecture publique</b> sur <code class="mono">plans</code> + <code class="mono">plan_features</code> (déjà le cas pour <code class="mono">plans</code>).</li>
+    <li><b>Écriture <code class="mono">platform_owner</code> uniquement</b> via Edge Function <code class="mono">admin-plans</code> (audit log).</li>
+    <li><b>Garde-fou DELETE</b> : impossible de supprimer un plan si <code class="mono">organizations.plan_id</code> y pointe (ON DELETE RESTRICT).</li>
+  </ul>
+
+  <h4 class="text-[12px] font-bold text-forest-700 mt-4 mb-1.5">⚙️ Edge Function <code class="mono bg-white px-1 rounded text-[11px]">admin-plans</code></h4>
+  <p class="text-[12px] text-gray-700 leading-relaxed">
+    Actions : <code class="mono">create</code>, <code class="mono">update</code>, <code class="mono">delete</code>, <code class="mono">set_features</code> (remplace la liste des features liées). Toutes loggées dans <code class="mono">audit_log</code> avec motif obligatoire.
+  </p>
+</div>
+
+
+<!-- Helper: matrix cell as inline custom element pseudo (rendered as text in mockup) -->
+<script>
+  document.querySelectorAll('matrixcell').forEach(el => {
+    const state = el.getAttribute('state') || 'off';
+    const span = document.createElement('span');
+    span.className = 'inline-flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-bold cursor-pointer transition-colors';
+    if (state === 'on') {
+      span.className += ' bg-emerald-100 text-emerald-700 hover:bg-emerald-200';
+      span.textContent = '✓';
+    } else if (state === 'beta') {
+      span.className += ' bg-gold-100 text-gold-700 hover:bg-gold-200';
+      span.textContent = 'β';
+    } else {
+      span.className += ' bg-gray-50 text-gray-300 hover:bg-gray-100';
+      span.textContent = '—';
+    }
+    el.replaceWith(span);
+  });
+</script>
+
+</body>
+</html>
