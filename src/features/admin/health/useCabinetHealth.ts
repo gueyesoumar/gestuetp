@@ -3,10 +3,13 @@ import { supabase } from '../../../lib/supabase'
 
 export interface ActivityStats {
   lastSignInAt: string | null
+  lastSignInUserEmail: string | null
   membersTotal: number
   membersActive: number
+  membersConnected30d: number
   missionsCreated30d: number
   missionsTotal: number
+  missionsCreatedDaily: number[]
 }
 
 export interface ConsumptionStats {
@@ -16,6 +19,7 @@ export interface ConsumptionStats {
   aiCostUsd30d: number
   storageBytes: number
   documentsCount: number
+  topAiFunctions: Array<{ name: string; count: number }>
 }
 
 export interface ErrorsStats {
@@ -43,10 +47,47 @@ export interface CabinetHealth {
 }
 
 const EMPTY_HEALTH: Omit<CabinetHealth, 'loading' | 'error'> = {
-  activity: { lastSignInAt: null, membersTotal: 0, membersActive: 0, missionsCreated30d: 0, missionsTotal: 0 },
-  consumption: { aiCalls30d: 0, aiInputTokens30d: 0, aiOutputTokens30d: 0, aiCostUsd30d: 0, storageBytes: 0, documentsCount: 0 },
+  activity: {
+    lastSignInAt: null,
+    lastSignInUserEmail: null,
+    membersTotal: 0,
+    membersActive: 0,
+    membersConnected30d: 0,
+    missionsCreated30d: 0,
+    missionsTotal: 0,
+    missionsCreatedDaily: new Array(30).fill(0) as number[],
+  },
+  consumption: {
+    aiCalls30d: 0,
+    aiInputTokens30d: 0,
+    aiOutputTokens30d: 0,
+    aiCostUsd30d: 0,
+    storageBytes: 0,
+    documentsCount: 0,
+    topAiFunctions: [],
+  },
   errors: { aiErrors30d: 0, topAiError: null },
-  config: { hasLightLogo: false, hasDarkLogo: false, hasPrimaryColor: false, domainsConfigured: 0, domainsVerified: 0, planName: null, activeFlagsCount: 0 },
+  config: {
+    hasLightLogo: false,
+    hasDarkLogo: false,
+    hasPrimaryColor: false,
+    domainsConfigured: 0,
+    domainsVerified: 0,
+    planName: null,
+    activeFlagsCount: 0,
+  },
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function bucketByDay(timestamps: string[], since30: Date): number[] {
+  const buckets = new Array(30).fill(0) as number[]
+  for (const ts of timestamps) {
+    const t = new Date(ts).getTime()
+    const diffDays = Math.floor((t - since30.getTime()) / DAY_MS)
+    if (diffDays >= 0 && diffDays < 30) buckets[diffDays] += 1
+  }
+  return buckets
 }
 
 export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
@@ -65,13 +106,13 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
 
     void (async () => {
       try {
-        const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+        const since30Date = new Date(Date.now() - 30 * DAY_MS)
+        const since30 = since30Date.toISOString()
 
-        // ─── Activité ───
-        const [{ data: usersData }, { data: missionsData }, { data: missionsRecentData }] = await Promise.all([
+        const [{ data: usersData }, { data: missionsAll }, { data: missionsRecent }] = await Promise.all([
           supabase
             .from('users')
-            .select('id, is_active, last_sign_in_at')
+            .select('id, email, is_active, last_sign_in_at')
             .eq('organization_id', cabinetId)
             .abortSignal(abort.signal),
           supabase
@@ -81,33 +122,42 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .abortSignal(abort.signal),
           supabase
             .from('missions')
-            .select('id', { count: 'exact', head: true })
+            .select('created_at')
             .eq('cabinet_id', cabinetId)
             .gte('created_at', since30)
             .abortSignal(abort.signal),
         ])
         if (abort.signal.aborted) return
 
-        const users = (usersData ?? []) as Array<{ is_active: boolean; last_sign_in_at: string | null }>
-        const lastSignInAt = users.reduce<string | null>((acc, u) => {
-          if (!u.last_sign_in_at) return acc
-          if (!acc) return u.last_sign_in_at
-          return u.last_sign_in_at > acc ? u.last_sign_in_at : acc
-        }, null)
+        const users = (usersData ?? []) as Array<{ email: string | null; is_active: boolean; last_sign_in_at: string | null }>
+        let lastSignInAt: string | null = null
+        let lastSignInUserEmail: string | null = null
+        for (const u of users) {
+          if (!u.last_sign_in_at) continue
+          if (!lastSignInAt || u.last_sign_in_at > lastSignInAt) {
+            lastSignInAt = u.last_sign_in_at
+            lastSignInUserEmail = u.email
+          }
+        }
+        const membersConnected30d = users.filter((u) => u.last_sign_in_at && u.last_sign_in_at >= since30).length
+        const missionsRecentTs = ((missionsRecent ?? []) as Array<{ created_at: string }>).map((m) => m.created_at)
+        const missionsCreatedDaily = bucketByDay(missionsRecentTs, since30Date)
 
         const activity: ActivityStats = {
           lastSignInAt,
+          lastSignInUserEmail,
           membersTotal: users.length,
           membersActive: users.filter((u) => u.is_active).length,
-          missionsCreated30d: (missionsRecentData as unknown as { length?: number; count?: number } | null)?.count ?? 0,
-          missionsTotal: (missionsData as unknown as { length?: number; count?: number } | null)?.count ?? 0,
+          membersConnected30d,
+          missionsCreated30d: missionsRecentTs.length,
+          missionsTotal: (missionsAll as unknown as { count?: number } | null)?.count ?? 0,
+          missionsCreatedDaily,
         }
 
-        // ─── Consommation ───
         const [{ data: aiCalls }, { data: docs }] = await Promise.all([
           supabase
             .from('ai_calls_log')
-            .select('input_tokens, output_tokens, cost_estimate_usd, success')
+            .select('function_name, input_tokens, output_tokens, cost_estimate_usd, success')
             .eq('organization_id', cabinetId)
             .gte('created_at', since30)
             .abortSignal(abort.signal),
@@ -119,8 +169,15 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
         ])
         if (abort.signal.aborted) return
 
-        const ai = (aiCalls ?? []) as Array<{ input_tokens: number | null; output_tokens: number | null; cost_estimate_usd: number | null; success: boolean }>
+        const ai = (aiCalls ?? []) as Array<{ function_name: string; input_tokens: number | null; output_tokens: number | null; cost_estimate_usd: number | null; success: boolean }>
         const documents = (docs ?? []) as Array<{ file_size: number | null }>
+
+        const fnCounts = new Map<string, number>()
+        for (const c of ai) fnCounts.set(c.function_name, (fnCounts.get(c.function_name) ?? 0) + 1)
+        const topAiFunctions = [...fnCounts.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([name, count]) => ({ name, count }))
 
         const consumption: ConsumptionStats = {
           aiCalls30d: ai.length,
@@ -129,9 +186,9 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
           aiCostUsd30d: ai.reduce((s, c) => s + Number(c.cost_estimate_usd ?? 0), 0),
           storageBytes: documents.reduce((s, d) => s + (d.file_size ?? 0), 0),
           documentsCount: documents.length,
+          topAiFunctions,
         }
 
-        // ─── Erreurs ───
         const { data: aiErrors } = await supabase
           .from('ai_calls_log')
           .select('function_name, error_message, created_at')
@@ -158,7 +215,6 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
 
         const errorsStats: ErrorsStats = { aiErrors30d: errs.length, topAiError }
 
-        // ─── Config ───
         const [{ data: branding }, { data: domains }, { data: orgPlan }, { data: flagOverrides }] = await Promise.all([
           supabase
             .from('organization_branding')

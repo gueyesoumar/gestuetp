@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Download, Trash2 } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAdminCabinetDetail } from '../../features/admin/useAdminCabinetDetail'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -13,10 +13,11 @@ import { CabinetMissionsTab } from '../../features/admin/CabinetMissionsTab'
 import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
-import { CabinetHealthTab } from '../../features/admin/health/CabinetHealthTab'
+import { CabinetOverviewTab } from '../../features/admin/health/CabinetOverviewTab'
 import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
+import { labelOrganizationType } from '../../features/admin/cabinetLabels'
 
-type TabKey = 'overview' | 'health' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
+type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -88,7 +89,7 @@ export function CabinetDetailPage() {
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[14px] font-extrabold ${cabinet.is_active ? 'bg-forest-100 text-forest-700' : 'bg-red-50 text-red-600'}`}>{initials}</div>
         <div>
           <h1 className="text-[18px] font-bold text-gray-900">{cabinet.name}</h1>
-          <div className="text-[11.5px] text-gray-500">{labelType(cabinet.types)} · onboardé le {new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+          <div className="text-[11.5px] text-gray-500">{labelOrganizationType(cabinet.types)} · onboardé le {new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
         </div>
         <div className="ml-auto flex items-center gap-2">
           {cabinet.is_active ? (
@@ -101,7 +102,6 @@ export function CabinetDetailPage() {
 
       <div className="flex gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
         <TabBtn k="overview" label="Vue d'ensemble" active={activeTab === 'overview'} onClick={setActiveTab} />
-        <TabBtn k="health" label="Santé" active={activeTab === 'health'} onClick={setActiveTab} />
         <TabBtn k="members" label={`Membres · ${cabinet.members.length}`} active={activeTab === 'members'} onClick={setActiveTab} />
         <TabBtn k="missions" label={`Missions · ${cabinet.missions.length}`} active={activeTab === 'missions'} onClick={setActiveTab} />
         <TabBtn k="billing" label="Facturation" active={activeTab === 'billing'} onClick={setActiveTab} />
@@ -111,56 +111,16 @@ export function CabinetDetailPage() {
       </div>
 
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-[1fr_320px] gap-5">
-          <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <header className="px-4 py-3 border-b border-gray-200">
-              <span className="text-[13px] font-bold text-gray-900">Identité</span>
-            </header>
-            <div className="px-5 py-4">
-              <dl className="grid grid-cols-[140px_1fr] gap-y-2.5 gap-x-5 text-[13px]">
-                <dt className="text-gray-500 text-[12px]">Nom</dt><dd className="text-gray-900 font-medium">{cabinet.name}</dd>
-                <dt className="text-gray-500 text-[12px]">Slug</dt><dd className="text-gray-900 font-mono text-[12px]">{cabinet.slug}</dd>
-                <dt className="text-gray-500 text-[12px]">Plan</dt><dd className="text-gray-900">{cabinet.plan_name ?? '—'}{cabinet.plan_price != null && cabinet.plan_price > 0 ? ` · ${cabinet.plan_price} €/mois` : ''}</dd>
-                <dt className="text-gray-500 text-[12px]">Onboardé</dt><dd className="text-gray-900">{new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
-                <dt className="text-gray-500 text-[12px]">Types</dt>
-                <dd className="text-gray-900 flex items-center gap-2">
-                  <span>{labelType(cabinet.types)}</span>
-                  {!cabinet.types.includes('platform') && (
-                    <button
-                      onClick={() => setTypesModalOpen(true)}
-                      className="text-[11px] text-forest-700 font-semibold hover:text-forest-900"
-                    >
-                      Modifier
-                    </button>
-                  )}
-                </dd>
-                <dt className="text-gray-500 text-[12px]">Membres</dt><dd className="text-gray-900">{cabinet.members.length}</dd>
-                <dt className="text-gray-500 text-[12px]">Missions</dt><dd className="text-gray-900">{cabinet.missions.length}</dd>
-              </dl>
-            </div>
-          </section>
-
-          <section className="bg-red-50 border border-red-200 rounded-xl p-4 self-start">
-            <h4 className="text-[12px] uppercase tracking-wider text-red-700 font-bold mb-1.5">Zone sensible</h4>
-            <p className="text-[11.5px] text-red-700 leading-relaxed mb-3">Toute action est tracée dans l&apos;audit log avec le motif que vous saisirez.</p>
-            <div className="flex flex-wrap gap-2">
-              {cabinet.is_active ? (
-                <button onClick={() => setReasonModal('suspend')} className="px-3 py-1.5 border border-red-400 bg-white text-red-700 rounded-lg text-[12px] font-semibold hover:bg-red-50">Suspendre</button>
-              ) : (
-                <button onClick={() => setReasonModal('reactivate')} className="px-3 py-1.5 border border-green-400 bg-white text-green-700 rounded-lg text-[12px] font-semibold hover:bg-green-50">Réactiver</button>
-              )}
-              <button onClick={() => setReasonModal('export')} className="px-3 py-1.5 border border-red-200 bg-white text-red-700 rounded-lg text-[12px] font-semibold hover:bg-red-50 inline-flex items-center gap-1">
-                <Download size={12} /> Exporter CSV
-              </button>
-              <button onClick={() => setDeleteOpen(true)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-[12px] font-semibold hover:bg-red-700 inline-flex items-center gap-1">
-                <Trash2 size={12} /> Supprimer définitivement
-              </button>
-            </div>
-          </section>
-        </div>
+        <CabinetOverviewTab
+          cabinet={cabinet}
+          onSuspend={() => setReasonModal('suspend')}
+          onReactivate={() => setReasonModal('reactivate')}
+          onExport={() => setReasonModal('export')}
+          onDelete={() => setDeleteOpen(true)}
+          onEditTypes={() => setTypesModalOpen(true)}
+        />
       )}
 
-      {activeTab === 'health' && <CabinetHealthTab cabinetId={cabinet.id} />}
       {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}
       {activeTab === 'missions' && <CabinetMissionsTab cabinetId={cabinet.id} />}
       {activeTab === 'billing' && <CabinetBillingTab cabinet={cabinet} />}
@@ -250,12 +210,3 @@ function TabBtn({ k, label, active, onClick }: { k: TabKey; label: string; activ
   )
 }
 
-function labelType(types: string[]): string {
-  if (types.includes('cabinet') && types.includes('group')) return 'Cabinet · Groupe'
-  if (types.includes('cabinet') && types.includes('client')) return 'Cabinet · Client'
-  if (types.includes('cabinet')) return 'Cabinet'
-  if (types.includes('client')) return 'Client'
-  if (types.includes('group')) return 'Groupe'
-  if (types.includes('platform')) return 'Plateforme'
-  return 'Organisation'
-}
