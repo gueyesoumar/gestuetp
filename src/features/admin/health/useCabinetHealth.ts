@@ -37,11 +37,19 @@ export interface ConfigStats {
   activeFlagsCount: number
 }
 
+export interface QuotaStats {
+  maxUsers: number | null
+  maxMissions: number | null
+  currentActiveUsers: number
+  currentActiveMissions: number
+}
+
 export interface CabinetHealth {
   activity: ActivityStats
   consumption: ConsumptionStats
   errors: ErrorsStats
   config: ConfigStats
+  quotas: QuotaStats
   loading: boolean
   error: string | null
 }
@@ -75,6 +83,12 @@ const EMPTY_HEALTH: Omit<CabinetHealth, 'loading' | 'error'> = {
     domainsVerified: 0,
     planName: null,
     activeFlagsCount: 0,
+  },
+  quotas: {
+    maxUsers: null,
+    maxMissions: null,
+    currentActiveUsers: 0,
+    currentActiveMissions: 0,
   },
 }
 
@@ -215,7 +229,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
 
         const errorsStats: ErrorsStats = { aiErrors30d: errs.length, topAiError }
 
-        const [{ data: branding }, { data: domains }, { data: orgPlan }, { data: flagOverrides }] = await Promise.all([
+        const [{ data: branding }, { data: domains }, { data: orgPlan }, { data: flagOverrides }, { count: activeMissionsCount }] = await Promise.all([
           supabase
             .from('organization_branding')
             .select('logo_light_url, logo_dark_url, primary_color')
@@ -229,7 +243,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .abortSignal(abort.signal),
           supabase
             .from('organizations')
-            .select('plan_id, plan:plans(name)')
+            .select('plan_id, plan:plans(name, max_users, max_missions)')
             .eq('id', cabinetId)
             .single()
             .abortSignal(abort.signal),
@@ -239,12 +253,18 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .eq('organization_id', cabinetId)
             .eq('enabled', true)
             .abortSignal(abort.signal),
+          supabase
+            .from('missions')
+            .select('id', { count: 'exact', head: true })
+            .eq('cabinet_id', cabinetId)
+            .eq('is_active', true)
+            .abortSignal(abort.signal),
         ])
         if (abort.signal.aborted) return
 
         const b = branding as { logo_light_url: string | null; logo_dark_url: string | null; primary_color: string | null } | null
         const dom = (domains ?? []) as Array<{ is_verified: boolean }>
-        const plan = orgPlan as { plan: { name: string } | null } | null
+        const plan = orgPlan as { plan: { name: string; max_users: number | null; max_missions: number | null } | null } | null
         const flags = (flagOverrides ?? []) as Array<{ enabled: boolean }>
 
         const config: ConfigStats = {
@@ -257,7 +277,14 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
           activeFlagsCount: flags.length,
         }
 
-        setData({ activity, consumption, errors: errorsStats, config })
+        const quotas: QuotaStats = {
+          maxUsers: plan?.plan?.max_users ?? null,
+          maxMissions: plan?.plan?.max_missions ?? null,
+          currentActiveUsers: activity.membersActive,
+          currentActiveMissions: activeMissionsCount ?? 0,
+        }
+
+        setData({ activity, consumption, errors: errorsStats, config, quotas })
         setLoading(false)
       } catch (err) {
         if (abort.signal.aborted) return

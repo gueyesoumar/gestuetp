@@ -5,6 +5,7 @@ import { CabinetActivityCard } from './CabinetActivityCard'
 import { CabinetConsumptionCard } from './CabinetConsumptionCard'
 import { CabinetErrorsCard } from './CabinetErrorsCard'
 import { CabinetConfigCard } from './CabinetConfigCard'
+import { CabinetQuotasCard } from './CabinetQuotasCard'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { labelOrganizationType } from '../cabinetLabels'
@@ -51,6 +52,7 @@ export function CabinetOverviewTab(props: CabinetOverviewTabProps): JSX.Element 
 
         <div className="space-y-4">
           <IdentityCard cabinet={cabinet} onEditTypes={onEditTypes} />
+          <CabinetQuotasCard data={health.quotas} />
           <CabinetConfigCard data={health.config} />
           <SensitiveZone
             isActive={cabinet.is_active}
