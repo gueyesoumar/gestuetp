@@ -7,7 +7,7 @@
  * pour rester pertinent.
  */
 
-import type { AuditReportData, AuditTotals, DomainStat, AssessmentWithControl } from './generateAuditReportPDF'
+import type { AuditReportData, DomainStat, AssessmentWithControl } from './generateAuditReportPDF'
 
 // ── Extraction de contrôles spécifiques ───────────────────────────────────
 
@@ -63,14 +63,6 @@ function truncateName(s: string, max: number): string {
   return s.length <= max ? s.toLowerCase().charAt(0) + s.slice(1) : s.slice(0, max - 1).toLowerCase().charAt(0) + s.slice(1, max - 1) + '…'
 }
 
-function classifLabel(c: string | null | undefined): string {
-  switch (c) {
-    case 'major_nc': return 'NC majeure'
-    case 'minor_nc': return 'NC mineure'
-    case 'observation': return 'observation'
-    default: return ''
-  }
-}
 
 // ── Verdict & qualifiers ──────────────────────────────────────────────────
 
@@ -142,7 +134,6 @@ export function generateContextNarrative(data: AuditReportData): string[] {
 // ── 02. Méthodologie ──────────────────────────────────────────────────────
 
 export function generateMethodologyNarrative(data: AuditReportData): string[] {
-  const fw = frameworkLabel(data)
   return [
     `La mission a été conduite conformément aux normes professionnelles d'audit applicables, et en cohérence avec les principes énoncés par la norme ISO 19011:2018 « Lignes directrices pour l'audit des systèmes de management ». Notre approche s'inscrit dans une logique d'évaluation par les processus et par les preuves, à la croisée de l'audit de conformité (recherche d'écarts au référentiel) et de l'audit de performance (appréciation de l'efficacité opérationnelle des dispositifs).`,
     `La phase de préparation a donné lieu à l'élaboration d'un mémo de planification définissant les objectifs détaillés, le périmètre, le calendrier, l'équipe mobilisée et la stratégie d'échantillonnage. La sélection des contrôles a été opérée selon une approche par les risques : les contrôles à enjeu majeur (gouvernance, gestion des accès, continuité, gestion des fournisseurs critiques, sécurité du développement) ont fait l'objet de tests approfondis, tandis que les contrôles à faible criticité ont été couverts par revue documentaire ciblée.`,
@@ -431,11 +422,6 @@ function memberFullName(data: AuditReportData, role: string): string | null {
   if (!u) return null
   const name = `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim()
   return name || null
-}
-
-function topDomains(domains: DomainStat[], mode: 'best' | 'worst', n: number): DomainStat[] {
-  const sorted = [...domains].sort((a, b) => mode === 'best' ? b.score - a.score : a.score - b.score)
-  return sorted.slice(0, n)
 }
 
 function formatPeriod(start: string | null | undefined, end: string | null | undefined): string {

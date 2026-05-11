@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Paperclip, Check, Circle, ChevronDown, ChevronRight, Send, Search, Star } from 'lucide-react'
-import { supabase } from '../../../lib/supabase'
 import { Badge } from '../../../components/ui/Badge'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useEvidenceCatalog } from '../useEvidenceCatalog'
@@ -33,7 +32,7 @@ interface CatalogRow {
 
 export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrackerProps): JSX.Element {
   const { evidenceByControl, loading: catLoading } = useEvidenceCatalog(domains)
-  const { requests, requestedIds, requestEvidence, requesting, refetch: refetchRequests } = useMissionEvidenceRequests(missionId)
+  const { requestedIds, requestEvidence, requesting, refetch: refetchRequests } = useMissionEvidenceRequests(missionId)
   const { isEssential, toggleOverride, saving: savingOverride } = useMissionEvidenceOverrides(missionId)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState<FilterKey>('requested')

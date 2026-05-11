@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ClipboardList, FileEdit, CheckCircle, GitPullRequest, ArrowRight, Play, Send } from 'lucide-react'
 import { DashboardKpiCard } from './DashboardKpiCard'
-import { Badge } from '../../components/ui/Badge'
 import type { DashboardStats, MissionSummary } from './useDashboardStats'
 
 interface OperationnelDashboardProps {

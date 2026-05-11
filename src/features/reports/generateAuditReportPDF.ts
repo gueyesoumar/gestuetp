@@ -86,30 +86,19 @@ export interface AuditReportData {
 
 type RGB = [number, number, number]
 const FOREST_900: RGB = [13, 47, 35]
-const FOREST_800: RGB = [20, 56, 42]
 const FOREST_700: RGB = [27, 67, 50]
-const FOREST_500: RGB = [45, 106, 79]
-const FOREST_50: RGB = [240, 253, 244]
 const GOLD_500: RGB = [212, 168, 67]
-const GOLD_50: RGB = [253, 248, 232]
 const TEXT_900: RGB = [26, 26, 26]
-const TEXT_800: RGB = [40, 45, 53]
 const TEXT_700: RGB = [55, 65, 81]
 const TEXT_500: RGB = [107, 114, 128]
 const TEXT_400: RGB = [156, 163, 175]
-const TEXT_300: RGB = [209, 213, 219]
 const BORDER: RGB = [229, 231, 235]
-const BORDER_2: RGB = [243, 244, 246]
 const WHITE: RGB = [255, 255, 255]
 const CREAM: RGB = [250, 250, 248]
 const RED: RGB = [192, 57, 43]
-const RED_50: RGB = [254, 242, 242]
 const ORANGE: RGB = [230, 126, 34]
-const ORANGE_50: RGB = [255, 247, 237]
 const BLUE: RGB = [37, 99, 235]
-const BLUE_50: RGB = [239, 246, 255]
 const GREEN: RGB = [39, 174, 96]
-const GREEN_50: RGB = [236, 253, 245]
 const WATERMARK_GRAY: RGB = [240, 240, 240]
 
 // ── Pondération (alignée close-mission edge fn) ────────────────────────────
@@ -357,7 +346,7 @@ function drawWatermark(ctx: DocContext): void {
   doc.restoreGraphicsState()
 }
 
-function drawPageHeader(ctx: DocContext, pageNum: number, total: number): void {
+function drawPageHeader(ctx: DocContext, _pageNum: number, _total: number): void {
   const { doc, pageW, marginL, marginR } = ctx
   // ligne or
   doc.setDrawColor(...GOLD_500)
@@ -735,7 +724,7 @@ function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData | null)
   ctx.sectionByPage.set(ctx.doc.getCurrentPageInfo().pageNumber, ctx.currentSection)
   ctx.tocAnchors.push({ num: '', title: 'Lettre au comité d’audit', page: ctx.doc.getCurrentPageInfo().pageNumber })
 
-  const { doc, marginL, contentW, pageW } = ctx
+  const { doc, marginL, pageW } = ctx
 
   // Header cabinet : logo gauche, méta-infos droite. La méta-info droite
   // n'affiche pas le nom cabinet quand il y a un logo (sinon doublon visuel).
@@ -1016,7 +1005,7 @@ function drawNCFactSheet(ctx: DocContext, a: AssessmentWithControl, idx: number,
   }
   setPageContext(ctx, `05 Fiches NC majeures (${idx}/${total})`)
 
-  const { doc, marginL, contentW, pageW } = ctx
+  const { doc, marginL, contentW } = ctx
   // Bandeau fiche
   fillRect(doc, marginL, ctx.y, contentW, 18, RED)
   setText(doc, WHITE, 8.5, 'bold')
@@ -1369,12 +1358,6 @@ function memberName(m: MissionMemberRow): string {
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
-}
-
-function formatPeriod(start: string | null | undefined, end: string | null | undefined): string {
-  if (!start && !end) return '—'
-  // Helvetica jsPDF ne supporte pas la flèche U+2192 → "au"
-  return `${formatDate(start)} au ${formatDate(end)}`
 }
 
 function formatPeriodShort(start: string | null | undefined, end: string | null | undefined): string {

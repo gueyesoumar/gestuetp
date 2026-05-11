@@ -52,8 +52,8 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
         .from('organizations')
         .select('*')
         .eq('id', orgId)
-        .single()
         .abortSignal(controller.signal)
+        .single()
 
       if (controller.signal.aborted) return
       if (orgErr || !org) {
@@ -71,8 +71,8 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
           .from('organizations')
           .select('id, name')
           .eq('id', typedOrg.parent_org_id)
-          .single()
           .abortSignal(controller.signal)
+          .single()
 
         if (controller.signal.aborted) return
         if (parent) {

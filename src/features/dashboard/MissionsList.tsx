@@ -1,6 +1,5 @@
 import { Badge } from '../../components/ui/Badge'
 import type { MissionSummary } from './useDashboardStats'
-import type { MissionStatus } from '../../types/database.types'
 
 const statusBadge: Record<string, { label: string; variant: 'forest' | 'gold' | 'green' | 'gray' }> = {
   initialization: { label: 'Init.', variant: 'gray' },

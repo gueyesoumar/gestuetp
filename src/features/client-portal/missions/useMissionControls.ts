@@ -79,8 +79,8 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         .from('missions')
         .select('framework_id')
         .eq('id', missionId)
-        .single()
         .abortSignal(controller.signal)
+        .single()
 
       if (controller.signal.aborted) return
       if (mErr || !mission) { setError('Mission introuvable.'); setLoading(false); return }

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Send, XCircle, CheckCircle, AlertTriangle, FileText, Eye } from 'lucide-react'
+import { Send, XCircle, CheckCircle, AlertTriangle, Eye } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { InfoPopover } from '../../../components/ui/InfoPopover'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'

@@ -1,6 +1,5 @@
 import { FileText } from 'lucide-react'
 import { SafeMarkdown } from '../../../components/ui/SafeMarkdown'
-import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { AssessmentFinding, FindingClassification } from './findings/useAssessmentFindings'
 import type { useMissionDocuments } from '../useMissionDocuments'
 

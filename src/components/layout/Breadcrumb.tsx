@@ -50,24 +50,24 @@ export function Breadcrumb() {
             .from('missions')
             .select('name')
             .eq('id', id)
-            .single()
             .abortSignal(abortController.signal)
+            .single()
           if (data) labels[id] = data.name
         } else if (parent === 'clients') {
           const { data } = await supabase
             .from('cabinet_clients')
             .select('client_name')
             .eq('id', id)
-            .single()
             .abortSignal(abortController.signal)
+            .single()
           if (data) labels[id] = data.client_name
         } else if (parent === 'referentiels') {
           const { data } = await supabase
             .from('frameworks')
             .select('name')
             .eq('slug', id)
-            .single()
             .abortSignal(abortController.signal)
+            .single()
           if (data) labels[id] = data.name
         }
       }

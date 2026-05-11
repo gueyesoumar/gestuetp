@@ -2,12 +2,10 @@ import { useState, useMemo } from 'react'
 import { computeDisplayStatus } from './computeDisplayStatus'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
-import type { ControlAssignmentRow } from '../useMissionDetail'
 
 interface FieldworkDomainGroupProps {
   domain: DomainWithControls
   assessments: AssessmentWithControl[]
-  assignments: ControlAssignmentRow[]
   auditorMap: Map<string, string>
   selectedControlId: string | null
   onSelectControl: (controlId: string) => void
@@ -16,7 +14,7 @@ interface FieldworkDomainGroupProps {
   search: string
 }
 
-export function FieldworkDomainGroup({ domain, assessments, assignments, auditorMap, selectedControlId, onSelectControl, defaultOpen = false, filter, search }: FieldworkDomainGroupProps): JSX.Element {
+export function FieldworkDomainGroup({ domain, assessments, auditorMap, selectedControlId, onSelectControl, defaultOpen = false, filter, search }: FieldworkDomainGroupProps): JSX.Element {
   const [open, setOpen] = useState(defaultOpen)
 
   // Build a map of control_id → assessment status

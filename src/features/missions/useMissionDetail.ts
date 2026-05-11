@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Mission, Framework, Organization, User } from '../../types/database.types'
-import type { MemberWithRoles } from '../members/types'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
 import type { Control } from '../../types/database.types'
 
@@ -72,8 +71,8 @@ export function useMissionDetail(missionId: string | undefined): UseMissionDetai
           associate_user:users!missions_associate_id_fkey(id, first_name, last_name)
         `)
         .eq('id', missionId)
-        .single()
         .abortSignal(abortController.signal)
+        .single()
 
       if (abortController.signal.aborted) return
       if (mErr || !missionData) {

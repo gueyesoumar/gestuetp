@@ -76,8 +76,9 @@ export function useCabinetFeatureFlags(cabinetId: string | undefined): Result {
           supabase
             .from('organizations')
             .select('plan_id, plan:plans(id, slug, name)')
-            .eq('id', cabinetId).single()
-            .abortSignal(abort.signal),
+            .eq('id', cabinetId)
+            .abortSignal(abort.signal)
+            .single(),
           supabase
             .from('feature_flag_overrides')
             .select('flag_id, enabled, reason, updated_at')

@@ -23,7 +23,7 @@ function barColor(score: number): string {
 
 export function ControlSyntheseView({
   globalScore, totalControls, conformesCount, observationsCount,
-  minorNcCount, majorNcCount, strengthsCount, myObservationsCount,
+  minorNcCount, majorNcCount, myObservationsCount,
   domainSummaries, onSwitchToList,
 }: ControlSyntheseViewProps): JSX.Element {
   const totalNc = minorNcCount + majorNcCount

@@ -44,8 +44,8 @@ export function MissionCreatePage() {
       .from('organizations')
       .select('types')
       .eq('id', profile.organization_id)
-      .single()
       .abortSignal(ac.signal)
+      .single()
       .then(({ data }) => {
         if (ac.signal.aborted) return
         if (data?.types && isGroupOrg({ types: data.types as string[] })) {

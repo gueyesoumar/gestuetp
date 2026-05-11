@@ -18,7 +18,7 @@ const VIEW_DESCRIPTIONS: Record<DashboardView, string> = {
 
 export function CabinetDashboard(): JSX.Element {
   const { profile } = useAuth()
-  const { stats, missions, nearestDeadline, priorityMission, loading: statsLoading, error } = useDashboardStats()
+  const { stats, missions, nearestDeadline, loading: statsLoading, error } = useDashboardStats()
   const { allowedViews, defaultView, loading: viewsLoading } = useDashboardViews()
   const [activeView, setActiveView] = useState<DashboardView | null>(null)
 

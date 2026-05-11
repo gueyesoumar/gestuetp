@@ -39,7 +39,6 @@ const TEXT_900: RGB = [26, 26, 26]
 const TEXT_700: RGB = [55, 65, 81]
 const TEXT_500: RGB = [107, 114, 128]
 const TEXT_400: RGB = [156, 163, 175]
-const TEXT_300: RGB = [209, 213, 219]
 const BORDER: RGB = [229, 231, 235]
 const WHITE: RGB = [255, 255, 255]
 const BG: RGB = [250, 250, 248]
@@ -48,7 +47,6 @@ const RED_50: RGB = [254, 242, 242]
 const ORANGE: RGB = [230, 126, 34]
 const ORANGE_50: RGB = [255, 247, 237]
 const BLUE: RGB = [37, 99, 235]
-const BLUE_50: RGB = [239, 246, 255]
 
 // ── Public API ─────────────────────────────────────────────────────────────
 
@@ -926,7 +924,7 @@ function drawTable(ctx: DocContext, headers: string[], rows: string[][]): void {
     setText(ctx.doc, TEXT_700, 9, 'normal')
     // Compute max line height
     let maxLines = 1
-    const wrapped: string[][] = row.map((cell, i) => {
+    const wrapped: string[][] = row.map((cell) => {
       const lines = ctx.doc.splitTextToSize(cell, colW - 6) as string[]
       maxLines = Math.max(maxLines, lines.length)
       return lines.slice(0, 3)

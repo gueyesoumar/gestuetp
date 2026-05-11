@@ -48,7 +48,6 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const [closing, setClosing] = useState(false)
   const [closeError, setCloseError] = useState<string | null>(null)
   const [scoring, setScoring] = useState<ScoringData | null>(null)
-  const [assessments, setAssessments] = useState<ControlAssessment[]>([])
   const [findingClassifications, setFindingClassifications] = useState<string[]>([])
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const isClosed = mission.status === 'closure'
@@ -70,7 +69,6 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       if (controller.signal.aborted) return
       if (!res.ok) return
       const assess = (await res.json()) as ControlAssessment[]
-      setAssessments(assess)
 
       // Fetch findings classifications for the synthesis card
       const ids = assess.map((a) => a.id)

@@ -48,8 +48,9 @@ export function useMyCabinetQuotas(): Result {
           supabase
             .from('organizations')
             .select('types, plan:plans(max_users, max_missions)')
-            .eq('id', orgId).single()
-            .abortSignal(abort.signal),
+            .eq('id', orgId)
+            .abortSignal(abort.signal)
+            .single(),
           supabase
             .from('users')
             .select('id', { count: 'exact', head: true })

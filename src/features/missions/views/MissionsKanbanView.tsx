@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { Badge } from '../../../components/ui/Badge'
 import { MissionKindBadge } from '../MissionKindBadge'
 import type { MissionWithDetails } from '../useMissions'
 import type { MissionStatus } from '../../../types/database.types'

@@ -24,8 +24,8 @@ export function DashboardPage() {
       .from('organizations')
       .select('types')
       .eq('id', profile.organization_id)
-      .single()
       .abortSignal(abortController.signal)
+      .single()
       .then(({ data }) => {
         if (abortController.signal.aborted) return
         if (data?.types && isGroupOrg({ types: data.types as string[] })) {

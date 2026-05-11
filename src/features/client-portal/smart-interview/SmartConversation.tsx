@@ -4,7 +4,6 @@ import { supabase } from '../../../lib/supabase'
 import type { Question } from '../../../types/database.types'
 
 interface Props {
-  missionId: string
   questions: Question[]
   instanceId: string
   userId: string | null
@@ -16,7 +15,7 @@ interface ChatMessage {
   content: string
 }
 
-export function SmartConversation({ missionId, questions, instanceId, userId, readOnly }: Props): JSX.Element {
+export function SmartConversation({ questions, instanceId, userId, readOnly }: Props): JSX.Element {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [saving, setSaving] = useState(false)

@@ -1370,210 +1370,264 @@ export interface TopicControlLinkInsert {
 // Database type (pour Supabase client type)
 // ============================================================
 
+/**
+ * Helper qui rend nos interfaces compatibles avec GenericTable de supabase-js v2.
+ * supabase-js requiert Row/Insert/Update extends Record<string, unknown> ; les
+ * `interface` TypeScript ne satisfont pas ce contrat structurellement (vs un type
+ * alias inline), ce qui faisait tomber l'inference de tous les .select() en `never`.
+ * L'intersection force la conformite sans modifier la forme reelle.
+ */
+type Rec = Record<string, unknown>
+
 export interface Database {
+  __InternalSupabase: {
+    PostgrestVersion: '12'
+  }
   public: {
     Tables: {
       organizations: {
-        Row: Organization
-        Insert: OrganizationInsert
-        Update: OrganizationUpdate
+        Row: Organization & Rec
+        Insert: OrganizationInsert & Rec
+        Update: OrganizationUpdate & Rec
+        Relationships: []
       }
       tenant_configs: {
-        Row: TenantConfig
-        Insert: TenantConfigInsert
-        Update: TenantConfigUpdate
+        Row: TenantConfig & Rec
+        Insert: TenantConfigInsert & Rec
+        Update: TenantConfigUpdate & Rec
+        Relationships: []
       }
       users: {
-        Row: User
-        Insert: UserInsert
-        Update: UserUpdate
+        Row: User & Rec
+        Insert: UserInsert & Rec
+        Update: UserUpdate & Rec
+        Relationships: []
       }
       platform_roles: {
-        Row: PlatformRole
-        Insert: PlatformRoleInsert
-        Update: PlatformRoleUpdate
+        Row: PlatformRole & Rec
+        Insert: PlatformRoleInsert & Rec
+        Update: PlatformRoleUpdate & Rec
+        Relationships: []
       }
       user_platform_roles: {
-        Row: UserPlatformRole
-        Insert: UserPlatformRoleInsert
-        Update: never
+        Row: UserPlatformRole & Rec
+        Insert: UserPlatformRoleInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       frameworks: {
-        Row: Framework
-        Insert: never
-        Update: never
+        Row: Framework & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       domains: {
-        Row: Domain
-        Insert: never
-        Update: never
+        Row: Domain & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       controls: {
-        Row: Control
-        Insert: never
-        Update: never
+        Row: Control & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questionnaire_templates: {
-        Row: QuestionnaireTemplate
-        Insert: never
-        Update: never
+        Row: QuestionnaireTemplate & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questions: {
-        Row: Question
-        Insert: never
-        Update: never
+        Row: Question & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       control_mappings: {
-        Row: ControlMapping
-        Insert: never
-        Update: never
+        Row: ControlMapping & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       cabinet_clients: {
-        Row: CabinetClient
-        Insert: CabinetClientInsert
-        Update: CabinetClientUpdate
+        Row: CabinetClient & Rec
+        Insert: CabinetClientInsert & Rec
+        Update: CabinetClientUpdate & Rec
+        Relationships: []
       }
       evidence_catalog: {
-        Row: EvidenceCatalogItem
-        Insert: never
-        Update: never
+        Row: EvidenceCatalogItem & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       mission_evidence_requests: {
-        Row: MissionEvidenceRequest
-        Insert: never
-        Update: never
+        Row: MissionEvidenceRequest & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       missions: {
-        Row: Mission
-        Insert: MissionInsert
-        Update: MissionUpdate
+        Row: Mission & Rec
+        Insert: MissionInsert & Rec
+        Update: MissionUpdate & Rec
+        Relationships: []
       }
       mission_members: {
-        Row: MissionMember
-        Insert: MissionMemberInsert
-        Update: never
+        Row: MissionMember & Rec
+        Insert: MissionMemberInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       mission_control_assignments: {
-        Row: MissionControlAssignment
-        Insert: MissionControlAssignmentInsert
-        Update: never
+        Row: MissionControlAssignment & Rec
+        Insert: MissionControlAssignmentInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       control_assessments: {
-        Row: ControlAssessment
-        Insert: ControlAssessmentInsert
-        Update: ControlAssessmentUpdate
+        Row: ControlAssessment & Rec
+        Insert: ControlAssessmentInsert & Rec
+        Update: ControlAssessmentUpdate & Rec
+        Relationships: []
       }
       assessment_validations: {
-        Row: AssessmentValidation
-        Insert: AssessmentValidationInsert
-        Update: never
+        Row: AssessmentValidation & Rec
+        Insert: AssessmentValidationInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questionnaire_instances: {
-        Row: QuestionnaireInstance
-        Insert: QuestionnaireInstanceInsert
-        Update: never
+        Row: QuestionnaireInstance & Rec
+        Insert: QuestionnaireInstanceInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questionnaire_responses: {
-        Row: QuestionnaireResponse
-        Insert: QuestionnaireResponseInsert
-        Update: QuestionnaireResponseUpdate
+        Row: QuestionnaireResponse & Rec
+        Insert: QuestionnaireResponseInsert & Rec
+        Update: QuestionnaireResponseUpdate & Rec
+        Relationships: []
       }
       documents: {
-        Row: Document
-        Insert: DocumentInsert
-        Update: never
+        Row: Document & Rec
+        Insert: DocumentInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       comments: {
-        Row: Comment
-        Insert: CommentInsert
-        Update: CommentUpdate
+        Row: Comment & Rec
+        Insert: CommentInsert & Rec
+        Update: CommentUpdate & Rec
+        Relationships: []
       }
       reports: {
-        Row: Report
-        Insert: ReportInsert
-        Update: never
+        Row: Report & Rec
+        Insert: ReportInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       notifications: {
-        Row: Notification
-        Insert: never
-        Update: never
+        Row: Notification & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       regulatory_catalog: {
-        Row: RegulatoryCatalogItem
-        Insert: never
-        Update: never
+        Row: RegulatoryCatalogItem & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       control_planning: {
-        Row: ControlPlanning
-        Insert: ControlPlanningInsert
-        Update: ControlPlanningUpdate
+        Row: ControlPlanning & Rec
+        Insert: ControlPlanningInsert & Rec
+        Update: ControlPlanningUpdate & Rec
+        Relationships: []
       }
       client_contacts: {
-        Row: ClientContact
-        Insert: ClientContactInsert
-        Update: ClientContactUpdate
+        Row: ClientContact & Rec
+        Insert: ClientContactInsert & Rec
+        Update: ClientContactUpdate & Rec
+        Relationships: []
       }
       interview_schedules: {
-        Row: InterviewSchedule
-        Insert: InterviewScheduleInsert
-        Update: InterviewScheduleUpdate
+        Row: InterviewSchedule & Rec
+        Insert: InterviewScheduleInsert & Rec
+        Update: InterviewScheduleUpdate & Rec
+        Relationships: []
       }
       mission_exclusions: {
-        Row: MissionExclusion
-        Insert: MissionExclusionInsert
-        Update: never
+        Row: MissionExclusion & Rec
+        Insert: MissionExclusionInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       mission_risks: {
-        Row: MissionRisk
-        Insert: MissionRiskInsert
-        Update: MissionRiskUpdate
+        Row: MissionRisk & Rec
+        Insert: MissionRiskInsert & Rec
+        Update: MissionRiskUpdate & Rec
+        Relationships: []
       }
       audit_history: {
-        Row: AuditHistoryEntry
-        Insert: AuditHistoryInsert
-        Update: never
+        Row: AuditHistoryEntry & Rec
+        Insert: AuditHistoryInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       question_controls: {
-        Row: QuestionControlLink
-        Insert: QuestionControlLinkInsert
-        Update: never
+        Row: QuestionControlLink & Rec
+        Insert: QuestionControlLinkInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       assessment_findings: {
-        Row: AssessmentFinding
-        Insert: AssessmentFindingInsert
-        Update: AssessmentFindingUpdate
+        Row: AssessmentFinding & Rec
+        Insert: AssessmentFindingInsert & Rec
+        Update: AssessmentFindingUpdate & Rec
+        Relationships: []
       }
       control_comments: {
-        Row: ControlCommentRow
-        Insert: ControlCommentInsert
-        Update: ControlCommentUpdate
+        Row: ControlCommentRow & Rec
+        Insert: ControlCommentInsert & Rec
+        Update: ControlCommentUpdate & Rec
+        Relationships: []
       }
       questionnaire_response_comments: {
-        Row: QuestionnaireResponseCommentRow
-        Insert: QuestionnaireResponseCommentInsert
-        Update: QuestionnaireResponseCommentUpdate
+        Row: QuestionnaireResponseCommentRow & Rec
+        Insert: QuestionnaireResponseCommentInsert & Rec
+        Update: QuestionnaireResponseCommentUpdate & Rec
+        Relationships: []
       }
       audit_topics: {
-        Row: AuditTopic
-        Insert: AuditTopicInsert
-        Update: AuditTopicUpdate
+        Row: AuditTopic & Rec
+        Insert: AuditTopicInsert & Rec
+        Update: AuditTopicUpdate & Rec
+        Relationships: []
       }
       topic_controls: {
-        Row: TopicControlLink
-        Insert: TopicControlLinkInsert
-        Update: never
+        Row: TopicControlLink & Rec
+        Insert: TopicControlLinkInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       interview_topics: {
-        Row: InterviewTopicLink
-        Insert: InterviewTopicLink
-        Update: never
+        Row: InterviewTopicLink & Rec
+        Insert: InterviewTopicLink & Rec
+        Update: never & Rec
+        Relationships: []
       }
       interview_actors: {
-        Row: InterviewActorLink
-        Insert: InterviewActorLink
-        Update: never
+        Row: InterviewActorLink & Rec
+        Insert: InterviewActorLink & Rec
+        Update: never & Rec
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
     Enums: {
       mission_status: MissionStatus
       mission_role: MissionRole

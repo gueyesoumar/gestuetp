@@ -79,7 +79,6 @@ export function ClientMissionDashboardTab({ mission, onTabChange }: Props): JSX.
         <div className="flex flex-col gap-6">
           <ClientActionsList
             docsPending={data.docsPending}
-            findingsPending={0}
             interviewsPending={data.upcomingInterviewCount}
             carsPending={data.carsPendingCount}
             totalPending={data.totalPendingActions}

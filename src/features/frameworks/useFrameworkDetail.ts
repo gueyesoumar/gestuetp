@@ -35,8 +35,8 @@ export function useFrameworkDetail(slug: string | undefined): UseFrameworkDetail
         .from('frameworks')
         .select('*')
         .eq('slug', slug)
-        .single()
         .abortSignal(abortController.signal)
+        .single()
 
       if (abortController.signal.aborted) return
       if (fwError || !fw) {

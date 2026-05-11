@@ -234,8 +234,8 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .from('organization_branding')
             .select('logo_light_url, logo_dark_url, primary_color')
             .eq('organization_id', cabinetId)
-            .maybeSingle()
-            .abortSignal(abort.signal),
+            .abortSignal(abort.signal)
+            .maybeSingle(),
           supabase
             .from('cabinet_domains')
             .select('id, is_verified')
@@ -245,8 +245,8 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .from('organizations')
             .select('plan_id, plan:plans(name, max_users, max_missions)')
             .eq('id', cabinetId)
-            .single()
-            .abortSignal(abort.signal),
+            .abortSignal(abort.signal)
+            .single(),
           supabase
             .from('feature_flag_overrides')
             .select('id, enabled')

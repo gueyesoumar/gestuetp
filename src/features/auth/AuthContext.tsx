@@ -25,8 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('users')
       .select('*')
       .eq('auth_id', authId)
-      .single()
       .abortSignal(signal ?? new AbortController().signal)
+      .single()
 
     if (error) {
       console.error('Erreur chargement profil:', error.message)

@@ -1,4 +1,4 @@
-import { Plus, AlertCircle, Sparkles, ClipboardList, Info } from 'lucide-react'
+import { Plus, AlertCircle, ClipboardList, Info } from 'lucide-react'
 import { FindingCard } from './FindingCard'
 import type { UseAssessmentFindingsReturn } from './useAssessmentFindings'
 

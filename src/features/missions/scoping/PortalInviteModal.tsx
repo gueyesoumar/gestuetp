@@ -27,7 +27,7 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [jobTitle, setJobTitle] = useState('')
-  const [phone, setPhone] = useState('')
+  const [, setPhone] = useState('')
   const [permission, setPermission] = useState<ClientPermission>('contributor')
 
   const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
@@ -59,7 +59,7 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
     return () => ac.abort()
   }, [fetchData])
 
-  const handleInvite = async (contactId: string, contactName: string, contactEmail: string): Promise<void> => {
+  const handleInvite = async (_contactId: string, contactName: string, contactEmail: string): Promise<void> => {
     if (!profile) return
     setInviting(true)
     setError(null)

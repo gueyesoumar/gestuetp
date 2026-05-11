@@ -33,8 +33,8 @@ export function useOrganization(): UseOrganizationResult {
       .from('organizations')
       .select('*')
       .eq('id', profile.organization_id)
-      .single()
       .abortSignal(abortController.signal)
+      .single()
       .then(({ data, error: queryError }) => {
         if (abortController.signal.aborted) return
         if (queryError) {

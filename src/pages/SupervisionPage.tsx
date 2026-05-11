@@ -21,7 +21,7 @@ type Tab = 'classement' | 'heatmap' | 'risques' | 'evolution' | 'campagnes' | 'r
 export function SupervisionPage(): JSX.Element {
   const { profile } = useAuth()
   const { isGroup, isCabinet } = useOrganizationHierarchy(profile?.organization_id)
-  const { canCreateCampaign, canViewSupervision } = useGroupPermissions()
+  const { canCreateCampaign } = useGroupPermissions()
   const [selectedFrameworkId, setSelectedFrameworkId] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('classement')
   const [sectorFilter, setSectorFilter] = useState('')
@@ -31,7 +31,6 @@ export function SupervisionPage(): JSX.Element {
   // Determine available modes based on organization type
   // Le mode groupe est gated par le feature flag — si désactivé, on tombe sur cabinet
   const hasGroupMode = isGroup && !groupModeFlag.loading && groupModeFlag.enabled
-  const hasCabinetMode = isCabinet
   const hasBothModes = hasGroupMode && isCabinet
 
   // Default mode: group if group-only, cabinet if cabinet-only, group if both

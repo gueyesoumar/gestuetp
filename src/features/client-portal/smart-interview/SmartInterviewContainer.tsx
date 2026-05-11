@@ -42,7 +42,7 @@ interface SmartInterviewContainerProps {
 type SmartTab = 'prefill' | 'conversation'
 
 export function SmartInterviewContainer({
-  missionId, missionName, questions, instanceId, userId,
+  missionId, questions, instanceId, userId,
   initialResponses, readOnly, documentsCount,
 }: SmartInterviewContainerProps): JSX.Element {
   const [activeTab, setActiveTab] = useState<SmartTab>('prefill')
@@ -146,7 +146,6 @@ export function SmartInterviewContainer({
       )}
       {activeTab === 'conversation' && (
         <SmartConversation
-          missionId={missionId}
           questions={unansweredQuestions}
           instanceId={instanceId}
           userId={userId}
