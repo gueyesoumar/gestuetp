@@ -3,7 +3,7 @@ import type { SupervisionCycle } from '../../types/database.types'
 
 interface CycleTimelineProps {
   cycles: SupervisionCycle[]
-  onClose?: (cycleId: string) => void | Promise<void>
+  onClose?: (cycleId: string) => void | Promise<void> | Promise<boolean>
   busy?: boolean
 }
 

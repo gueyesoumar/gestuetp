@@ -18,7 +18,7 @@ export function useUpdateOrganization(onSuccess?: () => void): UseUpdateOrganiza
 
     const { error: queryError } = await supabase
       .from('organizations')
-      .update(data)
+      .update(data as never)
       .eq('id', id)
 
     if (queryError) {

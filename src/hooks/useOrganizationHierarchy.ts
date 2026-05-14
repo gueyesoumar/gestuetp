@@ -84,8 +84,7 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
 
       // 3. If group, fetch subsidiaries via the SECURITY DEFINER function
       if (isGroupOrg(typedOrg)) {
-        const { data: subIds, error: subErr } = await supabase
-          .rpc('get_subsidiary_ids', { parent_id: orgId })
+        const { data: subIds, error: subErr } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => { abortSignal: (s: AbortSignal) => Promise<{ data: unknown; error: { message: string } | null }> })('get_subsidiary_ids', { parent_id: orgId })
           .abortSignal(controller.signal)
 
         if (controller.signal.aborted) return

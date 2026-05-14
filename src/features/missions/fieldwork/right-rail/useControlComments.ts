@@ -100,13 +100,13 @@ export function useControlComments(missionId: string | null, controlId: string |
         parent_id: parentId ?? null,
         text: trimmed,
         mentioned_user_ids: [],
-      })
+      } as never)
       .select(`
         id, mission_id, control_id, author_id, parent_id, text, mentioned_user_ids,
         created_at, updated_at, deleted_at,
         author:users!author_id(first_name, last_name, email, job_title)
       `)
-      .single()
+      .single() as unknown as { error: { message: string } | null; data: ControlComment | null }
     if (result.error) {
       console.error('[useControlComments] post:', result.error.message)
       setError('Erreur de publication')

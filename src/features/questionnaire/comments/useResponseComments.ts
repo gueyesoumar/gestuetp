@@ -87,13 +87,13 @@ export function useResponseComments(instanceId: string | null): UseResponseComme
         parent_id: parentId ?? null,
         text: trimmed,
         mentioned_user_ids: [],
-      })
+      } as never)
       .select(`
         id, instance_id, question_code, author_id, parent_id, text, mentioned_user_ids,
         created_at, updated_at, deleted_at,
         author:users!author_id(first_name, last_name, email, job_title)
       `)
-      .single()
+      .single() as unknown as { error: { message: string } | null; data: ResponseComment | null }
     if (result.error) {
       console.error('[useResponseComments] post:', result.error.message)
       setError('Erreur de publication')
@@ -109,7 +109,7 @@ export function useResponseComments(instanceId: string | null): UseResponseComme
     const trimmed = text.trim()
     if (trimmed.length === 0 || trimmed.length > 5000) return false
     setComments((prev) => prev.map((c) => (c.id === id ? { ...c, text: trimmed } : c)))
-    const result = await supabase.from(TABLE).update({ text: trimmed }).eq('id', id)
+    const result = await supabase.from(TABLE).update({ text: trimmed } as never).eq('id', id)
     if (result.error) {
       console.error('[useResponseComments] edit:', result.error.message)
       setError("Erreur d'enregistrement")

@@ -91,6 +91,15 @@ export function useDashboardStats(): UseDashboardStatsResult {
 
     const fetchData = async (): Promise<void> => {
       // 1. Missions du cabinet
+      type MissionRow = {
+        id: string
+        name: string
+        status: string
+        start_date: string | null
+        end_date: string | null
+        updated_at: string
+        client: { name: string; sector: string | null } | null
+      }
       const { data: missionsData, error: mErr } = await supabase
         .from('missions')
         .select('id, name, status, start_date, end_date, updated_at, client:organizations!missions_client_id_fkey(name, sector)')
@@ -107,7 +116,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         return
       }
 
-      const missionsList = missionsData ?? []
+      const missionsList = (missionsData ?? []) as unknown as MissionRow[]
       const activeMissions = missionsList.filter((m) => m.status !== 'closure').length
       const missionsByStatus: Record<string, number> = {}
       for (const m of missionsList) {

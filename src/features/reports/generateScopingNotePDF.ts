@@ -709,7 +709,7 @@ function drawSection07Planning(ctx: DocContext): void {
     milestones.map((m) => [m.code, m.label, m.date]),
   )
 
-  setText(ctx.doc, TEXT_500, 8.5, 'italic')
+  setText(ctx.doc, TEXT_500, 8.5, 'normal')
   ctx.y += 2
   const note = "Les dates exactes des jalons seront confirmées en première semaine après échange avec le sponsor. Tout glissement supérieur à deux semaines sur le chemin critique fera l'objet d'un avenant."
   const noteLines = ctx.doc.splitTextToSize(note, ctx.contentW) as string[]

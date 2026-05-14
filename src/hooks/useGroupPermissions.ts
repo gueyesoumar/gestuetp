@@ -69,8 +69,11 @@ export function useGroupPermissions(): GroupPermissions {
         let manageSubsidiaries = false
         let viewEntityDetail = false
 
-        for (const row of data ?? []) {
-          const role = row.platform_roles as unknown as { permissions: PlatformRolePermissions } | null
+        type Row = { platform_roles: { permissions: PlatformRolePermissions } | null }
+        const rows = (data ?? []) as unknown as Row[]
+
+        for (const row of rows) {
+          const role = row.platform_roles
           if (!role?.permissions) continue
 
           if (role.permissions.can_view_supervision) viewSupervision = true
@@ -81,8 +84,8 @@ export function useGroupPermissions(): GroupPermissions {
 
         // If no roles have any group permissions set, default to all true
         // (first-time setup — admin hasn't configured group permissions yet)
-        const hasAnyGroupPerm = (data ?? []).some((row) => {
-          const role = row.platform_roles as unknown as { permissions: PlatformRolePermissions } | null
+        const hasAnyGroupPerm = rows.some((row) => {
+          const role = row.platform_roles
           if (!role?.permissions) return false
           return role.permissions.can_view_supervision !== undefined
             || role.permissions.can_create_campaign !== undefined

@@ -86,6 +86,15 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
     const fetchData = async (): Promise<void> => {
 
       // 1. Fetch all assessments with control + domain info + raw fields needed for quality checks
+      type AssessmentRow = {
+        id: string
+        status: string
+        conformity_level: string | null
+        observations: string | null
+        evidence_notes: string | null
+        control_id: string
+        control: { code: string; name: string; domain_id: string; domain: { code: string; name: string } } | null
+      }
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
         .select('id, status, conformity_level, observations, evidence_notes, control_id, control:controls(code, name, domain_id, domain:domains(code, name))')
@@ -95,7 +104,7 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
       if (abortController.signal.aborted) return
       if (aErr) { setError('Impossible de charger les donn\u00e9es de revue.'); setLoading(false); return }
 
-      const all = assessments ?? []
+      const all = (assessments ?? []) as unknown as AssessmentRow[]
       const totalControls = all.length
       const approvedControls = all.filter((a) => a.status === 'approved').length
 

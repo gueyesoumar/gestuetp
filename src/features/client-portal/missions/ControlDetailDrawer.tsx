@@ -49,7 +49,8 @@ export function ControlDetailDrawer({
 
   // Fetch observations for this assessment
   useEffect(() => {
-    if (!control.assessmentId) { setLoadingObs(false); return }
+    const assessmentId = control.assessmentId
+    if (!assessmentId) { setLoadingObs(false); return }
     const controller = new AbortController()
     setLoadingObs(true)
     setNewObsText('')
@@ -58,7 +59,7 @@ export function ControlDetailDrawer({
       const { data } = await supabase
         .from('assessment_observations')
         .select('*')
-        .eq('assessment_id', control.assessmentId)
+        .eq('assessment_id', assessmentId)
         .order('observation_at', { ascending: true })
         .abortSignal(controller.signal)
 
@@ -144,8 +145,8 @@ export function ControlDetailDrawer({
       .insert({
         assessment_id: control.assessmentId,
         observation_text: newObsText.trim(),
-        observation_by: profile.id,
-      })
+        observation_by: (profile as { id: string }).id,
+      } as never)
 
     setSubmitting(false)
     if (error) {

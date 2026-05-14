@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
-import type { AssessmentObservation, AssessmentFinding, FindingClassification } from '../../../types/database.types'
+import type { AssessmentObservation, AssessmentFinding, AssessmentStatus, FindingClassification } from '../../../types/database.types'
 
 export interface ControlWithAssessment {
   controlId: string
@@ -117,8 +117,9 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
 
       if (controller.signal.aborted) return
 
-      const assessmentMap = new Map<string, typeof assessments[0]>()
-      for (const a of assessments ?? []) {
+      type AssessRow = { id: string; control_id: string; conformity_level: string | null; status: AssessmentStatus }
+      const assessmentMap = new Map<string, AssessRow>()
+      for (const a of (assessments ?? []) as AssessRow[]) {
         assessmentMap.set(a.control_id, a)
       }
 

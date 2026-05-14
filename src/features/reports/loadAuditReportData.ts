@@ -25,13 +25,13 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     .eq('framework_id', mission.framework_id)
     .order('sort_order')
 
-  const domains: DomainWithControls[] = ((domainRows ?? []) as unknown as Array<{
+  const domains = ((domainRows ?? []) as unknown as Array<{
     id: string; code: string; name: string; description: string | null; sort_order: number;
     controls: Array<{ id: string; code: string; name: string; description: string | null; sort_order: number; domain_id: string }>
   }>).map((d) => ({
     ...d,
     controls: [...(d.controls ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
-  }))
+  })) as unknown as DomainWithControls[]
 
   // 3. Assessments avec contrôle joint (incl. description)
   const { data: assessRaw } = await supabase

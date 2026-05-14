@@ -3,7 +3,7 @@ import { AutosaveIndicator } from '../../../components/ui/AutosaveIndicator'
 import { GUIDED_STEPS } from '../mission-constants'
 
 interface AutosaveState {
-  status: 'idle' | 'saving' | 'saved' | 'error'
+  status: 'idle' | 'modified' | 'saving' | 'saved' | 'error'
   lastSavedAt: number | null
   flush: () => Promise<boolean>
 }

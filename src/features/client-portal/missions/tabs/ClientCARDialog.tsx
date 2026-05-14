@@ -43,7 +43,7 @@ export function ClientCARDialog({ car, canContribute, contacts, userNames, conta
 
   if (!car) return null
 
-  const canEdit = canContribute && (car.status === 'open' || car.verification_status === 'rejected' || (car.status === 'open' && !!car.verification_comment))
+  const canEdit = canContribute && (car.status === 'open' || car.verification_status === 'rejected')
 
   const handleSubmit = async (): Promise<void> => {
     if (!action.trim()) return

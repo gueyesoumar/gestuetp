@@ -59,7 +59,7 @@ export function ActionPlanFilters({ state, onChange }: ActionPlanFiltersProps): 
   )
 }
 
-export function applyFilters(cars: ActionPlanCAR[], state: ActionPlanFilterState): ActionPlanCAR[] {
+export function applyFilters<T extends ActionPlanCAR>(cars: T[], state: ActionPlanFilterState): T[] {
   const q = state.search.trim().toLowerCase()
   return cars.filter((c) => {
     if (state.classification !== 'all' && getEffectiveClassification(c) !== state.classification) return false

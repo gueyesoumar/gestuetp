@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
 import { generateActionPlanXLSX, type ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 import type { MissionDetail } from '../useMissionDetail'
-import type { AssessmentFinding } from '../../../types/database.types'
+import type { AssessmentFinding, CorrectiveActionRequest } from '../../../types/database.types'
 
 interface FindingCounts {
   major_nc: number
@@ -47,7 +47,7 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
 
   const loadAll = useCallback(async (signal?: AbortSignal): Promise<void> => {
     // 1. CAR de la mission
-    const { data: carRows, error: carErr } = await supabase
+    const { data: carRowsRaw, error: carErr } = await supabase
       .from('corrective_action_requests')
       .select('*')
       .eq('mission_id', mission.id)
@@ -58,6 +58,7 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
       setLoading(false)
       return
     }
+    const carRows = (carRowsRaw ?? []) as unknown as Array<CorrectiveActionRequest>
 
     // 2. Compte des findings classifiés (pour la preview avant génération)
     //    Source : assessment_findings (1 row par finding) au lieu des textareas legacy.
@@ -110,7 +111,7 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
     })
 
     // 5. Enrichir CAR avec domain_name (via assessment.control_id → domain)
-    const assessIds = (carRows ?? []).map((c) => c.assessment_id)
+    const assessIds = carRows.map((c) => c.assessment_id)
     const ctrlByAssess = new Map<string, string>()
     if (assessIds.length > 0) {
       const { data: aRows } = await supabase
@@ -118,11 +119,11 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
         .select('id, control_id')
         .in('id', assessIds)
       if (signal?.aborted) return
-      for (const a of aRows ?? []) ctrlByAssess.set(a.id, a.control_id)
+      for (const a of (aRows ?? []) as Array<{ id: string; control_id: string }>) ctrlByAssess.set(a.id, a.control_id)
     }
 
     // 5b. Resoudre les findings via finding_id (source de verite pour la classification)
-    const findingIds = (carRows ?? [])
+    const findingIds = carRows
       .map((c) => c.finding_id)
       .filter((id): id is string => !!id)
     const findingById = new Map<string, AssessmentFinding>()
@@ -137,7 +138,7 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
       }
     }
 
-    const enriched: ActionPlanCAR[] = (carRows ?? []).map((c) => {
+    const enriched: ActionPlanCAR[] = carRows.map((c) => {
       const ctrlId = ctrlByAssess.get(c.assessment_id)
       const domain = ctrlId ? map.get(ctrlId) : null
       const finding = c.finding_id ? findingById.get(c.finding_id) ?? null : null

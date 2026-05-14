@@ -112,8 +112,7 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         // Group mode: missions where client is a subsidiary
         // The RLS policy "missions_select_group" handles access control.
         // We need to get subsidiary IDs first, then filter.
-        const { data: subIds } = await supabase
-          .rpc('get_subsidiary_ids', { parent_id: profile.organization_id })
+        const { data: subIds } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>)('get_subsidiary_ids', { parent_id: profile.organization_id })
 
         if (!subIds || (subIds as string[]).length === 0) {
           setEntities([])
@@ -188,15 +187,17 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         .in('mission_id', missionIds)
 
       // 6. Fetch CARs for major NC count
-      const { data: carData } = await supabase
+      type CarRow = { id: string; mission_id: string; finding_classification: string; status: string }
+      const { data: carDataRaw } = await supabase
         .from('corrective_action_requests')
         .select('id, mission_id, finding_classification, status')
         .in('mission_id', missionIds)
         .eq('finding_classification', 'major_nc')
         .in('status', ['open', 'client_responded'])
+      const carData = (carDataRaw ?? []) as unknown as CarRow[]
 
       const carsByMission = new Map<string, number>()
-      for (const car of carData ?? []) {
+      for (const car of carData) {
         carsByMission.set(car.mission_id, (carsByMission.get(car.mission_id) ?? 0) + 1)
       }
 

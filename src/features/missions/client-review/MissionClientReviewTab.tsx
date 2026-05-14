@@ -132,7 +132,7 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
       .single()
 
     if (!data) return
-    const ctrl = (data.control as unknown as { code: string; name: string } | null)
+    const ctrl = ((data as unknown as { control: { code: string; name: string } | null }).control)
 
     const { data: findingsRows } = await supabase
       .from('assessment_findings')

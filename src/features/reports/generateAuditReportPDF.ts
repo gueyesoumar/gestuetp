@@ -140,7 +140,7 @@ export async function generateAuditReportPDF(data: AuditReportData): Promise<voi
   finalizeTOC(ctx)
   finalizeHeadersFooters(ctx)
 
-  const safeName = (data.client?.name ?? data.mission.name).replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
+  const safeName = (data.client?.client_name ?? data.mission.name).replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
   const year = new Date(data.mission.end_date ?? Date.now()).getFullYear()
   doc.save(`Rapport_audit_${safeName}_${year}_${ctx.reportRef}.pdf`)
 }

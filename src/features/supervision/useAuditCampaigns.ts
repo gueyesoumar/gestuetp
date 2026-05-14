@@ -40,7 +40,7 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
 
     const fetchData = async (): Promise<void> => {
       // 1. Fetch campaigns
-      const { data: campData, error: campErr } = await supabase
+      const { data: campRaw, error: campErr } = await supabase
         .from('audit_campaigns')
         .select('*')
         .eq('organization_id', profile.organization_id)
@@ -54,7 +54,8 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
         return
       }
 
-      if (!campData || campData.length === 0) {
+      const campData = (campRaw ?? []) as unknown as AuditCampaign[]
+      if (campData.length === 0) {
         setCampaigns([])
         setLoading(false)
         return
@@ -144,11 +145,12 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
     setCreating(true)
 
     // 1. Create the campaign
-    const { data: campaign, error: campErr } = await supabase
+    const { data: campaignRaw, error: campErr } = await supabase
       .from('audit_campaigns')
-      .insert(data)
+      .insert(data as never)
       .select('id')
       .single()
+    const campaign = campaignRaw as { id: string } | null
 
     if (campErr || !campaign) {
       console.error('createCampaign:', campErr?.message)
@@ -181,7 +183,7 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
     // 3. Activate the campaign
     await supabase
       .from('audit_campaigns')
-      .update({ status: 'active' as CampaignStatus })
+      .update({ status: 'active' as CampaignStatus } as never)
       .eq('id', campaignId)
 
     setCreating(false)
@@ -192,7 +194,7 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
   const updateStatus = useCallback(async (campaignId: string, status: CampaignStatus): Promise<boolean> => {
     const { error: err } = await supabase
       .from('audit_campaigns')
-      .update({ status })
+      .update({ status } as never)
       .eq('id', campaignId)
 
     if (err) {

@@ -57,7 +57,7 @@ export function useNotifications(): UseNotificationsResult {
   const markAsRead = useCallback(async (id: string) => {
     const { error: updateError } = await supabase
       .from('notifications')
-      .update({ is_read: true })
+      .update({ is_read: true } as never)
       .eq('id', id)
 
     if (!updateError) {
@@ -71,7 +71,7 @@ export function useNotifications(): UseNotificationsResult {
     if (!profile) return
     const { error: updateError } = await supabase
       .from('notifications')
-      .update({ is_read: true })
+      .update({ is_read: true } as never)
       .eq('user_id', profile.id)
       .eq('is_read', false)
 

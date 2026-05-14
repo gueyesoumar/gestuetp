@@ -3,7 +3,7 @@ import { supabase } from '../../../../lib/supabase'
 import { useToast } from '../../../../hooks/useToast'
 import { generateActionPlanXLSX, type ActionPlanCAR } from '../../../reports/generateActionPlanXLSX'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
-import type { AssessmentFinding } from '../../../../types/database.types'
+import type { AssessmentFinding, CorrectiveActionRequest } from '../../../../types/database.types'
 
 interface ClientContact {
   id: string
@@ -49,7 +49,7 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
 
   const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
     // 1. CAR de la mission (RLS filtre déjà côté client)
-    const { data: carRows, error: carErr } = await supabase
+    const { data: carRowsRaw, error: carErr } = await supabase
       .from('corrective_action_requests')
       .select('*')
       .eq('mission_id', mission.id)
@@ -60,12 +60,15 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
       setLoading(false)
       return
     }
+    const carRows = (carRowsRaw ?? []) as unknown as Array<CorrectiveActionRequest>
 
     // 2. Domaines + contrôles (pour mapper control_id → domain_name)
-    const { data: domainRows } = await supabase
-      .from('domains')
-      .select('id, name, controls(id)')
-      .eq('framework_id', mission.framework_id)
+    const { data: domainRows } = mission.framework_id
+      ? await supabase
+          .from('domains')
+          .select('id, name, controls(id)')
+          .eq('framework_id', mission.framework_id)
+      : { data: null }
     if (signal?.aborted) return
     const domainByControl = new Map<string, string>()
     for (const d of (domainRows ?? []) as unknown as Array<{ id: string; name: string; controls: { id: string }[] }>) {
@@ -88,7 +91,7 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
     }
 
     // 4. Enrichir CAR avec domain_name (via assessment.control_id)
-    const assessIds = (carRows ?? []).map((c) => c.assessment_id)
+    const assessIds = carRows.map((c) => c.assessment_id)
     const ctrlByAssess = new Map<string, string>()
     if (assessIds.length > 0) {
       const { data: aRows } = await supabase
@@ -96,10 +99,10 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
         .select('id, control_id')
         .in('id', assessIds)
       if (signal?.aborted) return
-      for (const a of aRows ?? []) ctrlByAssess.set(a.id, a.control_id)
+      for (const a of (aRows ?? []) as Array<{ id: string; control_id: string }>) ctrlByAssess.set(a.id, a.control_id)
     }
     // 4b. Resoudre les findings via finding_id (source de verite pour la classification)
-    const findingIds = (carRows ?? [])
+    const findingIds = carRows
       .map((c) => c.finding_id)
       .filter((id): id is string => !!id)
     const findingById = new Map<string, AssessmentFinding>()
@@ -114,7 +117,7 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
       }
     }
 
-    const enriched: ActionPlanCAR[] = (carRows ?? []).map((c) => {
+    const enriched: ActionPlanCAR[] = carRows.map((c) => {
       const ctrlId = ctrlByAssess.get(c.assessment_id)
       const domain = ctrlId ? domainByControl.get(ctrlId) : null
       const finding = c.finding_id ? findingById.get(c.finding_id) ?? null : null
@@ -213,7 +216,7 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
           client_target_date: payload.targetDate || null,
           client_responsible_id: payload.responsibleId,
           status: 'client_responded',
-        })
+        } as never)
         .eq('id', carId)
       if (error) {
         toast.error('Soumission impossible', error.message)

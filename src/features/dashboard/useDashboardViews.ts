@@ -43,8 +43,9 @@ export function useDashboardViews(): UseDashboardViewsResult {
         const viewsSet = new Set<DashboardView>()
         let resolvedDefault: DashboardView | null = null
 
-        for (const row of data ?? []) {
-          const role = row.platform_roles as unknown as { permissions: PlatformRolePermissions } | null
+        type Row = { platform_roles: { permissions: PlatformRolePermissions } | null }
+        for (const row of (data ?? []) as unknown as Row[]) {
+          const role = row.platform_roles
           if (!role?.permissions) continue
 
           const views = role.permissions.dashboard_views

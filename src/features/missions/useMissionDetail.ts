@@ -108,7 +108,9 @@ export function useMissionDetail(missionId: string | undefined): UseMissionDetai
 
         if (abortController.signal.aborted) return
         if (!domErr) {
-          const mapped = (domainsData ?? []).map((d) => ({
+          type DomainRow = { id: string; code: string; name: string; sort_order: number; description: string | null; controls: Control[] }
+          const rows = (domainsData ?? []) as unknown as DomainRow[]
+          const mapped = rows.map((d) => ({
             ...d,
             controls: ((d.controls ?? []) as Control[]).sort(
               (a, b) => a.sort_order - b.sort_order

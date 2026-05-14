@@ -91,7 +91,7 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
 
   const updateFinding = useCallback(async (id: string, patch: FindingPatch): Promise<boolean> => {
     setFindings((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)))
-    const result = await supabase.from(TABLE).update(patch).eq('id', id)
+    const result = await supabase.from(TABLE).update(patch as never).eq('id', id)
     if (result.error) {
       console.error('[useAssessmentFindings] update:', result.error.message)
       setError('Erreur de sauvegarde du constat')

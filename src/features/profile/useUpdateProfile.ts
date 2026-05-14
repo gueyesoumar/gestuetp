@@ -18,7 +18,7 @@ export function useUpdateProfile(onSuccess?: () => void): UseUpdateProfileResult
 
     const { error: queryError } = await supabase
       .from('users')
-      .update(data)
+      .update(data as never)
       .eq('id', id)
 
     if (queryError) {

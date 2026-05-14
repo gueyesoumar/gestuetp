@@ -66,7 +66,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const handleValidatePlanning = useCallback(async (): Promise<void> => {
     setValidating(true)
     setServerMissing(null)
-    const { data, error: rpcError } = await supabase.rpc('transition_mission_to_fieldwork', {
+    const { data, error: rpcError } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>)('transition_mission_to_fieldwork', {
       p_mission_id: mission.id,
     })
     setValidating(false)

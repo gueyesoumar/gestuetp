@@ -40,34 +40,38 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
 
     try {
       // 1. Fetch campaign
-      const { data: camp, error: campErr } = await supabase
+      const { data: campRaw, error: campErr } = await supabase
         .from('audit_campaigns')
         .select('*')
         .eq('id', campaignId)
         .single()
 
-      if (campErr || !camp) {
+      if (campErr || !campRaw) {
         setError('Campagne introuvable.')
         setLoading(false)
         return
       }
-      setCampaign(camp as AuditCampaign)
+      const camp = campRaw as unknown as AuditCampaign
+      setCampaign(camp)
 
       // 2. Framework name
-      const { data: fw } = await supabase
+      const { data: fwRaw } = await supabase
         .from('frameworks')
         .select('name')
         .eq('id', camp.framework_id)
         .single()
+      const fw = fwRaw as { name: string } | null
       setFrameworkName(fw?.name ?? '')
 
       // 3. Fetch missions linked to this campaign
-      const { data: missions } = await supabase
+      type MissionRow = { id: string; client_id: string; status: string }
+      const { data: missionsRaw } = await supabase
         .from('missions')
         .select('id, client_id, status')
         .eq('campaign_id', campaignId)
 
-      if (!missions || missions.length === 0) {
+      const missions = (missionsRaw ?? []) as unknown as MissionRow[]
+      if (missions.length === 0) {
         setEntities([])
         setLoading(false)
         return
@@ -75,21 +79,25 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
 
       // 4. Entity names
       const entityIds = [...new Set(missions.map((m) => m.client_id))]
-      const { data: orgs } = await supabase
+      type OrgRow = { id: string; name: string; sector: string | null }
+      const { data: orgsRaw } = await supabase
         .from('organizations')
         .select('id, name, sector')
         .in('id', entityIds)
-      const orgMap = new Map((orgs ?? []).map((o) => [o.id, { name: o.name, sector: o.sector }]))
+      const orgs = (orgsRaw ?? []) as unknown as OrgRow[]
+      const orgMap = new Map(orgs.map((o) => [o.id, { name: o.name, sector: o.sector }]))
 
       // 5. Assessments
       const missionIds = missions.map((m) => m.id)
-      const { data: assessments } = await supabase
+      type AssessRow = { mission_id: string; status: string }
+      const { data: assessmentsRaw } = await supabase
         .from('control_assessments')
         .select('mission_id, status')
         .in('mission_id', missionIds)
+      const assessments = (assessmentsRaw ?? []) as unknown as AssessRow[]
 
       const missionScores = new Map<string, { total: number; approved: number }>()
-      for (const a of assessments ?? []) {
+      for (const a of assessments) {
         const entry = missionScores.get(a.mission_id) ?? { total: 0, approved: 0 }
         entry.total++
         if (a.status === 'approved') entry.approved++
@@ -97,15 +105,17 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
       }
 
       // 6. CARs
-      const { data: cars } = await supabase
+      type CarRow = { mission_id: string }
+      const { data: carsRaw } = await supabase
         .from('corrective_action_requests')
         .select('mission_id')
         .in('mission_id', missionIds)
         .eq('finding_classification', 'major_nc')
         .in('status', ['open', 'client_responded'])
+      const cars = (carsRaw ?? []) as unknown as CarRow[]
 
       const carsByMission = new Map<string, number>()
-      for (const car of cars ?? []) {
+      for (const car of cars) {
         carsByMission.set(car.mission_id, (carsByMission.get(car.mission_id) ?? 0) + 1)
       }
 

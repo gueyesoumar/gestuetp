@@ -2,7 +2,7 @@ import { Bold, Italic, List, Code } from 'lucide-react'
 import type { RefObject } from 'react'
 
 interface MarkdownToolbarProps {
-  textareaRef: RefObject<HTMLTextAreaElement>
+  textareaRef: RefObject<HTMLTextAreaElement | null>
   onChange: (value: string) => void
   disabled?: boolean
 }

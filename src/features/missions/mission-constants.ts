@@ -13,7 +13,7 @@ export function isAssessmentApproved(status: AssessmentStatus | string | null | 
   return status === 'approved'
 }
 
-export function isAssessmentInProgress(assessment: Pick<ControlAssessment, 'status' | 'findings'>): boolean {
+export function isAssessmentInProgress(assessment: Pick<ControlAssessment, 'status'>): boolean {
   // En cours = il y a un assessment ouvert (draft, rejected) avec OU sans findings
   return assessment.status === 'draft' || assessment.status === 'rejected'
 }

@@ -22,7 +22,6 @@ export function MissionInfoTab({ mission }: MissionInfoTabProps) {
       <div>
         <p className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-1">Mission</p>
         <p className="text-[13px] font-semibold text-gray-900">{mission.name}</p>
-        <p className="text-[10px] font-mono text-forest-700">{mission.code ?? '—'}</p>
       </div>
 
       <Row icon={<Briefcase size={11} />} label="Référentiel">

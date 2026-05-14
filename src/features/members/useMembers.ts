@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import type { MemberWithRoles } from './types'
-import type { PlatformRole } from '../../types/database.types'
+import type { PlatformRole, User } from '../../types/database.types'
 
 interface UseMembersResult {
   members: MemberWithRoles[]
@@ -48,10 +48,12 @@ export function useMembers(): UseMembersResult {
           setError('Impossible de charger les membres.')
           setMembers([])
         } else {
-          const mapped: MemberWithRoles[] = (data ?? []).map((user) => {
-            const upr = (user.user_platform_roles ?? []) as unknown as UserPlatformRoleRow[]
+          type UserWithRoles = User & { user_platform_roles?: UserPlatformRoleRow[] }
+          const rows = (data ?? []) as unknown as UserWithRoles[]
+          const mapped: MemberWithRoles[] = rows.map((user) => {
+            const upr = user.user_platform_roles ?? []
             const roles = upr
-              .map((r) => r.platform_roles)
+              .map((r: UserPlatformRoleRow) => r.platform_roles)
               .filter(Boolean)
             return { ...user, user_platform_roles: undefined, roles }
           }) as MemberWithRoles[]

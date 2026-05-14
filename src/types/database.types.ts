@@ -43,6 +43,11 @@ export type QuestionType =
   | 'multiple_choice'
   | 'boolean'
   | 'file_upload'
+  | 'date'
+  | 'number'
+  | 'scale_percent'
+  | 'file'
+  | 'organigramme'
 
 export type ReportFormat = 'pdf' | 'pptx'
 

@@ -88,9 +88,9 @@ export function useCabinetPermissions(): CabinetPermissions {
 
         // OR-aggregate sur tous les rôles assignés
         const acc = { ...DEFAULT_PERMS }
-        for (const row of data ?? []) {
-          const role = row.platform_roles as unknown as { permissions: PlatformRolePermissions } | null
-          const p = role?.permissions
+        type Row = { platform_roles: { permissions: PlatformRolePermissions } | null }
+        for (const row of (data ?? []) as unknown as Row[]) {
+          const p = row.platform_roles?.permissions
           if (!p) continue
           if (p.can_create_mission) acc.canCreateMission = true
           if (p.can_assign_team) acc.canAssignTeam = true

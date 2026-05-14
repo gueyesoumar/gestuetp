@@ -27,11 +27,6 @@ export function FieldworkPhaseRibbon({ mission, scopedTotal, scopedDone }: Field
           <span className="font-normal text-gray-500"> &mdash; {mission.client.name}</span>
         )}
       </h2>
-      {mission.code && (
-        <span className="font-mono text-[11px] font-semibold text-forest-700 bg-forest-50 px-1.5 py-0.5 rounded shrink-0">
-          {mission.code}
-        </span>
-      )}
       <span className="text-xs text-gray-500 shrink-0">{phaseLabel}</span>
 
       <div className="ml-auto flex items-center gap-2 shrink-0">

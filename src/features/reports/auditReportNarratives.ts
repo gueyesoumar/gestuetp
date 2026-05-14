@@ -110,11 +110,11 @@ export function describeVerdict(score: number, ncMajor: number): VerdictDescript
 
 export function generateContextNarrative(data: AuditReportData): string[] {
   const fw = frameworkLabel(data)
-  const sector = data.client?.sector ?? 'son secteur d\'activité'
+  const sector = data.client?.client_sector ?? 'son secteur d\'activité'
   const auditPurpose = inferAuditPurpose(data.mission.description ?? '')
   const period = formatPeriod(data.mission.start_date, data.mission.end_date)
   const duration = computeDuration(data.mission.start_date, data.mission.end_date)
-  const totalControls = data.totals.totalControls
+  const totalControls = data.totals!.totalControls
   const lead = memberFullName(data, 'lead_auditor') ?? 'le chef de mission désigné'
   const associate = memberFullName(data, 'associate')
   const clientName = clientLabel(data)
@@ -139,14 +139,14 @@ export function generateMethodologyNarrative(data: AuditReportData): string[] {
     `La phase de préparation a donné lieu à l'élaboration d'un mémo de planification définissant les objectifs détaillés, le périmètre, le calendrier, l'équipe mobilisée et la stratégie d'échantillonnage. La sélection des contrôles a été opérée selon une approche par les risques : les contrôles à enjeu majeur (gouvernance, gestion des accès, continuité, gestion des fournisseurs critiques, sécurité du développement) ont fait l'objet de tests approfondis, tandis que les contrôles à faible criticité ont été couverts par revue documentaire ciblée.`,
     `Quatre techniques d'audit complémentaires ont été mobilisées sur la mission : (i) la revue documentaire des politiques, procédures, comptes-rendus de comités, journaux d'événements et enregistrements de contrôle ; (ii) la conduite d'entretiens semi-directifs avec les responsables de processus et les opérationnels concernés ; (iii) l'observation directe des dispositifs et des configurations en environnement de test ou de production ; (iv) la re-performance, lorsque pertinent, d'un échantillon de contrôles automatisés ou manuels afin d'apprécier leur efficacité réelle. Chaque test conduit a fait l'objet d'une fiche de travail (workpaper) tracée et archivée.`,
     `Le seuil de matérialité retenu pour la qualification des écarts s'inscrit dans le cadre suivant : (i) une non-conformité majeure (NC majeure) caractérise un manquement substantiel à une exigence du référentiel, susceptible de compromettre l'atteinte des objectifs du système de management ou de remettre en cause la délivrance / le maintien d'une attestation ; (ii) une non-conformité mineure (NC mineure) caractérise un écart ponctuel ou d'application incomplète, n'affectant pas la capacité d'ensemble du dispositif ; (iii) une observation correspond à une opportunité d'amélioration sans qualification d'écart formel.`,
-    `L'ensemble des constats a été restitué de manière contradictoire au cours d'une réunion de clôture, permettant à ${data.client?.name ?? 'l\'entité auditée'} de prendre position sur chacun d'eux avant rédaction du présent rapport. Les recommandations formulées en section 6 visent à proposer des pistes de remédiation pragmatiques, dimensionnées au regard de l'organisation et de ses ressources, et hiérarchisées selon une logique impact × effort. Le suivi de leur mise en œuvre est ouvert sur la plateforme via les demandes d'action corrective (CAR) attachées à chaque écart.`,
+    `L'ensemble des constats a été restitué de manière contradictoire au cours d'une réunion de clôture, permettant à ${data.client?.client_name ?? 'l\'entité auditée'} de prendre position sur chacun d'eux avant rédaction du présent rapport. Les recommandations formulées en section 6 visent à proposer des pistes de remédiation pragmatiques, dimensionnées au regard de l'organisation et de ses ressources, et hiérarchisées selon une logique impact × effort. Le suivi de leur mise en œuvre est ouvert sur la plateforme via les demandes d'action corrective (CAR) attachées à chaque écart.`,
   ]
 }
 
 // ── 03. Synthèse exécutive ────────────────────────────────────────────────
 
 export function generateExecutiveNarrative(data: AuditReportData): string[] {
-  const t = data.totals
+  const t = data.totals!
   const verdict = describeVerdict(t.conformityScore, t.ncMajor)
   const fw = frameworkLabel(data)
 
@@ -305,14 +305,14 @@ function generateRootCauseHypothesis(a: AssessmentWithControl): string {
 
 function generateImpactAnalysis(a: AssessmentWithControl, data: AuditReportData): string {
   const fw = frameworkLabel(data)
-  const sector = data.client?.sector ?? 'le secteur de l\'organisation'
+  const sector = data.client?.client_sector ?? 'le secteur de l\'organisation'
   return `À court terme, cet écart expose l'organisation à un risque de non-conformité au référentiel ${fw}, susceptible de compromettre l'obtention ou le maintien de l'attestation correspondante. À moyen terme, l'absence du dispositif attendu peut générer une exposition opérationnelle accrue dans ${sector}, des difficultés à répondre aux contrôles externes (régulateur, partenaires, clients sensibles), ainsi qu'une perte de mémoire organisationnelle en cas de turnover sur les fonctions concernées. La criticité du contrôle ${a.control.code} dans le cadre du référentiel justifie la qualification en non-conformité majeure et la priorité accordée à sa remédiation.`
 }
 
 // ── 06. Recommandations & matrice ─────────────────────────────────────────
 
 export function generateRecommendationNarrative(data: AuditReportData): string[] {
-  const t = data.totals
+  const t = data.totals!
   const totalRecos = t.ncMajor + t.ncMinor + t.observations
   return [
     `À l'issue de l'évaluation, ${totalRecos} recommandations distinctes ont été formulées et hiérarchisées. La matrice de priorisation ci-dessous positionne chaque recommandation selon deux axes : son impact attendu sur la conformité d'ensemble (axe vertical) et l'effort de mise en œuvre estimé (axe horizontal). Les recommandations situées dans le quadrant supérieur gauche (impact élevé / effort modéré) constituent les « quick wins » à initier sans délai.`,
@@ -323,11 +323,11 @@ export function generateRecommendationNarrative(data: AuditReportData): string[]
 // ── 07. Plan d'action ──────────────────────────────────────────────────────
 
 export function generateActionPlanNarrative(data: AuditReportData): string[] {
-  const t = data.totals
+  const t = data.totals!
   const total = t.ncMajor + t.ncMinor + t.observations
   return [
     `Le plan d'action de remédiation a été initialisé sur la plateforme à la clôture de la mission. Il regroupe ${total} demandes d'action corrective (CAR) reflétant l'ensemble des constats formellement caractérisés au cours de l'audit. Chaque CAR est rattachée au contrôle d'origine et à la fiche de constat correspondante, garantissant une traçabilité complète entre l'écart, la recommandation et l'action de remédiation associée.`,
-    `Le cycle de vie de chaque CAR comporte quatre étapes : (i) émission par l'auditeur à la clôture de la mission ; (ii) prise en charge par le responsable désigné côté ${data.client?.name ?? 'entité auditée'}, qui renseigne la cause racine, l'action corrective retenue et l'échéance de réalisation ; (iii) mise en œuvre opérationnelle par l'organisation, dépôt des éléments de preuve sur la plateforme ; (iv) vérification et clôture par l'équipe d'audit. Une CAR rejetée à l'étape (iv) revient à l'étape (ii) avec une demande de complément.`,
+    `Le cycle de vie de chaque CAR comporte quatre étapes : (i) émission par l'auditeur à la clôture de la mission ; (ii) prise en charge par le responsable désigné côté ${data.client?.client_name ?? 'entité auditée'}, qui renseigne la cause racine, l'action corrective retenue et l'échéance de réalisation ; (iii) mise en œuvre opérationnelle par l'organisation, dépôt des éléments de preuve sur la plateforme ; (iv) vérification et clôture par l'équipe d'audit. Une CAR rejetée à l'étape (iv) revient à l'étape (ii) avec une demande de complément.`,
     `Le tableau ci-dessous récapitule les ${Math.min(total, 40)} premières CAR du plan, triées par priorité décroissante. Le plan complet est consultable et exportable en format Excel directement depuis la plateforme, par les utilisateurs habilités. Une revue d'avancement intermédiaire est recommandée à 90 jours, puis trimestriellement jusqu'à clôture intégrale du plan.`,
   ]
 }
@@ -335,26 +335,28 @@ export function generateActionPlanNarrative(data: AuditReportData): string[] {
 // ── 08. Conclusion ────────────────────────────────────────────────────────
 
 export function generateConclusionNarrative(data: AuditReportData): string[] {
-  const v = describeVerdict(data.totals.conformityScore, data.totals.ncMajor)
+  const t = data.totals!
+  const v = describeVerdict(t.conformityScore, t.ncMajor)
   const fw = frameworkLabel(data)
   const period = formatPeriod(data.mission.start_date, data.mission.end_date)
   return [
-    `Au terme de la mission conduite sur la période du ${period} et de l'évaluation des ${data.totals.totalControls} contrôles formant le cadre de référence ${fw}, l'équipe d'audit a obtenu une assurance raisonnable quant au niveau de conformité atteint par ${data.client?.name ?? 'l\'organisation auditée'}. Cette assurance s'appuie sur l'ensemble des éléments de preuve collectés, examinés et tracés au dossier de mission, dont la liste détaillée figure en Annexe B.`,
-    `Le score pondéré global s'établit à ${data.totals.conformityScore}%, traduisant une maîtrise ${v.qualifier} des exigences du référentiel. ${data.totals.ncMajor} non-conformité(s) majeure(s) et ${data.totals.ncMinor} non-conformité(s) mineure(s) ont été caractérisées, complétées par ${data.totals.observations} observation(s). Le détail individuel, les recommandations associées et le plan d'action sont restitués respectivement aux sections 5, 6 et 7 du présent rapport.`,
-    `Au regard de ces éléments, et après prise en compte de la position de la direction de ${data.client?.name ?? 'l\'organisation'} formulée en réunion de clôture, l'opinion d'audit retenue est : « ${v.label} ». Cette opinion est délivrée sous réserve de la mise en œuvre effective du plan d'action de remédiation dans les délais convenus, et sans préjudice de la possibilité, pour l'équipe d'audit, de procéder à des contrôles complémentaires en cas d'évolution significative du périmètre ou du dispositif.`,
-    `Nous restons à la disposition de la direction et des instances de gouvernance de ${data.client?.name ?? 'l\'organisation'} pour présenter de vive voix les conclusions du présent rapport, en discuter les implications opérationnelles et accompagner, dans le cadre d'un mandat distinct, la mise en œuvre du plan d'action de remédiation. Le suivi des CAR est dès à présent ouvert sur la plateforme et nous procéderons à une revue d'avancement intermédiaire à 90 jours.`,
+    `Au terme de la mission conduite sur la période du ${period} et de l'évaluation des ${t.totalControls} contrôles formant le cadre de référence ${fw}, l'équipe d'audit a obtenu une assurance raisonnable quant au niveau de conformité atteint par ${data.client?.client_name ?? 'l\'organisation auditée'}. Cette assurance s'appuie sur l'ensemble des éléments de preuve collectés, examinés et tracés au dossier de mission, dont la liste détaillée figure en Annexe B.`,
+    `Le score pondéré global s'établit à ${t.conformityScore}%, traduisant une maîtrise ${v.qualifier} des exigences du référentiel. ${t.ncMajor} non-conformité(s) majeure(s) et ${t.ncMinor} non-conformité(s) mineure(s) ont été caractérisées, complétées par ${t.observations} observation(s). Le détail individuel, les recommandations associées et le plan d'action sont restitués respectivement aux sections 5, 6 et 7 du présent rapport.`,
+    `Au regard de ces éléments, et après prise en compte de la position de la direction de ${data.client?.client_name ?? 'l\'organisation'} formulée en réunion de clôture, l'opinion d'audit retenue est : « ${v.label} ». Cette opinion est délivrée sous réserve de la mise en œuvre effective du plan d'action de remédiation dans les délais convenus, et sans préjudice de la possibilité, pour l'équipe d'audit, de procéder à des contrôles complémentaires en cas d'évolution significative du périmètre ou du dispositif.`,
+    `Nous restons à la disposition de la direction et des instances de gouvernance de ${data.client?.client_name ?? 'l\'organisation'} pour présenter de vive voix les conclusions du présent rapport, en discuter les implications opérationnelles et accompagner, dans le cadre d'un mandat distinct, la mise en œuvre du plan d'action de remédiation. Le suivi des CAR est dès à présent ouvert sur la plateforme et nous procéderons à une revue d'avancement intermédiaire à 90 jours.`,
   ]
 }
 
 export function generateExecutiveLetterBody(data: AuditReportData): string[] {
-  const v = describeVerdict(data.totals.conformityScore, data.totals.ncMajor)
+  const t = data.totals!
+  const v = describeVerdict(t.conformityScore, t.ncMajor)
   const fw = frameworkLabel(data)
   const period = formatPeriod(data.mission.start_date, data.mission.end_date)
   const clientName = clientLabel(data)
   return [
     `Madame, Monsieur,`,
     `Conformément à la lettre de mission qui nous a été confiée, nos équipes ont conduit, sur la période du ${period}, l'audit de conformité de ${clientName} aux exigences du référentiel ${fw}. Le présent document constitue le rapport définitif de cette mission. Il restitue, de manière détaillée et tracée, les travaux conduits, les constats formulés, les recommandations associées ainsi que l'opinion d'audit retenue.`,
-    `Au terme de l'évaluation des ${data.totals.totalControls} contrôles du périmètre, le niveau de conformité global s'établit à ${data.totals.conformityScore}% (score pondéré). ${data.totals.ncMajor} non-conformité(s) majeure(s) et ${data.totals.ncMinor} non-conformité(s) mineure(s) ont été formellement caractérisées, complétées par ${data.totals.observations} observation(s). Notre opinion d'audit est, au regard de ces éléments, « ${v.label} ».`,
+    `Au terme de l'évaluation des ${t.totalControls} contrôles du périmètre, le niveau de conformité global s'établit à ${t.conformityScore}% (score pondéré). ${t.ncMajor} non-conformité(s) majeure(s) et ${t.ncMinor} non-conformité(s) mineure(s) ont été formellement caractérisées, complétées par ${t.observations} observation(s). Notre opinion d'audit est, au regard de ces éléments, « ${v.label} ».`,
     `Le détail individuel des constats, les recommandations associées et la matrice de priorisation correspondante sont restitués dans le corps du rapport. Le plan d'action de remédiation, ouvert dès la clôture de la mission, est suivi sur la plateforme et fera l'objet d'une revue d'avancement à 90 jours puis trimestrielle. Nos équipes restent à votre disposition pour présenter de vive voix les conclusions du rapport et en discuter les implications opérationnelles.`,
     `Vous remerciant pour la qualité de l'accueil réservé à nos équipes durant la mission, nous vous prions d'agréer, Madame, Monsieur, l'expression de notre considération distinguée.`,
   ]
@@ -398,7 +400,7 @@ export function frameworkLabel(data: AuditReportData): string {
  * mission.client.name (organization), puis fallback neutre.
  */
 export function clientLabel(data: AuditReportData): string {
-  if (data.client?.name?.trim()) return data.client.name.trim()
+  if (data.client?.client_name?.trim()) return data.client.client_name.trim()
   const org = (data.mission as unknown as { client?: { name?: string | null } }).client
   if (org?.name?.trim()) return org.name.trim()
   return 'l\'organisation auditée'

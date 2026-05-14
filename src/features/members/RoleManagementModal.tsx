@@ -249,7 +249,7 @@ function RoleForm({
             <label key={key} className="flex items-center gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
-                checked={permissions[key]}
+                checked={permissions[key] === true}
                 onChange={() => onTogglePermission(key)}
                 className="rounded border-gray-300 text-forest-600 focus:ring-forest-500"
                 disabled={saving}

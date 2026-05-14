@@ -5,10 +5,14 @@ interface ClientInfoSectionProps {
   effectifs: string
   chiffreAffaires: string
   nombreSites: string
+  activitesPrincipales?: string
+  structureHierarchique?: string
   disabled: boolean
   onEffectifs: (v: string) => void
   onChiffreAffaires: (v: string) => void
   onNombreSites: (v: string) => void
+  onActivitesPrincipales?: (v: string) => void
+  onStructureHierarchique?: (v: string) => void
 }
 
 export function ClientInfoSection({

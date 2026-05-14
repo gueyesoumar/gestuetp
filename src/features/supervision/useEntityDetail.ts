@@ -118,15 +118,17 @@ export function useEntityDetail(entityId: string | undefined): EntityDetailData 
         .in('mission_id', missionIds)
 
       // 6. Fetch CARs
-      const { data: cars } = await supabase
+      type CarRow = { id: string; mission_id: string }
+      const { data: carsRaw } = await supabase
         .from('corrective_action_requests')
         .select('id, mission_id')
         .in('mission_id', missionIds)
         .eq('finding_classification', 'major_nc')
         .in('status', ['open', 'client_responded'])
+      const cars = (carsRaw ?? []) as unknown as CarRow[]
 
       const carsByMission = new Map<string, number>()
-      for (const car of cars ?? []) {
+      for (const car of cars) {
         carsByMission.set(car.mission_id, (carsByMission.get(car.mission_id) ?? 0) + 1)
       }
 

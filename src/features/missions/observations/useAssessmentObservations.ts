@@ -111,7 +111,7 @@ export function useAssessmentObservations(missionId?: string): UseAssessmentObse
         assessment_id: assessmentId,
         observation_text: text,
         observation_by: profile.id,
-      })
+      } as never)
 
     setSubmitting(false)
     if (err) {
@@ -132,7 +132,7 @@ export function useAssessmentObservations(missionId?: string): UseAssessmentObse
         response_action: action,
         response_by: profile.id,
         response_at: new Date().toISOString(),
-      })
+      } as never)
       .eq('id', observationId)
 
     setSubmitting(false)

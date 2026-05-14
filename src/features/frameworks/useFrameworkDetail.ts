@@ -64,12 +64,14 @@ export function useFrameworkDetail(slug: string | undefined): UseFrameworkDetail
         return
       }
 
-      const mapped: DomainWithControls[] = (domainsData ?? []).map((d) => ({
+      type DomainRow = { id: string; framework_id: string; code: string; name: string; description: string | null; sort_order: number; controls: Control[] }
+      const rows = (domainsData ?? []) as unknown as DomainRow[]
+      const mapped = rows.map((d) => ({
         ...d,
         controls: ((d.controls ?? []) as Control[]).sort(
           (a, b) => a.sort_order - b.sort_order
         ),
-      }))
+      })) as unknown as DomainWithControls[]
 
       setDomains(mapped)
       setLoading(false)
