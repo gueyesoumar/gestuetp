@@ -18,6 +18,9 @@ import { ControlReviewView } from './ControlReviewView'
 import { ControlReviewActions } from './ControlReviewActions'
 import { ControlAuthoringFooter } from './ControlAuthoringFooter'
 import { ControlStatementCard } from './ControlStatementCard'
+import { ConformityJustificationModal } from './findings/ConformityJustificationModal'
+import { isConformityCoherent, getIncoherenceMessage, findIncompleteNcFindings } from './findings/conformityRules'
+import type { ConformityLevel } from '../mission-constants'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
 interface ControlWorkAreaProps {
@@ -35,7 +38,7 @@ interface ControlWorkAreaProps {
   onGuidedStepChange: (step: number) => void
   onToggleAutoAdvance: () => void
   onSave: (id: string, data: { evidence_notes: string; observations: string; conformity_level: string | null }, opts?: { silent?: boolean }) => Promise<boolean>
-  onSubmit: (id: string) => Promise<boolean>
+  onSubmit: (id: string, conformity_override_reason?: string | null) => Promise<boolean>
   onApprove?: (id: string, comment: string, stage?: string) => Promise<boolean>
   onReject?: (id: string, comment: string, stage?: string) => Promise<boolean>
 }
@@ -100,19 +103,40 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
     }
   }, [assessment.id, assessment.control.code, formData, onSave, toast])
 
+  const [justificationOpen, setJustificationOpen] = useState(false)
+
+  const doSubmit = useCallback(async (reason: string | null) => {
+    const saved = await onSave(assessment.id, formData)
+    if (!saved) return
+    const submitted = await onSubmit(assessment.id, reason)
+    if (submitted) {
+      toast.success('Travaux soumis pour revue', { description: `${assessment.control.code} · transmis au lead` })
+      setJustificationOpen(false)
+    }
+  }, [assessment.id, assessment.control.code, formData, onSave, onSubmit, toast])
+
   const handleSubmit = useCallback(async () => {
     if (findingsCount === 0) {
       toast.warn('Au moins un constat requis', { description: 'Ajoutez un constat avant de soumettre.' })
       return
     }
-    const saved = await onSave(assessment.id, formData)
-    if (saved) {
-      const submitted = await onSubmit(assessment.id)
-      if (submitted) {
-        toast.success('Travaux soumis pour revue', { description: `${assessment.control.code} · transmis au lead` })
-      }
+    // Variante B : blocage dur si NC majeure/mineure sans recommandation ou priorit&eacute;.
+    const incomplete = findIncompleteNcFindings(findingsHook.findings)
+    if (incomplete.length > 0) {
+      toast.warn(
+        `${incomplete.length} non-conformité${incomplete.length > 1 ? 's' : ''} à compléter`,
+        { description: 'Chaque NC majeure/mineure doit avoir une recommandation ET une priorité.' },
+      )
+      return
     }
-  }, [assessment.id, assessment.control.code, findingsCount, formData, onSave, onSubmit, toast])
+    // Coherence findings <-> conformity_level : warning + justification obligatoire si incoherent.
+    const coherent = isConformityCoherent(conformityLevel as ConformityLevel | null, findingsHook.findings)
+    if (!coherent) {
+      setJustificationOpen(true)
+      return
+    }
+    await doSubmit(null)
+  }, [findingsCount, findingsHook.findings, conformityLevel, doSubmit, toast])
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -252,6 +276,14 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           onSubmit={handleSubmit}
         />
       )}
+
+      <ConformityJustificationModal
+        open={justificationOpen}
+        incoherenceMessage={getIncoherenceMessage(conformityLevel as ConformityLevel | null, findingsHook.findings) ?? ''}
+        saving={saving}
+        onConfirm={(reason) => { void doSubmit(reason) }}
+        onCancel={() => setJustificationOpen(false)}
+      />
     </div>
   )
 }

@@ -476,12 +476,31 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
       console.warn(`[smart-analyse] Filtered ${rawFindings.length - findings.length} invalid finding(s) out of ${rawFindings.length}`)
     }
 
+    // Derivation du conformity_level suggere depuis les findings (matrice metier
+    // cf. src/features/missions/fieldwork/findings/conformityRules.ts).
+    // Permet a l'UI d'afficher une suggestion coherente sans calcul cote client.
+    const counts = findings.reduce(
+      (acc: { major: number; minor: number; observation: number; strength: number }, f) => {
+        if (f.classification === 'major_nc') acc.major++
+        else if (f.classification === 'minor_nc') acc.minor++
+        else if (f.classification === 'observation') acc.observation++
+        else if (f.classification === 'strength') acc.strength++
+        return acc
+      },
+      { major: 0, minor: 0, observation: 0, strength: 0 },
+    )
+    let suggested_conformity_level: 'c' | 'lc' | 'pc' | 'nc' | 'na' = 'na'
+    if (counts.major > 0) suggested_conformity_level = 'nc'
+    else if (counts.minor > 0) suggested_conformity_level = 'pc'
+    else if (counts.observation > 0 || counts.strength > 0) suggested_conformity_level = 'lc'
+
     return new Response(JSON.stringify({
       analysis_summary: typeof parsed.analysis_summary === 'string' ? parsed.analysis_summary : '',
       confidence: typeof parsed.confidence === 'number' ? Math.max(0, Math.min(100, parsed.confidence)) : 0,
       maturity_level: typeof parsed.maturity_level === 'string' ? parsed.maturity_level : 'partiel',
       maturity_justification: typeof parsed.maturity_justification === 'string' ? parsed.maturity_justification : '',
       findings,
+      suggested_conformity_level,
       docs_analyzed: contentParts.length - 1,
       dedicated_docs: dedicatedCount,
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })

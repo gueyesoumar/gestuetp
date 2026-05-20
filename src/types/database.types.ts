@@ -553,6 +553,7 @@ export interface ControlAssessment {
   evidence_notes: string | null
   observations: string | null
   conformity_level: string | null
+  conformity_override_reason: string | null
   cycle_id: string | null
   created_at: string
   updated_at: string
@@ -580,6 +581,7 @@ export interface ControlAssessmentUpdate {
   evidence_notes?: string | null
   observations?: string | null
   conformity_level?: string | null
+  conformity_override_reason?: string | null
 }
 
 export interface CorrectiveActionRequest {

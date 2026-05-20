@@ -3,6 +3,8 @@ import { Check, AlertTriangle, Play, Clock, UserCheck, Users } from 'lucide-reac
 import { Badge } from '../../../../components/ui/Badge'
 import { supabase } from '../../../../lib/supabase'
 import { ASSESSMENT_STATUS_CONFIG } from '../../mission-constants'
+import { findIncompleteNcFindings, isConformityCoherent } from '../findings/conformityRules'
+import type { ConformityLevel } from '../../mission-constants'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
 import type { UseAssessmentFindingsReturn, FindingClassification } from '../findings/useAssessmentFindings'
 
@@ -58,7 +60,9 @@ function useValidationInfo(assessmentId: string): ValidationInfo {
 
 export function ValidationStep({ assessment, observations, findingsHook, onSubmit, saving }: ValidationStepProps) {
   const findings = findingsHook.findings
-  const canSubmit = findings.length > 0
+  const incompleteNc = findIncompleteNcFindings(findings)
+  const coherent = isConformityCoherent(assessment.conformity_level as ConformityLevel | null, findings)
+  const canSubmit = findings.length > 0 && incompleteNc.length === 0
   const status = ASSESSMENT_STATUS_CONFIG[assessment.status]
   const alreadySubmitted = assessment.status !== 'draft' && assessment.status !== 'rejected'
   const val = useValidationInfo(assessment.id)
@@ -139,9 +143,26 @@ export function ValidationStep({ assessment, observations, findingsHook, onSubmi
         </div>
       ) : (
         <>
-          {!canSubmit && (
-            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+          {findings.length === 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               <AlertTriangle size={13} className="inline mr-1" />Au moins un constat est requis pour soumettre ce contr&ocirc;le.
+            </p>
+          )}
+          {incompleteNc.length > 0 && (
+            <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <p className="flex items-start gap-1.5">
+                <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+                <span>
+                  {incompleteNc.length} non-conformit&eacute;{incompleteNc.length > 1 ? 's' : ''}
+                  {' '}sans recommandation ou priorit&eacute;. Compl&eacute;tez ces champs avant de soumettre.
+                </span>
+              </p>
+            </div>
+          )}
+          {findings.length > 0 && incompleteNc.length === 0 && !coherent && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <AlertTriangle size={13} className="inline mr-1" />
+              Le niveau de conformit&eacute; choisi ne correspond pas aux findings. Une justification &eacute;crite vous sera demand&eacute;e.
             </p>
           )}
 

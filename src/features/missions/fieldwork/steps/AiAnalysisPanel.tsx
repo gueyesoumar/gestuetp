@@ -17,6 +17,7 @@ export interface AiAnalysis {
   maturity_level: string
   maturity_justification: string
   findings: AiFinding[]
+  suggested_conformity_level?: 'c' | 'lc' | 'pc' | 'nc' | 'na'
   docs_analyzed: number
   cadrage_answers_count?: number
 }

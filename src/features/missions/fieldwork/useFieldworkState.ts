@@ -106,11 +106,11 @@ export function useFieldworkState(
     return true
   }, [refetch])
 
-  const submitAssessment = useCallback(async (id: string): Promise<boolean> => {
+  const submitAssessment = useCallback(async (id: string, conformity_override_reason?: string | null): Promise<boolean> => {
     setSaving(true)
     setSaveError(null)
     const { data, error: fnError } = await supabase.functions.invoke('submit-assessment', {
-      body: { assessment_id: id },
+      body: { assessment_id: id, conformity_override_reason: conformity_override_reason ?? null },
     })
     if (fnError || data?.error) {
       setSaveError(fnError?.message ?? data?.error ?? 'Erreur lors de la soumission.')
