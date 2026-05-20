@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
 type WorkMode = 'guided' | 'libre'
@@ -109,11 +110,12 @@ export function useFieldworkState(
   const submitAssessment = useCallback(async (id: string, conformity_override_reason?: string | null): Promise<boolean> => {
     setSaving(true)
     setSaveError(null)
-    const { data, error: fnError } = await supabase.functions.invoke('submit-assessment', {
-      body: { assessment_id: id, conformity_override_reason: conformity_override_reason ?? null },
+    const res = await invokeEdgeFunction('submit-assessment', {
+      assessment_id: id,
+      conformity_override_reason: conformity_override_reason ?? null,
     })
-    if (fnError || data?.error) {
-      setSaveError(fnError?.message ?? data?.error ?? 'Erreur lors de la soumission.')
+    if (!res.ok) {
+      setSaveError(res.error ?? 'Erreur lors de la soumission.')
       setSaving(false)
       return false
     }
