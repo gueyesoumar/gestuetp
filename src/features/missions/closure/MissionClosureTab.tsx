@@ -11,7 +11,6 @@ import { ClosureActionCards } from './ClosureActionCards'
 import { FindingSynthesis } from './FindingSynthesis'
 import { AuditConclusion } from './AuditConclusion'
 import { ReportGenerator } from './ReportGenerator'
-import { generateAuditReportPDF } from '../../reports/generateAuditReportPDF'
 import { loadAuditReportData } from '../../reports/loadAuditReportData'
 import type { MissionDetail } from '../useMissionDetail'
 import type { ControlAssessment } from '../../../types/database.types'
@@ -90,8 +89,11 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const handleGenerateAuditReport = useCallback(async () => {
     setGeneratingPdf(true)
     try {
-      const data = await loadAuditReportData(mission)
-      await generateAuditReportPDF(data)
+      const [data, { runAuditReportPdfInWorker }] = await Promise.all([
+        loadAuditReportData(mission),
+        import('../../reports/runAuditReportPdfInWorker'),
+      ])
+      await runAuditReportPdfInWorker(data)
       toast.success('Rapport PDF généré', { description: mission.name })
     } catch (err) {
       toast.error('Génération du rapport impossible', err)

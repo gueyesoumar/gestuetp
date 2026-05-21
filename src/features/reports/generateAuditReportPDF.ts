@@ -111,7 +111,11 @@ const conformityWeight = (level: string | null | undefined): number | null => {
 
 // ── Public API ─────────────────────────────────────────────────────────────
 
-export async function generateAuditReportPDF(data: AuditReportData): Promise<void> {
+/**
+ * Construit le PDF en memoire et retourne le blob + le nom de fichier.
+ * Pas d'effet DOM : peut tourner dans un Web Worker.
+ */
+export async function buildAuditReportPdfBlob(data: AuditReportData): Promise<{ blob: Blob; filename: string }> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const ctx = createContext(doc, data)
 
@@ -142,7 +146,26 @@ export async function generateAuditReportPDF(data: AuditReportData): Promise<voi
 
   const safeName = (data.client?.client_name ?? data.mission.name).replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
   const year = new Date(data.mission.end_date ?? Date.now()).getFullYear()
-  doc.save(`Rapport_audit_${safeName}_${year}_${ctx.reportRef}.pdf`)
+  const filename = `Rapport_audit_${safeName}_${year}_${ctx.reportRef}.pdf`
+  const blob = doc.output('blob')
+  return { blob, filename }
+}
+
+/**
+ * Genere le PDF sur le main thread et declenche le telechargement via DOM.
+ * Preserve pour compat (tests, scenarios sans worker). Prefere
+ * runAuditReportPdfInWorker en production pour ne pas bloquer l'UI.
+ */
+export async function generateAuditReportPDF(data: AuditReportData): Promise<void> {
+  const { blob, filename } = await buildAuditReportPdfBlob(data)
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 // ── Context ────────────────────────────────────────────────────────────────
@@ -1373,6 +1396,8 @@ function truncate(s: string, max: number): string {
 }
 
 async function loadImageAsDataURL(url: string): Promise<LogoData | null> {
+  // Utilise FileReader + createImageBitmap : tous deux disponibles main thread
+  // ET Web Worker, ce qui permet de migrer la generation en worker sans refactor.
   try {
     const res = await fetch(url, { mode: 'cors' })
     if (!res.ok) return null
@@ -1389,12 +1414,9 @@ async function loadImageAsDataURL(url: string): Promise<LogoData | null> {
       r.onerror = () => reject(new Error('FileReader error'))
       r.readAsDataURL(blob)
     })
-    const dims = await new Promise<{ width: number; height: number }>((resolve, reject) => {
-      const img = new Image()
-      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
-      img.onerror = () => reject(new Error('Image decode error'))
-      img.src = dataUrl
-    })
+    const bitmap = await createImageBitmap(blob)
+    const dims = { width: bitmap.width, height: bitmap.height }
+    bitmap.close()
     return { dataUrl, format, width: dims.width, height: dims.height }
   } catch (err) {
     console.warn('[audit-pdf] logo load failed:', err)

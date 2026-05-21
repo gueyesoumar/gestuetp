@@ -4,7 +4,6 @@ import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { useScopingData } from './useScopingData'
 import { useSaveScoping } from './useSaveScoping'
-import { generateScopingNotePDF } from '../../reports/generateScopingNotePDF'
 import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
@@ -155,6 +154,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const handleGenerateNote = useCallback(async () => {
     setActionSuccess(null)
     try {
+      const { generateScopingNotePDF } = await import('../../reports/generateScopingNotePDF')
       await generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } })
       setActionSuccess('Note de cadrage PDF t\u00e9l\u00e9charg\u00e9e.')
     } catch (err) {

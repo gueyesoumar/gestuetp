@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { generateCompteRendu } from './interviewHelpers'
-import { generateInterviewCRPDF } from '../../reports/generateInterviewCRPDF'
 import { PvEditor } from './PvEditor'
 import type { ClientContact, InterviewScheduleUpdate, PvNotes } from '../../../types/database.types'
 import type { MissionMemberRow } from '../useMissionDetail'
@@ -81,13 +80,14 @@ export function InterviewEditModal({
     setNotes(generateCompteRendu(interview, firstActor, auditorName, notes))
   }
 
-  const handlePdf = (): void => {
+  const handlePdf = async (): Promise<void> => {
     const auditor = members.find((m) => m.user_id === auditorId)
     const auditorName = auditor ? `${auditor.user.first_name} ${auditor.user.last_name}` : 'Auditeur'
     const firstActor = Array.from(selectedActorIds).map((id) => actors.find((a) => a.id === id)).find(Boolean)
     const topicNames = Array.from(selectedTopicIds)
       .map((id) => topics.find((t) => t.id === id)?.name)
       .filter((n): n is string => Boolean(n))
+    const { generateInterviewCRPDF } = await import('../../reports/generateInterviewCRPDF')
     generateInterviewCRPDF({ interview, contact: firstActor, auditorName, missionName, rawNotes: notes, controlCodes: topicNames })
   }
 
