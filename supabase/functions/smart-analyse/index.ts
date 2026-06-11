@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
 // ============================================================================
 // Types & validators
@@ -73,6 +74,14 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceRoleKey)
     const callerAuth = req.headers.get('Authorization') ?? ''
 
+    // Authentification obligatoire (la fonction lit des donnees tenant + genere des URLs signees via service_role)
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) {
+      return new Response(JSON.stringify({ error: auth.message }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    const caller = auth.profile
+
     const { mission_id, control_id, control_code, control_name, control_description, domain, observations, evidence_notes } = await req.json()
 
     if (!control_code || !control_name) {
@@ -87,7 +96,16 @@ Deno.serve(async (req) => {
 
     if (mission_id) {
       const { data: m } = await admin.from('missions').select('client_id, cabinet_id, framework:frameworks(name)').eq('id', mission_id).single()
-      cabinetIdForLog = (m as { cabinet_id?: string } | null)?.cabinet_id ?? null
+      if (!m) {
+        return new Response(JSON.stringify({ error: 'Mission introuvable' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      // Cloisonnement : la mission doit appartenir au cabinet de l'appelant
+      if (!sameCabinet(caller, (m as { cabinet_id?: string }).cabinet_id)) {
+        return new Response(JSON.stringify({ error: ACCESS_DENIED }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      cabinetIdForLog = (m as { cabinet_id?: string }).cabinet_id ?? null
       if (m) {
         const { data: ccs } = await admin.from('cabinet_clients')
           .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems, it_environment')

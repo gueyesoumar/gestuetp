@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
 const SYSTEM_PROMPT = `Tu es un expert en audit SI. Pour chaque contrôle, tu détermines le risk_level, les audit_techniques, et l'auditor_id.
 
@@ -44,18 +45,13 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    // Auth
-    const authHeader = req.headers.get('Authorization') ?? req.headers.get('x-auth-token')
-    let callerId: string | null = null
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '')
-      const { data: { user } } = await supabaseAdmin.auth.getUser(token)
-      if (user) callerId = user.id
+    // Auth + cloisonnement
+    const auth = await authenticateCaller(supabaseAdmin, req)
+    if (!auth.ok) {
+      return new Response(JSON.stringify({ error: auth.message }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
-    if (!callerId) {
-      return new Response(JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
+    const caller = auth.profile
 
     const { mission_id } = await req.json()
     if (!mission_id) {
@@ -69,6 +65,12 @@ Deno.serve(async (req) => {
     if (!mission) {
       return new Response(JSON.stringify({ error: 'Mission introuvable' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // La mission doit appartenir au cabinet de l'appelant
+    if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
+      return new Response(JSON.stringify({ error: ACCESS_DENIED }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: domains } = await supabaseAdmin

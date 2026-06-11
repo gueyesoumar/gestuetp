@@ -22,10 +22,12 @@ export function ClientDocumentsPage(): JSX.Element {
   useEffect(() => {
     if (mLoading || missions.length === 0) { setLoading(false); return }
 
-    const fetchDocs = async (): Promise<void> => {
+    const fetchDocs = async (signal: AbortSignal): Promise<void> => {
       setLoading(true)
+      try {
       const session = await supabase.auth.getSession()
       const token = session.data.session?.access_token
+      if (signal.aborted) return
       if (!token) { setLoading(false); return }
 
       const baseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -35,11 +37,13 @@ export function ClientDocumentsPage(): JSX.Element {
 
       const res = await fetch(
         `${baseUrl}/rest/v1/documents?mission_id=in.(${missionIds.join(',')})&select=id,file_name,mission_id,mime_type,file_size,created_at&order=created_at.desc&limit=50`,
-        { headers }
+        { headers, signal }
       )
 
+      if (signal.aborted) return
       if (res.ok) {
         const data = await res.json() as Record<string, unknown>[]
+        if (signal.aborted) return
         const missionMap = Object.fromEntries(missions.map((m) => [m.id, m.name]))
         setDocs(data.map((d) => ({
           id: d.id as string,
@@ -52,9 +56,16 @@ export function ClientDocumentsPage(): JSX.Element {
         })))
       }
       setLoading(false)
+      } catch {
+        // Abort lors d'un démontage/navigation : on ignore (pas une vraie erreur)
+        if (signal.aborted) return
+        setLoading(false)
+      }
     }
 
-    fetchDocs()
+    const ac = new AbortController()
+    void fetchDocs(ac.signal)
+    return () => ac.abort()
   }, [missions, mLoading])
 
   if (loading || mLoading) return <LoadingSpinner />

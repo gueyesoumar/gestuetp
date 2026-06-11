@@ -1,9 +1,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 interface AssignmentEntry {
   control_id: string
   auditor_id: string
+}
+
+function jsonError(message: string, status: number): Response {
+  return new Response(
+    JSON.stringify({ error: message }),
+    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  )
 }
 
 Deno.serve(async (req) => {
@@ -12,28 +21,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // 1. Verifier l'appelant
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
-    if (authError || !caller) {
-      return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    // 1. Authentifier l'appelant (+ is_active)
+    const auth = await authenticateCaller(supabaseAdmin, req)
+    if (!auth.ok) return jsonError(auth.message, auth.status)
+    const callerProfile = auth.profile
 
     // 2. Parser le payload
     const { mission_id, assignments } = await req.json() as {
@@ -42,38 +38,53 @@ Deno.serve(async (req) => {
     }
 
     if (!mission_id || !assignments || assignments.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'mission_id et assignments requis' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return jsonError('mission_id et assignments requis', 400)
     }
 
     // 3. Verifier que la mission existe
     const { data: mission, error: mErr } = await supabaseAdmin
       .from('missions')
-      .select('id, cabinet_id')
+      .select('id, cabinet_id, framework_id')
       .eq('id', mission_id)
       .single()
 
-    if (mErr || !mission) {
-      return new Response(
-        JSON.stringify({ error: 'Mission introuvable' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    if (mErr || !mission) return jsonError('Mission introuvable', 404)
+
+    // 4. Cloisonnement cabinet + permission requise
+    if (!sameCabinet(callerProfile, mission.cabinet_id)) {
+      return jsonError(ACCESS_DENIED, 403)
+    }
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_assign_team'))) {
+      return jsonError('Permission can_assign_team requise', 403)
     }
 
-    // 4. Verifier que l'appelant est dans le cabinet
-    const { data: callerProfile } = await supabaseAdmin
+    // 4b. Valider que chaque auditeur appartient au cabinet de la mission
+    const auditorIds = [...new Set(assignments.map((a) => a.auditor_id))]
+    const { data: validAuditors } = await supabaseAdmin
       .from('users')
-      .select('organization_id')
-      .eq('auth_id', caller.id)
-      .single()
+      .select('id')
+      .in('id', auditorIds)
+      .eq('organization_id', mission.cabinet_id)
+    if ((validAuditors ?? []).length !== auditorIds.length) {
+      return jsonError('Un auditeur ne fait pas partie du cabinet', 403)
+    }
 
-    if (!callerProfile || callerProfile.organization_id !== mission.cabinet_id) {
-      return new Response(
-        JSON.stringify({ error: 'Accès interdit' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // 4c. Valider que chaque contrôle appartient au référentiel de la mission
+    const controlIds = [...new Set(assignments.map((a) => a.control_id))]
+    const { data: ctrlRows } = await supabaseAdmin
+      .from('controls')
+      .select('id, domain_id')
+      .in('id', controlIds)
+    if ((ctrlRows ?? []).length !== controlIds.length) {
+      return jsonError('Contrôle inconnu', 400)
+    }
+    const domainIds = [...new Set((ctrlRows as Array<{ domain_id: string }>).map((c) => c.domain_id))]
+    const { data: domRows } = await supabaseAdmin
+      .from('domains')
+      .select('id, framework_id')
+      .in('id', domainIds)
+    if (!(domRows as Array<{ framework_id: string }> ?? []).every((d) => d.framework_id === mission.framework_id)) {
+      return jsonError('Un contrôle n\'appartient pas au référentiel de la mission', 400)
     }
 
     // 5. Inserer les affectations (upsert pour eviter les doublons)

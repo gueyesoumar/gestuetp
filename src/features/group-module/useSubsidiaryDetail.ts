@@ -149,16 +149,30 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
         : { data: [] }) as { data: SupervisionCycle[] }
       if (ac.signal.aborted) return
 
-      // 8. Total controls (par mission via framework → controls count)
+      // 8. Total controls (par framework). On compte directement sur `controls`
+      // via les domain_id du référentiel : `count:'exact'` sur `domains` aurait
+      // compté des DOMAINES, pas des contrôles (cf. useAdminFrameworkDetail).
       const fwControlCount = new Map<string, number>()
       if (fwIds.length > 0) {
         for (const fwId of fwIds) {
-          const { count } = await supabase
+          const { data: domainRows } = await supabase
             .from('domains')
-            .select('controls(id)', { count: 'exact', head: true })
+            .select('id')
             .eq('framework_id', fwId)
-          fwControlCount.set(fwId, count ?? 0)
+            .abortSignal(ac.signal)
+          const domainIds = (domainRows ?? []).map((d) => d.id as string)
+          let ctrlCount = 0
+          if (domainIds.length > 0) {
+            const { count } = await supabase
+              .from('controls')
+              .select('id', { count: 'exact', head: true })
+              .in('domain_id', domainIds)
+              .abortSignal(ac.signal)
+            ctrlCount = count ?? 0
+          }
+          fwControlCount.set(fwId, ctrlCount)
         }
+        if (ac.signal.aborted) return
       }
 
       // Agrégation par mission

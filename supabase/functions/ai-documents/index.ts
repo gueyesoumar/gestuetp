@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED, type CallerProfile } from '../_shared/auth.ts'
 // @deno-types="npm:@types/mammoth"
 import mammoth from 'npm:mammoth@1.6.0'
 import * as XLSX from 'npm:xlsx@0.18.5'
@@ -48,16 +49,22 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceRoleKey)
     const callerAuth = req.headers.get('Authorization') ?? ''
 
+    // Authentification obligatoire : toutes les actions operent sur des documents
+    // tenant via service_role et doivent etre cloisonnees par cabinet.
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
+    const caller = auth.profile
+
     const body = await req.json()
     const action = body.action as string
 
     switch (action) {
       case 'upload':
-        return await handleUpload(admin, anthropicKey, body, callerAuth)
+        return await handleUpload(admin, anthropicKey, body, callerAuth, caller)
       case 'delete':
-        return await handleDelete(admin, anthropicKey, body)
+        return await handleDelete(admin, anthropicKey, body, caller)
       case 'analyze':
-        return await handleAnalyze(admin, anthropicKey, body)
+        return await handleAnalyze(admin, anthropicKey, body, caller)
       default:
         return jsonResponse({ error: `Action inconnue: ${action}` }, 400)
     }
@@ -69,6 +76,18 @@ Deno.serve(async (req) => {
   }
 })
 
+// ── CLOISONNEMENT ─────────────────────────────────────────────────────────
+// Verifie qu'une mission appartient au cabinet de l'appelant.
+async function callerOwnsMission(
+  admin: ReturnType<typeof createClient>,
+  caller: CallerProfile,
+  missionId: string | null | undefined,
+): Promise<boolean> {
+  if (!missionId) return false
+  const { data: m } = await admin.from('missions').select('cabinet_id').eq('id', missionId).maybeSingle()
+  return sameCabinet(caller, (m as { cabinet_id?: string } | null)?.cabinet_id)
+}
+
 // ── UPLOAD ──────────────────────────────────────────────────────────────────
 // Downloads file from Supabase Storage → (optional conversion) → uploads
 // to Anthropic Files API. Stores file_id + kind back in the documents table.
@@ -78,17 +97,23 @@ async function handleUpload(
   anthropicKey: string,
   body: { document_id: string },
   callerAuth: string,
+  caller: CallerProfile,
 ): Promise<Response> {
   const { document_id } = body
   if (!document_id) return jsonResponse({ error: 'document_id requis' }, 400)
 
   const { data: doc, error: docErr } = await admin
     .from('documents')
-    .select('id, file_name, file_path, file_size, mime_type, anthropic_file_id')
+    .select('id, file_name, file_path, file_size, mime_type, anthropic_file_id, mission_id')
     .eq('id', document_id)
     .single()
 
   if (docErr || !doc) return jsonResponse({ error: 'Document introuvable' }, 404)
+
+  // Cloisonnement : le document doit appartenir a une mission du cabinet de l'appelant
+  if (!(await callerOwnsMission(admin, caller, (doc as { mission_id?: string }).mission_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
 
   if (doc.anthropic_file_id) {
     return jsonResponse({ file_id: doc.anthropic_file_id, already_uploaded: true })
@@ -200,19 +225,26 @@ async function handleUpload(
 async function handleDelete(
   admin: ReturnType<typeof createClient>,
   anthropicKey: string,
-  body: { document_id?: string; file_id?: string }
+  body: { document_id?: string; file_id?: string },
+  caller: CallerProfile,
 ): Promise<Response> {
   let fileId = body.file_id
 
-  if (!fileId && body.document_id) {
-    const { data: doc } = await admin
-      .from('documents')
-      .select('anthropic_file_id')
-      .eq('id', body.document_id)
-      .single()
+  // Cloisonnement : on resout TOUJOURS le document parent (par id ou par
+  // anthropic_file_id) pour verifier qu'il appartient au cabinet de l'appelant.
+  const docQuery = admin
+    .from('documents')
+    .select('anthropic_file_id, mission_id')
+  const { data: ownerDoc } = body.document_id
+    ? await docQuery.eq('id', body.document_id).single()
+    : await docQuery.eq('anthropic_file_id', body.file_id ?? '').maybeSingle()
 
-    fileId = doc?.anthropic_file_id
+  if (!ownerDoc) return jsonResponse({ error: 'Document introuvable' }, 404)
+  if (!(await callerOwnsMission(admin, caller, (ownerDoc as { mission_id?: string }).mission_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
   }
+
+  if (!fileId) fileId = (ownerDoc as { anthropic_file_id?: string }).anthropic_file_id ?? undefined
 
   if (!fileId) return jsonResponse({ error: 'file_id ou document_id requis' }, 400)
 
@@ -258,7 +290,8 @@ async function handleAnalyze(
     control_code?: string
     control_name?: string
     domain?: string
-  }
+  },
+  caller: CallerProfile,
 ): Promise<Response> {
   const { file_ids, prompt, model, max_tokens, mission_id, control_code, control_name, domain } = body
 
@@ -268,14 +301,29 @@ async function handleAnalyze(
 
   const trimmedFileIds = file_ids.slice(0, 5)
 
-  // Lookup kinds en un seul SELECT pour ne pas multiplier les RTT
+  // Lookup kinds + mission en un seul SELECT pour ne pas multiplier les RTT
   const { data: docsForKind } = await admin
     .from('documents')
-    .select('anthropic_file_id, anthropic_file_kind')
+    .select('anthropic_file_id, anthropic_file_kind, mission_id')
     .in('anthropic_file_id', trimmedFileIds)
 
+  const docRows = (docsForKind ?? []) as Array<{ anthropic_file_id: string; anthropic_file_kind: FileKind | null; mission_id: string }>
+
+  // Cloisonnement : chaque file_id doit correspondre a un document connu ET
+  // toutes leurs missions doivent appartenir au cabinet de l'appelant.
+  const foundFileIds = new Set(docRows.map((d) => d.anthropic_file_id))
+  if (trimmedFileIds.some((fid) => !foundFileIds.has(fid))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+  const missionIds = [...new Set(docRows.map((d) => d.mission_id).filter(Boolean))]
+  const { data: ownedMissions } = await admin.from('missions').select('id, cabinet_id').in('id', missionIds)
+  const owned = (ownedMissions ?? []) as Array<{ id: string; cabinet_id: string }>
+  if (owned.length !== missionIds.length || !owned.every((m) => sameCabinet(caller, m.cabinet_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+
   const kindByFileId = new Map<string, FileKind>()
-  for (const d of (docsForKind ?? []) as Array<{ anthropic_file_id: string; anthropic_file_kind: FileKind | null }>) {
+  for (const d of docRows) {
     if (d.anthropic_file_id) kindByFileId.set(d.anthropic_file_id, d.anthropic_file_kind ?? 'document')
   }
 
@@ -288,6 +336,11 @@ async function handleAnalyze(
       type: kind, // 'document' ou 'image'
       source: { type: 'file', file_id: fid },
     })
+  }
+
+  // Le mission_id de contexte (pour enrichir le prompt) doit lui aussi appartenir au cabinet
+  if (mission_id && !missionIds.includes(mission_id) && !(await callerOwnsMission(admin, caller, mission_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
   }
 
   let enrichedPrompt = prompt

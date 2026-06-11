@@ -26,9 +26,13 @@ Deno.serve(async (req) => {
     }
 
     const { data: callerProfile } = await supabaseAdmin
-      .from('users').select('id, organization_id').eq('auth_id', callerId).single()
+      .from('users').select('id, organization_id, is_active').eq('auth_id', callerId).single()
     if (!callerProfile) {
       return new Response(JSON.stringify({ error: 'Profil introuvable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    if (!callerProfile.is_active) {
+      return new Response(JSON.stringify({ error: 'Compte désactivé' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -58,6 +62,14 @@ Deno.serve(async (req) => {
       if (!user_id || !role) {
         return new Response(JSON.stringify({ error: 'user_id et role requis' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Cloisonnement : l'utilisateur ajouté doit appartenir au cabinet de l'appelant
+      const { data: targetUser } = await supabaseAdmin
+        .from('users').select('id').eq('id', user_id).eq('organization_id', callerProfile.organization_id).maybeSingle()
+      if (!targetUser) {
+        return new Response(JSON.stringify({ error: 'Cet utilisateur ne fait pas partie du cabinet' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
       // Si on ajoute quelqu'un comme lead_auditor : caller doit avoir
@@ -94,10 +106,12 @@ Deno.serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
+      // Scopé à la mission validée : empêche de supprimer un membre d'une autre mission
       const { error: deleteError } = await supabaseAdmin
         .from('mission_members')
         .delete()
         .eq('id', member_id)
+        .eq('mission_id', mission_id)
 
       if (deleteError) {
         console.error('manage-team remove:', deleteError.message)

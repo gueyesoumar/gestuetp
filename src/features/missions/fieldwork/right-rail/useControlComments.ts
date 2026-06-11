@@ -56,7 +56,7 @@ export function useControlComments(missionId: string | null, controlId: string |
     } catch { /* ignore */ }
   }, [missionId, controlId])
 
-  const refetch = useCallback(async (): Promise<void> => {
+  const refetch = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!missionId || !controlId) {
       setComments([])
       setLoading(false)
@@ -64,7 +64,7 @@ export function useControlComments(missionId: string | null, controlId: string |
     }
     setLoading(true)
     setError(null)
-    const result = await supabase.from(TABLE)
+    const query = supabase.from(TABLE)
       .select(`
         id, mission_id, control_id, author_id, parent_id, text, mentioned_user_ids,
         created_at, updated_at, deleted_at,
@@ -74,18 +74,29 @@ export function useControlComments(missionId: string | null, controlId: string |
       .eq('control_id', controlId)
       .is('deleted_at', null)
       .order('created_at', { ascending: true })
-    if (result.error) {
-      console.error('[useControlComments] fetch:', result.error.message)
+    try {
+      const result = await (signal ? query.abortSignal(signal) : query)
+      if (signal?.aborted) return
+      if (result.error) {
+        console.error('[useControlComments] fetch:', result.error.message)
+        setError('Erreur de chargement des commentaires')
+        setLoading(false)
+        return
+      }
+      setComments((result.data ?? []) as ControlComment[])
+      setLoading(false)
+    } catch {
+      // Abort lors d'un changement de contrôle/démontage : on ignore (pas une vraie erreur)
+      if (signal?.aborted) return
       setError('Erreur de chargement des commentaires')
       setLoading(false)
-      return
     }
-    setComments((result.data ?? []) as ControlComment[])
-    setLoading(false)
   }, [missionId, controlId])
 
   useEffect(() => {
-    void refetch()
+    const ac = new AbortController()
+    void refetch(ac.signal)
+    return () => ac.abort()
   }, [refetch])
 
   const postComment = useCallback(async (text: string, parentId?: string | null): Promise<boolean> => {

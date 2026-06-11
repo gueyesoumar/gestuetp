@@ -21,19 +21,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = useCallback(async (authId: string, signal?: AbortSignal) => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('auth_id', authId)
-      .abortSignal(signal ?? new AbortController().signal)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_id', authId)
+        .abortSignal(signal ?? new AbortController().signal)
+        .single()
 
-    if (error) {
-      console.error('Erreur chargement profil:', error.message)
-      setProfile(null)
-      return
+      if (signal?.aborted) return
+      if (error) {
+        console.error('Erreur chargement profil:', error.message)
+        setProfile(null)
+        return
+      }
+      setProfile(data)
+    } finally {
+      // Le profil est résolu (succès ou échec) : c'est seulement ici qu'on lève
+      // le flag de chargement, pour qu'aucun guard ne s'exécute avec profile=null
+      // alors que la session existe (sinon rendu/redirection cross-rôle erronés).
+      if (!signal?.aborted) setLoading(false)
     }
-    setProfile(data)
   }, [])
 
   useEffect(() => {
@@ -43,9 +51,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (abortController.signal.aborted) return
       setSession(currentSession)
       if (currentSession?.user) {
+        // loading reste true jusqu'à la résolution du profil (gérée par fetchProfile)
         fetchProfile(currentSession.user.id, abortController.signal)
+      } else {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -56,8 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           fetchProfile(newSession.user.id, abortController.signal)
         } else {
           setProfile(null)
+          setLoading(false)
         }
-        setLoading(false)
       }
     )
 

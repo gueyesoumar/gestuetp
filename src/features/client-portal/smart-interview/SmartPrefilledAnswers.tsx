@@ -153,7 +153,7 @@ export function SmartPrefilledAnswers({
     const token = session.data.session?.access_token
     if (!token) return
 
-    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/questionnaire_responses`, {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/questionnaire_responses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -172,6 +172,12 @@ export function SmartPrefilledAnswers({
       }),
     })
 
+    if (!res.ok) {
+      setError('Erreur lors de l’enregistrement de la réponse. Réessayez.')
+      return
+    }
+
+    setError(null)
     onPrefilledAnswersChange(
       prefilledAnswers.map((a) => a.questionCode === questionCode ? { ...a, validated: true } : a)
     )
@@ -191,7 +197,7 @@ export function SmartPrefilledAnswers({
     const token = session.data.session?.access_token
     if (!token) return
 
-    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/questionnaire_responses`, {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/questionnaire_responses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -210,6 +216,12 @@ export function SmartPrefilledAnswers({
       }),
     })
 
+    if (!res.ok) {
+      setError('Erreur lors de l’enregistrement de la réponse. Réessayez.')
+      return
+    }
+
+    setError(null)
     onPrefilledAnswersChange(
       prefilledAnswers.map((a) => a.questionCode === questionCode ? { ...a, answer: newText, validated: true } : a)
     )

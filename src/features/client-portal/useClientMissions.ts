@@ -25,12 +25,14 @@ export function useClientMissions(cabinetFilter?: string): UseClientMissionsRetu
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchMissions = useCallback(async (): Promise<void> => {
+  const fetchMissions = useCallback(async (signal?: AbortSignal): Promise<void> => {
     setLoading(true)
     setError(null)
 
+    try {
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
+    if (signal?.aborted) return
     if (!token) {
       setError('Non authentifi\u00e9')
       setLoading(false)
@@ -42,7 +44,8 @@ export function useClientMissions(cabinetFilter?: string): UseClientMissionsRetu
     const headers = { 'apikey': apikey, 'Authorization': `Bearer ${token}` }
 
     // 1. Fetch access list
-    const accessRes = await fetch(`${baseUrl}/rest/v1/client_mission_access?select=mission_id,permission`, { headers })
+    const accessRes = await fetch(`${baseUrl}/rest/v1/client_mission_access?select=mission_id,permission`, { headers, signal })
+    if (signal?.aborted) return
     if (!accessRes.ok) {
       console.error('useClientMissions access:', accessRes.status)
       setError('Erreur lors du chargement des acc\u00e8s')
@@ -50,6 +53,7 @@ export function useClientMissions(cabinetFilter?: string): UseClientMissionsRetu
       return
     }
     const accessList = await accessRes.json() as { mission_id: string; permission: string }[]
+    if (signal?.aborted) return
 
     if (accessList.length === 0) {
       setMissions([])
@@ -62,8 +66,9 @@ export function useClientMissions(cabinetFilter?: string): UseClientMissionsRetu
     const idsFilter = `in.(${missionIds.join(',')})`
     const missionsRes = await fetch(
       `${baseUrl}/rest/v1/missions?id=${idsFilter}&select=id,name,status,start_date,end_date,cabinet_id,framework_id`,
-      { headers }
+      { headers, signal }
     )
+    if (signal?.aborted) return
 
     if (!missionsRes.ok) {
       console.error('useClientMissions missions:', missionsRes.status)
@@ -78,7 +83,7 @@ export function useClientMissions(cabinetFilter?: string): UseClientMissionsRetu
     const fwIds = [...new Set(missionsData.map((m) => m.framework_id as string))]
     let fwMap: Record<string, string> = {}
     if (fwIds.length > 0) {
-      const fwRes = await fetch(`${baseUrl}/rest/v1/frameworks?id=in.(${fwIds.join(',')})&select=id,name`, { headers })
+      const fwRes = await fetch(`${baseUrl}/rest/v1/frameworks?id=in.(${fwIds.join(',')})&select=id,name`, { headers, signal })
       if (fwRes.ok) {
         const fwData = await fwRes.json() as { id: string; name: string }[]
         fwMap = Object.fromEntries(fwData.map((f) => [f.id, f.name]))
@@ -89,7 +94,7 @@ export function useClientMissions(cabinetFilter?: string): UseClientMissionsRetu
     const cabIds = [...new Set(missionsData.map((m) => m.cabinet_id as string))]
     let cabMap: Record<string, string> = {}
     if (cabIds.length > 0) {
-      const cabRes = await fetch(`${baseUrl}/rest/v1/organizations?id=in.(${cabIds.join(',')})&select=id,name`, { headers })
+      const cabRes = await fetch(`${baseUrl}/rest/v1/organizations?id=in.(${cabIds.join(',')})&select=id,name`, { headers, signal })
       if (cabRes.ok) {
         const cabData = await cabRes.json() as { id: string; name: string }[]
         cabMap = Object.fromEntries(cabData.map((c) => [c.id, c.name]))
@@ -115,12 +120,21 @@ export function useClientMissions(cabinetFilter?: string): UseClientMissionsRetu
       ? mapped.filter((m) => m.cabinet_id === cabinetFilter)
       : mapped
 
+    if (signal?.aborted) return
     setMissions(filtered)
     setLoading(false)
+    } catch {
+      // Abort lors d'un démontage/navigation : on ignore (pas une vraie erreur)
+      if (signal?.aborted) return
+      setError('Erreur de chargement des missions')
+      setLoading(false)
+    }
   }, [cabinetFilter])
 
   useEffect(() => {
-    fetchMissions()
+    const ac = new AbortController()
+    void fetchMissions(ac.signal)
+    return () => ac.abort()
   }, [fetchMissions])
 
   return { missions, loading, error, refetch: fetchMissions }

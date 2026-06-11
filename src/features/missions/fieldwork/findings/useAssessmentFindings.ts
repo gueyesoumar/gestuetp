@@ -34,7 +34,7 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const refetch = useCallback(async (): Promise<void> => {
+  const refetch = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!assessmentId) {
       setFindings([])
       setLoading(false)
@@ -42,23 +42,33 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
     }
     setLoading(true)
     setError(null)
-    const result = await supabase.from(TABLE)
+    const query = supabase.from(TABLE)
       .select('*')
       .eq('assessment_id', assessmentId)
       .order('ord', { ascending: true })
       .returns<AssessmentFinding[]>()
-    if (result.error) {
-      console.error('[useAssessmentFindings] fetch:', result.error.message)
+    try {
+      const result = await (signal ? query.abortSignal(signal) : query)
+      if (signal?.aborted) return
+      if (result.error) {
+        console.error('[useAssessmentFindings] fetch:', result.error.message)
+        setError('Erreur de chargement des constats')
+        setLoading(false)
+        return
+      }
+      setFindings(result.data ?? [])
+      setLoading(false)
+    } catch {
+      if (signal?.aborted) return
       setError('Erreur de chargement des constats')
       setLoading(false)
-      return
     }
-    setFindings(result.data ?? [])
-    setLoading(false)
   }, [assessmentId])
 
   useEffect(() => {
-    void refetch()
+    const ac = new AbortController()
+    void refetch(ac.signal)
+    return () => ac.abort()
   }, [refetch])
 
   const addFinding = useCallback(async (input?: NewFindingInput): Promise<AssessmentFinding | null> => {

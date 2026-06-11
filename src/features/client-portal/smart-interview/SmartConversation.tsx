@@ -20,6 +20,7 @@ export function SmartConversation({ questions, instanceId, userId, readOnly }: P
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [saving, setSaving] = useState(false)
   const [completed, setCompleted] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const currentQuestion = questions[currentIdx] ?? null
   const remaining = questions.length - currentIdx
@@ -27,33 +28,44 @@ export function SmartConversation({ questions, instanceId, userId, readOnly }: P
   const handleAnswer = useCallback(async (value: string): Promise<void> => {
     if (!currentQuestion || !instanceId || !userId) return
     setSaving(true)
+    setSaveError(null)
 
+    const session = await supabase.auth.getSession()
+    const token = session.data.session?.access_token
+    if (!token) {
+      setSaveError('Session expirée. Reconnectez-vous puis réessayez.')
+      setSaving(false)
+      return
+    }
+
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/questionnaire_responses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        instance_id: instanceId,
+        question_code: currentQuestion.code,
+        response: { value },
+        responded_by: userId,
+      }),
+    })
+
+    if (!res.ok) {
+      setSaveError('Erreur lors de l’enregistrement de votre réponse. Réessayez.')
+      setSaving(false)
+      return
+    }
+
+    // Persistance confirmée : on affiche la réponse et on avance.
     setMessages((prev) => [
       ...prev,
       { role: 'ai', content: currentQuestion.text },
       { role: 'user', content: value },
     ])
-
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    if (token) {
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/questionnaire_responses`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Prefer': 'resolution=merge-duplicates',
-        },
-        body: JSON.stringify({
-          instance_id: instanceId,
-          question_code: currentQuestion.code,
-          response: { value },
-          responded_by: userId,
-        }),
-      })
-    }
-
     setSaving(false)
     if (currentIdx + 1 < questions.length) {
       setCurrentIdx((i) => i + 1)
@@ -167,6 +179,10 @@ export function SmartConversation({ questions, instanceId, userId, readOnly }: P
               {/* Free text input for text questions or when no options */}
               {(currentQuestion.question_type === 'text' || !(currentQuestion.options && currentQuestion.options.length > 0)) && (
                 <FreeTextInput onSubmit={handleAnswer} disabled={readOnly || saving} />
+              )}
+
+              {saveError && (
+                <p className="mt-2 text-[11px] text-red-600">{saveError}</p>
               )}
             </div>
           </div>

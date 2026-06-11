@@ -3,6 +3,8 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
+import { authenticateCaller } from '../_shared/auth.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 interface InvitePayload {
   cabinet_client_id: string
@@ -20,38 +22,24 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Vérifier l'appelant
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user: caller }, error: authError } = await admin.auth.getUser(token)
-    if (authError || !caller) {
+    // Authentifier l'appelant (+ is_active) puis exiger la permission de gestion des membres
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) {
       return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: auth.message }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+    const callerProfile = auth.profile
 
-    const { data: callerProfile } = await admin
-      .from('users')
-      .select('id, organization_id')
-      .eq('auth_id', caller.id)
-      .single()
-
-    if (!callerProfile) {
+    if (!(await hasCabinetPerm(admin, callerProfile.id, 'can_manage_members'))) {
       return new Response(
-        JSON.stringify({ error: 'Profil introuvable' }),
+        JSON.stringify({ error: 'Permission can_manage_members requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

@@ -30,6 +30,27 @@ Deno.serve(async (req) => {
       )
     }
 
+    // 1b. Resoudre le profil de l'appelant + verifier qu'il est actif
+    const { data: callerProfile } = await supabaseAdmin
+      .from('users')
+      .select('id, organization_id, is_active')
+      .eq('auth_id', caller.id)
+      .single()
+
+    if (!callerProfile) {
+      return new Response(
+        JSON.stringify({ error: 'Profil introuvable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const cp = callerProfile as { id: string; organization_id: string; is_active: boolean }
+    if (!cp.is_active) {
+      return new Response(
+        JSON.stringify({ error: 'Compte désactivé' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // 2. Parser le payload
     const body = await req.json() as {
       mission_id?: string
@@ -65,6 +86,14 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Mission introuvable' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 3b. Verifier que la mission appartient au cabinet de l'appelant
+    if (mission.cabinet_id !== cp.organization_id) {
+      return new Response(
+        JSON.stringify({ error: 'Cette mission n\'appartient pas à votre cabinet' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 

@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
 /**
  * Edge Function : suggest-custom-questions
@@ -38,17 +39,14 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return jsonResponse({ error: 'Non autorise' }, 401)
-
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user: caller }, error: authError } = await admin.auth.getUser(token)
-    if (authError || !caller) return jsonResponse({ error: 'Non autorise' }, 401)
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
+    const caller = auth.profile
 
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') ?? Deno.env.get('ANTHROPIC_KEY')
     if (!anthropicKey) return jsonResponse({ error: 'Cle API Anthropic non configuree' }, 500)
@@ -74,6 +72,10 @@ Deno.serve(async (req) => {
         .eq('id', body.mission_id)
         .maybeSingle()
       if (mission) {
+        // Cloisonnement : la mission doit appartenir au cabinet de l'appelant
+        if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
+          return jsonResponse({ error: ACCESS_DENIED }, 403)
+        }
         const { data: client } = await admin
           .from('cabinet_clients')
           .select('client_sector, effectifs, nombre_sites, client_country, activites_principales, it_environment')
@@ -144,7 +146,7 @@ Deno.serve(async (req) => {
         admin, function_name: 'suggest-custom-questions', model: MODEL,
         input_tokens: null, output_tokens: null, success: false,
         error_message: 'fetch error', duration_ms: Date.now() - startedAt,
-        organization_id: null, mission_id: body.mission_id ?? null, user_id: caller.id,
+        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId,
       })
       return jsonResponse({ error: `Appel Claude echoue : ${message}` }, 502)
     }
@@ -156,7 +158,7 @@ Deno.serve(async (req) => {
         admin, function_name: 'suggest-custom-questions', model: MODEL,
         input_tokens: null, output_tokens: null, success: false,
         error_message: `${claudeRes.status}`, duration_ms: Date.now() - startedAt,
-        organization_id: null, mission_id: body.mission_id ?? null, user_id: caller.id,
+        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId,
       })
       return jsonResponse({ error: `Erreur Claude (${claudeRes.status})` }, 502)
     }

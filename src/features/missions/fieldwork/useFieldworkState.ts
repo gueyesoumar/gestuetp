@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react'
-import { supabase } from '../../../lib/supabase'
 import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
@@ -125,81 +124,41 @@ export function useFieldworkState(
     return true
   }, [refetch, advanceToNext])
 
-  const approveAssessment = useCallback(async (id: string, comment: string, stage?: string): Promise<boolean> => {
+  // Validation routee via l'Edge Function review-assessment : c'est le serveur
+  // qui determine le stage (lead/associate) et le newStatus selon le role du
+  // reviewer et le statut courant — le client ne decide plus rien. Le parametre
+  // `stage` est conserve pour compat de signature mais ignore (decide serveur).
+  const approveAssessment = useCallback(async (id: string, comment: string, _stage?: string): Promise<boolean> => {
     setSaving(true)
     setSaveError(null)
-
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    if (!token) { setSaving(false); return false }
-
-    // Get current user id
-    const { data: userData } = await supabase.from('users').select('id').eq('auth_id', (await supabase.auth.getUser()).data.user?.id ?? '').single()
-    if (!userData) { setSaving(false); return false }
-
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL
-    const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-    // Create validation record
-    await fetch(`${baseUrl}/rest/v1/assessment_validations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': apikey, 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({
-        assessment_id: id,
-        stage: stage ?? 'lead_review',
-        decision: 'approved',
-        comment: comment || null,
-        validated_by: userData.id,
-      }),
+    const res = await invokeEdgeFunction('review-assessment', {
+      assessment_id: id,
+      decision: 'approved',
+      comment: comment || null,
     })
-
-    // Only update status to approved if associate review (final step), or set to in_review for lead
-    const newStatus = (stage ?? 'lead_review') === 'associate_review' ? 'approved' : 'in_review'
-    await fetch(`${baseUrl}/rest/v1/control_assessments?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': apikey, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ status: newStatus }),
-    })
-
+    if (!res.ok) {
+      setSaveError(res.error ?? 'Erreur lors de la validation.')
+      setSaving(false)
+      return false
+    }
     setSaving(false)
     refetch()
     return true
   }, [refetch])
 
-  const rejectAssessment = useCallback(async (id: string, comment: string, stage?: string): Promise<boolean> => {
+  const rejectAssessment = useCallback(async (id: string, comment: string, _stage?: string): Promise<boolean> => {
     setSaving(true)
     setSaveError(null)
-
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    if (!token) { setSaving(false); return false }
-
-    const { data: userData } = await supabase.from('users').select('id').eq('auth_id', (await supabase.auth.getUser()).data.user?.id ?? '').single()
-    if (!userData) { setSaving(false); return false }
-
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL
-    const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-    // Create validation record
-    await fetch(`${baseUrl}/rest/v1/assessment_validations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': apikey, 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({
-        assessment_id: id,
-        stage: stage ?? 'lead_review',
-        decision: 'rejected',
-        comment: comment || null,
-        validated_by: userData.id,
-      }),
+    const res = await invokeEdgeFunction('review-assessment', {
+      assessment_id: id,
+      decision: 'rejected',
+      comment: comment || null,
     })
-
-    // Update assessment status to rejected
-    await fetch(`${baseUrl}/rest/v1/control_assessments?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': apikey, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ status: 'rejected' }),
-    })
-
+    if (!res.ok) {
+      setSaveError(res.error ?? 'Erreur lors du rejet.')
+      setSaving(false)
+      return false
+    }
     setSaving(false)
     refetch()
     return true

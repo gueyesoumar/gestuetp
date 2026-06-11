@@ -1,21 +1,11 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { authenticateCaller } from '../_shared/auth.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 interface ResetPasswordPayload {
   user_id: string
   new_password: string
-}
-
-/** Decode JWT payload without verification (the signing key guarantees integrity) */
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-    const payload = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
-    return JSON.parse(payload)
-  } catch {
-    return null
-  }
 }
 
 Deno.serve(async (req) => {
@@ -24,42 +14,26 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1. Extraire et décoder le JWT
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const token = authHeader.replace('Bearer ', '')
-    const jwtPayload = decodeJwtPayload(token)
-    const authUserId = jwtPayload?.sub as string | undefined
-
-    if (!authUserId) {
-      return new Response(
-        JSON.stringify({ error: 'Token invalide' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // 2. Client service_role
+    // 1. Client service_role
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // 3. Vérifier que l'appelant existe en base
-    const { data: callerProfile } = await supabaseAdmin
-      .from('users')
-      .select('id, organization_id')
-      .eq('auth_id', authUserId)
-      .single()
-
-    if (!callerProfile) {
+    // 2. Authentifier l'appelant cryptographiquement (jamais un décodage JWT maison)
+    const auth = await authenticateCaller(supabaseAdmin, req)
+    if (!auth.ok) {
       return new Response(
-        JSON.stringify({ error: 'Profil introuvable' }),
+        JSON.stringify({ error: auth.message }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const callerProfile = auth.profile
+
+    // 3. Exiger la permission de gestion des membres
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_manage_members'))) {
+      return new Response(
+        JSON.stringify({ error: 'Permission can_manage_members requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -101,6 +75,18 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Vous ne pouvez modifier que les membres de votre organisation.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // 5b. Protection des privilèges : on ne réinitialise pas un compte gérant les
+    //     rôles (admin cabinet) sauf si l'appelant dispose lui aussi de ce niveau.
+    if (user_id !== callerProfile.id) {
+      const targetIsRoleAdmin = await hasCabinetPerm(supabaseAdmin, user_id, 'can_manage_roles')
+      if (targetIsRoleAdmin && !(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_manage_roles'))) {
+        return new Response(
+          JSON.stringify({ error: 'Vous ne pouvez pas réinitialiser le mot de passe d\'un administrateur.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     // 6. Réinitialiser le mot de passe

@@ -33,18 +33,20 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = useCallback(async (): Promise<void> => {
+  const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!campaignId) { setLoading(false); return }
     setLoading(true)
     setError(null)
 
     try {
       // 1. Fetch campaign
-      const { data: campRaw, error: campErr } = await supabase
+      const campQuery = supabase
         .from('audit_campaigns')
         .select('*')
         .eq('id', campaignId)
         .single()
+      const { data: campRaw, error: campErr } = await (signal ? campQuery.abortSignal(signal) : campQuery)
+      if (signal?.aborted) return
 
       if (campErr || !campRaw) {
         setError('Campagne introuvable.')
@@ -55,20 +57,24 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
       setCampaign(camp)
 
       // 2. Framework name
-      const { data: fwRaw } = await supabase
+      const fwQuery = supabase
         .from('frameworks')
         .select('name')
         .eq('id', camp.framework_id)
         .single()
+      const { data: fwRaw } = await (signal ? fwQuery.abortSignal(signal) : fwQuery)
+      if (signal?.aborted) return
       const fw = fwRaw as { name: string } | null
       setFrameworkName(fw?.name ?? '')
 
       // 3. Fetch missions linked to this campaign
       type MissionRow = { id: string; client_id: string; status: string }
-      const { data: missionsRaw } = await supabase
+      const missionsQuery = supabase
         .from('missions')
         .select('id, client_id, status')
         .eq('campaign_id', campaignId)
+      const { data: missionsRaw } = await (signal ? missionsQuery.abortSignal(signal) : missionsQuery)
+      if (signal?.aborted) return
 
       const missions = (missionsRaw ?? []) as unknown as MissionRow[]
       if (missions.length === 0) {
@@ -80,20 +86,24 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
       // 4. Entity names
       const entityIds = [...new Set(missions.map((m) => m.client_id))]
       type OrgRow = { id: string; name: string; sector: string | null }
-      const { data: orgsRaw } = await supabase
+      const orgsQuery = supabase
         .from('organizations')
         .select('id, name, sector')
         .in('id', entityIds)
+      const { data: orgsRaw } = await (signal ? orgsQuery.abortSignal(signal) : orgsQuery)
+      if (signal?.aborted) return
       const orgs = (orgsRaw ?? []) as unknown as OrgRow[]
       const orgMap = new Map(orgs.map((o) => [o.id, { name: o.name, sector: o.sector }]))
 
       // 5. Assessments
       const missionIds = missions.map((m) => m.id)
       type AssessRow = { mission_id: string; status: string }
-      const { data: assessmentsRaw } = await supabase
+      const assessmentsQuery = supabase
         .from('control_assessments')
         .select('mission_id, status')
         .in('mission_id', missionIds)
+      const { data: assessmentsRaw } = await (signal ? assessmentsQuery.abortSignal(signal) : assessmentsQuery)
+      if (signal?.aborted) return
       const assessments = (assessmentsRaw ?? []) as unknown as AssessRow[]
 
       const missionScores = new Map<string, { total: number; approved: number }>()
@@ -106,12 +116,14 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
 
       // 6. CARs
       type CarRow = { mission_id: string }
-      const { data: carsRaw } = await supabase
+      const carsQuery = supabase
         .from('corrective_action_requests')
         .select('mission_id')
         .in('mission_id', missionIds)
         .eq('finding_classification', 'major_nc')
         .in('status', ['open', 'client_responded'])
+      const { data: carsRaw } = await (signal ? carsQuery.abortSignal(signal) : carsQuery)
+      if (signal?.aborted) return
       const cars = (carsRaw ?? []) as unknown as CarRow[]
 
       const carsByMission = new Map<string, number>()
@@ -140,15 +152,20 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
 
       result.sort((a, b) => b.score - a.score)
       setEntities(result)
+      setLoading(false)
     } catch (err) {
+      if (signal?.aborted) return
       console.error('useCampaignDetail:', err)
       setError('Erreur lors du chargement.')
-    } finally {
       setLoading(false)
     }
   }, [campaignId])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    const ac = new AbortController()
+    void fetchData(ac.signal)
+    return () => ac.abort()
+  }, [fetchData])
 
   const completedStatuses = new Set(['closure', 'client_review', 'internal_review'])
   const completedEntities = entities.filter((e) => completedStatuses.has(e.missionStatus)).length

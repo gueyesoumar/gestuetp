@@ -50,7 +50,7 @@ export function useMissionReviewComments(missionId: string | null): UseMissionRe
     } catch { /* ignore */ }
   }, [missionId])
 
-  const refetch = useCallback(async (): Promise<void> => {
+  const refetch = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!missionId) {
       setComments([])
       setLoading(false)
@@ -58,7 +58,7 @@ export function useMissionReviewComments(missionId: string | null): UseMissionRe
     }
     setLoading(true)
     setError(null)
-    const result = await supabase.from(TABLE)
+    const query = supabase.from(TABLE)
       .select(`
         id, mission_id, author_id, text, created_at, updated_at, deleted_at,
         author:users!author_id(first_name, last_name, email, job_title)
@@ -67,18 +67,28 @@ export function useMissionReviewComments(missionId: string | null): UseMissionRe
       .is('control_id', null)
       .is('deleted_at', null)
       .order('created_at', { ascending: true })
-    if (result.error) {
-      console.error('[useMissionReviewComments] fetch:', result.error.message)
+    try {
+      const result = await (signal ? query.abortSignal(signal) : query)
+      if (signal?.aborted) return
+      if (result.error) {
+        console.error('[useMissionReviewComments] fetch:', result.error.message)
+        setError('Erreur de chargement des commentaires')
+        setLoading(false)
+        return
+      }
+      setComments((result.data ?? []) as ReviewComment[])
+      setLoading(false)
+    } catch {
+      if (signal?.aborted) return
       setError('Erreur de chargement des commentaires')
       setLoading(false)
-      return
     }
-    setComments((result.data ?? []) as ReviewComment[])
-    setLoading(false)
   }, [missionId])
 
   useEffect(() => {
-    void refetch()
+    const ac = new AbortController()
+    void refetch(ac.signal)
+    return () => ac.abort()
   }, [refetch])
 
   const postComment = useCallback(async (text: string): Promise<boolean> => {

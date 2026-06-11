@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
 /**
  * Edge Function : smart-questionnaire (Passe 2 du pipeline IA)
@@ -143,13 +144,13 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Clé API IA non configurée' }, 500)
     }
 
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return jsonResponse({ error: 'Non autorisé' }, 401)
-
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-    const token = authHeader.replace('Bearer ', '').trim()
-    const { data: { user: caller } } = await admin.auth.getUser(token)
-    if (!caller) return jsonResponse({ error: 'Non autorisé' }, 401)
+    // JWT brut relayé tel quel à runBackfill (appel inter-fonctions)
+    const authHeader = req.headers.get('Authorization') ?? ''
+
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
+    const caller = auth.profile
 
     const { mission_id, questions } = await req.json() as { mission_id: string; questions: QuestionInput[] }
     if (!mission_id || !questions?.length) {
@@ -173,6 +174,12 @@ Deno.serve(async (req) => {
     } | null
 
     if (!mission) return jsonResponse({ error: 'Mission introuvable' }, 404)
+
+    // Cloisonnement : la mission doit appartenir au cabinet de l'appelant
+    // (bloque toute lecture des documents/preuves ET toute écriture du cache IA)
+    if (!sameCabinet(caller, mission.cabinet_id)) {
+      return jsonResponse({ error: ACCESS_DENIED }, 403)
+    }
 
     const { data: orgData } = await admin
       .from('organizations')
@@ -315,16 +322,11 @@ Deno.serve(async (req) => {
       clientContext = `Client: ${cc.client_name} | Secteur: ${cc.client_sector ?? '?'} | Taille: ${cc.effectifs ?? '?'} | IT: ${(cc.it_systems ?? []).join(', ') || '?'} | Réglementations: ${regs || 'aucune'} | Référentiel: ${mission.framework?.name ?? '?'}`
     }
 
-    // 5. Caller user_id pour log
-    const { data: callerProfile } = await admin
-      .from('users')
-      .select('id')
-      .eq('auth_id', caller.id)
-      .maybeSingle()
+    // 5. Caller user_id pour log (profil déjà résolu par authenticateCaller)
     const logCtx = {
       mission_id,
       organization_id: mission.cabinet_id,
-      user_id: (callerProfile as { id?: string } | null)?.id ?? null,
+      user_id: caller.id,
     }
 
     // 6. Pièces dédiées : docs uploadés en réponse à une demande de preuve

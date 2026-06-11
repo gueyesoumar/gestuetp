@@ -52,18 +52,20 @@ export function useEntityDetail(entityId: string | undefined): EntityDetailData 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = useCallback(async (): Promise<void> => {
+  const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!entityId || !profile?.organization_id) { setLoading(false); return }
     setLoading(true)
     setError(null)
 
     try {
       // 1. Fetch entity info
-      const { data: org, error: orgErr } = await supabase
+      const orgQuery = supabase
         .from('organizations')
         .select('id, name, sector, city')
         .eq('id', entityId)
         .single()
+      const { data: org, error: orgErr } = await (signal ? orgQuery.abortSignal(signal) : orgQuery)
+      if (signal?.aborted) return
 
       if (orgErr || !org) {
         setError('Entit\u00e9 introuvable.')
@@ -72,11 +74,13 @@ export function useEntityDetail(entityId: string | undefined): EntityDetailData 
       }
 
       // 2. Fetch all missions for this entity (RLS ensures group access)
-      const { data: missions, error: mErr } = await supabase
+      const missionsQuery = supabase
         .from('missions')
         .select('id, name, status, start_date, end_date, cabinet_id, framework_id')
         .eq('client_id', entityId)
         .order('end_date', { ascending: false, nullsFirst: false })
+      const { data: missions, error: mErr } = await (signal ? missionsQuery.abortSignal(signal) : missionsQuery)
+      if (signal?.aborted) return
 
       if (mErr) {
         setError('Impossible de charger les missions.')
@@ -96,35 +100,43 @@ export function useEntityDetail(entityId: string | undefined): EntityDetailData 
 
       // 3. Fetch framework names
       const frameworkIds = [...new Set(missions.map((m) => m.framework_id))]
-      const { data: fwData } = await supabase
+      const fwQuery = supabase
         .from('frameworks')
         .select('id, name')
         .in('id', frameworkIds)
+      const { data: fwData } = await (signal ? fwQuery.abortSignal(signal) : fwQuery)
+      if (signal?.aborted) return
       const fwMap = new Map((fwData ?? []).map((f) => [f.id, f.name]))
 
       // 4. Fetch cabinet names
       const cabinetIds = [...new Set(missions.map((m) => m.cabinet_id))]
-      const { data: cabData } = await supabase
+      const cabQuery = supabase
         .from('organizations')
         .select('id, name')
         .in('id', cabinetIds)
+      const { data: cabData } = await (signal ? cabQuery.abortSignal(signal) : cabQuery)
+      if (signal?.aborted) return
       const cabMap = new Map((cabData ?? []).map((c) => [c.id, c.name]))
 
       // 5. Fetch assessments for all missions
       const missionIds = missions.map((m) => m.id)
-      const { data: assessments } = await supabase
+      const assessmentsQuery = supabase
         .from('control_assessments')
         .select('id, mission_id, control_id, status')
         .in('mission_id', missionIds)
+      const { data: assessments } = await (signal ? assessmentsQuery.abortSignal(signal) : assessmentsQuery)
+      if (signal?.aborted) return
 
       // 6. Fetch CARs
       type CarRow = { id: string; mission_id: string }
-      const { data: carsRaw } = await supabase
+      const carsQuery = supabase
         .from('corrective_action_requests')
         .select('id, mission_id')
         .in('mission_id', missionIds)
         .eq('finding_classification', 'major_nc')
         .in('status', ['open', 'client_responded'])
+      const { data: carsRaw } = await (signal ? carsQuery.abortSignal(signal) : carsQuery)
+      if (signal?.aborted) return
       const cars = (carsRaw ?? []) as unknown as CarRow[]
 
       const carsByMission = new Map<string, number>()
@@ -162,16 +174,20 @@ export function useEntityDetail(entityId: string | undefined): EntityDetailData 
       const latestAssessments = (assessments ?? []).filter((a) => a.mission_id === latestMission.id)
 
       // Get controls → domains for this framework
-      const { data: domainData } = await supabase
+      const domainQuery = supabase
         .from('domains')
         .select('id, code, name, sort_order')
         .eq('framework_id', latestMission.framework_id)
         .order('sort_order')
+      const { data: domainData } = await (signal ? domainQuery.abortSignal(signal) : domainQuery)
+      if (signal?.aborted) return
 
-      const { data: controlData } = await supabase
+      const controlQuery = supabase
         .from('controls')
         .select('id, domain_id')
         .in('domain_id', (domainData ?? []).map((d) => d.id))
+      const { data: controlData } = await (signal ? controlQuery.abortSignal(signal) : controlQuery)
+      if (signal?.aborted) return
 
       const ctrlToDomain = new Map((controlData ?? []).map((c) => [c.id, c.domain_id]))
       const domainIdToInfo = new Map((domainData ?? []).map((d) => [d.id, { code: d.code, name: d.name }]))
@@ -210,14 +226,19 @@ export function useEntityDetail(entityId: string | undefined): EntityDetailData 
         openMajorNcs: totalOpenNcs,
       })
     } catch (err) {
+      if (signal?.aborted) return
       console.error('useEntityDetail:', err)
       setError('Erreur lors du chargement.')
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) setLoading(false)
     }
   }, [entityId, profile?.organization_id])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    const ac = new AbortController()
+    void fetchData(ac.signal)
+    return () => ac.abort()
+  }, [fetchData])
 
   return { ...data, loading, error }
 }
