@@ -123,7 +123,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
         const since30Date = new Date(Date.now() - 30 * DAY_MS)
         const since30 = since30Date.toISOString()
 
-        const [{ data: usersData }, { data: missionsAll }, { data: missionsRecent }] = await Promise.all([
+        const [{ data: usersData, error: usersErr }, { data: missionsAll, error: missionsAllErr }, { data: missionsRecent, error: missionsRecentErr }] = await Promise.all([
           supabase
             .from('users')
             .select('id, email, is_active, last_sign_in_at')
@@ -142,6 +142,12 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .abortSignal(abort.signal),
         ])
         if (abort.signal.aborted) return
+        if (usersErr || missionsAllErr || missionsRecentErr) {
+          console.error('[useCabinetHealth] core metrics:', usersErr?.message ?? missionsAllErr?.message ?? missionsRecentErr?.message)
+          setError('Erreur de chargement des données de santé du cabinet')
+          setLoading(false)
+          return
+        }
 
         const users = (usersData ?? []) as Array<{ email: string | null; is_active: boolean; last_sign_in_at: string | null }>
         let lastSignInAt: string | null = null
@@ -168,7 +174,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
           missionsCreatedDaily,
         }
 
-        const [{ data: aiCalls }, { data: docs }] = await Promise.all([
+        const [{ data: aiCalls, error: aiCallsErr }, { data: docs, error: docsErr }] = await Promise.all([
           supabase
             .from('ai_calls_log')
             .select('function_name, input_tokens, output_tokens, cost_estimate_usd, success')
@@ -182,6 +188,8 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .abortSignal(abort.signal),
         ])
         if (abort.signal.aborted) return
+        if (aiCallsErr) console.error('[useCabinetHealth] ai_calls_log:', aiCallsErr.message)
+        if (docsErr) console.error('[useCabinetHealth] documents:', docsErr.message)
 
         const ai = (aiCalls ?? []) as Array<{ function_name: string; input_tokens: number | null; output_tokens: number | null; cost_estimate_usd: number | null; success: boolean }>
         const documents = (docs ?? []) as Array<{ file_size: number | null }>
@@ -203,7 +211,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
           topAiFunctions,
         }
 
-        const { data: aiErrors } = await supabase
+        const { data: aiErrors, error: aiErrorsErr } = await supabase
           .from('ai_calls_log')
           .select('function_name, error_message, created_at')
           .eq('organization_id', cabinetId)
@@ -212,6 +220,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
           .order('created_at', { ascending: false })
           .abortSignal(abort.signal)
         if (abort.signal.aborted) return
+        if (aiErrorsErr) console.error('[useCabinetHealth] ai_calls_log errors:', aiErrorsErr.message)
 
         const errs = (aiErrors ?? []) as Array<{ function_name: string; error_message: string | null; created_at: string }>
         let topAiError: ErrorsStats['topAiError'] = null
@@ -229,7 +238,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
 
         const errorsStats: ErrorsStats = { aiErrors30d: errs.length, topAiError }
 
-        const [{ data: branding }, { data: domains }, { data: orgPlan }, { data: flagOverrides }, { count: activeMissionsCount }] = await Promise.all([
+        const [{ data: branding, error: brandingErr }, { data: domains, error: domainsErr }, { data: orgPlan, error: orgPlanErr }, { data: flagOverrides, error: flagOverridesErr }, { count: activeMissionsCount, error: activeMissionsErr }] = await Promise.all([
           supabase
             .from('organization_branding')
             .select('logo_light_url, logo_dark_url, primary_color')
@@ -261,6 +270,11 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
             .abortSignal(abort.signal),
         ])
         if (abort.signal.aborted) return
+        if (brandingErr) console.error('[useCabinetHealth] organization_branding:', brandingErr.message)
+        if (domainsErr) console.error('[useCabinetHealth] cabinet_domains:', domainsErr.message)
+        if (orgPlanErr) console.error('[useCabinetHealth] organizations plan:', orgPlanErr.message)
+        if (flagOverridesErr) console.error('[useCabinetHealth] feature_flag_overrides:', flagOverridesErr.message)
+        if (activeMissionsErr) console.error('[useCabinetHealth] active missions count:', activeMissionsErr.message)
 
         const b = branding as { logo_light_url: string | null; logo_dark_url: string | null; primary_color: string | null } | null
         const dom = (domains ?? []) as Array<{ is_verified: boolean }>

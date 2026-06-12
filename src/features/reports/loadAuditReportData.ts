@@ -10,20 +10,25 @@ import type { AssessmentWithControl, AuditReportData, ClientContact, EvidenceDoc
  * surcharger le chargement initial de la page Clôture.
  */
 export async function loadAuditReportData(mission: MissionDetail): Promise<AuditReportData> {
-  // 1. Membres de la mission (avec user)
-  const { data: membersRaw } = await supabase
+  // 1. Membres de la mission (avec user) — non bloquant
+  const { data: membersRaw, error: membersErr } = await supabase
     .from('mission_members')
     .select('id, mission_id, user_id, role, user:users(id, first_name, last_name, email, job_title)')
     .eq('mission_id', mission.id)
+  if (membersErr) console.error('[loadAuditReportData] members:', membersErr.message)
 
   const members = (membersRaw ?? []) as unknown as MissionMemberRow[]
 
-  // 2. Domaines + contrôles du framework (avec description)
-  const { data: domainRows } = await supabase
+  // 2. Domaines + contrôles du framework (avec description) — CRITIQUE
+  const { data: domainRows, error: domainsErr } = await supabase
     .from('domains')
     .select('id, code, name, description, sort_order, controls(id, code, name, description, sort_order, domain_id)')
     .eq('framework_id', mission.framework_id)
     .order('sort_order')
+  if (domainsErr) {
+    console.error('[loadAuditReportData] domains:', domainsErr.message)
+    throw new Error('Chargement du référentiel impossible')
+  }
 
   const domains = ((domainRows ?? []) as unknown as Array<{
     id: string; code: string; name: string; description: string | null; sort_order: number;
@@ -33,11 +38,15 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     controls: [...(d.controls ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
   })) as unknown as DomainWithControls[]
 
-  // 3. Assessments avec contrôle joint (incl. description)
-  const { data: assessRaw } = await supabase
+  // 3. Assessments avec contrôle joint (incl. description) — CRITIQUE
+  const { data: assessRaw, error: assessErr } = await supabase
     .from('control_assessments')
     .select('*, control:controls(id, code, name, description, domain_id)')
     .eq('mission_id', mission.id)
+  if (assessErr) {
+    console.error('[loadAuditReportData] assessments:', assessErr.message)
+    throw new Error('Chargement des évaluations impossible')
+  }
 
   const assessments = (assessRaw ?? []) as unknown as AssessmentWithControl[]
 
@@ -47,11 +56,12 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   // les futurs rendus PDF.
   const assessmentIds = assessments.map((a) => a.id)
   if (assessmentIds.length > 0) {
-    const { data: findingsRaw } = await supabase
+    const { data: findingsRaw, error: findingsErr } = await supabase
       .from('assessment_findings')
       .select('*')
       .in('assessment_id', assessmentIds)
       .order('ord', { ascending: true })
+    if (findingsErr) console.error('[loadAuditReportData] findings:', findingsErr.message)
 
     const byAssessment = new Map<string, AssessmentFinding[]>()
     for (const f of (findingsRaw ?? []) as AssessmentFinding[]) {
@@ -77,12 +87,13 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   let client: CabinetClient | null = null
   let cabinetClientId: string | null = null
   if (mission.client_id) {
-    const { data: clientRow } = await supabase
+    const { data: clientRow, error: clientErr } = await supabase
       .from('cabinet_clients')
       .select('*')
       .eq('client_organization_id', mission.client_id)
       .eq('cabinet_id', mission.cabinet_id)
       .maybeSingle()
+    if (clientErr) console.error('[loadAuditReportData] client:', clientErr.message)
     client = (clientRow as CabinetClient | null) ?? null
     cabinetClientId = client?.id ?? null
   }
@@ -90,20 +101,22 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   // 5. Contacts client (RSSI / approver — distribution list côté client)
   let clientContacts: ClientContact[] = []
   if (cabinetClientId) {
-    const { data: contactRows } = await supabase
+    const { data: contactRows, error: contactsErr } = await supabase
       .from('client_portal_contacts')
       .select('id, contact_name, email, job_title, portal_status')
       .eq('cabinet_client_id', cabinetClientId)
       .order('created_at')
+    if (contactsErr) console.error('[loadAuditReportData] contacts:', contactsErr.message)
     clientContacts = ((contactRows ?? []) as unknown as ClientContact[])
   }
 
   // 6. Cabinet : nom + adresse pour l'en-tête de la lettre
-  const { data: cabinetRow } = await supabase
+  const { data: cabinetRow, error: cabinetErr } = await supabase
     .from('organizations')
     .select('name, address, city, country, phone, website')
     .eq('id', mission.cabinet_id)
     .single()
+  if (cabinetErr) console.error('[loadAuditReportData] cabinet:', cabinetErr.message)
   const cabRow = cabinetRow as { name: string; address: string | null; city: string | null; country: string | null; phone: string | null; website: string | null } | null
   const cabinetName = cabRow?.name ?? 'Cabinet'
   const cabinetAddress = cabRow ? [cabRow.address, [cabRow.city, cabRow.country].filter(Boolean).join(' — ')].filter(Boolean).join('\n') : null
@@ -111,11 +124,12 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   const cabinetWebsite = cabRow?.website ?? null
 
   // 7. Branding cabinet (logo)
-  const { data: branding } = await supabase
+  const { data: branding, error: brandingErr } = await supabase
     .from('organization_branding')
     .select('logo_light_url, logo_dark_url, primary_color, accent_color, support_email, footer_text')
     .eq('organization_id', mission.cabinet_id)
     .maybeSingle()
+  if (brandingErr) console.error('[loadAuditReportData] branding:', brandingErr.message)
   const br = branding as {
     logo_light_url: string | null; logo_dark_url: string | null;
     primary_color: string | null; accent_color: string | null;
@@ -123,12 +137,13 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   } | null
 
   // 8. Documents (preuves examinées) — annexe B
-  const { data: docRows } = await supabase
+  const { data: docRows, error: docsErr } = await supabase
     .from('documents')
     .select('id, file_name, document_type, created_at')
     .eq('mission_id', mission.id)
     .order('created_at', { ascending: false })
     .limit(200)
+  if (docsErr) console.error('[loadAuditReportData] documents:', docsErr.message)
   const evidenceDocs = ((docRows ?? []) as unknown as EvidenceDoc[])
 
   return {

@@ -33,11 +33,17 @@ export function useContinuousReviews(): UseContinuousReviewsResult {
     }
 
     // 1. Filiales du groupe
-    const { data: subs } = await supabase
+    const { data: subs, error: subsErr } = await supabase
       .from('organizations')
       .select('id, name')
       .eq('parent_org_id', profile.organization_id)
     if (signal?.aborted) return
+    if (subsErr) {
+      console.error('[useContinuousReviews] organizations:', subsErr.message)
+      setMissions([])
+      setLoading(false)
+      return
+    }
     const subList = (subs ?? []) as Array<{ id: string; name: string }>
     if (subList.length === 0) {
       setMissions([])
@@ -47,13 +53,19 @@ export function useContinuousReviews(): UseContinuousReviewsResult {
     const subMap = new Map(subList.map((s) => [s.id, s.name]))
 
     // 2. Missions de supervision continue sur ces filiales
-    const { data: rows } = await supabase
+    const { data: rows, error: rowsErr } = await supabase
       .from('missions')
       .select('id, name, start_date, end_date, framework_id, lead_auditor_id, client_id')
       .in('client_id', subList.map((s) => s.id))
       .eq('kind', 'continuous_supervision')
       .order('start_date', { ascending: false })
     if (signal?.aborted) return
+    if (rowsErr) {
+      console.error('[useContinuousReviews] missions:', rowsErr.message)
+      setMissions([])
+      setLoading(false)
+      return
+    }
     const list = (rows ?? []) as Array<{
       id: string; name: string; start_date: string | null; end_date: string | null;
       framework_id: string | null; lead_auditor_id: string | null; client_id: string | null;
@@ -62,15 +74,17 @@ export function useContinuousReviews(): UseContinuousReviewsResult {
     // 3. Frameworks et users
     const fwIds = Array.from(new Set(list.map((m) => m.framework_id).filter(Boolean) as string[]))
     const userIds = Array.from(new Set(list.map((m) => m.lead_auditor_id).filter(Boolean) as string[]))
-    const [{ data: fws }, { data: users }] = await Promise.all([
+    const [{ data: fws, error: fwsErr }, { data: users, error: usersErr }] = await Promise.all([
       fwIds.length > 0
         ? supabase.from('frameworks').select('id, name').in('id', fwIds)
-        : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),
+        : Promise.resolve({ data: [] as Array<{ id: string; name: string }>, error: null }),
       userIds.length > 0
         ? supabase.from('users').select('id, first_name, last_name, email').in('id', userIds)
-        : Promise.resolve({ data: [] as Array<{ id: string; first_name: string | null; last_name: string | null; email: string }> }),
+        : Promise.resolve({ data: [] as Array<{ id: string; first_name: string | null; last_name: string | null; email: string }>, error: null }),
     ])
     if (signal?.aborted) return
+    if (fwsErr) console.error('[useContinuousReviews] frameworks:', fwsErr.message)
+    if (usersErr) console.error('[useContinuousReviews] users:', usersErr.message)
     const fwMap = new Map((fws ?? []).map((f) => [f.id, f.name]))
     const userMap = new Map<string, string>()
     for (const u of users ?? []) {
@@ -79,14 +93,16 @@ export function useContinuousReviews(): UseContinuousReviewsResult {
 
     // 4. Cycles
     const missionIds = list.map((m) => m.id)
-    const { data: cycleRows } = (missionIds.length > 0
+    const { data: cycleRowsRaw, error: cycleRowsErr } = (missionIds.length > 0
       ? await supabase
           .from('supervision_cycles')
           .select('*')
           .in('mission_id', missionIds)
           .order('period_start', { ascending: true })
-      : { data: [] }) as { data: SupervisionCycle[] }
+      : { data: [], error: null }) as { data: SupervisionCycle[]; error: { message: string } | null }
     if (signal?.aborted) return
+    if (cycleRowsErr) console.error('[useContinuousReviews] supervision_cycles:', cycleRowsErr.message)
+    const cycleRows = cycleRowsRaw ?? []
 
     const enriched: ContinuousReviewMission[] = list.map((m) => ({
       id: m.id,

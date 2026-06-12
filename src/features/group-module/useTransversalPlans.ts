@@ -31,11 +31,18 @@ export function useTransversalPlans(): UseTransversalPlansResult {
 
     const load = async (): Promise<void> => {
       // 1. Filiales
-      const { data: subs } = await supabase
+      const { data: subs, error: subsErr } = await supabase
         .from('organizations')
         .select('id, name')
         .eq('parent_org_id', profile.organization_id)
+        .abortSignal(ac.signal)
       if (ac.signal.aborted) return
+      if (subsErr) {
+        console.error('[useTransversalPlans] organizations:', subsErr.message)
+        setCars([])
+        setLoading(false)
+        return
+      }
       const subList = (subs ?? []) as Array<{ id: string; name: string }>
       const subMap = new Map(subList.map((s) => [s.id, s.name]))
       if (subList.length === 0) {
@@ -45,11 +52,18 @@ export function useTransversalPlans(): UseTransversalPlansResult {
       }
 
       // 2. Missions sur filiales
-      const { data: missions } = await supabase
+      const { data: missions, error: missionsErr } = await supabase
         .from('missions')
         .select('id, name, client_id, kind')
         .in('client_id', subList.map((s) => s.id))
+        .abortSignal(ac.signal)
       if (ac.signal.aborted) return
+      if (missionsErr) {
+        console.error('[useTransversalPlans] missions:', missionsErr.message)
+        setCars([])
+        setLoading(false)
+        return
+      }
       const missionList = (missions ?? []) as Array<{ id: string; name: string; client_id: string | null; kind: 'audit' | 'continuous_supervision' }>
       const missionMap = new Map(missionList.map((m) => [m.id, m]))
       const missionIds = missionList.map((m) => m.id)
@@ -60,12 +74,19 @@ export function useTransversalPlans(): UseTransversalPlansResult {
       }
 
       // 3. CAR sur ces missions
-      const { data: rows } = await supabase
+      const { data: rows, error: rowsErr } = await supabase
         .from('corrective_action_requests')
         .select('*')
         .in('mission_id', missionIds)
         .order('code', { ascending: true })
+        .abortSignal(ac.signal)
       if (ac.signal.aborted) return
+      if (rowsErr) {
+        console.error('[useTransversalPlans] corrective_action_requests:', rowsErr.message)
+        setCars([])
+        setLoading(false)
+        return
+      }
 
       const enriched: TransversalCAR[] = ((rows ?? []) as CorrectiveActionRequest[]).map((c) => {
         const m = missionMap.get(c.mission_id)

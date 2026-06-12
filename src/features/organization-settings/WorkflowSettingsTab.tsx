@@ -94,6 +94,11 @@ export function WorkflowSettingsTab(): JSX.Element {
       toast.error(data?.error ?? error?.message ?? 'Mise à jour impossible')
       return
     }
+    // Invalider le cache sessionStorage pour que tout l'app (PDF de cadrage,
+    // écrans de revue, notifications) reflète immédiatement les nouveaux libellés.
+    if (profile?.organization_id) {
+      try { sessionStorage.removeItem(`reviewLabels:${profile.organization_id}`) } catch { /* ignore */ }
+    }
     toast.success('Libellés mis à jour')
     setInitialLead(leadLabel.trim())
     setInitialAssociate(associateLabel.trim())

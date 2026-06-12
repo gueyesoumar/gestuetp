@@ -20,6 +20,7 @@ export interface SubsidiaryRow {
 interface UseSubsidiariesResult {
   subsidiaries: SubsidiaryRow[]
   loading: boolean
+  error: string | null
   totalCount: number
   averageScore: number | null
   totalActiveMissions: number
@@ -57,20 +58,29 @@ export function useSubsidiaries(): UseSubsidiariesResult {
   const { profile } = useAuth()
   const [subsidiaries, setSubsidiaries] = useState<SubsidiaryRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!profile?.organization_id) return
     const ac = new AbortController()
     setLoading(true)
+    setError(null)
 
     const load = async (): Promise<void> => {
       // 1. Filiales
-      const { data: subs } = await supabase
+      const { data: subs, error: subsErr } = await supabase
         .from('organizations')
         .select('id, name, sector, city')
         .eq('parent_org_id', profile.organization_id)
         .order('name')
+        .abortSignal(ac.signal)
       if (ac.signal.aborted) return
+      if (subsErr) {
+        console.error('[useSubsidiaries] organizations:', subsErr.message)
+        setError('Erreur de chargement des filiales')
+        setLoading(false)
+        return
+      }
       const subList = (subs ?? []) as Array<{ id: string; name: string; sector: string | null; city: string | null }>
       const subIds = subList.map((s) => s.id)
       if (subIds.length === 0) {
@@ -80,51 +90,63 @@ export function useSubsidiaries(): UseSubsidiariesResult {
       }
 
       // 2. Toutes les missions de ces filiales (en tant que client)
-      const { data: missions } = await supabase
+      const { data: missions, error: missionsErr } = await supabase
         .from('missions')
         .select('id, client_id, status, kind, framework_id')
         .in('client_id', subIds)
+        .abortSignal(ac.signal)
       if (ac.signal.aborted) return
+      if (missionsErr) console.error('[useSubsidiaries] missions:', missionsErr.message)
       const missionList = (missions ?? []) as MissionRow[]
 
       // 3. Frameworks pour les labels
       const fwIds = Array.from(new Set(missionList.map((m) => m.framework_id).filter(Boolean) as string[]))
       const fwMap = new Map<string, string>()
       if (fwIds.length > 0) {
-        const { data: fws } = await supabase.from('frameworks').select('id, name').in('id', fwIds)
+        const { data: fws, error: fwsErr } = await supabase.from('frameworks').select('id, name').in('id', fwIds).abortSignal(ac.signal)
+        if (fwsErr) console.error('[useSubsidiaries] frameworks:', fwsErr.message)
         for (const f of (fws ?? []) as Array<{ id: string; name: string }>) fwMap.set(f.id, f.name)
       }
 
       // 4. Assessments pour conformity_level (calcul du score moyen pondéré par filiale)
       const missionIds = missionList.map((m) => m.id)
-      const { data: assessments } = (missionIds.length > 0
+      const { data: assessmentsRaw, error: assessmentsErr } = (missionIds.length > 0
         ? await supabase
             .from('control_assessments')
             .select('mission_id, conformity_level')
             .in('mission_id', missionIds)
-        : { data: [] as Array<{ mission_id: string; conformity_level: string | null }> }) as { data: Array<{ mission_id: string; conformity_level: string | null }> }
+            .abortSignal(ac.signal)
+        : { data: [] as Array<{ mission_id: string; conformity_level: string | null }>, error: null }) as { data: Array<{ mission_id: string; conformity_level: string | null }>; error: { message: string } | null }
       if (ac.signal.aborted) return
+      if (assessmentsErr) console.error('[useSubsidiaries] control_assessments:', assessmentsErr.message)
+      const assessments = assessmentsRaw ?? []
 
       // 5. CAR ouvertes en retard
       const today = new Date().toISOString().slice(0, 10)
-      const { data: overdueCars } = (missionIds.length > 0
+      const { data: overdueCarsRaw, error: overdueCarsErr } = (missionIds.length > 0
         ? await supabase
             .from('corrective_action_requests')
             .select('mission_id, status, deadline, client_target_date, verification_status')
             .in('mission_id', missionIds)
             .neq('status', 'verified')
             .neq('status', 'closed')
-        : { data: [] as Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }> }) as { data: Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }> }
+            .abortSignal(ac.signal)
+        : { data: [] as Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }>, error: null }) as { data: Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }>; error: { message: string } | null }
       if (ac.signal.aborted) return
+      if (overdueCarsErr) console.error('[useSubsidiaries] corrective_action_requests:', overdueCarsErr.message)
+      const overdueCars = overdueCarsRaw ?? []
 
       // 6. Cycles de supervision pour les dates dernière/prochaine revue
-      const { data: cycles } = (missionIds.length > 0
+      const { data: cyclesRaw, error: cyclesErr } = (missionIds.length > 0
         ? await supabase
             .from('supervision_cycles')
             .select('mission_id, status, score, closed_at, period_start, period_end')
             .in('mission_id', missionIds)
-        : { data: [] as CycleRow[] }) as { data: CycleRow[] }
+            .abortSignal(ac.signal)
+        : { data: [] as CycleRow[], error: null }) as { data: CycleRow[]; error: { message: string } | null }
       if (ac.signal.aborted) return
+      if (cyclesErr) console.error('[useSubsidiaries] supervision_cycles:', cyclesErr.message)
+      const cycles = cyclesRaw ?? []
 
       // 7. Agrégation par filiale
       const rows: SubsidiaryRow[] = subList.map((sub) => {
@@ -198,5 +220,5 @@ export function useSubsidiaries(): UseSubsidiariesResult {
     ? Math.round(scored.reduce((s, x) => s + (x.conformityScore ?? 0), 0) / scored.length)
     : null
 
-  return { subsidiaries, loading, totalCount, averageScore, totalActiveMissions, totalOverdue }
+  return { subsidiaries, loading, error, totalCount, averageScore, totalActiveMissions, totalOverdue }
 }

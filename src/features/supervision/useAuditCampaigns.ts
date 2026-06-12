@@ -178,13 +178,26 @@ export function useAuditCampaigns(): UseAuditCampaignsReturn {
 
     if (mErr) {
       console.error('createCampaign missions:', mErr.message)
+      // Rollback : supprimer la campagne créée pour ne pas laisser un état incohérent
+      await supabase.from('audit_campaigns').delete().eq('id', campaignId)
+      setCreating(false)
+      return null
     }
 
     // 3. Activate the campaign
-    await supabase
+    const { error: actErr } = await supabase
       .from('audit_campaigns')
       .update({ status: 'active' as CampaignStatus } as never)
       .eq('id', campaignId)
+
+    if (actErr) {
+      console.error('createCampaign activate:', actErr.message)
+      // Rollback complet : missions + campagne
+      await supabase.from('missions').delete().eq('campaign_id', campaignId)
+      await supabase.from('audit_campaigns').delete().eq('id', campaignId)
+      setCreating(false)
+      return null
+    }
 
     setCreating(false)
     refetch()

@@ -28,7 +28,7 @@ export function SmartCards({ stats, nearestDeadline, priorityMission }: SmartCar
   return (
     <div className="grid grid-cols-4 gap-4">
       <PriorityCard mission={priorityMission} />
-      <ScoreCard score={stats.averageScore} />
+      <ScoreCard score={stats.averageProgress} />
       <DeadlineCard deadline={nearestDeadline} />
       <ActivityCard
         totalAssessments={stats.pendingReviews + stats.clientRejections}
@@ -75,12 +75,12 @@ function ScoreCard({ score }: { score: number }): JSX.Element {
         <InfoPopover text="Pourcentage moyen de contr&ocirc;les &eacute;valu&eacute;s (hors brouillons) par rapport au total des contr&ocirc;les sur l&rsquo;ensemble des missions actives." />
       </div>
       <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
-        Score moyen
+        Avancement moyen
       </div>
       <div className={`mt-1 text-[22px] font-extrabold tracking-tight ${colorClass}`}>
         {score}%
       </div>
-      <div className="text-[11px] text-gray-300">Conformit&eacute; globale</div>
+      <div className="text-[11px] text-gray-300">Contr&ocirc;les &eacute;valu&eacute;s</div>
     </div>
   )
 }

@@ -44,13 +44,13 @@
 | M4 | `useControlComments.ts` + `useMissionReviewComments.ts` + `useAssessmentFindings.ts` | Race stale, pas de garde anti-stale | ✅ `refetch(signal?)` + `.abortSignal` + garde + `useEffect` cleanup |
 | M5 | `useClientMissionDetail.ts` + `useClientMissions` + `useClientActionItems` + `useClientDashboardData` + `useClientInterviews` + `ClientDocumentsPage` | setState après async sans `AbortController` | ✅ signal sur chaque fetch + gardes + try/catch + cleanup |
 | M6 | `useSupervisionData.ts` + `useEntityDetail.ts` + `useCampaignDetail.ts` | Fetch sans cleanup | ✅ `.abortSignal` sur toutes les requêtes + gardes + cleanup (couvre aussi F7 supervision) |
-| M7 | `features/supervision/useAuditCampaigns.ts:175-191` | `createCampaign` annonce succès malgré inserts échoués | ⬜ |
-| M8 | `features/organization-settings/WorkflowSettingsTab.tsx:82-101` | Cache libellés de revue jamais invalidé | ⬜ |
-| M9 | `features/dashboard/useDashboardStats.ts:203-205` | « Conformité moy. » mesure l'avancement | ⬜ |
-| M10 | `features/reports/loadAuditReportData.ts:14-132` | Erreurs Supabase ignorées sur chaque requête | ⬜ |
-| M11 | `features/admin/health/useCabinetHealth.ts:126-262` | Canal `error` ignoré → stats à zéro silencieuses | ⬜ |
-| M12 | `features/group-module/useSubsidiaryDetail.ts` (+ `useSubsidiaries`, etc.) | Erreurs Supabase silencieuses | ⬜ |
-| M13 | `features/client-portal/missions/tabs/ClientExchangesTab.tsx` (546 l.) + `ControlDetailDrawer.tsx` (460 l.) | > 150 lignes, logique métier dans l'UI | ⬜ |
+| M7 | `features/supervision/useAuditCampaigns.ts:175-191` | `createCampaign` annonce succès malgré inserts échoués | ✅ rollback best-effort (missions+campagne) + `return null` |
+| M8 | `features/organization-settings/WorkflowSettingsTab.tsx:82-101` | Cache libellés de revue jamais invalidé | ✅ purge `sessionStorage` après save |
+| M9 | `features/dashboard/useDashboardStats.ts:203-205` | « Conformité moy. » mesure l'avancement | ✅ renommé `averageProgress` + labels « Avancement » partout |
+| M10 | `features/reports/loadAuditReportData.ts:14-132` | Erreurs Supabase ignorées sur chaque requête | ✅ critiques → throw ; secondaires → log + dégradation |
+| M11 | `features/admin/health/useCabinetHealth.ts:126-262` | Canal `error` ignoré → stats à zéro silencieuses | ✅ 11 requêtes (core → setError+stop, enrichissement → log) |
+| M12 | `useSubsidiaryDetail` + `useSubsidiaries` (+ champ `error`) + `useContinuousReviews` + `useTransversalPlans` | Erreurs Supabase silencieuses | ✅ erreur gérée par requête (critique→stop, secondaire→log) |
+| M13 | `features/client-portal/missions/tabs/ClientExchangesTab.tsx` (546 l.) + `ControlDetailDrawer.tsx` (460 l.) | > 150 lignes, logique métier dans l'UI | ⬜ refacto (dernier Moyen restant) |
 
 ## Faible
 
@@ -62,7 +62,7 @@
 | F4 | `smart-plan/index.ts:173,207` | `detail`/`raw` Claude bruts renvoyés au client | ⬜ |
 | F5 | `features/supervision/SupervisionReport.tsx:165-174` | CTA principaux sans `onClick` | ⬜ |
 | F6 | `features/admin/useAdminCabinets.ts` (+ `useAdminFrameworkDetail`) | Erreurs secondaires avalées | ⬜ |
-| F7 | `features/group-module/useSubsidiaryDetail.ts` (+ `useSubsidiaries`, `useContinuousReviews`, `useTransversalPlans`) | Gardes `aborted` présentes mais pas de `.abortSignal()` | 🔧 volet supervision fait (via M6) ; group-module restant |
+| F7 | `features/group-module/useSubsidiaryDetail.ts` (+ `useSubsidiaries`, `useContinuousReviews`, `useTransversalPlans`) | Gardes `aborted` présentes mais pas de `.abortSignal()` | ✅ supervision (M6) + group-module (`.abortSignal` ajouté via M12) ; `useContinuousReviews` n'a pas d'AbortController propre |
 | F8 | `features/client-portal/smart-interview/SmartInterviewContainer.tsx:53-57` | Compteur de réponses stale (prop dérivée une fois) | ⬜ |
 
 ---

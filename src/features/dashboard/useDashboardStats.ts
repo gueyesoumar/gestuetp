@@ -9,7 +9,7 @@ export interface DashboardStats {
   approvedCount: number
   clientRejections: number
   missionsByStatus: Record<string, number>
-  averageScore: number
+  averageProgress: number
   totalDocuments: number
 }
 
@@ -71,7 +71,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
     approvedCount: 0,
     clientRejections: 0,
     missionsByStatus: {},
-    averageScore: 0,
+    averageProgress: 0,
     totalDocuments: 0,
   })
   const [missions, setMissions] = useState<MissionSummary[]>([])
@@ -202,7 +202,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
       // 6. Average score
       const totalControlsSum = activeMissionsList.reduce((s, m) => s + m.totalControls, 0)
       const evaluatedSum = activeMissionsList.reduce((s, m) => s + m.evaluatedControls, 0)
-      const averageScore = totalControlsSum > 0 ? Math.round((evaluatedSum / totalControlsSum) * 100) : 0
+      const averageProgress = totalControlsSum > 0 ? Math.round((evaluatedSum / totalControlsSum) * 100) : 0
 
       // 7. Nearest deadline
       const now = new Date()
@@ -263,7 +263,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         approvedCount,
         clientRejections,
         missionsByStatus,
-        averageScore,
+        averageProgress,
         totalDocuments,
       })
       setMissions(activeMissionsList)

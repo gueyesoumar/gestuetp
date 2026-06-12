@@ -80,12 +80,19 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
       }
 
       // 2. Missions où cette filiale est cliente
-      const { data: missions } = await supabase
+      const { data: missions, error: missionsErr } = await supabase
         .from('missions')
         .select('id, name, status, kind, start_date, end_date, framework_id, lead_auditor_id, associate_id')
         .eq('client_id', subsidiaryId)
         .order('created_at', { ascending: false })
+        .abortSignal(ac.signal)
       if (ac.signal.aborted) return
+      if (missionsErr) {
+        console.error('[useSubsidiaryDetail] missions:', missionsErr.message)
+        setError('Erreur de chargement des données de la filiale')
+        setLoading(false)
+        return
+      }
 
       const missionList = (missions ?? []) as Array<{
         id: string; name: string; status: string; kind: 'audit' | 'continuous_supervision';
@@ -98,7 +105,8 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
       const fwIds = Array.from(new Set(missionList.map((m) => m.framework_id).filter(Boolean) as string[]))
       const fwMap = new Map<string, string>()
       if (fwIds.length > 0) {
-        const { data: fws } = await supabase.from('frameworks').select('id, name').in('id', fwIds)
+        const { data: fws, error: fwsErr } = await supabase.from('frameworks').select('id, name').in('id', fwIds).abortSignal(ac.signal)
+        if (fwsErr) console.error('[useSubsidiaryDetail] frameworks:', fwsErr.message)
         for (const f of (fws ?? []) as Array<{ id: string; name: string }>) fwMap.set(f.id, f.name)
       }
 
@@ -109,45 +117,56 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
       ].filter(Boolean) as string[]))
       const userMap = new Map<string, string>()
       if (userIds.length > 0) {
-        const { data: users } = await supabase
+        const { data: users, error: usersErr } = await supabase
           .from('users')
           .select('id, first_name, last_name, email')
           .in('id', userIds)
+          .abortSignal(ac.signal)
+        if (usersErr) console.error('[useSubsidiaryDetail] users:', usersErr.message)
         for (const u of (users ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; email: string }>) {
           userMap.set(u.id, [u.first_name, u.last_name].filter(Boolean).join(' ').trim() || u.email)
         }
       }
 
       // 5. Assessments
-      const { data: assessments } = (missionIds.length > 0
+      const { data: assessments, error: assessmentsErr } = (missionIds.length > 0
         ? await supabase
             .from('control_assessments')
             .select('mission_id, conformity_level, status')
             .in('mission_id', missionIds)
-        : { data: [] }) as { data: Array<{ mission_id: string; conformity_level: string | null; status: string }> }
+            .abortSignal(ac.signal)
+        : { data: [], error: null }) as { data: Array<{ mission_id: string; conformity_level: string | null; status: string }>; error: { message: string } | null }
       if (ac.signal.aborted) return
+      if (assessmentsErr) console.error('[useSubsidiaryDetail] control_assessments:', assessmentsErr.message)
 
       // 6. CAR
       const today = new Date().toISOString().slice(0, 10)
-      const { data: cars } = (missionIds.length > 0
+      const { data: cars, error: carsErr } = (missionIds.length > 0
         ? await supabase
             .from('corrective_action_requests')
             .select('mission_id, status, deadline, client_target_date')
             .in('mission_id', missionIds)
             .neq('status', 'verified')
             .neq('status', 'closed')
-        : { data: [] }) as { data: Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }> }
+            .abortSignal(ac.signal)
+        : { data: [], error: null }) as { data: Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }>; error: { message: string } | null }
       if (ac.signal.aborted) return
+      if (carsErr) console.error('[useSubsidiaryDetail] corrective_action_requests:', carsErr.message)
 
       // 7. Cycles
-      const { data: cycleRows } = (missionIds.length > 0
+      const { data: cycleRowsRaw, error: cycleRowsErr } = (missionIds.length > 0
         ? await supabase
             .from('supervision_cycles')
             .select('*')
             .in('mission_id', missionIds)
             .order('period_start', { ascending: true })
-        : { data: [] }) as { data: SupervisionCycle[] }
+            .abortSignal(ac.signal)
+        : { data: [], error: null }) as { data: SupervisionCycle[]; error: { message: string } | null }
       if (ac.signal.aborted) return
+      if (cycleRowsErr) console.error('[useSubsidiaryDetail] supervision_cycles:', cycleRowsErr.message)
+      const cycleRows = cycleRowsRaw ?? []
+      const assessmentList = assessments ?? []
+      const carList = cars ?? []
 
       // 8. Total controls (par framework). On compte directement sur `controls`
       // via les domain_id du référentiel : `count:'exact'` sur `domains` aurait
@@ -155,19 +174,21 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
       const fwControlCount = new Map<string, number>()
       if (fwIds.length > 0) {
         for (const fwId of fwIds) {
-          const { data: domainRows } = await supabase
+          const { data: domainRows, error: domainRowsErr } = await supabase
             .from('domains')
             .select('id')
             .eq('framework_id', fwId)
             .abortSignal(ac.signal)
+          if (domainRowsErr) console.error('[useSubsidiaryDetail] domains:', domainRowsErr.message)
           const domainIds = (domainRows ?? []).map((d) => d.id as string)
           let ctrlCount = 0
           if (domainIds.length > 0) {
-            const { count } = await supabase
+            const { count, error: ctrlCountErr } = await supabase
               .from('controls')
               .select('id', { count: 'exact', head: true })
               .in('domain_id', domainIds)
               .abortSignal(ac.signal)
+            if (ctrlCountErr) console.error('[useSubsidiaryDetail] controls count:', ctrlCountErr.message)
             ctrlCount = count ?? 0
           }
           fwControlCount.set(fwId, ctrlCount)
@@ -177,7 +198,7 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
 
       // Agrégation par mission
       const missionRows: SubsidiaryMissionRow[] = missionList.map((m) => {
-        const ma = assessments.filter((a) => a.mission_id === m.id)
+        const ma = assessmentList.filter((a) => a.mission_id === m.id)
         let scoreSum = 0
         let scoreCount = 0
         for (const a of ma) {
@@ -189,7 +210,7 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
         const evaluatedControls = ma.filter((a) => a.status === 'submitted' || a.status === 'in_review' || a.status === 'approved').length
         const totalControls = m.framework_id ? (fwControlCount.get(m.framework_id) ?? 0) : 0
 
-        const missionCars = cars.filter((c) => c.mission_id === m.id)
+        const missionCars = carList.filter((c) => c.mission_id === m.id)
         const openCarsCount = missionCars.length
         const overdueCarsCount = missionCars.filter((c) => {
           const due = c.client_target_date ?? c.deadline
@@ -218,7 +239,7 @@ export function useSubsidiaryDetail(subsidiaryId: string | undefined): UseSubsid
       // Score global pondéré (toutes missions de la filiale)
       let globalSum = 0
       let globalCount = 0
-      for (const a of assessments) {
+      for (const a of assessmentList) {
         const w = weightOf(a.conformity_level)
         if (w !== null) { globalSum += w; globalCount += 1 }
       }
