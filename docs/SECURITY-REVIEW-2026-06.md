@@ -70,7 +70,7 @@
 | # | Fichier | Problème | Statut |
 |----|---------|----------|--------|
 | V1 | Page mission client : `ClientTeamCard`, `ClientUpcomingDeadlines` (dashboard) + `useMissionDocuments`, `useMissionQuestionnaire`, `useClientExpectedDocuments` (échanges) | `fetch`/`.abortSignal().then()` sans `.catch()` → `PAGEERR: signal is aborted without reason` au démontage (StrictMode) | ✅ `.catch()` défensif ; **vérifié runtime : 0 erreur d'abort sur la page mission client** |
-| V2 | Même pattern d'abort non rattrapé dans ~10 hooks/composants **côté auditeur** (`useMissionDetail`, `useMissionControls`, `usePlanningData`, `useScopingData`, `useInternalReviewData`, etc.) | Identique à V1 mais sur d'autres pages (non vérifiées en runtime) | ⬜ balayage repo-wide optionnel |
+| V2 | ~10 hooks/composants **côté auditeur** (`useMissionDetail`, `useMissionControls`, `usePlanningData`, `useScopingData`, `useInternalReviewData`, `useAssessmentObservations`, `useAssessmentDeclineSource`, `DeclinedEvidenceSection`, `MissionScopingTab`, `MissionClosureTab`) | Identique à V1, sur les pages mission auditeur | ✅ `.catch()` défensif ; **vérifié runtime : 0 abort sur la mission auditeur (tous onglets)** |
 | V3 | Page mission client | `Failed to load resource: 400` (une requête REST répond 400) — erreurs console, pas d'exception ; pré-existant, sans rapport avec les aborts | ⬜ à investiguer si gênant |
 
 ---
