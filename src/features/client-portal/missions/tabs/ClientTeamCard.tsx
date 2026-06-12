@@ -66,7 +66,10 @@ export function ClientTeamCard({ missionId, cabinetId }: ClientTeamCardProps): J
       setLoading(false)
     }
 
-    fetchTeam()
+    fetchTeam().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [missionId])
 

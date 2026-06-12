@@ -286,7 +286,10 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage/changement de mission : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [missionId, refreshKey])
 

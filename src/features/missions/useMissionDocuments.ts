@@ -62,6 +62,10 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
         }
         setLoading(false)
       })
+      .catch(() => {
+        // Abort au démontage/changement de mission : rejet attendu, on l'ignore
+        if (!abortController.signal.aborted) setLoading(false)
+      })
 
     return () => abortController.abort()
   }, [missionId, controlId, refreshKey])

@@ -83,7 +83,10 @@ export function ClientUpcomingDeadlines({ missionId, endDate, status }: ClientUp
       setLoading(false)
     }
 
-    fetchDeadlines()
+    fetchDeadlines().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [missionId, endDate, status])
 

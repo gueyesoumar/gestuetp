@@ -106,7 +106,10 @@ export function useMissionQuestionnaire(missionId: string | undefined): UseMissi
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage/changement de mission : rejet attendu, on l'ignore
+      if (!abortController.signal.aborted) setLoading(false)
+    })
     return () => abortController.abort()
   }, [missionId, refreshKey])
 
