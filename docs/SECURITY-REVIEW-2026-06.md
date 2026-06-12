@@ -50,7 +50,7 @@
 | M10 | `features/reports/loadAuditReportData.ts:14-132` | Erreurs Supabase ignorées sur chaque requête | ✅ critiques → throw ; secondaires → log + dégradation |
 | M11 | `features/admin/health/useCabinetHealth.ts:126-262` | Canal `error` ignoré → stats à zéro silencieuses | ✅ 11 requêtes (core → setError+stop, enrichissement → log) |
 | M12 | `useSubsidiaryDetail` + `useSubsidiaries` (+ champ `error`) + `useContinuousReviews` + `useTransversalPlans` | Erreurs Supabase silencieuses | ✅ erreur gérée par requête (critique→stop, secondaire→log) |
-| M13 | `features/client-portal/missions/tabs/ClientExchangesTab.tsx` (546 l.) + `ControlDetailDrawer.tsx` (460 l.) | > 150 lignes, logique métier dans l'UI | ⬜ refacto (dernier Moyen restant) |
+| M13 | `ClientExchangesTab.tsx` (546→100 l.) + `ControlDetailDrawer.tsx` (460→127 l.) | > 150 lignes, logique métier dans l'UI | ✅ découpés en hooks (`useClientEvidenceUpload`, `useEvidenceDeclineFlow`, `useControlObservations`, `useClientControlReview`) + sous-composants, tous ≤150 l. ; vérifié runtime (portail client) |
 
 ## Faible
 
@@ -64,6 +64,12 @@
 | F6 | `features/admin/useAdminCabinets.ts` (+ `useAdminFrameworkDetail`) | Erreurs secondaires avalées | ✅ erreurs secondaires loggées, fallbacks conservés |
 | F7 | `features/group-module/useSubsidiaryDetail.ts` (+ `useSubsidiaries`, `useContinuousReviews`, `useTransversalPlans`) | Gardes `aborted` présentes mais pas de `.abortSignal()` | ✅ supervision (M6) + group-module (`.abortSignal` ajouté via M12) ; `useContinuousReviews` n'a pas d'AbortController propre |
 | F8 | `features/client-portal/smart-interview/SmartInterviewContainer.tsx:53-57` | Compteur de réponses stale (prop dérivée une fois) | ✅ callback `onAnswered` + `Set` local (compteur seulement, pas la liste — évite la réindexation) |
+
+## Découvert pendant la vérification runtime (hors périmètre revue initiale)
+
+| # | Fichier | Problème | Statut |
+|----|---------|----------|--------|
+| V1 | `features/missions/useMissionDocuments.ts:54-56` (+ `useMissionQuestionnaire`, `useClientExpectedDocuments`) | `.abortSignal().then()` / `await fetch(...,{signal})` sans `.catch()` → `PAGEERR: signal is aborted without reason` (rejet non géré, visible surtout en dev StrictMode au double-montage de la page mission client) | ⬜ pré-existant, bénin (abort au démontage) mais à assainir |
 
 ---
 
