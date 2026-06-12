@@ -33,36 +33,41 @@ export function useControlObservations(
   // Charge les observations + noms d'auteurs. Avec signal => annulable (effet).
   const fetchObservations = useCallback(async (signal?: AbortSignal): Promise<ObservationWithAuthor[] | null> => {
     if (!assessmentId) return []
-    const obsQuery = supabase
-      .from('assessment_observations')
-      .select('*')
-      .eq('assessment_id', assessmentId)
-      .order('observation_at', { ascending: true })
-    const { data } = await (signal ? obsQuery.abortSignal(signal) : obsQuery)
-    if (signal?.aborted) return null
-
-    const rows = (data ?? []) as AssessmentObservation[]
-    const userIds = new Set<string>()
-    for (const r of rows) {
-      userIds.add(r.observation_by)
-      if (r.response_by) userIds.add(r.response_by)
-    }
-
-    const userMap = new Map<string, string>()
-    if (userIds.size > 0) {
-      const usersQuery = supabase.from('users').select('id, first_name, last_name').in('id', [...userIds])
-      const { data: users } = await (signal ? usersQuery.abortSignal(signal) : usersQuery)
+    try {
+      const obsQuery = supabase
+        .from('assessment_observations')
+        .select('*')
+        .eq('assessment_id', assessmentId)
+        .order('observation_at', { ascending: true })
+      const { data } = await (signal ? obsQuery.abortSignal(signal) : obsQuery)
       if (signal?.aborted) return null
-      for (const u of users ?? []) {
-        userMap.set(u.id, `${u.first_name} ${u.last_name}`)
-      }
-    }
 
-    return rows.map((r) => ({
-      ...r,
-      authorName: userMap.get(r.observation_by) ?? null,
-      responderName: r.response_by ? userMap.get(r.response_by) ?? null : null,
-    }))
+      const rows = (data ?? []) as AssessmentObservation[]
+      const userIds = new Set<string>()
+      for (const r of rows) {
+        userIds.add(r.observation_by)
+        if (r.response_by) userIds.add(r.response_by)
+      }
+
+      const userMap = new Map<string, string>()
+      if (userIds.size > 0) {
+        const usersQuery = supabase.from('users').select('id, first_name, last_name').in('id', [...userIds])
+        const { data: users } = await (signal ? usersQuery.abortSignal(signal) : usersQuery)
+        if (signal?.aborted) return null
+        for (const u of users ?? []) {
+          userMap.set(u.id, `${u.first_name} ${u.last_name}`)
+        }
+      }
+
+      return rows.map((r) => ({
+        ...r,
+        authorName: userMap.get(r.observation_by) ?? null,
+        responderName: r.response_by ? userMap.get(r.response_by) ?? null : null,
+      }))
+    } catch {
+      // Abort (changement de contrôle / démontage) ou erreur réseau : pas de crash
+      return null
+    }
   }, [assessmentId])
 
   useEffect(() => {
