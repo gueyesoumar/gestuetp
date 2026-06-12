@@ -82,7 +82,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       if (controller.signal.aborted) return
       setFindingClassifications((findingsRows ?? []).map((f: { classification: string }) => f.classification))
     }
-    load()
+    load().catch(() => { /* abort au démontage : ignoré */ })
     return () => controller.abort()
   }, [mission.id])
 

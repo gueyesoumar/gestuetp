@@ -96,7 +96,10 @@ export function usePlanningData(missionId: string | undefined): UsePlanningDataR
       setLoading(false)
     }
 
-    fetchAll()
+    fetchAll().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!ac.signal.aborted) setLoading(false)
+    })
     return () => ac.abort()
   }, [missionId, refreshKey])
 

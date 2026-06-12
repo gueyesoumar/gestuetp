@@ -283,7 +283,10 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!abortController.signal.aborted) setLoading(false)
+    })
     return () => abortController.abort()
   }, [missionId, frameworkId, refreshKey])
 

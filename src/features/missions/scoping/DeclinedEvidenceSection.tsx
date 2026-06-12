@@ -125,7 +125,10 @@ export function DeclinedEvidenceSection({ missionId }: DeclinedEvidenceSectionPr
       setEnriched(out)
       setLoading(false)
     }
-    fetchMeta()
+    fetchMeta().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!ctrl.signal.aborted) setLoading(false)
+    })
     return () => ctrl.abort()
   }, [allToShow])
 

@@ -98,7 +98,10 @@ export function useAssessmentObservations(missionId?: string): UseAssessmentObse
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [profile?.id, missionId, refreshKey])
 

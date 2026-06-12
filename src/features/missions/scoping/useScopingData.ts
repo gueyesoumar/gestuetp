@@ -47,7 +47,10 @@ export function useScopingData(missionId: string | undefined): UseScopingDataRes
       setLoading(false)
     }
 
-    fetchAll()
+    fetchAll().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!ac.signal.aborted) setLoading(false)
+    })
     return () => ac.abort()
   }, [missionId, refreshKey])
 

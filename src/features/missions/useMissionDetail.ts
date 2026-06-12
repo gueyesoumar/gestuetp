@@ -135,7 +135,10 @@ export function useMissionDetail(missionId: string | undefined): UseMissionDetai
       setLoading(false)
     }
 
-    fetchAll()
+    fetchAll().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!abortController.signal.aborted) setLoading(false)
+    })
     return () => abortController.abort()
   }, [missionId, refreshKey])
 

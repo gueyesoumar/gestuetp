@@ -84,7 +84,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
       setDocsReceived(uploadedNames.size)
     }
 
-    fetchEvidenceNames()
+    fetchEvidenceNames().catch(() => { /* abort au démontage : ignoré */ })
     return () => controller.abort()
   }, [requests, documents])
 

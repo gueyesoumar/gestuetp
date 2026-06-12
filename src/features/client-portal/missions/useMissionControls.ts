@@ -212,7 +212,10 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [missionId, refreshKey])
 

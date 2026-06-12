@@ -71,7 +71,7 @@ export function useAssessmentDeclineSource(assessmentId: string | null | undefin
       })
     }
 
-    fetchSource()
+    fetchSource().catch(() => { /* abort au démontage : ignoré */ })
     return () => ctrl.abort()
   }, [assessmentId])
 
