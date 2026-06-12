@@ -1,0 +1,47 @@
+name: CI
+
+# Garde qualite avant tout merge / deploiement.
+# Objectif : attraper les erreurs de type (ex: un import manquant -> ReferenceError
+# au runtime) AVANT la prod. Vite/esbuild ne typecheck pas, donc seul `tsc -b` les voit.
+
+on:
+  pull_request:
+    branches: [main, staging]
+  push:
+    branches: [main, staging]
+
+# Annule les runs obsoletes sur une meme branche/PR pour economiser les minutes CI.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Gate dur #1 : le typecheck strict du projet (src). 0 erreur exigee.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Gate dur #2 : le build de production doit passer.
+      - name: Build
+        run: npm run build
+
+      # Informatif (non bloquant) : 243 erreurs pre-existantes, surtout dans
+      # supabase/functions (Deno). A resorber progressivement avant d'en faire un gate.
+      - name: Lint (informatif)
+        run: npm run lint
+        continue-on-error: true
