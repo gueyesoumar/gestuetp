@@ -90,7 +90,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     const { data: clientRow, error: clientErr } = await supabase
       .from('cabinet_clients')
       .select('*')
-      .eq('client_organization_id', mission.client_id)
+      .eq('client_org_id', mission.client_id)
       .eq('cabinet_id', mission.cabinet_id)
       .maybeSingle()
     if (clientErr) console.error('[loadAuditReportData] client:', clientErr.message)

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { supabase } from '../../../lib/supabase'
 import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 

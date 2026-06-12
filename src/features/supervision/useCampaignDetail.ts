@@ -44,8 +44,7 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
         .from('audit_campaigns')
         .select('*')
         .eq('id', campaignId)
-        .single()
-      const { data: campRaw, error: campErr } = await (signal ? campQuery.abortSignal(signal) : campQuery)
+      const { data: campRaw, error: campErr } = await (signal ? campQuery.abortSignal(signal) : campQuery).single()
       if (signal?.aborted) return
 
       if (campErr || !campRaw) {
@@ -61,8 +60,7 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
         .from('frameworks')
         .select('name')
         .eq('id', camp.framework_id)
-        .single()
-      const { data: fwRaw } = await (signal ? fwQuery.abortSignal(signal) : fwQuery)
+      const { data: fwRaw } = await (signal ? fwQuery.abortSignal(signal) : fwQuery).single()
       if (signal?.aborted) return
       const fw = fwRaw as { name: string } | null
       setFrameworkName(fw?.name ?? '')

@@ -15,7 +15,7 @@ interface UseClientEvidenceUploadArgs {
 }
 
 export interface ClientEvidenceUploadApi {
-  fileInputRef: React.RefObject<HTMLInputElement>
+  fileInputRef: React.RefObject<HTMLInputElement | null>
   pendingDocName: string | null
   linkingDocName: string | null
   setLinkingDocName: (name: string | null) => void

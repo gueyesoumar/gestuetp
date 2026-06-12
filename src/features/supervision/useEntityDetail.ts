@@ -63,8 +63,7 @@ export function useEntityDetail(entityId: string | undefined): EntityDetailData 
         .from('organizations')
         .select('id, name, sector, city')
         .eq('id', entityId)
-        .single()
-      const { data: org, error: orgErr } = await (signal ? orgQuery.abortSignal(signal) : orgQuery)
+      const { data: org, error: orgErr } = await (signal ? orgQuery.abortSignal(signal) : orgQuery).single()
       if (signal?.aborted) return
 
       if (orgErr || !org) {

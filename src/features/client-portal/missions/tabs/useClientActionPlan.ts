@@ -130,7 +130,7 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
       const { data: cabClient } = await supabase
         .from('cabinet_clients')
         .select('id')
-        .eq('client_organization_id', mission.client_id)
+        .eq('client_org_id', mission.client_id)
         .eq('cabinet_id', mission.cabinet_id)
         .maybeSingle()
       if (signal?.aborted) return
