@@ -69,7 +69,9 @@
 
 | # | Fichier | Problème | Statut |
 |----|---------|----------|--------|
-| V1 | `features/missions/useMissionDocuments.ts:54-56` (+ `useMissionQuestionnaire`, `useClientExpectedDocuments`) | `.abortSignal().then()` / `await fetch(...,{signal})` sans `.catch()` → `PAGEERR: signal is aborted without reason` (rejet non géré, visible surtout en dev StrictMode au double-montage de la page mission client) | ⬜ pré-existant, bénin (abort au démontage) mais à assainir |
+| V1 | Page mission client : `ClientTeamCard`, `ClientUpcomingDeadlines` (dashboard) + `useMissionDocuments`, `useMissionQuestionnaire`, `useClientExpectedDocuments` (échanges) | `fetch`/`.abortSignal().then()` sans `.catch()` → `PAGEERR: signal is aborted without reason` au démontage (StrictMode) | ✅ `.catch()` défensif ; **vérifié runtime : 0 erreur d'abort sur la page mission client** |
+| V2 | Même pattern d'abort non rattrapé dans ~10 hooks/composants **côté auditeur** (`useMissionDetail`, `useMissionControls`, `usePlanningData`, `useScopingData`, `useInternalReviewData`, etc.) | Identique à V1 mais sur d'autres pages (non vérifiées en runtime) | ⬜ balayage repo-wide optionnel |
+| V3 | Page mission client | `Failed to load resource: 400` (une requête REST répond 400) — erreurs console, pas d'exception ; pré-existant, sans rapport avec les aborts | ⬜ à investiguer si gênant |
 
 ---
 
