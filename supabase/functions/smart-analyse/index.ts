@@ -528,7 +528,7 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
     const isAbort = err instanceof Error && err.name === 'AbortError'
     console.error('[smart-analyse] Error:', message)
     return new Response(
-      JSON.stringify({ error: isAbort ? 'Delai depasse — reessayez' : message }),
+      JSON.stringify({ error: isAbort ? 'Delai depasse — reessayez' : 'Erreur interne' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })

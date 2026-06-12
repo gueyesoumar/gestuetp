@@ -172,7 +172,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
       const errText = await claudeRes.text()
       console.error('[smart-plan] Claude API error:', claudeRes.status, errText.slice(0, 500))
       void logAiCall({ admin: supabaseAdmin, function_name: 'smart-plan', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${errText.slice(0, 200)}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
-      return new Response(JSON.stringify({ error: `Erreur Claude: ${claudeRes.status}`, detail: errText.slice(0, 200) }),
+      return new Response(JSON.stringify({ error: `Erreur Claude: ${claudeRes.status}` }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -206,7 +206,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
           }
         } catch {
           console.error('[smart-plan] All parse strategies failed. Raw:', fullJson.slice(0, 500))
-          return new Response(JSON.stringify({ error: 'Réponse IA invalide', raw: fullJson.slice(0, 300) }),
+          return new Response(JSON.stringify({ error: 'Réponse IA invalide' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
       }

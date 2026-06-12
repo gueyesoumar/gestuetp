@@ -56,14 +56,14 @@
 
 | ID | Fichier | Problème | Statut |
 |----|---------|----------|--------|
-| F1 | `features/missions/useMissions.ts:69-94` | Erreur `control_assessments` ignorée, stats nulles fictives | ⬜ |
-| F2 | `features/notifications/useNotifications.ts:57-83` | `markAsRead`/`markAllAsRead` avalent les erreurs | ⬜ |
-| F3 | `respond-evidence-decline/index.ts:230` (+ `update-cabinet-settings:125`, `smart-analyse:512`) | Message d'erreur technique brut renvoyé (500) | ⬜ |
-| F4 | `smart-plan/index.ts:173,207` | `detail`/`raw` Claude bruts renvoyés au client | ⬜ |
-| F5 | `features/supervision/SupervisionReport.tsx:165-174` | CTA principaux sans `onClick` | ⬜ |
-| F6 | `features/admin/useAdminCabinets.ts` (+ `useAdminFrameworkDetail`) | Erreurs secondaires avalées | ⬜ |
+| F1 | `features/missions/useMissions.ts:69-94` | Erreur `control_assessments` ignorée, stats nulles fictives | ✅ erreur loggée + stats non écrasées (pas de 0% fictif) |
+| F2 | `features/notifications/useNotifications.ts:57-83` | `markAsRead`/`markAllAsRead` avalent les erreurs | ✅ branche erreur loggée explicitement |
+| F3 | `respond-evidence-decline` + `update-cabinet-settings` + `smart-analyse` | Message d'erreur technique brut renvoyé (500) | ✅ message générique « Erreur interne » côté client, détail en `console.error` |
+| F4 | `smart-plan/index.ts:175,209` | `detail`/`raw` Claude bruts renvoyés au client | ✅ champs `detail`/`raw` retirés des réponses |
+| F5 | `features/supervision/SupervisionReport.tsx` | CTA principaux sans `onClick` | ✅ boutons désactivés + mention « Bientôt disponible » (PDF/PPTX/Excel + actions) |
+| F6 | `features/admin/useAdminCabinets.ts` (+ `useAdminFrameworkDetail`) | Erreurs secondaires avalées | ✅ erreurs secondaires loggées, fallbacks conservés |
 | F7 | `features/group-module/useSubsidiaryDetail.ts` (+ `useSubsidiaries`, `useContinuousReviews`, `useTransversalPlans`) | Gardes `aborted` présentes mais pas de `.abortSignal()` | ✅ supervision (M6) + group-module (`.abortSignal` ajouté via M12) ; `useContinuousReviews` n'a pas d'AbortController propre |
-| F8 | `features/client-portal/smart-interview/SmartInterviewContainer.tsx:53-57` | Compteur de réponses stale (prop dérivée une fois) | ⬜ |
+| F8 | `features/client-portal/smart-interview/SmartInterviewContainer.tsx:53-57` | Compteur de réponses stale (prop dérivée une fois) | ✅ callback `onAnswered` + `Set` local (compteur seulement, pas la liste — évite la réindexation) |
 
 ---
 
@@ -74,7 +74,7 @@
 ```bash
 supabase functions deploy ai-documents reset-user-password smart-analyse smart-questionnaire \
   assign-controls manage-team smart-plan smart-risks invite-client suggest-custom-questions \
-  launch-questionnaire
+  launch-questionnaire respond-evidence-decline update-cabinet-settings
 ```
 
 ### Migrations SQL (E6 + E10) — sur le cloud lié

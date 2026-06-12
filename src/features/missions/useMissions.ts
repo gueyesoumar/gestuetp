@@ -66,7 +66,7 @@ export function useMissions(): UseMissionsResult {
         // Charger les stats par mission
         const missionIds = missionsList.map((m) => m.id)
         if (missionIds.length > 0) {
-          const { data: assessments } = await supabase
+          const { data: assessments, error: assessmentsError } = await supabase
             .from('control_assessments')
             .select('mission_id, status')
             .in('mission_id', missionIds)
@@ -74,22 +74,29 @@ export function useMissions(): UseMissionsResult {
 
           if (abortController.signal.aborted) return
 
-          const statsMap = new Map<string, { total: number; evaluated: number; approved: number }>()
-          for (const a of assessments ?? []) {
-            const s = statsMap.get(a.mission_id) ?? { total: 0, evaluated: 0, approved: 0 }
-            s.total++
-            if (a.status !== 'draft') s.evaluated++
-            if (a.status === 'approved') s.approved++
-            statsMap.set(a.mission_id, s)
-          }
+          // Requete secondaire d'enrichissement : en cas d'echec, ne pas fabriquer
+          // de stats a 0 (qui afficheraient une progression trompeuse). On journalise
+          // et on laisse les missions sans stats plutot que de presenter de faux zeros.
+          if (assessmentsError) {
+            console.error('[useMissions] assessments:', assessmentsError.message)
+          } else {
+            const statsMap = new Map<string, { total: number; evaluated: number; approved: number }>()
+            for (const a of assessments ?? []) {
+              const s = statsMap.get(a.mission_id) ?? { total: 0, evaluated: 0, approved: 0 }
+              s.total++
+              if (a.status !== 'draft') s.evaluated++
+              if (a.status === 'approved') s.approved++
+              statsMap.set(a.mission_id, s)
+            }
 
-          for (const m of missionsList) {
-            const s = statsMap.get(m.id) ?? { total: 0, evaluated: 0, approved: 0 }
-            m.totalControls = s.total
-            m.evaluatedControls = s.evaluated
-            m.approvedControls = s.approved
-            m.progressPct = s.total > 0 ? Math.round((s.evaluated / s.total) * 100) : 0
-            m.scorePct = s.total > 0 && s.evaluated > 0 ? Math.round((s.approved / s.total) * 100) : null
+            for (const m of missionsList) {
+              const s = statsMap.get(m.id) ?? { total: 0, evaluated: 0, approved: 0 }
+              m.totalControls = s.total
+              m.evaluatedControls = s.evaluated
+              m.approvedControls = s.approved
+              m.progressPct = s.total > 0 ? Math.round((s.evaluated / s.total) * 100) : 0
+              m.scorePct = s.total > 0 && s.evaluated > 0 ? Math.round((s.approved / s.total) * 100) : null
+            }
           }
         }
 

@@ -49,9 +49,18 @@ export function SmartInterviewContainer({
   const [prefilledAnswers, setPrefilledAnswers] = useState<SmartAnswer[]>([])
   const [analyzing, setAnalyzing] = useState(false)
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null)
+  // Codes répondus via l'onglet Conversation (persistés en DB mais hors initialResponses,
+  // qui n'est calculé qu'une fois côté parent) — sert à rafraîchir le compteur.
+  const [conversationAnswered, setConversationAnswered] = useState<Set<string>>(new Set())
 
-  const answeredCount = initialResponses.size + prefilledAnswers.filter((a) => a.validated).length
+  const answeredCodes = new Set<string>()
+  for (const code of initialResponses.keys()) answeredCodes.add(code)
+  for (const a of prefilledAnswers) if (a.validated) answeredCodes.add(a.questionCode)
+  for (const code of conversationAnswered) answeredCodes.add(code)
+  const answeredCount = answeredCodes.size
   const totalCount = questions.length
+  // NB : on ne réinjecte PAS conversationAnswered ici — sinon la liste passée à
+  // SmartConversation se réindexerait en plein flux et casserait la navigation.
   const unansweredQuestions = questions.filter((q) =>
     !initialResponses.has(q.code) && !prefilledAnswers.some((a) => a.questionCode === q.code && a.validated)
   )
@@ -150,6 +159,11 @@ export function SmartInterviewContainer({
           instanceId={instanceId}
           userId={userId}
           readOnly={readOnly}
+          onAnswered={(code) => setConversationAnswered((prev) => {
+            const next = new Set(prev)
+            next.add(code)
+            return next
+          })}
         />
       )}
     </div>

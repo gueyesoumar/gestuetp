@@ -78,24 +78,26 @@ export function useAdminFrameworkDetail(slug: string | undefined): Result {
       }
       const f = fw as Record<string, unknown>
 
-      const { data: dms } = await supabase
+      const { data: dms, error: dmsError } = await supabase
         .from('domains')
         .select('id, code, name, description, sort_order, is_active')
         .eq('framework_id', f.id as string)
         .order('sort_order', { ascending: true })
         .abortSignal(abort.signal)
+      if (dmsError) console.error('[useAdminFrameworkDetail] domains:', dmsError.message)
 
       const domains = (dms ?? []) as Array<{ id: string; code: string; name: string; description: string | null; sort_order: number; is_active: boolean }>
       const domainIds = domains.map((d) => d.id)
 
-      const { data: ctrls } = domainIds.length > 0
+      const { data: ctrls, error: ctrlsError } = domainIds.length > 0
         ? await supabase
             .from('controls')
             .select('id, domain_id, code, name, description, guidance, sort_order, is_active')
             .in('domain_id', domainIds)
             .order('sort_order', { ascending: true })
             .abortSignal(abort.signal)
-        : { data: [] as AdminControl[] }
+        : { data: [] as AdminControl[], error: null }
+      if (ctrlsError) console.error('[useAdminFrameworkDetail] controls:', ctrlsError.message)
       const ctrlsByDomain = new Map<string, AdminControl[]>()
       for (const c of ((ctrls ?? []) as AdminControl[])) {
         const arr = ctrlsByDomain.get(c.domain_id) ?? []
@@ -104,21 +106,23 @@ export function useAdminFrameworkDetail(slug: string | undefined): Result {
       }
 
       // Counts
-      const { count: missionsCount } = await supabase
+      const { count: missionsCount, error: missionsCountError } = await supabase
         .from('missions')
         .select('id', { count: 'exact', head: true })
         .eq('framework_id', f.id as string)
         .abortSignal(abort.signal)
+      if (missionsCountError) console.error('[useAdminFrameworkDetail] missions count:', missionsCountError.message)
 
       let assessmentsCount = 0
       if (domainIds.length > 0) {
         const allCtrlIds = (ctrls ?? []).map((c: { id: string }) => c.id)
         if (allCtrlIds.length > 0) {
-          const { count } = await supabase
+          const { count, error: assessmentsCountError } = await supabase
             .from('control_assessments')
             .select('id', { count: 'exact', head: true })
             .in('control_id', allCtrlIds)
             .abortSignal(abort.signal)
+          if (assessmentsCountError) console.error('[useAdminFrameworkDetail] assessments count:', assessmentsCountError.message)
           assessmentsCount = count ?? 0
         }
       }

@@ -8,6 +8,8 @@ interface Props {
   instanceId: string
   userId: string | null
   readOnly: boolean
+  /** Appelé après persistance réussie d'une réponse, pour rafraîchir le compteur parent. */
+  onAnswered?: (questionCode: string) => void
 }
 
 interface ChatMessage {
@@ -15,7 +17,7 @@ interface ChatMessage {
   content: string
 }
 
-export function SmartConversation({ questions, instanceId, userId, readOnly }: Props): JSX.Element {
+export function SmartConversation({ questions, instanceId, userId, readOnly, onAnswered }: Props): JSX.Element {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [saving, setSaving] = useState(false)
@@ -60,7 +62,8 @@ export function SmartConversation({ questions, instanceId, userId, readOnly }: P
       return
     }
 
-    // Persistance confirmée : on affiche la réponse et on avance.
+    // Persistance confirmée : on affiche la réponse, on remonte au parent et on avance.
+    onAnswered?.(currentQuestion.code)
     setMessages((prev) => [
       ...prev,
       { role: 'ai', content: currentQuestion.text },
