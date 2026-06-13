@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { SUPPORT_NATURE_LABELS, SUPPORT_STATUS_LABELS } from '../../lib/constants'
 import type { SupportRequest, SupportStatus } from '../../types/database.types'
 
@@ -6,6 +7,8 @@ interface Props {
   request: SupportRequest
   onBack: () => void
   onStatus: (status: SupportStatus) => void
+  /** Panneau de fulfillment optionnel (injecte cote owner). */
+  fulfillment?: ReactNode
 }
 
 const ACTIONS: { status: SupportStatus; label: string; prim?: boolean }[] = [
@@ -15,7 +18,7 @@ const ACTIONS: { status: SupportStatus; label: string; prim?: boolean }[] = [
   { status: 'closed', label: 'Fermer' },
 ]
 
-export function SupportRequestDetail({ request, onBack, onStatus }: Props): JSX.Element {
+export function SupportRequestDetail({ request, onBack, onStatus, fulfillment }: Props): JSX.Element {
   const context = Object.entries(request.context ?? {}).filter(([, v]) => v != null && v !== '')
 
   return (
@@ -47,6 +50,8 @@ export function SupportRequestDetail({ request, onBack, onStatus }: Props): JSX.
             </div>
           )}
         </div>
+
+        {fulfillment}
 
         <div className="flex flex-wrap gap-2 p-4 border-t border-gray-100">
           {ACTIONS.map((a) => (

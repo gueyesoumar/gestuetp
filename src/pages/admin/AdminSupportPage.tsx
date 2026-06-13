@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSupportRequestList } from '../../features/support/useSupportRequestList'
 import { SupportRequestDetail } from '../../features/support/SupportRequestDetail'
+import { SupportFulfillmentPanel } from '../../features/support/SupportFulfillmentPanel'
 import { SUPPORT_NATURE_LABELS, SUPPORT_STATUS_LABELS } from '../../lib/constants'
 import type { SupportStatus } from '../../types/database.types'
 
@@ -25,7 +26,12 @@ export function AdminSupportPage(): JSX.Element {
   if (selected) {
     return (
       <div className="max-w-3xl mx-auto p-6">
-        <SupportRequestDetail request={selected} onBack={() => setSelectedId(null)} onStatus={onStatus} />
+        <SupportRequestDetail
+          request={selected}
+          onBack={() => setSelectedId(null)}
+          onStatus={onStatus}
+          fulfillment={<SupportFulfillmentPanel request={selected} onResolved={() => onStatus('resolved')} />}
+        />
       </div>
     )
   }
