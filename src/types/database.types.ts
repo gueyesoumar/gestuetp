@@ -1377,6 +1377,49 @@ export interface TopicControlLinkInsert {
 // Database type (pour Supabase client type)
 // ============================================================
 
+// ============================================================
+// Centre d'aide / Support (Phase 0-1)
+// ============================================================
+
+export type SupportNature = 'bug' | 'demande' | 'suggestion'
+export type SupportStatus = 'open' | 'in_progress' | 'answered' | 'escalated' | 'resolved' | 'closed'
+export type SupportDemandeSubtype = 'password_reset' | 'feature_activation' | 'plan_change' | 'access_member'
+
+export interface SupportRequest {
+  id: string
+  nature: SupportNature
+  subtype: string | null
+  status: SupportStatus
+  title: string
+  body: string | null
+  requester_user_id: string
+  cabinet_id: string
+  mission_id: string | null
+  role_at_submit: string | null
+  context: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface SupportRequestInsert {
+  nature: SupportNature
+  subtype?: string | null
+  status?: SupportStatus
+  title: string
+  body?: string | null
+  requester_user_id: string
+  cabinet_id: string
+  mission_id?: string | null
+  role_at_submit?: string | null
+  context?: Record<string, unknown>
+}
+
+export interface SupportRequestUpdate {
+  status?: SupportStatus
+  body?: string | null
+  context?: Record<string, unknown>
+}
+
 /**
  * Helper qui rend nos interfaces compatibles avec GenericTable de supabase-js v2.
  * supabase-js requiert Row/Insert/Update extends Record<string, unknown> ; les
@@ -1462,6 +1505,12 @@ export interface Database {
         Row: CabinetClient & Rec
         Insert: CabinetClientInsert & Rec
         Update: CabinetClientUpdate & Rec
+        Relationships: []
+      }
+      support_requests: {
+        Row: SupportRequest & Rec
+        Insert: SupportRequestInsert & Rec
+        Update: SupportRequestUpdate & Rec
         Relationships: []
       }
       evidence_catalog: {

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
-import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks } from 'lucide-react'
+import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
   OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
@@ -46,6 +46,7 @@ const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/notifications', label: 'Notifications', icon: <BellIcon /> },
   { to: '/organisation', label: 'Organisation', icon: <OrganizationIcon /> },
   { to: '/membres', label: 'Membres', icon: <MembersIcon /> },
+  { to: '/aide', label: "Centre d'aide", icon: <LifeBuoy size={20} strokeWidth={1.5} /> },
 ]
 
 export function Sidebar({ profile, open, onClose }: SidebarProps) {

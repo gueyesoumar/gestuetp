@@ -22,11 +22,13 @@ import { ClientsListPage } from './pages/ClientsListPage'
 import { ClientCreatePage } from './pages/ClientCreatePage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { NotificationsPage } from './pages/NotificationsPage'
+import { SupportCenterPage } from './pages/SupportCenterPage'
 import { QuestionnaireClientPage } from './pages/QuestionnaireClientPage'
 import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDashboardPage'
 import { ClientMissionsPage } from './features/client-portal/missions/ClientMissionsPage'
 import { ClientMissionDetailPage } from './features/client-portal/missions/ClientMissionDetailPage'
 import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
+import { ClientSupportCenterPage } from './features/client-portal/ClientSupportCenterPage'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
 import { UnsubscribePage } from './pages/UnsubscribePage'
@@ -110,6 +112,7 @@ function App() {
             <Route path="missions/nouvelle" element={<MissionCreatePage />} />
             <Route path="missions/:id" element={<MissionDetailPage />} />
             <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
+            <Route path="aide" element={<SupportCenterPage />} />
             {/* Module Groupe */}
             <Route path="filiales" element={<SubsidiariesPage />} />
             <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
@@ -153,6 +156,7 @@ function App() {
             <Route path="missions/:id" element={<ClientMissionDetailPage />} />
             <Route path="documents" element={<ClientDocumentsPage />} />
             <Route path="notifications" element={<ClientNotificationsPage />} />
+            <Route path="aide" element={<ClientSupportCenterPage />} />
           </Route>
         </Routes>
       </AuthProvider>

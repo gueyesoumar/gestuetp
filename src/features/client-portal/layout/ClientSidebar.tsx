@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, ClipboardList, Paperclip, Bell } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import type { ReactNode } from 'react'
 
@@ -8,6 +8,7 @@ const NAV_ITEMS: { to: string; label: string; icon: ReactNode; end: boolean }[] 
   { to: '/client/missions', label: 'Mes missions', icon: <ClipboardList size={16} />, end: false },
   { to: '/client/documents', label: 'Documents', icon: <Paperclip size={16} />, end: false },
   { to: '/client/notifications', label: 'Notifications', icon: <Bell size={16} />, end: false },
+  { to: '/client/aide', label: 'Aide', icon: <LifeBuoy size={16} />, end: false },
 ]
 
 export function ClientSidebar(): JSX.Element {

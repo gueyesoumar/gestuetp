@@ -1,6 +1,8 @@
 // Constantes centralisees pour les listes deroulantes
 // Utiliser ces valeurs partout pour garantir la coherence
 
+import type { SupportDemandeSubtype } from '../types/database.types'
+
 export const EFFECTIFS_OPTIONS = [
   'Moins de 50',
   '50 à 250',
@@ -120,3 +122,59 @@ export const MEMBER_AUDIT_ACTION_LABELS: Record<string, string> = {
   reactivated: 'Compte réactivé',
   invitation_resent: 'Invitation renvoyée',
 } as const
+
+// ── Centre d'aide : types de demande (Phase 1) ──
+// UserRole ne distingue que 'auditor' | 'client' ; la notion d'admin releve des
+// permissions cabinet, verifiees au fulfillment (Phase 1.b), pas a l'intake.
+export type SupportRequesterRole = 'client' | 'auditor'
+
+export interface DemandeTypeOption {
+  subtype: SupportDemandeSubtype
+  label: string
+  description: string
+  /** Rôles autorisés à soumettre ce type. */
+  roles: SupportRequesterRole[]
+  /** 'act' = action immédiate (ex: email de reset) ; 'request' = crée un ticket à traiter. */
+  handling: 'act' | 'request'
+  /** Acteur qui traite la demande (pour 'request'). */
+  routedTo?: 'cabinet_admin' | 'platform_owner' | 'cabinet_or_owner'
+}
+
+export const SUPPORT_DEMANDE_TYPES: DemandeTypeOption[] = [
+  {
+    subtype: 'password_reset',
+    label: 'Réinitialiser mon mot de passe',
+    description: 'Recevoir un lien de réinitialisation par email.',
+    roles: ['client', 'auditor'],
+    handling: 'act',
+  },
+  {
+    subtype: 'feature_activation',
+    label: 'Activer une fonctionnalité',
+    description: 'Demander l’activation d’un module non disponible.',
+    roles: ['auditor'],
+    handling: 'request',
+    routedTo: 'cabinet_or_owner',
+  },
+  {
+    subtype: 'plan_change',
+    label: 'Changer de plan',
+    description: 'Faire évoluer votre abonnement.',
+    roles: ['auditor'],
+    handling: 'request',
+    routedTo: 'platform_owner',
+  },
+  {
+    subtype: 'access_member',
+    label: 'Gérer un accès ou un membre',
+    description: 'Inviter, retirer ou changer le rôle d’un membre.',
+    roles: ['auditor'],
+    handling: 'request',
+    routedTo: 'cabinet_admin',
+  },
+]
+
+/** Types de demande visibles pour un rôle donné. */
+export function demandeTypesForRole(role: SupportRequesterRole): DemandeTypeOption[] {
+  return SUPPORT_DEMANDE_TYPES.filter((t) => t.roles.includes(role))
+}
