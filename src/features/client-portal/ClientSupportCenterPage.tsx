@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bug, ClipboardList, Lightbulb, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useRecorder } from '../support/recorder/RecorderContext'
+import { RecordHero } from '../support/recorder/RecordHero'
 import { DemandeForm } from '../support/DemandeForm'
 import { ClientSuggestionFlow } from './ClientSuggestionFlow'
+import { ClientBugFlow } from './ClientBugFlow'
 
 type Mode = 'home' | 'bug' | 'demande' | 'suggestion'
 
@@ -21,7 +24,10 @@ const CHOICES: Choice[] = [
 
 export function ClientSupportCenterPage(): JSX.Element {
   const { profile } = useAuth()
+  const recorder = useRecorder()
   const [mode, setMode] = useState<Mode>('home')
+
+  useEffect(() => { if (recorder.lastTrace) setMode('bug') }, [recorder.lastTrace])
 
   if (!profile) return <p className="p-6 text-sm text-gray-400">Chargement&hellip;</p>
 
@@ -58,12 +64,11 @@ export function ClientSupportCenterPage(): JSX.Element {
           <button onClick={back} className="flex items-center gap-1.5 text-sm text-gray-400 mb-4 hover:text-gray-600">
             <ArrowLeft size={15} /> Centre d&apos;aide
           </button>
-          <div className="bg-white border border-gray-200 rounded-xl p-6 text-center">
-            <p className="text-sm font-semibold text-gray-900 mb-1">Signalement de bug &mdash; bient&ocirc;t disponible</p>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              La reproduction assist&eacute;e arrive prochainement. En attendant, contactez votre interlocuteur habituel.
-            </p>
-          </div>
+          {recorder.lastTrace ? (
+            <ClientBugFlow profile={profile} onDone={back} />
+          ) : (
+            <RecordHero onStart={recorder.start} />
+          )}
         </div>
       )}
 

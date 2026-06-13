@@ -20,7 +20,7 @@ export function RecordingHud(): JSX.Element | null {
   const recent = events.slice(-4)
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] w-[min(560px,92vw)] bg-[#16110f] text-white rounded-2xl shadow-2xl p-3.5">
+    <div data-recorder-hud className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] w-[min(560px,92vw)] bg-[#16110f] text-white rounded-2xl shadow-2xl p-3.5">
       <div className="flex items-center gap-2.5 text-[13px] font-semibold">
         <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
         Enregistrement en cours
