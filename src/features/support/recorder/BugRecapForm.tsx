@@ -76,6 +76,9 @@ export function BugRecapForm({ profile, cabinetId, missionId, onDone }: Props): 
       <div className="p-4 border-t border-gray-100">
         <label className="text-xs font-semibold text-gray-700 block mb-1.5">Un commentaire&nbsp;? (optionnel)</label>
         <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2} className="w-full border border-gray-200 rounded-lg p-2.5 text-sm" />
+        <p className="text-[11px] text-amber-700 mt-1">
+          &#9888; N&apos;incluez pas de donn&eacute;es personnelles ou confidentielles&nbsp;: ce commentaire peut &ecirc;tre analys&eacute; automatiquement.
+        </p>
         {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
         <div className="flex gap-2 mt-3">
           <button onClick={recorder.clearTrace} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50">

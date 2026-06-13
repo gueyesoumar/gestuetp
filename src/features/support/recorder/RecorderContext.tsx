@@ -30,6 +30,14 @@ export function useRecorder(): RecorderState {
 
 const MAX_EVENTS = 100
 
+/** Minimisation : redige emails + longues suites de chiffres et tronque le libelle capte. */
+function sanitizeLabel(raw: string): string {
+  return raw
+    .replace(/[\w.+-]+@[\w.-]+\.\w+/g, '[email]')
+    .replace(/\d{4,}/g, '[num]')
+    .slice(0, 40)
+}
+
 export function RecorderProvider({ children }: { children: ReactNode }): JSX.Element {
   const [recording, setRecording] = useState(false)
   const [events, setEvents] = useState<RecordedEvent[]>([])
@@ -62,7 +70,7 @@ export function RecorderProvider({ children }: { children: ReactNode }): JSX.Ele
       if (target?.closest('[data-recorder-hud]')) return
       const el = (target?.closest('button, a, [role="button"], [role="tab"], [role="menuitem"]') as HTMLElement | null) ?? target
       if (!el) return
-      const label = (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 60)
+      const label = sanitizeLabel((el.getAttribute('aria-label') || el.textContent || el.tagName).trim())
       add({ ts: Date.now(), kind: 'click', label: 'Clic', detail: label })
     }
     document.addEventListener('click', onClick, true)

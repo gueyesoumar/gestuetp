@@ -285,3 +285,31 @@ Playwright : `start()`, faire des clics + une navigation + déclencher une 4xx, 
 - **D-a** : enregistreur core (provider + HUD + capture clics/nav/erreurs) — le gros morceau.
 - **D-b** : récap éditable + création du ticket bug + branchement des 2 cartes Bug.
 Taille **L**.
+
+---
+
+## Annexe F — Phase 3 : agent de triage (data-facing)
+
+> ⚠️ **Garde-fou DPA** : l'infra est construite mais **un feature flag `support_agent_triage` reste OFF par défaut**. Tant qu'il est OFF, `run-agent` refuse (aucune donnée tenant ne part vers Anthropic). Activation = **après feu vert DPA**. Tests uniquement sur données propres (compte owner).
+
+### F.1 Migration `00131_agent_runs`
+- Table `agent_runs (id, request_id fk support_requests on delete cascade, kind 'triage', status, result jsonb, input_tokens, output_tokens, cost_usd, created_by, created_at)`. **RLS : platform owner only** (`is_platform_owner()`), sans récursion.
+- Seed du flag `support_agent_triage` dans `feature_flags` (`is_globally_enabled=false`, category `ai`, maturity `beta`).
+
+### F.2 Edge Function `run-agent` (Deno)
+- `authenticateCaller` + **gate `is_platform_owner`** ; refuse si le flag `support_agent_triage` est OFF.
+- Entrée `{ request_id }` → charge le `support_request` (bug) + `context.steps` (la trace).
+- Boucle tool-use Anthropic (industrialise `prototype/support-triage/triage.ts`) avec **outils DB lecture seule scopés** + la trace ; **aucun SQL libre**.
+- Écrit `agent_runs` (résultat, tokens, coût via `estimateCostUsd` + `_shared/log-ai-call.ts`). Clé `ANTHROPIC_API_KEY` server-side.
+
+### F.3 UI
+`AdminSupportPage` détail bug → bouton **« Lancer le triage »** (visible si flag ON) → `invokeEdgeFunction('run-agent', {request_id})` → affiche diagnostic (catégorie/gravité/cause/action) + co-pilote (reprend la maquette).
+
+### F.4 Sécurité / DPA
+Owner-only · clé server-side · outils **lecture seule** scopés (anti-exfiltration) · **flag OFF par défaut** (rien ne part avant feu vert DPA) · coût loggé · pas d'outil à effet de bord (anti prompt-injection).
+
+### F.5 Découpage
+- **F-a** : migration `agent_runs` + flag (tu l'appliques).
+- **F-b** : Edge Function `run-agent` (tu la déploies).
+- **F-c** : UI trigger + rendu du diagnostic.
+Taille **L**.
