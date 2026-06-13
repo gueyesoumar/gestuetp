@@ -3,6 +3,7 @@ import { useSupportRequestList } from '../../features/support/useSupportRequestL
 import { SupportRequestDetail } from '../../features/support/SupportRequestDetail'
 import { SupportFulfillmentPanel } from '../../features/support/SupportFulfillmentPanel'
 import { SupportTriagePanel } from '../../features/support/SupportTriagePanel'
+import { SupportFeasibilityPanel } from '../../features/support/SupportFeasibilityPanel'
 import { SUPPORT_NATURE_LABELS, SUPPORT_STATUS_LABELS } from '../../lib/constants'
 import type { SupportStatus } from '../../types/database.types'
 
@@ -31,9 +32,11 @@ export function AdminSupportPage(): JSX.Element {
           request={selected}
           onBack={() => setSelectedId(null)}
           onStatus={onStatus}
-          fulfillment={selected.nature === 'bug'
-            ? <SupportTriagePanel request={selected} />
-            : <SupportFulfillmentPanel request={selected} onResolved={() => onStatus('resolved')} />}
+          fulfillment={
+            selected.nature === 'bug' ? <SupportTriagePanel request={selected} />
+            : selected.nature === 'suggestion' ? <SupportFeasibilityPanel request={selected} />
+            : <SupportFulfillmentPanel request={selected} onResolved={() => onStatus('resolved')} />
+          }
         />
       </div>
     )

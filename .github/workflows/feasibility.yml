@@ -1,0 +1,87 @@
+name: Faisabilite suggestion
+
+# Phase 4 (code-facing). Declenche par l'Edge Function dispatch-feasibility
+# (workflow_dispatch). Lit le code du repo via l'agent suggestion-analyst, produit
+# un rapport RICE, et le renvoie a Supabase via feasibility-callback.
+#
+# Garde-fous : ce workflow n'ecrit JAMAIS dans le repo (lecture seule) ; le texte
+# de la suggestion est recupere a l'execution (jamais dans les inputs visibles) ;
+# secrets requis : ANTHROPIC_API_KEY, FEASIBILITY_CALLBACK_SECRET, SUPABASE_FUNCTIONS_URL.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'agent_runs.id (run de faisabilite a alimenter)'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: feasibility-${{ github.event.inputs.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    name: Analyse de faisabilite
+    runs-on: ubuntu-latest
+    env:
+      RUN_ID: ${{ github.event.inputs.run_id }}
+      CB_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}/feasibility-callback
+      CB_SECRET: ${{ secrets.FEASIBILITY_CALLBACK_SECRET }}
+    steps:
+      - name: Checkout (lecture seule)
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Claude Code
+        run: npm i -g @anthropic-ai/claude-code
+
+      # Recupere le texte de la suggestion a l'execution (hors inputs visibles).
+      - name: Fetch suggestion
+        run: |
+          curl -sf -X POST "$CB_URL" \
+            -H "x-callback-secret: $CB_SECRET" \
+            -H 'Content-Type: application/json' \
+            -d "{\"action\":\"fetch\",\"run_id\":\"$RUN_ID\"}" -o suggestion.json
+          jq -r '.body // ""'   suggestion.json > body.txt
+          jq -r '.module // "Général"' suggestion.json > module.txt
+          test -s body.txt || { echo "Suggestion vide"; exit 1; }
+
+      # L'agent lit .claude/agents/suggestion-analyst.md (source de verite unique),
+      # analyse le code reel, et ecrit report.json. Lecture seule sur le repo.
+      - name: Run suggestion-analyst
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          PROMPT="Lis .claude/agents/suggestion-analyst.md et applique-le STRICTEMENT. Suggestion a analyser (module: $(cat module.txt)) :
+          ---
+          $(cat body.txt)
+          ---
+          Analyse le code reel du depot puis ecris le rapport RICE dans report.json en respectant exactement le schema JSON decrit dans l'agent. N'ecris rien d'autre que report.json."
+          claude -p "$PROMPT" --permission-mode acceptEdits --allowedTools "Read,Grep,Glob,Bash" || true
+          test -f report.json || { echo "report.json absent"; exit 1; }
+          jq empty report.json || { echo "report.json invalide"; exit 1; }
+
+      - name: Write back report
+        run: |
+          jq -n --slurpfile r report.json '{action:"writeback", run_id:env.RUN_ID, report:$r[0]}' > payload.json
+          curl -sf -X POST "$CB_URL" \
+            -H "x-callback-secret: $CB_SECRET" \
+            -H 'Content-Type: application/json' \
+            --data @payload.json
+
+      # Si une etape a echoue, on bascule le run en erreur pour ne pas laisser
+      # l'UI bloquee sur 'running' (le callback n'accepte que status='running').
+      - name: Mark error on failure
+        if: failure()
+        run: |
+          curl -s -X POST "$CB_URL" \
+            -H "x-callback-secret: $CB_SECRET" \
+            -H 'Content-Type: application/json' \
+            -d "{\"action\":\"writeback\",\"run_id\":\"$RUN_ID\"}" || true

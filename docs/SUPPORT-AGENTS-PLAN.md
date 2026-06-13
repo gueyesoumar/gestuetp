@@ -313,3 +313,55 @@ Owner-only · clé server-side · outils **lecture seule** scopés (anti-exfiltr
 - **F-b** : Edge Function `run-agent` (tu la déploies).
 - **F-c** : UI trigger + rendu du diagnostic.
 Taille **L**.
+
+---
+
+## Annexe G — Phase 4 : agent de faisabilité (code-facing)
+
+> ⚠️ **Garde-fou DPA** : flag `support_agent_feasibility` **OFF par défaut** (mig. 00132). Tant qu'il est OFF, `dispatch-feasibility` refuse (rien ne part vers GitHub ni Anthropic). Activation = **après feu vert DPA**. Le texte de la suggestion transite par GitHub **ET** Anthropic.
+
+### G.1 Frontière respectée
+Code-facing : l'analyse lit le **repo** (jamais la base). Tourne dans **GitHub Actions** (checkout + Claude Code), pas dans une Edge Function. Réutilise `agent_runs` (`kind='feasibility'`) — **pas de nouvelle table**.
+
+### G.2 Flux
+```
+Superadmin « Analyser la faisabilité »
+  → dispatch-feasibility (Edge, JWT + owner + flag)
+      · crée agent_runs(kind='feasibility', status='running')
+      · workflow_dispatch (GITHUB_DISPATCH_TOKEN) — input = run_id SEUL
+  → .github/workflows/feasibility.yml
+      · checkout (lecture seule) + Claude Code
+      · feasibility-callback action=fetch → récupère body + module
+      · suggestion-analyst lit le code → report.json (RICE)
+      · feasibility-callback action=writeback → agent_runs.result + status='done'
+  → SupportFeasibilityPanel affiche le rapport (refresh manuel, analyse async)
+```
+
+### G.3 Minimisation (double surface : GitHub + Anthropic)
+- Le dispatch ne porte **que `run_id`** : le texte de la suggestion **n'apparaît pas** dans les inputs visibles des Actions ; le workflow le récupère à l'exécution via `feasibility-callback`.
+- `fetch` ne renvoie **que `body` + `module`** — jamais requester / cabinet / mission.
+- Aucune donnée d'autres tenants : l'analyste lit le **code**, pas la base.
+
+### G.4 Sécurité
+- `dispatch-feasibility` : owner-only + flag (comme triage).
+- `feasibility-callback` (CI-facing) : **secret partagé** `FEASIBILITY_CALLBACK_SECRET` (compare à temps quasi-constant) ; n'accède **qu'à** `agent_runs` (par `run_id`) + la suggestion liée ; n'agit que sur un run **`running`** (anti-rejeu / anti-écrasement). Surface réduite même secret en main.
+- `suggestion-analyst` : **lecture seule** (Read/Grep/Glob/Bash), aucun write repo ; la suggestion est une **donnée à analyser** (anti prompt-injection).
+- `GITHUB_DISPATCH_TOKEN` : PAT fine-grained, **Actions:write** sur le seul repo. Secrets jamais côté client.
+
+### G.5 Décision tranchée
+**Write-back** : Edge Function dédiée (`feasibility-callback`) protégée par secret CI partagé — UX automatique (le rapport remonte seul dans la superadmin).
+
+### G.6 Pré-requis de déploiement (côté utilisateur)
+1. Migration `00132` (flag OFF).
+2. `supabase functions deploy dispatch-feasibility feasibility-callback`.
+3. Secrets Edge : `GITHUB_DISPATCH_TOKEN`, `GITHUB_REPO`, `FEASIBILITY_CALLBACK_SECRET` (+ `FEASIBILITY_WORKFLOW_REF` optionnel).
+4. Secrets GitHub repo : `ANTHROPIC_API_KEY`, `FEASIBILITY_CALLBACK_SECRET` (même valeur), `SUPABASE_FUNCTIONS_URL`.
+5. **Merger `feasibility.yml` sur `main`** (la branche par défaut) : `workflow_dispatch` via l'API n'est possible que si le fichier y existe.
+6. Flip du flag `support_agent_feasibility` ON **après feu vert DPA**.
+
+### G.7 Découpage
+- **G-a** : flag (mig. 00132) + agent `suggestion-analyst`.
+- **G-b** : Edge Functions `dispatch-feasibility` + `feasibility-callback`.
+- **G-c** : workflow `feasibility.yml`.
+- **G-d** : UI `SupportFeasibilityPanel` + `FeasibilityReport` + câblage `AdminSupportPage`.
+Taille **L**.
