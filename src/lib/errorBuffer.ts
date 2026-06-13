@@ -20,9 +20,19 @@ export interface CapturedError {
 const MAX_ENTRIES = 25
 const buffer: CapturedError[] = []
 
+type Subscriber = (entry: CapturedError) => void
+const subscribers = new Set<Subscriber>()
+
+/** S'abonner aux erreurs captées en temps réel (utilisé par l'enregistreur). Retourne un désabonnement. */
+export function subscribeErrors(cb: Subscriber): () => void {
+  subscribers.add(cb)
+  return () => { subscribers.delete(cb) }
+}
+
 function push(entry: CapturedError): void {
   buffer.push(entry)
   if (buffer.length > MAX_ENTRIES) buffer.shift()
+  subscribers.forEach((s) => { try { s(entry) } catch { /* un abonné ne doit pas casser la capture */ } })
 }
 
 /** Copie immuable des erreurs recentes (la plus ancienne en premier). */

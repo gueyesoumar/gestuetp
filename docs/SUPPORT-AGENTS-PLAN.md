@@ -191,3 +191,91 @@ RLS testée non-admin · buffer strip secrets · bucket privé · aucune récurs
 
 ### A.6 Effort
 Taille **M** (~3-5 j-h). Pré-requis d'aucune autre phase ; débloque 1 et 2.
+
+---
+
+## Annexe B — Spéc détaillée Phase 1 (Demandes)
+
+> Analyse d'impact à valider **avant** code. Construit sur le socle Phase 0 (table + RLS livrées).
+
+### B.1 Points d'entrée (UI)
+- **Auditeur** : entrée « Centre d'aide » dans `Sidebar.tsx` (`profileMenuItems`, à côté de Notifications/Organisation) → route `/aide`.
+- **Client** : entrée dans la nav `ClientLayout` → route `/client/aide`.
+- **Écran 3 cartes** (réutilise la maquette) : Bug / Demande / Suggestion. En Phase 1 on câble **Demande** (Bug → Phase 2, Suggestion → formulaire simple + `nature='suggestion'`).
+
+### B.2 Données
+- Écrit dans `support_requests` (`nature='demande'`, `subtype`, `context` JSONB = paramètres du formulaire). Le hook réutilise le client `supabase` typé ; ajout d'un type `SupportRequest` dans `database.types.ts` (style maison `Row & Rec`).
+- Options des types **centralisées dans `src/lib/constants.ts`** (filtrées par rôle).
+
+### B.3 Moteur de routage (par `subtype`)
+
+| subtype | Comportement | Détail technique | Visible par |
+|---|---|---|---|
+| `password_reset` | **ACT** (self-service) | `supabase.auth.resetPasswordForEmail(email)` → email envoyé. ⚠️ **PAS** `reset-user-password` (lui = admin fixe le mdp d'un autre). Ticket loggé `resolved`. | demandeur |
+| `feature_activation` | **REQUEST** | crée le ticket ; si `plan_features` couvre la feature → routé **admin cabinet** ; sinon → **platform owner** | cabinet ou owner |
+| `plan_change` | **REQUEST** | crée le ticket → **platform owner** (réservé rôles cabinet) | platform owner |
+| `access_member` | **REQUEST** | crée le ticket → **admin cabinet** | admin cabinet |
+
+- **ACT** = action immédiate, aucune nouvelle surface privilégiée exposée au client.
+- **REQUEST** = crée un `support_request` que le bon acteur traite **depuis sa file** (la file EST la notification en v1).
+- **Filtrage par rôle** : un client ne voit que `password_reset` (+ `feature_activation` si pertinent) ; les rôles cabinet voient les 4.
+
+### B.4 Périmètre v1 vs v1.b
+- **v1 (cette phase)** : formulaires + création de tickets + décision de routage (qui traite) + workflow de statut (`open→in_progress→resolved/closed`) + file de demandes côté traitant. + l'ACT `password_reset`.
+- **v1.b (suite)** : exécution **en un clic depuis le ticket** (toggle `feature_flags`, `manage-team`/`invite-client`) — réutilise les backends existants, gardés par leurs permissions actuelles.
+
+### B.5 Sécurité
+- RLS `support_requests` déjà livrée (cloisonnement cabinet).
+- `resetPasswordForEmail` = flux public Supabase, sans privilège → sûr.
+- On **n'expose jamais** `reset-user-password` (élévation) côté client.
+- Les actions de fulfillment (v1.b) restent derrière `can_manage_members` / `can_assign_team` côté backend.
+- Entités HTML FR dans le JSX, composants ≤ 150 lignes, blocs `error` sur chaque appel.
+
+### B.6 Décisions à valider
+1. **password_reset** : self-service par email (recommandé) — OK ?
+2. **Périmètre v1** : tickets + routage + statut maintenant, fulfillment 1-clic en v1.b — OK ?
+3. **Notifications** : se reposer sur la file en v1 (pas de notif dédiée au traitant tout de suite) — OK ?
+
+### B.7 Effort
+Taille **M**. Livrable et testable (création + scoping RLS validés en réel avec les 3 rôles).
+
+---
+
+## Annexe D — Spéc détaillée Phase 2 : reproduction assistée
+
+> Analyse d'impact à valider **avant** code. Réutilise l'`errorBuffer` (Phase 0).
+
+### D.1 Principe
+Un **enregistreur global** capte les actions de l'utilisateur pendant une session, à travers les changements de page, puis produit une **trace** ordonnée attachée à un ticket de bug. L'utilisateur ne décrit rien techniquement.
+
+### D.2 Architecture
+- **`RecorderProvider`** monté **dans** `<BrowserRouter>` (App.tsx), au-dessus des routes : tient l'état (`recording`, `events[]`, `lastTrace`), expose `start() / stop() / cancel()`, et rend le **HUD** par-dessus toute l'app.
+- Capture **sans patch d'historique** : `useLocation()` pour les navigations (le provider est sous le Router), un listener `click` global (phase capture) ajouté seulement pendant l'enregistrement, et `errorBuffer.subscribe(cb)` pour les erreurs/4xx en temps réel.
+- **Extension `errorBuffer`** : ajouter `subscribe(cb): () => void` (notifie à chaque push) — le buffer existe déjà, on ajoute juste l'abonnement.
+
+### D.3 Ce qui est capté (et ce qui ne l'est PAS)
+- ✅ Clics : libellé/role de l'élément (texte tronqué, `aria-label`, tag) — **jamais** la valeur des `input`.
+- ✅ Navigations : changement de route.
+- ✅ Erreurs : console / rejets / requêtes 4xx-5xx (via `errorBuffer`, déjà sans secret).
+- ❌ **Aucune** frappe clavier, valeur de champ, en-tête, token. Privacy by design.
+
+### D.4 Flux
+`/aide` → carte Bug → **« Lancer l'enregistrement »** → `start()` → HUD flottant (point rouge, chrono, events en direct) → l'utilisateur navigue et reproduit → **« Terminer »** → `stop()` stocke `lastTrace` + retour `/aide` → **récap éditable** (retrait d'étape, commentaire) → crée un `support_request` `nature='bug'`, trace dans `context` → succès.
+
+### D.5 Fichiers
+- `lib/errorBuffer.ts` : + `subscribe()`.
+- `features/support/recorder/RecorderContext.tsx` (provider + état + listeners).
+- `features/support/recorder/RecordingHud.tsx` (overlay).
+- `features/support/recorder/BugRecapForm.tsx` (récap + création ticket).
+- `App.tsx` : monter `<RecorderProvider>` sous le Router ; `SupportCenterPage` + `ClientSupportCenterPage` : carte Bug branchée sur `start()` + affichage du récap si `lastTrace`.
+
+### D.6 Sécurité / vie privée
+Pas de valeurs de champ ni de secret captés ; l'utilisateur **voit et édite** la trace avant envoi (retrait d'étape) ; RLS `support_requests` déjà en place (cabinet_id via mission côté client, comme l'intake).
+
+### D.7 Vérification
+Playwright : `start()`, faire des clics + une navigation + déclencher une 4xx, `stop()`, vérifier la trace (clics/nav/erreur ordonnés) puis la création du ticket bug (POST 201, trace en `context`). Nettoyage du ticket de test.
+
+### D.8 Découpage
+- **D-a** : enregistreur core (provider + HUD + capture clics/nav/erreurs) — le gros morceau.
+- **D-b** : récap éditable + création du ticket bug + branchement des 2 cartes Bug.
+Taille **L**.

@@ -29,6 +29,7 @@ import { ClientMissionsPage } from './features/client-portal/missions/ClientMiss
 import { ClientMissionDetailPage } from './features/client-portal/missions/ClientMissionDetailPage'
 import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
 import { ClientSupportCenterPage } from './features/client-portal/ClientSupportCenterPage'
+import { RecorderProvider } from './features/support/recorder/RecorderContext'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
 import { UnsubscribePage } from './pages/UnsubscribePage'
@@ -72,6 +73,7 @@ function App() {
             },
           }}
         />
+        <RecorderProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/set-password" element={<SetPasswordPage />} />
@@ -161,6 +163,7 @@ function App() {
             <Route path="aide" element={<ClientSupportCenterPage />} />
           </Route>
         </Routes>
+        </RecorderProvider>
       </AuthProvider>
       </BrandingProvider>
     </BrowserRouter>
