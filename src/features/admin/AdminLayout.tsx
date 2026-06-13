@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Building2, Users, ClipboardList, Activity, BookMarked, ChevronLeft, Tag } from 'lucide-react'
+import { LayoutDashboard, Building2, Users, ClipboardList, Activity, BookMarked, ChevronLeft, Tag, LifeBuoy } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 interface NavItem {
@@ -15,6 +15,7 @@ const NAV: NavItem[] = [
   { to: '/admin/frameworks', label: 'Référentiels', icon: <BookMarked size={16} strokeWidth={1.5} /> },
   { to: '/admin/plans', label: 'Plans', icon: <Tag size={16} strokeWidth={1.5} /> },
   { to: '/admin/monitoring', label: 'Santé / Monitoring', icon: <Activity size={16} strokeWidth={1.5} /> },
+  { to: '/admin/support', label: 'Support', icon: <LifeBuoy size={16} strokeWidth={1.5} /> },
   { to: '/admin/audit-log', label: 'Audit log', icon: <ClipboardList size={16} strokeWidth={1.5} /> },
 ]
 

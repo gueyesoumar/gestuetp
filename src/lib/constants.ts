@@ -1,7 +1,7 @@
 // Constantes centralisees pour les listes deroulantes
 // Utiliser ces valeurs partout pour garantir la coherence
 
-import type { SupportDemandeSubtype } from '../types/database.types'
+import type { SupportDemandeSubtype, SupportNature, SupportStatus } from '../types/database.types'
 
 export const EFFECTIFS_OPTIONS = [
   'Moins de 50',
@@ -177,4 +177,19 @@ export const SUPPORT_DEMANDE_TYPES: DemandeTypeOption[] = [
 /** Types de demande visibles pour un rôle donné. */
 export function demandeTypesForRole(role: SupportRequesterRole): DemandeTypeOption[] {
   return SUPPORT_DEMANDE_TYPES.filter((t) => t.roles.includes(role))
+}
+
+export const SUPPORT_NATURE_LABELS: Record<SupportNature, string> = {
+  bug: 'Bug',
+  demande: 'Demande',
+  suggestion: 'Suggestion',
+}
+
+export const SUPPORT_STATUS_LABELS: Record<SupportStatus, string> = {
+  open: 'Ouvert',
+  in_progress: 'En cours',
+  answered: 'Répondu',
+  escalated: 'Escaladé',
+  resolved: 'Résolu',
+  closed: 'Fermé',
 }

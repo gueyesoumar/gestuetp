@@ -41,6 +41,7 @@ import { UserDetailPage } from './pages/admin/UserDetailPage'
 import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
 import { AdminPlansPage } from './pages/admin/AdminPlansPage'
 import { MonitoringPage } from './pages/admin/MonitoringPage'
+import { AdminSupportPage } from './pages/admin/AdminSupportPage'
 import { FrameworksAdminListPage } from './pages/admin/FrameworksAdminListPage'
 import { AdminFrameworkCreatePage } from './pages/admin/AdminFrameworkCreatePage'
 import { AdminFrameworkDetailPage } from './pages/admin/AdminFrameworkDetailPage'
@@ -136,6 +137,7 @@ function App() {
             <Route path="utilisateurs/:id" element={<UserDetailPage />} />
             <Route path="plans" element={<AdminPlansPage />} />
             <Route path="monitoring" element={<MonitoringPage />} />
+            <Route path="support" element={<AdminSupportPage />} />
             <Route path="frameworks" element={<FrameworksAdminListPage />} />
             <Route path="frameworks/nouveau" element={<AdminFrameworkCreatePage />} />
             <Route path="frameworks/:slug" element={<AdminFrameworkDetailPage />} />
