@@ -20,7 +20,11 @@ const DIM_DOT: Record<string, string> = { ok: 'bg-forest-500', attention: 'bg-am
 /** Rendu pur d'un rapport de faisabilite RICE (aucune logique). */
 export function FeasibilityReportView({ report }: { report: FeasibilityReport }): JSX.Element {
   const v = VERDICT[report.verdict] ?? VERDICT.a_etudier
-  const { rice } = report
+  // Defense en profondeur : le CI valide deja le schema avant write-back, mais on
+  // tolere un rapport partiel (drift futur) plutot que de planter la superadmin.
+  const rice = report.rice ?? { reach: 0, impact: 0, confidence: 0, effort: 0, score: 0 }
+  const dimensions = report.dimensions ?? []
+  const touchedAreas = report.touched_areas ?? []
   return (
     <div className="mt-3 space-y-3 text-[13px]">
       <div className="flex items-center gap-2">
@@ -40,7 +44,7 @@ export function FeasibilityReportView({ report }: { report: FeasibilityReport })
       </div>
 
       <div className="space-y-1.5">
-        {report.dimensions.map((d) => (
+        {dimensions.map((d) => (
           <div key={d.axis} className="flex gap-2">
             <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${DIM_DOT[d.verdict] ?? 'bg-gray-400'}`} />
             <p><span className="font-semibold text-gray-700">{d.axis}&nbsp;:</span> <span className="text-gray-600">{d.note}</span></p>
@@ -48,9 +52,9 @@ export function FeasibilityReportView({ report }: { report: FeasibilityReport })
         ))}
       </div>
 
-      {report.touched_areas.length > 0 && (
+      {touchedAreas.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {report.touched_areas.map((a) => (
+          {touchedAreas.map((a) => (
             <span key={a} className="font-mono text-[10.5px] bg-gray-100 text-gray-600 rounded px-1.5 py-0.5">{a}</span>
           ))}
         </div>

@@ -4,6 +4,13 @@ import { logAiCall, estimateCostUsd } from '../_shared/log-ai-call.ts'
 
 // Phase 4 (code-facing) : pont entre le workflow GitHub Actions et Supabase.
 // CI-facing -> authentifie par un SECRET PARTAGE (header x-callback-secret), pas un JWT.
+//
+// DEPLOIEMENT : a deployer SANS verification JWT a la passerelle (le runner CI n'a
+// pas de JWT, il presente notre secret partage) :
+//   supabase functions deploy feasibility-callback --no-verify-jwt
+// Pattern webhook standard (cf. Stripe). dispatch-feasibility garde la verif JWT
+// (appele depuis l'UI avec le JWT owner).
+//
 // Defense en profondeur : n'accede QU'A agent_runs (par run_id) + la suggestion liee,
 // et seulement pour un run encore 'running' (anti-rejeu / anti-ecrasement). Aucune
 // autre donnee n'est joignable, meme avec le secret.
