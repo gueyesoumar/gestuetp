@@ -224,6 +224,12 @@ Taille **M** (~3-5 j-h). Pré-requis d'aucune autre phase ; débloque 1 et 2.
 - **v1 (cette phase)** : formulaires + création de tickets + décision de routage (qui traite) + workflow de statut (`open→in_progress→resolved/closed`) + file de demandes côté traitant. + l'ACT `password_reset`.
 - **v1.b (suite)** : exécution **en un clic depuis le ticket** (toggle `feature_flags`, `manage-team`/`invite-client`) — réutilise les backends existants, gardés par leurs permissions actuelles.
 
+### Annexe E — File côté cabinet (demandes routées cabinet)
+- **Migration `00130`** : étendre la policy `support_requests_update` pour autoriser un gestionnaire du cabinet — `cabinet_id = get_my_organization_id() AND has_cabinet_permission('can_manage_members')` — en plus du demandeur / platform owner. (La policy `SELECT` permet déjà à un membre de voir les tickets de son cabinet.)
+- **UI** : page `/demandes-support` (app auditeur) réutilisant `useSupportRequestList` (filtré `nature='demande'`) + `SupportRequestDetail` (workflow de statut). Entrée nav gatée sur `useCabinetPermissions().canManageMembers`.
+- **Fulfillment** : `access_member` → note « Traiter dans Membres » (pas de 1-clic, le formulaire n'a capté que du texte libre). `feature_activation`/`plan_change` restent côté owner.
+- **Sécurité** : la RLS reste le garde-fou (le front ne fait que masquer l'entrée) ; pas de récursion (la policy n'interroge pas `support_requests`).
+
 ### B.5 Sécurité
 - RLS `support_requests` déjà livrée (cloisonnement cabinet).
 - `resetPasswordForEmail` = flux public Supabase, sans privilège → sûr.

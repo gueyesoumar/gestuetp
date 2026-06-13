@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
-import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy } from 'lucide-react'
+import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy, Inbox } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
   OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
@@ -10,6 +10,7 @@ import {
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 import { useNotifications } from '../../features/notifications/useNotifications'
 import type { User } from '../../types/database.types'
@@ -52,6 +53,7 @@ const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
 export function Sidebar({ profile, open, onClose }: SidebarProps) {
   const { signOut } = useAuth()
   const { canViewSupervision } = useGroupPermissions()
+  const { canManageMembers } = useCabinetPermissions()
   const { isGroup } = useOrganizationHierarchy(profile?.organization_id)
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
@@ -201,7 +203,10 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
           <div ref={menuRef} className="relative border-t border-white/10">
             {profileMenuOpen && (
               <div className={`absolute bottom-full mb-1 rounded-xl bg-forest-700 border border-white/10 shadow-xl overflow-hidden ${collapsed ? 'left-1 w-48' : 'left-2 right-2'}`}>
-                {profileMenuItems.map((item) => (
+                {(canManageMembers
+                  ? [...profileMenuItems, { to: '/demandes-support', label: 'Demandes support', icon: <Inbox size={20} strokeWidth={1.5} /> }]
+                  : profileMenuItems
+                ).map((item) => (
                   <button
                     key={item.to}
                     onClick={() => handleProfileNav(item.to)}

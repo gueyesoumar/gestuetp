@@ -23,6 +23,7 @@ import { ClientCreatePage } from './pages/ClientCreatePage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { SupportCenterPage } from './pages/SupportCenterPage'
+import { CabinetSupportPage } from './pages/CabinetSupportPage'
 import { QuestionnaireClientPage } from './pages/QuestionnaireClientPage'
 import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDashboardPage'
 import { ClientMissionsPage } from './features/client-portal/missions/ClientMissionsPage'
@@ -116,6 +117,7 @@ function App() {
             <Route path="missions/:id" element={<MissionDetailPage />} />
             <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
             <Route path="aide" element={<SupportCenterPage />} />
+            <Route path="demandes-support" element={<CabinetSupportPage />} />
             {/* Module Groupe */}
             <Route path="filiales" element={<SubsidiariesPage />} />
             <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
