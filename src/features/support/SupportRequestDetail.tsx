@@ -6,9 +6,14 @@ import type { SupportRequest, SupportStatus } from '../../types/database.types'
 interface Props {
   request: SupportRequest
   onBack: () => void
-  onStatus: (status: SupportStatus) => void
+  /** Absent en mode lecture seule (cote demandeur). */
+  onStatus?: (status: SupportStatus) => void
   /** Panneau de fulfillment optionnel (injecte cote owner). */
   fulfillment?: ReactNode
+  /** Cote demandeur : masque le pied d'actions de statut. */
+  readOnly?: boolean
+  /** Libelle du bouton retour (defaut: « File » cote traitant). */
+  backLabel?: string
 }
 
 const ACTIONS: { status: SupportStatus; label: string; prim?: boolean }[] = [
@@ -18,13 +23,13 @@ const ACTIONS: { status: SupportStatus; label: string; prim?: boolean }[] = [
   { status: 'closed', label: 'Fermer' },
 ]
 
-export function SupportRequestDetail({ request, onBack, onStatus, fulfillment }: Props): JSX.Element {
+export function SupportRequestDetail({ request, onBack, onStatus, fulfillment, readOnly, backLabel = 'File' }: Props): JSX.Element {
   const context = Object.entries(request.context ?? {}).filter(([, v]) => v != null && v !== '')
 
   return (
     <div>
       <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-gray-400 mb-4 hover:text-gray-600">
-        <ArrowLeft size={15} /> File
+        <ArrowLeft size={15} /> {backLabel}
       </button>
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="p-4 border-b border-gray-100">
@@ -53,20 +58,22 @@ export function SupportRequestDetail({ request, onBack, onStatus, fulfillment }:
 
         {fulfillment}
 
-        <div className="flex flex-wrap gap-2 p-4 border-t border-gray-100">
-          {ACTIONS.map((a) => (
-            <button
-              key={a.status}
-              onClick={() => onStatus(a.status)}
-              disabled={request.status === a.status}
-              className={`px-3.5 py-2 rounded-lg text-xs font-semibold disabled:opacity-40 ${
-                a.prim ? 'bg-forest-700 text-white hover:bg-forest-900' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {a.label}
-            </button>
-          ))}
-        </div>
+        {!readOnly && onStatus && (
+          <div className="flex flex-wrap gap-2 p-4 border-t border-gray-100">
+            {ACTIONS.map((a) => (
+              <button
+                key={a.status}
+                onClick={() => onStatus(a.status)}
+                disabled={request.status === a.status}
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold disabled:opacity-40 ${
+                  a.prim ? 'bg-forest-700 text-white hover:bg-forest-900' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

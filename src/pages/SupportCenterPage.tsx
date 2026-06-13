@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Bug, ClipboardList, Lightbulb, ArrowLeft } from 'lucide-react'
+import { Bug, ClipboardList, Lightbulb, ArrowLeft, ListChecks } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useRecorder } from '../features/support/recorder/RecorderContext'
 import { RecordHero } from '../features/support/recorder/RecordHero'
 import { BugRecapForm } from '../features/support/recorder/BugRecapForm'
 import { DemandeForm } from '../features/support/DemandeForm'
 import { SuggestionForm } from '../features/support/SuggestionForm'
+import { MySupportRequests } from '../features/support/MySupportRequests'
 
-type Mode = 'home' | 'bug' | 'demande' | 'suggestion'
+type Mode = 'home' | 'bug' | 'demande' | 'suggestion' | 'mine'
 
 interface Choice {
   mode: Mode
@@ -57,8 +58,16 @@ export function SupportCenterPage(): JSX.Element {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => setMode('mine')}
+            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-forest-700 hover:text-forest-900"
+          >
+            <ListChecks size={16} /> Suivre mes demandes
+          </button>
         </>
       )}
+
+      {mode === 'mine' && <MySupportRequests profile={profile} onBack={back} />}
 
       {mode === 'bug' && (
         <div>
