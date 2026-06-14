@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { OrganizationInfoTab } from '../features/organization-settings/OrganizationInfoTab'
-import { ProfileSettingsTab } from '../features/organization-settings/ProfileSettingsTab'
 import { WorkflowSettingsTab } from '../features/organization-settings/WorkflowSettingsTab'
 
-type Tab = 'organisation' | 'profil' | 'parametres'
+type Tab = 'organisation' | 'parametres'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'organisation', label: 'Organisation' },
-  { key: 'profil', label: 'Mon profil' },
   { key: 'parametres', label: 'Paramètres' },
 ]
 
@@ -19,7 +17,7 @@ export function OrganizationPage(): JSX.Element {
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900">Organisation</h2>
         <p className="mt-1 text-[13px] text-gray-500">
-          Gérez votre cabinet, votre profil et les paramètres opérationnels.
+          Gérez votre cabinet et les paramètres opérationnels.
         </p>
       </div>
 
@@ -40,7 +38,6 @@ export function OrganizationPage(): JSX.Element {
       </div>
 
       {activeTab === 'organisation' && <OrganizationInfoTab />}
-      {activeTab === 'profil' && <ProfileSettingsTab />}
       {activeTab === 'parametres' && <WorkflowSettingsTab />}
     </div>
   )

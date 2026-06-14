@@ -11,7 +11,7 @@ import { VaultBranding } from '../components/vault/VaultBranding'
 import { TrustBadges } from '../components/vault/TrustBadges'
 
 export function LoginPage(): JSX.Element {
-  const { session, loading, signIn } = useAuth()
+  const { session, loading, signIn, profile } = useAuth()
   const { branding, loading: brandingLoading } = useBranding()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -29,7 +29,10 @@ export function LoginPage(): JSX.Element {
   }
 
   if (session) {
-    return <Navigate to="/hub" replace />
+    // Le platform owner atterrit directement dans sa console (sauf domaine cabinet
+    // co-brande, ou l'admin Gestu n'a pas sa place). Les autres gardent le hub.
+    const target = !branding && profile?.is_platform_owner ? '/admin' : '/hub'
+    return <Navigate to={target} replace />
   }
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {

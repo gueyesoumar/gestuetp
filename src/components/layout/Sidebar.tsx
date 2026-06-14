@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
-import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy, Inbox } from 'lucide-react'
+import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy, Inbox, UserCircle } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
   OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
@@ -44,6 +44,7 @@ const GROUP_NAV_ITEMS: { to: string; label: string; icon: ReactNode }[] = [
 ]
 
 const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
+  { to: '/compte', label: 'Mon compte', icon: <UserCircle size={20} strokeWidth={1.5} /> },
   { to: '/notifications', label: 'Notifications', icon: <BellIcon /> },
   { to: '/organisation', label: 'Organisation', icon: <OrganizationIcon /> },
   { to: '/membres', label: 'Membres', icon: <MembersIcon /> },

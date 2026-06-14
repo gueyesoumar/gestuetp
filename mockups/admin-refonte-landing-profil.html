@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Refonte — Atterrissage admin & profil/compte</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet" />
+<script>
+tailwind.config = {
+  theme: { extend: { colors: {
+    forest: { 900:'#1B4332',700:'#2D6A4F',500:'#40916C',300:'#74C69D',100:'#D8F3DC',50:'#F0FFF4' },
+    gold:   { 600:'#B8922E',500:'#D4A843',400:'#E2C26B',200:'#F2E2B1' },
+    sidebar:'#0F2A22', page:'#F7F8F7'
+  }, fontFamily:{ sans:['Inter','sans-serif'], mono:['JetBrains Mono','monospace'] } } }
+}
+</script>
+<style>
+  body{font-family:Inter,sans-serif;background:#ECEEED}
+  .frame{box-shadow:0 10px 40px -12px rgba(15,42,34,.25)}
+  .tag{font-size:10px;letter-spacing:.12em}
+</style>
+</head>
+<body class="text-gray-800">
+
+<div class="max-w-[1180px] mx-auto px-6 py-10">
+
+  <header class="mb-9">
+    <div class="flex items-center gap-2.5 mb-3">
+      <div class="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center text-forest-900 font-black font-mono text-sm">G</div>
+      <div class="font-extrabold text-lg">G<span class="text-gold-500">ë</span>stu <span class="text-gray-400 font-semibold">— refonte console admin</span></div>
+    </div>
+    <h1 class="text-2xl font-extrabold text-forest-900">Atterrissage owner &amp; accès profil/compte</h1>
+    <p class="text-sm text-gray-500 mt-1 max-w-2xl">Le platform owner atterrit <b>directement dans la console</b> (son espace de travail), avec un sélecteur « Changer d'espace ». Le profil devient accessible <b>depuis l'admin</b> via un menu utilisateur, et une <b>page Compte dédiée</b> remplace l'onglet enfoui.</p>
+  </header>
+
+  <!-- ============ FRAME 1 — CONSOLE COMME ATTERRISSAGE ============ -->
+  <section class="mb-12">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-forest-900 text-white tag font-bold uppercase px-2 py-1 rounded">Écran 1</span>
+      <h2 class="font-bold text-forest-900">À la connexion → la console (plus de hub imposé)</h2>
+    </div>
+
+    <div class="frame rounded-2xl overflow-hidden border border-gray-200 bg-white flex h-[560px]">
+      <!-- Sidebar -->
+      <aside class="w-60 flex-shrink-0 flex flex-col bg-sidebar text-white">
+        <div class="flex items-center gap-2.5 px-5 py-4 border-b border-white/10">
+          <div class="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center text-forest-900 font-black font-mono text-sm">G</div>
+          <div class="leading-tight">
+            <div class="font-extrabold text-sm">G<span class="text-gold-500">ë</span>stu</div>
+            <div class="tag uppercase text-gold-500 font-bold">Admin</div>
+          </div>
+        </div>
+        <nav class="flex-1 py-3 text-[13px]">
+          <div class="px-4 pb-1.5 text-[10px] uppercase tracking-wider text-white/35 font-bold">Plateforme</div>
+          <a class="relative flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg font-medium bg-gold-500/15 text-white before:absolute before:-left-2 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-[18px] before:bg-gold-500 before:rounded-r">◧ Tableau de bord</a>
+          <a class="flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5">▦ Organisations</a>
+          <a class="flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5">◍ Utilisateurs</a>
+          <a class="flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5">▤ Référentiels</a>
+          <a class="flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5">⛬ Plans</a>
+          <a class="flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5">◔ Santé / Monitoring</a>
+          <a class="flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5">⛑ Support</a>
+          <a class="flex items-center gap-2.5 mx-2 my-0.5 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5">▣ Audit log</a>
+        </nav>
+
+        <!-- Footer = MENU UTILISATEUR (ouvert) -->
+        <div class="relative px-3 py-3 border-t border-white/10">
+          <!-- popup -->
+          <div class="absolute bottom-[64px] left-3 right-3 bg-white text-gray-700 rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+            <a class="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium hover:bg-forest-50"><span class="text-forest-700">◑</span> Mon profil</a>
+            <a class="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium hover:bg-forest-50"><span class="text-forest-700">⚙</span> Préférences</a>
+            <div class="h-px bg-gray-100"></div>
+            <a class="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium text-red-600 hover:bg-red-50"><span>⏏</span> Déconnexion</a>
+          </div>
+          <!-- bouton avatar -->
+          <button class="w-full flex items-center gap-2 px-2 py-2 rounded-lg bg-white/5 ring-1 ring-gold-500/40">
+            <div class="w-7 h-7 rounded-full bg-gold-500 text-forest-900 flex items-center justify-center font-extrabold text-[11px]">SG</div>
+            <div class="text-left leading-tight">
+              <div class="text-white font-semibold text-[11.5px]">Seydina Gueye</div>
+              <div class="text-[10px] text-white/55">Platform owner</div>
+            </div>
+            <span class="ml-auto text-white/50 text-xs">▾</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <div class="flex-1 flex flex-col">
+        <!-- topbar gold avec switcher -->
+        <div class="bg-gold-500 text-forest-900 px-5 py-2 flex items-center gap-3 text-[12px] font-semibold">
+          <span class="px-2 py-0.5 border border-forest-900 rounded-full text-[10px] font-bold uppercase tracking-wider">Admin mode</span>
+          Console super-admin Gëstu — toutes vos actions sont tracées.
+          <button class="ml-auto inline-flex items-center gap-1.5 bg-forest-900 text-white px-3 py-1 rounded-full text-[11.5px] font-bold hover:bg-forest-700">
+            ⇄ Changer d'espace
+          </button>
+        </div>
+        <!-- contenu dashboard (léger) -->
+        <div class="flex-1 overflow-hidden p-6 bg-page">
+          <p class="text-[11.5px] text-gray-500"><b class="text-forest-900">Admin</b> › Tableau de bord</p>
+          <h3 class="text-lg font-bold text-gray-900 mt-1 mb-4">Vue d'ensemble plateforme</h3>
+          <div class="grid grid-cols-4 gap-3 mb-4">
+            <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 relative overflow-hidden"><div class="absolute top-0 inset-x-0 h-[3px] bg-gold-500"></div><div class="text-[10px] uppercase text-gray-400 font-semibold">Organisations</div><div class="text-2xl font-extrabold mt-1">12</div></div>
+            <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 relative overflow-hidden"><div class="absolute top-0 inset-x-0 h-[3px] bg-forest-500"></div><div class="text-[10px] uppercase text-gray-400 font-semibold">Users actifs 30j</div><div class="text-2xl font-extrabold mt-1">87</div></div>
+            <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 relative overflow-hidden"><div class="absolute top-0 inset-x-0 h-[3px] bg-blue-500"></div><div class="text-[10px] uppercase text-gray-400 font-semibold">Missions en cours</div><div class="text-2xl font-extrabold mt-1">34</div></div>
+            <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 relative overflow-hidden"><div class="absolute top-0 inset-x-0 h-[3px] bg-gold-500"></div><div class="text-[10px] uppercase text-gray-400 font-semibold">MRR estimé</div><div class="text-2xl font-extrabold mt-1">9 400 €</div></div>
+          </div>
+          <div class="grid grid-cols-[1.4fr_1fr] gap-3">
+            <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-[13px] font-bold mb-3">Activité · 14 jours</div><div class="flex items-end gap-1.5 h-[90px]">
+              <div class="flex-1 bg-forest-500 rounded-t" style="height:40%"></div><div class="flex-1 bg-forest-500 rounded-t" style="height:65%"></div><div class="flex-1 bg-forest-500 rounded-t" style="height:30%"></div><div class="flex-1 bg-forest-500 rounded-t" style="height:80%"></div><div class="flex-1 bg-forest-500 rounded-t" style="height:55%"></div><div class="flex-1 bg-forest-500 rounded-t" style="height:70%"></div><div class="flex-1 bg-forest-500 rounded-t" style="height:45%"></div><div class="flex-1 bg-forest-500 rounded-t" style="height:90%"></div>
+            </div></div>
+            <div class="bg-white border border-gray-200 rounded-xl p-4"><div class="text-[13px] font-bold mb-2">Alertes</div><div class="text-[12px] text-gray-600 flex gap-2 py-1.5"><span class="bg-amber-50 text-amber-700 px-1.5 rounded text-[10px] font-bold">⚠</span> 2 orgs sans mission active</div><div class="text-[12px] text-gray-600 flex gap-2 py-1.5"><span class="bg-blue-50 text-blue-700 px-1.5 rounded text-[10px] font-bold">i</span> 1 référentiel en brouillon</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-[12px] text-gray-500 mt-2.5 pl-1">◑ <b>Avant</b> : login → hub « choisissez votre espace » → chercher la pastille admin. &nbsp;•&nbsp; <b class="text-forest-700">Après</b> : login → la console directement. Le pied de sidebar devient un <b>menu utilisateur</b> (profil / préférences / déconnexion) — absent aujourd'hui de l'admin.</p>
+  </section>
+
+  <!-- ============ FRAME 2 — CHANGER D'ESPACE ============ -->
+  <section class="mb-12">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-forest-900 text-white tag font-bold uppercase px-2 py-1 rounded">Écran 2</span>
+      <h2 class="font-bold text-forest-900">« Changer d'espace » — l'owner reste maître de sa navigation</h2>
+    </div>
+    <div class="frame rounded-2xl border border-gray-200 bg-white p-8 flex justify-center">
+      <div class="w-[420px]">
+        <div class="text-center mb-4">
+          <div class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">Changer d'espace</div>
+          <p class="text-[12.5px] text-gray-500">Vous travaillez en tant que platform owner.</p>
+        </div>
+        <div class="space-y-2.5">
+          <button class="w-full flex items-center gap-3 border border-gold-500 bg-gold-200/40 rounded-xl px-4 py-3 text-left ring-1 ring-gold-500/30">
+            <div class="w-9 h-9 rounded-lg bg-forest-900 text-gold-500 flex items-center justify-center font-bold">🛡</div>
+            <div><div class="text-[13px] font-bold text-forest-900">Console super-admin</div><div class="text-[11px] text-gray-500">Espace actuel</div></div>
+            <span class="ml-auto text-forest-700 font-bold">✓</span>
+          </button>
+          <button class="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-left hover:border-forest-300 hover:bg-forest-50">
+            <div class="w-9 h-9 rounded-lg bg-forest-100 text-forest-700 flex items-center justify-center font-bold">C</div>
+            <div><div class="text-[13px] font-bold text-gray-900">Gëstu Comply <span class="text-gray-400 font-normal">(cabinet)</span></div><div class="text-[11px] text-gray-500">Missions, clients, référentiels…</div></div>
+            <span class="ml-auto text-gray-300">→</span>
+          </button>
+          <button class="w-full flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3 text-left text-gray-400 hover:bg-gray-50">
+            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">⊞</div>
+            <div><div class="text-[13px] font-semibold">Tous les produits (hub)</div><div class="text-[11px]">Vue sélecteur complète</div></div>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="text-[12px] text-gray-500 mt-2.5 pl-1">Le hub n'est pas supprimé — il devient une <b>destination de second plan</b> (« Tous les produits »), au lieu d'être imposé à chaque connexion.</p>
+  </section>
+
+  <!-- ============ FRAME 3 — PAGE COMPTE DÉDIÉE ============ -->
+  <section class="mb-6">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-forest-900 text-white tag font-bold uppercase px-2 py-1 rounded">Écran 3</span>
+      <h2 class="font-bold text-forest-900">Page « Mon compte » dédiée — partagée admin &amp; cabinet</h2>
+    </div>
+    <div class="frame rounded-2xl border border-gray-200 bg-page p-7">
+      <div class="max-w-[720px] mx-auto">
+        <button class="text-[12px] text-gray-400 mb-3">‹ Retour</button>
+        <h3 class="text-xl font-bold text-gray-900">Mon compte</h3>
+        <p class="text-[12.5px] text-gray-500 mb-5">Vos informations personnelles et vos préférences. Vaut pour tous vos espaces.</p>
+
+        <!-- Identité -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 mb-3.5">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-14 h-14 rounded-full bg-gold-500 text-forest-900 flex items-center justify-center font-extrabold text-lg">SG</div>
+            <div><div class="text-[14px] font-bold text-gray-900">Seydina Gueye</div><div class="text-[12px] text-gray-500">Platform owner · Gëstu</div></div>
+            <button class="ml-auto text-[12px] font-semibold text-forest-700 border border-forest-300 rounded-lg px-3 py-1.5">Changer la photo</button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="text-[11px] font-semibold text-gray-600">Prénom</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white">Seydina</div></div>
+            <div><label class="text-[11px] font-semibold text-gray-600">Nom</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white">Gueye</div></div>
+            <div><label class="text-[11px] font-semibold text-gray-600">Téléphone</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white text-gray-400">+221 …</div></div>
+            <div><label class="text-[11px] font-semibold text-gray-600">Fonction</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white">Directeur</div></div>
+          </div>
+        </div>
+
+        <!-- Connexion -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 mb-3.5">
+          <div class="text-[13px] font-bold text-gray-900 mb-3">Connexion &amp; sécurité</div>
+          <div class="flex items-center justify-between py-2 border-b border-gray-50">
+            <div><div class="text-[12.5px] font-medium text-gray-800">Adresse e-mail</div><div class="text-[12px] text-gray-500">oumar@gestugroup.com</div></div>
+            <button class="text-[12px] font-semibold text-forest-700">Modifier</button>
+          </div>
+          <div class="flex items-center justify-between py-2">
+            <div><div class="text-[12.5px] font-medium text-gray-800">Mot de passe</div><div class="text-[12px] text-gray-500">Dernière modification il y a 3 mois</div></div>
+            <button class="text-[12px] font-semibold text-forest-700">Changer</button>
+          </div>
+        </div>
+
+        <!-- Préférences -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <div class="text-[13px] font-bold text-gray-900 mb-3">Préférences</div>
+          <div class="flex items-center justify-between py-1.5">
+            <div class="text-[12.5px] text-gray-700">E-mails de notification</div>
+            <div class="w-9 h-5 rounded-full bg-forest-500 relative"><div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div></div>
+          </div>
+          <div class="flex items-center justify-between py-1.5">
+            <div class="text-[12.5px] text-gray-700">Résumé hebdomadaire</div>
+            <div class="w-9 h-5 rounded-full bg-gray-200 relative"><div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div></div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-4">
+          <button class="px-4 py-2 text-[13px] font-semibold text-gray-600 border border-gray-200 rounded-lg bg-white">Annuler</button>
+          <button class="px-4 py-2 text-[13px] font-bold text-white bg-forest-700 rounded-lg">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+    <p class="text-[12px] text-gray-500 mt-2.5 pl-1">Remplace l'onglet « Mon profil » enfoui dans <span class="font-mono">/organisation</span>. Une seule route <span class="font-mono">/compte</span>, atteignable du menu utilisateur en admin <b>et</b> en cabinet. (On peut réutiliser <span class="font-mono">ProfileSettingsTab</span> comme corps.)</p>
+  </section>
+
+  <footer class="text-[11px] text-gray-400 border-t border-gray-200 pt-4">Mockup statique — Gëstu Comply · refonte atterrissage admin + profil/compte · charte BRAND.md (forêt #1B4332 / or #D4A843, Inter).</footer>
+</div>
+</body>
+</html>

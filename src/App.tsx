@@ -34,6 +34,7 @@ import { RecorderProvider } from './features/support/recorder/RecorderContext'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
 import { UnsubscribePage } from './pages/UnsubscribePage'
+import { AccountPage } from './pages/AccountPage'
 import { AdminLayout } from './features/admin/AdminLayout'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { CabinetsListPage } from './pages/admin/CabinetsListPage'
@@ -90,6 +91,16 @@ function App() {
             }
           />
 
+          {/* Compte — page profil dediee, partagee admin + cabinet (hors chrome) */}
+          <Route
+            path="/compte"
+            element={
+              <ProtectedRoute>
+                <AccountPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Auditor routes (Comply product) */}
           <Route
             element={
@@ -99,7 +110,7 @@ function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="profil" element={<Navigate to="/organisation" replace />} />
+            <Route path="profil" element={<Navigate to="/compte" replace />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="organisation" element={<OrganizationPage />} />
             <Route path="membres" element={<MembersPage />} />
