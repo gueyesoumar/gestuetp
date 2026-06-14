@@ -27,7 +27,7 @@ export function ClientNotificationsPage(): JSX.Element {
       const headers = { 'apikey': apikey, 'Authorization': `Bearer ${token}` }
 
       const res = await fetch(
-        `${baseUrl}/rest/v1/notifications?select=id,type,title,message,is_read,created_at&order=created_at.desc&limit=30`,
+        `${baseUrl}/rest/v1/notifications?select=id,type,title,body,is_read,created_at&order=created_at.desc&limit=30`,
         { headers }
       )
 
@@ -37,7 +37,7 @@ export function ClientNotificationsPage(): JSX.Element {
           id: n.id as string,
           type: (n.type as string) ?? 'info',
           title: (n.title as string) ?? '',
-          message: (n.message as string) ?? null,
+          message: (n.body as string) ?? null,
           isRead: (n.is_read as boolean) ?? false,
           createdAt: n.created_at as string,
         })))
