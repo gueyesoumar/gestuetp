@@ -53,20 +53,29 @@ jobs:
           jq -r '.module // "Général"' suggestion.json > module.txt
           test -s body.txt || { echo "Suggestion vide"; exit 1; }
 
-      # L'agent lit .claude/agents/suggestion-analyst.md (source de verite unique),
-      # analyse le code reel, et ecrit report.json. Lecture seule sur le repo.
+      # Prompt + schema versionnes dans .github/feasibility-prompt.md (autonome :
+      # aucune dependance a un fichier present seulement sur une autre branche).
+      # L'agent analyse le code reel et ecrit report.json. Lecture seule sur le repo.
       - name: Run suggestion-analyst
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          PROMPT="Lis .claude/agents/suggestion-analyst.md et applique-le STRICTEMENT. Suggestion a analyser (module: $(cat module.txt)) :
-          ---
-          $(cat body.txt)
-          ---
-          Analyse le code reel du depot puis ecris le rapport RICE dans report.json en respectant exactement le schema JSON decrit dans l'agent. N'ecris rien d'autre que report.json."
-          claude -p "$PROMPT" --permission-mode acceptEdits --allowedTools "Read,Grep,Glob,Bash" || true
+          cp .github/feasibility-prompt.md prompt.txt
+          printf '\n\nSUGGESTION A ANALYSER (module: %s) :\n---\n' "$(cat module.txt)" >> prompt.txt
+          cat body.txt >> prompt.txt
+          printf '\n---\n' >> prompt.txt
+          claude -p "$(cat prompt.txt)" --permission-mode acceptEdits --allowedTools "Read,Grep,Glob,Bash" || true
           test -f report.json || { echo "report.json absent"; exit 1; }
-          jq empty report.json || { echo "report.json invalide"; exit 1; }
+          jq empty report.json || { echo "report.json invalide (JSON)"; exit 1; }
+          # Validation de forme : exactement ce que l'UI (FeasibilityReport) attend.
+          jq -e '
+            (.verdict|type=="string") and (.summary|type=="string") and
+            (.rice.reach|type=="number") and (.rice.impact|type=="number") and
+            (.rice.confidence|type=="number") and (.rice.effort|type=="number") and
+            (.rice.score|type=="number") and (.effort_estimate|type=="string") and
+            (.dimensions|type=="array") and (.touched_areas|type=="array") and
+            (.hypotheses|type=="array") and (.risks|type=="array")
+          ' report.json > /dev/null || { echo "report.json hors schema attendu"; exit 1; }
 
       - name: Write back report
         run: |
