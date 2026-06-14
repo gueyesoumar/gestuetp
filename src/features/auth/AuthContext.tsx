@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useEffect, useState, useCallback, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
@@ -19,6 +19,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  // Miroir du profil pour onAuthStateChange (evite le closure perime) : sert a ne
+  // remettre loading=true que quand un profil doit etre charge (connexion), pas a
+  // chaque TOKEN_REFRESHED ou il est deja la (sinon flash de chargement intempestif).
+  const profileRef = useRef<User | null>(null)
 
   const fetchProfile = useCallback(async (authId: string, signal?: AbortSignal) => {
     try {
@@ -33,9 +37,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Erreur chargement profil:', error.message)
         setProfile(null)
+        profileRef.current = null
         return
       }
       setProfile(data)
+      profileRef.current = data
     } finally {
       // Le profil est résolu (succès ou échec) : c'est seulement ici qu'on lève
       // le flag de chargement, pour qu'aucun guard ne s'exécute avec profile=null
@@ -63,9 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (abortController.signal.aborted) return
         setSession(newSession)
         if (newSession?.user) {
+          // Pas encore de profil pour cette session (connexion) : on bloque les
+          // guards le temps de le charger, pour qu'aucune redirection role-dependante
+          // (ex: owner -> /admin) ne s'execute avec profile=null.
+          if (!profileRef.current) setLoading(true)
           fetchProfile(newSession.user.id, abortController.signal)
         } else {
           setProfile(null)
+          profileRef.current = null
           setLoading(false)
         }
       }
@@ -93,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Erreur deconnexion:', error.message)
     }
     setProfile(null)
+    profileRef.current = null
   }, [])
 
   return (
