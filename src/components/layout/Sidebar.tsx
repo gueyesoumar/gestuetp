@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
+import shieldSvg from '../../assets/logo-shield.svg'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
 import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy, Inbox, UserCircle } from 'lucide-react'
 import {
@@ -96,7 +97,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className={`flex items-center border-b border-white/10 ${collapsed ? 'justify-center py-4' : 'px-5 py-4'}`}>
           {collapsed ? (
-            <img src="/src/assets/logo-shield.svg" alt="G&euml;stu" width={24} height={28} />
+            <img src={shieldSvg} alt="G&euml;stu" width={24} height={28} />
           ) : (
             <div className="flex flex-1 items-center justify-between">
               <GestuLogo size="xs" variant="dark" product="comply" />
