@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gëstu — Mockup · Centre d'aide (bug / demande / suggestion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --forest-900:#0f2a1f;--forest-700:#1B4332;--forest-500:#2d6a4f;--forest-100:#d8e6df;--forest-50:#eef5f1;
+    --gold:#D4A843;--gold-600:#b3892f;--bg:#FAFAF8;--ink:#1f2937;--muted:#6b7280;--line:#e7e7e2;
+    --red:#dc2626;--orange:#ea7a17;--yellow:#d4a843;--green:#16a34a;--blue:#2563eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .mono{font-family:'JetBrains Mono',monospace}.hidden{display:none}.fadeup{animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .switcher{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;background:#fff;border:1px solid var(--line);border-radius:99px;padding:4px;display:flex;gap:4px;box-shadow:0 6px 20px rgba(0,0,0,.10)}
+  .switcher button{font-family:inherit;font-size:12.5px;font-weight:700;border:0;background:transparent;color:var(--muted);padding:7px 15px;border-radius:99px;cursor:pointer}
+  .switcher button.on{background:var(--forest-700);color:#fff}
+
+  .app{display:flex;min-height:100vh}
+  .side{width:232px;background:var(--forest-900);color:#cfe0d7;display:flex;flex-direction:column;flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:9px;padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .brand .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--forest-500),var(--forest-700));border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:800}
+  .brand b{color:#fff;font-weight:800;font-size:16px}.brand b span{color:var(--gold)}
+  .navlbl{font-size:10px;letter-spacing:.12em;color:#7fa593;padding:16px 18px 6px;font-weight:700}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 18px;color:#bcd2c7;text-decoration:none;font-weight:500;font-size:13.5px;border-left:3px solid transparent}
+  .nav a.on{background:rgba(212,168,67,.12);color:#fff;border-left-color:var(--gold)}
+  .nav a .ico{width:16px;text-align:center;opacity:.9}
+  .pill{margin-left:auto;background:var(--gold);color:#3a2c06;font-size:9px;font-weight:800;padding:1px 6px;border-radius:99px}
+  .owner{margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:12px}
+  .owner .who{color:#fff;font-weight:600}.owner .role{color:var(--gold);font-size:10.5px;font-weight:700}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .top{height:54px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;gap:8px;color:var(--muted);font-size:13px}.top b{color:var(--ink)}
+  .wrap{padding:24px;max-width:1000px}
+  h1{font-size:20px;margin:0;font-weight:800;letter-spacing:-.3px}
+  .sub{color:var(--muted);font-size:13px;margin-top:3px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .btn{font-family:inherit;font-size:13px;font-weight:600;border-radius:9px;padding:9px 15px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+  .btn:hover{background:#f4f4ef}
+  .btn.prim{background:var(--forest-700);color:#fff;border-color:var(--forest-700)}.btn.prim:hover{background:var(--forest-900)}
+  .btn.gold{background:var(--gold);border-color:var(--gold);color:#3a2c06}
+  .btn.rec{background:var(--red);border-color:var(--red);color:#fff}
+  .btn.sm{padding:6px 11px;font-size:12px}.btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.lnk{border:0;background:none;color:var(--gold-600);text-decoration:underline;padding:6px 0}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:12px 14px;border-bottom:2px solid #f0f0ea}
+  td{padding:13px 14px;border-bottom:1px solid #f3f3ee;font-size:13px}
+  tr.click{cursor:pointer}tr.click:hover td{background:#faf9f4}
+  .arrow{color:var(--gold-600);font-weight:700}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px}
+  .dot{width:8px;height:8px;border-radius:99px;display:inline-block}
+  .b-red{background:#fdeaea;color:#a81f1f}.b-red .dot{background:var(--red)}
+  .b-org{background:#fdf0e3;color:#9a4e08}.b-org .dot{background:var(--orange)}
+  .b-blu{background:#e7eefc;color:#1e4bb8}.b-blu .dot{background:var(--blue)}
+  .b-gld{background:#fbf3da;color:#8a6a13}.b-gld .dot{background:var(--gold)}
+
+  label{font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:6px}
+  textarea,select,input{width:100%;font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:10px 11px;color:var(--ink);background:#fff}
+  textarea{resize:vertical;min-height:64px;line-height:1.45}
+  .seg{display:flex;gap:8px}
+  .seg label{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center;cursor:pointer;font-weight:600;color:#374151;margin:0}
+  .seg input{display:none}.seg label:has(input:checked){border-color:var(--forest-500);background:var(--forest-50);color:var(--forest-700)}
+
+  .portal-top{height:52px;background:var(--forest-900);display:flex;align-items:center;padding:0 22px;gap:10px;color:#fff}
+  .portal-top .tag{font-size:10px;letter-spacing:.12em;color:var(--gold);font-weight:800;margin-left:6px}
+  .portal-top .who{margin-left:auto;font-size:12.5px;color:#cfe0d7}
+  .portal-wrap{max-width:700px;margin:26px auto;padding:0 20px}
+
+  /* 3 cartes d'entrée */
+  .choices{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .choice{border:1px solid var(--line);background:#fff;border-radius:14px;padding:20px 16px;text-align:center;cursor:pointer;transition:.15s}
+  .choice:hover{border-color:var(--forest-500);box-shadow:0 8px 24px rgba(27,67,50,.08);transform:translateY(-2px)}
+  .choice .em{font-size:30px}
+  .choice .ct{font-weight:700;font-size:14px;margin:8px 0 4px}
+  .choice .cd{font-size:12px;color:var(--muted);line-height:1.45}
+  @media(max-width:620px){.choices{grid-template-columns:1fr}}
+
+  .hero{border:1px solid var(--forest-100);background:linear-gradient(180deg,#fff,var(--forest-50));border-radius:14px;padding:22px;text-align:center}
+  .hero .big{font-size:15px;font-weight:700;margin:4px 0 4px}
+  .hero .why{color:var(--muted);font-size:12.5px;max-width:430px;margin:0 auto 16px;line-height:1.5}
+
+  /* demande : liste de types */
+  .types{display:flex;flex-direction:column;gap:10px}
+  .type{display:flex;align-items:center;gap:13px;border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+  .type:hover{border-color:var(--forest-500);background:#fbfdfb}
+  .type.on{border-color:var(--forest-500);background:var(--forest-50)}
+  .type .em{font-size:21px;width:26px;text-align:center}
+  .type .tt{font-weight:700;font-size:13.5px}
+  .type .td{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .chip{margin-left:auto;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
+  .chip.cab{background:var(--forest-50);color:var(--forest-700)}
+  .chip.gst{background:#e7eefc;color:#1e4bb8}
+  .chip.auto{background:#e8f6ec;color:#15803d}
+  .tag-role{font-size:9.5px;font-weight:800;color:var(--gold-600);background:#fbf3da;padding:1px 6px;border-radius:99px;margin-left:6px}
+  .routing{margin-top:14px;border:1px dashed var(--forest-100);background:var(--forest-50);border-radius:11px;padding:11px 13px;font-size:12.5px;color:var(--forest-700)}
+
+  .drop{border:1.5px dashed var(--line);border-radius:11px;padding:16px;text-align:center;color:var(--muted);font-size:12.5px}
+  .reassure{font-size:11.5px;color:var(--forest-500);padding:11px 14px;background:var(--forest-50);border-radius:0 0 12px 12px}
+  .success{text-align:center;padding:34px 20px}
+  .success .ok{width:54px;height:54px;border-radius:99px;background:var(--forest-50);border:2px solid var(--forest-100);color:var(--forest-700);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
+
+  /* enregistrement (bug) */
+  .stage{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;min-height:280px}
+  .fakebar{height:38px;background:#f3f4f1;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 12px}
+  .fakebar .u{width:9px;height:9px;border-radius:99px;background:#d6d6cf}
+  .fakebar .addr{margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:#6b7280}
+  .fakebody{padding:20px}.fakebody .skl{height:11px;border-radius:6px;background:#eceae3;margin:9px 0}
+  .hud{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:min(560px,92%);background:#16110f;color:#fff;border-radius:13px;box-shadow:0 14px 40px rgba(0,0,0,.3);padding:12px 14px}
+  .hud .hh{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700}
+  .hud .recdot{width:10px;height:10px;border-radius:99px;background:var(--red);animation:pulse 1.1s infinite}
+  .hud .htime{margin-left:auto;font-family:'JetBrains Mono',monospace;color:#c9b27a;font-size:11.5px}
+  .hud .feed{margin-top:9px;display:flex;flex-direction:column;gap:5px;max-height:120px;overflow:auto}
+  .hud .ev{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#d7d2cb;animation:fade .25s ease}
+  .hud .ev.err{color:#ff9c9c;font-weight:600}
+  .hud .hact{display:flex;gap:8px;margin-top:11px;justify-content:flex-end}
+  .trace{display:flex;flex-direction:column}
+  .tr{display:flex;gap:11px;align-items:flex-start;padding:11px 14px;border-bottom:1px solid #f3f3ee}
+  .tr .ic{width:22px;text-align:center;flex-shrink:0}.tr .body{flex:1;min-width:0}
+  .tr .lbl{font-size:12.5px;font-weight:600}.tr .det{font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7280;margin-top:2px;word-break:break-all}
+  .tr.err{background:#fdf4f4}.tr.err .lbl{color:#a81f1f}.tr.err .det{color:#b4302a}
+  .tr .rm{border:0;background:none;color:#bcbcb4;cursor:pointer;font-size:13px}
+
+  .blk{padding:14px 18px;border-bottom:1px solid var(--line)}
+  .blk h3{margin:0 0 8px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .kv2{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:12.5px}
+  .kv2 .k{color:var(--muted)}.kv2 .v{color:#374151}
+  .run-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .run-head .q{font-weight:700}.meta{font-size:11.5px;color:var(--muted)}.meta .live{color:var(--green);font-weight:700}
+  .timeline{padding:14px 18px;display:flex;flex-direction:column;gap:11px;min-height:60px}
+  .step{display:flex;gap:10px;align-items:flex-start;animation:fade .3s ease}.step .ic{width:20px;flex-shrink:0;text-align:center}
+  .step.think .tx{color:#4b5563;font-style:italic;font-size:13px;line-height:1.4}
+  .step.tool .tx{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold-600)}
+  .step .res{display:block;margin-top:3px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--forest-500)}
+  .result{margin:0 18px 14px;border:1px solid var(--forest-100);border-radius:13px;overflow:hidden}
+  .result .rh{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--forest-50)}
+  .result .body{padding:6px 16px 14px}.result h4{margin:13px 0 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .result p{margin:0;line-height:1.5;font-size:13px}.result .seen{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#6b7280}
+  .copilot{margin:0 18px 18px;border:1px solid var(--gold);background:#fffdf4;border-radius:13px;padding:14px 16px}
+  .copilot .ch{font-weight:800;font-size:12px;color:var(--gold-600);letter-spacing:.04em;margin-bottom:9px}
+  .ractions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .backlink{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px;cursor:pointer;margin-bottom:14px}
+  .note{font-size:11.5px;color:var(--muted);margin-top:10px}
+  .vd{font-size:9.5px;font-weight:800;padding:1px 7px;border-radius:99px;margin-left:8px;vertical-align:middle;letter-spacing:.02em}
+  .vd.ok{background:#e8f6ec;color:#15803d}.vd.warn{background:#fbf3da;color:#8a6a13}.vd.no{background:#fdeaea;color:#a81f1f}
+  .rice{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--forest-100);flex-wrap:wrap}
+  .rice .m{flex:1;min-width:78px;border:1px solid var(--line);border-radius:9px;padding:7px 9px;background:#fff;text-align:center}
+  .rice .m .ml{font-size:9px;letter-spacing:.05em;color:var(--muted);font-weight:800;text-transform:uppercase}
+  .rice .m .mv{font-size:14px;font-weight:800;color:var(--ink);margin-top:2px}
+  .rice .m.score{background:var(--forest-700);border-color:var(--forest-700)}
+  .rice .m.score .ml{color:#9fc3b2}.rice .m.score .mv{color:#fff}
+  .qa{margin:4px 0 0;padding-left:18px}.qa li{font-size:12.5px;line-height:1.5;margin:3px 0;color:#374151}
+</style>
+</head>
+<body>
+
+<div class="switcher">
+  <button id="sw-cab" class="on" onclick="setSide('cab')">① Côté cabinet · signalement</button>
+  <button id="sw-adm" onclick="setSide('adm')">② Côté superadmin · traitement</button>
+</div>
+
+<!-- ════════ CÔTÉ CABINET / CLIENT ════════ -->
+<div id="screen-cab">
+  <div class="portal-top"><b>Gëstu<span style="color:var(--gold)">.</span></b><span class="tag">CENTRE D'AIDE</span><span class="who">Seydina O. Gueye · Groupe ISM</span></div>
+  <div class="portal-wrap">
+
+    <!-- ENTRÉE : 3 cartes -->
+    <div id="cab-home">
+      <h1>Comment pouvons-nous aider&nbsp;?</h1>
+      <div class="sub" style="margin-bottom:18px">Choisissez ce que vous souhaitez faire — on adapte le formulaire et l'acheminement.</div>
+      <div class="choices">
+        <div class="choice" onclick="goCab('cab-bug')">
+          <div class="em">🐞</div><div class="ct">Signaler un bug</div>
+          <div class="cd">Quelque chose ne marche pas. On enregistre le problème pour un diagnostic précis.</div>
+        </div>
+        <div class="choice" onclick="goCab('cab-demande')">
+          <div class="em">📋</div><div class="ct">Faire une demande</div>
+          <div class="cd">Mot de passe, accès, activation d'une fonctionnalité, changement de plan…</div>
+        </div>
+        <div class="choice" onclick="goCab('cab-suggest')">
+          <div class="em">💡</div><div class="ct">Suggérer une amélioration</div>
+          <div class="cd">Une idée pour faire évoluer le produit. Transmise à l'équipe produit.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUG : reproduction -->
+    <div id="cab-bug" class="hidden">
+      <div class="backlink" onclick="goCab('cab-home')">← Centre d'aide</div>
+      <h1>Signaler un bug</h1>
+      <div class="sub" style="margin-bottom:16px">Le plus simple : montrez-nous le problème. On capture vos actions et l'erreur exacte.</div>
+      <div class="hero">
+        <div style="font-size:30px">⏺️</div>
+        <div class="big">Reproduire le problème</div>
+        <div class="why">Cliquez, refaites l'action qui ne marche pas, on capture tout (page, clics, erreur réelle). C'est ce qui permet le diagnostic le plus précis.</div>
+        <button class="btn rec" onclick="startRec()">⏺ Lancer l'enregistrement</button>
+        <div style="margin-top:10px"><button class="btn lnk" onclick="setDone('#T-1043','Bug envoyé','La reproduction a été jointe. Notre équipe a tout pour diagnostiquer.')">ou décrire le problème par écrit</button></div>
+      </div>
+    </div>
+
+    <!-- BUG : enregistrement -->
+    <div id="cab-rec" class="hidden">
+      <h1>Enregistrement…</h1><div class="sub">Refaites simplement l'action qui pose problème.</div>
+      <div class="stage" style="margin-top:12px">
+        <div class="fakebar"><span class="u"></span><span class="u"></span><span class="u"></span><span class="addr">app.gestugroup.com/client/missions/4b16…/rapports</span></div>
+        <div class="fakebody"><div class="skl" style="width:40%"></div><div class="skl" style="width:90%"></div><div class="skl" style="width:80%"></div><div class="skl" style="width:60%"></div></div>
+        <div class="hud">
+          <div class="hh"><span class="recdot"></span> Enregistrement en cours <span class="htime" id="rectime">00:00</span></div>
+          <div class="feed" id="recfeed"></div>
+          <div class="hact"><button class="btn sm" onclick="goCab('cab-bug')">Annuler</button><button class="btn sm prim" id="endrec" disabled onclick="endRec()">Terminer</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUG : récap trace -->
+    <div id="cab-recap" class="hidden">
+      <h1>Voici ce qu'on a enregistré</h1><div class="sub" style="margin-bottom:12px">Vérifiez, retirez une étape si besoin, puis envoyez.</div>
+      <div class="card"><div class="trace" id="traceList"></div>
+        <div style="padding:12px 14px;border-top:1px solid var(--line)"><label>Un commentaire ? (optionnel)</label><textarea>Ça le fait à chaque fois en ouvrant les rapports.</textarea></div>
+        <div class="reassure">🔒 Aucun mot de passe ni jeton n'est enregistré.</div></div>
+      <div class="row" style="margin-top:14px"><button class="btn" onclick="startRec()">↺ Recommencer</button><button class="btn prim" onclick="setDone('#T-1043','Bug envoyé','La reproduction a été jointe. Notre équipe a tout pour diagnostiquer.')">Envoyer</button></div>
+    </div>
+
+    <!-- DEMANDE -->
+    <div id="cab-demande" class="hidden">
+      <div class="backlink" onclick="goCab('cab-home')">← Centre d'aide</div>
+      <h1>Faire une demande</h1>
+      <div class="sub" style="margin-bottom:16px">Choisissez le type — l'acheminement s'affiche selon le traitement requis.</div>
+      <div class="types" id="typeList"></div>
+      <div id="demande-form" class="card hidden" style="padding:16px;margin-top:16px"></div>
+      <div class="note">ℹ️ La liste s'adapte au rôle : un client du portail ne voit pas « Changement de plan ». <span class="tag-role">RÔLE CABINET</span> = visible pour les rôles cabinet.</div>
+    </div>
+
+    <!-- SUGGESTION -->
+    <div id="cab-suggest" class="hidden">
+      <div class="backlink" onclick="goCab('cab-home')">← Centre d'aide</div>
+      <h1>Suggérer une amélioration</h1>
+      <div class="sub" style="margin-bottom:16px">Votre idée est transmise à l'équipe produit (sans délai garanti — ce n'est pas un incident).</div>
+      <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+        <div><label>Module concerné</label><select><option>Missions</option><option>Portail client</option><option>Rapports</option><option>Planning</option><option>Général</option></select></div>
+        <div><label>Votre idée</label><textarea>Pouvoir exporter le plan d'action en Excel directement depuis le portail.</textarea></div>
+        <div><label>Quel problème ça résout ? (optionnel)</label><textarea style="min-height:50px">Je dois recopier les actions à la main dans mon suivi interne.</textarea></div>
+        <div><label>Importance pour vous</label><div class="seg"><label><input type="radio" name="imp">Confort</label><label><input type="radio" name="imp" checked>Utile</label><label><input type="radio" name="imp">Bloquant</label></div></div>
+        <div class="row"><span class="meta">→ ajouté au backlog produit</span><button class="btn prim" onclick="setDone('#S-512','Merci pour l\'idée !','Votre suggestion a été transmise à l\'équipe produit. Vous serez notifié si elle est retenue.')">Envoyer la suggestion</button></div>
+      </div>
+    </div>
+
+    <!-- SUCCÈS générique -->
+    <div id="cab-done" class="card hidden"><div class="success"><div class="ok">✓</div>
+      <h1 id="done-title">Envoyé</h1>
+      <div class="sub" style="margin:6px 0 16px"><span id="done-msg"></span> Référence <b class="mono" id="done-ref"></b>.</div>
+      <div class="row" style="justify-content:center;gap:8px"><button class="btn" onclick="goCab('cab-home')">Retour au centre d'aide</button><button class="btn gold" onclick="setSide('adm')">Voir côté support →</button></div>
+    </div></div>
+
+  </div>
+</div>
+
+<!-- ════════ CÔTÉ SUPERADMIN ════════ -->
+<div id="screen-adm" class="hidden">
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><div class="mark">G</div><b>Gëstu<span>.</span></b></div>
+      <div class="navlbl">CONSOLE PLATEFORME</div>
+      <nav class="nav">
+        <a href="#"><span class="ico">▦</span>Tableau de bord</a>
+        <a href="#"><span class="ico">▤</span>Cabinets</a>
+        <a href="#" class="on"><span class="ico">✦</span>Support &amp; Agents <span class="pill">BÊTA</span></a>
+        <a href="#"><span class="ico">♥</span>Santé</a>
+      </nav>
+      <div class="owner"><div class="who">Oumar Gueye</div><div class="role">PLATFORM OWNER</div></div>
+    </aside>
+    <div class="main">
+      <div class="top">Support&nbsp; › &nbsp;<b>File unifiée</b></div>
+      <div class="wrap">
+        <div id="view-list">
+          <div class="row" style="margin-bottom:16px"><div><h1>File de support</h1><div class="sub">Trois natures distinctes, trois traitements : bug → agent + dev · demande → routage/validation · suggestion → backlog.</div></div></div>
+          <div class="card"><table>
+            <thead><tr><th>Réf</th><th>Nature</th><th>Sujet</th><th>Origine</th><th>Acheminement</th><th></th></tr></thead>
+            <tbody>
+              <tr class="click" onclick="openTicket()">
+                <td class="mono">#T-1043</td><td><span class="badge b-org"><span class="dot"></span>Bug</span></td><td>Erreur en ouvrant les rapports</td><td>Client · ISM</td><td>🎬 Agent triage → dev</td><td class="arrow">→</td>
+              </tr>
+              <tr>
+                <td class="mono">#D-2087</td><td><span class="badge b-blu"><span class="dot"></span>Demande</span></td><td>Activer « Smart Questionnaire »</td><td>Auditeur · ISM</td><td>⚙️ Plan → validation owner</td><td></td>
+              </tr>
+              <tr>
+                <td class="mono">#D-2086</td><td><span class="badge b-blu"><span class="dot"></span>Demande</span></td><td>Réinitialiser un mot de passe</td><td>Client · Acme</td><td>✓ Auto (admin cabinet)</td><td></td>
+              </tr>
+              <tr class="click" onclick="openSuggestion()">
+                <td class="mono">#S-512</td><td><span class="badge b-gld"><span class="dot"></span>Suggestion</span></td><td>Export Excel du plan d'action</td><td>Client · ISM</td><td>📥 Backlog → analyse</td><td class="arrow">→</td>
+              </tr>
+            </tbody>
+          </table></div>
+          <div class="note">Seuls les <b>bugs</b> passent par l'agent de triage. Les <b>demandes</b> suivent un circuit de routage/validation (auto, admin cabinet ou platform owner) ; les <b>suggestions</b> vont au backlog.</div>
+        </div>
+
+        <!-- détail bug (triage) -->
+        <div id="view-ticket" class="hidden">
+          <button class="btn sm" onclick="backToList()" style="margin-bottom:14px">← File</button>
+          <div class="card">
+            <div class="run-head"><div><div class="q">« Erreur en ouvrant les rapports »</div><div class="meta">Bug <span class="mono">#T-1043</span> · 🎬 reproduit</div></div>
+              <button class="btn sm prim" id="runbtn" onclick="playRun(true)">▸ Lancer le triage</button></div>
+            <div class="blk"><h3>🎬 Reproduction enregistrée</h3><div class="trace" id="adminTrace"></div></div>
+            <div class="run-head" style="border-bottom:0;padding-bottom:6px"><div class="meta"><b style="color:var(--ink)">Diagnostic de l'agent</b></div><div class="meta" id="runmeta">Sonnet · prêt</div></div>
+            <div class="timeline" id="timeline"></div>
+            <div class="result hidden" id="result">
+              <div class="rh"><span class="badge b-org"><span class="dot"></span>BUG CODE</span><span class="meta">Gravité : <b>élevée</b></span></div>
+              <div class="body"><h4>Cause probable</h4><p>La page Rapports interroge <span class="mono">reports.title</span> qui n'existe pas (PostgREST <span class="mono">42703</span>) → <b>400</b>, liste vide. Bug requête front, reproductible.</p>
+              <h4>Données vues (via la trace)</h4><p class="seen">GET /rest/v1/reports?select=id,title,… → 400 · column reports.title does not exist</p></div>
+            </div>
+            <div class="copilot hidden" id="copilot"><div class="ch">✦ ACTIONS — à valider</div>
+              <textarea>Au client : « Merci pour la reproduction, elle a permis d'identifier l'origine (un champ obsolète dans la requête des rapports). Correctif en cours. »</textarea>
+              <div class="ractions"><button class="btn prim">✓ Répondre au client</button><button class="btn">↑ Escalader vers dev (trace jointe)</button><button class="btn">✎ Éditer</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- détail suggestion (analyse de faisabilité) -->
+        <div id="view-suggestion" class="hidden">
+          <button class="btn sm" onclick="backToList()" style="margin-bottom:14px">← File</button>
+          <div class="card">
+            <div class="run-head">
+              <div><div class="q">« Export Excel du plan d'action »</div><div class="meta">Suggestion <span class="mono">#S-512</span> · Client · ISM · module Plan d'action</div></div>
+              <button class="btn sm prim" id="feasBtn" onclick="analyzeFeas(true)">▸ Analyser la faisabilité</button>
+            </div>
+            <div class="blk"><h3>💡 Idée du client</h3>
+              <div class="kv2">
+                <span class="k">Idée</span><span class="v">Exporter le plan d'action en Excel depuis le portail</span>
+                <span class="k">Problème résolu</span><span class="v">Évite de recopier les actions à la main dans un suivi interne</span>
+                <span class="k">Importance</span><span class="v">Utile</span>
+              </div>
+            </div>
+            <div class="run-head" style="border-bottom:0;padding-bottom:6px">
+              <div class="meta"><b style="color:var(--ink)">Analyse de faisabilité</b> — agent code · repo via GitHub Actions</div>
+              <div class="meta" id="feasMeta">prêt</div>
+            </div>
+            <div class="timeline" id="feasTimeline"></div>
+
+            <div class="result hidden" id="feasReport">
+              <div class="rh"><span class="badge b-grn"><span class="dot"></span>★ QUICK WIN — à prioriser</span><span class="meta">Score <b>RICE</b></span></div>
+              <div class="rice">
+                <div class="m"><div class="ml">Reach</div><div class="mv">80<span style="font-size:10px;font-weight:600;color:var(--muted)">/mois</span></div></div>
+                <div class="m"><div class="ml">Impact</div><div class="mv">2<span style="font-size:10px;font-weight:600;color:var(--muted)">/3</span></div></div>
+                <div class="m"><div class="ml">Confidence</div><div class="mv">85%</div></div>
+                <div class="m"><div class="ml">Effort</div><div class="mv">1<span style="font-size:10px;font-weight:600;color:var(--muted)">j-h</span></div></div>
+                <div class="m score"><div class="ml">Score RICE</div><div class="mv">136</div></div>
+              </div>
+              <div class="body">
+                <h4>Reformulation</h4><p>Ajouter un bouton « Exporter en Excel » sur l'onglet Plan d'action (portail client + côté auditeur) générant un .xlsx des actions correctives de la mission.</p>
+                <h4>Déjà présent&nbsp;? <span class="vd ok">✓ RÉUTILISABLE</span></h4><p>Partiellement&nbsp;: génération de rapports <b>PDF</b> déjà en place (générateurs lazy-loaded), et la lib <span class="mono">xlsx</span> est <b>déjà au projet</b> (Edge Functions smart-*). Aucun export Excel du plan d'action aujourd'hui → pas de doublon.</p>
+                <h4>Fonctionnel <span class="vd ok">✓ CLAIR</span></h4><p>Colonnes : contrôle · constat · action · responsable · échéance · statut. Rôles : client &amp; auditeur. Cas limites : plan vide, gros volumes.</p>
+                <h4>Impact technique <span class="vd ok">✓ LIMITÉ</span></h4><p class="seen">UI: ClientActionPlanTab · hook: useClientActionPlan (données déjà chargées) · table: corrective_action_requests (lecture) · migration: aucune · Edge Function: aucune si export client</p>
+                <h4>🔒 Sécurité <span class="vd ok">✓ FAIBLE RISQUE</span></h4><p>Lecture seule de données <b>déjà visibles</b> par l'utilisateur ; la RLS de <span class="mono">corrective_action_requests</span> s'applique déjà. Export généré côté client → <b>aucune nouvelle surface</b>. ⚠️ Si export déplacé côté serveur plus tard : cloisonner par cabinet.</p>
+                <h4>🛡️ Conformité / RGPD <span class="vd warn">⚠️ POINT D'ATTENTION</span></h4><p>Le plan d'action contient des noms de responsables (<b>données personnelles</b>). L'export est une sortie locale vers un utilisateur qui y a déjà accès → pas de nouveau traitement ni transfert tiers. <b>Recommandé</b> : journaliser les exports (qui / quoi / quand) pour la piste d'audit — cohérent avec un produit de conformité.</p>
+                <h4>Complexité / effort <span class="vd ok">✓ TAILLE S</span></h4><p>Effort estimé <b>0,5–1 j-h</b>. Confiance de l'analyse : <b>85% (élevée)</b> — lib et données déjà présentes, périmètre clair. Pas de migration.</p>
+                <h4>Hypothèses &amp; questions ouvertes</h4>
+                <ul class="qa">
+                  <li><b>Hypothèse</b> : export généré côté client à partir des données déjà chargées (pas d'Edge Function).</li>
+                  <li><b>Question</b> : faut-il tracer les exports dans un journal d'audit&nbsp;? (impacte le point RGPD ci-dessus)</li>
+                  <li><b>À confirmer</b> : comportement attendu si &gt; 1000 lignes (pagination ou génération serveur).</li>
+                </ul>
+              </div>
+              <div class="ractions" style="padding:12px 16px;border-top:1px solid var(--forest-100)">
+                <button class="btn prim">✓ Promouvoir en tâche dev</button><button class="btn">📥 Garder au backlog</button><button class="btn">↩ Répondre au client</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TRACE=[
+    {ic:'🧭',lbl:'Page ouverte',det:'/client/missions/4b16…f582 › Rapports'},
+    {ic:'🖱️',lbl:'Clic — bouton « Actualiser »',det:'button#refresh-reports'},
+    {ic:'🌐',lbl:'Requête réseau',det:'GET /rest/v1/reports?select=id,title,file_size,file_path,created_at'},
+    {ic:'⛔',lbl:'Erreur 400',det:'column reports.title does not exist (PostgREST 42703)',err:true},
+  ];
+  const REC_EVENTS=[
+    {tx:'→ page chargée · Rapports'},{tx:'→ clic « Actualiser »'},
+    {tx:'→ GET /rest/v1/reports?select=id,title,…'},{tx:'⛔ 400 · column reports.title does not exist — capturé',cls:'err'},
+  ];
+  // types de demande (avec routage + role)
+  const DEMANDES=[
+    {id:'pwd',em:'🔑',tt:'Réinitialiser un mot de passe',td:'Pour vous ou un membre',chip:['auto','Traité automatiquement'],route:'⚡ Un email de réinitialisation est envoyé immédiatement (via votre admin cabinet).',fields:'<label>Compte concerné</label><input value="seydina-oumar.gueye@groupeism.sn">'},
+    {id:'feat',em:'⚡',tt:'Activer une fonctionnalité',td:'Module non disponible',chip:['cab','Cabinet / Gëstu'],route:'⚙️ Si incluse à votre plan : activée par votre cabinet. Sinon : transmise à Gëstu pour validation.',fields:'<label>Fonctionnalité souhaitée</label><select><option>Smart Questionnaire (IA)</option><option>Analyse documentaire IA</option><option>Module Groupe</option></select><div style="margin-top:12px"><label>Précision (optionnel)</label><textarea style="min-height:50px"></textarea></div>'},
+    {id:'plan',em:'💳',tt:'Changer de plan',td:'Évolution commerciale',chip:['gst','Gëstu'],role:true,route:'💼 Transmise à l\'équipe Gëstu (platform owner) — un conseiller revient vers vous.',fields:'<label>Plan souhaité</label><select><option>Standard → Pro</option><option>Pro → Entreprise</option><option>Autre / sur-mesure</option></select><div style="margin-top:12px"><label>Contexte (optionnel)</label><textarea style="min-height:50px"></textarea></div>'},
+    {id:'access',em:'👥',tt:'Gérer un accès / membre',td:'Inviter, retirer, changer un rôle',chip:['cab','Admin cabinet'],role:true,route:'👤 Transmise à l\'admin de votre cabinet.',fields:'<label>Action</label><select><option>Inviter un membre</option><option>Retirer un membre</option><option>Changer un rôle</option></select><div style="margin-top:12px"><label>Email concerné</label><input placeholder="prenom.nom@cabinet.com"></div>'},
+  ];
+
+  function setSide(s){
+    document.getElementById('screen-cab').classList.toggle('hidden',s!=='cab');
+    document.getElementById('screen-adm').classList.toggle('hidden',s!=='adm');
+    document.getElementById('sw-cab').classList.toggle('on',s==='cab');
+    document.getElementById('sw-adm').classList.toggle('on',s==='adm');
+    if(s==='adm'){backToList();}
+  }
+  const CAB=['cab-home','cab-bug','cab-rec','cab-recap','cab-demande','cab-suggest','cab-done'];
+  function goCab(id){CAB.forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id)); if(id==='cab-demande')renderTypes();}
+
+  // demande
+  function renderTypes(){
+    const el=document.getElementById('typeList');el.innerHTML='';
+    DEMANDES.forEach(d=>{
+      const row=document.createElement('div');row.className='type';row.onclick=()=>pickType(d.id);
+      row.innerHTML='<div class="em">'+d.em+'</div><div><div class="tt">'+d.tt+(d.role?'<span class="tag-role">RÔLE CABINET</span>':'')+'</div><div class="td">'+d.td+'</div></div><span class="chip '+d.chip[0]+'">'+d.chip[1]+'</span>';
+      el.appendChild(row);
+    });
+    document.getElementById('demande-form').classList.add('hidden');
+  }
+  function pickType(id){
+    document.querySelectorAll('#typeList .type').forEach((n,i)=>n.classList.toggle('on',DEMANDES[i].id===id));
+    const d=DEMANDES.find(x=>x.id===id);const f=document.getElementById('demande-form');
+    f.classList.remove('hidden');f.classList.add('fadeup');
+    const ref=id==='pwd'?'#D-2086':'#D-2087';
+    const title=id==='pwd'?'Demande traitée':'Demande envoyée';
+    const msg=id==='pwd'?'Un email de réinitialisation vient d\'être envoyé.':'Votre demande a été transmise pour traitement.';
+    f.innerHTML=d.fields+'<div class="routing">'+d.route+'</div><div class="row" style="margin-top:14px"><span class="meta">Réf attribuée à l\'envoi</span><button class="btn prim">Envoyer la demande</button></div>';
+    f.querySelector('button').onclick=()=>setDone(ref,title,msg);
+  }
+
+  // succès générique
+  function setDone(ref,title,msg){document.getElementById('done-ref').textContent=ref;document.getElementById('done-title').textContent=title;document.getElementById('done-msg').textContent=msg;goCab('cab-done');}
+
+  // enregistrement bug
+  let recTimers=[];
+  function startRec(){
+    goCab('cab-rec');
+    const feed=document.getElementById('recfeed');feed.innerHTML='';document.getElementById('endrec').disabled=true;
+    let t=0;const time=document.getElementById('rectime');
+    const tick=setInterval(()=>{t++;time.textContent='00:0'+t;},1000);recTimers.push({_i:tick});
+    REC_EVENTS.forEach((e,i)=>recTimers.push(setTimeout(()=>{const d=document.createElement('div');d.className='ev '+(e.cls||'');d.textContent=e.tx;feed.appendChild(d);feed.scrollTop=feed.scrollHeight;},900*(i+1))));
+    recTimers.push(setTimeout(()=>{clearInterval(tick);document.getElementById('endrec').disabled=false;},900*(REC_EVENTS.length+1)));
+  }
+  function endRec(){recTimers.forEach(o=>o&&o._i?clearInterval(o._i):clearTimeout(o));recTimers=[];renderTrace('traceList',true);goCab('cab-recap');}
+  function renderTrace(elId,removable){
+    const el=document.getElementById(elId);el.innerHTML='';
+    TRACE.forEach(s=>{const d=document.createElement('div');d.className='tr'+(s.err?' err':'');
+      d.innerHTML='<div class="ic">'+s.ic+'</div><div class="body"><div class="lbl">'+s.lbl+'</div><div class="det">'+s.det+'</div></div>'+(removable&&!s.err?'<button class="rm" onclick="this.closest(\'.tr\').remove()">✕</button>':'');el.appendChild(d);});
+  }
+
+  // admin triage
+  function backToList(){['view-ticket','view-suggestion'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById('view-list').classList.remove('hidden');}
+  function openTicket(){['view-list','view-suggestion'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById('view-ticket').classList.remove('hidden');renderTrace('adminTrace',false);resetRun();}
+
+  // suggestion : analyse de faisabilité (agent code, repo)
+  function openSuggestion(){['view-list','view-ticket'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById('view-suggestion').classList.remove('hidden');resetFeas();}
+  const FEAS_STEPS=[
+    {t:'think',tx:'Analyse code-facing : je récupère le repo et je cherche un export existant.'},
+    {t:'tool',tx:'grep -r "xlsx" src supabase',res:'↳ lib xlsx déjà utilisée (Edge Functions smart-*) — réutilisable'},
+    {t:'tool',tx:'find export plan d\'action',res:'↳ aucun export Excel ; génération PDF déjà en place (générateurs lazy-loaded)'},
+    {t:'tool',tx:'read useClientActionPlan + table corrective_action_requests',res:'↳ données déjà chargées côté client'},
+    {t:'tool',tx:'check RLS corrective_action_requests',res:'↳ déjà cloisonnée par mission · lecture seule'},
+    {t:'think',tx:'Synthèse : faisable, petit effort, faible risque. Je rédige le rapport.'},
+  ];
+  let feasTimers=[];
+  function resetFeas(){feasTimers.forEach(clearTimeout);feasTimers=[];document.getElementById('feasTimeline').innerHTML='';document.getElementById('feasReport').classList.add('hidden');document.getElementById('feasMeta').textContent='prêt';document.getElementById('feasBtn').classList.remove('hidden');}
+  function analyzeFeas(animated){
+    resetFeas();document.getElementById('feasBtn').classList.add('hidden');
+    const tl=document.getElementById('feasTimeline');
+    if(!animated){FEAS_STEPS.forEach(s=>tl.appendChild(stepNode(s)));finishFeas();return;}
+    document.getElementById('feasMeta').innerHTML='<span class="live">● Actions · l\'agent lit le repo</span>';
+    FEAS_STEPS.forEach((s,i)=>feasTimers.push(setTimeout(()=>tl.appendChild(stepNode(s)),650*(i+1))));
+    feasTimers.push(setTimeout(finishFeas,650*(FEAS_STEPS.length+1)+150));
+  }
+  function finishFeas(){document.getElementById('feasMeta').textContent='✓ terminé · Opus · 18s · 24k tok';document.getElementById('feasReport').classList.remove('hidden');document.getElementById('feasReport').classList.add('fadeup');}
+  const STEPS=[
+    {t:'think',tx:'La reproduction me donne la requête et l\'erreur exacte. Je confirme la nature côté données.'},
+    {t:'tool',tx:'get_table_columns("reports")',res:'↳ id, mission_id, format, status, version, file_path, created_at  (pas de "title")'},
+    {t:'think',tx:'La requête front demande une colonne inexistante → bug code reproductible. J\'escalade avec la trace.'},
+  ];
+  let timers=[];
+  function resetRun(){timers.forEach(clearTimeout);timers=[];document.getElementById('timeline').innerHTML='';document.getElementById('result').classList.add('hidden');document.getElementById('copilot').classList.add('hidden');document.getElementById('runmeta').textContent='Sonnet · prêt';document.getElementById('runbtn').classList.remove('hidden');}
+  function stepNode(s){const d=document.createElement('div');d.className='step '+(s.t==='tool'?'tool':'think');d.innerHTML='<div class="ic">'+(s.t==='tool'?'🔧':'💭')+'</div><div class="tx">'+s.tx+(s.res?'<span class="res">'+s.res+'</span>':'')+'</div>';return d;}
+  function playRun(animated){
+    resetRun();document.getElementById('runbtn').classList.add('hidden');const tl=document.getElementById('timeline');
+    if(!animated){STEPS.forEach(s=>tl.appendChild(stepNode(s)));finish();return;}
+    document.getElementById('runmeta').innerHTML='<span class="live">● en cours</span> · Sonnet';
+    STEPS.forEach((s,i)=>timers.push(setTimeout(()=>tl.appendChild(stepNode(s)),650*(i+1))));
+    timers.push(setTimeout(finish,650*(STEPS.length+1)+150));
+  }
+  function finish(){document.getElementById('runmeta').textContent='✓ terminé · Sonnet · 4s · 3,1k tok';document.getElementById('result').classList.remove('hidden');document.getElementById('result').classList.add('fadeup');document.getElementById('copilot').classList.remove('hidden');document.getElementById('copilot').classList.add('fadeup');}
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { LayoutDashboard, Building2, Users, ClipboardList, Activity, BookMarked, Tag, LifeBuoy } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { GestuLogo } from '../../components/GestuLogo'
 import { AdminUserMenu } from './AdminUserMenu'
 import { SpaceSwitcher } from './SpaceSwitcher'
 
@@ -27,12 +28,8 @@ export function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-page-bg">
       <aside className="w-60 flex-shrink-0 flex flex-col bg-[#0F2A22] text-white">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/10">
-          <div className="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center text-forest-900 font-black font-mono text-sm">G</div>
-          <div className="leading-tight">
-            <div className="font-extrabold text-sm">G<span className="text-gold-500">ë</span>stu</div>
-            <div className="text-[9.5px] uppercase tracking-[1.2px] text-gold-500 font-bold">Admin</div>
-          </div>
+        <div className="flex items-center px-5 py-4 border-b border-white/10">
+          <GestuLogo size="xs" variant="dark" product="admin" />
         </div>
 
         <nav className="flex-1 py-3 relative">
