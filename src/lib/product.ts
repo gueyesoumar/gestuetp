@@ -20,6 +20,8 @@ interface ProductVocab {
   entitySingular: string
   entityPlural: string
   entitiesTitle: string
+  /** Base de route de la fiche entité (diffère selon le produit). */
+  entityRouteBase: string
   /** Tag produit affiché dans le logo. */
   logoTag: 'comply' | 'regul'
 }
@@ -29,12 +31,14 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entitySingular: 'entité',
     entityPlural: 'entités',
     entitiesTitle: 'Entités',
+    entityRouteBase: '/filiales',
     logoTag: 'comply',
   },
   regul: {
     entitySingular: 'assujetti',
     entityPlural: 'assujettis',
     entitiesTitle: 'Assujettis',
+    entityRouteBase: '/assujettis',
     logoTag: 'regul',
   },
 }

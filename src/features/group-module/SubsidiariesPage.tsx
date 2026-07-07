@@ -106,9 +106,9 @@ export function SubsidiariesPage(): JSX.Element {
       </div>
 
       {totalCount === 0 ? (
-        <EmptyState title="Aucune entit&eacute;" description={canManageSubsidiaries ? 'Créez votre première entité (filiale, site, direction…) avec le bouton ci-dessus.' : 'Aucune entité n’est encore rattachée à votre groupe.'} />
+        <EmptyState title={`Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} (filiale, site, direction…) avec le bouton ci-dessus.` : `Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} n’est encore rattaché${productVocab.entitySingular.endsWith('e') ? 'e' : ''}.`} />
       ) : filtered.length === 0 ? (
-        <EmptyState title="Aucun résultat" description="Aucune entité ne correspond à votre recherche." />
+        <EmptyState title="Aucun résultat" description={`Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} ne correspond à votre recherche.`} />
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {filtered.map((s) => (

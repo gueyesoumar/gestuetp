@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, RotateCcw } from 'lucide-react'
 import { useManageEntity, type EntityRow } from './useManageEntity'
 import { useToast } from '../../hooks/useToast'
 import { ENTITY_TYPE_LABELS } from '../../lib/constants'
+import { productVocab } from '../../lib/product'
 
 interface Props {
   /** Rafraîchit la liste principale des entités actives après réactivation. */
@@ -44,7 +45,7 @@ export function InactiveEntitiesSection({ onReactivated, canManage }: Props): JS
     <div className="border border-gray-200 rounded-xl">
       <button onClick={toggle} className="w-full flex items-center gap-2 px-4 py-3 text-[13px] font-medium text-gray-600 hover:bg-gray-50 rounded-xl">
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-        Entit&eacute;s d&eacute;sactiv&eacute;es
+        {productVocab.entitiesTitle} d&eacute;sactiv&eacute;{productVocab.entitySingular.endsWith('e') ? 'e' : ''}s
         {loaded && <span className="text-gray-400">({rows.length})</span>}
       </button>
       {open && (
@@ -52,7 +53,7 @@ export function InactiveEntitiesSection({ onReactivated, canManage }: Props): JS
           {!loaded ? (
             <p className="text-[12px] text-gray-400 py-2">Chargement&hellip;</p>
           ) : rows.length === 0 ? (
-            <p className="text-[12px] text-gray-400 py-2">Aucune entit&eacute; d&eacute;sactiv&eacute;e.</p>
+            <p className="text-[12px] text-gray-400 py-2">Aucun{productVocab.entitySingular.endsWith('e') ? 'e' : ''} {productVocab.entitySingular} d&eacute;sactiv&eacute;{productVocab.entitySingular.endsWith('e') ? 'e' : ''}.</p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {rows.map((e) => (

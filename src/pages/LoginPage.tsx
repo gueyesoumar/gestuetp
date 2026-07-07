@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { isRegul } from '../lib/product'
 import { useBranding } from '../features/branding/useBranding'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 import { VaultBackground } from '../components/vault/VaultBackground'
@@ -29,9 +30,12 @@ export function LoginPage(): JSX.Element {
   }
 
   if (session) {
-    // Le platform owner atterrit directement dans sa console (sauf domaine cabinet
-    // co-brande, ou l'admin Gestu n'a pas sa place). Les autres gardent le hub.
-    const target = !branding && profile?.is_platform_owner ? '/admin' : '/hub'
+    // Produit Regul : pas de hub multi-produits, on atterrit sur le tableau de bord.
+    // Comply : le platform owner va dans sa console (sauf domaine cabinet co-brandé),
+    // les autres gardent le hub.
+    const target = isRegul
+      ? '/'
+      : (!branding && profile?.is_platform_owner ? '/admin' : '/hub')
     return <Navigate to={target} replace />
   }
 

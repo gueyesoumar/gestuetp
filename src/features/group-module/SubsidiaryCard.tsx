@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Pencil, PowerOff } from 'lucide-react'
 import type { SubsidiaryRow } from './useSubsidiaries'
 import { ENTITY_TYPE_LABELS } from '../../lib/constants'
-import { isRegul } from '../../lib/product'
+import { isRegul, productVocab } from '../../lib/product'
 
 interface SubsidiaryCardProps {
   subsidiary: SubsidiaryRow
@@ -49,7 +49,7 @@ export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }:
 
   return (
     <Link
-      to={`/filiales/${subsidiary.id}`}
+      to={`${productVocab.entityRouteBase}/${subsidiary.id}`}
       className={`block bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition cursor-pointer ${band.ring}`}
     >
       <div className="flex items-start justify-between mb-3">

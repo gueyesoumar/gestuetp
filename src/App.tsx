@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { isRegul } from './lib/product'
+import { RegulApp } from './regul/RegulApp'
 import { AuthProvider } from './features/auth/AuthContext'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -76,6 +78,7 @@ function App() {
           }}
         />
         <RecorderProvider>
+        {isRegul ? <RegulApp /> : (
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/set-password" element={<SetPasswordPage />} />
@@ -176,6 +179,7 @@ function App() {
             <Route path="aide" element={<ClientSupportCenterPage />} />
           </Route>
         </Routes>
+        )}
         </RecorderProvider>
       </AuthProvider>
       </BrandingProvider>
