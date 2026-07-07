@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import type { RegulatoryProfile } from './useManageEntity'
 
 export interface SubsidiaryRow {
   id: string
@@ -9,6 +10,8 @@ export interface SubsidiaryRow {
   city: string | null
   entityType: 'filiale' | 'site' | 'direction' | 'business_unit' | null
   parentOrgId: string | null
+  /** Profil réglementaire (Regul) — null si absent (cas Comply). */
+  regulatoryProfile: RegulatoryProfile | null
   /** Score moyen pondéré (sur missions clôturées). Null si aucune. */
   conformityScore: number | null
   activeMissions: number
@@ -102,6 +105,21 @@ export function useSubsidiaries(): UseSubsidiariesResult {
         return
       }
       const subList = (subs ?? []) as Array<{ id: string; name: string; sector: string | null; city: string | null; entity_type: SubsidiaryRow['entityType']; parent_org_id: string | null }>
+
+      // Profils réglementaires (Regul) — table vide côté Comply, donc no-op.
+      const profileMap = new Map<string, RegulatoryProfile>()
+      const { data: profRows } = await supabase
+        .from('entity_regulatory_profile')
+        .select('organization_id, criticality, obligation_regime, tier, status, entry_date, exit_date')
+        .in('organization_id', subIds)
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      for (const p of (profRows ?? []) as Array<{ organization_id: string } & RegulatoryProfile>) {
+        profileMap.set(p.organization_id, {
+          criticality: p.criticality, obligation_regime: p.obligation_regime, tier: p.tier,
+          status: p.status, entry_date: p.entry_date, exit_date: p.exit_date,
+        })
+      }
       if (subList.length === 0) {
         setSubsidiaries([])
         setLoading(false)
@@ -215,6 +233,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
           city: sub.city,
           entityType: sub.entity_type,
           parentOrgId: sub.parent_org_id,
+          regulatoryProfile: profileMap.get(sub.id) ?? null,
           conformityScore,
           activeMissions,
           closedMissions,

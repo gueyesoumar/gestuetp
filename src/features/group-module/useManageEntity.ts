@@ -2,6 +2,16 @@ import { useState, useCallback } from 'react'
 import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
 import type { EntityType } from '../../lib/constants'
 
+/** Profil réglementaire d'un assujetti (Gëstu Regul / M1). */
+export interface RegulatoryProfile {
+  criticality: 'oiv' | 'non_oiv' | 'unknown'
+  obligation_regime: string | null
+  tier: string | null
+  status: 'active' | 'exited'
+  entry_date: string | null
+  exit_date: string | null
+}
+
 /** Entité telle que renvoyée par l'Edge Function manage-entity (action list). */
 export interface EntityRow {
   id: string
@@ -12,6 +22,7 @@ export interface EntityRow {
   city: string | null
   country: string | null
   is_active: boolean
+  regulatory_profile: RegulatoryProfile | null
 }
 
 export interface EntityInput {
@@ -21,6 +32,13 @@ export interface EntityInput {
   sector?: string | null
   city?: string | null
   country?: string | null
+  // Profil réglementaire (Regul) — envoyé uniquement en mode produit 'regul'.
+  criticality?: 'oiv' | 'non_oiv' | 'unknown'
+  obligation_regime?: string | null
+  tier?: string | null
+  reg_status?: 'active' | 'exited'
+  entry_date?: string | null
+  exit_date?: string | null
 }
 
 interface MutationResult {

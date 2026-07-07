@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { ENTITY_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
+import { ENTITY_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS, CRITICALITY_OPTIONS, REG_STATUS_OPTIONS } from '../../lib/constants'
 import type { EntityType } from '../../lib/constants'
-import { useManageEntity, type EntityInput } from './useManageEntity'
+import { isRegul, productVocab } from '../../lib/product'
+import { useManageEntity, type EntityInput, type RegulatoryProfile } from './useManageEntity'
 import { useToast } from '../../hooks/useToast'
 
 export interface EntityFormValue {
@@ -13,6 +14,8 @@ export interface EntityFormValue {
   sector: string | null
   city: string | null
   country: string | null
+  /** Profil réglementaire (Regul) — null en mode Comply. */
+  regulatoryProfile?: RegulatoryProfile | null
 }
 
 interface ParentOption { id: string; name: string }
@@ -37,6 +40,11 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
   const [sector, setSector] = useState(initial?.sector ?? '')
   const [city, setCity] = useState(initial?.city ?? '')
   const [country, setCountry] = useState(initial?.country ?? '')
+  const rp = initial?.regulatoryProfile
+  const [criticality, setCriticality] = useState<'oiv' | 'non_oiv' | 'unknown'>(rp?.criticality ?? 'unknown')
+  const [regime, setRegime] = useState(rp?.obligation_regime ?? '')
+  const [tier, setTier] = useState(rp?.tier ?? '')
+  const [regStatus, setRegStatus] = useState<'active' | 'exited'>(rp?.status ?? 'active')
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
@@ -51,6 +59,12 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
       sector: sector || null,
       city: city || null,
       country: country || null,
+      ...(isRegul ? {
+        criticality,
+        obligation_regime: regime || null,
+        tier: tier || null,
+        reg_status: regStatus,
+      } : {}),
     }
     const res = isEdit
       ? await updateEntity(initial!.id!, payload)
@@ -69,7 +83,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">{isEdit ? "Modifier l'entité" : 'Nouvelle entité'}</h3>
+          <h3 className="font-semibold text-gray-900">{isEdit ? `Modifier — ${productVocab.entitySingular}` : `Nouvel${isRegul ? '' : 'le'} ${productVocab.entitySingular}`}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
@@ -113,10 +127,41 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Ville</label>
             <input value={city} onChange={(e) => setCity(e.target.value)} className={field} />
           </div>
+
+          {isRegul && (
+            <div className="pt-2 mt-1 border-t border-gray-100 space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-forest-700">Profil r&eacute;glementaire</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[12px] font-medium text-gray-600 mb-1">Criticit&eacute;</label>
+                  <select value={criticality} onChange={(e) => setCriticality(e.target.value as typeof criticality)} className={field}>
+                    {CRITICALITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-gray-600 mb-1">Statut de p&eacute;rim&egrave;tre</label>
+                  <select value={regStatus} onChange={(e) => setRegStatus(e.target.value as typeof regStatus)} className={field}>
+                    {REG_STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[12px] font-medium text-gray-600 mb-1">R&eacute;gime d&apos;obligations</label>
+                  <input value={regime} onChange={(e) => setRegime(e.target.value)} placeholder="ex. r&eacute;gime OIV renforc&eacute;" className={field} />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-gray-600 mb-1">Tier de criticit&eacute;</label>
+                  <input value={tier} onChange={(e) => setTier(e.target.value)} placeholder="ex. Tier 1" className={field} />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
             <button type="submit" disabled={busy} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-              {busy ? 'Enregistrement…' : isEdit ? 'Enregistrer' : "Créer l'entité"}
+              {busy ? 'Enregistrement…' : isEdit ? 'Enregistrer' : `Créer — ${productVocab.entitySingular}`}
             </button>
           </div>
         </form>

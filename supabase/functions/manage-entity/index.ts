@@ -35,6 +35,28 @@ interface Payload {
   city?: string | null
   country?: string | null
   include_inactive?: boolean
+  // Profil réglementaire (Gëstu Regul / M1) — optionnel, ignoré côté Comply.
+  criticality?: 'oiv' | 'non_oiv' | 'unknown'
+  obligation_regime?: string | null
+  tier?: string | null
+  reg_status?: 'active' | 'exited'
+  entry_date?: string | null
+  exit_date?: string | null
+}
+
+const CRITICALITY = ['oiv', 'non_oiv', 'unknown']
+const REG_STATUS = ['active', 'exited']
+
+/** Construit le patch de profil réglementaire à partir du payload (null si aucun champ). */
+function profilePatch(body: Payload): Record<string, unknown> | null {
+  const p: Record<string, unknown> = {}
+  if (body.criticality !== undefined) p.criticality = body.criticality
+  if (body.obligation_regime !== undefined) p.obligation_regime = body.obligation_regime
+  if (body.tier !== undefined) p.tier = body.tier
+  if (body.reg_status !== undefined) p.status = body.reg_status
+  if (body.entry_date !== undefined) p.entry_date = body.entry_date
+  if (body.exit_date !== undefined) p.exit_date = body.exit_date
+  return Object.keys(p).length ? p : null
 }
 
 const GROUP_PERM_KEYS = [
@@ -125,7 +147,14 @@ Deno.serve(async (req) => {
         console.error('[manage-entity] list:', error.message)
         return json({ error: 'Erreur de chargement' }, 500)
       }
-      return json({ entities: orgs ?? [] })
+      // Profils réglementaires (Regul) — vide côté Comply.
+      const { data: profs } = await admin
+        .from('entity_regulatory_profile')
+        .select('organization_id, criticality, obligation_regime, tier, status, entry_date, exit_date')
+        .in('organization_id', ids)
+      const pmap = new Map((profs ?? []).map((p: any) => [p.organization_id, p]))
+      const entities = (orgs ?? []).map((o: any) => ({ ...o, regulatory_profile: pmap.get(o.id) ?? null }))
+      return json({ entities })
     }
 
     // Toute mutation exige la permission de gestion.
@@ -139,6 +168,12 @@ Deno.serve(async (req) => {
       if (!name) return json({ error: 'Le nom est requis' }, 400)
       if (!body.entity_type || !ENTITY_TYPES.includes(body.entity_type)) {
         return json({ error: "Type d'entité invalide" }, 400)
+      }
+      if (body.criticality !== undefined && !CRITICALITY.includes(body.criticality)) {
+        return json({ error: 'Criticité invalide' }, 400)
+      }
+      if (body.reg_status !== undefined && !REG_STATUS.includes(body.reg_status)) {
+        return json({ error: 'Statut invalide' }, 400)
       }
       const parentId = body.parent_org_id ?? groupId
       // Le parent doit être le groupe lui-même ou une entité du sous-arbre.
@@ -163,6 +198,14 @@ Deno.serve(async (req) => {
       if (error) {
         console.error('[manage-entity] create:', error.message)
         return json({ error: "Impossible de créer l'entité" }, 500)
+      }
+      // Profil réglementaire (Regul) — best-effort, non bloquant pour la création.
+      const prof = profilePatch(body)
+      if (prof) {
+        const { error: perr } = await admin
+          .from('entity_regulatory_profile')
+          .insert({ organization_id: created.id, ...prof })
+        if (perr) console.error('[manage-entity] create profile:', perr.message)
       }
       return json({ entity: created }, 201)
     }
@@ -195,17 +238,36 @@ Deno.serve(async (req) => {
         if (p !== groupId && !descendantIds.has(p)) return json({ error: 'Parent hors de votre périmètre' }, 403)
         patch.parent_org_id = p
       }
-      if (Object.keys(patch).length === 0) return json({ error: 'Aucune modification' }, 400)
-      const { data: updated, error } = await admin
-        .from('organizations')
-        .update(patch)
-        .eq('id', entityId)
-        .select('id, name, entity_type, parent_org_id, sector, city, country, is_active')
-        .single()
-      if (error) {
-        console.error('[manage-entity] update:', error.message)
-        return json({ error: "Impossible de modifier l'entité" }, 500)
+      if (body.criticality !== undefined && !CRITICALITY.includes(body.criticality)) {
+        return json({ error: 'Criticité invalide' }, 400)
       }
+      if (body.reg_status !== undefined && !REG_STATUS.includes(body.reg_status)) {
+        return json({ error: 'Statut invalide' }, 400)
+      }
+      const prof = profilePatch(body)
+      if (Object.keys(patch).length === 0 && !prof) return json({ error: 'Aucune modification' }, 400)
+
+      if (Object.keys(patch).length > 0) {
+        const { error } = await admin.from('organizations').update(patch).eq('id', entityId)
+        if (error) {
+          console.error('[manage-entity] update:', error.message)
+          return json({ error: "Impossible de modifier l'entité" }, 500)
+        }
+      }
+      if (prof) {
+        const { error: perr } = await admin
+          .from('entity_regulatory_profile')
+          .upsert({ organization_id: entityId, ...prof }, { onConflict: 'organization_id' })
+        if (perr) {
+          console.error('[manage-entity] update profile:', perr.message)
+          return json({ error: 'Impossible de modifier le profil réglementaire' }, 500)
+        }
+      }
+      const { data: updated } = await admin
+        .from('organizations')
+        .select('id, name, entity_type, parent_org_id, sector, city, country, is_active')
+        .eq('id', entityId)
+        .single()
       return json({ entity: updated })
     }
 

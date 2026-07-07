@@ -106,6 +106,18 @@ export const ENTITY_TYPE_OPTIONS = [
 
 export type EntityType = typeof ENTITY_TYPE_OPTIONS[number]['value']
 
+// Profil réglementaire d'un assujetti (Gëstu Regul / M1).
+export const CRITICALITY_OPTIONS = [
+  { value: 'oiv', label: 'OIV' },
+  { value: 'non_oiv', label: 'Non-OIV' },
+  { value: 'unknown', label: 'Non déterminé' },
+] as const
+
+export const REG_STATUS_OPTIONS = [
+  { value: 'active', label: 'Dans le périmètre' },
+  { value: 'exited', label: 'Sorti du périmètre' },
+] as const
+
 export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   filiale: 'Filiale',
   site: 'Site',

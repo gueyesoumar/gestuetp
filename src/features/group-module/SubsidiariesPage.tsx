@@ -10,6 +10,7 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useToast } from '../../hooks/useToast'
+import { productVocab } from '../../lib/product'
 
 export function SubsidiariesPage(): JSX.Element {
   const { profile } = useAuth()
@@ -58,6 +59,7 @@ export function SubsidiariesPage(): JSX.Element {
   const openCreate = (): void => setModal({ initial: null })
   const openEdit = (s: SubsidiaryRow): void => setModal({ initial: {
     id: s.id, name: s.name, entity_type: s.entityType, parent_org_id: s.parentOrgId, sector: s.sector, city: s.city, country: null,
+    regulatoryProfile: s.regulatoryProfile,
   } })
 
   const askDeactivate = (s: SubsidiaryRow): void => {
@@ -81,11 +83,11 @@ export function SubsidiariesPage(): JSX.Element {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Entit&eacute;s</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{productVocab.entitiesTitle}</h2>
           <p className="mt-1 text-[13px] text-gray-500">
             {totalCount === 0
-              ? 'Aucune entité rattachée à votre groupe.'
-              : `${totalCount} entité${totalCount > 1 ? 's' : ''} ${averageScore !== null ? `· score moyen ${averageScore}%` : ''} · ${totalActiveMissions} mission${totalActiveMissions !== 1 ? 's' : ''} active${totalActiveMissions !== 1 ? 's' : ''}${totalOverdue > 0 ? ` · ${totalOverdue} plan${totalOverdue > 1 ? 's' : ''} en retard` : ''}`}
+              ? `Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} rattaché${productVocab.entitySingular.endsWith('e') ? 'e' : ''}.`
+              : `${totalCount} ${totalCount > 1 ? productVocab.entityPlural : productVocab.entitySingular} ${averageScore !== null ? `· score moyen ${averageScore}%` : ''} · ${totalActiveMissions} mission${totalActiveMissions !== 1 ? 's' : ''} active${totalActiveMissions !== 1 ? 's' : ''}${totalOverdue > 0 ? ` · ${totalOverdue} plan${totalOverdue > 1 ? 's' : ''} en retard` : ''}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -97,7 +99,7 @@ export function SubsidiariesPage(): JSX.Element {
           )}
           {canManageSubsidiaries && (
             <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
-              <Plus size={16} /> Cr&eacute;er une entit&eacute;
+              <Plus size={16} /> Cr&eacute;er {productVocab.entitySingular.endsWith('e') ? 'une' : 'un'} {productVocab.entitySingular}
             </button>
           )}
         </div>
