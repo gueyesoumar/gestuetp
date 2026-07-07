@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom'
+import { Pencil, PowerOff } from 'lucide-react'
 import type { SubsidiaryRow } from './useSubsidiaries'
+import { ENTITY_TYPE_LABELS } from '../../lib/constants'
 
 interface SubsidiaryCardProps {
   subsidiary: SubsidiaryRow
+  /** Nom de l'entité parente si rattachée à une autre entité (pas la racine). */
+  parentName?: string | null
+  /** Si fournis, affiche les actions de gestion (édition / désactivation). */
+  onEdit?: (s: SubsidiaryRow) => void
+  onDeactivate?: (s: SubsidiaryRow) => void
 }
 
 function bandFor(score: number | null): {
@@ -27,10 +34,17 @@ function initials(name: string): string {
   return name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 }
 
-export function SubsidiaryCard({ subsidiary }: SubsidiaryCardProps): JSX.Element {
-  const { conformityScore, activeMissions, closedMissions, overdueCount, lastReviewDate, nextReviewDate, frameworkLabels } = subsidiary
+export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }: SubsidiaryCardProps): JSX.Element {
+  const { conformityScore, activeMissions, closedMissions, overdueCount, lastReviewDate, nextReviewDate, frameworkLabels, entityType } = subsidiary
   const band = bandFor(conformityScore)
   const dasharray = `${conformityScore ?? 0} 100`
+  const showActions = !!onEdit || !!onDeactivate
+
+  const act = (e: React.MouseEvent, fn?: (s: SubsidiaryRow) => void): void => {
+    e.preventDefault()
+    e.stopPropagation()
+    fn?.(subsidiary)
+  }
 
   return (
     <Link
@@ -41,8 +55,14 @@ export function SubsidiaryCard({ subsidiary }: SubsidiaryCardProps): JSX.Element
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-lg bg-forest-50 flex items-center justify-center font-bold text-forest-700">{initials(subsidiary.name)}</div>
           <div>
-            <p className="font-bold text-gray-900">{subsidiary.name}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="font-bold text-gray-900">{subsidiary.name}</p>
+              {entityType && (
+                <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-forest-50 text-forest-700">{ENTITY_TYPE_LABELS[entityType]}</span>
+              )}
+            </div>
             <p className="text-[11px] text-gray-500">{subsidiary.sector ?? 'Secteur non renseigné'}{subsidiary.city ? ` · ${subsidiary.city}` : ''}</p>
+            {parentName && <p className="text-[10px] text-gray-400">&#8627; rattach&eacute;e &agrave; {parentName}</p>}
           </div>
         </div>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${band.badge}`}>{band.label}</span>
@@ -72,6 +92,21 @@ export function SubsidiaryCard({ subsidiary }: SubsidiaryCardProps): JSX.Element
         <span>Dernière revue : {formatShortDate(lastReviewDate)}</span>
         <span>Prochaine : {formatShortDate(nextReviewDate)}</span>
       </div>
+
+      {showActions && (
+        <div className="mt-3 flex justify-end gap-1.5">
+          {onEdit && (
+            <button onClick={(e) => act(e, onEdit)} className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-100 rounded-lg">
+              <Pencil size={12} /> Modifier
+            </button>
+          )}
+          {onDeactivate && (
+            <button onClick={(e) => act(e, onDeactivate)} className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50 rounded-lg">
+              <PowerOff size={12} /> Désactiver
+            </button>
+          )}
+        </div>
+      )}
     </Link>
   )
 }

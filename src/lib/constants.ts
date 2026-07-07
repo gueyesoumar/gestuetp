@@ -95,6 +95,24 @@ export const ORG_TYPE_OPTIONS = [
   { value: 'group', label: 'Groupe / Holding' },
 ] as const
 
+// Nature d'une entité interne d'un groupe (module Groupe, refonte Axe 1).
+// Centralisé pour cohérence des selects (create/edit entité).
+export const ENTITY_TYPE_OPTIONS = [
+  { value: 'filiale', label: 'Filiale' },
+  { value: 'site', label: 'Site' },
+  { value: 'direction', label: 'Direction' },
+  { value: 'business_unit', label: 'Business Unit' },
+] as const
+
+export type EntityType = typeof ENTITY_TYPE_OPTIONS[number]['value']
+
+export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
+  filiale: 'Filiale',
+  site: 'Site',
+  direction: 'Direction',
+  business_unit: 'Business Unit',
+}
+
 export const PERMISSION_LABELS: Record<string, string> = {
   can_create_mission: 'Créer des missions',
   can_assign_team: 'Assigner des équipes',

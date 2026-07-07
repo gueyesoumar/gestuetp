@@ -7,6 +7,8 @@ export interface SubsidiaryRow {
   name: string
   sector: string | null
   city: string | null
+  entityType: 'filiale' | 'site' | 'direction' | 'business_unit' | null
+  parentOrgId: string | null
   /** Score moyen pondéré (sur missions clôturées). Null si aucune. */
   conformityScore: number | null
   activeMissions: number
@@ -25,6 +27,7 @@ interface UseSubsidiariesResult {
   averageScore: number | null
   totalActiveMissions: number
   totalOverdue: number
+  refresh: () => void
 }
 
 interface MissionRow {
@@ -59,6 +62,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
   const [subsidiaries, setSubsidiaries] = useState<SubsidiaryRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     if (!profile?.organization_id) return
@@ -67,11 +71,27 @@ export function useSubsidiaries(): UseSubsidiariesResult {
     setError(null)
 
     const load = async (): Promise<void> => {
-      // 1. Filiales
+      // 1. Entités du sous-arbre (récursif, actives) via get_subsidiary_ids
+      const { data: idRows, error: idErr } = await supabase
+        .rpc('get_subsidiary_ids', { parent_id: profile.organization_id })
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      if (idErr) {
+        console.error('[useSubsidiaries] get_subsidiary_ids:', idErr.message)
+        setError('Erreur de chargement des filiales')
+        setLoading(false)
+        return
+      }
+      const subIds = ((idRows ?? []) as string[])
+      if (subIds.length === 0) {
+        setSubsidiaries([])
+        setLoading(false)
+        return
+      }
       const { data: subs, error: subsErr } = await supabase
         .from('organizations')
-        .select('id, name, sector, city')
-        .eq('parent_org_id', profile.organization_id)
+        .select('id, name, sector, city, entity_type, parent_org_id')
+        .in('id', subIds)
         .order('name')
         .abortSignal(ac.signal)
       if (ac.signal.aborted) return
@@ -81,9 +101,8 @@ export function useSubsidiaries(): UseSubsidiariesResult {
         setLoading(false)
         return
       }
-      const subList = (subs ?? []) as Array<{ id: string; name: string; sector: string | null; city: string | null }>
-      const subIds = subList.map((s) => s.id)
-      if (subIds.length === 0) {
+      const subList = (subs ?? []) as Array<{ id: string; name: string; sector: string | null; city: string | null; entity_type: SubsidiaryRow['entityType']; parent_org_id: string | null }>
+      if (subList.length === 0) {
         setSubsidiaries([])
         setLoading(false)
         return
@@ -194,6 +213,8 @@ export function useSubsidiaries(): UseSubsidiariesResult {
           name: sub.name,
           sector: sub.sector,
           city: sub.city,
+          entityType: sub.entity_type,
+          parentOrgId: sub.parent_org_id,
           conformityScore,
           activeMissions,
           closedMissions,
@@ -210,7 +231,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
 
     void load()
     return () => ac.abort()
-  }, [profile?.organization_id])
+  }, [profile?.organization_id, refreshKey])
 
   const totalCount = subsidiaries.length
   const totalActiveMissions = subsidiaries.reduce((s, x) => s + x.activeMissions, 0)
@@ -220,5 +241,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
     ? Math.round(scored.reduce((s, x) => s + (x.conformityScore ?? 0), 0) / scored.length)
     : null
 
-  return { subsidiaries, loading, error, totalCount, averageScore, totalActiveMissions, totalOverdue }
+  const refresh = (): void => setRefreshKey((k) => k + 1)
+
+  return { subsidiaries, loading, error, totalCount, averageScore, totalActiveMissions, totalOverdue, refresh }
 }

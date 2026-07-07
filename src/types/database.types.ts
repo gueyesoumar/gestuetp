@@ -73,6 +73,8 @@ export interface Organization {
   sector: string | null
   description: string | null
   is_active: boolean
+  /** Nature de l'entité interne d'un groupe (cf. migration 00136). NULL sinon. */
+  entity_type?: 'filiale' | 'site' | 'direction' | 'business_unit' | null
   /** Kill switch IA cabinet (cf. migration 00088). */
   ai_analysis_enabled?: boolean
   created_at: string
