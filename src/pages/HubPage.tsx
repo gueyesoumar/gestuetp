@@ -79,7 +79,13 @@ export function HubPage(): JSX.Element {
                 badge={product.badge}
                 stats={product.name === 'Comply' ? complyLiveStats : product.stats}
                 delay={i * 100}
-                onClick={product.active ? () => navigate('/') : undefined}
+                onClick={
+                  product.href
+                    ? () => window.open(product.href, '_blank', 'noopener,noreferrer')
+                    : product.active
+                      ? () => navigate('/')
+                      : undefined
+                }
               />
             </div>
           ))}

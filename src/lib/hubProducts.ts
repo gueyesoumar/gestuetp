@@ -15,7 +15,13 @@ export interface HubProduct {
   active: boolean
   badge: string
   stats: ProductStat[]
+  /** Lien externe (autre produit/d\u00e9ploiement). Si d\u00e9fini, la tuile ouvre cette URL. */
+  href?: string
 }
+
+// URL du d\u00e9ploiement G\u00ebstu Regul (produit souverain s\u00e9par\u00e9). Configur\u00e9e par
+// variable d'env ; tant qu'absente, la tuile Regul reste \u00ab Bient\u00f4t \u00bb.
+const REGUL_URL = (import.meta.env.VITE_REGUL_URL as string | undefined) || undefined
 
 export const HUB_PRODUCTS: HubProduct[] = [
   {
@@ -27,6 +33,16 @@ export const HUB_PRODUCTS: HubProduct[] = [
     badge: 'Actif',
     // stats live calcul\u00e9es dans HubPage via useComplyHubStats \u2014 laiss\u00e9es vides ici
     stats: [],
+  },
+  {
+    name: 'Regul',
+    title: 'Supervision & R\u00e9gulation',
+    description: "Pour les organes de r\u00e9gulation : parc d\u2019assujettis, missions de contr\u00f4le, mesures gradu\u00e9es, tra\u00e7abilit\u00e9 probante.",
+    color: '#D4A843',
+    active: Boolean(REGUL_URL),
+    badge: REGUL_URL ? 'D\u00e9couvrir' : 'Bient\u00f4t',
+    stats: [],
+    href: REGUL_URL,
   },
   {
     name: 'Risk',
