@@ -118,6 +118,26 @@ export const REG_STATUS_OPTIONS = [
   { value: 'exited', label: 'Sorti du périmètre' },
 ] as const
 
+// Mesures graduées du régulateur (Gëstu Regul / M4).
+export const MEASURE_TYPE_ORDER = ['recommandation', 'mise_en_demeure', 'injonction', 'sanction'] as const
+export type MeasureType = typeof MEASURE_TYPE_ORDER[number]
+
+export const MEASURE_TYPE_LABELS: Record<MeasureType, string> = {
+  recommandation: 'Recommandation',
+  mise_en_demeure: 'Mise en demeure',
+  injonction: 'Injonction',
+  sanction: 'Sanction',
+}
+
+export const MEASURE_STATUS_LABELS: Record<string, string> = {
+  draft: 'Brouillon',
+  issued: 'Émise',
+  acknowledged: 'Accusée',
+  resolved: 'Résolue',
+  appealed: 'Contestée',
+  closed: 'Clôturée',
+}
+
 export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   filiale: 'Filiale',
   site: 'Site',
