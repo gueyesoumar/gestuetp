@@ -16,7 +16,7 @@ const NAV: NavItem[] = [
   { to: '/controles', label: 'Missions de contrôle', icon: <ClipboardCheck size={18} strokeWidth={1.5} /> },
   { to: '/constats', label: 'Constats & mesures', icon: <AlertTriangle size={18} strokeWidth={1.5} /> },
   { to: '/incidents', label: 'Incidents', icon: <Siren size={18} strokeWidth={1.5} />, soon: true },
-  { to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={18} strokeWidth={1.5} />, soon: true },
+  { to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={18} strokeWidth={1.5} /> },
   { to: '/pilotage', label: 'Pilotage & posture', icon: <BarChart3 size={18} strokeWidth={1.5} />, soon: true },
 ]
 
