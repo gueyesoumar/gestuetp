@@ -24,6 +24,8 @@ interface ProductVocab {
   entityRouteBase: string
   /** Tag produit affiché dans le logo. */
   logoTag: 'comply' | 'regul'
+  /** Sous-titre de la coquille du portail (côté partie auditée). */
+  portalLabel: string
 }
 
 const VOCAB: Record<ProductMode, ProductVocab> = {
@@ -33,6 +35,7 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entitiesTitle: 'Entités',
     entityRouteBase: '/filiales',
     logoTag: 'comply',
+    portalLabel: 'Portail Client',
   },
   regul: {
     entitySingular: 'assujetti',
@@ -40,6 +43,7 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entitiesTitle: 'Assujettis',
     entityRouteBase: '/assujettis',
     logoTag: 'regul',
+    portalLabel: 'Portail Assujetti',
   },
 }
 

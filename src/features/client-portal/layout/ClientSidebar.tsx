@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
+import { productVocab } from '../../../lib/product'
 import type { ReactNode } from 'react'
 
 const NAV_ITEMS: { to: string; label: string; icon: ReactNode; end: boolean }[] = [
@@ -24,7 +25,7 @@ export function ClientSidebar(): JSX.Element {
         <p className="text-lg font-extrabold text-white">
           G{'\u00eb'}stu<span className="text-gold-500">.</span>
         </p>
-        <p className="text-[9px] tracking-[2px] uppercase text-white/40 mt-0.5">Portail Client</p>
+        <p className="text-[9px] tracking-[2px] uppercase text-white/40 mt-0.5">{productVocab.portalLabel}</p>
       </div>
 
       {/* Navigation */}

@@ -30,11 +30,12 @@ export function LoginPage(): JSX.Element {
   }
 
   if (session) {
-    // Produit Regul : pas de hub multi-produits, on atterrit sur le tableau de bord.
+    // Produit Regul : pas de hub multi-produits. L'assujetti (role=client) va sur
+    // son portail cloisonné, le staff régulateur sur le tableau de bord.
     // Comply : le platform owner va dans sa console (sauf domaine cabinet co-brandé),
     // les autres gardent le hub.
     const target = isRegul
-      ? '/'
+      ? (profile?.role === 'client' ? '/client' : '/')
       : (!branding && profile?.is_platform_owner ? '/admin' : '/hub')
     return <Navigate to={target} replace />
   }
