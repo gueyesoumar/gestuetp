@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useSubsidiaryDetail } from './useSubsidiaryDetail'
 import { SubsidiaryHero } from './SubsidiaryHero'
@@ -5,22 +6,47 @@ import { SubsidiaryKPIs } from './SubsidiaryKPIs'
 import { SubsidiaryMissionsList } from './SubsidiaryMissionsList'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { isRegul, productVocab } from '../../lib/product'
+import { AssujettiInviteModal } from '../../regul/AssujettiInviteModal'
 
 export function SubsidiaryDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>()
   const { data, loading, error } = useSubsidiaryDetail(id)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   if (loading) return <LoadingSpinner />
-  if (error || !data) return <ErrorAlert message={error ?? 'Filiale introuvable'} />
+  if (error || !data) return <ErrorAlert message={error ?? `${productVocab.entitySingular} introuvable`} />
 
   return (
     <div className="space-y-5">
-      <Link to="/filiales" className="text-[13px] text-forest-700 hover:text-forest-900">
-        &larr; Retour aux filiales
+      <Link to={productVocab.entityRouteBase} className="text-[13px] text-forest-700 hover:text-forest-900">
+        &larr; Retour aux {productVocab.entityPlural}
       </Link>
 
       <SubsidiaryHero data={data} />
       <SubsidiaryKPIs data={data} />
+
+      {isRegul && (
+        <section className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4">
+          <div>
+            <h3 className="text-sm font-bold text-gray-900">Portail assujetti</h3>
+            <p className="text-[12px] text-gray-500 mt-0.5">Donnez à un contact de cet assujetti l&apos;accès cloisonné à une mission de contrôle.</p>
+          </div>
+          <button onClick={() => setInviteOpen(true)} className="px-3.5 py-2 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 transition-colors shrink-0">
+            Gérer les accès
+          </button>
+        </section>
+      )}
+
+      {inviteOpen && (
+        <AssujettiInviteModal
+          entityOrgId={data.id}
+          entityName={data.name}
+          missions={data.missions.map((m) => ({ id: m.id, name: m.name }))}
+          onClose={() => setInviteOpen(false)}
+          onSuccess={() => { /* liste rafraîchie dans le modal */ }}
+        />
+      )}
 
       <section>
         <h3 className="text-base font-bold text-gray-900 mb-3">Missions</h3>
