@@ -13,7 +13,7 @@ interface NavItem { to: string; label: string; icon: ReactNode; soon?: boolean }
 const NAV: NavItem[] = [
   { to: '/', label: 'Tableau de bord', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
   { to: '/assujettis', label: 'Assujettis', icon: <Building2 size={18} strokeWidth={1.5} /> },
-  { to: '/controles', label: 'Missions de contrôle', icon: <ClipboardCheck size={18} strokeWidth={1.5} />, soon: true },
+  { to: '/controles', label: 'Missions de contrôle', icon: <ClipboardCheck size={18} strokeWidth={1.5} /> },
   { to: '/constats', label: 'Constats & mesures', icon: <AlertTriangle size={18} strokeWidth={1.5} />, soon: true },
   { to: '/incidents', label: 'Incidents', icon: <Siren size={18} strokeWidth={1.5} />, soon: true },
   { to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={18} strokeWidth={1.5} />, soon: true },

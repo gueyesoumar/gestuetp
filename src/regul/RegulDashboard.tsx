@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Building2, ShieldAlert, ClipboardCheck, Siren, ArrowRight } from 'lucide-react'
 import { useSubsidiaries } from '../features/group-module/useSubsidiaries'
+import { useMissions } from '../features/missions/useMissions'
 import { useAuth } from '../hooks/useAuth'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 
@@ -9,13 +10,14 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 export function RegulDashboard(): JSX.Element {
   const { profile } = useAuth()
   const { subsidiaries, loading, totalCount } = useSubsidiaries()
+  const { missions, loading: mLoading } = useMissions()
 
   const oivCount = useMemo(
     () => subsidiaries.filter((s) => s.regulatoryProfile?.criticality === 'oiv').length,
     [subsidiaries],
   )
 
-  if (loading) return <LoadingSpinner />
+  if (loading || mLoading) return <LoadingSpinner />
 
   return (
     <div className="space-y-6">
@@ -40,11 +42,14 @@ export function RegulDashboard(): JSX.Element {
           <p className="text-[12px] text-gray-500">dont OIV</p>
         </div>
 
-        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-5">
-          <ClipboardCheck size={20} className="text-gray-300" />
-          <p className="mt-3 text-3xl font-bold text-gray-300">—</p>
-          <p className="text-[12px] text-gray-400">Missions de contrôle <span className="text-gold-600 font-semibold">(bientôt)</span></p>
-        </div>
+        <Link to="/controles" className="group rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition">
+          <div className="flex items-center justify-between">
+            <ClipboardCheck size={20} className="text-forest-700" />
+            <ArrowRight size={15} className="text-gray-300 group-hover:text-forest-700 transition" />
+          </div>
+          <p className="mt-3 text-3xl font-bold text-gray-900">{missions.length}</p>
+          <p className="text-[12px] text-gray-500">Missions de contrôle</p>
+        </Link>
 
         <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-5">
           <Siren size={20} className="text-gray-300" />

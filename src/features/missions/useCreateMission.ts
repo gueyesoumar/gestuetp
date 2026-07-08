@@ -5,7 +5,10 @@ import type { MissionKind } from '../../types/database.types'
 export interface CreateMissionPayload {
   name: string
   description: string
-  cabinet_client_id: string
+  /** Chemin Comply : fiche client cabinet. */
+  cabinet_client_id?: string
+  /** Chemin Regul : organisation assujettie directe. */
+  assujetti_org_id?: string
   framework_id: string
   lead_auditor_id: string
   associate_id: string

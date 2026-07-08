@@ -7,7 +7,10 @@ type MissionKind = 'audit' | 'continuous_supervision'
 interface CreateMissionPayload {
   name: string
   description: string
-  cabinet_client_id: string
+  /** Chemin Comply : fiche client du cabinet. */
+  cabinet_client_id?: string
+  /** Chemin Regul : organisation assujettie (entité du sous-arbre régulateur). */
+  assujetti_org_id?: string
   framework_id: string
   lead_auditor_id: string
   associate_id: string
@@ -107,7 +110,7 @@ Deno.serve(async (req) => {
     } = body
     const kind: MissionKind = body.kind === 'continuous_supervision' ? 'continuous_supervision' : 'audit'
 
-    if (!name || !cabinet_client_id || !framework_id || !lead_auditor_id || !associate_id || !start_date || !end_date) {
+    if (!name || !framework_id || !lead_auditor_id || !associate_id || !start_date || !end_date || (!cabinet_client_id && !body.assujetti_org_id)) {
       return new Response(
         JSON.stringify({ error: 'Champs requis manquants' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -132,80 +135,82 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 4. Charger la fiche client du cabinet
-    const { data: cabinetClient, error: ccError } = await supabaseAdmin
-      .from('cabinet_clients')
-      .select('id, cabinet_id, client_org_id, client_name, client_registration_number, client_email_domain')
-      .eq('id', cabinet_client_id)
-      .single()
+    // 4-5. Résoudre l'organisation cible (client audité).
+    let clientOrgId: string | null = null
 
-    if (ccError || !cabinetClient) {
-      return new Response(
-        JSON.stringify({ error: 'Client introuvable' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    if (body.assujetti_org_id) {
+      // Chemin Regul : l'assujetti est une organisation entité. Cloisonnement —
+      // il doit appartenir au sous-arbre du régulateur appelant (get_subsidiary_ids
+      // récursif, SECURITY DEFINER). Pas de fiche cabinet_clients requise.
+      const { data: descRows } = await supabaseAdmin.rpc('get_subsidiary_ids', { parent_id: callerProfile.organization_id })
+      const descendants = new Set<string>(
+        ((descRows ?? []) as Array<string | { get_subsidiary_ids?: string; id?: string }>)
+          .map((r) => (typeof r === 'string' ? r : (r.get_subsidiary_ids ?? r.id ?? '')))
       )
-    }
-
-    // Verifier que la fiche appartient au cabinet de l'appelant
-    if (cabinetClient.cabinet_id !== callerProfile.organization_id) {
-      return new Response(
-        JSON.stringify({ error: 'Accès interdit à ce client' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // 5. Resoudre ou creer l'organisation client (deduplication)
-    let clientOrgId = cabinetClient.client_org_id
-
-    if (!clientOrgId) {
-      // Tenter la deduplication par registration_number
-      if (cabinetClient.client_registration_number) {
-        const { data: existing } = await supabaseAdmin
-          .from('organizations')
-          .select('id')
-          .contains('types', ['client'])
-          .eq('registration_number', cabinetClient.client_registration_number)
-          .limit(1)
-
-        if (existing && existing.length > 0) {
-          clientOrgId = existing[0].id
-        }
+      if (!descendants.has(body.assujetti_org_id)) {
+        return new Response(
+          JSON.stringify({ error: "Cet assujetti n'appartient pas à votre périmètre" }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
       }
-
-      // Si toujours pas trouve, creer l'organisation
-      if (!clientOrgId) {
-        const slug = cabinetClient.client_name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '')
-          + '-' + Date.now().toString(36)
-
-        const { data: newOrg, error: orgError } = await supabaseAdmin
-          .from('organizations')
-          .insert({
-            name: cabinetClient.client_name,
-            slug,
-            types: ['client'],
-          })
-          .select('id')
-          .single()
-
-        if (orgError || !newOrg) {
-          console.error('create-mission create org:', orgError?.message)
-          return new Response(
-            JSON.stringify({ error: 'Erreur lors de la création de l\'organisation client' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        clientOrgId = newOrg.id
-      }
-
-      // Mettre a jour la fiche cabinet_clients avec l'org_id
-      await supabaseAdmin
+      clientOrgId = body.assujetti_org_id
+    } else {
+      // Chemin Comply : via la fiche client du cabinet.
+      const { data: cabinetClient, error: ccError } = await supabaseAdmin
         .from('cabinet_clients')
-        .update({ client_org_id: clientOrgId })
+        .select('id, cabinet_id, client_org_id, client_name, client_registration_number, client_email_domain')
         .eq('id', cabinet_client_id)
+        .single()
+
+      if (ccError || !cabinetClient) {
+        return new Response(
+          JSON.stringify({ error: 'Client introuvable' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      if (cabinetClient.cabinet_id !== callerProfile.organization_id) {
+        return new Response(
+          JSON.stringify({ error: 'Accès interdit à ce client' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      clientOrgId = cabinetClient.client_org_id
+      if (!clientOrgId) {
+        if (cabinetClient.client_registration_number) {
+          const { data: existing } = await supabaseAdmin
+            .from('organizations')
+            .select('id')
+            .contains('types', ['client'])
+            .eq('registration_number', cabinetClient.client_registration_number)
+            .limit(1)
+          if (existing && existing.length > 0) clientOrgId = existing[0].id
+        }
+        if (!clientOrgId) {
+          const slug = cabinetClient.client_name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+            + '-' + Date.now().toString(36)
+          const { data: newOrg, error: orgError } = await supabaseAdmin
+            .from('organizations')
+            .insert({ name: cabinetClient.client_name, slug, types: ['client'] })
+            .select('id')
+            .single()
+          if (orgError || !newOrg) {
+            console.error('create-mission create org:', orgError?.message)
+            return new Response(
+              JSON.stringify({ error: 'Erreur lors de la création de l\'organisation client' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+          clientOrgId = newOrg.id
+        }
+        await supabaseAdmin
+          .from('cabinet_clients')
+          .update({ client_org_id: clientOrgId })
+          .eq('id', cabinet_client_id)
+      }
     }
 
     // 6. Verifier que le referentiel existe

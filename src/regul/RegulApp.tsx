@@ -5,8 +5,11 @@ import { SetPasswordPage } from '../pages/SetPasswordPage'
 import { AccountPage } from '../pages/AccountPage'
 import { RegulLayout } from './RegulLayout'
 import { RegulDashboard } from './RegulDashboard'
+import { RegulMissionsListPage } from './RegulMissionsListPage'
+import { RegulMissionCreatePage } from './RegulMissionCreatePage'
 import { SubsidiariesPage } from '../features/group-module/SubsidiariesPage'
 import { SubsidiaryDetailPage } from '../features/group-module/SubsidiaryDetailPage'
+import { MissionDetailPage } from '../pages/MissionDetailPage'
 
 /**
  * Application Gëstu Regul — produit à part entière (montée quand
@@ -30,6 +33,9 @@ export function RegulApp(): JSX.Element {
         <Route index element={<RegulDashboard />} />
         <Route path="assujettis" element={<SubsidiariesPage />} />
         <Route path="assujettis/:id" element={<SubsidiaryDetailPage />} />
+        <Route path="controles" element={<RegulMissionsListPage />} />
+        <Route path="controles/nouvelle" element={<RegulMissionCreatePage />} />
+        <Route path="controles/:id" element={<MissionDetailPage />} />
         <Route path="compte" element={<AccountPage />} />
       </Route>
 
