@@ -76,7 +76,7 @@ export function useMissionReviewComments(missionId: string | null): UseMissionRe
         setLoading(false)
         return
       }
-      setComments((result.data ?? []) as ReviewComment[])
+      setComments((result.data ?? []) as unknown as ReviewComment[])
       setLoading(false)
     } catch {
       if (signal?.aborted) return

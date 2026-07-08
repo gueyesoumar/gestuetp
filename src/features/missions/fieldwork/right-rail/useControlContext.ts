@@ -78,7 +78,7 @@ export function useControlContext(missionId: string | null, controlId: string | 
         .eq('control_id', controlId)
         .abortSignal(controller.signal)
       if (controller.signal.aborted) return
-      const links = (linksRes?.data ?? []) as Array<{
+      const links = (linksRes?.data ?? []) as unknown as Array<{
         question_id: string
         weight: number
         question: { code: string; text: string } | null

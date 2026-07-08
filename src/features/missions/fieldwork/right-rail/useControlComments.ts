@@ -83,7 +83,7 @@ export function useControlComments(missionId: string | null, controlId: string |
         setLoading(false)
         return
       }
-      setComments((result.data ?? []) as ControlComment[])
+      setComments((result.data ?? []) as unknown as ControlComment[])
       setLoading(false)
     } catch {
       // Abort lors d'un changement de contrôle/démontage : on ignore (pas une vraie erreur)

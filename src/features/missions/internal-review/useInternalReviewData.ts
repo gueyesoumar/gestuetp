@@ -135,7 +135,7 @@ export function useInternalReviewData(missionId: string, frameworkId: string): I
           .order('created_at', { ascending: true })
           .abortSignal(abortController.signal)
         if (abortController.signal.aborted) return
-        for (const v of (validationRows ?? []) as Array<{ assessment_id: string; stage: ValidationEvent['stage']; decision: ValidationEvent['decision']; comment: string | null; created_at: string; user: { first_name: string; last_name: string } | null }>) {
+        for (const v of (validationRows ?? []) as unknown as Array<{ assessment_id: string; stage: ValidationEvent['stage']; decision: ValidationEvent['decision']; comment: string | null; created_at: string; user: { first_name: string; last_name: string } | null }>) {
           const list = validationsByAssessment.get(v.assessment_id) ?? []
           list.push({
             stage: v.stage,

@@ -52,7 +52,7 @@ export function useCabinetMissionsAll(cabinetId: string | undefined): Result {
           setLoading(false)
           return
         }
-        const rows = ((data ?? []) as Array<Record<string, unknown> & {
+        const rows = ((data ?? []) as unknown as Array<Record<string, unknown> & {
           client: { name: string } | null
           framework: { name: string } | null
           lead: { first_name: string; last_name: string } | null

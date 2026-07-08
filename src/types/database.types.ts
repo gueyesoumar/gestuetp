@@ -1685,7 +1685,12 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      get_subsidiary_ids: {
+        Args: { parent_id: string }
+        Returns: string[]
+      }
+    }
     Enums: {
       mission_status: MissionStatus
       mission_role: MissionRole
