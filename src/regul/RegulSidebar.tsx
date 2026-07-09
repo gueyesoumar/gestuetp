@@ -17,7 +17,7 @@ const NAV: NavItem[] = [
   { to: '/constats', label: 'Constats & mesures', icon: <AlertTriangle size={18} strokeWidth={1.5} /> },
   { to: '/incidents', label: 'Incidents', icon: <Siren size={18} strokeWidth={1.5} />, soon: true },
   { to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={18} strokeWidth={1.5} /> },
-  { to: '/pilotage', label: 'Pilotage & posture', icon: <BarChart3 size={18} strokeWidth={1.5} />, soon: true },
+  { to: '/pilotage', label: 'Pilotage & posture', icon: <BarChart3 size={18} strokeWidth={1.5} /> },
 ]
 
 export function RegulSidebar(): JSX.Element {
