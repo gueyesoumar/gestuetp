@@ -10,7 +10,7 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useToast } from '../../hooks/useToast'
-import { productVocab } from '../../lib/product'
+import { isRegul, productVocab } from '../../lib/product'
 
 export function SubsidiariesPage(): JSX.Element {
   const { profile } = useAuth()
@@ -106,7 +106,7 @@ export function SubsidiariesPage(): JSX.Element {
       </div>
 
       {totalCount === 0 ? (
-        <EmptyState title={`Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} (filiale, site, direction…) avec le bouton ci-dessus.` : `Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} n’est encore rattaché${productVocab.entitySingular.endsWith('e') ? 'e' : ''}.`} />
+        <EmptyState title={`Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} n’est encore rattaché${productVocab.entitySingular.endsWith('e') ? 'e' : ''}.`} />
       ) : filtered.length === 0 ? (
         <EmptyState title="Aucun résultat" description={`Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} ne correspond à votre recherche.`} />
       ) : (

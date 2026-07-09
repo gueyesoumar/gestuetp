@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
-import { productVocab } from '../../../lib/product'
+import { isRegul, productVocab } from '../../../lib/product'
+import { GestuLogo } from '../../../components/GestuLogo'
 import type { ReactNode } from 'react'
 
 const NAV_ITEMS: { to: string; label: string; icon: ReactNode; end: boolean }[] = [
@@ -22,9 +23,13 @@ export function ClientSidebar(): JSX.Element {
     <aside className="w-60 shrink-0 bg-forest-900 flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 py-4 border-b border-white/10">
-        <p className="text-lg font-extrabold text-white">
-          G{'\u00eb'}stu<span className="text-gold-500">.</span>
-        </p>
+        {isRegul ? (
+          <GestuLogo size="xs" variant="dark" product="regul" />
+        ) : (
+          <p className="text-lg font-extrabold text-white">
+            G{'\u00eb'}stu<span className="text-gold-500">.</span>
+          </p>
+        )}
         <p className="text-[9px] tracking-[2px] uppercase text-white/40 mt-0.5">{productVocab.portalLabel}</p>
       </div>
 

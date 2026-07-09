@@ -26,6 +26,8 @@ interface ProductVocab {
   logoTag: 'comply' | 'regul'
   /** Sous-titre de la coquille du portail (côté partie auditée). */
   portalLabel: string
+  /** Entité précédée de son démonstratif (élision FR gérée) : « cette entité » / « cet assujetti ». */
+  entityWithDem: string
 }
 
 const VOCAB: Record<ProductMode, ProductVocab> = {
@@ -36,6 +38,7 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entityRouteBase: '/filiales',
     logoTag: 'comply',
     portalLabel: 'Portail Client',
+    entityWithDem: 'cette entité',
   },
   regul: {
     entitySingular: 'assujetti',
@@ -44,6 +47,7 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entityRouteBase: '/assujettis',
     logoTag: 'regul',
     portalLabel: 'Portail Assujetti',
+    entityWithDem: 'cet assujetti',
   },
 }
 
