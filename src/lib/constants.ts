@@ -243,3 +243,33 @@ export const SUPPORT_STATUS_LABELS: Record<SupportStatus, string> = {
   resolved: 'Résolu',
   closed: 'Fermé',
 }
+
+// Gëstu Regul (M5) — incidents cyber
+export const INCIDENT_CATEGORY_OPTIONS = [
+  { value: 'intrusion', label: 'Intrusion' },
+  { value: 'ransomware', label: 'Rançongiciel' },
+  { value: 'fuite_donnees', label: 'Fuite de données' },
+  { value: 'deni_service', label: 'Déni de service' },
+  { value: 'autre', label: 'Autre' },
+] as const
+export const INCIDENT_CATEGORY_LABELS: Record<string, string> =
+  Object.fromEntries(INCIDENT_CATEGORY_OPTIONS.map((o) => [o.value, o.label]))
+
+export const INCIDENT_SEVERITY_ORDER = ['faible', 'moyen', 'eleve', 'critique'] as const
+export type IncidentSeverity = typeof INCIDENT_SEVERITY_ORDER[number]
+export const INCIDENT_SEVERITY_LABELS: Record<IncidentSeverity, string> = {
+  faible: 'Faible',
+  moyen: 'Moyen',
+  eleve: 'Élevé',
+  critique: 'Critique',
+}
+
+export const INCIDENT_STATUS_ORDER = ['declared', 'triage', 'notified', 'resolved', 'closed'] as const
+export type IncidentStatus = typeof INCIDENT_STATUS_ORDER[number]
+export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
+  declared: 'Déclaré',
+  triage: 'Qualification',
+  notified: 'Notifié',
+  resolved: 'Résolu',
+  closed: 'Clôturé',
+}
