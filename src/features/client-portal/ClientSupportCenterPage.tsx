@@ -35,7 +35,7 @@ export function ClientSupportCenterPage(): JSX.Element {
   const back = (): void => setMode('home')
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div>
       {mode === 'home' && (
         <>
           <h1 className="text-xl font-bold text-gray-900">Centre d&apos;aide</h1>
