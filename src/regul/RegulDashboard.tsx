@@ -1,70 +1,55 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { Building2, ShieldAlert, ClipboardCheck, Siren, ArrowRight } from 'lucide-react'
-import { useSubsidiaries } from '../features/group-module/useSubsidiaries'
-import { useMissions } from '../features/missions/useMissions'
+import { Building2, ShieldAlert, ClipboardCheck, Gavel, Clock, TrendingUp } from 'lucide-react'
+import { usePilotage } from './pilotage/usePilotage'
+import { PilotageRiskMap } from './pilotage/PilotageRiskMap'
+import { PilotagePriorityList } from './pilotage/PilotagePriorityList'
+import { PilotageMeasuresBreakdown } from './pilotage/PilotageMeasuresBreakdown'
 import { useAuth } from '../hooks/useAuth'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import type { ReactNode } from 'react'
 
-/** Tableau de bord Gëstu Regul. Lot 1 : KPIs du registre (M1) réels + tuiles à venir. */
+function Kpi({ icon, value, label, tone }: { icon: ReactNode; value: string | number; label: string; tone?: string }): JSX.Element {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <span className={tone ?? 'text-forest-700'}>{icon}</span>
+      <p className="mt-2.5 text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-[11px] text-gray-500">{label}</p>
+    </div>
+  )
+}
+
+/**
+ * Tableau de bord Gëstu Regul = cockpit de supervision du parc (posture,
+ * cartographie des risques, priorisation, mesures). C'est la page d'accueil
+ * du régulateur ; il n'y a pas d'onglet Pilotage séparé.
+ */
 export function RegulDashboard(): JSX.Element {
   const { profile } = useAuth()
-  const { subsidiaries, loading, totalCount } = useSubsidiaries()
-  const { missions, loading: mLoading } = useMissions()
+  const { loading, posture, riskItems, measuresByType, deadlines, priorities } = usePilotage()
 
-  const oivCount = useMemo(
-    () => subsidiaries.filter((s) => s.regulatoryProfile?.criticality === 'oiv').length,
-    [subsidiaries],
-  )
-
-  if (loading || mLoading) return <LoadingSpinner />
+  if (loading) return <LoadingSpinner />
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Bonjour{profile ? `, ${profile.first_name}` : ''}</h1>
-        <p className="mt-1 text-[14px] text-gray-500">Vue d&apos;ensemble de la supervision du parc régulé.</p>
+        <p className="mt-1 text-[14px] text-gray-500">Posture agrégée du parc régulé et priorités d&apos;action.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Link to="/assujettis" className="group rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition">
-          <div className="flex items-center justify-between">
-            <Building2 size={20} className="text-forest-700" />
-            <ArrowRight size={15} className="text-gray-300 group-hover:text-forest-700 transition" />
-          </div>
-          <p className="mt-3 text-3xl font-bold text-gray-900">{totalCount}</p>
-          <p className="text-[12px] text-gray-500">Assujettis recensés</p>
-        </Link>
-
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <ShieldAlert size={20} className="text-red-600" />
-          <p className="mt-3 text-3xl font-bold text-gray-900">{oivCount}</p>
-          <p className="text-[12px] text-gray-500">dont OIV</p>
-        </div>
-
-        <Link to="/controles" className="group rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition">
-          <div className="flex items-center justify-between">
-            <ClipboardCheck size={20} className="text-forest-700" />
-            <ArrowRight size={15} className="text-gray-300 group-hover:text-forest-700 transition" />
-          </div>
-          <p className="mt-3 text-3xl font-bold text-gray-900">{missions.length}</p>
-          <p className="text-[12px] text-gray-500">Missions de contrôle</p>
-        </Link>
-
-        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-5">
-          <Siren size={20} className="text-gray-300" />
-          <p className="mt-3 text-3xl font-bold text-gray-300">—</p>
-          <p className="text-[12px] text-gray-400">Incidents déclarés <span className="text-gold-600 font-semibold">(bientôt)</span></p>
-        </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        <Kpi icon={<Building2 size={18} />} value={posture.total} label="Assujettis" />
+        <Kpi icon={<ShieldAlert size={18} />} value={posture.oiv} label="dont OIV" tone="text-red-600" />
+        <Kpi icon={<TrendingUp size={18} />} value={posture.avgScore !== null ? `${posture.avgScore}%` : '—'} label="Conformité moy." />
+        <Kpi icon={<ClipboardCheck size={18} />} value={posture.activeMissions} label="Missions actives" />
+        <Kpi icon={<Gavel size={18} />} value={posture.openMeasures} label="Mesures ouvertes" />
+        <Kpi icon={<Clock size={18} />} value={posture.overdue} label="Contrôles en retard" tone={posture.overdue > 0 ? 'text-red-600' : 'text-forest-700'} />
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="font-semibold text-gray-900">Prochaines briques</h2>
-        <p className="mt-1 text-[13px] text-gray-500">
-          Le pilotage stratégique (heatmap de maturité par secteur, taux de remédiation, reporting institutionnel)
-          arrivera avec le module M8. Le cœur régulateur — constats, mesures graduées et notification probante — suit en M4.
-        </p>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <PilotageRiskMap items={riskItems} />
+        <PilotagePriorityList items={priorities} />
       </div>
+
+      <PilotageMeasuresBreakdown stats={measuresByType} soon={deadlines.soon} overdue={deadlines.overdue} />
     </div>
   )
 }

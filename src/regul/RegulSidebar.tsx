@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Building2, ClipboardCheck, AlertTriangle, Siren, BookMarked, BarChart3, LogOut, UserCircle } from 'lucide-react'
+import { LayoutDashboard, Building2, ClipboardCheck, AlertTriangle, Siren, BookMarked, LogOut, UserCircle } from 'lucide-react'
 import { GestuLogo } from '../components/GestuLogo'
 import { useAuth } from '../hooks/useAuth'
 import type { ReactNode } from 'react'
@@ -17,7 +17,6 @@ const NAV: NavItem[] = [
   { to: '/constats', label: 'Constats & mesures', icon: <AlertTriangle size={18} strokeWidth={1.5} /> },
   { to: '/incidents', label: 'Incidents', icon: <Siren size={18} strokeWidth={1.5} />, soon: true },
   { to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={18} strokeWidth={1.5} /> },
-  { to: '/pilotage', label: 'Pilotage & posture', icon: <BarChart3 size={18} strokeWidth={1.5} /> },
 ]
 
 export function RegulSidebar(): JSX.Element {

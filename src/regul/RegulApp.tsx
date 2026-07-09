@@ -10,7 +10,6 @@ import { RegulMissionsListPage } from './RegulMissionsListPage'
 import { RegulMissionCreatePage } from './RegulMissionCreatePage'
 import { RegulMeasuresPage } from './RegulMeasuresPage'
 import { RegulReferentielsPage } from './RegulReferentielsPage'
-import { RegulPilotagePage } from './pilotage/RegulPilotagePage'
 import { SubsidiariesPage } from '../features/group-module/SubsidiariesPage'
 import { SubsidiaryDetailPage } from '../features/group-module/SubsidiaryDetailPage'
 import { MissionDetailPage } from '../pages/MissionDetailPage'
@@ -49,7 +48,6 @@ export function RegulApp(): JSX.Element {
         <Route path="controles/:id" element={<MissionDetailPage />} />
         <Route path="constats" element={<RegulMeasuresPage />} />
         <Route path="referentiels" element={<RegulReferentielsPage />} />
-        <Route path="pilotage" element={<RegulPilotagePage />} />
         <Route path="compte" element={<AccountPage />} />
       </Route>
 
