@@ -34,7 +34,7 @@
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
-| RLS activée sur les tables sensibles (~47) | ✅ | migrations `enable row level security` | ☐ |
+| RLS activée sur les tables sensibles (~67) | ✅ | migrations `enable row level security` | ☐ |
 | Pattern anti-récursion (SECURITY DEFINER) | ✅ | helpers `get_my_*`, mig 00022/00023/00127 | ☐ |
 | Cloisonnement portail client durci | ✅ | mig 00133/00134/00135 | ☐ |
 | Cloisonnement régulateur (sous-arbre) | ✅ | mig 00137/00139/00144/00145 | ☐ |
@@ -47,7 +47,7 @@
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
 | Échappement XSS par défaut (React) | ✅ | JSX | ☐ |
-| `dangerouslySetInnerHTML` maîtrisé | ⚠️ | 1 occurrence `ActionsList.tsx` (R2) | ☐ |
+| `dangerouslySetInnerHTML` maîtrisé | ✅ | aucune occurrence dans `src/` (le seul, code mort, supprimé) | ☐ |
 | Sanitisation des uploads (SVG) | ✅ | `upload-cabinet-logo` | ☐ |
 | Content-Security-Policy | ❌ | absente (R1) | ☐ |
 | Validation des entrées (hostname/slug/MIME) | ✅ | regex dans Edge Functions | ☐ |
@@ -101,7 +101,7 @@
 | Réf | Écart | Sévérité |
 |---|---|---|
 | R1 | CSP absente | Moyen |
-| R2 | `dangerouslySetInnerHTML` à sécuriser | Moyen |
+| ~~R2~~ | `dangerouslySetInnerHTML` — **résolu** (code mort supprimé) | — |
 | R3 | Dépendances de génération de documents à surveiller | Faible-Moyen |
 | R6 | Migrations manuelles (dérive possible) | Faible-Moyen |
 | — | SCA/Dependabot, MFA, rate-limiting explicite | Faible |

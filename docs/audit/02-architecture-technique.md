@@ -7,7 +7,7 @@
 | Couche | Technologie | Version |
 |---|---|---|
 | UI | React | 19.2.x |
-| Build | Vite (rolldown) | 8.x |
+| Build | Vite | 8.x |
 | Langage | TypeScript **strict** | ~6.0 |
 | Styles | Tailwind CSS | 4.2.x |
 | Backend / BaaS | Supabase (PostgreSQL, Auth, Storage, RLS, Edge Functions Deno) | client `@supabase/supabase-js` 2.103 |
@@ -39,7 +39,7 @@ Conventions : composants ≤ 150 lignes, une responsabilité par fichier, option
 ## 3. Modèle de données
 
 - **~146 migrations** (`*_up.sql` + `*_down.sql`, convention `NNNNN_nom_up/_down`), schéma typé dans `src/types/database.types.ts`.
-- **~47 tables** avec RLS activé. Grandes familles :
+- **~67 tables** avec RLS activé. Grandes familles :
   - **Organisations & accès** : `organizations`, `users`, `platform_roles`, `user_platform_roles`, `tenant_configs`, `organization_branding`, `cabinet_domains`.
   - **Missions & audit** : `missions`, `mission_members`, `mission_control_assignments`, `control_assessments`, `assessment_findings`, `assessment_validations`, `mission_risks`, `mission_exclusions`, `control_planning`.
   - **Référentiels** : `frameworks`, `domains`, `controls`, `questions`, `questionnaire_*`, `evidence_catalog`.
@@ -74,10 +74,10 @@ Regul ne crée **pas** de nouvelle table de mission : l'organe régulateur est u
 
 ## 7. Edge Functions (Deno)
 
-~50+ fonctions dans `supabase/functions/`, regroupées par niveau de confiance (détaillé dans le dossier sécurité) : super-admin (`requirePlatformOwner`), membre cabinet (`authenticateCaller` + permission), acteurs mission, portail client/assujetti, spécifique régulateur (ancrage probant), agents IA (Claude), webhooks (secret partagé). Modules partagés dans `_shared/` (`auth.ts`, `auth-platform-owner.ts`, `cabinet-permissions.ts`, `cors.ts`, `resend.ts`, `email-branding.ts`).
+**59 fonctions** dans `supabase/functions/`, regroupées par niveau de confiance (détaillé dans le dossier sécurité) : super-admin (`requirePlatformOwner`), membre cabinet (`authenticateCaller` + permission), acteurs mission, portail client/assujetti, spécifique régulateur (ancrage probant), agents IA (Claude), webhooks (secret partagé). Modules partagés dans `_shared/` (`auth.ts`, `auth-platform-owner.ts`, `cabinet-permissions.ts`, `cors.ts`, `resend.ts`, `email-branding.ts`).
 
 ## 8. Points d'attention architecturaux (transparence)
 
 - **Absence de `.env.example`** — à créer pour l'onboarding.
 - **Génération de documents côté client** (`jspdf`, `html2canvas`, `exceljs`) — à vérifier qu'aucun contenu non échappé n'y transite (voir dossier sécurité).
-- **Lint non bloquant** (~erreurs préexistantes) — la garde de qualité repose sur `typecheck` + `build`.
+- **Lint non bloquant** (~243 erreurs préexistantes, surtout côté Edge Functions Deno) — la garde de qualité repose sur `typecheck` + `build`.

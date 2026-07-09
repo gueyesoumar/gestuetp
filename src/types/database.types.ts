@@ -216,7 +216,9 @@ export type ActionStatus = 'open' | 'in_progress' | 'done'
 
 export interface ClientPortalContact {
   id: string
-  cabinet_client_id: string
+  // Polymorphe (mig 00141) : cabinet_client_id (Comply) XOR entity_org_id (Regul).
+  cabinet_client_id: string | null
+  entity_org_id: string | null
   user_id: string | null
   contact_name: string
   email: string

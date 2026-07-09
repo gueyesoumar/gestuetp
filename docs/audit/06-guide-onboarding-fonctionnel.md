@@ -173,6 +173,8 @@ Référentiel → domaines → contrôles (`code`, `name`, `risk_level`, `sort_o
 ### `probative_log` (Regul)
 `seq`, `occurred_at`, `actor_user_id`, `action_type`, `subject_type`, `subject_id`, `payload`, `prev_hash`, `hash`. Append-only.
 
+> **Note de typage** : certains champs à valeurs contraintes sont stockés en `text` avec un CHECK côté base et une énumération côté application (ex. `conformity_level`, `criticality`) plutôt qu'en type union strict dans `database.types.ts`. Les valeurs listées ci-dessus sont les valeurs réellement acceptées (CHECK SQL), à considérer comme la source de vérité.
+
 ---
 
 ## 7. Machines à états (transitions complètes)
@@ -191,16 +193,21 @@ Référentiel → domaines → contrôles (`code`, `name`, `risk_level`, `sort_o
 
 ### 7.2 Évaluation d'un contrôle (`control_assessments.status`)
 
+Transitions **imposées côté serveur** (`submit-assessment`, `review-assessment`, `client-review-assessment`) :
+
 | De → Vers | Déclencheur | Acteur |
 |---|---|---|
 | `— → draft` | Ouverture d'un contrôle | Auditeur affecté |
 | `draft → submitted` | Soumission | Auditeur |
-| `submitted → in_review` | Prise en revue | Lead/associé |
-| `in_review → approved` | Approbation | Lead/associé |
-| `in_review → rejected` | Rejet (correction) | Lead/associé |
-| `rejected → draft/submitted` | Reprise | Auditeur |
+| `submitted → in_review` | Approbation par le lead **lorsqu'un associé doit encore revoir** (mission avec `associate_id`) | Lead |
+| `submitted → approved` | Approbation par le lead **sans associé** | Lead |
+| `in_review → approved` | Approbation par l'associé | Associé |
+| `submitted / in_review → rejected` | Rejet (renvoi en correction) | Lead / associé |
+| `rejected → submitted` | Re-soumission après correction | Auditeur |
+| `approved → (validé client)` | Validation par le client | Client (`approver`) |
+| `approved → draft` | Contestation par le client (renvoi en reprise) | Client (`approver`) |
 
-Chaque transition de revue est tracée dans `assessment_validations` (piste d'audit).
+Point clé : l'état `in_review` **n'apparaît que si la mission a un associé** ; sinon le lead approuve directement (`submitted → approved`). Chaque acte de revue est tracé dans `assessment_validations` (piste d'audit).
 
 ### 7.3 Demande de preuve (`mission_evidence_requests.status`)
 
@@ -236,6 +243,8 @@ Chaque transition de revue est tracée dans `assessment_validations` (piste d'au
 | `resolved → closed` | Clôture | Régulateur |
 
 Actes de notification (`notified_initial_at`, `final_report_at`) et changements de statut **ancrés dans le journal probant**.
+
+> **Nuance importante** : l'ordre des statuts d'incident est **indicatif** (guidé par l'UI). Côté serveur, `declare-incident` n'impose pas l'ordre pour `set-status` (hormis `notify` qui exige `triage`) — un régulateur habilité peut fixer un statut valide directement. À l'inverse, les transitions des **évaluations** (§7.2) et l'**escalade des mesures** (§7.4, obligatoirement vers un niveau supérieur) **sont** contraintes côté serveur.
 
 ---
 

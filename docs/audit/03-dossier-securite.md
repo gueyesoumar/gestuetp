@@ -69,7 +69,7 @@ Comply et Regul sont sur **deux projets Supabase distincts** — isolation physi
 
 ## 5. Edge Functions (surface d'écriture)
 
-~50+ fonctions Deno, classées par niveau de confiance :
+59 fonctions Deno, classées par niveau de confiance :
 - **Super-admin** (`requirePlatformOwner` + `admin_audit_log`) : gestion cabinets, users, référentiels, plans, branding, domaines.
 - **Membre cabinet** (`authenticateCaller` + permission + garde cabinet) : missions, équipes, invitations, questionnaires.
 - **Acteurs mission** (rôle lead/associé/membre) : soumission/revue d'évaluations, clôture, preuves.
@@ -99,23 +99,23 @@ En-têtes définis dans `vercel.json` :
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 
-Protection XSS : React échappe par défaut. Upload de logo (`upload-cabinet-logo`) : whitelist MIME (PNG/SVG), limite de taille, **sanitisation SVG** (suppression `script`/`foreignObject`/`on*`/`javascript:`).
+Protection XSS : React échappe par défaut ; **aucun `dangerouslySetInnerHTML` dans `src/`** (le seul, en code mort, a été supprimé). Upload de logo (`upload-cabinet-logo`) : whitelist MIME (PNG/SVG), limite de taille, **sanitisation SVG** (suppression `script`/`foreignObject`/`iframe`/`object`/`embed`/`on*`/`javascript:`).
 
 ## 9. Écarts connus & risques résiduels (déclaration volontaire)
 
 | # | Écart | Risque | Sévérité | Recommandation |
 |---|---|---|---|---|
 | R1 | **Pas de Content-Security-Policy** (ni `vercel.json`, ni meta) | XSS / injection de ressources | Moyen | Ajouter une CSP stricte (`default-src 'self'`, autoriser l'hôte Supabase) |
-| R2 | **1 `dangerouslySetInnerHTML`** dans `src/features/dashboard/ActionsList.tsx` (champ `a.text`) | XSS si la source n'est pas fiable | Moyen | Confirmer l'origine de `a.text` ; sanitiser (DOMPurify) ou supprimer l'injection |
+| ~~R2~~ | ~~`dangerouslySetInnerHTML`~~ **RÉSOLU** : le seul composant concerné (`dashboard/ActionsList.tsx`) était du **code mort** (jamais monté) ; il a été supprimé. **Plus aucun `dangerouslySetInnerHTML` dans `src/`.** | — | Résolu | — |
 | R3 | **Génération de documents côté client** (`jspdf`, `html2canvas`, `exceljs`) | XSS/DoS si contenu brut | Faible-Moyen | Vérifier l'échappement des données injectées dans les rendus PDF/canvas ; suivre les CVE |
 | R4 | **Absence de `.env.example`** | Onboarding / erreur de config | Faible | Créer un fichier d'exemple à placeholders |
-| R5 | **Lint non bloquant** | Dette qualité | Faible | Traiter progressivement ; la garde reste `typecheck` + `build` |
+| R5 | **Lint non bloquant** (~243 erreurs préexistantes, surtout Edge Functions Deno) | Dette qualité | Faible | Traiter progressivement ; la garde reste `typecheck` + `build` |
 | R6 | **Migrations appliquées manuellement** (psql) | Erreur humaine / dérive d'environnement | Faible-Moyen | Journaliser les applications ; envisager une automatisation contrôlée |
 
 ## 10. Points forts à souligner
 
 - TypeScript **strict** + gates CI (`typecheck`, `build`) bloquants.
-- RLS sur ~47 tables, pattern anti-récursion systématique via `SECURITY DEFINER`.
+- RLS sur ~67 tables, pattern anti-récursion systématique via `SECURITY DEFINER`.
 - Cloisonnement portail **durci et vérifié** (00133–00135) ; isolation des instances Comply/Regul.
 - Écritures sensibles exclusivement via `service_role` avec double garde (permission + appartenance).
 - Journal probant append-only vérifiable (valeur probante).

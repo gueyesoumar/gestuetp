@@ -182,7 +182,7 @@ Cycle d'une demande de preuve : `pending → uploaded → accepted | declined_by
 
 | Fonction | Rôle utilisateur | Sortie |
 |---|---|---|
-| **Smart Interview** (portail) | Pré-remplit le questionnaire client à partir des documents déposés (extraction puis synthèse), avec niveau de confiance et type de preuve | Réponses proposées, validées par le client |
+| **Smart Interview** (portail ; Edge Function `smart-questionnaire`) | Pré-remplit le questionnaire client à partir des documents déposés (extraction puis synthèse), avec niveau de confiance et type de preuve | Réponses proposées, validées par le client |
 | **Smart Plan** | Propose le programme de travail : niveau de risque, techniques d'audit, affectation, budget heures, justification | Aperçu accepté/ajusté avant persistance |
 | **Smart Analyse** | Analyse un contrôle (docs + réponses) et propose des constats | Jusqu'à N `assessment_findings` |
 | **Smart Risks** | Détecte les risques initiaux au cadrage | `mission_risks` |
@@ -202,6 +202,8 @@ Pour les organisations `group` supervisant plusieurs entités :
 ---
 
 ## 8. Produit Regul — modules M1–M8 (détail)
+
+> **Note** : « M1–M8 » est une **taxonomie fonctionnelle documentaire** (issue du backlog DSI-REF-GREGUL) ; ces libellés « Mx » **n'apparaissent pas** tels quels dans l'interface ni le code (la navigation utilise des libellés métier : Assujettis, Missions de contrôle, Constats & mesures…). **M2 n'a pas de brique livrée distincte** (le profil réglementaire est intégré à M1) — d'où le saut de M1 à M3 ci-dessous.
 
 | Module | Fonction |
 |---|---|
