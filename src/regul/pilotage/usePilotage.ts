@@ -12,7 +12,7 @@ export interface TypeStat { type: MeasureType; total: number; open: number }
 
 export interface PilotageData {
   loading: boolean
-  posture: { total: number; oiv: number; avgScore: number | null; activeMissions: number; openMeasures: number; overdue: number }
+  posture: { total: number; highCrit: number; avgScore: number | null; activeMissions: number; openMeasures: number; overdue: number }
   riskItems: RiskItem[]
   measuresByType: TypeStat[]
   deadlines: { soon: number; overdue: number }
@@ -45,16 +45,16 @@ export function usePilotage(): PilotageData {
 
     const riskItems: RiskItem[] = subsidiaries.map((s) => ({
       id: s.id, name: s.name,
-      criticality: s.regulatoryProfile?.criticality ?? 'unknown',
+      criticality: s.regulatoryProfile?.criticality ?? 'indetermine',
       score: s.conformityScore,
     }))
 
-    // Priorisation actionnable — OIV jamais contrôlés, conformité critique, mesures en retard, retards de contrôle.
+    // Priorisation actionnable — criticité élevée non contrôlée, conformité critique, retards.
     const priorities: Priority[] = []
     for (const s of subsidiaries) {
       const controlled = s.activeMissions + s.closedMissions > 0
-      const isOiv = s.regulatoryProfile?.criticality === 'oiv'
-      if (isOiv && !controlled) priorities.push({ id: s.id, name: s.name, reason: 'OIV jamais contrôlé', severity: 'high' })
+      const isHigh = s.regulatoryProfile?.criticality === 'eleve'
+      if (isHigh && !controlled) priorities.push({ id: s.id, name: s.name, reason: 'Criticité élevée jamais contrôlée', severity: 'high' })
       else if (s.conformityScore !== null && s.conformityScore < 40) priorities.push({ id: s.id, name: s.name, reason: `Conformité critique (${s.conformityScore}%)`, severity: 'high' })
       else if (s.overdueCount > 0) priorities.push({ id: s.id, name: s.name, reason: `${s.overdueCount} contrôle(s) en retard`, severity: 'medium' })
       else if (!controlled) priorities.push({ id: s.id, name: s.name, reason: 'Aucun contrôle planifié', severity: 'medium' })
@@ -65,7 +65,7 @@ export function usePilotage(): PilotageData {
       loading: sLoading || mLoading,
       posture: {
         total: totalCount,
-        oiv: subsidiaries.filter((s) => s.regulatoryProfile?.criticality === 'oiv').length,
+        highCrit: subsidiaries.filter((s) => s.regulatoryProfile?.criticality === 'eleve').length,
         avgScore: averageScore,
         activeMissions: totalActiveMissions,
         openMeasures: open.length,

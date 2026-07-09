@@ -36,7 +36,7 @@ interface Payload {
   country?: string | null
   include_inactive?: boolean
   // Profil réglementaire (Gëstu Regul / M1) — optionnel, ignoré côté Comply.
-  criticality?: 'oiv' | 'non_oiv' | 'unknown'
+  criticality?: 'eleve' | 'standard' | 'indetermine'
   obligation_regime?: string | null
   tier?: string | null
   reg_status?: 'active' | 'exited'
@@ -44,7 +44,7 @@ interface Payload {
   exit_date?: string | null
 }
 
-const CRITICALITY = ['oiv', 'non_oiv', 'unknown']
+const CRITICALITY = ['eleve', 'standard', 'indetermine']
 const REG_STATUS = ['active', 'exited']
 
 /** Construit le patch de profil réglementaire à partir du payload (null si aucun champ). */

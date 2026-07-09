@@ -41,7 +41,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
   const [city, setCity] = useState(initial?.city ?? '')
   const [country, setCountry] = useState(initial?.country ?? '')
   const rp = initial?.regulatoryProfile
-  const [criticality, setCriticality] = useState<'oiv' | 'non_oiv' | 'unknown'>(rp?.criticality ?? 'unknown')
+  const [criticality, setCriticality] = useState<'eleve' | 'standard' | 'indetermine'>(rp?.criticality ?? 'indetermine')
   const [regime, setRegime] = useState(rp?.obligation_regime ?? '')
   const [tier, setTier] = useState(rp?.tier ?? '')
   const [regStatus, setRegStatus] = useState<'active' | 'exited'>(rp?.status ?? 'active')
@@ -148,7 +148,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[12px] font-medium text-gray-600 mb-1">R&eacute;gime d&apos;obligations</label>
-                  <input value={regime} onChange={(e) => setRegime(e.target.value)} placeholder="ex. r&eacute;gime OIV renforc&eacute;" className={field} />
+                  <input value={regime} onChange={(e) => setRegime(e.target.value)} placeholder="ex. r&eacute;gime renforc&eacute;" className={field} />
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-gray-600 mb-1">Tier de criticit&eacute;</label>

@@ -107,11 +107,17 @@ export const ENTITY_TYPE_OPTIONS = [
 export type EntityType = typeof ENTITY_TYPE_OPTIONS[number]['value']
 
 // Profil réglementaire d'un assujetti (Gëstu Regul / M1).
+// Criticité NEUTRE et configurable : ajuster ces libellés (et eux seuls) pour
+// adopter la terminologie officielle retenue (ex. « Entité essentielle », ou le
+// terme sénégalais quand il sera arrêté). Les valeurs sont des clés stables.
 export const CRITICALITY_OPTIONS = [
-  { value: 'oiv', label: 'OIV' },
-  { value: 'non_oiv', label: 'Non-OIV' },
-  { value: 'unknown', label: 'Non déterminé' },
+  { value: 'eleve', label: 'Criticité élevée' },
+  { value: 'standard', label: 'Criticité standard' },
+  { value: 'indetermine', label: 'Indéterminée' },
 ] as const
+export type Criticality = typeof CRITICALITY_OPTIONS[number]['value']
+export const CRITICALITY_LABELS: Record<string, string> =
+  Object.fromEntries(CRITICALITY_OPTIONS.map((o) => [o.value, o.label]))
 
 export const REG_STATUS_OPTIONS = [
   { value: 'active', label: 'Dans le périmètre' },

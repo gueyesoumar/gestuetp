@@ -4,7 +4,7 @@ import type { EntityType } from '../../lib/constants'
 
 /** Profil réglementaire d'un assujetti (Gëstu Regul / M1). */
 export interface RegulatoryProfile {
-  criticality: 'oiv' | 'non_oiv' | 'unknown'
+  criticality: 'eleve' | 'standard' | 'indetermine'
   obligation_regime: string | null
   tier: string | null
   status: 'active' | 'exited'
@@ -33,7 +33,7 @@ export interface EntityInput {
   city?: string | null
   country?: string | null
   // Profil réglementaire (Regul) — envoyé uniquement en mode produit 'regul'.
-  criticality?: 'oiv' | 'non_oiv' | 'unknown'
+  criticality?: 'eleve' | 'standard' | 'indetermine'
   obligation_regime?: string | null
   tier?: string | null
   reg_status?: 'active' | 'exited'

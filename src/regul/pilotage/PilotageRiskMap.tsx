@@ -1,9 +1,9 @@
 import type { RiskItem } from './usePilotage'
 
 const CRIT_ROWS: { key: string; label: string }[] = [
-  { key: 'oiv', label: 'OIV' },
-  { key: 'non_oiv', label: 'Non-OIV' },
-  { key: 'unknown', label: 'Indéterminé' },
+  { key: 'eleve', label: 'Élevée' },
+  { key: 'standard', label: 'Standard' },
+  { key: 'indetermine', label: 'Indéterminée' },
 ]
 
 // Bandes de conformité, de la pire à la meilleure.
@@ -14,7 +14,7 @@ const BANDS: { key: string; label: string; test: (s: number | null) => boolean; 
   { key: 'na', label: 'Non évalué', test: (s) => s === null, tone: 'bg-gray-50 text-gray-500' },
 ]
 
-/** Matrice criticité × conformité — les OIV non conformes sont mis en évidence. */
+/** Matrice criticité × conformité — les entités très critiques peu conformes ressortent. */
 export function PilotageRiskMap({ items }: { items: RiskItem[] }): JSX.Element {
   const count = (crit: string, bandTest: (s: number | null) => boolean): number =>
     items.filter((i) => i.criticality === crit && bandTest(i.score)).length
@@ -22,7 +22,7 @@ export function PilotageRiskMap({ items }: { items: RiskItem[] }): JSX.Element {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <h3 className="text-sm font-bold text-gray-900 mb-1">Cartographie des risques</h3>
-      <p className="text-[12px] text-gray-500 mb-4">Criticité &times; conformité. Priorité au coin haut-gauche (OIV peu conformes).</p>
+      <p className="text-[12px] text-gray-500 mb-4">Criticité &times; conformité. Priorité au coin haut-gauche (criticité élevée, peu conforme).</p>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-center">
           <thead>
@@ -39,7 +39,7 @@ export function PilotageRiskMap({ items }: { items: RiskItem[] }): JSX.Element {
                 <td className="p-2 text-[11px] font-bold text-gray-700 text-right pr-3">{row.label}</td>
                 {BANDS.map((b) => {
                   const n = count(row.key, b.test)
-                  const priority = row.key === 'oiv' && (b.key === 'crit' || b.key === 'part') && n > 0
+                  const priority = row.key === 'eleve' && (b.key === 'crit' || b.key === 'part') && n > 0
                   return (
                     <td key={b.key} className="p-1.5">
                       <div className={`rounded-lg py-3 font-bold text-lg ${b.tone} ${priority ? 'ring-2 ring-red-500' : ''} ${n === 0 ? 'opacity-40' : ''}`}>
