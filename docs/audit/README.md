@@ -6,6 +6,7 @@ Ensemble documentaire préparé pour un **audit externe fonctionnel et sécurit�
 
 | Fichier | Objet |
 |---|---|
+| [00-contexte-metier-et-vision.md](00-contexte-metier-et-vision.md) | **Le « pourquoi »** — problème métier, acteurs, logiques du domaine (audit & régulation), vision produit. À lire en premier. |
 | [01-dossier-fonctionnel.md](01-dossier-fonctionnel.md) | Périmètre, produits, rôles & permissions, modules, parcours, règles métier |
 | [02-architecture-technique.md](02-architecture-technique.md) | Stack, structure du code, modèle de données, environnements, déploiement, CI/CD |
 | [03-dossier-securite.md](03-dossier-securite.md) | Modèle de menace, auth/RBAC, RLS & cloisonnement, Edge Functions, secrets, journal probant, **écarts connus & risques résiduels** |
