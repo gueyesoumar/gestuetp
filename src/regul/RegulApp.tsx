@@ -21,6 +21,7 @@ import { ClientMissionDetailPage } from '../features/client-portal/missions/Clie
 import { ClientDocumentsPage } from '../features/client-portal/ClientDocumentsPage'
 import { ClientNotificationsPage } from '../features/client-portal/ClientNotificationsPage'
 import { ClientSupportCenterPage } from '../features/client-portal/ClientSupportCenterPage'
+import { AssujettiIncidentsPage } from './incidents/AssujettiIncidentsPage'
 
 /**
  * Application Gëstu Regul — produit à part entière (montée quand
@@ -66,6 +67,7 @@ export function RegulApp(): JSX.Element {
       >
         <Route index element={<ClientDashboardPage />} />
         <Route path="missions" element={<ClientMissionsPage />} />
+        <Route path="incidents" element={<AssujettiIncidentsPage />} />
         <Route path="missions/:id" element={<ClientMissionDetailPage />} />
         <Route path="documents" element={<ClientDocumentsPage />} />
         <Route path="notifications" element={<ClientNotificationsPage />} />

@@ -40,10 +40,16 @@ Deno.serve(async (req) => {
     const caller = auth.profile
     const isClient = caller.role === 'client'
 
-    // Périmètre autorisé : assujetti = sa propre org ; staff = sous-arbre régulateur.
+    // Périmètre autorisé : assujetti = org(s) de son contact portail (entity_org_id,
+    // scope canonique M7 — PAS organization_id, ambigu côté client) ; staff = sous-arbre.
     let allowed: Set<string>
     if (isClient) {
-      allowed = new Set([caller.organization_id])
+      const { data: cpc } = await admin
+        .from('client_portal_contacts')
+        .select('entity_org_id')
+        .eq('user_id', caller.id)
+        .not('entity_org_id', 'is', null)
+      allowed = new Set(((cpc ?? []) as Array<{ entity_org_id: string }>).map((r) => r.entity_org_id))
     } else {
       const { data: rows } = await admin.rpc('get_subsidiary_ids', { parent_id: caller.organization_id })
       allowed = new Set(
@@ -65,7 +71,9 @@ Deno.serve(async (req) => {
 
     // ---- DECLARE ----
     if (body.action === 'declare') {
-      const entityId = body.entity_id ?? ''
+      // Un assujetti mono-org déclare toujours pour SA org (on ignore l'entrée client).
+      let entityId = body.entity_id ?? ''
+      if (isClient && allowed.size === 1) entityId = [...allowed][0]
       if (!allowed.has(entityId)) return json({ error: 'Assujetti hors de votre périmètre' }, 403)
       if (!body.title?.trim()) return json({ error: 'Titre requis' }, 400)
       if (!body.category || !CATEGORIES.includes(body.category)) return json({ error: 'Catégorie invalide' }, 400)
