@@ -10,6 +10,10 @@ drop index if exists public.idx_car_finding;
 alter table public.corrective_action_requests
   drop column if exists finding_id;
 
--- 2. Vider la table assessment_findings (les rows ont ete creees par le backfill)
--- truncate cascade au cas ou d'autres tables referencent assessment_findings dans le futur
-truncate table public.assessment_findings cascade;
+-- 2. NE PAS vider assessment_findings (correctif revue pré-audit).
+-- ANCIENNE version : `truncate table public.assessment_findings cascade;` — DANGEREUX.
+-- Depuis 00100, la table est alimentée par le flux applicatif normal (N findings par
+-- évaluation) : un truncate ici détruirait TOUTES les données réelles, pas seulement
+-- le backfill initial. Rollback rendu volontairement NO-OP sur les données (cf. 00140_down)
+-- pour éviter toute perte. Rollback strict = à faire manuellement après sauvegarde.
+select 1;

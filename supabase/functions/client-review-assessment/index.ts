@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     // Verifier que l'appelant est du côté client de la mission
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, client_id')
+      .select('id, client_id, status')
       .eq('id', assessment.mission_id)
       .single()
 
@@ -88,6 +88,16 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Accès interdit — réservé au client de la mission' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // La mission doit être explicitement en phase de validation client.
+    // (Le statut d'évaluation `in_review` est réutilisé pour la revue interne ;
+    // sans cette borne, le client agirait sur des évaluations non finalisées.)
+    if (mission.status !== 'client_review') {
+      return new Response(
+        JSON.stringify({ error: 'La mission n’est pas en phase de validation client' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 

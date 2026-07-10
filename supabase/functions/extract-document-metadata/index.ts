@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller } from '../_shared/auth.ts'
 
 /**
  * Edge Function : extract-document-metadata (Passe 1 du pipeline IA)
@@ -152,6 +153,12 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
+    // Authentification + refus des clients (fonction réservée au staff cabinet).
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
+    const caller = auth.profile
+    if (caller.role === 'client') return jsonResponse({ error: 'Accès refusé' }, 403)
+
     const body = await req.json() as { document_id?: string }
     const documentId = body.document_id
     if (!documentId) return jsonResponse({ error: 'document_id requis' }, 400)
@@ -167,6 +174,16 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Document introuvable' }, 404)
     }
     const doc = docData as DocRow
+
+    // Cloisonnement : le document doit appartenir à une mission du cabinet de l'appelant.
+    const { data: mission } = await admin
+      .from('missions')
+      .select('cabinet_id')
+      .eq('id', doc.mission_id)
+      .single()
+    if (!mission || mission.cabinet_id !== caller.organization_id) {
+      return jsonResponse({ error: 'Accès interdit à ce document' }, 403)
+    }
 
     // Idempotent : déjà extrait
     if (doc.ai_extracted_at) {
