@@ -45,3 +45,10 @@ jobs:
       - name: Lint (informatif)
         run: npm run lint
         continue-on-error: true
+
+      # SCA (analyse de composition logicielle) : surface les vulnerabilites des
+      # dependances. Informatif pour l'instant (des vulns high preexistent) ; a
+      # passer en gate dur (retirer continue-on-error) une fois les hautes resorbees.
+      - name: Audit dépendances (informatif)
+        run: npm audit --audit-level=high
+        continue-on-error: true
