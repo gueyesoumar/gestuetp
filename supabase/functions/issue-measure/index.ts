@@ -89,7 +89,11 @@ Deno.serve(async (req) => {
       }).select('*').single()
       if (error) { console.error('[issue-measure] issue:', error.message); return json({ error: "Impossible d'émettre la mesure" }, 500) }
       const aerr = await anchor('measure.issued', m.id, { measure_type: m.measure_type, entity_id: m.entity_id, deadline: m.deadline, reference: m.reference })
-      if (aerr) return json({ error: "Acte non ancré dans le journal probant" }, 500)
+      if (aerr) {
+        // Ancrage probant obligatoire : on annule l'acte pour ne pas laisser de mesure orpheline non journalisée.
+        await admin.from('regulatory_measures').delete().eq('id', m.id)
+        return json({ error: "Acte non ancré dans le journal probant" }, 500)
+      }
       return json({ measure: m }, 201)
     }
 
@@ -118,7 +122,10 @@ Deno.serve(async (req) => {
       }).select('*').single()
       if (error) { console.error('[issue-measure] escalate:', error.message); return json({ error: "Escalade impossible" }, 500) }
       const aerr = await anchor('measure.escalated', m.id, { measure_type: m.measure_type, from: src.measure_type, parent_measure_id: src.id, entity_id: m.entity_id })
-      if (aerr) return json({ error: "Acte non ancré dans le journal probant" }, 500)
+      if (aerr) {
+        await admin.from('regulatory_measures').delete().eq('id', m.id)
+        return json({ error: "Acte non ancré dans le journal probant" }, 500)
+      }
       return json({ measure: m }, 201)
     }
 
@@ -131,7 +138,11 @@ Deno.serve(async (req) => {
       const { data: m, error } = await admin.from('regulatory_measures').update({ status: body.status }).eq('id', src.id).select('*').single()
       if (error) { console.error('[issue-measure] set-status:', error.message); return json({ error: 'Changement de statut impossible' }, 500) }
       const aerr = await anchor('measure.status_changed', m.id, { from: src.status, to: body.status, entity_id: m.entity_id })
-      if (aerr) return json({ error: "Acte non ancré dans le journal probant" }, 500)
+      if (aerr) {
+        // On rétablit le statut précédent : pas de changement d'état non journalisé.
+        await admin.from('regulatory_measures').update({ status: src.status }).eq('id', src.id)
+        return json({ error: "Acte non ancré dans le journal probant" }, 500)
+      }
       return json({ measure: m })
     }
 

@@ -27,6 +27,15 @@ interface Payload {
 const CATEGORIES = ['intrusion', 'ransomware', 'fuite_donnees', 'deni_service', 'autre']
 const SEVERITIES = ['faible', 'moyen', 'eleve', 'critique']
 const STATUSES = ['declared', 'triage', 'notified', 'resolved', 'closed']
+// Transitions autorisées via set-status (forward-only). triage -> notified passe
+// par l'action `notify`. Empêche de résoudre/notifier sans qualifier d'abord.
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  declared: ['triage'],
+  triage: ['resolved'],
+  notified: ['resolved'],
+  resolved: ['closed'],
+  closed: [],
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -103,7 +112,11 @@ Deno.serve(async (req) => {
       if (error || !inc) { console.error('[declare-incident] insert:', error?.message); return json({ error: 'Erreur lors de la déclaration' }, 500) }
 
       const anchorErr = await anchor('incident.declared', inc.id, { title: body.title.trim(), category: body.category, severity: body.severity, entity_id: entityId })
-      if (anchorErr) return json({ error: 'Incident non ancré (journal probant)' }, 500)
+      if (anchorErr) {
+        // Ancrage obligatoire : on annule l'incident pour ne pas laisser d'acte non journalisé.
+        await admin.from('incidents').delete().eq('id', inc.id)
+        return json({ error: 'Incident non ancré (journal probant)' }, 500)
+      }
       return json({ success: true, incident_id: inc.id }, 201)
     }
 
@@ -117,20 +130,38 @@ Deno.serve(async (req) => {
     // ---- SET-STATUS ----
     if (body.action === 'set-status') {
       if (!body.status || !STATUSES.includes(body.status)) return json({ error: 'Statut invalide' }, 400)
+      const allowedNext = STATUS_TRANSITIONS[incident.status] ?? []
+      if (!allowedNext.includes(body.status)) {
+        return json({ error: `Transition ${incident.status} → ${body.status} non autorisée` }, 400)
+      }
       const { error } = await admin.from('incidents').update({ status: body.status }).eq('id', incident.id)
       if (error) return json({ error: 'Erreur de mise à jour' }, 500)
-      await anchor('incident.status_changed', incident.id, { from: incident.status, to: body.status })
+      const aerr = await anchor('incident.status_changed', incident.id, { from: incident.status, to: body.status })
+      if (aerr) {
+        await admin.from('incidents').update({ status: incident.status }).eq('id', incident.id)
+        return json({ error: 'Changement non ancré (journal probant)' }, 500)
+      }
       return json({ success: true }, 200)
     }
 
     // ---- NOTIFY ----
     if (body.action === 'notify') {
+      // La notification initiale suppose la qualification préalable.
+      if (body.kind !== 'final' && incident.status === 'declared') {
+        return json({ error: "Qualifiez l'incident (triage) avant de notifier" }, 400)
+      }
       const field = body.kind === 'final' ? 'final_report_at' : 'notified_initial_at'
       const patch: Record<string, unknown> = { [field]: new Date().toISOString() }
       if (body.kind !== 'final' && incident.status === 'triage') patch.status = 'notified'
       const { error } = await admin.from('incidents').update(patch).eq('id', incident.id)
       if (error) return json({ error: 'Erreur de notification' }, 500)
-      await anchor('incident.notified', incident.id, { kind: body.kind ?? 'initial' })
+      const aerr = await anchor('incident.notified', incident.id, { kind: body.kind ?? 'initial' })
+      if (aerr) {
+        const revert: Record<string, unknown> = { [field]: null }
+        if (patch.status) revert.status = incident.status
+        await admin.from('incidents').update(revert).eq('id', incident.id)
+        return json({ error: 'Notification non ancrée (journal probant)' }, 500)
+      }
       return json({ success: true }, 200)
     }
 

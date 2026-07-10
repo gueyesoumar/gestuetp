@@ -63,9 +63,9 @@ export function IncidentDetailPanel({ incident, entityName, onClose, onChanged, 
               <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Actes de régulation</p>
               <div className="flex flex-wrap gap-2">
                 {incident.status === 'declared' && <button disabled={busy} onClick={() => act(() => setStatus(incident.id, 'triage'))} className={`${btn} bg-forest-50 text-forest-700 hover:bg-forest-100`}>Mettre en qualification</button>}
-                {!incident.notified_initial_at && <button disabled={busy} onClick={() => act(() => notify(incident.id, 'initial'))} className={`${btn} bg-forest-700 text-white hover:bg-forest-900`}>Notification initiale</button>}
-                {!incident.final_report_at && <button disabled={busy} onClick={() => act(() => notify(incident.id, 'final'))} className={`${btn} bg-forest-50 text-forest-700 hover:bg-forest-100`}>Rapport final</button>}
-                {incident.status !== 'resolved' && incident.status !== 'closed' && <button disabled={busy} onClick={() => act(() => setStatus(incident.id, 'resolved'))} className={`${btn} bg-green-50 text-green-700 hover:bg-green-100`}>Marquer résolu</button>}
+                {incident.status === 'triage' && !incident.notified_initial_at && <button disabled={busy} onClick={() => act(() => notify(incident.id, 'initial'))} className={`${btn} bg-forest-700 text-white hover:bg-forest-900`}>Notification initiale</button>}
+                {incident.status !== 'declared' && !incident.final_report_at && <button disabled={busy} onClick={() => act(() => notify(incident.id, 'final'))} className={`${btn} bg-forest-50 text-forest-700 hover:bg-forest-100`}>Rapport final</button>}
+                {(incident.status === 'triage' || incident.status === 'notified') && <button disabled={busy} onClick={() => act(() => setStatus(incident.id, 'resolved'))} className={`${btn} bg-green-50 text-green-700 hover:bg-green-100`}>Marquer résolu</button>}
                 {incident.status === 'resolved' && <button disabled={busy} onClick={() => act(() => setStatus(incident.id, 'closed'))} className={`${btn} bg-gray-100 text-gray-700 hover:bg-gray-200`}>Clôturer</button>}
               </div>
             </>

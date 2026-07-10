@@ -282,6 +282,24 @@ Deno.serve(async (req) => {
       if ((count ?? 0) > 0) {
         return json({ error: 'Des missions actives existent sur cette entité. Clôturez-les avant de la désactiver.' }, 409)
       }
+      // Refus si des actes réglementaires restent ouverts (sinon incidents/mesures
+      // deviennent orphelins sur une entité invisible → perte de suivi probant).
+      const { count: openMeasures } = await admin
+        .from('regulatory_measures')
+        .select('id', { count: 'exact', head: true })
+        .eq('entity_id', entityId)
+        .not('status', 'in', '("resolved","closed")')
+      if ((openMeasures ?? 0) > 0) {
+        return json({ error: 'Des mesures réglementaires sont encore ouvertes sur cette entité. Clôturez-les avant de la désactiver.' }, 409)
+      }
+      const { count: openIncidents } = await admin
+        .from('incidents')
+        .select('id', { count: 'exact', head: true })
+        .eq('entity_id', entityId)
+        .not('status', 'in', '("resolved","closed")')
+      if ((openIncidents ?? 0) > 0) {
+        return json({ error: 'Des incidents sont encore ouverts sur cette entité. Traitez-les avant de la désactiver.' }, 409)
+      }
       const { error } = await admin.from('organizations').update({ is_active: false }).eq('id', entityId)
       if (error) {
         console.error('[manage-entity] deactivate:', error.message)
