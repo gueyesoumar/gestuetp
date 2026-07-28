@@ -45,7 +45,9 @@ export function MfaEnrollment(): JSX.Element {
           </ol>
           <div className="flex justify-center mb-4">
             <img
-              src={`data:image/svg+xml;utf8,${encodeURIComponent(enroll.qrCodeSvg)}`}
+              src={enroll.qrCodeSvg.startsWith('data:')
+                ? enroll.qrCodeSvg
+                : `data:image/svg+xml;utf8,${encodeURIComponent(enroll.qrCodeSvg)}`}
               alt="QR code de configuration TOTP"
               className="w-44 h-44 rounded-lg border border-gray-200 bg-white p-2"
             />
