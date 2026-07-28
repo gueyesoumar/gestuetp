@@ -37,6 +37,19 @@ export type AuthOutcome =
  *   if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
  *   const caller = auth.profile
  */
+/**
+ * Lit le claim `aal` du JWT (déjà validé cryptographiquement par getUser).
+ * Décodage du payload uniquement — aucune vérification de signature ici.
+ */
+function readAal(token: string): string | null {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+    return typeof json?.aal === 'string' ? json.aal : null
+  } catch { return null }
+}
+
 export async function authenticateCaller(
   admin: SupabaseClient,
   req: Request,
@@ -47,6 +60,13 @@ export async function authenticateCaller(
   const token = authHeader.replace('Bearer ', '').trim()
   const { data: { user: caller }, error: authError } = await admin.auth.getUser(token)
   if (authError || !caller) return { ok: false, status: 401, message: 'Non autorisé' }
+
+  // MFA obligatoire (AAL2) — activé via l'interrupteur MFA_ENFORCE une fois les
+  // comptes enrôlés (sinon lockout massif). Couvre toute la surface d'écriture
+  // edge, y compris un appel direct à l'API avec un jeton AAL1.
+  if (Deno.env.get('MFA_ENFORCE') === 'on' && readAal(token) !== 'aal2') {
+    return { ok: false, status: 401, message: 'Authentification à deux facteurs requise' }
+  }
 
   const { data: profile } = await (admin
     .from('users') as any)
