@@ -8,6 +8,18 @@ import { MfaShell } from './MfaShell'
 // Enrôlement TOTP forcé : affiché quand la MFA est obligatoire et qu'aucun
 // facteur vérifié n'existe. Bloque l'accès tant que le facteur n'est pas confirmé.
 
+// gotrue renvoie qr_code comme data-URI de SVG BRUT (non encodé) : les '#' des
+// couleurs tronquent l'URI et cassent l'image. On ré-encode la charge utile.
+function qrToSrc(qr: string): string {
+  const s = qr.trim()
+  if (s.startsWith('data:') && s.includes('<svg')) {
+    return `data:image/svg+xml;utf8,${encodeURIComponent(s.slice(s.indexOf(',') + 1))}`
+  }
+  if (s.startsWith('data:')) return s
+  if (s.startsWith('<')) return `data:image/svg+xml;utf8,${encodeURIComponent(s)}`
+  return s
+}
+
 export function MfaEnrollment(): JSX.Element {
   const { refreshMfa, signOut } = useAuth()
   const { busy, error, enrollTotp, verifyCode } = useMfa()
@@ -45,9 +57,7 @@ export function MfaEnrollment(): JSX.Element {
           </ol>
           <div className="flex justify-center mb-4">
             <img
-              src={enroll.qrCodeSvg.startsWith('data:')
-                ? enroll.qrCodeSvg
-                : `data:image/svg+xml;utf8,${encodeURIComponent(enroll.qrCodeSvg)}`}
+              src={qrToSrc(enroll.qrCodeSvg)}
               alt="QR code de configuration TOTP"
               className="w-44 h-44 rounded-lg border border-gray-200 bg-white p-2"
             />
