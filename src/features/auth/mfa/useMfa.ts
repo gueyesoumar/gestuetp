@@ -1,5 +1,10 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { isRegul } from '../../../lib/product'
+
+// Nom affiché comme émetteur dans l'app d'authentification (au lieu de la Site URL
+// par défaut de gotrue). Dépend du produit.
+const MFA_ISSUER = isRegul ? 'Gëstu Regul' : 'Gëstu Comply'
 
 // Encapsule les appels MFA de Supabase (TOTP). Le secret n'existe que côté
 // Supabase (gotrue) ; on ne manipule ici que des identifiants de facteur.
@@ -30,7 +35,7 @@ export function useMfa(): UseMfa {
       const stale = (list?.all ?? []).filter((f) => f.factor_type === 'totp' && f.status === 'unverified')
       for (const f of stale) await supabase.auth.mfa.unenroll({ factorId: f.id })
 
-      const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Authenticator' })
+      const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Authenticator', issuer: MFA_ISSUER })
       if (err || !data) {
         console.error('MFA enroll:', err?.message ?? 'inconnu')
         setError('Impossible de démarrer la configuration. Réessayez.')
