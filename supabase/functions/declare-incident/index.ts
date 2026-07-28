@@ -88,11 +88,30 @@ Deno.serve(async (req) => {
       if (!body.category || !CATEGORIES.includes(body.category)) return json({ error: 'Catégorie invalide' }, 400)
       if (!body.severity || !SEVERITIES.includes(body.severity)) return json({ error: 'Gravité invalide' }, 400)
 
+      // Bornage serveur des dates auto-déclarées : les échéances réglementaires
+      // sont ancrées sur detected_at. Sans borne, un assujetti pourrait antidater
+      // pour paraître dans les délais. On refuse toute date de détection future
+      // et toute survenance postérieure à la détection.
+      const now = new Date()
+      let detectedAt = now
+      if (body.detected_at) {
+        const d = new Date(body.detected_at)
+        if (isNaN(d.getTime())) return json({ error: 'Date de détection invalide' }, 400)
+        if (d.getTime() > now.getTime()) return json({ error: 'La date de détection ne peut être dans le futur' }, 400)
+        detectedAt = d
+      }
+      let occurredAt: Date | null = null
+      if (body.occurred_at) {
+        const o = new Date(body.occurred_at)
+        if (isNaN(o.getTime())) return json({ error: 'Date de survenance invalide' }, 400)
+        if (o.getTime() > detectedAt.getTime()) return json({ error: 'La survenance doit précéder la détection' }, 400)
+        occurredAt = o
+      }
+
       // Échéances calculées depuis les règles configurables (gelées à la déclaration).
       const { data: rule } = await admin.from('incident_notification_rules').select('initial_hours, final_days').eq('severity', body.severity).single()
-      const base = body.detected_at ? new Date(body.detected_at) : new Date()
-      const initialDeadline = rule ? new Date(base.getTime() + rule.initial_hours * 3600000).toISOString() : null
-      const finalDeadline = rule ? new Date(base.getTime() + rule.final_days * 86400000).toISOString() : null
+      const initialDeadline = rule ? new Date(detectedAt.getTime() + rule.initial_hours * 3600000).toISOString() : null
+      const finalDeadline = rule ? new Date(detectedAt.getTime() + rule.final_days * 86400000).toISOString() : null
 
       const { data: inc, error } = await admin.from('incidents').insert({
         entity_id: entityId,
@@ -104,14 +123,14 @@ Deno.serve(async (req) => {
         description: body.description ?? null,
         impact: body.impact ?? null,
         affected_systems: body.affected_systems ?? null,
-        detected_at: body.detected_at ?? null,
-        occurred_at: body.occurred_at ?? null,
+        detected_at: detectedAt.toISOString(),
+        occurred_at: occurredAt ? occurredAt.toISOString() : null,
         initial_deadline: initialDeadline,
         final_deadline: finalDeadline,
       }).select('id').single()
       if (error || !inc) { console.error('[declare-incident] insert:', error?.message); return json({ error: 'Erreur lors de la déclaration' }, 500) }
 
-      const anchorErr = await anchor('incident.declared', inc.id, { title: body.title.trim(), category: body.category, severity: body.severity, entity_id: entityId })
+      const anchorErr = await anchor('incident.declared', inc.id, { title: body.title.trim(), category: body.category, severity: body.severity, entity_id: entityId, detected_at: detectedAt.toISOString() })
       if (anchorErr) {
         // Ancrage obligatoire : on annule l'incident pour ne pas laisser d'acte non journalisé.
         await admin.from('incidents').delete().eq('id', inc.id)

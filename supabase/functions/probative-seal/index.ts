@@ -33,9 +33,93 @@ function toB64(bytes: Uint8Array): string {
   return btoa(s)
 }
 
+// ── DER : lecture TLV minimale pour vérifier la réponse RFC-3161 ───────────────
+interface Tlv { tag: number; vStart: number; vEnd: number; end: number }
+function readTlv(b: Uint8Array, pos: number): Tlv {
+  const tag = b[pos]
+  let i = pos + 1
+  let len = b[i]; i += 1
+  if (len & 0x80) {
+    const n = len & 0x7f
+    len = 0
+    for (let k = 0; k < n; k++) { len = (len << 8) | b[i]; i += 1 }
+  }
+  return { tag, vStart: i, vEnd: i + len, end: i + len }
+}
+function tlvChildren(b: Uint8Array, t: Tlv): Tlv[] {
+  const out: Tlv[] = []
+  let pos = t.vStart
+  while (pos < t.vEnd) { const c = readTlv(b, pos); out.push(c); pos = c.end }
+  return out
+}
+function stripZeros(b: Uint8Array): Uint8Array {
+  let i = 0; while (i < b.length - 1 && b[i] === 0) i += 1; return b.slice(i)
+}
+function bytesEq(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+  return true
+}
+
 /**
- * Sollicite une TSA RFC-3161 pour horodater `message` (SHA-256 du message).
- * Best-effort : renvoie { status:'failed' } sans jeter en cas de souci.
+ * Vérifie un TimeStampResp RFC-3161 : PKIStatus granted/grantedWithMods,
+ * messageImprint == digest envoyé, nonce == nonce émis. Refuse tout jeton portant
+ * sur un autre hash (MITM / TSA compromise) ou rejoué.
+ */
+function verifyTimeStampResp(resp: Uint8Array, digest: Uint8Array, nonceSent: Uint8Array): { ok: boolean; reason: string } {
+  try {
+    const root = readTlv(resp, 0)
+    if (root.tag !== 0x30) return { ok: false, reason: 'réponse non SEQUENCE' }
+    const top = tlvChildren(resp, root)
+    const statusInfo = top[0]
+    if (!statusInfo || statusInfo.tag !== 0x30) return { ok: false, reason: 'PKIStatusInfo absent' }
+    const statusInt = tlvChildren(resp, statusInfo)[0]
+    if (!statusInt || statusInt.tag !== 0x02) return { ok: false, reason: 'status absent' }
+    const statusVal = resp[statusInt.vStart]
+    if (statusVal !== 0 && statusVal !== 1) return { ok: false, reason: `PKIStatus=${statusVal} (rejet TSA)` }
+    const token = top[1]
+    if (!token || token.tag !== 0x30) return { ok: false, reason: 'timeStampToken absent' }
+    // ContentInfo { contentType OID, [0] content=SignedData }
+    const ciContent = tlvChildren(resp, token).find((c) => c.tag === 0xA0)
+    if (!ciContent) return { ok: false, reason: 'ContentInfo.content absent' }
+    const signedData = tlvChildren(resp, ciContent)[0]
+    if (!signedData || signedData.tag !== 0x30) return { ok: false, reason: 'SignedData absent' }
+    // SignedData { version, digestAlgorithms SET, encapContentInfo, ... }
+    const encapInfo = tlvChildren(resp, signedData)[2]
+    if (!encapInfo || encapInfo.tag !== 0x30) return { ok: false, reason: 'encapContentInfo absent' }
+    const eContentCtx = tlvChildren(resp, encapInfo).find((c) => c.tag === 0xA0)
+    if (!eContentCtx) return { ok: false, reason: 'eContent absent' }
+    const octet = tlvChildren(resp, eContentCtx)[0]
+    if (!octet || octet.tag !== 0x04) return { ok: false, reason: 'eContent OCTET STRING absent' }
+    const tstInfo = readTlv(resp, octet.vStart)
+    if (tstInfo.tag !== 0x30) return { ok: false, reason: 'TSTInfo absent' }
+    // TSTInfo { version, policy OID, messageImprint, serial, genTime, ..., nonce? }
+    const ti = tlvChildren(resp, tstInfo)
+    const mi = ti[2]
+    if (!mi || mi.tag !== 0x30) return { ok: false, reason: 'messageImprint absent' }
+    const hashed = tlvChildren(resp, mi)[1]
+    if (!hashed || hashed.tag !== 0x04) return { ok: false, reason: 'hashedMessage absent' }
+    if (!bytesEq(resp.slice(hashed.vStart, hashed.vEnd), digest)) {
+      return { ok: false, reason: 'messageImprint != digest envoyé' }
+    }
+    // nonce : premier INTEGER après genTime (index 4).
+    let nonceTlv: Tlv | undefined
+    for (let k = 5; k < ti.length; k++) { if (ti[k].tag === 0x02) { nonceTlv = ti[k]; break } }
+    if (!nonceTlv) return { ok: false, reason: 'nonce non renvoyé par la TSA' }
+    if (!bytesEq(stripZeros(resp.slice(nonceTlv.vStart, nonceTlv.vEnd)), stripZeros(nonceSent))) {
+      return { ok: false, reason: 'nonce != nonce émis (rejeu possible)' }
+    }
+    return { ok: true, reason: 'granted' }
+  } catch (e) {
+    return { ok: false, reason: 'parse: ' + (e instanceof Error ? e.message : String(e)) }
+  }
+}
+
+/**
+ * Sollicite une TSA RFC-3161 pour horodater `message` (SHA-256 du message) et
+ * VÉRIFIE la réponse (statut, empreinte, nonce). Best-effort : renvoie
+ * { status:'failed' } sans jeter en cas de souci, mais ne marque 'granted'
+ * qu'après validation cryptographique du TimeStampResp.
  */
 async function requestTsaToken(message: string, tsaUrl: string): Promise<{ tst?: string; status: 'granted' | 'failed' }> {
   try {
@@ -57,6 +141,12 @@ async function requestTsaToken(message: string, tsaUrl: string): Promise<{ tst?:
     if (!resp.ok) { console.error('[probative-seal] TSA HTTP', resp.status); return { status: 'failed' } }
     const bytes = new Uint8Array(await resp.arrayBuffer())
     if (bytes.length === 0) return { status: 'failed' }
+    const check = verifyTimeStampResp(bytes, digest, nonceRaw)
+    if (!check.ok) {
+      // Jeton conservé pour analyse offline, mais statut marqué failed.
+      console.error('[probative-seal] TSA jeton invalide:', check.reason)
+      return { tst: toB64(bytes), status: 'failed' }
+    }
     return { tst: toB64(bytes), status: 'granted' }
   } catch (e) {
     console.error('[probative-seal] TSA:', e instanceof Error ? e.message : String(e))

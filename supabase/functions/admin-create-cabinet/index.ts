@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
     console.error('[admin-create-cabinet] error:', message)
-    return jsonResponse({ error: message }, 500)
+    return jsonResponse({ error: 'Erreur interne' }, 500)
   }
 })
 

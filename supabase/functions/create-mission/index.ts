@@ -36,7 +36,11 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
-    // 1. Identifier l'appelant via le JWT (Authorization OU x-auth-token)
+    // 1. Identifier l'appelant via le JWT (Authorization OU x-auth-token).
+    //    L'identite provient EXCLUSIVEMENT du token verifie cryptographiquement
+    //    par auth.getUser. Aucun fallback sur un header fourni par le client :
+    //    ce serait une usurpation d'identite (le client tourne en service_role,
+    //    donc plus aucune barriere RLS ne rattraperait la fuite).
     const authHeader = req.headers.get('Authorization') ?? req.headers.get('x-auth-token')
 
     let callerId: string | null = null
@@ -46,30 +50,6 @@ Deno.serve(async (req) => {
       const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
       if (!authError && user) {
         callerId = user.id
-      }
-    }
-
-    // Fallback: extraire l'user depuis le context Supabase (fonctions hosted)
-    if (!callerId) {
-      // Sur Supabase hosted, le user_id est injecte dans le header x-supabase-auth
-      const supabaseAuth = req.headers.get('x-supabase-auth')
-      if (supabaseAuth) {
-        try {
-          const parsed = JSON.parse(supabaseAuth)
-          callerId = parsed.sub ?? parsed.user_id ?? null
-        } catch { /* */ }
-      }
-    }
-
-    if (!callerId) {
-      // Dernier recours : creer un client avec la cle anon + le JWT du user
-      const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
-      if (anonKey && authHeader) {
-        const userClient = createClient(supabaseUrl, anonKey, {
-          global: { headers: { Authorization: authHeader } },
-        })
-        const { data: { user } } = await userClient.auth.getUser()
-        if (user) callerId = user.id
       }
     }
 

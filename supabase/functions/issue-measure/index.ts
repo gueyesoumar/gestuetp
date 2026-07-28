@@ -15,6 +15,17 @@ import { authenticateCaller } from '../_shared/auth.ts'
 const MEASURE_TYPES = ['recommandation', 'mise_en_demeure', 'injonction', 'sanction']
 const ORDER: Record<string, number> = { recommandation: 0, mise_en_demeure: 1, injonction: 2, sanction: 3 }
 const STATUSES = ['draft', 'issued', 'acknowledged', 'resolved', 'appealed', 'closed']
+// Transitions autorisées via set-status. À la différence des incidents, le cycle
+// des mesures est réversible par le RECOURS : `appealed` est atteignable depuis
+// tout état actif (y compris resolved/closed), et un recours peut être re-traité.
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  draft: ['issued'],
+  issued: ['acknowledged', 'resolved', 'appealed'],
+  acknowledged: ['resolved', 'appealed'],
+  resolved: ['closed', 'appealed'],
+  appealed: ['acknowledged', 'resolved', 'closed'],
+  closed: ['appealed'],
+}
 
 interface Payload {
   action: 'issue' | 'escalate' | 'set-status'
@@ -135,6 +146,10 @@ Deno.serve(async (req) => {
       const { data: src, error: srcErr } = await admin.from('regulatory_measures').select('id, entity_id, status').eq('id', body.measure_id ?? '').single()
       if (srcErr || !src) return json({ error: 'Mesure introuvable' }, 404)
       if (!subtree.has(src.entity_id)) return json({ error: 'Mesure hors de votre périmètre' }, 403)
+      const allowedNext = STATUS_TRANSITIONS[src.status] ?? []
+      if (!allowedNext.includes(body.status)) {
+        return json({ error: `Transition ${src.status} → ${body.status} non autorisée` }, 400)
+      }
       const { data: m, error } = await admin.from('regulatory_measures').update({ status: body.status }).eq('id', src.id).select('*').single()
       if (error) { console.error('[issue-measure] set-status:', error.message); return json({ error: 'Changement de statut impossible' }, 500) }
       const aerr = await anchor('measure.status_changed', m.id, { from: src.status, to: body.status, entity_id: m.entity_id })

@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller, ACCESS_DENIED } from '../_shared/auth.ts'
 
 /**
  * Edge Function : extract-org-chart-actors
@@ -39,16 +40,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return jsonResponse({ error: 'Non autorise' }, 401)
-
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user: caller }, error: authError } = await admin.auth.getUser(token)
-    if (authError || !caller) return jsonResponse({ error: 'Non autorise' }, 401)
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
+    const caller = auth.profile
+    // Fonctionnalite reservee aux auditeurs (jamais un compte portail client) —
+    // sinon abus de cout Anthropic par un tiers non habilite.
+    if (caller.role === 'client') return jsonResponse({ error: 'Acces refuse' }, 403)
 
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') ?? Deno.env.get('ANTHROPIC_KEY')
     if (!anthropicKey) return jsonResponse({ error: 'Cle API Anthropic non configuree' }, 500)
@@ -57,6 +58,16 @@ Deno.serve(async (req) => {
     const missionId = formData.get('mission_id')
     if (typeof missionId !== 'string' || missionId.length === 0) {
       return jsonResponse({ error: 'mission_id requis' }, 400)
+    }
+
+    // Cloisonnement : la mission doit appartenir au cabinet de l'appelant.
+    const { data: mission } = await admin
+      .from('missions')
+      .select('id, cabinet_id')
+      .eq('id', missionId)
+      .single()
+    if (!mission || mission.cabinet_id !== caller.organization_id) {
+      return jsonResponse({ error: ACCESS_DENIED }, 403)
     }
     const file = formData.get('file')
     if (!(file instanceof File)) return jsonResponse({ error: 'fichier requis' }, 400)
