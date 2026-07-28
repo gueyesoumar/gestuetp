@@ -4,13 +4,19 @@ import type { Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import type { User } from '../../types/database.types'
 
+type Aal = 'aal1' | 'aal2'
+export interface AalInfo { current: Aal | null; next: Aal | null }
+
 export interface AuthState {
   session: Session | null
   profile: User | null
   loading: boolean
+  aal: AalInfo | null
+  mfaLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
+  refreshMfa: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthState | null>(null)
@@ -19,74 +25,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  // Miroir du profil pour onAuthStateChange (evite le closure perime) : sert a ne
-  // remettre loading=true que quand un profil doit etre charge (connexion), pas a
-  // chaque TOKEN_REFRESHED ou il est deja la (sinon flash de chargement intempestif).
+  const [aal, setAal] = useState<AalInfo | null>(null)
+  const [mfaLoading, setMfaLoading] = useState(true)
   const profileRef = useRef<User | null>(null)
+  const aalRef = useRef<AalInfo | null>(null)
 
   const fetchProfile = useCallback(async (authId: string, signal?: AbortSignal) => {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('auth_id', authId)
-        .abortSignal(signal ?? new AbortController().signal)
-        .single()
-
+        .from('users').select('*').eq('auth_id', authId)
+        .abortSignal(signal ?? new AbortController().signal).single()
       if (signal?.aborted) return
       if (error) {
         console.error('Erreur chargement profil:', error.message)
-        setProfile(null)
-        profileRef.current = null
-        return
+        setProfile(null); profileRef.current = null; return
       }
-      setProfile(data)
-      profileRef.current = data
+      setProfile(data); profileRef.current = data
     } finally {
-      // Le profil est résolu (succès ou échec) : c'est seulement ici qu'on lève
-      // le flag de chargement, pour qu'aucun guard ne s'exécute avec profile=null
-      // alors que la session existe (sinon rendu/redirection cross-rôle erronés).
       if (!signal?.aborted) setLoading(false)
     }
   }, [])
 
+  // Niveau d'assurance (AAL) : source de vérité de la barrière MFA. Rafraîchi à
+  // chaque changement de session et après un enrôlement / challenge vérifié.
+  const loadAal = useCallback(async () => {
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (error || !data) {
+      console.error('MFA AAL:', error?.message ?? 'inconnu')
+      aalRef.current = null; setAal(null); setMfaLoading(false); return
+    }
+    const next: AalInfo = { current: data.currentLevel, next: data.nextLevel }
+    aalRef.current = next; setAal(next); setMfaLoading(false)
+  }, [])
+
   useEffect(() => {
     const abortController = new AbortController()
-
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    const onSession = (s: Session | null) => {
       if (abortController.signal.aborted) return
-      setSession(currentSession)
-      if (currentSession?.user) {
-        // loading reste true jusqu'à la résolution du profil (gérée par fetchProfile)
-        fetchProfile(currentSession.user.id, abortController.signal)
+      setSession(s)
+      if (s?.user) {
+        if (!profileRef.current) setLoading(true)
+        if (!aalRef.current) setMfaLoading(true)
+        fetchProfile(s.user.id, abortController.signal)
+        loadAal()
       } else {
-        setLoading(false)
+        setProfile(null); profileRef.current = null; setLoading(false)
+        setAal(null); aalRef.current = null; setMfaLoading(false)
       }
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        if (abortController.signal.aborted) return
-        setSession(newSession)
-        if (newSession?.user) {
-          // Pas encore de profil pour cette session (connexion) : on bloque les
-          // guards le temps de le charger, pour qu'aucune redirection role-dependante
-          // (ex: owner -> /admin) ne s'execute avec profile=null.
-          if (!profileRef.current) setLoading(true)
-          fetchProfile(newSession.user.id, abortController.signal)
-        } else {
-          setProfile(null)
-          profileRef.current = null
-          setLoading(false)
-        }
-      }
-    )
-
-    return () => {
-      abortController.abort()
-      subscription.unsubscribe()
     }
-  }, [fetchProfile])
+
+    supabase.auth.getSession().then(({ data: { session: s } }) => onSession(s))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => onSession(s))
+
+    return () => { abortController.abort(); subscription.unsubscribe() }
+  }, [fetchProfile, loadAal])
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -100,15 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut()
-    if (error) {
-      console.error('Erreur deconnexion:', error.message)
-    }
-    setProfile(null)
-    profileRef.current = null
+    if (error) console.error('Erreur deconnexion:', error.message)
+    setProfile(null); profileRef.current = null
+    setAal(null); aalRef.current = null
   }, [])
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ session, profile, loading, aal, mfaLoading, signIn, signUp, signOut, refreshMfa: loadAal }}>
       {children}
     </AuthContext.Provider>
   )
