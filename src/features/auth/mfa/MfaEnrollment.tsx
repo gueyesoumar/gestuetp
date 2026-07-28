@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import QRCode from 'qrcode'
 import { useMfa } from './useMfa'
 import type { TotpEnrollment } from './useMfa'
 import { useAuth } from '../../../hooks/useAuth'
@@ -7,23 +8,14 @@ import { MfaShell } from './MfaShell'
 
 // Enrôlement TOTP forcé : affiché quand la MFA est obligatoire et qu'aucun
 // facteur vérifié n'existe. Bloque l'accès tant que le facteur n'est pas confirmé.
-
-// gotrue renvoie qr_code comme data-URI de SVG BRUT (non encodé) : les '#' des
-// couleurs tronquent l'URI et cassent l'image. On ré-encode la charge utile.
-function qrToSrc(qr: string): string {
-  const s = qr.trim()
-  if (s.startsWith('data:') && s.includes('<svg')) {
-    return `data:image/svg+xml;utf8,${encodeURIComponent(s.slice(s.indexOf(',') + 1))}`
-  }
-  if (s.startsWith('data:')) return s
-  if (s.startsWith('<')) return `data:image/svg+xml;utf8,${encodeURIComponent(s)}`
-  return s
-}
+// Le QR est généré côté client à partir de l'URI otpauth:// (PNG data-URL),
+// indépendamment du format de qr_code renvoyé par gotrue.
 
 export function MfaEnrollment(): JSX.Element {
   const { refreshMfa, signOut } = useAuth()
   const { busy, error, enrollTotp, verifyCode } = useMfa()
   const [enroll, setEnroll] = useState<TotpEnrollment | null>(null)
+  const [qrPng, setQrPng] = useState<string | null>(null)
   const [loadErr, setLoadErr] = useState(false)
   const [code, setCode] = useState('')
   const started = useRef(false)
@@ -33,6 +25,13 @@ export function MfaEnrollment(): JSX.Element {
     started.current = true
     enrollTotp().then((e) => { if (e) setEnroll(e); else setLoadErr(true) })
   }, [enrollTotp])
+
+  useEffect(() => {
+    if (!enroll?.uri) return
+    QRCode.toDataURL(enroll.uri, { width: 200, margin: 1 })
+      .then(setQrPng)
+      .catch((err: unknown) => console.error('QR:', err instanceof Error ? err.message : String(err)))
+  }, [enroll])
 
   const onSubmit = async (ev: FormEvent): Promise<void> => {
     ev.preventDefault()
@@ -56,11 +55,17 @@ export function MfaEnrollment(): JSX.Element {
             <li>Scannez ce QR code, puis saisissez le code à 6 chiffres généré.</li>
           </ol>
           <div className="flex justify-center mb-4">
-            <img
-              src={qrToSrc(enroll.qrCodeSvg)}
-              alt="QR code de configuration TOTP"
-              className="w-44 h-44 rounded-lg border border-gray-200 bg-white p-2"
-            />
+            {qrPng ? (
+              <img
+                src={qrPng}
+                alt="QR code de configuration TOTP"
+                className="w-44 h-44 rounded-lg border border-gray-200 bg-white p-2"
+              />
+            ) : (
+              <div className="w-44 h-44 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-xs text-gray-400">
+                Génération du QR&hellip;
+              </div>
+            )}
           </div>
           <details className="mb-4">
             <summary className="text-xs text-gray-500 cursor-pointer">Impossible de scanner&nbsp;? Saisie manuelle</summary>

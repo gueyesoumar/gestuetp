@@ -6,7 +6,7 @@ import { supabase } from '../../../lib/supabase'
 
 export interface TotpEnrollment {
   factorId: string
-  qrCodeSvg: string
+  uri: string
   secret: string
 }
 
@@ -36,7 +36,7 @@ export function useMfa(): UseMfa {
         setError('Impossible de démarrer la configuration. Réessayez.')
         return null
       }
-      return { factorId: data.id, qrCodeSvg: data.totp.qr_code, secret: data.totp.secret }
+      return { factorId: data.id, uri: data.totp.uri, secret: data.totp.secret }
     } catch (e) {
       console.error('MFA enroll:', e instanceof Error ? e.message : String(e))
       setError('Une erreur est survenue. Réessayez.')
