@@ -16,6 +16,54 @@ function timingSafeEqual(a: string, b: string): boolean {
   return out === 0
 }
 
+// ── RFC-3161 : construction manuelle de la requête d'horodatage (DER) ──────────
+function derLen(n: number): number[] {
+  if (n < 0x80) return [n]
+  const o: number[] = []
+  let x = n
+  while (x > 0) { o.unshift(x & 0xff); x = x >> 8 }
+  return [0x80 | o.length, ...o]
+}
+function der(tag: number, content: number[]): number[] {
+  return [tag, ...derLen(content.length), ...content]
+}
+function toB64(bytes: Uint8Array): string {
+  let s = ''
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i])
+  return btoa(s)
+}
+
+/**
+ * Sollicite une TSA RFC-3161 pour horodater `message` (SHA-256 du message).
+ * Best-effort : renvoie { status:'failed' } sans jeter en cas de souci.
+ */
+async function requestTsaToken(message: string, tsaUrl: string): Promise<{ tst?: string; status: 'granted' | 'failed' }> {
+  try {
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message)))
+    const sha256Oid = [0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01]
+    const algId = der(0x30, [...sha256Oid, 0x05, 0x00])
+    const hashedMessage = der(0x04, [...digest])
+    const messageImprint = der(0x30, [...algId, ...hashedMessage])
+    const version = [0x02, 0x01, 0x01]
+    const nonceRaw = crypto.getRandomValues(new Uint8Array(8)); nonceRaw[0] &= 0x7f
+    const nonce = der(0x02, [...nonceRaw])
+    const certReq = [0x01, 0x01, 0xff]
+    const reqDer = Uint8Array.from(der(0x30, [...version, ...messageImprint, ...nonce, ...certReq]))
+    const resp = await fetch(tsaUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/timestamp-query', 'Accept': 'application/timestamp-reply' },
+      body: reqDer,
+    })
+    if (!resp.ok) { console.error('[probative-seal] TSA HTTP', resp.status); return { status: 'failed' } }
+    const bytes = new Uint8Array(await resp.arrayBuffer())
+    if (bytes.length === 0) return { status: 'failed' }
+    return { tst: toB64(bytes), status: 'granted' }
+  } catch (e) {
+    console.error('[probative-seal] TSA:', e instanceof Error ? e.message : String(e))
+    return { status: 'failed' }
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   const json = (b: unknown, s: number): Response =>
@@ -58,13 +106,23 @@ Deno.serve(async (req) => {
       const head = (headRows && headRows[0]) as { seq: number; hash: string } | undefined
       const { count } = await admin.from('probative_log').select('id', { count: 'exact', head: true })
 
+      const headHash = head?.hash ?? ''
+
+      // Horodatage RFC-3161 (best-effort) : la TSA signe le hash de tête.
+      const tsaUrl = Deno.env.get('PROBATIVE_TSA_URL') ?? 'https://freetsa.org/tsr'
+      const tsaEnabled = tsaUrl && tsaUrl !== 'off' && headHash !== ''
+      const tsa = tsaEnabled ? await requestTsaToken(headHash, tsaUrl) : { status: null as string | null, tst: undefined as string | undefined }
+
       const seal = {
         seq_head: head?.seq ?? 0,
         entry_count: count ?? 0,
-        head_hash: head?.hash ?? '',
+        head_hash: headHash,
         chain_ok: chainOk,
         broken_seq: brokenSeq,
         emitted_to: Deno.env.get('PROBATIVE_SEAL_RECIPIENT') ?? null,
+        tst: tsa.tst ?? null,
+        tsa_url: tsaEnabled ? tsaUrl : null,
+        tst_status: tsa.status,
       }
       const { data: inserted, error } = await admin.from('probative_seals').insert(seal).select('*').single()
       if (error) { console.error('[probative-seal] insert:', error.message); return json({ error: 'Échec de scellement' }, 500) }
@@ -81,6 +139,7 @@ Deno.serve(async (req) => {
             <li><b>Nombre d'entrées</b> : ${seal.entry_count}</li>
             <li><b>Hash de tête</b> : <code>${seal.head_hash || '(chaîne vide)'}</code></li>
             <li><b>Chaîne vérifiée</b> : ${seal.chain_ok ? 'OK' : `ROMPUE (seq ${seal.broken_seq})`}</li>
+            <li><b>Horodatage RFC-3161</b> : ${seal.tst_status === 'granted' ? `jeton TSA obtenu (${seal.tsa_url})` : seal.tst_status === 'failed' ? 'échec TSA (à réessayer)' : 'non demandé'}</li>
             <li><b>Réf. sceau</b> : ${inserted.id}</li>
           </ul>
           <p>Pour contrôler ultérieurement : action <code>verify-seal</code> avec ce seq et ce hash de tête.</p>`
