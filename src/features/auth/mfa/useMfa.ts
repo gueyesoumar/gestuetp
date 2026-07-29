@@ -3,8 +3,9 @@ import { supabase } from '../../../lib/supabase'
 import { isRegul } from '../../../lib/product'
 
 // Nom affiché comme émetteur dans l'app d'authentification (au lieu de la Site URL
-// par défaut de gotrue). Dépend du produit.
-const MFA_ISSUER = isRegul ? 'Gëstu Regul' : 'Gëstu Comply'
+// par défaut de gotrue). Le produit est Gëstu ETP (Comply n'est qu'un module) ;
+// l'instance régulateur est brandée Gëstu Regul.
+const MFA_ISSUER = isRegul ? 'Gëstu Regul' : 'Gëstu ETP'
 
 // Encapsule les appels MFA de Supabase (TOTP). Le secret n'existe que côté
 // Supabase (gotrue) ; on ne manipule ici que des identifiants de facteur.
