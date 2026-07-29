@@ -232,3 +232,26 @@ Chaque étape est réversible (migrations `up`/`down`) et n'interrompt pas l'exi
 - Primitive RLS `visible_target_ids()` en **compatibilité** (étape 3), puis bascule table par table.
 - **Hub-cockpit + Gëstu Risk bâtis nativement sur le graphe** (Trust Score = conformité + dégradation gracieuse).
 - **RFC séparée « packaging & éditions »** : prérequis auto-hébergement souverain (fournisseurs externes branchables, activation hors-ligne).
+
+---
+
+## 12. Consolidation d'instances (jalon différé)
+
+### Constat
+Les **deux instances actuelles** (Comply `jibblz…` / Regul `snay…`) sont **toutes deux hébergées par Gëstu**, ont reçu les **mêmes migrations**, et aucun client souverain n'est en production. Ce n'est donc **pas une souveraineté accomplie** : c'est le **reliquat du fork `VITE_PRODUCT`**. Coût opérationnel réel et récurrent : doubles migrations, doubles déploiements, doubles secrets, MFA à activer deux fois.
+
+### Cible
+**Une seule instance mutualisée** (Regul = édition/tenant, cloisonné par le graphe + la RLS par arête) **+ la capacité** de déployer une instance **dédiée** uniquement pour un **client souverain signé** (topologie auto-hébergé, §3.5). On ne dédouble pas « par défaut ».
+
+### Préconditions à la consolidation (ordre)
+1. **Éditions runtime** remplacent `VITE_PRODUCT` (une instance unique doit pouvoir servir les deux « allures »).
+2. **RLS par arête** (`visible_target_ids()`, étape 4) opérationnelle → isolation logique régulateur/commercial dans une base partagée.
+3. **Migration de données** Regul → instance unifiée : orgs, arêtes, incidents, mesures **et journal probant**, avec re-clés et dédup.
+   - ⚠️ **Point sensible : le journal probant** (chaîne SHA-256 + sceaux RFC-3161). La fusion doit **préserver l'intégrité de la chaîne** (ne pas la rompre, ré-ancrer proprement) — sinon la valeur probante est perdue. À traiter avec un soin particulier (procédure dédiée + vérification `verify_probative_chain`).
+
+### Critère de décision (au moment du jalon)
+- **Besoin souverain réel** (DCSSI veut sa base chez lui / résidence imposée) → **instance dédiée / auto-hébergée** — mais alors c'est la topologie souveraine, pas deux instances Gëstu-hébergées.
+- **Pas de besoin souverain** → **consolider en une seule instance** pour supprimer la charge opérationnelle. Comme Regul est quasi pré-lancement (données de test), **la fusion coûte le moins cher maintenant** — argument pour trancher tôt.
+
+### Séquence
+Après **étape 4 (bascule RLS par arête)** et **l'édition-resolver**. Pas avant : tant que ces deux briques n'existent pas, une base unique ne peut pas isoler correctement les deux mondes → **on garde 2 instances par sécurité d'ici là**.
