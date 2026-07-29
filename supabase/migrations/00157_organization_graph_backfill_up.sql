@@ -2,9 +2,16 @@
 -- Peuple organization_relationships depuis l'existant, SANS perte et sans changer
 -- le comportement (aucun code ne lit encore ces tables).
 -- Idempotent (gardes WHERE NOT EXISTS). Capacités : différées (décision C).
--- La nature de parent_org_id est AUTO-DÉTECTÉE par instance (décision B) :
---   Regul (table regulatory_measures présente) -> regulatory_supervision
---   Comply                                     -> group_ownership
+--
+-- Nature de parent_org_id : les deux instances partageant le MÊME schéma, aucun
+-- marqueur serveur ne les distingue de façon fiable. On la passe donc en variable
+-- psql `parent_nature` (défaut group_ownership) :
+--   Comply : psql -f 00157_..._up.sql                                   (défaut)
+--   Regul  : psql -v parent_nature=regulatory_supervision -f 00157_..._up.sql
+\if :{?parent_nature}
+\else
+\set parent_nature group_ownership
+\endif
 
 -- ── 1. Arêtes self : une par organisation ─────────────────────────────────────
 insert into public.organization_relationships (actor_org_id, target_org_id, nature, status)
@@ -38,15 +45,12 @@ where p.actor <> p.target
       and r.nature = 'audit_engagement' and r.status = 'active'
   );
 
--- ── 3. Arêtes parent_org_id -> group_ownership | regulatory_supervision ────────
+-- ── 3. Arêtes parent_org_id -> nature fournie par la variable parent_nature ────
 insert into public.organization_relationships (actor_org_id, target_org_id, nature, status)
 select
   o.parent_org_id,
   o.id,
-  (case when exists (
-      select 1 from information_schema.tables
-      where table_schema = 'public' and table_name = 'regulatory_measures'
-    ) then 'regulatory_supervision' else 'group_ownership' end)::public.relationship_nature,
+  :'parent_nature'::public.relationship_nature,
   'active'
 from public.organizations o
 where o.parent_org_id is not null
