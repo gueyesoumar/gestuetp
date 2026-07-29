@@ -1431,6 +1431,32 @@ export interface SupportRequestUpdate {
  * alias inline), ce qui faisait tomber l'inference de tous les .select() en `never`.
  * L'intersection force la conformite sans modifier la forme reelle.
  */
+// ============================================================
+// Graphe relationnel des organisations (RFC 0001, migration 00156)
+// ============================================================
+
+export type RelationshipNature =
+  | 'self'
+  | 'audit_engagement'
+  | 'group_ownership'
+  | 'regulatory_supervision'
+  | 'delegation'
+export type RelationshipStatus = 'active' | 'ended' | 'suspended'
+
+export interface OrganizationRelationship {
+  id: string
+  actor_org_id: string
+  target_org_id: string
+  nature: RelationshipNature
+  status: RelationshipStatus
+  visibility_overrides: Record<string, unknown> | null
+  scope: Record<string, unknown> | null
+  started_at: string
+  ended_at: string | null
+  created_by: string | null
+  created_at: string
+}
+
 type Rec = Record<string, unknown>
 
 export interface Database {
@@ -1443,6 +1469,12 @@ export interface Database {
         Row: Organization & Rec
         Insert: OrganizationInsert & Rec
         Update: OrganizationUpdate & Rec
+        Relationships: []
+      }
+      organization_relationships: {
+        Row: OrganizationRelationship & Rec
+        Insert: never & Rec
+        Update: never & Rec
         Relationships: []
       }
       tenant_configs: {
@@ -1706,6 +1738,8 @@ export interface Database {
       interview_status: InterviewStatus
       campaign_status: CampaignStatus
       observation_response_action: ObservationResponseAction
+      relationship_nature: RelationshipNature
+      relationship_status: RelationshipStatus
     }
   }
 }

@@ -18,6 +18,7 @@ import { VaultBranding } from '../components/vault/VaultBranding'
 import { ProductCard } from '../components/vault/ProductCard'
 import { HubUserBar } from '../components/vault/HubUserBar'
 import { HUB_PRODUCTS } from '../lib/hubProducts'
+import { HubTrustSection } from '../features/hub/HubTrustSection'
 
 export function HubPage(): JSX.Element {
   const { profile, signOut } = useAuth()
@@ -66,6 +67,10 @@ export function HubPage(): JSX.Element {
         <p className="mb-10 text-center text-[15px] text-white/50">
           Bonjour, {firstName}. Choisissez votre espace.
         </p>
+
+        <div className="mb-10 w-full flex justify-center">
+          <HubTrustSection selfScore={complyStats.conformityScore} />
+        </div>
 
         <div className="grid w-full max-w-[1040px] grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {HUB_PRODUCTS.map((product, i) => (

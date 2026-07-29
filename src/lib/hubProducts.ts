@@ -48,7 +48,7 @@ export const HUB_PRODUCTS: HubProduct[] = [
     name: 'Risk',
     title: 'Gestion des Risques',
     description: 'Cartographie des risques SI, sc\u00e9narios de menaces, plans de traitement.',
-    color: '#DC2626',
+    color: '#E07A5F',
     active: false,
     badge: 'Bient\u00f4t',
     stats: [],
