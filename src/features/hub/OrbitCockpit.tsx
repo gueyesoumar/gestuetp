@@ -1,19 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { User } from '../../types/database.types'
 import { HUB_PRODUCTS } from '../../lib/hubProducts'
 import type { HubProduct } from '../../lib/hubProducts'
 import { useHubPerspectives } from './useHubPerspectives'
 import type { HubPerspective } from './useHubPerspectives'
-import { PerspectiveToggle } from './PerspectiveToggle'
+import { HubTopBar } from './HubTopBar'
 import { ModuleOrbit } from './ModuleOrbit'
 import { SegmentedDial } from './SegmentedDial'
 import { ScoreDecomposition } from './ScoreDecomposition'
 import { ModulePopover } from './ModulePopover'
+import { PoweredByGestu } from '../branding/BrandedAuthHeader'
 import { SCORE_DIMENSIONS } from './scoreDimensions'
 
-// Cockpit orbital du Hub : orbite des modules autour d'un cadran de score
-// segmente, bande de decomposition dessous, detail module en popover au clic.
-// Perspectives (self / clients / groupe) derivees du graphe via useHubPerspectives.
+// App-shell du Hub : barre du haut (marque + vues + utilisateur), orbite des
+// modules en héros central fluide, décomposition en pied. Perspectives dérivées
+// du graphe (RFC 0001) via useHubPerspectives.
+
+interface OrbitCockpitProps {
+  selfScore: number | null
+  profile: User | null
+  onSignOut: () => void
+  isBranded: boolean
+}
 
 interface Selection {
   product: HubProduct
@@ -26,7 +35,7 @@ function average(values: Array<number | null>): number | null {
   return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length)
 }
 
-export function OrbitCockpit({ selfScore }: { selfScore: number | null }): JSX.Element {
+export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: OrbitCockpitProps): JSX.Element {
   const data = useHubPerspectives()
   const navigate = useNavigate()
   const [current, setCurrent] = useState<HubPerspective>('self')
@@ -53,8 +62,24 @@ export function OrbitCockpit({ selfScore }: { selfScore: number | null }): JSX.E
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
 
+  const topBar = (
+    <HubTopBar
+      perspectives={data.perspectives}
+      current={current}
+      onChange={setCurrent}
+      profile={profile}
+      onSignOut={onSignOut}
+      showAdmin={Boolean(profile?.is_platform_owner) && !isBranded}
+    />
+  )
+
   if (data.loading) {
-    return <div className="mx-auto h-full min-h-[300px] w-full max-w-[620px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
+    return (
+      <div className="flex h-full w-full flex-col px-6 py-3">
+        {topBar}
+        <div className="mx-auto my-auto h-[60%] w-full max-w-[620px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
+      </div>
+    )
   }
 
   const centre =
@@ -70,14 +95,10 @@ export function OrbitCockpit({ selfScore }: { selfScore: number | null }): JSX.E
         : 'Décomposition du score'
 
   return (
-    <div className="flex h-full w-full max-w-[1040px] flex-col">
-      <div className="mb-1 flex shrink-0 flex-wrap items-center justify-between gap-4">
-        <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/40">Poste de confiance</span>
-        <PerspectiveToggle perspectives={data.perspectives} value={current} onChange={setCurrent} />
-      </div>
+    <div className="flex h-full w-full flex-col px-6 py-3">
+      {topBar}
 
-      {/* Zone orbite fluide : remplit la hauteur restante */}
-      <div className="flex min-h-0 flex-1 items-center justify-center">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto">
         <ModuleOrbit products={HUB_PRODUCTS} onSelect={onSelect}>
           <div className="flex flex-col items-center">
             <div className="aspect-square w-[34cqmin] max-h-[220px] max-w-[220px]">
@@ -88,12 +109,11 @@ export function OrbitCockpit({ selfScore }: { selfScore: number | null }): JSX.E
         </ModuleOrbit>
       </div>
 
-      <p className="mb-2 mt-1 shrink-0 text-center font-mono text-[11px] tracking-[0.04em] text-white/35">
-        Cliquez un module pour afficher son d&eacute;tail
-      </p>
-      <div className="mb-2 shrink-0 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/40">{eyebrow}</div>
-
       <div className="shrink-0">
+        <p className="mb-2 text-center font-mono text-[11px] tracking-[0.04em] text-white/35">
+          Cliquez un module pour afficher son d&eacute;tail
+        </p>
+        <div className="mb-2 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/40">{eyebrow}</div>
         {current === 'self' ? (
           <ScoreDecomposition mode="self" selfScore={selfScore} />
         ) : (
@@ -103,6 +123,7 @@ export function OrbitCockpit({ selfScore }: { selfScore: number | null }): JSX.E
             emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : 'Aucune filiale rattachée.'}
           />
         )}
+        <PoweredByGestu className="mt-3" />
       </div>
 
       <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} onClose={onClose} onOpen={onOpen} />

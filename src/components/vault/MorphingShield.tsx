@@ -23,9 +23,11 @@ const CYCLE_MS = 3000
 
 interface MorphingShieldProps {
   size?: number
+  /** Affiche le nom du produit sous le bouclier (défaut). false = bouclier seul (lockup header). */
+  showLabel?: boolean
 }
 
-export function MorphingShield({ size = 64 }: MorphingShieldProps): JSX.Element {
+export function MorphingShield({ size = 64, showLabel = true }: MorphingShieldProps): JSX.Element {
   const [index, setIndex] = useState(0)
   const [visible, setVisible] = useState(true)
 
@@ -95,16 +97,18 @@ export function MorphingShield({ size = 64 }: MorphingShieldProps): JSX.Element 
         />
       </div>
       {/* Product name label */}
-      <span
-        className="text-[11px] font-semibold uppercase tracking-[3px]"
-        style={{
-          color: product.color,
-          opacity: visible ? 1 : 0,
-          transition: 'opacity 0.4s ease, color 0.8s ease',
-        }}
-      >
-        {product.name}
-      </span>
+      {showLabel && (
+        <span
+          className="text-[11px] font-semibold uppercase tracking-[3px]"
+          style={{
+            color: product.color,
+            opacity: visible ? 1 : 0,
+            transition: 'opacity 0.4s ease, color 0.8s ease',
+          }}
+        >
+          {product.name}
+        </span>
+      )}
     </div>
   )
 }

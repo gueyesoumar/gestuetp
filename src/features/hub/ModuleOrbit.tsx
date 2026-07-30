@@ -10,7 +10,7 @@ import { OrbitModule } from './OrbitModule'
 
 const W = 620
 const DISC_R = 210
-const LAB_R = 262
+const LABEL_OFFSET = 60 // px (sur la grille W) : libellé placé DROIT au-dessus du disque
 
 interface ModuleOrbitProps {
   products: readonly HubProduct[]
@@ -25,12 +25,12 @@ export function ModuleOrbit({ products, onSelect, children }: ModuleOrbitProps):
     () =>
       products.map((product, i) => {
         const t = (i * 2 * Math.PI) / products.length
-        const sin = Math.sin(t)
-        const cos = Math.cos(t)
+        const dx = W / 2 + DISC_R * Math.sin(t)
+        const dy = W / 2 - DISC_R * Math.cos(t)
         return {
           product,
-          discPos: { left: pct(W / 2 + DISC_R * sin), top: pct(W / 2 - DISC_R * cos) },
-          labPos: { left: pct(W / 2 + LAB_R * sin), top: pct(W / 2 - LAB_R * cos) },
+          discPos: { left: pct(dx), top: pct(dy) },
+          labPos: { left: pct(dx), top: pct(dy - LABEL_OFFSET) },
         }
       }),
     [products],
