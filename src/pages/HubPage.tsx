@@ -32,27 +32,23 @@ export function HubPage(): JSX.Element {
       <ParticleCanvas />
       <FloatingOrbs />
 
-      <div className="relative z-10 flex min-h-screen flex-col items-center px-4 py-12">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col items-center px-4 py-5 md:h-[100dvh] md:overflow-hidden">
         {isBranded ? (
-          <div className="mb-10">
+          <div className="mb-3 shrink-0">
             <BrandedAuthHeader layout="hub" />
           </div>
         ) : (
-          <>
-            <div className="mb-6">
-              <MorphingShield size={80} />
-            </div>
-            <div className="mb-10">
-              <VaultBranding size="lg" />
-            </div>
-          </>
+          <div className="mb-2 flex shrink-0 flex-col items-center gap-2">
+            <MorphingShield size={56} />
+            <VaultBranding size="md" />
+          </div>
         )}
 
-        <p className="mb-8 text-center text-[15px] text-white/50">
+        <p className="mb-3 shrink-0 text-center text-[14px] text-white/50">
           Bonjour, {firstName}. Choisissez votre espace.
         </p>
 
-        <div className="mb-10 flex w-full justify-center">
+        <div className="flex min-h-0 w-full flex-1 justify-center">
           <OrbitCockpit selfScore={complyStats.conformityScore} />
         </div>
 
@@ -61,7 +57,7 @@ export function HubPage(): JSX.Element {
           <button
             type="button"
             onClick={() => navigate('/admin')}
-            className="group mt-10 flex items-center gap-3 rounded-full border border-[#D4A843]/30 bg-[#D4A843]/[0.07] px-5 py-2.5 text-[12.5px] font-semibold text-[#E2C26B] backdrop-blur-sm transition-all hover:border-[#D4A843]/60 hover:bg-[#D4A843]/15 hover:text-[#F2E2B1]"
+            className="group mt-3 flex shrink-0 items-center gap-3 rounded-full border border-[#D4A843]/30 bg-[#D4A843]/[0.07] px-5 py-2 text-[12.5px] font-semibold text-[#E2C26B] backdrop-blur-sm transition-all hover:border-[#D4A843]/60 hover:bg-[#D4A843]/15 hover:text-[#F2E2B1]"
           >
             <ShieldCheck size={15} strokeWidth={1.7} />
             <span>Console super-admin G&euml;stu</span>
@@ -70,15 +66,13 @@ export function HubPage(): JSX.Element {
           </button>
         )}
 
-        <div className="flex-1" />
-
         {profile && (
-          <div className="mt-12 w-full max-w-md">
+          <div className="mt-3 w-full max-w-md shrink-0">
             <HubUserBar profile={profile} onSignOut={signOut} />
           </div>
         )}
 
-        {isBranded && <PoweredByGestu className="mt-6" />}
+        {isBranded && <PoweredByGestu className="mt-3 shrink-0" />}
       </div>
     </VaultBackground>
   )

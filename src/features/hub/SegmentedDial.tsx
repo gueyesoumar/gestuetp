@@ -1,23 +1,24 @@
 import { bandColor, bandLabel } from './trustBand'
 
-// Cadran central du cockpit. Deux modes :
+// Cadran central du cockpit. Remplit son conteneur (dimensionne par l'appelant en
+// unites de conteneur -> orbite fluide). Deux modes :
 //  - segments fournis -> cadran a 4 secteurs (une dimension du score par quart) ;
 //  - sinon -> anneau composite unique (perspectives portefeuille / groupe).
 // Couleurs plates issues des paliers (BRAND.md), pas de degrade.
 
-interface SegmentedDialProps {
-  score: number | null
-  segments?: readonly (number | null)[]
-  size?: number
-}
-
+const VIEW = 210
 const GAP_DEG = 8
 const TRACK = 'rgba(255,255,255,0.09)'
 
-export function SegmentedDial({ score, segments, size = 210 }: SegmentedDialProps): JSX.Element {
-  const c = size / 2
-  const r = size * 0.4
-  const w = size * 0.062
+interface SegmentedDialProps {
+  score: number | null
+  segments?: readonly (number | null)[]
+}
+
+export function SegmentedDial({ score, segments }: SegmentedDialProps): JSX.Element {
+  const c = VIEW / 2
+  const r = VIEW * 0.4
+  const w = VIEW * 0.062
   const circ = 2 * Math.PI * r
   const color = bandColor(score)
   const arcs: JSX.Element[] = []
@@ -49,14 +50,16 @@ export function SegmentedDial({ score, segments, size = 210 }: SegmentedDialProp
   }
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full" role="img" aria-label={`Trust Score ${score ?? 'non évalué'}`}>
+    <div className="relative h-full w-full">
+      <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className="h-full w-full" role="img" aria-label={`Trust Score ${score ?? 'non évalué'}`}>
         {arcs}
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[46px] font-extrabold leading-none tabular-nums text-white">{score === null ? '—' : score}</span>
-        <span className="mt-0.5 text-[12px] text-white/40">/ 100</span>
-        <span className="mt-1.5 text-[13px] font-bold" style={{ color }}>{bandLabel(score)}</span>
+        <span className="text-[clamp(28px,7.4cqmin,46px)] font-extrabold leading-none tabular-nums text-white">
+          {score === null ? '—' : score}
+        </span>
+        <span className="mt-0.5 text-[clamp(8px,1.9cqmin,12px)] text-white/40">/ 100</span>
+        <span className="mt-1.5 text-[clamp(10px,2.1cqmin,13px)] font-bold" style={{ color }}>{bandLabel(score)}</span>
       </div>
     </div>
   )

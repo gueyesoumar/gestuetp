@@ -54,7 +54,7 @@ export function OrbitCockpit({ selfScore }: { selfScore: number | null }): JSX.E
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
 
   if (data.loading) {
-    return <div className="mx-auto h-[420px] w-full max-w-[620px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
+    return <div className="mx-auto h-full min-h-[300px] w-full max-w-[620px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
   }
 
   const centre =
@@ -70,33 +70,40 @@ export function OrbitCockpit({ selfScore }: { selfScore: number | null }): JSX.E
         : 'Décomposition du score'
 
   return (
-    <div className="w-full max-w-[1040px]">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
+    <div className="flex h-full w-full max-w-[1040px] flex-col">
+      <div className="mb-1 flex shrink-0 flex-wrap items-center justify-between gap-4">
         <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/40">Poste de confiance</span>
         <PerspectiveToggle perspectives={data.perspectives} value={current} onChange={setCurrent} />
       </div>
 
-      <ModuleOrbit products={HUB_PRODUCTS} onSelect={onSelect}>
-        <div className="flex flex-col items-center">
-          <SegmentedDial score={centre.score} segments={centre.segments} />
-          <span className="mt-2 max-w-[200px] text-center text-[12px] text-white/55">{centre.subtitle}</span>
-        </div>
-      </ModuleOrbit>
+      {/* Zone orbite fluide : remplit la hauteur restante */}
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <ModuleOrbit products={HUB_PRODUCTS} onSelect={onSelect}>
+          <div className="flex flex-col items-center">
+            <div className="aspect-square w-[34cqmin] max-h-[220px] max-w-[220px]">
+              <SegmentedDial score={centre.score} segments={centre.segments} />
+            </div>
+            <span className="mt-2 max-w-[200px] text-center text-[clamp(10px,1.9cqmin,12px)] text-white/55">{centre.subtitle}</span>
+          </div>
+        </ModuleOrbit>
+      </div>
 
-      <p className="mb-3 mt-1 text-center font-mono text-[11px] tracking-[0.04em] text-white/35">
+      <p className="mb-2 mt-1 shrink-0 text-center font-mono text-[11px] tracking-[0.04em] text-white/35">
         Cliquez un module pour afficher son d&eacute;tail
       </p>
-      <div className="mb-3 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/40">{eyebrow}</div>
+      <div className="mb-2 shrink-0 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/40">{eyebrow}</div>
 
-      {current === 'self' ? (
-        <ScoreDecomposition mode="self" selfScore={selfScore} />
-      ) : (
-        <ScoreDecomposition
-          mode="entities"
-          tiles={current === 'clients' ? data.clients : data.subsidiaries}
-          emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : 'Aucune filiale rattachée.'}
-        />
-      )}
+      <div className="shrink-0">
+        {current === 'self' ? (
+          <ScoreDecomposition mode="self" selfScore={selfScore} />
+        ) : (
+          <ScoreDecomposition
+            mode="entities"
+            tiles={current === 'clients' ? data.clients : data.subsidiaries}
+            emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : 'Aucune filiale rattachée.'}
+          />
+        )}
+      </div>
 
       <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} onClose={onClose} onOpen={onOpen} />
     </div>

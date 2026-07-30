@@ -38,10 +38,10 @@ export function ModuleOrbit({ products, onSelect, children }: ModuleOrbitProps):
 
   return (
     <>
-      {/* Orbite (desktop) */}
-      <div className="relative mx-auto hidden aspect-square w-[620px] max-w-full md:block">
-        <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/10" />
-        <div className="absolute left-1/2 top-1/2 h-[540px] w-[540px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5" />
+      {/* Orbite (desktop) — carré fluide qui remplit la hauteur dispo */}
+      <div className="relative mx-auto hidden aspect-square h-full max-h-full max-w-full [container-type:size] md:block">
+        <div className="absolute left-1/2 top-1/2 aspect-square w-[67.7cqmin] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/10" />
+        <div className="absolute left-1/2 top-1/2 aspect-square w-[87.1cqmin] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5" />
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">{children}</div>
         {placed.map((p) => (
           <OrbitModule key={p.product.name} product={p.product} discPos={p.discPos} labPos={p.labPos} onSelect={onSelect} />

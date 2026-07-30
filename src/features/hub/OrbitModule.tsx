@@ -31,12 +31,12 @@ export function OrbitModule({ product, discPos, labPos, onSelect }: OrbitModuleP
         style={{ left: discPos.left, top: discPos.top, opacity: soon ? 0.42 : 1 }}
       >
         <span
-          className="flex h-[58px] w-[58px] items-center justify-center rounded-[17px] border"
+          className="flex aspect-square w-[clamp(40px,9.4cqmin,58px)] items-center justify-center rounded-[17px] border"
           style={soon
             ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.10)' }
             : { background: `${product.color}16`, borderColor: `${product.color}66` }}
         >
-          <Shield size={24} strokeWidth={1.6} style={{ color: product.color }} />
+          <Shield strokeWidth={1.6} className="w-[clamp(17px,4cqmin,24px)] h-[clamp(17px,4cqmin,24px)]" style={{ color: product.color }} />
         </span>
       </button>
       <span
@@ -44,8 +44,8 @@ export function OrbitModule({ product, discPos, labPos, onSelect }: OrbitModuleP
         className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-center"
         style={{ left: labPos.left, top: labPos.top, opacity: soon ? 0.42 : 1 }}
       >
-        <span className="block text-[12.5px] font-bold text-white">{product.name}</span>
-        <span className="mt-0.5 block font-mono text-[8.5px] uppercase tracking-[0.07em] text-white/40">{status}</span>
+        <span className="block text-[clamp(10px,2cqmin,12.5px)] font-bold text-white">{product.name}</span>
+        <span className="mt-0.5 block font-mono text-[clamp(7px,1.4cqmin,8.5px)] uppercase tracking-[0.07em] text-white/40">{status}</span>
       </span>
     </>
   )
