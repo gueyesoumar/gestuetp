@@ -341,6 +341,15 @@ export const SCORE_COEFFICIENT_FLOOR = 0.5
 // Fenetre d'un cycle d'audit : au-dela, la preuve est consideree perimee.
 export const ASSURANCE_FRESHNESS_MONTHS = 12
 
+// Scellement gradue : valeur du signal selon l'etape de revue independante la
+// plus profonde atteinte (approuvee). auditor_submitted ne scelle pas. Seule la
+// chaine complete (client_review) merite le scellement maximal.
+export const SEAL_STAGE_WEIGHTS: Record<'lead_review' | 'associate_review' | 'client_review', number> = {
+  lead_review: 0.5,
+  associate_review: 0.8,
+  client_review: 1,
+}
+
 export const SCORE_FACTOR_LABELS: Record<ScoreFactorKey, string> = {
   human_factor: 'Facteur humain',
   third_party: 'Écosystème / tiers',

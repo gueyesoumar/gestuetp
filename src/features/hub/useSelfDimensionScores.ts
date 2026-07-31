@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import {
   SCORE_DIMENSION_KEYS, SCORE_DIMENSION_KIND, type ScoreDimensionKey,
   SCORE_FACTOR_WEIGHTS, SCORE_COEFFICIENT_FLOOR, ASSURANCE_FRESHNESS_MONTHS,
-  type ScoreFactorKey,
+  SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
 } from '../../lib/constants'
 
 // Score de confiance par dimension pour l'organisation courante (Phase B).
@@ -76,16 +76,18 @@ interface AssessmentRow {
 //   - documentation: evidence_notes non vide
 //   - scellement  : validation independante approuvee dans la chaine probante
 // Mesure la confiance dans la mesure elle-meme ; plafonnee a 100 par nature.
-// `sealedIds` = null -> scellement indisponible (RLS) : degradation gracieuse
-// vers le modele 2 signaux (frais/documente), l'assurance n'est jamais cassee.
+// Le scellement est *gradue* : profondeur ∈ {0 ; 0,5 ; 0,8 ; 1} selon l'etape de
+// revue la plus profonde atteinte (SEAL_STAGE_WEIGHTS). `sealedDepth` = null ->
+// scellement indisponible (RLS) : degradation gracieuse vers le modele 2 signaux
+// (frais/documente), l'assurance n'est jamais cassee.
 function computeAssurance(
   rows: AssessmentRow[],
   freshCutoffMs: number,
-  sealedIds: Set<string> | null,
+  sealedDepth: Map<string, number> | null,
 ): { score: number | null; total: number; covered: number } {
   const approved = rows.filter((r) => r.status === 'approved')
   if (approved.length === 0) return { score: null, total: 0, covered: 0 }
-  const withSeal = sealedIds !== null
+  const withSeal = sealedDepth !== null
   const wFresh = withSeal ? 0.3 : 0.5
   const wDoc = withSeal ? 0.3 : 0.5
   const wSeal = withSeal ? 0.4 : 0
@@ -94,9 +96,9 @@ function computeAssurance(
   for (const r of approved) {
     const fresh = new Date(r.updated_at).getTime() >= freshCutoffMs ? 1 : 0
     const documented = (r.evidence_notes ?? '').trim().length > 0 ? 1 : 0
-    const sealed = withSeal && sealedIds.has(r.id) ? 1 : 0
-    qualitySum += wFresh * fresh + wDoc * documented + wSeal * sealed
-    if (withSeal ? sealed : fresh && documented) covered += 1
+    const depth = withSeal ? (sealedDepth.get(r.id) ?? 0) : 0
+    qualitySum += wFresh * fresh + wDoc * documented + wSeal * depth
+    if (withSeal ? depth > 0 : fresh && documented) covered += 1
   }
   return { score: Math.round((qualitySum / approved.length) * 100), total: approved.length, covered }
 }
@@ -180,7 +182,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
       // Scellement : validations independantes approuvees sur mes assessments
       // approuves. Perimetre deja restreint (assessment_id in mes controles).
       const approvedIds = rows.filter((r) => r.status === 'approved').map((r) => r.id)
-      let sealedIds: Set<string> | null = new Set()
+      let sealedDepth: Map<string, number> | null = new Map()
       if (approvedIds.length > 0) {
         const { data: validations, error: vErr } = await supabase
           .from('assessment_validations')
@@ -192,15 +194,20 @@ export function useSelfDimensionScores(): SelfDimensionData {
         if (ctrl.signal.aborted) return
         if (vErr) {
           console.error('dimension scores validations:', vErr.message)
-          sealedIds = null // degradation gracieuse -> modele 2 signaux
+          sealedDepth = null // degradation gracieuse -> modele 2 signaux
         } else {
-          sealedIds = new Set((validations ?? []).map((v: { assessment_id: string }) => v.assessment_id))
+          const depth = new Map<string, number>()
+          for (const v of (validations ?? []) as Array<{ assessment_id: string; stage: string }>) {
+            const tier = SEAL_STAGE_WEIGHTS[v.stage as keyof typeof SEAL_STAGE_WEIGHTS] ?? 0
+            depth.set(v.assessment_id, Math.max(depth.get(v.assessment_id) ?? 0, tier))
+          }
+          sealedDepth = depth
         }
       }
 
       const cutoff = new Date()
       cutoff.setMonth(cutoff.getMonth() - ASSURANCE_FRESHNESS_MONTHS)
-      const assurance = computeAssurance(rows, cutoff.getTime(), sealedIds)
+      const assurance = computeAssurance(rows, cutoff.getTime(), sealedDepth)
 
       const factors: FactorScore[] = [
         ...MAPPED_FACTOR_KEYS.map((k) => {
