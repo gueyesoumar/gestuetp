@@ -6,6 +6,7 @@ import { useAdminFrameworkDetail, type AdminDomain, type AdminControl } from '..
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
+import { readInvokeError } from '../../lib/edgeError'
 
 export function AdminFrameworkDetailPage() {
   const { slug } = useParams()
@@ -478,7 +479,11 @@ function ClassifyControlsButton({ frameworkId, unmapped, onDone, toast }: {
     setBusy(true)
     const { data, error } = await supabase.functions.invoke('classify-controls', { body: { framework_id: frameworkId } })
     setBusy(false)
-    if (error || data?.error) { toast.error('Classement impossible', error); return }
+    if (error || data?.error) {
+      const msg = await readInvokeError(error, data, 'Classement impossible')
+      toast.error(msg, error)
+      return
+    }
     const rest = data.remaining > 0 ? `, ${data.remaining} restant(s) — relancez` : ''
     toast.success(`${data.classified} contrôle(s) classé(s)${rest}`)
     onDone()
