@@ -8,7 +8,7 @@ import type { HubPerspective } from './useHubPerspectives'
 import { HubTopBar } from './HubTopBar'
 import { ModuleOrbit } from './ModuleOrbit'
 import { SegmentedDial } from './SegmentedDial'
-import { ScoreDecomposition } from './ScoreDecomposition'
+import { HubSidePanel } from './HubSidePanel'
 import { ModulePopover } from './ModulePopover'
 import { PoweredByGestu } from '../branding/BrandedAuthHeader'
 import { useSelfDimensionScores } from './useSelfDimensionScores'
@@ -59,7 +59,6 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
     else if (product.active) navigate('/')
   }, [navigate])
 
-  const axisSegments = useMemo(() => selfDims.axes.map((a) => a.score), [selfDims.axes])
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
 
@@ -85,52 +84,53 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
 
   const centre =
     current === 'clients'
-      ? { score: clientsAvg, segments: undefined, subtitle: `Portefeuille · ${data.clients.length}` }
+      ? { score: clientsAvg, subtitle: `Portefeuille · ${data.clients.length}` }
       : current === 'group'
-        ? { score: groupAvg, segments: undefined, subtitle: `Groupe · ${data.subsidiaries.length}` }
+        ? { score: groupAvg, subtitle: `Groupe · ${data.subsidiaries.length}` }
         : {
             score: selfDims.composite ?? selfScore,
-            segments: axisSegments.length > 0 ? axisSegments : undefined,
             subtitle: `Votre organisation · ${selfDims.measuredAxes}/${selfDims.totalAxes} axes mesurés`,
           }
 
-  const eyebrow =
-    current === 'clients' ? 'Détail par client · du plus exposé au plus solide'
-      : current === 'group' ? 'Détail par filiale · du plus exposé au plus solide'
-        : 'Décomposition du score'
+  const panelTitle =
+    current === 'clients' ? 'Détail par client · plus exposé → plus solide'
+      : current === 'group' ? 'Détail par filiale · plus exposé → plus solide'
+        : 'Profil de confiance — 6 dimensions'
 
   return (
     <div className="flex h-full w-full flex-col px-6 py-3">
       {topBar}
 
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto">
-        <ModuleOrbit products={HUB_PRODUCTS} onSelect={onSelect}>
-          <div className="flex flex-col items-center">
-            <div className="aspect-square w-[34cqmin] max-h-[220px] max-w-[220px]">
-              <SegmentedDial score={centre.score} segments={centre.segments} />
-            </div>
-            <span className="mt-2 max-w-[200px] text-center text-[clamp(10px,1.9cqmin,12px)] text-white/55">{centre.subtitle}</span>
+      <div className="flex min-h-0 flex-1 flex-col gap-5 md:flex-row md:gap-6">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+            <ModuleOrbit products={HUB_PRODUCTS} onSelect={onSelect}>
+              <div className="flex flex-col items-center">
+                <div className="aspect-square w-[34cqmin] max-h-[220px] max-w-[220px]">
+                  <SegmentedDial score={centre.score} />
+                </div>
+                <span className="mt-2 max-w-[200px] text-center text-[clamp(10px,1.9cqmin,12px)] text-white/55">{centre.subtitle}</span>
+              </div>
+            </ModuleOrbit>
           </div>
-        </ModuleOrbit>
-      </div>
+          <p className="shrink-0 text-center font-mono text-[11px] tracking-[0.04em] text-white/35">
+            Cliquez un module pour afficher son d&eacute;tail
+          </p>
+        </div>
 
-      <div className="shrink-0">
-        <p className="mb-2 text-center font-mono text-[11px] tracking-[0.04em] text-white/35">
-          Cliquez un module pour afficher son d&eacute;tail
-        </p>
-        <div className="mb-2 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/40">{eyebrow}</div>
         {current === 'self' ? (
-          <ScoreDecomposition mode="self" axes={selfDims.axes} factors={selfDims.factors} />
+          <HubSidePanel mode="self" title={panelTitle} axes={selfDims.axes} factors={selfDims.factors} />
         ) : (
-          <ScoreDecomposition
+          <HubSidePanel
             mode="entities"
+            title={panelTitle}
             tiles={current === 'clients' ? data.clients : data.subsidiaries}
             emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : 'Aucune filiale rattachée.'}
           />
         )}
-        <PoweredByGestu className="mt-3" />
       </div>
 
+      <PoweredByGestu className="mt-2 shrink-0" />
       <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} onClose={onClose} onOpen={onOpen} />
     </div>
   )
