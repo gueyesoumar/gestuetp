@@ -215,6 +215,14 @@ async function handleReorderDomains(admin: Admin, body: Record<string, unknown>)
 
 // ── CONTROL ───────────────────────────────────────────────────────────────
 
+const SCORE_DIMENSIONS = [
+  'security', 'data_protection', 'resilience', 'integrity',
+  'governance', 'verifiability', 'human_factor', 'third_party',
+] as const
+function parseDimension(v: unknown): string | null {
+  return typeof v === 'string' && (SCORE_DIMENSIONS as readonly string[]).includes(v) ? v : null
+}
+
 async function handleCreateControl(admin: Admin, _ownerId: string, body: Record<string, unknown>): Promise<Response> {
   const domain_id = String(body.domain_id ?? '')
   const code = String(body.code ?? '').trim()
@@ -224,11 +232,17 @@ async function handleCreateControl(admin: Admin, _ownerId: string, body: Record<
   if (!domain_id || !code || !name) return jsonResponse({ error: 'domain_id, code et name requis' }, 400)
   if (!CODE_RE.test(code)) return jsonResponse({ error: 'code invalide' }, 400)
 
+  const dimension = parseDimension(body.dimension)
+  // Provenance : 'ai' si fourni par le wizard IA, sinon 'manual'. Aucun classement -> null.
+  const dimension_source = dimension
+    ? (body.dimension_source === 'ai' || body.dimension_source === 'inherited' ? body.dimension_source : 'manual')
+    : null
+
   const { data: maxRow } = await admin.from('controls').select('sort_order').eq('domain_id', domain_id).order('sort_order', { ascending: false }).limit(1).maybeSingle()
   const nextOrder = ((maxRow as { sort_order?: number } | null)?.sort_order ?? 0) + 10
 
   const { data, error } = await admin.from('controls')
-    .insert({ domain_id, code, name, description, guidance, sort_order: nextOrder, is_active: true })
+    .insert({ domain_id, code, name, description, guidance, sort_order: nextOrder, is_active: true, dimension, dimension_source })
     .select('id')
     .single()
 
@@ -247,6 +261,12 @@ async function handleUpdateControl(admin: Admin, body: Record<string, unknown>):
     if (k in body && typeof body[k] === 'string') updates[k] = (body[k] as string).trim()
   }
   if ('is_active' in body && typeof body.is_active === 'boolean') updates.is_active = body.is_active
+  // Classement manuel : une dimension posée depuis l'UI admin est 'manual' (souveraine).
+  if ('dimension' in body) {
+    const dim = parseDimension(body.dimension)
+    updates.dimension = dim
+    updates.dimension_source = dim ? 'manual' : null
+  }
   if (Object.keys(updates).length === 0) return jsonResponse({ error: 'Aucun champ à mettre à jour' }, 400)
   updates.updated_at = new Date().toISOString()
   const { error } = await admin.from('controls').update(updates).eq('id', id)

@@ -279,3 +279,34 @@ export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
   resolved: 'Résolu',
   closed: 'Clôturé',
 }
+
+// ── Dimensions du score de confiance (mapping contrôle -> dimension) ──────────
+// 6 dimensions (axes du radar) + 2 facteurs transverses (coefficients).
+export const SCORE_DIMENSION_KEYS = [
+  'security', 'data_protection', 'resilience', 'integrity',
+  'governance', 'verifiability', 'human_factor', 'third_party',
+] as const
+export type ScoreDimensionKey = typeof SCORE_DIMENSION_KEYS[number]
+
+export const SCORE_DIMENSION_LABELS: Record<ScoreDimensionKey, string> = {
+  security: 'Sécurité',
+  data_protection: 'Protection des données',
+  resilience: 'Résilience & continuité',
+  integrity: 'Intégrité & fiabilité',
+  governance: 'Gouvernance & éthique',
+  verifiability: 'Transparence & vérifiabilité',
+  human_factor: 'Facteur humain',
+  third_party: 'Écosystème / tiers',
+}
+
+// Nature : 'axis' = branche du radar (moyennée) ; 'factor' = coefficient transverse.
+export const SCORE_DIMENSION_KIND: Record<ScoreDimensionKey, 'axis' | 'factor'> = {
+  security: 'axis',
+  data_protection: 'axis',
+  resilience: 'axis',
+  integrity: 'axis',
+  governance: 'axis',
+  verifiability: 'axis',
+  human_factor: 'factor',
+  third_party: 'factor',
+}

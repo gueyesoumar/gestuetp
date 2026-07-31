@@ -15,6 +15,11 @@ export function AdminFrameworkDetailPage() {
   if (loading) return <div className="p-8"><LoadingSpinner /></div>
   if (error || !framework) return <div className="p-8"><ErrorAlert message={error ?? 'Référentiel introuvable'} /></div>
 
+  const unmappedCount = framework.domains.reduce(
+    (s, d) => s + d.controls.filter((c) => !c.dimension).length,
+    0,
+  )
+
   return (
     <div className="px-7 py-6">
       <Link to="/admin/frameworks" className="text-[12px] text-forest-700 font-semibold hover:text-forest-900 inline-flex items-center gap-1 mb-3">
@@ -61,7 +66,13 @@ export function AdminFrameworkDetailPage() {
 
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[14px] font-bold text-gray-900">Domaines &amp; contrôles</h2>
-        <AddDomainButton frameworkId={framework.id} onCreated={refetch} toast={toast} />
+        <div className="flex items-center gap-2">
+          {unmappedCount > 0 && (
+            <span className="text-[11.5px] font-semibold text-amber-600">{unmappedCount} non class&eacute;(s)</span>
+          )}
+          <ClassifyControlsButton frameworkId={framework.id} unmapped={unmappedCount} onDone={refetch} toast={toast} />
+          <AddDomainButton frameworkId={framework.id} onCreated={refetch} toast={toast} />
+        </div>
       </div>
 
       {framework.domains.length === 0 ? (
@@ -453,4 +464,32 @@ function AddControlButton({ domainId, onCreated, toast }: { domainId: string; on
 
 function Lab({ children }: { children: React.ReactNode }) {
   return <label className="block text-[10.5px] uppercase tracking-wider text-gray-500 font-semibold mb-1">{children}</label>
+}
+
+function ClassifyControlsButton({ frameworkId, unmapped, onDone, toast }: {
+  frameworkId: string
+  unmapped: number
+  onDone: () => void
+  toast: ReturnType<typeof useToast>
+}) {
+  const [busy, setBusy] = useState(false)
+  if (unmapped === 0) return null
+  const run = async () => {
+    setBusy(true)
+    const { data, error } = await supabase.functions.invoke('classify-controls', { body: { framework_id: frameworkId } })
+    setBusy(false)
+    if (error || data?.error) { toast.error('Classement impossible', error); return }
+    const rest = data.remaining > 0 ? `, ${data.remaining} restant(s) — relancez` : ''
+    toast.success(`${data.classified} contrôle(s) classé(s)${rest}`)
+    onDone()
+  }
+  return (
+    <button
+      onClick={run}
+      disabled={busy}
+      className="px-3.5 py-2 text-[12px] font-semibold rounded-lg bg-gold-500 text-forest-900 hover:bg-gold-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+    >
+      <Sparkles size={13} /> {busy ? 'Classement…' : 'Classer les contrôles (IA)'}
+    </button>
+  )
 }

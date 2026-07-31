@@ -8,7 +8,7 @@ interface DraftDomain {
   code: string
   name: string
   description?: string
-  controls: Array<{ code: string; name: string; description?: string; guidance?: string }>
+  controls: Array<{ code: string; name: string; description?: string; guidance?: string; dimension?: string }>
 }
 
 interface Draft {
@@ -145,7 +145,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
 
       for (const c of (d.controls ?? [])) {
         const { data: cData, error: cError } = await supabase.functions.invoke('admin-framework', {
-          body: { action: 'create_control', domain_id: domainId, code: c.code, name: c.name, description: c.description ?? null, guidance: c.guidance ?? null },
+          body: { action: 'create_control', domain_id: domainId, code: c.code, name: c.name, description: c.description ?? null, guidance: c.guidance ?? null, dimension: c.dimension ?? null, dimension_source: 'ai' },
         })
         if (cError || cData?.error) {
           console.error('control create:', cError ?? cData?.error)

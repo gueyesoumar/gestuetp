@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
   }
 })
 
-interface DraftControl { code: string; name: string; description?: string; guidance?: string }
+interface DraftControl { code: string; name: string; description?: string; guidance?: string; dimension?: string }
 interface DraftDomain { code: string; name: string; description?: string; controls: DraftControl[] }
 
 function buildPrompt(brief: Brief): string {
@@ -208,9 +208,19 @@ ${instructions}
 CONSIGNES
 1. Extrais les domaines (chapitres / sections) et les contrôles présents dans les PDFs joints.
 2. Si aucun PDF n'est joint, génère une structure plausible et réaliste cohérente avec le nom et les instructions.
-3. Pour chaque contrôle, fournis : code (ex: A.5.1), nom court, description claire en français, et guidance (conseils de mise en œuvre).
+3. Pour chaque contrôle, fournis : code (ex: A.5.1), nom court, description claire en français, guidance (conseils de mise en œuvre), et "dimension" (voir ci-dessous).
 4. Reste fidèle aux documents : ne pas inventer de codes qui n'existent pas dans la source.
 5. Maximum 30 domaines, 200 contrôles au total. Si le référentiel est plus large, garde les plus essentiels et signale-le dans la description.
+6. CLASSEMENT — "dimension" : rattache chaque contrôle à UNE seule dimension du score de confiance parmi :
+   - "security" : protection technique/physique, accès, identité, cryptographie, réseau, malware, vulnérabilités
+   - "data_protection" : vie privée, données personnelles, classification, masquage, DLP, souveraineté
+   - "resilience" : incidents, continuité, PCA/PRA, sauvegarde, redondance, disponibilité
+   - "integrity" : intégrité des données/traitements, développement sécurisé, gestion des changements, IA responsable
+   - "governance" : politiques, rôles & responsabilités, redevabilité, conformité, exigences légales, éthique
+   - "verifiability" : journalisation, collecte de preuves, protection des enregistrements, auditabilité
+   - "human_factor" : sensibilisation, formation, RH, screening, culture (facteur transverse)
+   - "third_party" : fournisseurs, sous-traitants, chaîne d'approvisionnement, cloud, tiers (facteur transverse)
+   En cas de doute, choisis la dimension dominante. Ne laisse jamais "dimension" vide.
 
 FORMAT DE RÉPONSE (JSON STRICT, en français)
 Réponds UNIQUEMENT avec un JSON valide, sans texte avant ni après. Le JSON commence par {"domains":[ et se termine par ]}.
@@ -227,7 +237,8 @@ Schema attendu :
           "code": "A.5.1",
           "name": "Politique de sécurité",
           "description": "Description du contrôle.",
-          "guidance": "Conseils de mise en œuvre."
+          "guidance": "Conseils de mise en œuvre.",
+          "dimension": "governance"
         }
       ]
     }

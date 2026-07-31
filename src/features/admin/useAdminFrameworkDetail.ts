@@ -35,6 +35,8 @@ export interface AdminControl {
   name: string
   description: string | null
   guidance: string | null
+  dimension: string | null
+  dimension_source: string | null
   sort_order: number
   is_active: boolean
 }
@@ -92,7 +94,7 @@ export function useAdminFrameworkDetail(slug: string | undefined): Result {
       const { data: ctrls, error: ctrlsError } = domainIds.length > 0
         ? await supabase
             .from('controls')
-            .select('id, domain_id, code, name, description, guidance, sort_order, is_active')
+            .select('id, domain_id, code, name, description, guidance, dimension, dimension_source, sort_order, is_active')
             .in('domain_id', domainIds)
             .order('sort_order', { ascending: true })
             .abortSignal(abort.signal)

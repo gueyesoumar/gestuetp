@@ -359,6 +359,19 @@ export interface AuditChecklistItem {
   evidence_type?: 'document' | 'interview' | 'observation' | 'test'
 }
 
+// Dimensions du score de confiance (6 axes + 2 facteurs). Cf migration 00159.
+export type ScoreDimension =
+  | 'security'
+  | 'data_protection'
+  | 'resilience'
+  | 'integrity'
+  | 'governance'
+  | 'verifiability'
+  | 'human_factor'
+  | 'third_party'
+
+export type DimensionSource = 'ai' | 'inherited' | 'manual'
+
 export interface Control {
   id: string
   domain_id: string
@@ -369,6 +382,10 @@ export interface Control {
   audit_checklist?: AuditChecklistItem[]
   // 1=very low, 5=critical. Default 3. From migration 00105.
   risk_level?: number
+  // Dimension du score informée par ce contrôle (null = non classé). Migration 00159.
+  dimension?: ScoreDimension | null
+  dimension_source?: DimensionSource | null
+  dimension_confidence?: number | null
   sort_order: number
   created_at: string
   updated_at: string
