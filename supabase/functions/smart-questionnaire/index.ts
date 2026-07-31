@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
@@ -79,7 +80,7 @@ interface DocRow {
   ai_extract_error: string | null
 }
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_SONNET
 const MAX_TOKENS = 4000
 const CLAUDE_TIMEOUT_MS = 120_000
 const CACHE_TTL_HOURS = 24

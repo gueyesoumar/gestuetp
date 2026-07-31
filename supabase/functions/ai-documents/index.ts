@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED, type CallerProfile } from '../_shared/auth.ts'
 // @deno-types="npm:@types/mammoth"
 import mammoth from 'npm:mammoth@1.6.0'
@@ -351,12 +352,12 @@ async function handleAnalyze(
 
   content.push({ type: 'text', text: enrichedPrompt })
 
-  console.log(`[ai-documents] Analyzing ${trimmedFileIds.length} file(s) with ${model ?? 'claude-sonnet-4-20250514'}`)
+  console.log(`[ai-documents] Analyzing ${trimmedFileIds.length} file(s) with ${model ?? CLAUDE_SONNET}`)
 
   const claudeController = new AbortController()
   const claudeTimeout = setTimeout(() => claudeController.abort(), 180_000)
   const startedAt = Date.now()
-  const usedModel = model ?? 'claude-sonnet-4-20250514'
+  const usedModel = model ?? CLAUDE_SONNET
 
   let cabinetIdForLog: string | null = null
   if (mission_id) {

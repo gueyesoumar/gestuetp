@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
 // ============================================================================
@@ -415,7 +416,7 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
     const claudeController = new AbortController()
     const claudeTimeout = setTimeout(() => claudeController.abort(), 120_000)
     const startedAt = Date.now()
-    const MODEL = 'claude-sonnet-4-20250514'
+    const MODEL = CLAUDE_SONNET
 
     let claudeRes: Response
     try {

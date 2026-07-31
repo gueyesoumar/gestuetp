@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, ACCESS_DENIED } from '../_shared/auth.ts'
 
 /**
@@ -22,7 +23,7 @@ import { authenticateCaller, ACCESS_DENIED } from '../_shared/auth.ts'
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
 const ANTHROPIC_BETA = 'files-api-2025-04-14'
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_SONNET
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 const MAX_SUGGESTIONS = 30
 

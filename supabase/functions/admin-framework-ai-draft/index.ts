@@ -1,6 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner } from '../_shared/auth-platform-owner.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
 
 /**
  * Edge Function : admin-framework-ai-draft
@@ -26,7 +27,7 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
 const ANTHROPIC_BETA = 'files-api-2025-04-14,context-1m-2025-08-07'
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_SONNET
 const MAX_FILES = 5
 const MAX_FILE_SIZE = 32 * 1024 * 1024
 const MAX_BRIEF_LENGTH = 4000

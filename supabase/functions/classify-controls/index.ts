@@ -1,6 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner } from '../_shared/auth-platform-owner.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_HAIKU } from '../_shared/models.ts'
 
 /**
  * Edge Function : classify-controls
@@ -19,7 +20,7 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
 // Haiku 4.5 : rapide et économique, suffisant pour une classification. Modèle
 // courant (l'ancien claude-sonnet-4-20250514 est retiré -> 404).
-const MODEL = 'claude-haiku-4-5-20251001'
+const MODEL = CLAUDE_HAIKU
 const MAX_CONTROLS = 200
 
 const DIMENSIONS = [
