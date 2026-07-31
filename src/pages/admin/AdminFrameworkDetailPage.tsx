@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
 import { readInvokeError } from '../../lib/edgeError'
+import { SCORE_DIMENSION_KEYS, SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, type ScoreDimensionKey } from '../../lib/constants'
 
 export function AdminFrameworkDetailPage() {
   const { slug } = useParams()
@@ -322,10 +323,11 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
   const [name, setName] = useState(control.name)
   const [description, setDescription] = useState(control.description ?? '')
   const [guidance, setGuidance] = useState(control.guidance ?? '')
+  const [dimension, setDimension] = useState<string>(control.dimension ?? '')
 
   const save = async () => {
     const { data, error } = await supabase.functions.invoke('admin-framework', {
-      body: { action: 'update_control', id: control.id, code, name, description, guidance },
+      body: { action: 'update_control', id: control.id, code, name, description, guidance, dimension: dimension || null },
     })
     if (error || data?.error) { toast.error('Sauvegarde impossible'); return }
     setEditing(false)
@@ -364,13 +366,23 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
         </div>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Description" />
         <textarea value={guidance} onChange={(e) => setGuidance(e.target.value)} rows={2} placeholder="Guidance / conseils de mise en œuvre" />
+        <div>
+          <Lab>Dimension du score</Lab>
+          <select value={dimension} onChange={(e) => setDimension(e.target.value)}>
+            <option value="">— Non class&eacute; —</option>
+            {SCORE_DIMENSION_KEYS.map((k) => <option key={k} value={k}>{SCORE_DIMENSION_LABELS[k]}</option>)}
+          </select>
+        </div>
         <div className="flex justify-end gap-2">
-          <button onClick={() => { setEditing(false); setCode(control.code); setName(control.name); setDescription(control.description ?? ''); setGuidance(control.guidance ?? '') }} className="text-[12px] text-gray-500 px-3 py-1.5">Annuler</button>
+          <button onClick={() => { setEditing(false); setCode(control.code); setName(control.name); setDescription(control.description ?? ''); setGuidance(control.guidance ?? ''); setDimension(control.dimension ?? '') }} className="text-[12px] text-gray-500 px-3 py-1.5">Annuler</button>
           <button onClick={save} className="text-[12px] bg-forest-700 text-white rounded-lg px-3 py-1.5 hover:bg-forest-900">Enregistrer</button>
         </div>
       </div>
     )
   }
+
+  // control.dimension provient de l'enum SQL score_dimension (valeur valide ou null)
+  const dimKey = (control.dimension ?? null) as ScoreDimensionKey | null
 
   return (
     <div className={`flex items-start gap-2 px-3 py-2 border border-gray-100 rounded-lg hover:bg-page-bg ${!control.is_active ? 'opacity-60' : ''}`}>
@@ -386,7 +398,19 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
         {control.description && <p className="text-[11.5px] text-gray-500 mt-0.5">{control.description}</p>}
         {control.guidance && <p className="text-[11px] text-gray-400 mt-0.5 italic">↳ {control.guidance}</p>}
       </div>
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {dimKey ? (
+          <span
+            className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide whitespace-nowrap"
+            style={{ color: SCORE_DIMENSION_COLORS[dimKey], backgroundColor: `${SCORE_DIMENSION_COLORS[dimKey]}1A` }}
+          >
+            {SCORE_DIMENSION_LABELS[dimKey]}
+          </span>
+        ) : (
+          <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap text-amber-600 bg-amber-50">
+            non class&eacute;
+          </span>
+        )}
         <button onClick={() => setEditing(true)} className="text-[11px] text-gray-500 font-semibold hover:text-gray-700 px-2">Éditer</button>
         <button onClick={remove} className="p-1 text-gray-400 hover:text-red-600"><Trash2 size={12} /></button>
       </div>

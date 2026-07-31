@@ -299,6 +299,18 @@ export const SCORE_DIMENSION_LABELS: Record<ScoreDimensionKey, string> = {
   third_party: 'Écosystème / tiers',
 }
 
+// Couleurs de dimension (pastilles admin, lisibles sur fond clair).
+export const SCORE_DIMENSION_COLORS: Record<ScoreDimensionKey, string> = {
+  security: '#E07A5F',
+  data_protection: '#7B68EE',
+  resilience: '#0E9F8E',
+  integrity: '#DB2777',
+  governance: '#3B82F6',
+  verifiability: '#2E9E6B',
+  human_factor: '#E67E22',
+  third_party: '#64748B',
+}
+
 // Nature : 'axis' = branche du radar (moyennée) ; 'factor' = coefficient transverse.
 export const SCORE_DIMENSION_KIND: Record<ScoreDimensionKey, 'axis' | 'factor'> = {
   security: 'axis',
