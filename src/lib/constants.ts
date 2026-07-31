@@ -322,3 +322,33 @@ export const SCORE_DIMENSION_KIND: Record<ScoreDimensionKey, 'axis' | 'factor'> 
   human_factor: 'factor',
   third_party: 'factor',
 }
+
+// Facteurs transverses : ils ne peuvent que TEMPERER le composite, jamais le
+// gonfler (modele conservateur). coefficient = produit(1 - w * (1 - score/100))
+// sur les facteurs mesures, borne au plancher. Assurance = facteur calcule
+// (fraicheur/documentation des preuves), hors enum score_dimension.
+export type ScoreFactorKey = 'human_factor' | 'third_party' | 'assurance'
+
+export const SCORE_FACTOR_WEIGHTS: Record<ScoreFactorKey, number> = {
+  human_factor: 0.15,
+  third_party: 0.15,
+  assurance: 0.2,
+}
+
+// Un facteur catastrophique ne peut pas effacer plus de la moitie de la posture.
+export const SCORE_COEFFICIENT_FLOOR = 0.5
+
+// Fenetre d'un cycle d'audit : au-dela, la preuve est consideree perimee.
+export const ASSURANCE_FRESHNESS_MONTHS = 12
+
+export const SCORE_FACTOR_LABELS: Record<ScoreFactorKey, string> = {
+  human_factor: 'Facteur humain',
+  third_party: 'Écosystème / tiers',
+  assurance: 'Assurance des preuves',
+}
+
+export const SCORE_FACTOR_COLORS: Record<ScoreFactorKey, string> = {
+  human_factor: '#E67E22',
+  third_party: '#64748B',
+  assurance: '#B8860B',
+}

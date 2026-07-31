@@ -82,15 +82,20 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
     )
   }
 
+  const tempered =
+    selfDims.compositePosture !== null &&
+    selfDims.composite !== null &&
+    selfDims.composite < selfDims.compositePosture
+  const selfSubtitle = tempered
+    ? `Posture ${selfDims.compositePosture} → réel ${selfDims.composite} · ${selfDims.measuredAxes}/${selfDims.totalAxes} axes`
+    : `Votre organisation · ${selfDims.measuredAxes}/${selfDims.totalAxes} axes mesurés`
+
   const centre =
     current === 'clients'
       ? { score: clientsAvg, subtitle: `Portefeuille · ${data.clients.length}` }
       : current === 'group'
         ? { score: groupAvg, subtitle: `Groupe · ${data.subsidiaries.length}` }
-        : {
-            score: selfDims.composite ?? selfScore,
-            subtitle: `Votre organisation · ${selfDims.measuredAxes}/${selfDims.totalAxes} axes mesurés`,
-          }
+        : { score: selfDims.composite ?? selfScore, subtitle: selfSubtitle }
 
   const panelTitle =
     current === 'clients' ? 'Détail par client · plus exposé → plus solide'
