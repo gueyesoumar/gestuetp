@@ -17,7 +17,9 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
  */
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
-const MODEL = 'claude-sonnet-4-20250514'
+// Haiku 4.5 : rapide et économique, suffisant pour une classification. Modèle
+// courant (l'ancien claude-sonnet-4-20250514 est retiré -> 404).
+const MODEL = 'claude-haiku-4-5-20251001'
 const MAX_CONTROLS = 200
 
 const DIMENSIONS = [
