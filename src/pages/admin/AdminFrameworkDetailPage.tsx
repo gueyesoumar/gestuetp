@@ -243,7 +243,10 @@ function DomainEditor({ domain, onChanged, toast, allDomainIds, currentIndex }: 
     const swapWith = direction === 'up' ? currentIndex - 1 : currentIndex + 1
     if (swapWith < 0 || swapWith >= newIds.length) return
     ;[newIds[currentIndex], newIds[swapWith]] = [newIds[swapWith], newIds[currentIndex]]
-    await supabase.functions.invoke('admin-framework', { body: { action: 'reorder_domains', ordered_ids: newIds } })
+    const { data, error } = await supabase.functions.invoke('admin-framework', { body: { action: 'reorder_domains', ordered_ids: newIds } })
+    if (error || data?.error) {
+      console.error('reorder_domains:', await readInvokeError(error, data, 'Réordonnancement impossible'))
+    }
     onChanged()
   }
 
@@ -353,7 +356,10 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
     const swapWith = direction === 'up' ? currentIndex - 1 : currentIndex + 1
     if (swapWith < 0 || swapWith >= newIds.length) return
     ;[newIds[currentIndex], newIds[swapWith]] = [newIds[swapWith], newIds[currentIndex]]
-    await supabase.functions.invoke('admin-framework', { body: { action: 'reorder_controls', ordered_ids: newIds } })
+    const { data, error } = await supabase.functions.invoke('admin-framework', { body: { action: 'reorder_controls', ordered_ids: newIds } })
+    if (error || data?.error) {
+      console.error('reorder_controls:', await readInvokeError(error, data, 'Réordonnancement impossible'))
+    }
     onChanged()
   }
 

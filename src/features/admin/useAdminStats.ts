@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 
 export interface AdminStats {
   cabinets_active: number
@@ -30,12 +31,12 @@ export function useAdminStats(): Result {
     setLoading(true)
     setError(null)
     supabase.functions.invoke('admin-stats', { body: {} })
-      .then(({ data, error: fnError }) => {
+      .then(async ({ data, error: fnError }) => {
         if (cancelled) return
-        if (fnError) {
-          setError(fnError.message ?? 'Erreur de chargement')
-        } else if (data?.error) {
-          setError(data.error)
+        if (fnError || data?.error) {
+          const msg = await readInvokeError(fnError, data, 'Erreur de chargement')
+          if (cancelled) return
+          setError(msg)
         } else {
           setStats(data as AdminStats)
         }

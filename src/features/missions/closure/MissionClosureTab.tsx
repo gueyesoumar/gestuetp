@@ -217,7 +217,13 @@ function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport }: Scorin
 
   useEffect(() => {
     supabase.functions.invoke('close-mission', { body: { mission_id: missionId } })
-      .then(({ data }) => { if (data?.scoring) setScoring(data.scoring as ScoringData) })
+      .then(async ({ data, error }) => {
+        if (error || data?.error) {
+          console.error('close-mission (scoring):', await readInvokeError(error, data, 'Chargement du scoring impossible'))
+          return
+        }
+        if (data?.scoring) setScoring(data.scoring as ScoringData)
+      })
   }, [missionId])
 
   if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du scoring...</p>
