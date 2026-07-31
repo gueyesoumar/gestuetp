@@ -92,6 +92,7 @@ Deno.serve(async (req) => {
 
     const batch = unmapped.slice(0, MAX_CONTROLS)
     const remaining = unmapped.length - batch.length
+    console.log(`[classify-controls] framework=${frameworkId} unmapped=${unmapped.length} batch=${batch.length} → appel Claude`)
 
     const startedAt = Date.now()
     let claudeRes: Response
@@ -109,14 +110,17 @@ Deno.serve(async (req) => {
         }),
       })
     } catch (err) {
-      void logAiCall({ admin, function_name: 'classify-controls', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: 'fetch error', duration_ms: Date.now() - startedAt, organization_id: null, mission_id: null, user_id: owner.id })
       const message = err instanceof Error ? err.message : 'fetch error'
+      console.error('[classify-controls] fetch Claude échoué:', message)
+      void logAiCall({ admin, function_name: 'classify-controls', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: 'fetch error', duration_ms: Date.now() - startedAt, organization_id: null, mission_id: null, user_id: owner.id })
       return jsonResponse({ error: `Appel Claude échoué: ${message}` }, 502)
     }
 
     if (!claudeRes.ok) {
+      const errText = await claudeRes.text()
+      console.error('[classify-controls] Claude', claudeRes.status, errText.slice(0, 500))
       void logAiCall({ admin, function_name: 'classify-controls', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}`, duration_ms: Date.now() - startedAt, organization_id: null, mission_id: null, user_id: owner.id })
-      return jsonResponse({ error: `Erreur Claude (${claudeRes.status})` }, 502)
+      return jsonResponse({ error: `Erreur Claude (${claudeRes.status}): ${errText.slice(0, 180)}` }, 502)
     }
 
     const claudeData = await claudeRes.json()
@@ -128,8 +132,8 @@ Deno.serve(async (req) => {
       parsed = JSON.parse('[' + rawText) as Array<{ code: string; dimension: string }>
     } catch {
       const match = ('[' + rawText).match(/\[[\s\S]*\]/)
-      if (!match) return jsonResponse({ error: 'Réponse IA non parsable.' }, 502)
-      try { parsed = JSON.parse(match[0]) } catch { return jsonResponse({ error: 'Réponse IA non parsable.' }, 502) }
+      if (!match) { console.error('[classify-controls] parse: pas de tableau JSON'); return jsonResponse({ error: 'Réponse IA non parsable.' }, 502) }
+      try { parsed = JSON.parse(match[0]) } catch { console.error('[classify-controls] parse: JSON invalide'); return jsonResponse({ error: 'Réponse IA non parsable.' }, 502) }
     }
 
     // code -> id (uniquement les contrôles du batch, non classés)
@@ -155,6 +159,7 @@ Deno.serve(async (req) => {
       classified += count ?? ids.length
     }
 
+    console.log(`[classify-controls] terminé: classified=${classified} remaining=${remaining}`)
     return jsonResponse({ classified, remaining, total_unmapped: unmapped.length })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
