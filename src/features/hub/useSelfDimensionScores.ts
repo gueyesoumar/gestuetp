@@ -64,25 +64,41 @@ function toDimScore(key: ScoreDimensionKey, agg: { total: number; approved: numb
 }
 
 interface AssessmentRow {
+  id: string
   status: string
   control_id: string
   updated_at: string
   evidence_notes: string | null
 }
 
-// Assurance : part des controles approuves dont la preuve est a la fois fraiche
-// (mise a jour dans la fenetre d'un cycle) ET documentee (evidence_notes non vide).
+// Assurance : qualite ponderee des preuves des controles approuves, sur 3 signaux
+//   - fraicheur   : updated_at dans la fenetre d'un cycle
+//   - documentation: evidence_notes non vide
+//   - scellement  : validation independante approuvee dans la chaine probante
 // Mesure la confiance dans la mesure elle-meme ; plafonnee a 100 par nature.
-function computeAssurance(rows: AssessmentRow[], freshCutoffMs: number): { score: number | null; total: number; covered: number } {
+// `sealedIds` = null -> scellement indisponible (RLS) : degradation gracieuse
+// vers le modele 2 signaux (frais/documente), l'assurance n'est jamais cassee.
+function computeAssurance(
+  rows: AssessmentRow[],
+  freshCutoffMs: number,
+  sealedIds: Set<string> | null,
+): { score: number | null; total: number; covered: number } {
   const approved = rows.filter((r) => r.status === 'approved')
   if (approved.length === 0) return { score: null, total: 0, covered: 0 }
+  const withSeal = sealedIds !== null
+  const wFresh = withSeal ? 0.3 : 0.5
+  const wDoc = withSeal ? 0.3 : 0.5
+  const wSeal = withSeal ? 0.4 : 0
+  let qualitySum = 0
   let covered = 0
   for (const r of approved) {
-    const fresh = new Date(r.updated_at).getTime() >= freshCutoffMs
-    const documented = (r.evidence_notes ?? '').trim().length > 0
-    if (fresh && documented) covered += 1
+    const fresh = new Date(r.updated_at).getTime() >= freshCutoffMs ? 1 : 0
+    const documented = (r.evidence_notes ?? '').trim().length > 0 ? 1 : 0
+    const sealed = withSeal && sealedIds.has(r.id) ? 1 : 0
+    qualitySum += wFresh * fresh + wDoc * documented + wSeal * sealed
+    if (withSeal ? sealed : fresh && documented) covered += 1
   }
-  return { score: Math.round((covered / approved.length) * 100), total: approved.length, covered }
+  return { score: Math.round((qualitySum / approved.length) * 100), total: approved.length, covered }
 }
 
 // Coefficient conservateur : chaque facteur mesure retire une part, borne au plancher.
@@ -126,7 +142,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
 
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
-        .select('status, control_id, updated_at, evidence_notes')
+        .select('id, status, control_id, updated_at, evidence_notes')
         .in('mission_id', missionIds).abortSignal(ctrl.signal)
       if (ctrl.signal.aborted) return
       if (aErr) { console.error('dimension scores assessments:', aErr.message); setData(EMPTY); return }
@@ -161,9 +177,30 @@ export function useSelfDimensionScores(): SelfDimensionData {
         ? Math.round(measured.reduce((s, a) => s + (a.score ?? 0), 0) / measured.length)
         : null
 
+      // Scellement : validations independantes approuvees sur mes assessments
+      // approuves. Perimetre deja restreint (assessment_id in mes controles).
+      const approvedIds = rows.filter((r) => r.status === 'approved').map((r) => r.id)
+      let sealedIds: Set<string> | null = new Set()
+      if (approvedIds.length > 0) {
+        const { data: validations, error: vErr } = await supabase
+          .from('assessment_validations')
+          .select('assessment_id, stage')
+          .in('assessment_id', approvedIds)
+          .eq('decision', 'approved')
+          .in('stage', ['lead_review', 'associate_review', 'client_review'])
+          .abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        if (vErr) {
+          console.error('dimension scores validations:', vErr.message)
+          sealedIds = null // degradation gracieuse -> modele 2 signaux
+        } else {
+          sealedIds = new Set((validations ?? []).map((v: { assessment_id: string }) => v.assessment_id))
+        }
+      }
+
       const cutoff = new Date()
       cutoff.setMonth(cutoff.getMonth() - ASSURANCE_FRESHNESS_MONTHS)
-      const assurance = computeAssurance(rows, cutoff.getTime())
+      const assurance = computeAssurance(rows, cutoff.getTime(), sealedIds)
 
       const factors: FactorScore[] = [
         ...MAPPED_FACTOR_KEYS.map((k) => {

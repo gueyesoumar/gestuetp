@@ -33,7 +33,7 @@ function DimRow({ dim }: { dim: DimScore }): JSX.Element {
 function FactorRow({ factor }: { factor: FactorScore }): JSX.Element {
   const measured = factor.score !== null
   const color = measured ? bandColor(factor.score) : 'rgba(255,255,255,0.14)'
-  const unit = factor.key === 'assurance' ? 'preuves fiables' : 'contrôles'
+  const unit = factor.key === 'assurance' ? 'scellées' : 'contrôles'
   const impact = factor.score === null
     ? 'n/c'
     : factor.penaltyPts > 0 ? `−${factor.penaltyPts} pts` : 'neutre'
