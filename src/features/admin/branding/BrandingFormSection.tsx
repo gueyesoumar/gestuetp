@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Sparkles, X } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useToast } from '../../../hooks/useToast'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
 import type { ExtractedColors } from '../../branding/extractColorsFromImage'
@@ -97,7 +98,8 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
     })
     setSubmitting(false)
     if (error || data?.error) {
-      toast.error(data?.error ?? error?.message ?? 'Mise à jour impossible')
+      const msg = await readInvokeError(error, data, 'Mise à jour impossible')
+      toast.error(msg)
       return
     }
     toast.success('Branding enregistré')

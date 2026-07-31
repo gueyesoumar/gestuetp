@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import type { InviteMemberPayload } from './types'
 
 interface UseInviteMemberResult {
@@ -21,17 +22,7 @@ export function useInviteMember(onSuccess?: () => void): UseInviteMemberResult {
     })
 
     if (fnError) {
-      // Extraire le message du body de la reponse si disponible
-      let detail = fnError.message
-      try {
-        const context = (fnError as unknown as { context: { json: () => Promise<{ error?: string }> } }).context
-        if (context?.json) {
-          const body = await context.json()
-          if (body?.error) detail = body.error
-        }
-      } catch {
-        // pas de body json, on garde le message original
-      }
+      const detail = await readInvokeError(fnError, data, 'Invitation impossible')
       console.error('useInviteMember:', detail)
       setError(detail)
       setInviting(false)

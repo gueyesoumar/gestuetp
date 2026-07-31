@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { Settings, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { readInvokeError } from '../lib/edgeError'
 import { useMembers } from '../features/members/useMembers'
 import { usePlatformRoles } from '../features/members/usePlatformRoles'
 import { useToggleMemberStatus } from '../features/members/useToggleMemberStatus'
@@ -105,7 +106,8 @@ export function MembersPage() {
       },
     })
     if (fnError || data?.error) {
-      toast.error((data?.error as string | undefined) ?? fnError?.message ?? 'Envoi de l\'invitation impossible')
+      const msg = await readInvokeError(fnError, data, 'Envoi de l\'invitation impossible')
+      toast.error(msg)
     } else {
       toast.success(`Invitation renvoyée à ${resendTarget.email}`)
     }

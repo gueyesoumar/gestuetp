@@ -432,7 +432,11 @@ function AddDomainButton({ frameworkId, onCreated, toast }: { frameworkId: strin
       body: { action: 'create_domain', framework_id: frameworkId, code, name },
     })
     setSubmitting(false)
-    if (error || data?.error) { toast.error(data?.error ?? 'Création impossible'); return }
+    if (error || data?.error) {
+      const msg = await readInvokeError(error, data, 'Création impossible')
+      toast.error(msg)
+      return
+    }
     toast.success('Domaine ajouté')
     setCode(''); setName(''); setOpen(false); onCreated()
   }
@@ -466,7 +470,11 @@ function AddControlButton({ domainId, onCreated, toast }: { domainId: string; on
       body: { action: 'create_control', domain_id: domainId, code, name },
     })
     setSubmitting(false)
-    if (error || data?.error) { toast.error(data?.error ?? 'Création impossible'); return }
+    if (error || data?.error) {
+      const msg = await readInvokeError(error, data, 'Création impossible')
+      toast.error(msg)
+      return
+    }
     setCode(''); setName(''); setOpen(false); onCreated()
   }
 

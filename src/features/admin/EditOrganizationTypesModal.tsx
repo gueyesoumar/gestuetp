@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 import { ORG_TYPE_OPTIONS } from '../../lib/constants'
 
@@ -32,8 +33,10 @@ export function EditOrganizationTypesModal({ organizationId, organizationName, c
       const { data, error } = await supabase.functions.invoke('admin-update-organization', {
         body: { organization_id: organizationId, types, reason: reason.trim() },
       })
-      if (error) throw new Error(error.message)
-      if (data?.error) throw new Error(data.error)
+      if (error || data?.error) {
+        const detail = await readInvokeError(error, data, 'Mise à jour impossible')
+        throw new Error(detail)
+      }
       toast.success('Types mis à jour', { description: organizationName })
       onSuccess()
       onClose()

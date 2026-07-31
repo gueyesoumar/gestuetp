@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AlertTriangle, Sparkles } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
+import { readInvokeError } from '../../../../lib/edgeError'
 import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
 import { CONFORMITY_LEVELS } from '../../mission-constants'
 import { FindingsEditor } from '../findings/FindingsEditor'
@@ -65,7 +66,8 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
     })
 
     if (fnErr || data?.error) {
-      console.warn('smart-analyse fallback:', fnErr?.message ?? data?.error)
+      const detail = await readInvokeError(fnErr, data, 'Analyse IA indisponible.')
+      console.warn('smart-analyse fallback:', detail)
       setAiAnalysis({
         analysis_summary: 'Analyse IA indisponible. Vous pouvez ajouter manuellement vos constats.',
         confidence: 0,

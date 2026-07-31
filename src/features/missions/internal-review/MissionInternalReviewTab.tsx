@@ -5,6 +5,7 @@ import { InfoPopover } from '../../../components/ui/InfoPopover'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
 import { useInternalReviewData } from './useInternalReviewData'
 import { ValidationTimeline } from './ValidationTimeline'
@@ -39,7 +40,8 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
     })
 
     if (error) {
-      console.error('send-to-client-review:', error.message)
+      const detail = await readInvokeError(error, null, "Erreur lors de l'envoi au client.")
+      console.error('send-to-client-review:', detail)
       setSendError("Erreur lors de l'envoi au client.")
       setSending(false)
       return

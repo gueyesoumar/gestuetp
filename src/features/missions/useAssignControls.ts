@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 
 interface AssignEntry {
   control_id: string
@@ -25,14 +26,7 @@ export function useAssignControls(onSuccess?: () => void): UseAssignControlsResu
     })
 
     if (fnError) {
-      let detail = fnError.message
-      try {
-        const context = (fnError as unknown as { context: { json: () => Promise<{ error?: string }> } }).context
-        if (context?.json) {
-          const body = await context.json()
-          if (body?.error) detail = body.error
-        }
-      } catch { /* */ }
+      const detail = await readInvokeError(fnError, data, 'Affectation impossible')
       setError(detail)
       setAssigning(false)
       return false

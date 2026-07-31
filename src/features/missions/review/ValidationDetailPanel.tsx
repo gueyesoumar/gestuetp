@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Check, X, Pencil, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { Badge } from '../../../components/ui/Badge'
 import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
@@ -46,7 +47,8 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
       body: { assessment_id: assessment.id, decision, comment: comment || null },
     })
     if (fnError || data?.error) {
-      setError(fnError?.message ?? data?.error ?? 'Erreur lors de la validation.')
+      const msg = await readInvokeError(fnError, data, 'Erreur lors de la validation.')
+      setError(msg)
       setReviewing(false)
       return
     }

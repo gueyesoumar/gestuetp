@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useAdminCabinetDetail } from '../../features/admin/useAdminCabinetDetail'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -63,8 +64,10 @@ export function CabinetDetailPage() {
         const { data, error: fnError } = await supabase.functions.invoke('admin-cabinet', {
           body: { action: reasonModal, cabinet_id: cabinet.id, reason },
         })
-        if (fnError) throw new Error(fnError.message)
-        if (data?.error) throw new Error(data.error)
+        if (fnError || data?.error) {
+          const msg = await readInvokeError(fnError, data, 'Action impossible')
+          throw new Error(msg)
+        }
         toast.success(reasonModal === 'suspend' ? 'Organisation suspendue' : 'Organisation réactivée', { description: cabinet.name })
         refetch()
       }

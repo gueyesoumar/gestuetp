@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import type { MissionEvidenceRequest } from '../../types/database.types'
 
 export type DeclineDecisionAction = 'accept' | 'reissue' | 'escalate'
@@ -69,7 +70,8 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
     })
 
     if (fnError) {
-      console.error('requestEvidence:', fnError.message)
+      const detail = await readInvokeError(fnError, data, 'Demande de preuves impossible')
+      console.error('requestEvidence:', detail)
       setRequesting(false)
       return false
     }
@@ -94,7 +96,7 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
     })
     setResponding(false)
     if (fnError || data?.error) {
-      const message = (data?.error as string | undefined) ?? fnError?.message ?? 'Décision impossible'
+      const message = await readInvokeError(fnError, data, 'Décision impossible')
       console.error('respondToDecline:', message)
       return { ok: false, error: message }
     }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Sparkles, X, Loader2, Plus, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 
 export type AiQuestionType = 'text' | 'textarea' | 'boolean' | 'date' | 'number' | 'scale_percent' | 'file' | 'organigramme'
@@ -59,7 +60,8 @@ export function AiSuggestPanel({ missionId, frameworkId, sections, existingCodes
     })
     setLoading(false)
     if (fnError || (data && (data as { error?: string }).error)) {
-      setError(fnError?.message ?? (data as { error?: string }).error ?? 'Erreur IA.')
+      const msg = await readInvokeError(fnError, data, 'Erreur IA.')
+      setError(msg)
       return
     }
     const result = (data as { suggestions?: AiSuggestion[] })?.suggestions ?? []

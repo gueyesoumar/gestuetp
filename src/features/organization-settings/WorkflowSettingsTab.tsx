@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Lock, Sparkles, Brain } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 import { useAuth } from '../../hooks/useAuth'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
@@ -67,7 +68,8 @@ export function WorkflowSettingsTab(): JSX.Element {
     })
     setAiToggling(false)
     if (error || data?.error) {
-      toast.error((data?.error as string | undefined) ?? error?.message ?? 'Mise à jour impossible')
+      const msg = await readInvokeError(error, data, 'Mise à jour impossible')
+      toast.error(msg)
       return
     }
     setAiEnabled(next)
@@ -91,7 +93,8 @@ export function WorkflowSettingsTab(): JSX.Element {
     })
     setSubmitting(false)
     if (error || data?.error) {
-      toast.error(data?.error ?? error?.message ?? 'Mise à jour impossible')
+      const msg = await readInvokeError(error, data, 'Mise à jour impossible')
+      toast.error(msg)
       return
     }
     // Invalider le cache sessionStorage pour que tout l'app (PDF de cadrage,

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { Modal } from '../../../components/ui/Modal'
 import { Badge } from '../../../components/ui/Badge'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
@@ -44,7 +45,8 @@ export function TeamManagementModal({ missionId, members, onClose, onRefetch }: 
     })
 
     if (fnError || data?.error) {
-      console.error('Add member:', fnError?.message ?? data?.error)
+      const detail = await readInvokeError(fnError, data, 'Erreur lors de l\u2019ajout du membre.')
+      console.error('Add member:', detail)
       setError('Erreur lors de l\u2019ajout du membre.')
     } else {
       const added = allOrgMembers.find((m) => m.id === addUserId)
@@ -65,7 +67,8 @@ export function TeamManagementModal({ missionId, members, onClose, onRefetch }: 
     })
 
     if (fnError || data?.error) {
-      console.error('Remove member:', fnError?.message ?? data?.error)
+      const detail = await readInvokeError(fnError, data, 'Erreur lors du retrait du membre.')
+      console.error('Remove member:', detail)
       setError('Erreur lors du retrait du membre.')
     } else {
       setSuccess(`${userName} retir\u00e9 de la mission.`)

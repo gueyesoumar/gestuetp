@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
@@ -109,7 +110,8 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       body: { mission_id: mission.id },
     })
     if (fnError || data?.error) {
-      setCloseError(fnError?.message ?? data?.error ?? 'Erreur.')
+      const msg = await readInvokeError(fnError, data, 'Erreur.')
+      setCloseError(msg)
       setClosing(false)
       return
     }

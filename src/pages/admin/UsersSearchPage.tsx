@@ -5,6 +5,7 @@ import { Search } from 'lucide-react'
 import { useAdminUsers, type AdminUserRow } from '../../features/admin/useAdminUsers'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 
 export function UsersSearchPage() {
@@ -23,8 +24,10 @@ export function UsersSearchPage() {
       const { data, error } = await supabase.functions.invoke('admin-user', {
         body: { action: actionType, user_id: actionUser.id, reason },
       })
-      if (error) throw new Error(error.message)
-      if (data?.error) throw new Error(data.error)
+      if (error || data?.error) {
+        const msg = await readInvokeError(error, data, 'Action impossible')
+        throw new Error(msg)
+      }
       toast.success(
         actionType === 'reset_password' ? 'Lien de réinitialisation envoyé' : 'Statut mis à jour',
         { description: actionUser.email },

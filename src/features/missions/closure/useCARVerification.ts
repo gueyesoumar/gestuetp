@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useToast } from '../../../hooks/useToast'
 
 export type VerifyAction = 'accept' | 'reject' | 'request_precision'
@@ -20,7 +21,8 @@ export function useCARVerification(onSuccess: () => void | Promise<void>): UseCA
         body: { car_id: carId, action, comment: comment ?? null },
       })
       if (error || data?.error) {
-        toast.error('Vérification impossible', error?.message ?? data?.error)
+        const msg = await readInvokeError(error, data, 'Vérification impossible')
+        toast.error('Vérification impossible', msg)
         return false
       }
       const labels: Record<VerifyAction, string> = {

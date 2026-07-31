@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 
 interface UseCloseCycleResult {
@@ -18,7 +19,8 @@ export function useCloseCycle(onSuccess?: () => void | Promise<void>): UseCloseC
         body: { cycle_id: cycleId },
       })
       if (error || data?.error) {
-        toast.error('Clôture impossible', error?.message ?? data?.error)
+        const msg = await readInvokeError(error, data, 'Clôture impossible')
+        toast.error('Clôture impossible', msg)
         return false
       }
       const next = data?.next_cycle as { period_label?: string } | null

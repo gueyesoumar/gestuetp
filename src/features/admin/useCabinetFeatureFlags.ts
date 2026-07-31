@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 
 export type FlagState =
   | 'plan_included'      // inclus dans le plan, pas d'override, kill switch global ON
@@ -147,7 +148,8 @@ export function useCabinetFeatureFlags(cabinetId: string | undefined): Result {
     if (action === 'set') body.enabled = enabled
     const { data, error: fnError } = await supabase.functions.invoke('admin-feature-flag-overrides', { body })
     if (fnError || data?.error) {
-      console.error(`${action}Override:`, fnError?.message ?? data?.error)
+      const detail = await readInvokeError(fnError, data, 'Mise à jour impossible')
+      console.error(`${action}Override:`, detail)
       return false
     }
     sessionStorage.removeItem(`ff:${cabinetId}:${slug}`)

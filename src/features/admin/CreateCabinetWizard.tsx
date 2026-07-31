@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 
 interface Plan { id: string; slug: string; name: string; monthly_price_eur: number }
@@ -60,7 +61,8 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
     })
     setSubmitting(false)
     if (error) {
-      toast.error('Création impossible', error)
+      const detail = await readInvokeError(error, data, 'Création impossible')
+      toast.error('Création impossible', detail)
       return
     }
     if (data?.error) {

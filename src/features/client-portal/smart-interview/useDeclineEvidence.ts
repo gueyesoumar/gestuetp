@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import type { EvidenceDeclineReason } from '../../../types/database.types'
 
 interface DeclineParams {
@@ -38,7 +39,7 @@ export function useDeclineEvidence(onChange: () => void): DeclineResult {
         },
       })
       if (error || data?.error) {
-        lastError = (data?.error as string | undefined) ?? error?.message ?? 'Erreur'
+        lastError = await readInvokeError(error, data, 'Erreur')
         break
       }
     }
@@ -57,7 +58,7 @@ export function useDeclineEvidence(onChange: () => void): DeclineResult {
         body: { evidence_request_id: id, action: 'cancel' },
       })
       if (error || data?.error) {
-        lastError = (data?.error as string | undefined) ?? error?.message ?? 'Erreur'
+        lastError = await readInvokeError(error, data, 'Erreur')
         break
       }
     }

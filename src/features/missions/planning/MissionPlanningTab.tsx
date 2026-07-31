@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { usePlanningData } from './usePlanningData'
 import { useSavePlanning } from './useSavePlanning'
@@ -145,14 +146,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
     })
 
     if (fnError || data?.error) {
-      let detail = fnError?.message ?? data?.error ?? 'Erreur inconnue'
-      try {
-        const ctx = (fnError as unknown as { context?: { json?: () => Promise<{ error?: string }> } })?.context
-        if (ctx?.json) {
-          const body = await ctx.json()
-          if (body?.error) detail = body.error
-        }
-      } catch { /* */ }
+      const detail = await readInvokeError(fnError, data, 'Erreur inconnue')
       console.error('SmartPlan error:', detail, 'data:', data)
       // Fallback: use local rule-based generation
       const result = generateWorkProgram(mission.id, domains, members, assignments)

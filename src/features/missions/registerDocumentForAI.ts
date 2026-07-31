@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 
 /**
  * Triggers an asynchronous Anthropic Files API upload for the given document.
@@ -30,7 +31,8 @@ export function registerDocumentForAI(documentId: string, fileName: string): voi
       })
 
       if (error) {
-        console.warn(`[registerDocumentForAI] Upload failed for ${fileName}:`, error.message)
+        const detail = await readInvokeError(error, data, 'Upload IA impossible')
+        console.warn(`[registerDocumentForAI] Upload failed for ${fileName}:`, detail)
         return
       }
 

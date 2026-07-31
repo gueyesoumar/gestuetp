@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText, Building2, Calendar, Clock, Play, MoreVertical, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { MissionStatusBadge } from './MissionStatusBadge'
 import { Modal } from '../../components/ui/Modal'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
@@ -35,8 +36,8 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
 
     setDeleting(false)
     if (error || data?.error) {
-      const msg = (data?.error as string | undefined) ?? 'Suppression impossible'
-      console.error('delete-mission:', error?.message ?? msg)
+      const msg = await readInvokeError(error, data, 'Suppression impossible')
+      console.error('delete-mission:', msg)
       setDeleteError(msg)
       return
     }

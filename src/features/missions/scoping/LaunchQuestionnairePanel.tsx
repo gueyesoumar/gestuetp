@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Send, Calendar, Sparkles, Plus, X, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useTemplateQuestions } from './useTemplateQuestions'
 import { useClientContacts } from './useClientContacts'
 import { AiSuggestPanel, type AiSuggestion } from './AiSuggestPanel'
@@ -182,7 +183,8 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
     })
     setLaunching(false)
     if (fnError || data?.error) {
-      setLaunchError(fnError?.message ?? data?.error ?? 'Erreur.')
+      const msg = await readInvokeError(fnError, data, 'Erreur.')
+      setLaunchError(msg)
       return
     }
     onLaunched()

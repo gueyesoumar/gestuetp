@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useToast } from '../../../hooks/useToast'
 import { generateActionPlanXLSX, type ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 import type { MissionDetail } from '../useMissionDetail'
@@ -239,7 +240,8 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
         body: { mission_id: mission.id },
       })
       if (error || data?.error) {
-        toast.error('Génération impossible', error?.message ?? data?.error)
+        const msg = await readInvokeError(error, data, 'Génération impossible')
+        toast.error('Génération impossible', msg)
         return
       }
       const created = (data?.created as number | undefined) ?? 0

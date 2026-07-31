@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 
 export interface ClientControlReviewApi {
   reviewComment: string
@@ -39,7 +40,7 @@ export function useClientControlReview(
     })
     setReviewing(false)
     if (error || data?.error) {
-      const msg = (data?.error as string | undefined) ?? error?.message ?? 'Validation impossible'
+      const msg = await readInvokeError(error, data, 'Validation impossible')
       console.error('client-review-assessment:', msg)
       setReviewError(msg)
       return

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, RefreshCw, Trash2, CheckCircle2, AlertCircle, Copy } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useToast } from '../../../hooks/useToast'
 import type { CabinetDomainRow } from './useCabinetBrandingAdmin'
 
@@ -33,7 +34,8 @@ export function DomainsSection({ cabinetId, domains, onChanged }: Props): JSX.El
     })
     setSubmitting(null)
     if (error || data?.error) {
-      toast.error(data?.error ?? error?.message ?? 'Création impossible')
+      const msg = await readInvokeError(error, data, 'Création impossible')
+      toast.error(msg)
       return
     }
     toast.success('Domaine ajouté', { description: 'Configurez le DNS puis cliquez sur Vérifier' })
@@ -52,7 +54,8 @@ export function DomainsSection({ cabinetId, domains, onChanged }: Props): JSX.El
     })
     setSubmitting(null)
     if (error || data?.error) {
-      toast.error(data?.error ?? error?.message ?? 'Vérification impossible')
+      const msg = await readInvokeError(error, data, 'Vérification impossible')
+      toast.error(msg)
       return
     }
     if (data.verified) toast.success('Domaine vérifié et SSL émis')
@@ -69,7 +72,8 @@ export function DomainsSection({ cabinetId, domains, onChanged }: Props): JSX.El
     })
     setSubmitting(null)
     if (error || data?.error) {
-      toast.error(data?.error ?? error?.message ?? 'Suppression impossible')
+      const msg = await readInvokeError(error, data, 'Suppression impossible')
+      toast.error(msg)
       return
     }
     toast.success('Domaine supprimé')
