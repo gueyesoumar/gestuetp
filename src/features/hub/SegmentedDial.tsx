@@ -24,9 +24,10 @@ export function SegmentedDial({ score, segments }: SegmentedDialProps): JSX.Elem
   const arcs: JSX.Element[] = []
 
   if (segments && segments.length > 0) {
-    const segLen = (circ * (90 - GAP_DEG)) / 360
+    const arc = 360 / segments.length
+    const segLen = (circ * (arc - GAP_DEG)) / 360
     segments.forEach((value, i) => {
-      const rot = -90 + i * 90 + GAP_DEG / 2
+      const rot = -90 + i * arc + GAP_DEG / 2
       arcs.push(
         <circle key={`bg-${i}`} cx={c} cy={c} r={r} fill="none" stroke={TRACK} strokeWidth={w}
           strokeLinecap="round" strokeDasharray={`${segLen} ${circ - segLen}`} transform={`rotate(${rot} ${c} ${c})`} />,

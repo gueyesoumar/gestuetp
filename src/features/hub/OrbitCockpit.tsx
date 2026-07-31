@@ -11,7 +11,7 @@ import { SegmentedDial } from './SegmentedDial'
 import { ScoreDecomposition } from './ScoreDecomposition'
 import { ModulePopover } from './ModulePopover'
 import { PoweredByGestu } from '../branding/BrandedAuthHeader'
-import { SCORE_DIMENSIONS } from './scoreDimensions'
+import { useSelfDimensionScores } from './useSelfDimensionScores'
 
 // App-shell du Hub : barre du haut (marque + vues + utilisateur), orbite des
 // modules en héros central fluide, décomposition en pied. Perspectives dérivées
@@ -37,6 +37,7 @@ function average(values: Array<number | null>): number | null {
 
 export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: OrbitCockpitProps): JSX.Element {
   const data = useHubPerspectives()
+  const selfDims = useSelfDimensionScores()
   const navigate = useNavigate()
   const [current, setCurrent] = useState<HubPerspective>('self')
   const [selected, setSelected] = useState<Selection | null>(null)
@@ -58,7 +59,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
     else if (product.active) navigate('/')
   }, [navigate])
 
-  const dimValues = useMemo(() => SCORE_DIMENSIONS.map((d) => (d.configured ? selfScore : null)), [selfScore])
+  const axisSegments = useMemo(() => selfDims.axes.map((a) => a.score), [selfDims.axes])
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
 
@@ -87,7 +88,11 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       ? { score: clientsAvg, segments: undefined, subtitle: `Portefeuille · ${data.clients.length}` }
       : current === 'group'
         ? { score: groupAvg, segments: undefined, subtitle: `Groupe · ${data.subsidiaries.length}` }
-        : { score: selfScore, segments: dimValues, subtitle: 'Votre organisation' }
+        : {
+            score: selfDims.composite ?? selfScore,
+            segments: axisSegments.length > 0 ? axisSegments : undefined,
+            subtitle: `Votre organisation · ${selfDims.measuredAxes}/${selfDims.totalAxes} axes mesurés`,
+          }
 
   const eyebrow =
     current === 'clients' ? 'Détail par client · du plus exposé au plus solide'
@@ -115,7 +120,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
         </p>
         <div className="mb-2 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/40">{eyebrow}</div>
         {current === 'self' ? (
-          <ScoreDecomposition mode="self" selfScore={selfScore} />
+          <ScoreDecomposition mode="self" axes={selfDims.axes} factors={selfDims.factors} />
         ) : (
           <ScoreDecomposition
             mode="entities"
