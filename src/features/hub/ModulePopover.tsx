@@ -10,6 +10,8 @@ import type { HubProduct } from '../../lib/hubProducts'
 interface ModulePopoverProps {
   product: HubProduct | null
   anchor: HTMLElement | null
+  /** Le module ouvre-t-il le workspace interne (produit de l'édition courante) ? */
+  enterable?: boolean
   onClose: () => void
   onOpen: (product: HubProduct) => void
 }
@@ -21,7 +23,7 @@ interface Pos {
 
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(v, hi))
 
-export function ModulePopover({ product, anchor, onClose, onOpen }: ModulePopoverProps): JSX.Element | null {
+export function ModulePopover({ product, anchor, enterable = false, onClose, onOpen }: ModulePopoverProps): JSX.Element | null {
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<Pos | null>(null)
 
@@ -104,7 +106,7 @@ export function ModulePopover({ product, anchor, onClose, onOpen }: ModulePopove
         <div className="rounded-[10px] border border-white/10 py-2.5 text-center text-[13px] font-bold text-white/40">
           Bient&ocirc;t disponible
         </div>
-      ) : (
+      ) : enterable ? (
         <button
           type="button"
           onClick={() => onOpen(product)}
@@ -112,6 +114,10 @@ export function ModulePopover({ product, anchor, onClose, onOpen }: ModulePopove
         >
           Ouvrir &rarr;
         </button>
+      ) : (
+        <div className="rounded-[10px] border border-white/10 py-2.5 text-center text-[12.5px] font-medium text-white/45">
+          Activ&eacute; par votre administrateur
+        </div>
       )}
     </div>,
     document.body,

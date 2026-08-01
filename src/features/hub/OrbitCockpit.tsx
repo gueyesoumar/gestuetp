@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { User } from '../../types/database.types'
 import { HUB_PRODUCTS } from '../../lib/hubProducts'
 import type { HubProduct } from '../../lib/hubProducts'
+import { useEdition } from '../edition/EditionContext'
 import { useHubPerspectives } from './useHubPerspectives'
 import type { HubPerspective } from './useHubPerspectives'
 import { HubTopBar } from './HubTopBar'
@@ -39,6 +40,11 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   const data = useHubPerspectives()
   const selfDims = useSelfDimensionScores()
   const navigate = useNavigate()
+  const { edition } = useEdition()
+  // Le produit « primaire » = celui de l'édition résolue de l'org. C'est la seule
+  // tuile qui ouvre le workspace interne (navigate('/')). Plus de lien externe :
+  // un cabinet qui clique « Regul » voit le détail, sans quitter son dashboard.
+  const primaryProduct = edition === 'regul' ? 'Regul' : 'Comply'
   const [current, setCurrent] = useState<HubPerspective>('self')
   const [selected, setSelected] = useState<Selection | null>(null)
 
@@ -55,9 +61,8 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   const onClose = useCallback(() => setSelected(null), [])
   const onOpen = useCallback((product: HubProduct) => {
     setSelected(null)
-    if (product.href) window.open(product.href, '_blank', 'noopener,noreferrer')
-    else if (product.active) navigate('/')
-  }, [navigate])
+    if (product.name === primaryProduct) navigate('/')
+  }, [navigate, primaryProduct])
 
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
@@ -136,7 +141,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       </div>
 
       <PoweredByGestu className="mt-2 shrink-0" />
-      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} onClose={onClose} onOpen={onOpen} />
+      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} enterable={selected?.product.name === primaryProduct} onClose={onClose} onOpen={onOpen} />
     </div>
   )
 }
