@@ -1,5 +1,7 @@
 # Dossier d'architecture technique — Gëstu ETP
 
+> **⚠ Évolution post-audit — voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime — le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
+
 > Document préparé pour l'audit externe. Version du 2026-07-09.
 
 ## 1. Stack technique
