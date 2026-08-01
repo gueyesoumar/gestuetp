@@ -8,7 +8,7 @@ import type { RelationshipNature } from '../../types/database.types'
 // conformité seule (approved / total) — les autres dimensions viendront des
 // modules Risk/Awareness/incidents (dégradation gracieuse côté cockpit).
 
-export type HubPerspective = 'self' | 'clients' | 'group'
+export type HubPerspective = 'self' | 'clients' | 'group' | 'assujettis'
 
 export interface TrustTileData {
   orgId: string
@@ -22,14 +22,16 @@ export interface HubData {
   perspectives: HubPerspective[]
   clients: TrustTileData[]
   subsidiaries: TrustTileData[]
+  assujettis: TrustTileData[]
 }
 
 const NATURE_TO_PERSPECTIVE: Partial<Record<RelationshipNature, HubPerspective>> = {
   audit_engagement: 'clients',
   group_ownership: 'group',
+  regulatory_supervision: 'assujettis',
 }
 
-const EMPTY: HubData = { loading: false, perspectives: ['self'], clients: [], subsidiaries: [] }
+const EMPTY: HubData = { loading: false, perspectives: ['self'], clients: [], subsidiaries: [], assujettis: [] }
 
 async function fetchNames(ids: string[], signal: AbortSignal): Promise<Map<string, string>> {
   const { data } = await supabase.from('organizations').select('id, name').in('id', ids).abortSignal(signal)
@@ -103,7 +105,7 @@ export function useHubPerspectives(): HubData {
           orgId: id, name: names.get(id) ?? 'Organisation', score: conformity.get(id) ?? null, nature,
         }))
 
-      setData({ loading: false, perspectives, clients: tiles('audit_engagement'), subsidiaries: tiles('group_ownership') })
+      setData({ loading: false, perspectives, clients: tiles('audit_engagement'), subsidiaries: tiles('group_ownership'), assujettis: tiles('regulatory_supervision') })
     })()
 
     return () => ctrl.abort()

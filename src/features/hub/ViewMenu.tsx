@@ -9,6 +9,7 @@ const LABELS: Record<HubPerspective, { t: string; sub: string }> = {
   self: { t: 'Mon organisation', sub: 'Votre score de confiance' },
   clients: { t: 'Portefeuille clients', sub: 'Score par client audité' },
   group: { t: 'Groupe / filiales', sub: 'Score par filiale' },
+  assujettis: { t: "Parc d'assujettis", sub: 'Score par assujetti' },
 }
 
 interface ViewMenuProps {

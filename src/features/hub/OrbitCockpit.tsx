@@ -50,7 +50,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
 
   useEffect(() => {
     if (data.loading) return
-    const preferred: HubPerspective[] = ['clients', 'group', 'self']
+    const preferred: HubPerspective[] = ['clients', 'group', 'assujettis', 'self']
     const next = preferred.find((p) => data.perspectives.includes(p)) ?? 'self'
     setCurrent((c) => (data.perspectives.includes(c) ? c : next))
   }, [data.loading, data.perspectives])
@@ -66,6 +66,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
 
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
+  const assujettisAvg = useMemo(() => average(data.assujettis.map((t) => t.score)), [data.assujettis])
 
   const topBar = (
     <HubTopBar
@@ -100,12 +101,15 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       ? { score: clientsAvg, subtitle: `Portefeuille · ${data.clients.length}` }
       : current === 'group'
         ? { score: groupAvg, subtitle: `Groupe · ${data.subsidiaries.length}` }
-        : { score: selfDims.composite ?? selfScore, subtitle: selfSubtitle }
+        : current === 'assujettis'
+          ? { score: assujettisAvg, subtitle: `Parc · ${data.assujettis.length}` }
+          : { score: selfDims.composite ?? selfScore, subtitle: selfSubtitle }
 
   const panelTitle =
     current === 'clients' ? 'Détail par client · plus exposé → plus solide'
       : current === 'group' ? 'Détail par filiale · plus exposé → plus solide'
-        : 'Profil de confiance — 6 dimensions'
+        : current === 'assujettis' ? 'Détail par assujetti · plus exposé → plus solide'
+          : 'Profil de confiance — 6 dimensions'
 
   return (
     <div className="flex h-full w-full flex-col px-6 py-3">
@@ -134,8 +138,8 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
           <HubSidePanel
             mode="entities"
             title={panelTitle}
-            tiles={current === 'clients' ? data.clients : data.subsidiaries}
-            emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : 'Aucune filiale rattachée.'}
+            tiles={current === 'clients' ? data.clients : current === 'group' ? data.subsidiaries : data.assujettis}
+            emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : current === 'group' ? 'Aucune filiale rattachée.' : 'Aucun assujetti dans votre périmètre.'}
           />
         )}
       </div>
