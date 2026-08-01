@@ -6,21 +6,23 @@ import { SubsidiaryKPIs } from './SubsidiaryKPIs'
 import { SubsidiaryMissionsList } from './SubsidiaryMissionsList'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { isRegul, productVocab } from '../../lib/product'
+import { isRegul } from '../../lib/product'
+import { useVocab } from '../edition/useVocab'
 import { AssujettiInviteModal } from '../../regul/AssujettiInviteModal'
 
 export function SubsidiaryDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>()
+  const vocab = useVocab()
   const { data, loading, error } = useSubsidiaryDetail(id)
   const [inviteOpen, setInviteOpen] = useState(false)
 
   if (loading) return <LoadingSpinner />
-  if (error || !data) return <ErrorAlert message={error ?? `${productVocab.entitySingular} introuvable`} />
+  if (error || !data) return <ErrorAlert message={error ?? `${vocab.entitySingular} introuvable`} />
 
   return (
     <div className="space-y-5">
-      <Link to={productVocab.entityRouteBase} className="text-[13px] text-forest-700 hover:text-forest-900">
-        &larr; Retour aux {productVocab.entityPlural}
+      <Link to={vocab.entityRouteBase} className="text-[13px] text-forest-700 hover:text-forest-900">
+        &larr; Retour aux {vocab.entityPlural}
       </Link>
 
       <SubsidiaryHero data={data} />

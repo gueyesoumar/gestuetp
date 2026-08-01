@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
-import { isRegul, productVocab } from '../../../lib/product'
+import { isRegul } from '../../../lib/product'
+import { useVocab } from '../../edition/useVocab'
 import { GestuLogo } from '../../../components/GestuLogo'
 import type { ReactNode } from 'react'
 
@@ -16,6 +17,7 @@ const NAV_ITEMS: { to: string; label: string; icon: ReactNode; end: boolean }[] 
 ]
 
 export function ClientSidebar(): JSX.Element {
+  const vocab = useVocab()
   const { profile, signOut } = useAuth()
   const initials = profile
     ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
@@ -32,7 +34,7 @@ export function ClientSidebar(): JSX.Element {
             G{'\u00eb'}stu<span className="text-gold-500">.</span>
           </p>
         )}
-        <p className="text-[9px] tracking-[2px] uppercase text-white/40 mt-0.5">{productVocab.portalLabel}</p>
+        <p className="text-[9px] tracking-[2px] uppercase text-white/40 mt-0.5">{vocab.portalLabel}</p>
       </div>
 
       {/* Navigation */}

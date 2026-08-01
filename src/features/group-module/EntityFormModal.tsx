@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS, CRITICALITY_OPTIONS, REG_STATUS_OPTIONS } from '../../lib/constants'
 import type { EntityType } from '../../lib/constants'
-import { isRegul, productVocab } from '../../lib/product'
+import { isRegul } from '../../lib/product'
+import { useVocab } from '../edition/useVocab'
 import { useManageEntity, type EntityInput, type RegulatoryProfile } from './useManageEntity'
 import { useToast } from '../../hooks/useToast'
 
@@ -31,6 +32,7 @@ interface Props {
 
 /** Modale création / édition d'une entité interne de groupe. */
 export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Props): JSX.Element {
+  const vocab = useVocab()
   const toast = useToast()
   const { busy, createEntity, updateEntity } = useManageEntity()
   const isEdit = !!initial?.id
@@ -83,7 +85,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">{isEdit ? `Modifier — ${productVocab.entitySingular}` : `Nouvel${isRegul ? '' : 'le'} ${productVocab.entitySingular}`}</h3>
+          <h3 className="font-semibold text-gray-900">{isEdit ? `Modifier — ${vocab.entitySingular}` : `Nouvel${isRegul ? '' : 'le'} ${vocab.entitySingular}`}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
@@ -161,7 +163,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
             <button type="submit" disabled={busy} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-              {busy ? 'Enregistrement…' : isEdit ? 'Enregistrer' : `Créer — ${productVocab.entitySingular}`}
+              {busy ? 'Enregistrement…' : isEdit ? 'Enregistrer' : `Créer — ${vocab.entitySingular}`}
             </button>
           </div>
         </form>

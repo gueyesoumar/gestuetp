@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { productVocab } from '../../lib/product'
+import { useVocab } from '../edition/useVocab'
 import type { SubsidiaryMissionRow } from './useSubsidiaryDetail'
 
 interface SubsidiaryMissionsListProps {
@@ -22,10 +22,11 @@ function formatShortDate(d: string | null): string {
 }
 
 export function SubsidiaryMissionsList({ missions }: SubsidiaryMissionsListProps): JSX.Element {
+  const vocab = useVocab()
   if (missions.length === 0) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
-        <p className="text-sm text-gray-400">Aucune mission sur {productVocab.entityWithDem}.</p>
+        <p className="text-sm text-gray-400">Aucune mission sur {vocab.entityWithDem}.</p>
       </div>
     )
   }

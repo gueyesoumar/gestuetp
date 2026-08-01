@@ -15,7 +15,7 @@ export const PRODUCT: ProductMode =
 
 export const isRegul = PRODUCT === 'regul'
 
-interface ProductVocab {
+export interface ProductVocab {
   /** Libellé d'une entité supervisée, singulier / pluriel / titre de page. */
   entitySingular: string
   entityPlural: string
@@ -51,5 +51,10 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
   },
 }
 
-/** Vocabulaire du produit courant. */
+/** Vocabulaire du produit courant (figé au build — repli tant que l'édition runtime n'est pas résolue). */
 export const productVocab: ProductVocab = VOCAB[PRODUCT]
+
+/** Vocabulaire résolu par l'ÉDITION (runtime, RFC 0001). regul → assujetti, sinon → client/entité. */
+export function vocabForEdition(edition: string): ProductVocab {
+  return edition === 'regul' ? VOCAB.regul : VOCAB.comply
+}

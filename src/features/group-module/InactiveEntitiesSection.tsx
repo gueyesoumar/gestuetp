@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, RotateCcw } from 'lucide-react'
 import { useManageEntity, type EntityRow } from './useManageEntity'
 import { useToast } from '../../hooks/useToast'
 import { ENTITY_TYPE_LABELS } from '../../lib/constants'
-import { productVocab } from '../../lib/product'
+import { useVocab } from '../edition/useVocab'
 
 interface Props {
   /** Rafraîchit la liste principale des entités actives après réactivation. */
@@ -13,6 +13,7 @@ interface Props {
 
 /** Section repliable listant les entités désactivées (chargée à la demande). */
 export function InactiveEntitiesSection({ onReactivated, canManage }: Props): JSX.Element | null {
+  const vocab = useVocab()
   const toast = useToast()
   const { busy, listInactive, reactivateEntity } = useManageEntity()
   const [open, setOpen] = useState(false)
@@ -45,7 +46,7 @@ export function InactiveEntitiesSection({ onReactivated, canManage }: Props): JS
     <div className="border border-gray-200 rounded-xl">
       <button onClick={toggle} className="w-full flex items-center gap-2 px-4 py-3 text-[13px] font-medium text-gray-600 hover:bg-gray-50 rounded-xl">
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-        {productVocab.entitiesTitle} d&eacute;sactiv&eacute;{productVocab.entitySingular.endsWith('e') ? 'e' : ''}s
+        {vocab.entitiesTitle} d&eacute;sactiv&eacute;{vocab.entitySingular.endsWith('e') ? 'e' : ''}s
         {loaded && <span className="text-gray-400">({rows.length})</span>}
       </button>
       {open && (
@@ -53,7 +54,7 @@ export function InactiveEntitiesSection({ onReactivated, canManage }: Props): JS
           {!loaded ? (
             <p className="text-[12px] text-gray-400 py-2">Chargement&hellip;</p>
           ) : rows.length === 0 ? (
-            <p className="text-[12px] text-gray-400 py-2">Aucun{productVocab.entitySingular.endsWith('e') ? 'e' : ''} {productVocab.entitySingular} d&eacute;sactiv&eacute;{productVocab.entitySingular.endsWith('e') ? 'e' : ''}.</p>
+            <p className="text-[12px] text-gray-400 py-2">Aucun{vocab.entitySingular.endsWith('e') ? 'e' : ''} {vocab.entitySingular} d&eacute;sactiv&eacute;{vocab.entitySingular.endsWith('e') ? 'e' : ''}.</p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {rows.map((e) => (

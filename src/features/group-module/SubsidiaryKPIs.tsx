@@ -1,4 +1,4 @@
-import { productVocab } from '../../lib/product'
+import { useVocab } from '../edition/useVocab'
 import type { SubsidiaryDetail } from './useSubsidiaryDetail'
 
 interface SubsidiaryKPIsProps {
@@ -11,12 +11,13 @@ function formatShortDate(d: string | null): string {
 }
 
 export function SubsidiaryKPIs({ data }: SubsidiaryKPIsProps): JSX.Element {
+  const vocab = useVocab()
   const evaluated = `${data.totalEvaluatedControls}${data.totalControlsTarget > 0 ? `/${data.totalControlsTarget}` : ''}`
   const overdueLabel = data.overdueCars > 0 ? `${data.overdueCars} en retard` : 'aucun en retard'
 
   return (
     <div className="grid grid-cols-4 gap-4">
-      <Card label="Missions actives" value={`${data.totalActiveMissions}`} sub={`Sur ${productVocab.entityWithDem}`} />
+      <Card label="Missions actives" value={`${data.totalActiveMissions}`} sub={`Sur ${vocab.entityWithDem}`} />
       <Card label="Contrôles évalués" value={evaluated} sub="Cumul tous référentiels" />
       <Card label="Plans d'action ouverts" value={`${data.openCars}`} sub={overdueLabel} accent={data.overdueCars > 0 ? 'red' : 'forest'} />
       <Card label="Prochaine échéance" value={formatShortDate(data.nextReviewDate)} sub="Cycle ouvert le plus proche" />
