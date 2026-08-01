@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { isRegul } from '../lib/product'
+import { preAuthEdition } from '../lib/product'
 import { useBranding } from '../features/branding/useBranding'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 import { VaultBackground } from '../components/vault/VaultBackground'
@@ -34,7 +34,7 @@ export function LoginPage(): JSX.Element {
     // son portail cloisonné, le staff régulateur sur le tableau de bord.
     // Comply : le platform owner va dans sa console (sauf domaine cabinet co-brandé),
     // les autres gardent le hub.
-    const target = isRegul
+    const target = preAuthEdition() === 'regul'
       ? (profile?.role === 'client' ? '/client' : '/')
       : (!branding && profile?.is_platform_owner ? '/admin' : '/hub')
     return <Navigate to={target} replace />

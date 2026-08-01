@@ -1,5 +1,5 @@
 import { useEdition } from './EditionContext'
-import { productVocab, vocabForEdition, type ProductVocab } from '../../lib/product'
+import { preAuthEdition, vocabForEdition, type ProductVocab } from '../../lib/product'
 
 // Vocabulaire résolu par l'ÉDITION au runtime (Phase 2 — incrément 2).
 //
@@ -9,5 +9,5 @@ import { productVocab, vocabForEdition, type ProductVocab } from '../../lib/prod
 // snayz→regul) : on ne fait que déplacer la SOURCE (build → runtime), pas la valeur.
 export function useVocab(): ProductVocab {
   const { edition } = useEdition()
-  return edition ? vocabForEdition(edition) : productVocab
+  return vocabForEdition(edition ?? preAuthEdition())
 }

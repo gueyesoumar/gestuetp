@@ -15,6 +15,19 @@ export const PRODUCT: ProductMode =
 
 export const isRegul = PRODUCT === 'regul'
 
+// Édition résolue PRÉ-AUTHENTIFICATION (avant de connaître l'org connectée) : sert
+// d'indice de branding/coquille tant que l'édition runtime n'est pas résolue.
+// Priorité : override explicite `VITE_EDITION` > filet legacy `VITE_PRODUCT`
+// (transition, retiré en 4c-ii) > hostname. N'est PLUS un fork de domaine — juste
+// une allure de login. Un domaine custom (ex. DCSSI) pose `VITE_EDITION=regul`.
+export function preAuthEdition(): 'regul' | 'comply' {
+  const env = import.meta.env.VITE_EDITION as string | undefined
+  if (env === 'regul' || env === 'comply') return env
+  if ((import.meta.env.VITE_PRODUCT as string | undefined) === 'regul') return 'regul'
+  if (typeof window !== 'undefined' && /regul/i.test(window.location.hostname)) return 'regul'
+  return 'comply'
+}
+
 export interface ProductVocab {
   /** Libellé d'une entité supervisée, singulier / pluriel / titre de page. */
   entitySingular: string

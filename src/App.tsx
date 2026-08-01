@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { isRegul } from './lib/product'
+import { preAuthEdition } from './lib/product'
 import { RegulApp } from './regul/RegulApp'
 import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
@@ -167,15 +167,13 @@ function ComplyRoutes(): JSX.Element {
   )
 }
 
-// Décision de coquille AU RUNTIME (RFC 0001, Phase 2 — incrément 3).
-// L'édition résolue pilote l'arbre monté ; repli sur le drapeau de build `isRegul`
-// tant que l'édition n'est pas connue (pré-auth, ou role=client dont l'org est
-// neutralisée côté RLS). Sur chaque déploiement edition === isRegul → aucun flip,
-// zéro changement visible. Le repli `isRegul` sera retiré à l'incrément 4 (branding
-// login par hostname), supprimant `VITE_PRODUCT`.
+// Décision de coquille AU RUNTIME (RFC 0001, Phase 2 — inc3/4c).
+// L'édition résolue pilote l'arbre monté ; repli sur `preAuthEdition()` (hostname /
+// VITE_EDITION) tant que l'édition n'est pas connue (pré-auth). Sur chaque
+// déploiement preAuthEdition === édition résolue → aucun flip, zéro changement.
 function AppRoot(): JSX.Element {
   const { edition } = useEdition()
-  const showRegul = edition ? edition === 'regul' : isRegul
+  const showRegul = (edition ?? preAuthEdition()) === 'regul'
   return showRegul ? <RegulApp /> : <ComplyRoutes />
 }
 

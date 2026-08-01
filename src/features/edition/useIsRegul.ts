@@ -1,5 +1,5 @@
 import { useEdition } from './EditionContext'
-import { isRegul } from '../../lib/product'
+import { preAuthEdition } from '../../lib/product'
 
 // Vrai si l'édition courante est « regul », résolu AU RUNTIME avec repli sur le
 // drapeau de build tant que l'édition n'est pas connue (même pattern qu'AppRoot).
@@ -9,5 +9,5 @@ import { isRegul } from '../../lib/product'
 // ne se résout pas — la résolution capacités côté portail viendra à l'incrément 4b.
 export function useIsRegul(): boolean {
   const { edition } = useEdition()
-  return edition ? edition === 'regul' : isRegul
+  return (edition ?? preAuthEdition()) === 'regul'
 }
