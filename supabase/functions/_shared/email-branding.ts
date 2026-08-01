@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { escapeHtml } from './email-templates/reminder.ts'
+import { platformBrand } from './brand.ts'
 
 /**
  * Branding email pour la marque blanche cabinet.
@@ -25,7 +26,8 @@ export interface CabinetEmailBranding {
 }
 
 const GESTU_DEFAULTS = {
-  cabinetName: 'Gëstu Comply',
+  // Ecrasé par platformBrand() dans defaultBranding() ; littéral neutre ici.
+  cabinetName: 'Gëstu',
   primaryColor: '#1B4332',
   accentColor: '#D4A843',
   logoLightUrl: null as string | null,
@@ -35,7 +37,7 @@ const GESTU_DEFAULTS = {
 }
 
 export function defaultBranding(): CabinetEmailBranding {
-  return { ...GESTU_DEFAULTS }
+  return { ...GESTU_DEFAULTS, cabinetName: platformBrand() }
 }
 
 /**
@@ -107,7 +109,7 @@ export async function loadCabinetEmailBranding(
 /**
  * Calcule le from-name à utiliser dans l'enveloppe Resend.
  *  - Si branding.emailFromName défini → "Audit&Co Sénégal via Gëstu <noreply@gestugroup.com>"
- *  - Sinon → "Gëstu Comply <noreply@gestugroup.com>" (default Resend)
+ *  - Sinon → défaut Resend (marque plateforme via platformBrand())
  */
 export function buildEmailFrom(branding: CabinetEmailBranding | null): string | undefined {
   if (!branding?.emailFromName) return undefined
@@ -167,7 +169,7 @@ export function renderEmailHeader(branding: CabinetEmailBranding): string {
  * personnalisés si fournis ; sinon, défaut Gëstu.
  *
  * La mention "Powered by Gëstu" est obligatoire dès qu'on est en branding
- * cabinet (cabinetName !== "Gëstu Comply") — non négociable contractuellement.
+ * cabinet (cabinetName !== platformBrand()) — non négociable contractuellement.
  */
 export function renderEmailFooter(
   branding: CabinetEmailBranding,
@@ -178,7 +180,7 @@ export function renderEmailFooter(
   const safeMission = escapeHtml(missionName)
   const safeClient = escapeHtml(clientName)
   const safeUnsub = escapeHtml(unsubscribeUrl)
-  const isWhiteLabel = branding.cabinetName !== 'Gëstu Comply'
+  const isWhiteLabel = branding.cabinetName !== platformBrand()
   const safeName = escapeHtml(branding.cabinetName)
   const safePrimary = escapeHtml(branding.primaryColor)
 
@@ -195,7 +197,7 @@ export function renderEmailFooter(
 
   const technicalLine = isWhiteLabel
     ? `<p style="margin:0; color:#9CA3AF; font-size:11px;">${safeName} · Powered by Gëstu</p>`
-    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">Gëstu Comply · noreply@gestugroup.com</p>`
+    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">${escapeHtml(platformBrand())} · noreply@gestugroup.com</p>`
 
   return `
     <tr>

@@ -1,5 +1,6 @@
 import { escapeHtml } from './email-templates/reminder.ts'
 import { defaultBranding, renderEmailHeader, type CabinetEmailBranding } from './email-branding.ts'
+import { platformBrand, platformTagline } from './brand.ts'
 
 export interface ClientInviteParams {
   contactName: string
@@ -12,7 +13,7 @@ export interface ClientInviteParams {
 export function clientInviteTemplate(params: ClientInviteParams): string {
   const { contactName, cabinetName, missionTitle, inviteLink, branding } = params
   const effective = branding ?? defaultBranding()
-  const isWhiteLabel = effective.cabinetName !== 'Gëstu Comply'
+  const isWhiteLabel = effective.cabinetName !== platformBrand()
 
   const safeContact = escapeHtml(contactName)
   const safeCabinet = escapeHtml(cabinetName)
@@ -22,12 +23,12 @@ export function clientInviteTemplate(params: ClientInviteParams): string {
   const safeAccent = escapeHtml(effective.accentColor)
 
   const header = renderEmailHeader(effective)
-  const portalLabel = isWhiteLabel ? 'Portail Client' : 'Portail Client Gëstu Comply'
+  const portalLabel = isWhiteLabel ? 'Portail Client' : `Portail Client ${platformBrand()}`
   const safePortalLabel = escapeHtml(portalLabel)
 
   const technicalFooter = isWhiteLabel
     ? `<p style="margin:0;font-size:11px;color:#9CA3AF;">${escapeHtml(effective.cabinetName)} &mdash; Powered by G&euml;stu</p>`
-    : `<p style="margin:0;font-size:11px;color:#9CA3AF;">&copy; G&euml;stu Comply &mdash; Plateforme d&rsquo;audit et de conformit&eacute;</p>`
+    : `<p style="margin:0;font-size:11px;color:#9CA3AF;">&copy; ${escapeHtml(platformBrand())} &mdash; ${escapeHtml(platformTagline())}</p>`
 
   return `<!DOCTYPE html>
 <html lang="fr">
