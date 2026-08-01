@@ -1,5 +1,6 @@
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
+import { isAssessmentCompleted } from '../mission-constants'
 
 interface DomainProgressListProps {
   domains: DomainWithControls[]
@@ -16,8 +17,11 @@ export function DomainProgressList({ domains, assessments }: DomainProgressListP
       <div>
         {domains.map((domain) => {
           const total = domain.controls.length
+          // Cohérence avec FieldworkDomainGroup et useMissionProgress :
+          // un contrôle est "avancé" dès qu'il est soumis, en revue ou validé
+          // (pas quand il est en brouillon, même avec des findings).
           const assessed = domain.controls.filter((c) =>
-            assessments.some((a) => a.control_id === c.id && a.findings)
+            assessments.some((a) => a.control_id === c.id && isAssessmentCompleted(a.status))
           ).length
           const pct = total > 0 ? Math.round((assessed / total) * 100) : 0
           const color = pct === 100 ? '#27AE60' : pct >= 60 ? '#40916C' : pct >= 30 ? '#D4A843' : pct > 0 ? '#E67E22' : '#E5E7EB'

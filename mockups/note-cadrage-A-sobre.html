@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Note de cadrage — Mockup A (Sobre / Big-4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest-900: #0d2f23;
+    --forest-700: #1B4332;
+    --forest-500: #2d6a4f;
+    --forest-50: #f0fdf4;
+    --gold-500: #D4A843;
+    --gold-50: #fdf8e8;
+    --text-900: #1a1a1a;
+    --text-700: #374151;
+    --text-500: #6b7280;
+    --text-400: #9ca3af;
+    --text-300: #d1d5db;
+    --border: #e5e7eb;
+    --bg: #fafaf8;
+    --red: #c0392b;
+    --orange: #e67e22;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #d6d6d6; font-family: 'Inter', sans-serif; color: var(--text-900); }
+  body { padding: 30px 0; }
+  .page {
+    width: 210mm; min-height: 297mm; background: white;
+    margin: 0 auto 24px; padding: 22mm 22mm 18mm;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    position: relative;
+    page-break-after: always;
+  }
+  .page-num {
+    position: absolute; bottom: 10mm; right: 22mm;
+    font-size: 8pt; color: var(--text-400);
+  }
+  .page-header {
+    position: absolute; top: 10mm; left: 22mm; right: 22mm;
+    font-size: 8pt; color: var(--text-400);
+    border-bottom: 0.5pt solid var(--border); padding-bottom: 4mm;
+    display: flex; justify-content: space-between;
+  }
+  h1, h2, h3, h4 { font-weight: 700; }
+  p { font-size: 10.5pt; line-height: 1.6; color: var(--text-700); margin-bottom: 9pt; }
+  ul, ol { margin: 6pt 0 12pt 18pt; }
+  li { font-size: 10.5pt; line-height: 1.6; color: var(--text-700); margin-bottom: 4pt; }
+
+  /* === PAGE 1 — COUVERTURE === */
+  .cover {
+    padding: 0;
+    display: flex; flex-direction: column;
+  }
+  .cover-bar {
+    background: var(--forest-900);
+    color: white;
+    padding: 30mm 22mm 18mm;
+    position: relative;
+  }
+  .cover-bar::after {
+    content: ""; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 1.5mm; background: var(--gold-500);
+  }
+  .cover-logo { font-size: 28pt; font-weight: 800; letter-spacing: -0.02em; }
+  .cover-logo-sub { font-size: 8pt; font-weight: 600; color: var(--gold-500); letter-spacing: 0.3em; margin-top: 1mm; }
+  .cover-title { font-size: 24pt; font-weight: 700; margin-top: 18mm; line-height: 1.15; }
+  .cover-subtitle { font-size: 14pt; font-weight: 400; opacity: 0.85; margin-top: 4mm; }
+
+  .cover-meta {
+    margin: 18mm 22mm;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden;
+  }
+  .cover-meta-cell {
+    padding: 8mm; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+  .cover-meta-cell:nth-child(2n) { border-right: none; }
+  .cover-meta-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .cover-meta-label { font-size: 7.5pt; font-weight: 700; color: var(--text-500); letter-spacing: 0.12em; text-transform: uppercase; }
+  .cover-meta-value { font-size: 11pt; font-weight: 600; color: var(--text-900); margin-top: 2mm; }
+
+  .cover-classification {
+    margin: 0 22mm 18mm; padding: 6mm 8mm;
+    background: var(--gold-50); border-left: 3pt solid var(--gold-500);
+    font-size: 8.5pt; color: #8a6d2c;
+  }
+  .cover-classification b { color: var(--gold-500); letter-spacing: 0.1em; }
+
+  .cover-version {
+    margin: 0 22mm; font-size: 8pt; color: var(--text-500); border-top: 0.5pt solid var(--border); padding-top: 6mm;
+  }
+  .cover-version table { width: 100%; border-collapse: collapse; }
+  .cover-version td { padding: 2mm 0; }
+  .cover-version td:first-child { font-weight: 600; color: var(--text-700); width: 30mm; }
+
+  /* === SECTIONS === */
+  .section-head {
+    margin: 14mm 0 6mm;
+    border-bottom: 1.5pt solid var(--forest-700);
+    padding-bottom: 3mm;
+  }
+  .section-head h2 {
+    font-size: 16pt; color: var(--forest-900); font-weight: 700;
+  }
+  .section-head .num { color: var(--gold-500); margin-right: 4mm; }
+  .section-head .lead { font-size: 9.5pt; color: var(--text-500); font-weight: 400; margin-top: 1mm; }
+
+  h3 { font-size: 12pt; color: var(--forest-700); margin: 10mm 0 4mm; font-weight: 700; }
+  h4 { font-size: 10.5pt; color: var(--text-900); margin: 6mm 0 3mm; font-weight: 600; }
+
+  /* TOC */
+  .toc { margin-top: 6mm; }
+  .toc-item { display: flex; padding: 2.5mm 0; border-bottom: 0.5pt dotted var(--border); align-items: baseline; }
+  .toc-num { font-weight: 700; color: var(--forest-700); width: 14mm; flex-shrink: 0; font-size: 10pt; }
+  .toc-title { flex: 1; font-size: 10pt; color: var(--text-900); }
+  .toc-page { font-size: 9pt; color: var(--text-500); font-weight: 600; }
+  .toc-sub { padding-left: 14mm; font-size: 9pt; color: var(--text-500); padding-bottom: 1.5mm; }
+  .toc-sub-line { display: flex; padding: 1mm 0 1mm 0; }
+  .toc-sub-line .toc-num { color: var(--text-500); font-weight: 500; width: 18mm; }
+  .toc-sub-line .toc-title { color: var(--text-700); font-size: 9.5pt; }
+
+  /* TABLES */
+  table.std { width: 100%; border-collapse: collapse; margin: 4mm 0; }
+  table.std th { font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-500); padding: 4mm 4mm; text-align: left; background: var(--bg); border-bottom: 1pt solid var(--border); }
+  table.std td { font-size: 10pt; color: var(--text-700); padding: 3.5mm 4mm; border-bottom: 0.5pt solid var(--border); }
+  table.std tr:hover td { background: #fcfcfa; }
+
+  /* CHIPS */
+  .chip { display: inline-block; padding: 1mm 3mm; border-radius: 2mm; font-size: 8.5pt; font-weight: 600; }
+  .chip-included { background: var(--forest-50); color: var(--forest-700); }
+  .chip-excluded { background: #fef2f2; color: var(--red); }
+  .chip-critical { background: #fef2f2; color: var(--red); }
+  .chip-high { background: #fff7ed; color: var(--orange); }
+  .chip-medium { background: var(--gold-50); color: #a87a1f; }
+  .chip-low { background: #ecfdf5; color: #047857; }
+
+  /* CALLOUTS */
+  .callout {
+    margin: 4mm 0; padding: 5mm 6mm;
+    background: var(--bg); border-left: 3pt solid var(--forest-700); border-radius: 0 2mm 2mm 0;
+  }
+  .callout-title { font-size: 9pt; font-weight: 700; color: var(--forest-700); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2mm; }
+  .callout p { font-size: 10pt; color: var(--text-700); margin-bottom: 0; }
+
+  /* SIGNATURE */
+  .signature-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8mm; margin-top: 14mm;
+  }
+  .signature-cell { border: 1px solid var(--border); padding: 6mm; min-height: 50mm; display: flex; flex-direction: column; }
+  .signature-role { font-size: 8.5pt; font-weight: 700; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.05em; }
+  .signature-name { font-size: 11pt; font-weight: 600; color: var(--text-900); margin-top: 2mm; }
+  .signature-fn { font-size: 9.5pt; color: var(--text-500); margin-top: 1mm; }
+  .signature-line { flex: 1; border-bottom: 0.5pt solid var(--border); }
+  .signature-foot { font-size: 8pt; color: var(--text-500); margin-top: 4mm; }
+
+  /* GANTT */
+  .gantt { margin: 4mm 0; border: 1px solid var(--border); border-radius: 2mm; overflow: hidden; }
+  .gantt-row { display: grid; grid-template-columns: 50mm 1fr; align-items: center; border-bottom: 0.5pt solid var(--border); }
+  .gantt-row:last-child { border-bottom: none; }
+  .gantt-row.header { background: var(--bg); font-size: 8pt; font-weight: 700; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.05em; }
+  .gantt-row.header > div { padding: 3mm 4mm; }
+  .gantt-label { padding: 3mm 4mm; font-size: 9.5pt; }
+  .gantt-bar-zone { padding: 2.5mm 0; position: relative; height: 7mm; background: linear-gradient(to right, var(--bg) 0%, var(--bg) 100%); display: flex; }
+  .gantt-month { flex: 1; border-left: 0.5pt dotted var(--border); padding: 0; position: relative; font-size: 7pt; color: var(--text-400); }
+  .gantt-month:first-child { border-left: none; }
+  .gantt-month-label { position: absolute; top: -8mm; left: 1mm; }
+  .gantt-bar { position: absolute; height: 4mm; top: 1.5mm; border-radius: 1mm; background: var(--forest-700); }
+  .gantt-bar.gold { background: var(--gold-500); }
+  .gantt-bar.light { background: var(--forest-500); opacity: 0.5; }
+  .gantt-mile { position: absolute; top: 0.5mm; width: 6mm; height: 6mm; transform: rotate(45deg); background: var(--gold-500); border: 1.5pt solid white; }
+
+  /* ANNEXES */
+  .glossary-item { padding: 2.5mm 0; border-bottom: 0.5pt dotted var(--border); }
+  .glossary-term { font-size: 10pt; font-weight: 700; color: var(--forest-700); }
+  .glossary-def { font-size: 9.5pt; color: var(--text-700); margin-top: 1mm; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== PAGE 1 — COUVERTURE ========== -->
+<div class="page cover">
+  <div class="cover-bar">
+    <div class="cover-logo">Gëstu</div>
+    <div class="cover-logo-sub">COMPLY</div>
+    <div class="cover-title">Note de cadrage</div>
+    <div class="cover-subtitle">Audit ISO/IEC 27001 — SMSI<br>Banque Régionale Nationale</div>
+  </div>
+
+  <div class="cover-meta">
+    <div class="cover-meta-cell"><div class="cover-meta-label">Client</div><div class="cover-meta-value">Banque Régionale Nationale (BRN)</div></div>
+    <div class="cover-meta-cell"><div class="cover-meta-label">Référentiel</div><div class="cover-meta-value">ISO/IEC 27001:2022</div></div>
+    <div class="cover-meta-cell"><div class="cover-meta-label">Période d'audit</div><div class="cover-meta-value">15 mai 2026 → 30 juillet 2026</div></div>
+    <div class="cover-meta-cell"><div class="cover-meta-label">N° de mission</div><div class="cover-meta-value">GES-2026-0142</div></div>
+    <div class="cover-meta-cell"><div class="cover-meta-label">Cabinet</div><div class="cover-meta-value">ISM Audit & Conseil</div></div>
+    <div class="cover-meta-cell"><div class="cover-meta-label">Chef de mission</div><div class="cover-meta-value">Aïssatou Diop</div></div>
+  </div>
+
+  <div class="cover-classification">
+    <b>CONFIDENTIEL</b> — Diffusion limitée aux parties prenantes de la mission. Toute reproduction sans accord préalable de BRN et d'ISM Audit & Conseil est interdite.
+  </div>
+
+  <div class="cover-version">
+    <table>
+      <tr><td>Version</td><td>1.0 — Validée par le sponsor le 12 mai 2026</td></tr>
+      <tr><td>Auteur</td><td>Aïssatou Diop, Chef de mission</td></tr>
+      <tr><td>Approbation</td><td>Mamadou Sarr, Associé en charge — ISM Audit & Conseil</td></tr>
+      <tr><td>Date d'édition</td><td>13 mai 2026</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== PAGE 2 — SOMMAIRE ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">—</span>Sommaire</h2></div>
+
+  <div class="toc">
+    <div class="toc-item"><div class="toc-num">1.</div><div class="toc-title">Préambule et contexte</div><div class="toc-page">3</div></div>
+    <div class="toc-sub"><div class="toc-sub-line"><div class="toc-num">1.1</div><div class="toc-title">Présentation du client</div></div><div class="toc-sub-line"><div class="toc-num">1.2</div><div class="toc-title">Contexte de la mission</div></div><div class="toc-sub-line"><div class="toc-num">1.3</div><div class="toc-title">Cadre normatif et réglementaire</div></div></div>
+
+    <div class="toc-item"><div class="toc-num">2.</div><div class="toc-title">Objectifs et enjeux</div><div class="toc-page">4</div></div>
+
+    <div class="toc-item"><div class="toc-num">3.</div><div class="toc-title">Périmètre détaillé</div><div class="toc-page">5</div></div>
+    <div class="toc-sub"><div class="toc-sub-line"><div class="toc-num">3.1</div><div class="toc-title">Périmètre fonctionnel</div></div><div class="toc-sub-line"><div class="toc-num">3.2</div><div class="toc-title">Périmètre organisationnel</div></div><div class="toc-sub-line"><div class="toc-num">3.3</div><div class="toc-title">Périmètre temporel</div></div><div class="toc-sub-line"><div class="toc-num">3.4</div><div class="toc-title">Périmètre technique</div></div><div class="toc-sub-line"><div class="toc-num">3.5</div><div class="toc-title">Domaines, contrôles et exclusions</div></div></div>
+
+    <div class="toc-item"><div class="toc-num">4.</div><div class="toc-title">Méthodologie d'audit</div><div class="toc-page">7</div></div>
+
+    <div class="toc-item"><div class="toc-num">5.</div><div class="toc-title">Critères d'évaluation et notation</div><div class="toc-page">8</div></div>
+
+    <div class="toc-item"><div class="toc-num">6.</div><div class="toc-title">Risques initiaux et points d'attention</div><div class="toc-page">9</div></div>
+
+    <div class="toc-item"><div class="toc-num">7.</div><div class="toc-title">Équipe, organisation et RACI</div><div class="toc-page">10</div></div>
+
+    <div class="toc-item"><div class="toc-num">8.</div><div class="toc-title">Planning et jalons</div><div class="toc-page">11</div></div>
+
+    <div class="toc-item"><div class="toc-num">9.</div><div class="toc-title">Livrables</div><div class="toc-page">12</div></div>
+
+    <div class="toc-item"><div class="toc-num">10.</div><div class="toc-title">Gouvernance et communication</div><div class="toc-page">12</div></div>
+
+    <div class="toc-item"><div class="toc-num">11.</div><div class="toc-title">Hypothèses, conditions et limitations</div><div class="toc-page">13</div></div>
+
+    <div class="toc-item"><div class="toc-num">12.</div><div class="toc-title">Validation et signatures</div><div class="toc-page">14</div></div>
+
+    <div class="toc-item"><div class="toc-num">A.</div><div class="toc-title">Annexes — glossaire, pièces, plan d'entretien</div><div class="toc-page">15</div></div>
+  </div>
+
+  <div class="page-num">2 / 16</div>
+</div>
+
+<!-- ========== PAGE 3 — PRÉAMBULE ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">1.</span>Préambule et contexte</h2><div class="lead">Présentation succincte du client, du déclencheur de l'audit et du cadre normatif applicable.</div></div>
+
+  <h3>1.1 Présentation du client</h3>
+  <p>La <b>Banque Régionale Nationale</b> (BRN), constituée en société anonyme de droit sénégalais, exerce une activité de banque universelle au Sénégal et dans deux pays d'Afrique de l'Ouest. À fin 2025, BRN comptait 1 247 collaborateurs répartis sur 38 agences, un siège à Dakar et un centre de production informatique à Diamniadio. Son produit net bancaire 2025 s'établit à 142 Md FCFA, en progression de 8,3 % sur un an. Le système d'information regroupe une plate-forme cœur bancaire externalisée, un portail clients web et mobile, un espace agence et plusieurs applications métier (financements, conformité, ALM, trésorerie).</p>
+  <p>BRN est régulée par la BCEAO et la Commission Bancaire de l'UMOA. Elle s'est engagée dans une trajectoire de certification ISO/IEC 27001 décidée par le Conseil d'Administration en septembre 2025, en réponse à plusieurs incidents majeurs de cybersécurité dans le secteur bancaire ouest-africain et à l'évolution du règlement BCEAO 2024-09 sur la sécurité des systèmes d'information bancaires.</p>
+
+  <h3>1.2 Contexte de la mission</h3>
+  <p>Le présent audit constitue la première phase d'un programme de conformité ISO 27001 visant l'obtention de la certification au quatrième trimestre 2026. Il a été déclenché par le sponsor du projet, M. Ibrahima Fall, Directeur des Risques de BRN, après une auto-évaluation interne réalisée en mars 2026 ayant identifié plusieurs zones de progrès significatives.</p>
+  <p>Cette mission s'inscrit dans la suite d'un diagnostic réalisé par le cabinet en février 2026 (rapport référence ISM-2026-038), dont les recommandations à fort impact ont commencé à être mises en œuvre par les équipes de BRN. La présente intervention vise à mesurer l'écart entre la situation observable et les exigences ISO 27001 v2022, à identifier les non-conformités résiduelles et à formuler un plan de remédiation détaillé permettant à BRN de se présenter au pré-audit de certification au troisième trimestre 2026.</p>
+
+  <h3>1.3 Cadre normatif et réglementaire</h3>
+  <ul>
+    <li><b>ISO/IEC 27001:2022</b> — exigences relatives au système de management de la sécurité de l'information (SMSI).</li>
+    <li><b>ISO/IEC 27002:2022</b> — bonnes pratiques pour les mesures de sécurité de l'information (référence pour l'évaluation des contrôles).</li>
+    <li><b>Règlement BCEAO 2024-09</b> sur la sécurité des SI bancaires — applicable à toutes les banques de l'UMOA depuis le 1er janvier 2025.</li>
+    <li><b>Loi 2008-12 du 25 janvier 2008</b> sur la protection des données à caractère personnel et délibérations associées de la CDP.</li>
+    <li><b>Référentiel cabinet ISM-RG-2024</b> — guide méthodologique d'audit SMSI.</li>
+  </ul>
+
+  <div class="page-num">3 / 16</div>
+</div>
+
+<!-- ========== PAGE 4 — OBJECTIFS ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">2.</span>Objectifs et enjeux</h2><div class="lead">Finalités attendues par le sponsor, déclinées en objectifs primaires et secondaires.</div></div>
+
+  <h3>Objectifs primaires</h3>
+  <ol>
+    <li><b>Mesurer la conformité du SMSI aux exigences ISO/IEC 27001:2022</b> en évaluant chacun des 93 contrôles inclus dans le périmètre, sur une échelle de maturité à 5 niveaux explicitée en section 5.</li>
+    <li><b>Identifier les non-conformités majeures et mineures</b> au sens de la norme, avec qualification de leur impact sur la posture de sécurité et leur priorité de traitement en vue de la certification.</li>
+    <li><b>Vérifier la conformité aux exigences du règlement BCEAO 2024-09</b> et aux dispositions de la loi sur la protection des données personnelles applicables à l'établissement.</li>
+    <li><b>Formuler un plan de remédiation priorisé</b> couvrant la totalité des écarts identifiés, avec estimation de charge, jalons proposés et identification des dépendances inter-écarts.</li>
+  </ol>
+
+  <h3>Objectifs secondaires</h3>
+  <ol>
+    <li>Cartographier les risques résiduels du SMSI à l'issue de l'audit et proposer une grille de cotation alignée avec la méthodologie ISO/IEC 27005.</li>
+    <li>Évaluer la maturité de la culture de sécurité par sondage et entretiens, et formuler des recommandations de communication interne.</li>
+    <li>Préparer la mission au pré-audit de certification prévu au T3 2026 par la production d'un dossier d'audit complet (DA-SMSI) directement réutilisable.</li>
+  </ol>
+
+  <h3>Enjeux pour BRN</h3>
+  <div class="callout">
+    <div class="callout-title">Stratégique</div>
+    <p>Crédibilité auprès des correspondants bancaires internationaux et accès à des financements à conditions plus favorables conditionnés à une certification reconnue.</p>
+  </div>
+  <div class="callout">
+    <div class="callout-title">Réglementaire</div>
+    <p>Conformité au règlement BCEAO 2024-09 dont la mise en œuvre fera l'objet de contrôles renforcés à compter de 2027 selon la note d'orientation diffusée en janvier 2026.</p>
+  </div>
+  <div class="callout">
+    <div class="callout-title">Opérationnel</div>
+    <p>Réduction de la surface d'exposition aux cyber-incidents et alignement des pratiques de sécurité sur l'état de l'art à l'échelle du groupe.</p>
+  </div>
+
+  <div class="page-num">4 / 16</div>
+</div>
+
+<!-- ========== PAGE 5 — PÉRIMÈTRE 4D ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">3.</span>Périmètre détaillé</h2><div class="lead">Découpage selon les quatre axes — fonctionnel, organisationnel, temporel, technique — avec inclusions et exclusions justifiées.</div></div>
+
+  <h3>3.1 Périmètre fonctionnel</h3>
+  <p>L'audit couvre l'intégralité du SMSI tel que défini dans la <b>Politique de Sécurité du Système d'Information v0.1</b> (réf. BRN-PSSI-2026-001). Il inclut les processus de gouvernance, gestion des risques, gestion des actifs, sécurité opérationnelle, contrôle d'accès, gestion des incidents, conformité et continuité d'activité. Les processus métiers non rattachés au SI (gestion RH au sens large, comptabilité financière, contrôle de gestion) sont exclus.</p>
+
+  <h3>3.2 Périmètre organisationnel</h3>
+  <table class="std">
+    <thead><tr><th>Entité</th><th>Inclusion</th><th>Justification</th></tr></thead>
+    <tbody>
+      <tr><td>Siège Dakar (1 122 collaborateurs)</td><td><span class="chip chip-included">Inclus</span></td><td>Cœur du SMSI</td></tr>
+      <tr><td>Datacenter Diamniadio</td><td><span class="chip chip-included">Inclus</span></td><td>Infrastructures critiques</td></tr>
+      <tr><td>Réseau de 38 agences (Sénégal)</td><td><span class="chip chip-included">Inclus</span></td><td>Échantillon de 6 agences visitées</td></tr>
+      <tr><td>Filiales Côte d'Ivoire et Mali</td><td><span class="chip chip-excluded">Hors scope</span></td><td>Hors périmètre certification phase 1, audit prévu T1 2027</td></tr>
+      <tr><td>Prestataires d'externalisation</td><td><span class="chip chip-included">Partiel</span></td><td>Revue contractuelle et engagement de niveau de service uniquement</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.3 Périmètre temporel</h3>
+  <p>L'évaluation porte sur la période allant du <b>1er janvier 2025 au 30 avril 2026</b>, soit 16 mois d'historique. Cette période couvre l'ensemble des incidents déclarés à la BCEAO, les exercices PCA réalisés, les revues de management documentées et l'historique des changements significatifs de l'infrastructure SI.</p>
+
+  <h3>3.4 Périmètre technique</h3>
+  <ul>
+    <li><b>Cœur bancaire</b> Temenos T24 hébergé en mode SaaS — revue contractuelle + accès aux comptes-rendus d'incident.</li>
+    <li><b>Portail clients</b> web (br-online.sn) et application mobile iOS/Android — tests d'intrusion authentifiés.</li>
+    <li><b>Espace agence</b> et postes de travail (1 247 endpoints Windows 11 + MDM Microsoft Intune).</li>
+    <li><b>Active Directory</b> hybride (deux forêts), 4 200 comptes utilisateurs et 18 200 comptes machines/services.</li>
+    <li><b>Plateforme de monitoring</b> SIEM Wazuh, EDR CrowdStrike Falcon, sauvegardes Veeam vers stockage objet S3.</li>
+  </ul>
+
+  <h3>3.5 Domaines, contrôles et exclusions</h3>
+  <table class="std">
+    <thead><tr><th>Domaine</th><th>Contrôles inclus</th><th>Exclusions</th></tr></thead>
+    <tbody>
+      <tr><td>A.5 Politiques organisationnelles</td><td>37 / 37</td><td>—</td></tr>
+      <tr><td>A.6 Contrôles humains</td><td>8 / 8</td><td>—</td></tr>
+      <tr><td>A.7 Contrôles physiques</td><td>13 / 14</td><td>A.7.4 (surveillance vidéo) — non installée à Diamniadio, à reprendre en phase 2</td></tr>
+      <tr><td>A.8 Contrôles technologiques</td><td>34 / 34</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 4mm; font-style: italic; color: var(--text-500);">Total : 92 contrôles inclus sur 93 — taux d'inclusion 98,9 %.</p>
+
+  <div class="page-num">5 / 16</div>
+</div>
+
+<!-- ========== PAGE 6 — MÉTHODOLOGIE ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">4.</span>Méthodologie d'audit</h2><div class="lead">Approche fondée sur les standards ISO/IEC 19011, ISO/IEC 27007 et le référentiel méthodologique du cabinet.</div></div>
+
+  <h3>Approche générale</h3>
+  <p>La mission s'appuie sur une démarche d'<b>audit basée sur les risques</b> (risk-based approach) conforme à l'ISO/IEC 27007:2020. Les contrôles sont priorisés par leur exposition au risque résiduel et leur criticité opérationnelle, déterminée à partir du registre des risques BRN et du contexte sectoriel bancaire ouest-africain.</p>
+
+  <h3>Phases de la mission</h3>
+  <ol>
+    <li><b>Cadrage</b> (S1) — Présent document. Validation périmètre, équipe et planning par le sponsor.</li>
+    <li><b>Prise de connaissance</b> (S2-S3) — Questionnaire structuré, collecte documentaire (politiques, procédures, livrables d'incidents, comptes-rendus de revues), échantillonnage des contrôles à tester.</li>
+    <li><b>Exécution sur le terrain</b> (S4-S8) — Entretiens individuels et collectifs (28 prévus), observations sur sites (siège + 6 agences + datacenter), revue de configuration, tests techniques ciblés, vérification d'efficacité des contrôles.</li>
+    <li><b>Synthèse et restitutions</b> (S9-S10) — Consolidation des écarts, qualification (NC majeure / NC mineure / observation), élaboration du plan de remédiation, restitutions intermédiaires hebdomadaires + restitution finale au COMEX.</li>
+    <li><b>Livraison</b> (S11) — Rapport définitif intégrant les commentaires factuels du client, transfert du dossier d'audit.</li>
+  </ol>
+
+  <h3>Techniques d'audit mobilisées</h3>
+  <ul>
+    <li><b>Entretiens semi-directifs</b> avec les 18 interlocuteurs identifiés (RSSI, RH, DSI, métiers, conformité), conduits selon une grille standardisée par contrôle.</li>
+    <li><b>Revue documentaire</b> de la totalité des politiques, procédures et livrables fournis via le portail client de la plateforme Gëstu.</li>
+    <li><b>Observation sur site</b> de la salle informatique de Diamniadio et de 6 agences sélectionnées par échantillonnage stratifié (taille, ancienneté, urbain/rural).</li>
+    <li><b>Revue de configurations</b> (Active Directory, MDM Intune, EDR CrowdStrike) sous accès lecture seule supervisé.</li>
+    <li><b>Tests d'intrusion authentifiés</b> sur le portail clients, conduits par un sous-traitant agréé selon une convention encadrant le périmètre, les fenêtres horaires et l'escalade.</li>
+    <li><b>Sondage culture sécurité</b> par questionnaire en ligne anonyme, déployé sur un échantillon représentatif de 250 collaborateurs.</li>
+  </ul>
+
+  <div class="page-num">6 / 16</div>
+</div>
+
+<!-- ========== PAGE 7 — CRITÈRES ÉVALUATION ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">5.</span>Critères d'évaluation et notation</h2><div class="lead">Échelle de maturité à 5 niveaux, méthode de cotation et règles de qualification des écarts.</div></div>
+
+  <h3>Échelle de maturité (alignée ISO/IEC 21827 / CMMI)</h3>
+  <table class="std">
+    <thead><tr><th>Niveau</th><th>Libellé</th><th>Critères d'attribution</th></tr></thead>
+    <tbody>
+      <tr><td><b>0</b></td><td>Inexistant</td><td>Aucun élément observable, le contrôle n'est ni défini ni mis en œuvre.</td></tr>
+      <tr><td><b>1</b></td><td>Initial</td><td>Mise en œuvre informelle, ad hoc, dépendante des individus, non documentée.</td></tr>
+      <tr><td><b>2</b></td><td>Reproductible</td><td>Pratique documentée mais non systématique, application inégale selon les périmètres.</td></tr>
+      <tr><td><b>3</b></td><td>Défini</td><td>Procédure formalisée, déployée et appliquée de façon cohérente sur l'ensemble du périmètre.</td></tr>
+      <tr><td><b>4</b></td><td>Maîtrisé</td><td>Contrôle mesuré, indicateurs suivis, revues d'efficacité formalisées.</td></tr>
+      <tr><td><b>5</b></td><td>Optimisé</td><td>Amélioration continue documentée, benchmarks externes, contrôle adapté en réaction aux mesures.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Qualification des écarts</h3>
+  <table class="std">
+    <thead><tr><th>Type d'écart</th><th>Définition</th><th>Action attendue</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip chip-critical">NC Majeure</span></td><td>Absence ou défaillance significative compromettant l'aptitude du SMSI à atteindre ses objectifs.</td><td>Plan d'action court terme bloquant pour la certification.</td></tr>
+      <tr><td><span class="chip chip-high">NC Mineure</span></td><td>Insuffisance ponctuelle non systémique, n'empêchant pas le fonctionnement global du SMSI.</td><td>Plan d'action moyen terme avant audit de surveillance.</td></tr>
+      <tr><td><span class="chip chip-medium">Observation</span></td><td>Point de progrès recommandé sans non-conformité avérée à la norme.</td><td>Suivi à discrétion du client.</td></tr>
+      <tr><td><span class="chip chip-low">Bonne pratique</span></td><td>Élément du SMSI dépassant l'exigence et illustrant la maturité du dispositif.</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top: 6mm;">La cotation finale du SMSI sera exprimée par un score moyen pondéré sur les 92 contrôles inclus, avec décomposition par domaine et représentation graphique en radar dans le rapport final. Le seuil de présentation au pré-audit de certification est fixé conventionnellement à un score moyen de 3,2 et l'absence de NC majeure non remédiée.</p>
+
+  <div class="page-num">7 / 16</div>
+</div>
+
+<!-- ========== PAGE 8 — RISQUES ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">6.</span>Risques initiaux et points d'attention</h2><div class="lead">Risques identifiés au stade du cadrage, susceptibles d'affecter la mission ou son exécution.</div></div>
+
+  <table class="std">
+    <thead><tr><th style="width: 25mm;">Niveau</th><th>Risque</th><th>Mesure de mitigation</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="chip chip-critical">Critique</span></td>
+        <td><b>Indisponibilité de la documentation centrale</b><br><span style="color: var(--text-500); font-size: 9.5pt;">La PSSI est la seule politique formalisée à ce jour ; les politiques thématiques (gestion des accès, classification, etc.) sont à l'état de brouillon.</span></td>
+        <td>Le sponsor s'engage à finaliser et faire approuver les 7 politiques thématiques manquantes avant la phase d'exécution. Suivi hebdomadaire en COPIL.</td>
+      </tr>
+      <tr>
+        <td><span class="chip chip-high">Élevé</span></td>
+        <td><b>Disponibilité des interlocuteurs métier</b><br><span style="color: var(--text-500); font-size: 9.5pt;">Les directions Crédit et Conformité sont en pleine campagne d'arrêté annuel jusqu'au 15 juin.</span></td>
+        <td>Décalage de leurs entretiens à juin–juillet, avec préparation par échange écrit en amont.</td>
+      </tr>
+      <tr>
+        <td><span class="chip chip-high">Élevé</span></td>
+        <td><b>Externalisation cœur bancaire</b><br><span style="color: var(--text-500); font-size: 9.5pt;">L'éditeur Temenos n'a pas encore validé la convention de collaboration audit.</span></td>
+        <td>Le cabinet conduira l'audit au sens de la norme via revue contractuelle et obtention des rapports SOC 2 Type II ; à défaut, observation contrôle non testable et plan d'action sur le contrat.</td>
+      </tr>
+      <tr>
+        <td><span class="chip chip-medium">Moyen</span></td>
+        <td><b>Sensibilité des données pendant les tests d'intrusion</b></td>
+        <td>Convention encadrante signée préalablement. Tests menés en environnement de pré-production iso-prod.</td>
+      </tr>
+      <tr>
+        <td><span class="chip chip-medium">Moyen</span></td>
+        <td><b>Difficultés d'accès aux agences éloignées</b></td>
+        <td>Visite physique des 4 agences urbaines, audit à distance pour les 2 agences régionales par visioconférence supervisée.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="border-color: var(--gold-500);">
+    <div class="callout-title" style="color: var(--gold-500);">Point d'attention transverse</div>
+    <p>Le sponsor a alerté sur la <b>fatigue d'audit</b> des équipes opérationnelles, soumises à plusieurs missions concomitantes (audit interne, contrôle BCEAO, audit GDP). Le planning détaillé en section 8 prévoit une concentration des sollicitations équipe par équipe pour limiter ce risque.</p>
+  </div>
+
+  <div class="page-num">8 / 16</div>
+</div>
+
+<!-- ========== PAGE 9 — ÉQUIPE + RACI ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">7.</span>Équipe, organisation et RACI</h2><div class="lead">Équipe d'audit, interlocuteurs client et matrice de responsabilités.</div></div>
+
+  <h3>Équipe d'audit ISM</h3>
+  <table class="std">
+    <thead><tr><th>Nom</th><th>Rôle</th><th>Charge prévisionnelle</th></tr></thead>
+    <tbody>
+      <tr><td>Mamadou Sarr</td><td>Associé en charge</td><td>5 j/h</td></tr>
+      <tr><td>Aïssatou Diop</td><td>Chef de mission</td><td>32 j/h</td></tr>
+      <tr><td>Ousmane Bâ</td><td>Auditeur senior</td><td>45 j/h</td></tr>
+      <tr><td>Fatou Sow</td><td>Auditrice junior</td><td>28 j/h</td></tr>
+      <tr><td>Khadim Niang</td><td>Pen-tester (sous-traitance ISM-Sec)</td><td>8 j/h</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Interlocuteurs BRN</h3>
+  <table class="std">
+    <thead><tr><th>Nom</th><th>Fonction</th><th>Rôle dans la mission</th></tr></thead>
+    <tbody>
+      <tr><td>Ibrahima Fall</td><td>Directeur des Risques</td><td>Sponsor</td></tr>
+      <tr><td>Marème Cissé</td><td>RSSI</td><td>Référente technique unique</td></tr>
+      <tr><td>Modou Diagne</td><td>DSI</td><td>Coordinateur opérationnel</td></tr>
+      <tr><td>Aminata Thiam</td><td>RH Direction</td><td>Contributrice domaine A.6</td></tr>
+      <tr><td>Boubacar Wade</td><td>Conformité</td><td>Validation réglementaire</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Matrice RACI (extrait)</h3>
+  <table class="std">
+    <thead><tr><th>Activité</th><th>Sponsor</th><th>RSSI BRN</th><th>Chef miss. ISM</th><th>Associé ISM</th></tr></thead>
+    <tbody>
+      <tr><td>Validation périmètre</td><td><b>A</b></td><td>C</td><td>R</td><td>I</td></tr>
+      <tr><td>Mise à dispo. documentation</td><td>I</td><td><b>R, A</b></td><td>C</td><td>I</td></tr>
+      <tr><td>Conduite des entretiens</td><td>I</td><td>C</td><td><b>R</b></td><td>I</td></tr>
+      <tr><td>Qualification des écarts</td><td>I</td><td>C</td><td><b>R</b></td><td><b>A</b></td></tr>
+      <tr><td>Validation rapport final</td><td><b>A</b></td><td>C</td><td>R</td><td><b>A</b></td></tr>
+      <tr><td>Plan de remédiation</td><td>I</td><td><b>R</b></td><td>C</td><td>I</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size: 9pt; color: var(--text-500); margin-top: 2mm;">R = Réalise · A = Approuve · C = Consulté · I = Informé</p>
+
+  <div class="page-num">9 / 16</div>
+</div>
+
+<!-- ========== PAGE 10 — PLANNING ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">8.</span>Planning et jalons</h2><div class="lead">11 semaines de mission du 15 mai au 30 juillet 2026.</div></div>
+
+  <div class="gantt">
+    <div class="gantt-row header"><div>Phase</div><div style="display: flex; padding: 0 4mm;">
+      <div class="gantt-month" style="border-left: none;">Mai</div>
+      <div class="gantt-month">Juin</div>
+      <div class="gantt-month">Juillet</div>
+      <div class="gantt-month">Août</div>
+    </div></div>
+    <div class="gantt-row">
+      <div class="gantt-label">1. Cadrage</div>
+      <div class="gantt-bar-zone">
+        <div class="gantt-bar" style="left: 2%; width: 8%;"></div>
+      </div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">2. Prise de connaissance</div>
+      <div class="gantt-bar-zone">
+        <div class="gantt-bar" style="left: 10%; width: 18%;"></div>
+      </div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">3. Exécution sur terrain</div>
+      <div class="gantt-bar-zone">
+        <div class="gantt-bar" style="left: 28%; width: 35%;"></div>
+        <div class="gantt-mile" style="left: 47%;"></div>
+      </div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">4. Synthèse</div>
+      <div class="gantt-bar-zone">
+        <div class="gantt-bar light" style="left: 60%; width: 12%;"></div>
+        <div class="gantt-mile" style="left: 70%;"></div>
+      </div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">5. Livraison</div>
+      <div class="gantt-bar-zone">
+        <div class="gantt-bar gold" style="left: 70%; width: 8%;"></div>
+        <div class="gantt-mile" style="left: 76%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Jalons clés</h3>
+  <table class="std">
+    <thead><tr><th>Jalon</th><th>Date prévue</th><th>Conditions de levée</th></tr></thead>
+    <tbody>
+      <tr><td>J0 — Validation du cadrage</td><td>22 mai 2026</td><td>Signature de la présente note par le sponsor.</td></tr>
+      <tr><td>J1 — Clôture prise de connaissance</td><td>5 juin 2026</td><td>Questionnaire complété, 80 % des pièces fournies.</td></tr>
+      <tr><td>J2 — Restitution intermédiaire 1</td><td>26 juin 2026</td><td>Premiers écarts identifiés, validation orientation.</td></tr>
+      <tr><td>J3 — Fin exécution</td><td>17 juillet 2026</td><td>Tous les contrôles évalués, registre des écarts stabilisé.</td></tr>
+      <tr><td>J4 — Restitution COMEX</td><td>24 juillet 2026</td><td>Présentation rapport provisoire au comité de direction BRN.</td></tr>
+      <tr><td>J5 — Rapport définitif</td><td>30 juillet 2026</td><td>Intégration commentaires factuels client, signature.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="page-num">10 / 16</div>
+</div>
+
+<!-- ========== PAGE 11 — LIVRABLES + GOUVERNANCE ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">9.</span>Livrables</h2></div>
+
+  <table class="std">
+    <thead><tr><th>Livrable</th><th>Format</th><th>Date</th><th>Diffusion</th></tr></thead>
+    <tbody>
+      <tr><td>Note de cadrage signée</td><td>PDF</td><td>22 mai 2026</td><td>Sponsor + RSSI + DSI</td></tr>
+      <tr><td>Rapport intermédiaire 1</td><td>PDF + restitution orale 90 min</td><td>26 juin 2026</td><td>RSSI + DSI</td></tr>
+      <tr><td>Rapport provisoire</td><td>PDF + restitution COMEX 60 min</td><td>24 juillet 2026</td><td>COMEX BRN</td></tr>
+      <tr><td>Rapport définitif</td><td>PDF + version éditable</td><td>30 juillet 2026</td><td>Sponsor + COMEX + Conformité</td></tr>
+      <tr><td>Plan de remédiation détaillé</td><td>Tableur (Excel) + PDF</td><td>30 juillet 2026</td><td>RSSI + DSI</td></tr>
+      <tr><td>Dossier d'audit (DA-SMSI)</td><td>Archive structurée</td><td>30 juillet 2026</td><td>RSSI uniquement (pour pré-audit certif)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-head"><h2><span class="num">10.</span>Gouvernance et communication</h2></div>
+
+  <h3>Instances de pilotage</h3>
+  <ul>
+    <li><b>COPIL hebdomadaire</b> (45 min, vendredi 11h) — point d'avancement, levée des points bloquants. Participants : sponsor, RSSI, chef de mission, associé sur invitation.</li>
+    <li><b>Stand-up opérationnel quotidien</b> (15 min, 9h) pendant la phase d'exécution — chef de mission + RSSI + auditeur senior.</li>
+    <li><b>Revues de qualité interne ISM</b> à mi-mission et avant restitution finale — associé en charge, conformément au référentiel cabinet.</li>
+  </ul>
+
+  <h3>Canaux de communication</h3>
+  <ul>
+    <li><b>Plateforme Gëstu</b> — espace mission dédié pour le dépôt documentaire, le questionnaire, les demandes de preuves et le suivi des écarts.</li>
+    <li><b>Email</b> via les adresses nominatives du cabinet et de BRN, avec règle de réponse sous 48h ouvrées.</li>
+    <li><b>Téléphone</b> et <b>visioconférence</b> Microsoft Teams pour les entretiens distants.</li>
+  </ul>
+
+  <h3>Règles d'escalade</h3>
+  <p>Tout point bloquant non levé sous 3 jours ouvrés est porté en COPIL. Tout désaccord sur la qualification d'un écart entre le chef de mission et le RSSI est arbitré par l'associé en charge et le sponsor en bilatéral, dans un délai maximum de 5 jours ouvrés. Les éventuels conflits d'intérêts identifiés en cours de mission sont déclarés sans délai au comité d'éthique du cabinet et au sponsor.</p>
+
+  <div class="page-num">11 / 16</div>
+</div>
+
+<!-- ========== PAGE 12 — HYPOTHÈSES ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">11.</span>Hypothèses, conditions et limitations</h2></div>
+
+  <h3>Hypothèses retenues</h3>
+  <ol>
+    <li>Les politiques thématiques en cours de rédaction (gestion des accès, classification, gestion des incidents v2) sont disponibles avant le 5 juin 2026.</li>
+    <li>Les rapports SOC 2 Type II de Temenos sur 12 mois glissants sont fournis au cabinet par BRN avant le 30 mai 2026.</li>
+    <li>Les ressources internes BRN sont mobilisées au taux de disponibilité prévu en section 7.</li>
+    <li>L'environnement de pré-production iso-prod du portail clients est utilisable pour les tests d'intrusion.</li>
+    <li>Aucun incident de sécurité majeur ne survient pendant la phase d'exécution, qui détournerait les équipes du suivi de la mission.</li>
+  </ol>
+
+  <h3>Conditions de réussite</h3>
+  <ol>
+    <li>Engagement formel du sponsor pour la levée rapide des points bloquants en COPIL.</li>
+    <li>Transparence des équipes opérationnelles dans les entretiens, garantie par la clause de confidentialité incluse au contrat.</li>
+    <li>Disponibilité d'une interlocutrice unique côté RSSI (Marème Cissé) sur toute la durée de la mission.</li>
+    <li>Mise à disposition d'un espace de travail au siège pour l'équipe d'audit pendant la phase d'exécution.</li>
+  </ol>
+
+  <h3>Limitations de la mission</h3>
+  <ul>
+    <li>L'audit n'est pas un audit de certification : il ne donne pas droit à délivrance de certificat ISO 27001.</li>
+    <li>Les filiales Côte d'Ivoire et Mali ne sont pas couvertes ; toute conclusion sur le SMSI groupe ne pourra être tirée du présent audit.</li>
+    <li>Les tests techniques sont strictement encadrés par les conventions signées et ne constituent pas un audit offensif au sens d'un red-teaming complet.</li>
+    <li>Les conclusions reposent sur les éléments fournis et observés à la date de la restitution finale ; toute évolution ultérieure du SMSI n'est pas reflétée.</li>
+  </ul>
+
+  <div class="page-num">12 / 16</div>
+</div>
+
+<!-- ========== PAGE 13 — SIGNATURES ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">12.</span>Validation et signatures</h2><div class="lead">Pour bon accord sur le cadrage, le périmètre, le planning et les conditions de la mission.</div></div>
+
+  <p>Les soussignés reconnaissent avoir pris connaissance de la présente note de cadrage et des engagements qu'elle décrit, et l'approuvent dans son intégralité.</p>
+
+  <div class="signature-grid">
+    <div class="signature-cell">
+      <div class="signature-role">Sponsor BRN</div>
+      <div class="signature-name">Ibrahima Fall</div>
+      <div class="signature-fn">Directeur des Risques</div>
+      <div class="signature-line"></div>
+      <div class="signature-foot">Date : ____ / ____ / 2026<br>Signature et cachet</div>
+    </div>
+    <div class="signature-cell">
+      <div class="signature-role">Chef de mission ISM</div>
+      <div class="signature-name">Aïssatou Diop</div>
+      <div class="signature-fn">Manager Audit & Conseil</div>
+      <div class="signature-line"></div>
+      <div class="signature-foot">Date : ____ / ____ / 2026<br>Signature</div>
+    </div>
+    <div class="signature-cell">
+      <div class="signature-role">Associé en charge ISM</div>
+      <div class="signature-name">Mamadou Sarr</div>
+      <div class="signature-fn">Associé Audit & Conseil</div>
+      <div class="signature-line"></div>
+      <div class="signature-foot">Date : ____ / ____ / 2026<br>Signature et cachet</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 18mm; border-color: var(--gold-500);">
+    <div class="callout-title" style="color: var(--gold-500);">Référence du contrat</div>
+    <p>La présente note s'inscrit en exécution du contrat de prestation de services référencé <b>BRN-ISM-2026-AUDIT-014</b>, signé le 28 avril 2026, et en complète les annexes 1 (périmètre détaillé) et 2 (planning) qu'elle remplace.</p>
+  </div>
+
+  <div class="page-num">13 / 16</div>
+</div>
+
+<!-- ========== PAGE 14 — ANNEXES ========== -->
+<div class="page">
+  <div class="page-header"><span>Note de cadrage — Audit ISO 27001 BRN</span><span>v1.0 — 13/05/2026</span></div>
+  <div class="section-head"><h2><span class="num">A.</span>Annexes</h2></div>
+
+  <h3>A.1 Glossaire</h3>
+  <div class="glossary-item">
+    <span class="glossary-term">SMSI</span>
+    <div class="glossary-def">Système de Management de la Sécurité de l'Information. Ensemble des politiques, procédures, ressources et organisation visant à assurer la confidentialité, l'intégrité et la disponibilité de l'information.</div>
+  </div>
+  <div class="glossary-item">
+    <span class="glossary-term">PSSI</span>
+    <div class="glossary-def">Politique de Sécurité du Système d'Information. Document cadre, validé par la Direction, énonçant les principes et règles applicables à la sécurité du SI.</div>
+  </div>
+  <div class="glossary-item">
+    <span class="glossary-term">NC majeure / NC mineure</span>
+    <div class="glossary-def">Non-conformité au sens de la norme ISO 27001. Une NC majeure compromet l'aptitude du SMSI à atteindre ses objectifs ; une NC mineure est ponctuelle et non systémique.</div>
+  </div>
+  <div class="glossary-item">
+    <span class="glossary-term">SOC 2 Type II</span>
+    <div class="glossary-def">Rapport d'attestation indépendant publié par un fournisseur de services, couvrant l'efficacité opérationnelle de ses contrôles sur une période d'au moins 6 mois.</div>
+  </div>
+  <div class="glossary-item">
+    <span class="glossary-term">RACI</span>
+    <div class="glossary-def">Matrice d'attribution des responsabilités. R = Réalise, A = Approuve, C = Consulté, I = Informé.</div>
+  </div>
+
+  <h3 style="margin-top: 10mm;">A.2 Liste indicative des pièces demandées (extrait)</h3>
+  <table class="std">
+    <thead><tr><th>Référence</th><th>Document</th><th>Date butoir</th></tr></thead>
+    <tbody>
+      <tr><td>P-01</td><td>PSSI v0.1 signée</td><td>15 mai 2026</td></tr>
+      <tr><td>P-02</td><td>Politique de gestion des accès</td><td>22 mai 2026</td></tr>
+      <tr><td>P-03</td><td>Inventaire des actifs informationnels</td><td>22 mai 2026</td></tr>
+      <tr><td>P-04</td><td>Procédure de gestion des incidents</td><td>22 mai 2026</td></tr>
+      <tr><td>P-05</td><td>Compte-rendu de la dernière revue de management</td><td>29 mai 2026</td></tr>
+      <tr><td>P-06</td><td>Plan de continuité d'activité (PCA)</td><td>29 mai 2026</td></tr>
+      <tr><td>P-07</td><td>Rapports SOC 2 Temenos (2 derniers exercices)</td><td>30 mai 2026</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 2mm; font-style: italic; font-size: 9pt; color: var(--text-500);">Liste exhaustive consultable et mise à jour en temps réel sur la plateforme Gëstu, espace mission GES-2026-0142.</p>
+
+  <div class="page-num">14 / 16</div>
+</div>
+
+</body>
+</html>

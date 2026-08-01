@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useMissions } from '../features/missions/useMissions'
+import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
 import { MissionsKanbanView } from '../features/missions/views/MissionsKanbanView'
 import { MissionsCardsView } from '../features/missions/views/MissionsCardsView'
 import { MissionsSplitView } from '../features/missions/views/MissionsSplitView'
@@ -14,6 +15,7 @@ type FilterKey = 'all' | 'active' | 'closed'
 
 export function MissionsListPage() {
   const { missions, loading, error } = useMissions()
+  const { canCreateMission } = useCabinetPermissions()
   const [filter, setFilter] = useState<FilterKey>('all')
   const [view, setView] = useState<ViewMode>(() => {
     return (localStorage.getItem('gestu-missions-view') as ViewMode) || 'kanban'
@@ -42,12 +44,14 @@ export function MissionsListPage() {
         </div>
         <div className="flex items-center gap-3">
           <ViewSwitch value={view} onChange={setView} />
-          <Link
-            to="/missions/nouvelle"
-            className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors"
-          >
-            + Nouvelle mission
-          </Link>
+          {canCreateMission && (
+            <Link
+              to="/missions/nouvelle"
+              className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors"
+            >
+              + Nouvelle mission
+            </Link>
+          )}
         </div>
       </div>
 
@@ -57,9 +61,11 @@ export function MissionsListPage() {
             title="Aucune mission"
             description="Créez votre première mission pour commencer."
             action={
-              <Link to="/missions/nouvelle" className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900">
-                + Nouvelle mission
-              </Link>
+              canCreateMission ? (
+                <Link to="/missions/nouvelle" className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900">
+                  + Nouvelle mission
+                </Link>
+              ) : undefined
             }
           />
         </div>

@@ -1,6 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner } from '../_shared/auth-platform-owner.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
 
 /**
  * Edge Function : admin-framework-ai-draft
@@ -26,7 +27,7 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
 const ANTHROPIC_BETA = 'files-api-2025-04-14,context-1m-2025-08-07'
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_SONNET
 const MAX_FILES = 5
 const MAX_FILE_SIZE = 32 * 1024 * 1024
 const MAX_BRIEF_LENGTH = 4000
@@ -185,11 +186,11 @@ Deno.serve(async (req) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
     console.error('[admin-framework-ai-draft] error:', message)
-    return jsonResponse({ error: message }, 500)
+    return jsonResponse({ error: 'Erreur interne' }, 500)
   }
 })
 
-interface DraftControl { code: string; name: string; description?: string; guidance?: string }
+interface DraftControl { code: string; name: string; description?: string; guidance?: string; dimension?: string }
 interface DraftDomain { code: string; name: string; description?: string; controls: DraftControl[] }
 
 function buildPrompt(brief: Brief): string {
@@ -208,9 +209,19 @@ ${instructions}
 CONSIGNES
 1. Extrais les domaines (chapitres / sections) et les contrôles présents dans les PDFs joints.
 2. Si aucun PDF n'est joint, génère une structure plausible et réaliste cohérente avec le nom et les instructions.
-3. Pour chaque contrôle, fournis : code (ex: A.5.1), nom court, description claire en français, et guidance (conseils de mise en œuvre).
+3. Pour chaque contrôle, fournis : code (ex: A.5.1), nom court, description claire en français, guidance (conseils de mise en œuvre), et "dimension" (voir ci-dessous).
 4. Reste fidèle aux documents : ne pas inventer de codes qui n'existent pas dans la source.
 5. Maximum 30 domaines, 200 contrôles au total. Si le référentiel est plus large, garde les plus essentiels et signale-le dans la description.
+6. CLASSEMENT — "dimension" : rattache chaque contrôle à UNE seule dimension du score de confiance parmi :
+   - "security" : protection technique/physique, accès, identité, cryptographie, réseau, malware, vulnérabilités
+   - "data_protection" : vie privée, données personnelles, classification, masquage, DLP, souveraineté
+   - "resilience" : incidents, continuité, PCA/PRA, sauvegarde, redondance, disponibilité
+   - "integrity" : intégrité des données/traitements, développement sécurisé, gestion des changements, IA responsable
+   - "governance" : politiques, rôles & responsabilités, redevabilité, conformité, exigences légales, éthique
+   - "verifiability" : journalisation, collecte de preuves, protection des enregistrements, auditabilité
+   - "human_factor" : sensibilisation, formation, RH, screening, culture (facteur transverse)
+   - "third_party" : fournisseurs, sous-traitants, chaîne d'approvisionnement, cloud, tiers (facteur transverse)
+   En cas de doute, choisis la dimension dominante. Ne laisse jamais "dimension" vide.
 
 FORMAT DE RÉPONSE (JSON STRICT, en français)
 Réponds UNIQUEMENT avec un JSON valide, sans texte avant ni après. Le JSON commence par {"domains":[ et se termine par ]}.
@@ -227,7 +238,8 @@ Schema attendu :
           "code": "A.5.1",
           "name": "Politique de sécurité",
           "description": "Description du contrôle.",
-          "guidance": "Conseils de mise en œuvre."
+          "guidance": "Conseils de mise en œuvre.",
+          "dimension": "governance"
         }
       ]
     }

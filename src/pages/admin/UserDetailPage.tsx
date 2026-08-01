@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Eye } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useAdminUserDetail } from '../../features/admin/useAdminUserDetail'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -43,8 +44,9 @@ export function UserDetailPage() {
       return
     }
     if (data?.error) {
+      const detail = await readInvokeError(fnError, data, 'Démarrage impossible')
       toast.error('Démarrage impossible')
-      console.error('admin-view-user:', data.error)
+      console.error('admin-view-user:', detail)
       return
     }
     setReasonModalOpen(false)

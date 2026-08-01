@@ -2,12 +2,11 @@ import { useState, useMemo } from 'react'
 import { FieldworkDomainGroup } from './FieldworkDomainGroup'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
-import type { ControlAssignmentRow, MissionMemberRow } from '../useMissionDetail'
+import type { MissionMemberRow } from '../useMissionDetail'
 
 interface FieldworkSidebarProps {
   domains: DomainWithControls[]
   assessments: AssessmentWithControl[]
-  assignments: ControlAssignmentRow[]
   members: MissionMemberRow[]
   selectedControlId: string | null
   onSelectControl: (controlId: string) => void
@@ -15,7 +14,7 @@ interface FieldworkSidebarProps {
 
 type FilterKey = 'all' | 'not_started' | 'draft' | 'submitted' | 'approved'
 
-export function FieldworkSidebar({ domains, assessments, assignments, members, selectedControlId, onSelectControl }: FieldworkSidebarProps): JSX.Element {
+export function FieldworkSidebar({ domains, assessments, members, selectedControlId, onSelectControl }: FieldworkSidebarProps): JSX.Element {
   // Build auditor name map
   const auditorMap = useMemo(() => {
     const map = new Map<string, string>()
@@ -30,7 +29,6 @@ export function FieldworkSidebar({ domains, assessments, assignments, members, s
   const [filter, setFilter] = useState<FilterKey>('all')
 
   const totalControls = domains.reduce((sum, d) => sum + d.controls.length, 0)
-  const assessedControlIds = new Set(assessments.map((a) => a.control_id))
 
   const counts = useMemo(() => ({
     all: totalControls,
@@ -86,7 +84,6 @@ export function FieldworkSidebar({ domains, assessments, assignments, members, s
             key={domain.id}
             domain={domain}
             assessments={assessments}
-            assignments={assignments}
             auditorMap={auditorMap}
             selectedControlId={selectedControlId}
             onSelectControl={onSelectControl}

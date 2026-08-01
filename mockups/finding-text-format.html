@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup &mdash; Finding text format (plain vs markdown)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --forest-900: #1B4332; --forest-800: #234E3D; --forest-700: #2D6A4F;
+    --forest-500: #40916C; --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-700: #9A7B26; --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-100: #FAEFC9; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --surface: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --border-soft: #EFEFEC;
+    --success: #27AE60; --success-bg: #ECFDF5;
+    --error: #C0392B; --error-bg: #FEF2F2;
+    --warn: #B45309; --warn-bg: #FFFBEB;
+    --info: #1D4ED8; --info-bg: #EFF6FF;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; padding-bottom: 60px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .mock-bar { position: sticky; top: 0; z-index: 100; background: var(--forest-900); padding: 14px 24px; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.85); font-size: 12px; }
+  .mock-bar .lbl { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mock-bar .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.45); font-size: 11px; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 28px 32px; }
+
+  .page-head { margin-bottom: 24px; }
+  .page-head .eyebrow { font-size: 11px; letter-spacing: 0.12em; color: var(--gold-700); font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+  .page-head h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: var(--forest-900); margin-bottom: 6px; }
+  .page-head p { color: var(--text-500); max-width: 720px; line-height: 1.55; }
+  .page-head p code { background: var(--bg); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--forest-800); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+
+  .section-title { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-500); margin: 28px 0 12px; }
+  .section-title::before { content: ''; width: 4px; height: 14px; background: var(--gold-500); border-radius: 2px; }
+
+  /* Side by side panels */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; }
+  .panel-head .tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+  .panel.opt-a .panel-head .tag { background: var(--bg); color: var(--text-700); border: 1px solid var(--border); }
+  .panel.opt-b .panel-head .tag { background: var(--forest-50); color: var(--forest-700); border: 1px solid var(--forest-300); }
+  .panel-head h3 { font-size: 15px; font-weight: 700; }
+  .panel-head .sub { margin-left: auto; font-size: 11px; color: var(--text-500); }
+
+  .panel-body { padding: 0; }
+
+  .surface-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-soft); background: var(--bg); padding: 0 18px; }
+  .surface-tab { padding: 10px 12px; font-size: 11px; font-weight: 600; color: var(--text-500); background: transparent; border: 0; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; letter-spacing: 0.02em; }
+  .surface-tab.active { color: var(--forest-800); border-bottom-color: var(--gold-500); }
+
+  .surface-canvas { padding: 18px; min-height: 320px; }
+
+  /* === EDITOR mockup === */
+  .editor-toolbar { display: flex; align-items: center; gap: 4px; padding: 8px; border: 1px solid var(--border); border-radius: 8px 8px 0 0; background: var(--bg); border-bottom: 0; }
+  .editor-toolbar.empty { padding: 6px 10px; color: var(--text-300); font-size: 11px; font-style: italic; }
+  .tb-btn { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; border: 0; background: transparent; color: var(--text-700); cursor: pointer; }
+  .tb-btn:hover { background: var(--surface); }
+  .tb-btn.active { background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
+  .tb-btn b { font-weight: 700; font-size: 13px; }
+  .tb-btn i { font-style: italic; font-size: 13px; }
+  .tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+  .tb-help { margin-left: auto; font-size: 10px; color: var(--text-500); padding-right: 6px; }
+
+  .editor-area { width: 100%; min-height: 220px; padding: 14px; border: 1px solid var(--border); border-radius: 0 0 8px 8px; font-family: inherit; font-size: 13px; line-height: 1.55; resize: vertical; color: var(--text-900); background: var(--surface); outline: none; }
+  .editor-area:focus { border-color: var(--forest-500); }
+
+  .editor-area.plain { white-space: pre-wrap; }
+
+  .editor-area-rendered { padding: 14px; border: 1px solid var(--border); border-radius: 0 0 8px 8px; min-height: 220px; line-height: 1.6; font-size: 13px; }
+  .editor-area-rendered p { margin-bottom: 10px; }
+  .editor-area-rendered p:last-child { margin-bottom: 0; }
+  .editor-area-rendered strong { font-weight: 700; color: var(--forest-900); }
+  .editor-area-rendered em { font-style: italic; }
+  .editor-area-rendered ul { padding-left: 18px; margin: 8px 0; }
+  .editor-area-rendered li { margin-bottom: 4px; }
+  .editor-area-rendered code { background: var(--bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--forest-800); }
+
+  .surface-hint { margin-top: 10px; font-size: 11px; color: var(--text-500); display: flex; align-items: center; gap: 6px; }
+  .surface-hint .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-500); }
+
+  /* === READ mockup === */
+  .finding-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--surface); }
+  .finding-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .finding-head .pill { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .pill.major { background: #FDECEC; color: #8B1818; }
+  .pill.minor { background: var(--gold-50); color: var(--gold-700); }
+  .pill.observation { background: var(--info-bg); color: var(--info); }
+  .pill.strength { background: var(--success-bg); color: var(--success); }
+  .finding-head .ord { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-500); margin-left: auto; }
+  .finding-body-plain { font-size: 13px; line-height: 1.6; color: var(--text-900); white-space: pre-wrap; }
+  .finding-body-rich { font-size: 13px; line-height: 1.6; color: var(--text-900); }
+  .finding-body-rich p { margin-bottom: 8px; }
+  .finding-body-rich p:last-child { margin-bottom: 0; }
+  .finding-body-rich strong { font-weight: 700; color: var(--forest-900); }
+  .finding-body-rich em { font-style: italic; }
+  .finding-body-rich ul { padding-left: 18px; margin: 6px 0; }
+  .finding-body-rich li { margin-bottom: 3px; }
+  .finding-body-rich code { background: var(--bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--forest-800); }
+
+  .finding-meta { display: flex; gap: 16px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--text-500); }
+  .finding-meta strong { color: var(--text-700); font-weight: 600; }
+
+  /* === PDF mockup === */
+  .pdf-page { background: var(--surface); border: 1px solid var(--border); padding: 22px 28px; font-size: 11px; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+  .pdf-page h4 { font-size: 12px; font-weight: 700; color: var(--forest-900); border-bottom: 1px solid var(--gold-500); padding-bottom: 4px; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .pdf-finding { margin-bottom: 12px; }
+  .pdf-finding .head { font-size: 10px; color: var(--text-500); margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+  .pdf-finding .desc { white-space: pre-wrap; }
+  .pdf-finding .desc.rich strong { font-weight: 700; }
+  .pdf-finding .desc.rich em { font-style: italic; }
+  .pdf-finding .desc.rich ul { padding-left: 16px; margin: 4px 0; }
+
+  /* === XLSX mockup === */
+  .xlsx { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .xlsx-head { display: grid; grid-template-columns: 60px 80px 1fr 80px; background: var(--forest-50); padding: 6px 10px; font-size: 10px; font-weight: 700; color: var(--forest-800); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); }
+  .xlsx-row { display: grid; grid-template-columns: 60px 80px 1fr 80px; padding: 8px 10px; font-size: 11px; border-bottom: 1px solid var(--border-soft); align-items: start; }
+  .xlsx-row:last-child { border-bottom: 0; }
+  .xlsx-row .cell { overflow: hidden; }
+  .xlsx-row .cell.code { font-family: 'JetBrains Mono', monospace; color: var(--forest-700); font-weight: 600; font-size: 10px; }
+  .xlsx-row .cell.classif { font-size: 10px; font-weight: 600; }
+  .xlsx-row .cell.desc { font-size: 11px; line-height: 1.5; white-space: pre-wrap; }
+  .xlsx-row .cell.desc.flatten { font-style: italic; color: var(--text-700); }
+
+  /* Impact matrix */
+  .impact-matrix { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .impact-row { display: grid; grid-template-columns: 200px 1fr 1fr; border-bottom: 1px solid var(--border-soft); }
+  .impact-row:last-child { border-bottom: 0; }
+  .impact-row.header { background: var(--bg); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-700); }
+  .impact-row > div { padding: 14px 16px; font-size: 13px; line-height: 1.55; }
+  .impact-row > div:first-child { font-weight: 600; color: var(--text-700); border-right: 1px solid var(--border-soft); display: flex; align-items: flex-start; gap: 8px; }
+  .impact-row > div:first-child .ico { width: 18px; height: 18px; flex-shrink: 0; color: var(--gold-700); margin-top: 1px; }
+  .impact-row > div + div + div { border-left: 1px solid var(--border-soft); }
+
+  .verdict-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .verdict-pill.ok { background: var(--success-bg); color: var(--success); }
+  .verdict-pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .verdict-pill.danger { background: var(--error-bg); color: var(--error); }
+  .verdict-pill.neutral { background: var(--bg); color: var(--text-700); border: 1px solid var(--border); }
+
+  /* Recommendation block */
+  .reco { background: linear-gradient(135deg, var(--forest-50) 0%, var(--gold-50) 100%); border: 1px solid var(--forest-300); border-radius: 14px; padding: 22px 26px; display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: start; }
+  .reco .seal { width: 56px; height: 56px; border-radius: 50%; background: var(--surface); border: 2px solid var(--gold-500); display: flex; align-items: center; justify-content: center; color: var(--gold-700); flex-shrink: 0; }
+  .reco h3 { font-size: 16px; font-weight: 800; color: var(--forest-900); margin-bottom: 6px; letter-spacing: -0.01em; }
+  .reco h3 .badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: var(--forest-700); color: white; margin-left: 8px; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; }
+  .reco p { color: var(--text-700); line-height: 1.6; margin-bottom: 10px; }
+  .reco ul { padding-left: 18px; color: var(--text-700); line-height: 1.7; }
+  .reco ul li strong { color: var(--forest-900); }
+  .reco code { background: var(--surface); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--forest-800); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+
+  /* Why subset */
+  .subset { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .subset-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .subset-card .lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--forest-700); font-weight: 700; margin-bottom: 4px; }
+  .subset-card .ex { font-size: 11px; color: var(--text-500); line-height: 1.4; }
+  .subset-card .preview { margin-top: 6px; font-size: 13px; color: var(--text-900); }
+
+  .blocked { background: var(--error-bg); border: 1px solid #FCA5A5; border-radius: 10px; padding: 12px 14px; margin-top: 12px; font-size: 12px; color: #7F1D1D; line-height: 1.55; }
+  .blocked strong { font-weight: 700; }
+
+  .sec-note { background: var(--warn-bg); border: 1px solid #F59E0B; border-radius: 10px; padding: 12px 14px; margin-top: 14px; font-size: 12px; color: #78350F; line-height: 1.55; }
+  .sec-note strong { font-weight: 700; color: #78350F; }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <span class="lbl">Mockup</span>
+  <span>Format texte des findings &mdash; impact UX/UI/PDF</span>
+  <span class="meta">v1 &middot; assessment_findings.description</span>
+</div>
+
+<div class="container">
+
+  <div class="page-head">
+    <div class="eyebrow">Question ouverte &mdash; Migration B</div>
+    <h1>Texte brut vs Markdown limité pour <code>assessment_findings.description</code></h1>
+    <p>Le schéma DB est identique dans les deux cas (colonne <code>text</code>). La décision concerne uniquement le rendu côté UI, le PDF et l'export. Voici le rendu de la <strong>même finding</strong> dans les 4 surfaces où elle apparaît.</p>
+  </div>
+
+  <div class="section-title">1. Comparaison sur les 4 surfaces de rendu</div>
+
+  <div class="compare">
+
+    <!-- ========== OPTION A : PLAIN TEXT ========== -->
+    <div class="panel opt-a">
+      <div class="panel-head">
+        <span class="tag">OPTION A</span>
+        <h3>Texte brut multi-lignes</h3>
+        <span class="sub">textarea simple</span>
+      </div>
+      <div class="surface-tabs">
+        <button class="surface-tab active" data-target="a-edit">Editeur</button>
+        <button class="surface-tab" data-target="a-read">Lecture</button>
+        <button class="surface-tab" data-target="a-pdf">PDF</button>
+        <button class="surface-tab" data-target="a-xlsx">XLSX</button>
+      </div>
+      <div class="panel-body">
+
+        <!-- A: Editeur -->
+        <div class="surface-canvas" id="a-edit">
+          <div class="editor-toolbar empty">Aucune mise en forme &mdash; saisie libre</div>
+          <textarea class="editor-area plain" rows="11">Le PSSI a ete revu en 2023 mais ne couvre pas le perimetre Cloud Azure deploye en Q4 2024. Les regles d'usage des comptes a privileges sont absentes du document.
+
+Preuves recoltees :
+- Document PSSI v3.2 du 14/03/2023 fourni
+- Inventaire actifs cloud daté du 02/02/2025 montre 47 ressources Azure
+- Compte rendu COSI 12/2024 mentionne "PSSI a actualiser Q1 2025" sans suivi
+
+Reference normative : ISO 27001:2022 §5.1.1 - "La PSSI doit etre passee en revue a intervalles planifies".</textarea>
+          <div class="surface-hint"><span class="dot"></span>Pas de toolbar, pas de courbe d'apprentissage. Mais pas de hierarchie visuelle.</div>
+        </div>
+
+        <!-- A: Lecture -->
+        <div class="surface-canvas" id="a-read" style="display:none">
+          <div class="finding-card">
+            <div class="finding-head">
+              <span class="pill major">Non-conformite majeure</span>
+              <span class="ord mono">#1 / 3</span>
+            </div>
+            <div class="finding-body-plain">Le PSSI a ete revu en 2023 mais ne couvre pas le perimetre Cloud Azure deploye en Q4 2024. Les regles d'usage des comptes a privileges sont absentes du document.
+
+Preuves recoltees :
+- Document PSSI v3.2 du 14/03/2023 fourni
+- Inventaire actifs cloud daté du 02/02/2025 montre 47 ressources Azure
+- Compte rendu COSI 12/2024 mentionne "PSSI a actualiser Q1 2025" sans suivi
+
+Reference normative : ISO 27001:2022 §5.1.1 - "La PSSI doit etre passee en revue a intervalles planifies".</div>
+            <div class="finding-meta">
+              <span><strong>Risque</strong> Eleve</span>
+              <span><strong>Priorite</strong> Critique</span>
+              <span><strong>Echeance</strong> 30/06/2026</span>
+            </div>
+          </div>
+          <div class="surface-hint"><span class="dot"></span>Mur de texte. Difficile de scanner les preuves vs la conclusion.</div>
+        </div>
+
+        <!-- A: PDF -->
+        <div class="surface-canvas" id="a-pdf" style="display:none">
+          <div class="pdf-page">
+            <h4>5.1.1 &mdash; Politique de securite</h4>
+            <div class="pdf-finding">
+              <div class="head">CONSTAT 1 / NC MAJEURE</div>
+              <div class="desc">Le PSSI a ete revu en 2023 mais ne couvre pas le perimetre Cloud Azure deploye en Q4 2024. Les regles d'usage des comptes a privileges sont absentes du document.
+
+Preuves recoltees :
+- Document PSSI v3.2 du 14/03/2023 fourni
+- Inventaire actifs cloud daté du 02/02/2025 montre 47 ressources Azure
+- Compte rendu COSI 12/2024 mentionne "PSSI a actualiser Q1 2025" sans suivi
+
+Reference normative : ISO 27001:2022 §5.1.1 - "La PSSI doit etre passee en revue a intervalles planifies".</div>
+            </div>
+          </div>
+          <div class="surface-hint"><span class="dot"></span>Ok mais peu professionnel. Tirets en preserve "comme dans Word".</div>
+        </div>
+
+        <!-- A: XLSX -->
+        <div class="surface-canvas" id="a-xlsx" style="display:none">
+          <div class="xlsx">
+            <div class="xlsx-head">
+              <div>Code</div><div>Classif.</div><div>Description</div><div>Echeance</div>
+            </div>
+            <div class="xlsx-row">
+              <div class="cell code">CAR-001</div>
+              <div class="cell classif">Major NC</div>
+              <div class="cell desc">Le PSSI a ete revu en 2023 mais ne couvre pas le perimetre Cloud Azure...
+
+Preuves recoltees :
+- Document PSSI v3.2 du 14/03/2023 fourni
+- Inventaire actifs cloud daté du 02/02/2025...</div>
+              <div class="cell">30/06/2026</div>
+            </div>
+          </div>
+          <div class="surface-hint"><span class="dot"></span>Aucune transformation necessaire. Cellule Excel respecte les retours a la ligne.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========== OPTION B : MARKDOWN LIMITE ========== -->
+    <div class="panel opt-b">
+      <div class="panel-head">
+        <span class="tag">OPTION B</span>
+        <h3>Markdown limité (recommandé)</h3>
+        <span class="sub">gras &middot; italique &middot; liste &middot; code</span>
+      </div>
+      <div class="surface-tabs">
+        <button class="surface-tab active" data-target="b-edit">Editeur</button>
+        <button class="surface-tab" data-target="b-read">Lecture</button>
+        <button class="surface-tab" data-target="b-pdf">PDF</button>
+        <button class="surface-tab" data-target="b-xlsx">XLSX</button>
+      </div>
+      <div class="panel-body">
+
+        <!-- B: Editeur -->
+        <div class="surface-canvas" id="b-edit">
+          <div class="editor-toolbar">
+            <button class="tb-btn" title="Gras (Ctrl+B)"><b>B</b></button>
+            <button class="tb-btn" title="Italique (Ctrl+I)"><i>I</i></button>
+            <span class="tb-sep"></span>
+            <button class="tb-btn active" title="Liste a puces">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>
+            </button>
+            <button class="tb-btn" title="Code">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </button>
+            <span class="tb-help">Ctrl+B &middot; Ctrl+I &middot; - liste</span>
+          </div>
+          <div class="editor-area-rendered" contenteditable="false">
+            <p>Le PSSI a été revu en <strong>2023</strong> mais ne couvre pas le périmètre <strong>Cloud Azure</strong> déployé en Q4 2024. Les règles d'usage des comptes à privilèges sont absentes du document.</p>
+            <p><em>Preuves récoltées :</em></p>
+            <ul>
+              <li>Document <code>PSSI v3.2</code> du 14/03/2023 fourni</li>
+              <li>Inventaire actifs cloud daté du 02/02/2025 montre <strong>47 ressources Azure</strong></li>
+              <li>CR COSI 12/2024 mentionne "PSSI à actualiser Q1 2025" <em>sans suivi</em></li>
+            </ul>
+            <p><em>Référence normative :</em> ISO 27001:2022 §5.1.1 &mdash; "La PSSI doit être passée en revue à intervalles planifiés".</p>
+          </div>
+          <div class="surface-hint"><span class="dot"></span>Toolbar minimale + raccourcis clavier. Coller depuis Word fonctionne (gras/listes preservés).</div>
+        </div>
+
+        <!-- B: Lecture -->
+        <div class="surface-canvas" id="b-read" style="display:none">
+          <div class="finding-card">
+            <div class="finding-head">
+              <span class="pill major">Non-conformite majeure</span>
+              <span class="ord mono">#1 / 3</span>
+            </div>
+            <div class="finding-body-rich">
+              <p>Le PSSI a été revu en <strong>2023</strong> mais ne couvre pas le périmètre <strong>Cloud Azure</strong> déployé en Q4 2024. Les règles d'usage des comptes à privilèges sont absentes du document.</p>
+              <p><em>Preuves récoltées :</em></p>
+              <ul>
+                <li>Document <code>PSSI v3.2</code> du 14/03/2023 fourni</li>
+                <li>Inventaire actifs cloud daté du 02/02/2025 montre <strong>47 ressources Azure</strong></li>
+                <li>CR COSI 12/2024 mentionne "PSSI à actualiser Q1 2025" <em>sans suivi</em></li>
+              </ul>
+              <p><em>Référence normative :</em> ISO 27001:2022 §5.1.1 &mdash; "La PSSI doit être passée en revue à intervalles planifiés".</p>
+            </div>
+            <div class="finding-meta">
+              <span><strong>Risque</strong> Eleve</span>
+              <span><strong>Priorite</strong> Critique</span>
+              <span><strong>Echeance</strong> 30/06/2026</span>
+            </div>
+          </div>
+          <div class="surface-hint"><span class="dot"></span>Hierarchie visible. Le client identifie en 2s le constat principal et les preuves.</div>
+        </div>
+
+        <!-- B: PDF -->
+        <div class="surface-canvas" id="b-pdf" style="display:none">
+          <div class="pdf-page">
+            <h4>5.1.1 &mdash; Politique de securite</h4>
+            <div class="pdf-finding">
+              <div class="head">CONSTAT 1 / NC MAJEURE</div>
+              <div class="desc rich">
+                Le PSSI a été revu en <strong>2023</strong> mais ne couvre pas le périmètre <strong>Cloud Azure</strong> déployé en Q4 2024. Les règles d'usage des comptes à privilèges sont absentes du document.
+                <p style="margin-top:6px"><em>Preuves récoltées :</em></p>
+                <ul>
+                  <li>Document PSSI v3.2 du 14/03/2023 fourni</li>
+                  <li>Inventaire actifs cloud du 02/02/2025 &mdash; <strong>47 ressources Azure</strong></li>
+                  <li>CR COSI 12/2024 mentionne "PSSI à actualiser Q1 2025" <em>sans suivi</em></li>
+                </ul>
+                <p><em>Référence normative :</em> ISO 27001:2022 §5.1.1.</p>
+              </div>
+            </div>
+          </div>
+          <div class="surface-hint"><span class="dot"></span>Rendu professionnel. Necessite d'integrer un parseur Markdown au generateur PDF.</div>
+        </div>
+
+        <!-- B: XLSX -->
+        <div class="surface-canvas" id="b-xlsx" style="display:none">
+          <div class="xlsx">
+            <div class="xlsx-head">
+              <div>Code</div><div>Classif.</div><div>Description</div><div>Echeance</div>
+            </div>
+            <div class="xlsx-row">
+              <div class="cell code">CAR-001</div>
+              <div class="cell classif">Major NC</div>
+              <div class="cell desc flatten">Le PSSI a ete revu en 2023 mais ne couvre pas le perimetre Cloud Azure...
+
+Preuves recoltees :
+&bull; Document PSSI v3.2 du 14/03/2023 fourni
+&bull; Inventaire actifs cloud du 02/02/2025 - 47 ressources Azure...</div>
+              <div class="cell">30/06/2026</div>
+            </div>
+          </div>
+          <div class="surface-hint"><span class="dot"></span>Markdown converti en texte plat (gras perdu, listes en puces simples). Necessite une fonction <code>md→plain</code>.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-title">2. Sous-ensemble Markdown autorise (option B)</div>
+
+  <p style="color: var(--text-500); font-size: 13px; max-width: 760px;">Pour eviter une variabilite excessive entre auditeurs et limiter le risque XSS, on n'autorise <strong>que 4 elements</strong>. Pas de titres, pas de liens, pas d'images, pas de HTML brut.</p>
+
+  <div class="subset">
+    <div class="subset-card">
+      <div class="lbl">**gras**</div>
+      <div class="ex">Mots-cles, dates critiques, references controlees</div>
+      <div class="preview"><strong>2023</strong> · <strong>47 ressources</strong></div>
+    </div>
+    <div class="subset-card">
+      <div class="lbl">*italique*</div>
+      <div class="ex">Citations, intros, references normatives</div>
+      <div class="preview"><em>Preuves recoltees :</em></div>
+    </div>
+    <div class="subset-card">
+      <div class="lbl">- liste</div>
+      <div class="ex">Enumerations de preuves, points de non-conformite</div>
+      <div class="preview" style="text-align:left; padding-left:8px;">&bull; PSSI v3.2<br>&bull; CR COSI</div>
+    </div>
+    <div class="subset-card">
+      <div class="lbl">`code`</div>
+      <div class="ex">References techniques, identifiants documents</div>
+      <div class="preview"><code>PSSI v3.2</code></div>
+    </div>
+  </div>
+
+  <div class="blocked">
+    <strong>Bloques :</strong> # titres, [liens], ![images], &lt;tags HTML&gt;, --- separateurs, &gt; quotes, tableaux. Le contenu est sanitize cote rendu via <code>react-markdown</code> avec <code>allowedElements</code> strict.
+  </div>
+
+  <div class="section-title">3. Matrice d'impact</div>
+
+  <div class="impact-matrix">
+    <div class="impact-row header">
+      <div>Dimension</div>
+      <div>Option A &mdash; Texte brut</div>
+      <div>Option B &mdash; Markdown limite</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Stockage DB
+      </div>
+      <div><span class="verdict-pill ok">Identique</span><br>Colonne <code>text</code>. Pas de migration.</div>
+      <div><span class="verdict-pill ok">Identique</span><br>Colonne <code>text</code>. Le markdown est juste du texte.</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4z"/></svg>
+        Editeur (Phase 4)
+      </div>
+      <div><span class="verdict-pill ok">Trivial</span><br>Simple <code>&lt;textarea&gt;</code>. 0 dependance.</div>
+      <div><span class="verdict-pill warn">Composant a integrer</span><br>Toolbar minimale + parser au rendu. Lib : <code>react-markdown</code> + <code>remark-gfm</code> (~25kb gzip).</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h20v18H2z"/><path d="M2 9h20"/><path d="M9 21V9"/></svg>
+        Lecture (5 surfaces)
+      </div>
+      <div><span class="verdict-pill warn">Mur de texte</span><br>Tirets visibles "-" dans listes. Rapport visuellement faible.</div>
+      <div><span class="verdict-pill ok">Hierarchie claire</span><br>Listes a puces, gras pour mots-cles. Rendu pro.</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        PDF rapport
+      </div>
+      <div><span class="verdict-pill ok">Direct</span><br>Texte tel quel. Tirets bruts.</div>
+      <div><span class="verdict-pill warn">Refactor PDF</span><br><code>generateAuditReportPDF.ts</code> doit appeler un parser markdown→react-pdf. ~1j de dev.</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M3 9h18"/></svg>
+        XLSX export
+      </div>
+      <div><span class="verdict-pill ok">Direct</span><br>Cellule respecte les retours a la ligne.</div>
+      <div><span class="verdict-pill warn">Aplatir</span><br>Helper <code>markdownToPlain()</code> au export. ~30 lignes.</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Securite (XSS)
+      </div>
+      <div><span class="verdict-pill ok">Aucun risque</span><br>Texte echappe par React par defaut.</div>
+      <div><span class="verdict-pill warn">Sanitize obligatoire</span><br><code>react-markdown</code> + <code>allowedElements</code> strict. Pas de raw HTML. Pas de <code>dangerouslySetInnerHTML</code>.</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Effort total
+      </div>
+      <div><span class="verdict-pill ok">~0j</span><br>Aucun composant nouveau.</div>
+      <div><span class="verdict-pill warn">~2j</span><br>1j editeur + 0.5j PDF + 0.5j XLSX/sanitize.</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+        Coherence inter-auditeurs
+      </div>
+      <div><span class="verdict-pill warn">Variable</span><br>Chaque auditeur invente son style (tirets, asterisques, MAJUSCULES).</div>
+      <div><span class="verdict-pill ok">Standardisee</span><br>Toolbar contraint le formatage. Rapport homogene.</div>
+    </div>
+
+  </div>
+
+  <div class="sec-note">
+    <strong>Note securite (option B) :</strong> Le rendu MUST utiliser <code>react-markdown</code> avec <code>allowedElements={['p','strong','em','ul','ol','li','code']}</code> et <code>skipHtml={true}</code>. Cela bloque tout HTML/script injecte. Cohérent avec la regle CLAUDE.md "ne jamais utiliser dangerouslySetInnerHTML".
+  </div>
+
+  <div class="section-title">4. Recommandation</div>
+
+  <div class="reco">
+    <div class="seal">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div>
+      <h3>Option B &mdash; Markdown limite <span class="badge">Recommande</span></h3>
+      <p>Pour ~2 jours de developpement supplementaire on gagne un rendu professionnel sur les 5 surfaces, une coherence inter-auditeurs et une lecture client largement plus claire. Le surcout est concentre sur le generateur PDF (le reste est mutualise).</p>
+      <ul>
+        <li><strong>Sous-ensemble strict</strong> : gras, italique, liste a puces, code inline. <code>react-markdown</code> + <code>remark-gfm</code> avec allowedElements verrouille.</li>
+        <li><strong>Toolbar minimale</strong> dans le finding card editor &mdash; 4 boutons + 2 raccourcis (Ctrl+B, Ctrl+I).</li>
+        <li><strong>Helper <code>markdownToPlain()</code></strong> partage entre XLSX, notifications email et previews texte court.</li>
+        <li><strong>Securite</strong> : sanitize cote rendu, jamais de raw HTML, conforme CLAUDE.md §3.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Tabs simple toggle
+  document.querySelectorAll('.surface-tabs').forEach(group => {
+    const tabs = group.querySelectorAll('.surface-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetId = tab.dataset.target;
+        const panel = group.parentElement;
+        // toggle tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        // toggle canvases
+        panel.querySelectorAll('.surface-canvas').forEach(c => c.style.display = 'none');
+        const target = panel.querySelector('#' + targetId);
+        if (target) target.style.display = 'block';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

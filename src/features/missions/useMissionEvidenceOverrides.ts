@@ -98,7 +98,7 @@ export function useMissionEvidenceOverrides(missionId: string | undefined): UseM
         evidence_name: evidenceName,
         is_essential: newValue,
         created_by: profile.id,
-      }, { onConflict: 'mission_id,evidence_name' })
+      } as never, { onConflict: 'mission_id,evidence_name' })
 
     setSaving(false)
     if (upErr) {

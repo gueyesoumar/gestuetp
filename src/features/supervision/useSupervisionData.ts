@@ -39,19 +39,23 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
 
   // Fetch all active frameworks (for the selector)
   useEffect(() => {
+    const ac = new AbortController()
     supabase
       .from('frameworks')
       .select('*')
       .eq('is_active', true)
       .order('name')
+      .abortSignal(ac.signal)
       .then(({ data, error: err }) => {
+        if (ac.signal.aborted) return
         if (err) console.warn('useSupervisionData frameworks:', err.message)
         setFrameworks(data ?? [])
       })
+    return () => ac.abort()
   }, [])
 
   // Fetch supervision data for the selected framework
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!profile?.organization_id || !frameworkId) {
       setLoading(false)
       return
@@ -62,11 +66,13 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
 
     try {
       // 1. Fetch domains for this framework
-      const { data: domainData, error: domainErr } = await supabase
+      const domainQuery = supabase
         .from('domains')
         .select('id, code, name, sort_order')
         .eq('framework_id', frameworkId)
         .order('sort_order')
+      const { data: domainData, error: domainErr } = await (signal ? domainQuery.abortSignal(signal) : domainQuery)
+      if (signal?.aborted) return
 
       if (domainErr) {
         console.error('supervision domains:', domainErr.message)
@@ -85,10 +91,12 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         return
       }
 
-      const { data: controlData } = await supabase
+      const controlQuery = supabase
         .from('controls')
         .select('id, domain_id')
         .in('domain_id', domainIds)
+      const { data: controlData } = await (signal ? controlQuery.abortSignal(signal) : controlQuery)
+      if (signal?.aborted) return
 
       const controlToDomain = new Map<string, string>()
       const domainIdToCode = new Map<string, string>()
@@ -112,8 +120,8 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         // Group mode: missions where client is a subsidiary
         // The RLS policy "missions_select_group" handles access control.
         // We need to get subsidiary IDs first, then filter.
-        const { data: subIds } = await supabase
-          .rpc('get_subsidiary_ids', { parent_id: profile.organization_id })
+        const { data: subIds } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>)('get_subsidiary_ids', { parent_id: profile.organization_id })
+        if (signal?.aborted) return
 
         if (!subIds || (subIds as string[]).length === 0) {
           setEntities([])
@@ -124,7 +132,8 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         missionQuery = missionQuery.in('client_id', subIds as string[])
       }
 
-      const { data: missionData, error: missionErr } = await missionQuery
+      const { data: missionData, error: missionErr } = await (signal ? missionQuery.abortSignal(signal) : missionQuery)
+      if (signal?.aborted) return
 
       if (missionErr) {
         console.error('supervision missions:', missionErr.message)
@@ -141,10 +150,12 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
 
       // 4. Fetch client info (entity names)
       const clientOrgIds = [...new Set(missionData.map((m) => m.client_id))]
-      const { data: clientData } = await supabase
+      const clientQuery = supabase
         .from('cabinet_clients')
         .select('id, client_org_id, client_name, client_sector')
         .in('client_org_id', clientOrgIds)
+      const { data: clientData } = await (signal ? clientQuery.abortSignal(signal) : clientQuery)
+      if (signal?.aborted) return
 
       const clientMap = new Map<string, { nom: string; secteur: string }>()
       for (const c of clientData ?? []) {
@@ -156,10 +167,12 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
       // Fallback: fetch from organizations for entities not in cabinet_clients
       const missingOrgIds = clientOrgIds.filter((id) => !clientMap.has(id))
       if (missingOrgIds.length > 0) {
-        const { data: orgData } = await supabase
+        const orgQuery = supabase
           .from('organizations')
           .select('id, name, sector')
           .in('id', missingOrgIds)
+        const { data: orgData } = await (signal ? orgQuery.abortSignal(signal) : orgQuery)
+        if (signal?.aborted) return
         for (const o of orgData ?? []) {
           clientMap.set(o.id, { nom: o.name, secteur: o.sector ?? '' })
         }
@@ -170,10 +183,12 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
       if (mode === 'group') {
         const cabinetIds = [...new Set(missionData.map((m) => m.cabinet_id))]
         if (cabinetIds.length > 0) {
-          const { data: cabData } = await supabase
+          const cabQuery = supabase
             .from('organizations')
             .select('id, name')
             .in('id', cabinetIds)
+          const { data: cabData } = await (signal ? cabQuery.abortSignal(signal) : cabQuery)
+          if (signal?.aborted) return
           for (const c of cabData ?? []) {
             cabinetNameMap.set(c.id, c.name)
           }
@@ -182,21 +197,27 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
 
       // 5. Fetch all assessments for these missions
       const missionIds = missionData.map((m) => m.id)
-      const { data: assessmentData } = await supabase
+      const assessmentQuery = supabase
         .from('control_assessments')
-        .select('id, mission_id, control_id, status, finding_classification')
+        .select('id, mission_id, control_id, status')
         .in('mission_id', missionIds)
+      const { data: assessmentData } = await (signal ? assessmentQuery.abortSignal(signal) : assessmentQuery)
+      if (signal?.aborted) return
 
       // 6. Fetch CARs for major NC count
-      const { data: carData } = await supabase
+      type CarRow = { id: string; mission_id: string; finding_classification: string; status: string }
+      const carQuery = supabase
         .from('corrective_action_requests')
         .select('id, mission_id, finding_classification, status')
         .in('mission_id', missionIds)
         .eq('finding_classification', 'major_nc')
         .in('status', ['open', 'client_responded'])
+      const { data: carDataRaw } = await (signal ? carQuery.abortSignal(signal) : carQuery)
+      if (signal?.aborted) return
+      const carData = (carDataRaw ?? []) as unknown as CarRow[]
 
       const carsByMission = new Map<string, number>()
-      for (const car of carData ?? []) {
+      for (const car of carData) {
         carsByMission.set(car.mission_id, (carsByMission.get(car.mission_id) ?? 0) + 1)
       }
 
@@ -261,15 +282,18 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
       results.sort((a, b) => b.globalScore - a.globalScore)
       setEntities(results)
     } catch (err) {
+      if (signal?.aborted) return
       console.error('useSupervisionData:', err)
       setError('Erreur lors du chargement des donn\u00e9es de supervision.')
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) setLoading(false)
     }
   }, [profile?.organization_id, frameworkId, mode])
 
   useEffect(() => {
-    fetchData()
+    const ac = new AbortController()
+    void fetchData(ac.signal)
+    return () => ac.abort()
   }, [fetchData])
 
   return { frameworks, entities, domains, loading, error }

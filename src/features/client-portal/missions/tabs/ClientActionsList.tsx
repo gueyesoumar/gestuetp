@@ -1,4 +1,4 @@
-import { AlertCircle, Upload, CheckSquare, Calendar, FileWarning } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
 interface ActionItem {
   type: 'document' | 'validation' | 'interview' | 'car'
@@ -9,7 +9,6 @@ interface ActionItem {
 
 interface ClientActionsListProps {
   docsPending: number
-  findingsPending: number
   interviewsPending: number
   carsPending: number
   totalPending: number
@@ -17,7 +16,7 @@ interface ClientActionsListProps {
 }
 
 export function ClientActionsList({
-  docsPending, findingsPending, interviewsPending, carsPending, totalPending, onNavigate,
+  docsPending, interviewsPending, carsPending, totalPending, onNavigate,
 }: ClientActionsListProps): JSX.Element {
   const actions: ActionItem[] = []
 
@@ -54,13 +53,6 @@ export function ClientActionsList({
         <p className="text-xs text-gray-300 text-center py-3">Aucune action en attente pour le moment.</p>
       </div>
     )
-  }
-
-  const iconMap = {
-    document: <Upload size={14} />,
-    validation: <CheckSquare size={14} />,
-    interview: <Calendar size={14} />,
-    car: <FileWarning size={14} />,
   }
 
   const tabMap: Record<string, string> = {

@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -25,9 +26,19 @@ Deno.serve(async (req) => {
     }
 
     const { data: callerProfile } = await supabaseAdmin
-      .from('users').select('id, organization_id').eq('auth_id', callerId).single()
+      .from('users').select('id, organization_id, is_active').eq('auth_id', callerId).single()
     if (!callerProfile) {
       return new Response(JSON.stringify({ error: 'Profil introuvable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    if (!callerProfile.is_active) {
+      return new Response(JSON.stringify({ error: 'Compte désactivé' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Permission cabinet — can_assign_team requise pour add ET remove
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_assign_team'))) {
+      return new Response(JSON.stringify({ error: 'Permission can_assign_team requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -53,6 +64,28 @@ Deno.serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
+      // Cloisonnement : l'utilisateur ajouté doit appartenir au cabinet de l'appelant
+      const { data: targetUser } = await supabaseAdmin
+        .from('users').select('id').eq('id', user_id).eq('organization_id', callerProfile.organization_id).maybeSingle()
+      if (!targetUser) {
+        return new Response(JSON.stringify({ error: 'Cet utilisateur ne fait pas partie du cabinet' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Si on ajoute quelqu'un comme lead_auditor : caller doit avoir
+      // can_designate_lead (sauf si c'est lui-même) et le user doit avoir can_be_lead
+      if (role === 'lead_auditor') {
+        if (user_id !== callerProfile.id
+            && !(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_designate_lead'))) {
+          return new Response(JSON.stringify({ error: 'Permission can_designate_lead requise' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+        if (!(await hasCabinetPerm(supabaseAdmin, user_id, 'can_be_lead'))) {
+          return new Response(JSON.stringify({ error: 'Cet utilisateur n\'a pas la permission can_be_lead' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+      }
+
       const { error: insertError } = await supabaseAdmin
         .from('mission_members')
         .insert({ mission_id, user_id, role })
@@ -73,10 +106,12 @@ Deno.serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
+      // Scopé à la mission validée : empêche de supprimer un membre d'une autre mission
       const { error: deleteError } = await supabaseAdmin
         .from('mission_members')
         .delete()
         .eq('id', member_id)
+        .eq('mission_id', mission_id)
 
       if (deleteError) {
         console.error('manage-team remove:', deleteError.message)

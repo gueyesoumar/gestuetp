@@ -31,13 +31,22 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile } = await supabaseAdmin
       .from('users')
-      .select('id, organization_id')
+      .select('id, organization_id, is_active')
       .eq('auth_id', caller.id)
       .single()
 
     if (!callerProfile) {
       return new Response(
         JSON.stringify({ error: 'Profil introuvable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Un compte désactivé conserve un JWT valide jusqu'à expiration : on refuse
+    // explicitement l'action (cohérent avec close-mission / manage-member).
+    if (!callerProfile.is_active) {
+      return new Response(
+        JSON.stringify({ error: 'Compte désactivé' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -80,13 +89,41 @@ Deno.serve(async (req) => {
     // Verifier que l'appelant est du côté client de la mission
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, client_id')
+      .select('id, client_id, status')
       .eq('id', assessment.mission_id)
       .single()
 
     if (!mission || mission.client_id !== callerProfile.organization_id) {
       return new Response(
         JSON.stringify({ error: 'Accès interdit — réservé au client de la mission' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // La mission doit être explicitement en phase de validation client.
+    // (Le statut d'évaluation `in_review` est réutilisé pour la revue interne ;
+    // sans cette borne, le client agirait sur des évaluations non finalisées.)
+    if (mission.status !== 'client_review') {
+      return new Response(
+        JSON.stringify({ error: 'La mission n’est pas en phase de validation client' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Verifier que l'appelant est explicitement Approbateur sur cette mission
+    // (cf. migration 00086 — la signature client_review est approver-only)
+    // deno-lint-ignore no-explicit-any
+    const { data: accessRows } = await (supabaseAdmin
+      .from('client_mission_access') as any)
+      .select('permission, client_portal_contacts!inner(user_id)')
+      .eq('mission_id', assessment.mission_id)
+      .eq('client_portal_contacts.user_id', callerProfile.id)
+      .eq('permission', 'approver')
+      .limit(1)
+
+    if (!accessRows || accessRows.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Permission Approbateur requise pour valider ce contrôle' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

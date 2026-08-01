@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Question } from '../../types/database.types'
+import type { Question, QuestionnaireSkipReason } from '../../types/database.types'
 
 export interface QuestionnaireInstanceData {
   id: string
@@ -10,8 +10,12 @@ export interface QuestionnaireInstanceData {
     template: { id: string; name: string; description: string | null; version: string | null }
     questions: Question[]
   }
+  due_date: string | null
+  section_assignees: Record<string, string>
   created_at: string
 }
+
+export type EvidenceType = 'declared_only' | 'declared_with_doc' | 'declared_with_signed_doc'
 
 export interface QuestionnaireResponseData {
   id: string
@@ -19,6 +23,12 @@ export interface QuestionnaireResponseData {
   question_code: string
   response: Record<string, unknown> | null
   responded_by: string
+  evidence_type: EvidenceType | null
+  source_documents: string[] | null
+  ai_confidence: number | null
+  skip_reason: QuestionnaireSkipReason | null
+  is_prefilled: boolean
+  entered_by_auditor: boolean
   created_at: string
   updated_at: string
 }
@@ -96,7 +106,10 @@ export function useMissionQuestionnaire(missionId: string | undefined): UseMissi
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage/changement de mission : rejet attendu, on l'ignore
+      if (!abortController.signal.aborted) setLoading(false)
+    })
     return () => abortController.abort()
   }, [missionId, refreshKey])
 

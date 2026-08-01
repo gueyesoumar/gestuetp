@@ -98,7 +98,10 @@ export function useAssessmentObservations(missionId?: string): UseAssessmentObse
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [profile?.id, missionId, refreshKey])
 
@@ -111,7 +114,7 @@ export function useAssessmentObservations(missionId?: string): UseAssessmentObse
         assessment_id: assessmentId,
         observation_text: text,
         observation_by: profile.id,
-      })
+      } as never)
 
     setSubmitting(false)
     if (err) {
@@ -132,7 +135,7 @@ export function useAssessmentObservations(missionId?: string): UseAssessmentObse
         response_action: action,
         response_by: profile.id,
         response_at: new Date().toISOString(),
-      })
+      } as never)
       .eq('id', observationId)
 
     setSubmitting(false)

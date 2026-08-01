@@ -1,23 +1,34 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Calendar } from 'lucide-react'
 import { WizardProgress } from './WizardProgress'
 import { WizardCompletedSummary } from './WizardCompletedSummary'
 import { WizardQuestionCard } from './WizardQuestionCard'
 import { useWizardState } from './useWizardState'
+import { useResponseComments } from './comments/useResponseComments'
+import { ResponseCommentThread } from './comments/ResponseCommentThread'
 import type { Question } from '../../types/database.types'
+import type { QuestionnaireResponseData } from '../missions/useMissionQuestionnaire'
 
 interface QuestionnaireWizardProps {
   questions: Question[]
   instanceId: string | null
   userId: string | null
   missionName?: string
-  initialResponses?: Map<string, unknown>
+  initialRows?: QuestionnaireResponseData[]
+  dueDate?: string | null
   readOnly?: boolean
   onComplete?: () => void
 }
 
-export function QuestionnaireWizard({ questions, instanceId, userId, missionName, initialResponses, readOnly, onComplete }: QuestionnaireWizardProps) {
-  const state = useWizardState(questions, instanceId, userId, initialResponses)
+function daysUntilDue(iso: string): number {
+  const target = new Date(iso); target.setHours(0, 0, 0, 0)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  return Math.round((target.getTime() - today.getTime()) / 86400000)
+}
+
+export function QuestionnaireWizard({ questions, instanceId, userId, missionName, initialRows, dueDate, readOnly, onComplete }: QuestionnaireWizardProps) {
+  const state = useWizardState(questions, instanceId, userId, initialRows)
+  const commentsHook = useResponseComments(instanceId)
   const [completed, setCompleted] = useState(false)
 
   if (questions.length === 0) {
@@ -31,7 +42,7 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
 
   // === Ecran de fin ===
   if (completed) {
-    const answeredCount = questions.filter((q) => state.responses.has(q.code)).length
+    const answeredCount = state.visibleQuestions.filter((q) => state.responses.has(q.code)).length
     return (
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="py-16 px-8 text-center">
@@ -74,28 +85,59 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
       {/* Progress */}
       <WizardProgress
         currentStep={state.currentIndex + 1}
-        totalSteps={questions.length}
+        totalSteps={state.visibleQuestions.length}
         sections={state.sections}
         currentSection={state.currentSection}
       />
 
       {/* Completed summary */}
       <WizardCompletedSummary
-        questions={questions}
+        questions={state.visibleQuestions}
         responses={state.responses}
         currentIndex={state.currentIndex}
         onGoTo={state.goTo}
       />
 
+      {/* Due date pill */}
+      {dueDate && (() => {
+        const days = daysUntilDue(dueDate)
+        const formatted = new Date(dueDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })
+        const tone = days < 0 ? 'bg-red-50 border-red-200 text-red-700'
+          : days <= 3 ? 'bg-gold-50 border-gold-300 text-gold-700'
+          : 'bg-forest-50 border-forest-200 text-forest-700'
+        const label = days < 0
+          ? `Échéance dépassée le ${formatted} (J+${Math.abs(days)})`
+          : days === 0
+            ? `À soumettre aujourd’hui (${formatted})`
+            : `À soumettre avant le ${formatted} (J-${days})`
+        return (
+          <div className={`flex items-center gap-2 mx-6 mt-3 px-3 py-2 border rounded-lg text-[12px] ${tone}`}>
+            <Calendar size={13} /> {label}
+          </div>
+        )
+      })()}
+
       {/* Current question */}
       {state.currentQuestion && (
-        <WizardQuestionCard
-          question={state.currentQuestion}
-          sectionLabel={state.sectionLabel}
-          value={state.responses.get(state.currentQuestion.code) ?? null}
-          onChange={(v) => state.setResponse(state.currentQuestion!.code, v)}
-          readOnly={readOnly}
-        />
+        <>
+          <WizardQuestionCard
+            question={state.currentQuestion}
+            sectionLabel={state.sectionLabel}
+            value={state.responses.get(state.currentQuestion.code) ?? null}
+            skipReason={state.skipReasons.get(state.currentQuestion.code) ?? null}
+            isPrefilled={state.prefilled.has(state.currentQuestion.code)}
+            onChange={(v) => state.setResponse(state.currentQuestion!.code, v)}
+            onSkip={(reason) => state.setSkip(state.currentQuestion!.code, reason)}
+            readOnly={readOnly}
+          />
+          <div className="px-6 pb-4">
+            <ResponseCommentThread
+              questionCode={state.currentQuestion.code}
+              hook={commentsHook}
+              variant="inline"
+            />
+          </div>
+        </>
       )}
 
       {/* Navigation footer */}

@@ -17,13 +17,6 @@ interface ClientUpcomingDeadlinesProps {
   status: string
 }
 
-const PHASE_MILESTONES: Record<string, string> = {
-  fieldwork: 'Fin des travaux terrain',
-  internal_review: 'D\u00e9but revue interne',
-  client_review: 'Validation client',
-  closure: 'Restitution finale',
-}
-
 export function ClientUpcomingDeadlines({ missionId, endDate, status }: ClientUpcomingDeadlinesProps): JSX.Element {
   const [deadlines, setDeadlines] = useState<Deadline[]>([])
   const [loading, setLoading] = useState(true)
@@ -90,7 +83,10 @@ export function ClientUpcomingDeadlines({ missionId, endDate, status }: ClientUp
       setLoading(false)
     }
 
-    fetchDeadlines()
+    fetchDeadlines().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [missionId, endDate, status])
 

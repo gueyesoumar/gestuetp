@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Revue interne — Gestu Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FAFAF8;--white:#fff;--t9:#1A1A1A;--t7:#374151;--t5:#6B7280;--t3:#9CA3AF;--border:#E5E7EB;--f9:#1B4332;--f7:#2D6A4F;--f1:#D8F3DC;--f0:#F0FFF4;--gold:#D4A843;--g2:#F2E2B1;--g0:#FDF8E8;--ok:#27AE60;--err:#C0392B}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t9);-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--f9);padding:16px 0;flex-shrink:0;display:flex;flex-direction:column}
+.sb-logo{padding:8px 20px;display:flex;align-items:center;gap:8px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:16px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 14px;margin:2px 12px;border-radius:8px;font-size:13px;font-weight:500;color:rgba(255,255,255,.4)}
+.sb-item.active{background:rgba(255,255,255,.1);color:white;position:relative}
+.sb-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--gold);border-radius:0 3px 3px 0}
+.main{flex:1;padding:0;overflow-y:auto}
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500}
+.badge-g{background:var(--f1);color:var(--f9)}
+.badge-o{background:var(--g2);color:#92400e}
+.badge-r{background:#FEE2E2;color:var(--err)}
+.badge-b{background:#DBEAFE;color:#1e40af}
+.badge-gray{background:#F3F4F6;color:var(--t5)}
+.bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.bar-f{height:100%;border-radius:4px}
+.check-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #f3f4f6}
+.check-row:last-child{border-bottom:none}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--t3);border-bottom:2px solid transparent;cursor:pointer}
+.tab.active{color:var(--f9);border-color:var(--f9);font-weight:600}
+.score-ring{width:140px;height:140px;border-radius:50%;display:grid;place-items:center;position:relative}
+.score-ring::before{content:'';position:absolute;width:72%;height:72%;border-radius:50%;background:var(--white)}
+.score-ring span{position:absolute;font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <svg width="18" height="21" viewBox="0 0 44 52" fill="none"><path d="M22 3L4 11V23C4 36.5 22 48 22 48C22 48 40 36.5 40 23V11L22 3Z" fill="none" stroke="#D4A843" stroke-width="1.8"/><path d="M22 16C18 16 15 19 15 23" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 19C20 19 18 20.5 18 23.5V29" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 16C26 16 29 19 29 23V27" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/><path d="M22 23V33" stroke="#D4A843" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div><div style="font-size:14px;font-weight:800;color:#fff">Gëstu</div><div style="font-size:8px;font-weight:600;color:#D4A843;letter-spacing:2px">COMPLY</div></div>
+    </div>
+    <div class="sb-item">📊 Tableau de bord</div>
+    <div class="sb-item">🛡️ Supervision</div>
+    <div class="sb-item">👥 Clients</div>
+    <div class="sb-item">📚 Référentiels</div>
+    <div class="sb-item active">📋 Missions</div>
+    <div style="margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:8px">
+      <div style="width:32px;height:32px;border-radius:50%;background:#1B4332;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">OG</div>
+      <div><div style="font-size:12px;font-weight:600;color:#fff">Oumar Gueye</div><div style="font-size:10px;color:rgba(255,255,255,.3)">Associé</div></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Mission header -->
+    <div style="padding:20px 32px;border-bottom:1px solid var(--border);background:var(--white)">
+      <div style="font-size:12px;color:var(--t3)">Missions › <strong style="color:var(--t9)">ISO/IEC 27001 — Groupe ISM</strong></div>
+      <!-- Phase stepper -->
+      <div style="display:flex;align-items:center;gap:0;margin-top:16px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span style="font-size:12px;font-weight:500;color:var(--ok)">Cadrage</span>
+        </div>
+        <div style="flex:1;height:2px;background:var(--ok);margin:0 8px"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span style="font-size:12px;font-weight:500;color:var(--ok)">Planification</span>
+        </div>
+        <div style="flex:1;height:2px;background:var(--ok);margin:0 8px"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span style="font-size:12px;font-weight:500;color:var(--ok)">Terrain</span>
+        </div>
+        <div style="flex:1;height:2px;background:var(--gold);margin:0 8px"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700">4</div>
+          <span style="font-size:12px;font-weight:600;color:var(--gold)">Revue interne</span>
+        </div>
+        <div style="flex:1;height:2px;background:var(--border);margin:0 8px"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:11px;font-weight:700">5</div>
+          <span style="font-size:12px;font-weight:500;color:var(--t3)">Revue client</span>
+        </div>
+        <div style="flex:1;height:2px;background:var(--border);margin:0 8px"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:11px;font-weight:700">6</div>
+          <span style="font-size:12px;font-weight:500;color:var(--t3)">Clôture</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--border);padding:0 32px;background:var(--white)">
+      <div class="tab">Vue d'ensemble</div>
+      <div class="tab">Cadrage</div>
+      <div class="tab">Planification</div>
+      <div class="tab">Terrain</div>
+      <div class="tab active">Revue interne</div>
+      <div class="tab">Revue client</div>
+      <div class="tab">Clôture</div>
+    </div>
+
+    <!-- Revue interne content -->
+    <div style="padding:28px 32px">
+
+      <!-- Banner -->
+      <div style="background:var(--g0);border:1px solid var(--g2);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--t9)">Tous les contrôles sont validés individuellement</div>
+          <div style="font-size:13px;color:var(--t5);margin-top:2px">Vérifiez la cohérence d'ensemble avant d'envoyer au client.</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px">
+        <!-- Left column -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- Score global -->
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">Score de conformité</h3>
+            <div style="display:flex;align-items:center;gap:32px">
+              <div class="score-ring" style="background:conic-gradient(var(--ok) 0deg 259deg, var(--border) 259deg 360deg)">
+                <span style="color:var(--ok)">72%</span>
+              </div>
+              <div style="flex:1">
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">Mesures organisationnelles (A.5)</span><span class="mono" style="color:var(--t5)">78%</span></div>
+                    <div class="bar"><div class="bar-f" style="width:78%;background:var(--ok)"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">Mesures liées aux personnes (A.6)</span><span class="mono" style="color:var(--t5)">85%</span></div>
+                    <div class="bar"><div class="bar-f" style="width:85%;background:var(--ok)"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">Mesures physiques (A.7)</span><span class="mono" style="color:var(--t5)">65%</span></div>
+                    <div class="bar"><div class="bar-f" style="width:65%;background:var(--gold)"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">Mesures technologiques (A.8)</span><span class="mono" style="color:var(--t5)">62%</span></div>
+                    <div class="bar"><div class="bar-f" style="width:62%;background:var(--gold)"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Synthèse des constats -->
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">Synthèse des constats</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+              <div style="text-align:center;padding:14px;background:var(--f0);border-radius:10px">
+                <div class="mono" style="font-size:24px;font-weight:700;color:var(--f9)">67</div>
+                <div style="font-size:10px;color:var(--f7);margin-top:2px">Conformes</div>
+              </div>
+              <div style="text-align:center;padding:14px;background:var(--g0);border-radius:10px">
+                <div class="mono" style="font-size:24px;font-weight:700;color:#92400e">12</div>
+                <div style="font-size:10px;color:#92400e;margin-top:2px">Observations</div>
+              </div>
+              <div style="text-align:center;padding:14px;background:#FEF2F2;border-radius:10px">
+                <div class="mono" style="font-size:24px;font-weight:700;color:var(--err)">8</div>
+                <div style="font-size:10px;color:var(--err);margin-top:2px">NC mineures</div>
+              </div>
+              <div style="text-align:center;padding:14px;background:#FEE2E2;border-radius:10px">
+                <div class="mono" style="font-size:24px;font-weight:700;color:#991b1b">6</div>
+                <div style="font-size:10px;color:#991b1b;margin-top:2px">NC majeures</div>
+              </div>
+            </div>
+
+            <!-- Top NC majeures -->
+            <div style="font-size:12px;font-weight:600;color:var(--t5);margin-bottom:8px">Non-conformités majeures</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FEF2F2;border-radius:8px;font-size:12px">
+                <span class="mono" style="font-weight:700;color:var(--f9);min-width:50px">A.8.24</span>
+                <span style="flex:1;color:var(--t7)">Chiffrement — Aucune politique de chiffrement formalisée</span>
+                <span class="badge badge-r">NC majeure</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FEF2F2;border-radius:8px;font-size:12px">
+                <span class="mono" style="font-weight:700;color:var(--f9);min-width:50px">A.8.8</span>
+                <span style="flex:1;color:var(--t7)">Gestion des vulnérabilités — Pas de scan régulier</span>
+                <span class="badge badge-r">NC majeure</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FEF2F2;border-radius:8px;font-size:12px">
+                <span class="mono" style="font-weight:700;color:var(--f9);min-width:50px">A.5.24</span>
+                <span style="flex:1;color:var(--t7)">Gestion des incidents — Procédure non testée</span>
+                <span class="badge badge-r">NC majeure</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aperçu rapport -->
+          <div class="card" style="padding:24px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <h3 style="font-size:14px;font-weight:700">Aperçu du rapport</h3>
+              <button style="font-size:12px;color:var(--f7);font-weight:600;background:none;border:1px solid var(--border);padding:6px 14px;border-radius:8px;cursor:pointer">Prévisualiser le PDF →</button>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:20px;font-size:12px;color:var(--t5);line-height:1.8">
+              <div style="font-weight:700;color:var(--t9);font-size:14px;margin-bottom:8px">Rapport d'audit ISO/IEC 27001 — Groupe ISM</div>
+              <div><strong>Client :</strong> Groupe ISM</div>
+              <div><strong>Référentiel :</strong> ISO/IEC 27001:2022</div>
+              <div><strong>Période :</strong> Janvier — Mars 2026</div>
+              <div><strong>Score global :</strong> <span class="mono" style="color:var(--ok);font-weight:700">72%</span></div>
+              <div><strong>Contrôles évalués :</strong> 93 / 93</div>
+              <div><strong>NC majeures :</strong> <span style="color:var(--err);font-weight:600">6</span></div>
+              <div><strong>NC mineures :</strong> <span style="color:#92400e;font-weight:600">8</span></div>
+              <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--t3);font-style:italic">Le rapport complet sera généré à la clôture de la mission.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- Checklist de revue -->
+          <div class="card" style="overflow:hidden">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+              <h3 style="font-size:14px;font-weight:700">Checklist de revue</h3>
+              <p style="font-size:11px;color:var(--t3);margin-top:2px">Points à vérifier avant envoi au client</p>
+            </div>
+            <div class="check-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:20px;height:20px;border-radius:6px;background:var(--f1);display:flex;align-items:center;justify-content:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--f9)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span style="font-size:12px;font-weight:500">Tous les contrôles sont validés</span>
+              </div>
+              <span style="font-size:11px;color:var(--ok);font-weight:600">93/93</span>
+            </div>
+            <div class="check-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:20px;height:20px;border-radius:6px;background:var(--f1);display:flex;align-items:center;justify-content:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--f9)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span style="font-size:12px;font-weight:500">Constats renseignés</span>
+              </div>
+              <span style="font-size:11px;color:var(--ok);font-weight:600">93/93</span>
+            </div>
+            <div class="check-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:20px;height:20px;border-radius:6px;background:var(--f1);display:flex;align-items:center;justify-content:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--f9)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span style="font-size:12px;font-weight:500">Classifications cohérentes</span>
+              </div>
+              <span style="font-size:11px;color:var(--ok);font-weight:600">OK</span>
+            </div>
+            <div class="check-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:20px;height:20px;border-radius:6px;background:var(--g0);display:flex;align-items:center;justify-content:center;font-size:10px;color:#92400e;font-weight:700">!</div>
+                <span style="font-size:12px;font-weight:500">Preuves jointes</span>
+              </div>
+              <span style="font-size:11px;color:#92400e;font-weight:600">85/93</span>
+            </div>
+            <div class="check-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:20px;height:20px;border-radius:6px;background:var(--f1);display:flex;align-items:center;justify-content:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--f9)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <span style="font-size:12px;font-weight:500">Score global crédible</span>
+              </div>
+              <span style="font-size:11px;color:var(--ok);font-weight:600">72%</span>
+            </div>
+          </div>
+
+          <!-- Commentaire associé -->
+          <div class="card" style="padding:20px">
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">Commentaire de l'associé</h3>
+            <textarea style="width:100%;height:100px;border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-family:inherit;resize:vertical;outline:none" placeholder="Observations sur la cohérence d'ensemble, points d'attention pour le client..."></textarea>
+          </div>
+
+          <!-- Decision -->
+          <div class="card" style="padding:20px;border:2px solid var(--f9);background:var(--f0)">
+            <h3 style="font-size:14px;font-weight:700;color:var(--f9);margin-bottom:6px">Décision</h3>
+            <p style="font-size:12px;color:var(--t5);margin-bottom:16px">En tant qu'associé, validez l'ensemble de la mission avant envoi au client.</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button style="width:100%;padding:14px;background:var(--f7);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+                Valider et envoyer au client
+              </button>
+              <button style="width:100%;padding:12px;background:var(--white);color:var(--err);border:1px solid #FEE2E2;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Renvoyer en revue (avec commentaire)
+              </button>
+            </div>
+          </div>
+
+          <!-- Historique -->
+          <div class="card" style="padding:20px">
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:12px">Historique</h3>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+              <div style="display:flex;gap:10px;align-items:start">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--ok);margin-top:4px;flex-shrink:0"></div>
+                <div><span style="font-weight:600">93/93 contrôles validés</span><br><span style="color:var(--t3)">Aujourd'hui à 14:35</span></div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:start">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:4px;flex-shrink:0"></div>
+                <div><span style="font-weight:600">Mission passée en revue interne</span><br><span style="color:var(--t3)">Aujourd'hui à 14:30</span></div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:start">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--f7);margin-top:4px;flex-shrink:0"></div>
+                <div><span style="font-weight:600">Phase terrain terminée</span><br><span style="color:var(--t3)">Hier à 18:12</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

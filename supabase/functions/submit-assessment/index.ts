@@ -32,11 +32,11 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile } = await supabaseAdmin
       .from('users')
-      .select('id')
+      .select('id, is_active')
       .eq('auth_id', caller.id)
       .single()
 
-    if (!callerProfile) {
+    if (!callerProfile || !callerProfile.is_active) {
       return new Response(
         JSON.stringify({ error: 'Profil introuvable' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     }
 
     // 2. Parser le payload
-    const { assessment_id } = await req.json()
+    const { assessment_id, conformity_override_reason } = await req.json()
     if (!assessment_id) {
       return new Response(
         JSON.stringify({ error: 'assessment_id requis' }),
@@ -52,10 +52,10 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 3. Charger l'assessment
+    // 3. Charger l'assessment (incl. conformity_level pour validation coherence)
     const { data: assessment, error: aErr } = await supabaseAdmin
       .from('control_assessments')
-      .select('id, auditor_id, mission_id, status, findings')
+      .select('id, auditor_id, mission_id, status, conformity_level')
       .eq('id', assessment_id)
       .single()
 
@@ -82,13 +82,74 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 6. Verifier que les constats sont remplis
-    if (!assessment.findings || assessment.findings.trim().length === 0) {
+    // 6. Verifier qu'au moins un constat (assessment_findings) est defini
+    //    + completude des NC majeures/mineures (recommandation + priorite obligatoires)
+    //    + coherence findings <-> conformity_level (warning : justification requise si ecart)
+    const { data: findings } = await supabaseAdmin
+      .from('assessment_findings')
+      .select('id, classification, recommendation, priority')
+      .eq('assessment_id', assessment_id)
+
+    const findingsList = (findings ?? []) as Array<{
+      id: string
+      classification: 'major_nc' | 'minor_nc' | 'observation' | 'strength'
+      recommendation: string | null
+      priority: 'critical' | 'high' | 'medium' | 'low' | null
+    }>
+
+    if (findingsList.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Les constats doivent être renseignés avant soumission' }),
+        JSON.stringify({ error: 'Au moins un constat doit etre defini avant soumission' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // Variante B : blocage dur sur recommandation/priorite manquantes pour les NC.
+    const incomplete = findingsList.filter((f) => {
+      const isNc = f.classification === 'major_nc' || f.classification === 'minor_nc'
+      if (!isNc) return false
+      const missingReco = !f.recommendation || f.recommendation.trim().length === 0
+      const missingPrio = !f.priority
+      return missingReco || missingPrio
+    })
+    if (incomplete.length > 0) {
+      return new Response(
+        JSON.stringify({
+          error: `${incomplete.length} non-conformite(s) sans recommandation ou priorite. Completez ces champs avant soumission.`,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Coherence findings <-> conformity_level (matrice metier).
+    const counts = findingsList.reduce(
+      (acc, f) => {
+        if (f.classification === 'major_nc') acc.major++
+        else if (f.classification === 'minor_nc') acc.minor++
+        else if (f.classification === 'observation') acc.observation++
+        else if (f.classification === 'strength') acc.strength++
+        return acc
+      },
+      { major: 0, minor: 0, observation: 0, strength: 0 },
+    )
+    const level = assessment.conformity_level as 'c' | 'lc' | 'pc' | 'nc' | 'na' | null
+    let coherent = false
+    if (level) {
+      if (counts.major > 0) coherent = level === 'nc' || level === 'pc'
+      else if (counts.minor > 0) coherent = level === 'pc' || level === 'lc'
+      else if (counts.observation > 0 || counts.strength > 0) coherent = level === 'c' || level === 'lc'
+      else coherent = level === 'na' || level === 'c'
+    }
+    const reason = typeof conformity_override_reason === 'string' ? conformity_override_reason.trim() : ''
+    if (!coherent && reason.length < 20) {
+      return new Response(
+        JSON.stringify({
+          error: 'Le niveau de conformite choisi est incoherent avec les findings. Une justification ecrite (minimum 20 caracteres) est obligatoire.',
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const persistedReason = coherent ? null : reason
 
     // 7. Check if submitter is the lead auditor → skip lead_review
     const { data: mission } = await supabaseAdmin
@@ -117,10 +178,10 @@ Deno.serve(async (req) => {
       console.warn(`[submit-assessment] Lead auditor submitted but no associate assigned. Review will require self-validation.`)
     }
 
-    // 8. Mettre a jour le statut
+    // 8. Mettre a jour le statut + persister la justification d'ecart si presente
     const { error: updateError } = await supabaseAdmin
       .from('control_assessments')
-      .update({ status: newStatus })
+      .update({ status: newStatus, conformity_override_reason: persistedReason })
       .eq('id', assessment_id)
 
     if (updateError) {

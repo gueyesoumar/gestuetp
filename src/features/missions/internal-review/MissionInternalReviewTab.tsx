@@ -1,12 +1,16 @@
 import { useState, useCallback } from 'react'
-import { Send, XCircle, CheckCircle, AlertTriangle, FileText, Eye } from 'lucide-react'
+import { Send, XCircle, CheckCircle, AlertTriangle, Eye } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { InfoPopover } from '../../../components/ui/InfoPopover'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
 import { useInternalReviewData } from './useInternalReviewData'
+import { ValidationTimeline } from './ValidationTimeline'
+import { ReviewQualityCallout } from './ReviewQualityCallout'
+import { ReviewDiscussionPanel } from './ReviewDiscussionPanel'
 import type { MissionDetail } from '../useMissionDetail'
 import type { DomainScore, MajorNC } from './useInternalReviewData'
 
@@ -36,7 +40,8 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
     })
 
     if (error) {
-      console.error('send-to-client-review:', error.message)
+      const detail = await readInvokeError(error, null, "Erreur lors de l'envoi au client.")
+      console.error('send-to-client-review:', detail)
       setSendError("Erreur lors de l'envoi au client.")
       setSending(false)
       return
@@ -99,6 +104,11 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
         </div>
       </div>
 
+      {/* Quality callout (B) */}
+      <div className="mb-5">
+        <ReviewQualityCallout assessments={review.assessmentDetails} />
+      </div>
+
       <div className="grid grid-cols-[2fr_1fr] gap-6">
         {/* Left column */}
         <div className="space-y-5">
@@ -108,12 +118,18 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           {/* Findings summary */}
           <FindingsSection summary={review.findingSummary} majorNCs={review.majorNCs} />
 
+          {/* Validation timeline (A) */}
+          <ValidationTimeline assessments={review.assessmentDetails} />
+
           {/* Report preview */}
           <ReportPreview mission={mission} review={review} />
         </div>
 
         {/* Right column */}
         <div className="space-y-5">
+          {/* Discussion panel (C) */}
+          <ReviewDiscussionPanel missionId={mission.id} />
+
           {/* Checklist */}
           <Checklist review={review} />
 
@@ -176,7 +192,7 @@ function ScoreSection({ score, domains }: { score: number; domains: DomainScore[
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[14px] font-bold text-gray-900">Score de conformit&eacute;</h3>
-        <InfoPopover text="Pourcentage de contr&ocirc;les approuv&eacute;s par rapport au total." />
+        <InfoPopover text="Score pond&eacute;r&eacute; sur conformity_level : c=100, lc=75, pc=50, nc=0. NA exclus." />
       </div>
       <div className="flex items-center gap-8">
         {/* Ring */}

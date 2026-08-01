@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -69,6 +70,14 @@ Deno.serve(async (req) => {
     if (mission.cabinet_id !== callerProfile.organization_id) {
       return new Response(
         JSON.stringify({ error: 'Accès interdit' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Permission cabinet — can_delete_mission obligatoire
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_delete_mission'))) {
+      return new Response(
+        JSON.stringify({ error: 'Permission can_delete_mission requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

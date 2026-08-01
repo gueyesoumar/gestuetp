@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup &mdash; Processus d&rsquo;observations (sans validation bloquante)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F3F3F0; color: #1A1A1A; }
+  :root {
+    --forest-900: #1B4332; --forest-700: #2D6A4F; --forest-500: #40916C;
+    --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --border: #E5E7EB;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --success: #27AE60; --error: #C0392B;
+  }
+  .tab-nav { position: sticky; top: 0; z-index: 100; display: flex; background: var(--forest-900); padding: 0 32px; }
+  .tab-btn { padding: 14px 24px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+  .tab-btn.active { color: #fff; border-bottom-color: var(--gold-500); }
+  .panel { display: none; padding: 32px; max-width: 1200px; margin: 0 auto; }
+  .panel.active { display: block; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge-forest { background: var(--forest-100); color: var(--forest-700); }
+  .badge-gold { background: var(--gold-50); color: var(--gold-600); }
+  .badge-success { background: #E8F8EF; color: var(--success); }
+  .badge-error { background: #FDE8E8; color: var(--error); }
+  .badge-gray { background: #F3F4F6; color: var(--text-500); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .info-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; background: var(--gold-50); border: 1px solid var(--gold-200);
+    border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--gold-600);
+    margin-bottom: 20px; line-height: 1.5;
+  }
+  .section-title { font-size: 16px; font-weight: 700; color: var(--text-900); margin-bottom: 16px; }
+  .btn {
+    padding: 8px 16px; font-size: 12px; font-weight: 600; border-radius: 8px;
+    border: none; cursor: pointer; transition: all 0.15s; display: inline-flex;
+    align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--forest-700); color: #fff; }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-secondary { background: #fff; color: var(--text-700); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--forest-50); border-color: var(--forest-300); }
+  .btn-ghost { background: transparent; color: var(--forest-700); }
+  .btn-ghost:hover { background: var(--forest-50); }
+
+  .finding-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .finding-header {
+    padding: 14px 18px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .finding-body { padding: 14px 18px; }
+  .observation-block {
+    background: var(--forest-50); border-top: 1px solid var(--forest-100);
+    padding: 14px 18px;
+  }
+  .response-block {
+    background: var(--gold-50); border-top: 1px solid var(--gold-200);
+    padding: 14px 18px;
+  }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 10px;
+    font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-family: inherit; font-size: 13px;
+    outline: none; resize: vertical; min-height: 70px;
+  }
+  .textarea:focus { border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .meta { font-size: 11px; color: var(--text-300); }
+</style>
+</head>
+<body>
+
+<nav class="tab-nav">
+  <div class="tab-btn active" onclick="showPanel('client-synthese')">Client &mdash; Synth&egrave;se</div>
+  <div class="tab-btn" onclick="showPanel('client-liste')">Client &mdash; Liste compl&egrave;te</div>
+  <div class="tab-btn" onclick="showPanel('client-before')">Client &mdash; Drawer d&eacute;tail</div>
+  <div class="tab-btn" onclick="showPanel('client-after')">Client &mdash; Avec observations</div>
+  <div class="tab-btn" onclick="showPanel('auditor')">Auditeur &mdash; R&eacute;ponses</div>
+  <div class="tab-btn" onclick="showPanel('flow')">Flux global</div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- CLIENT — Vue synthèse par domaine                         -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="client-synthese" class="panel active">
+  <div class="info-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="14" y="6" width="3" height="12"/></svg>
+    Vue synth&egrave;se &mdash; Conformit&eacute; par domaine. Le client voit le niveau global pour chaque domaine PSSI-ES.
+  </div>
+
+  <!-- Tab context -->
+  <div style="background: #fff; border-bottom: 1px solid var(--border); padding: 0 32px; margin: -32px -32px 24px -32px; display:flex; gap:0;">
+    <div style="padding: 12px 16px; font-size:12px; color:var(--text-500); border-bottom: 2px solid transparent;">Tableau de bord</div>
+    <div style="padding: 12px 16px; font-size:12px; color:var(--text-500); border-bottom: 2px solid transparent;">&Eacute;changes</div>
+    <div style="padding: 12px 16px; font-size:12px; font-weight:600; color:var(--forest-700); border-bottom: 2px solid var(--forest-700);">R&eacute;sultats</div>
+    <div style="padding: 12px 16px; font-size:12px; color:var(--text-500); border-bottom: 2px solid transparent;">Rapports</div>
+  </div>
+
+  <!-- Score global + KPIs -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:12px; margin-bottom:24px;">
+    <div class="card" style="padding:16px;">
+      <div class="meta" style="margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Score global</div>
+      <div style="font-size:26px; font-weight:700; color:var(--forest-700);">62%</div>
+      <div style="height:4px; background:#F3F4F6; border-radius:99px; margin-top:8px; overflow:hidden;">
+        <div style="width:62%; height:100%; background:var(--forest-500); border-radius:99px;"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="meta" style="margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Conformes</div>
+      <div style="font-size:26px; font-weight:700; color:var(--success);">96<span style="font-size:14px; color:var(--text-300); font-weight:400;"> / 155</span></div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="meta" style="margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Non-conformit&eacute;s</div>
+      <div style="font-size:26px; font-weight:700; color:var(--error);">23<span style="font-size:14px; color:var(--text-300); font-weight:400;"> (8 maj.)</span></div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="meta" style="margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Vos observations</div>
+      <div style="font-size:26px; font-weight:700; color:var(--gold-500);">2<span style="font-size:14px; color:var(--text-300); font-weight:400;"> en attente</span></div>
+    </div>
+  </div>
+
+  <!-- Bar charts par domaine -->
+  <div class="card" style="padding:20px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+      <h3 style="font-size:14px; font-weight:700;">Conformit&eacute; par domaine PSSI-ES</h3>
+      <button class="btn btn-secondary" onclick="showPanel('client-liste')">
+        Voir la liste compl&egrave;te &rarr;
+      </button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <!-- Chaque domaine -->
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">ORG</span>
+          <span style="font-size:12px; font-weight:500;">Organisation SSI</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden; position:relative;">
+          <div style="width:83%; height:100%; background:var(--success); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">83%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">5 conf.</span>
+          <span class="badge badge-gold">1 obs.</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">PER</span>
+          <span style="font-size:12px; font-weight:500;">S&eacute;curit&eacute; du personnel</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:77%; height:100%; background:var(--success); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">77%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">10 conf.</span>
+          <span class="badge badge-error">3 NC</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">ACQ</span>
+          <span style="font-size:12px; font-weight:500;">Acquisition et d&eacute;veloppement</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:50%; height:100%; background:var(--gold-500); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">50%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">2 conf.</span>
+          <span class="badge badge-error">2 NC</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">ACT</span>
+          <span style="font-size:12px; font-weight:500;">Gestion des actifs</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:71%; height:100%; background:var(--success); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">71%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">5 conf.</span>
+          <span class="badge badge-gold">2 obs.</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">FRN</span>
+          <span style="font-size:12px; font-weight:500;">Relation fournisseurs</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:67%; height:100%; background:var(--forest-500); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">67%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">6 conf.</span>
+          <span class="badge badge-error">3 NC</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">PHY</span>
+          <span style="font-size:12px; font-weight:500;">S&eacute;curit&eacute; physique</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:62%; height:100%; background:var(--forest-500); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">62%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">30 conf.</span>
+          <span class="badge badge-error">7 NC</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">LOG</span>
+          <span style="font-size:12px; font-weight:500;">S&eacute;curit&eacute; logique</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:42%; height:100%; background:var(--error); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">42%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">13 conf.</span>
+          <span class="badge badge-error">5 NC maj.</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">EXP</span>
+          <span style="font-size:12px; font-weight:500;">S&eacute;curit&eacute; de l&rsquo;exploitation</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:65%; height:100%; background:var(--forest-500); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">65%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">24 conf.</span>
+          <span class="badge badge-error">8 NC</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">CLM</span>
+          <span style="font-size:12px; font-weight:500;">Cloud, mobile, t&eacute;l&eacute;travail</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:60%; height:100%; background:var(--forest-500); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">60%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">6 conf.</span>
+          <span class="badge badge-error">3 NC</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">INC</span>
+          <span style="font-size:12px; font-weight:500;">Gestion des incidents</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:55%; height:100%; background:var(--forest-500); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">55%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">6 conf.</span>
+          <span class="badge badge-gold">3 obs.</span>
+          <span class="badge badge-error">2 NC</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:240px; display:flex; align-items:center; gap:8px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:2px 6px; border-radius:4px;">AUD</span>
+          <span style="font-size:12px; font-weight:500;">Audit et conformit&eacute;</span>
+        </div>
+        <div style="flex:1; height:18px; background:#F3F4F6; border-radius:4px; overflow:hidden;">
+          <div style="width:86%; height:100%; background:var(--success); display:flex; align-items:center; padding-left:8px;">
+            <span style="font-size:10px; color:#fff; font-weight:700;">86%</span>
+          </div>
+        </div>
+        <div style="width:120px; display:flex; gap:4px; justify-content:flex-end;">
+          <span class="badge badge-success">6 conf.</span>
+          <span class="badge badge-gold">1 obs.</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px; padding:10px 14px; background:#F9FAFB; border-radius:8px; display:flex; gap:16px; font-size:11px; color:var(--text-500);">
+      <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; background:var(--success); border-radius:2px;"></span> &ge; 70% Bon niveau</span>
+      <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; background:var(--forest-500); border-radius:2px;"></span> 50-69% Moyen</span>
+      <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; background:var(--gold-500); border-radius:2px;"></span> 30-49% Faible</span>
+      <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; background:var(--error); border-radius:2px;"></span> &lt; 30% Critique</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- CLIENT — Liste complète avec filtres                      -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="client-liste" class="panel">
+  <div class="info-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    Liste compl&egrave;te &mdash; Tous les 155 contr&ocirc;les &eacute;valu&eacute;s (conformes inclus). Observation possible sur n&rsquo;importe lequel.
+  </div>
+
+  <!-- Filtres -->
+  <div class="card" style="padding:14px 16px; margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <span style="font-size:11px; font-weight:600; color:var(--text-500); text-transform:uppercase; letter-spacing:0.5px; margin-right:4px;">Filtrer :</span>
+    <button class="btn btn-primary" style="padding:5px 12px;">Tous (155)</button>
+    <button class="btn btn-secondary" style="padding:5px 12px;">
+      <span style="width:8px; height:8px; background:var(--success); border-radius:50%; display:inline-block;"></span>
+      Conformes (96)
+    </button>
+    <button class="btn btn-secondary" style="padding:5px 12px;">
+      <span style="width:8px; height:8px; background:var(--gold-500); border-radius:50%; display:inline-block;"></span>
+      Observations (12)
+    </button>
+    <button class="btn btn-secondary" style="padding:5px 12px;">
+      <span style="width:8px; height:8px; background:#F59E0B; border-radius:50%; display:inline-block;"></span>
+      NC mineures (15)
+    </button>
+    <button class="btn btn-secondary" style="padding:5px 12px;">
+      <span style="width:8px; height:8px; background:var(--error); border-radius:50%; display:inline-block;"></span>
+      NC majeures (8)
+    </button>
+    <button class="btn btn-secondary" style="padding:5px 12px;">
+      <span style="width:8px; height:8px; background:var(--gold-500); border-radius:50%; display:inline-block; border:1px solid var(--gold-600);"></span>
+      Points forts (4)
+    </button>
+    <button class="btn btn-secondary" style="padding:5px 12px;">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Mes observations (2)
+    </button>
+    <div style="margin-left:auto; position:relative;">
+      <input type="text" placeholder="Rechercher..." style="padding:6px 10px 6px 28px; border:1px solid var(--border); border-radius:8px; font-size:11px; width:180px; outline:none;"/>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-300)" stroke-width="2" style="position:absolute; left:10px; top:50%; transform:translateY(-50%);"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </div>
+  </div>
+
+  <!-- Tableau des contrôles groupés par domaine -->
+  <div class="card" style="overflow:hidden;">
+    <!-- Header domaine ORG -->
+    <div style="padding:10px 16px; background:var(--forest-50); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; cursor:pointer;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--forest-700)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">ORG</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Organisation de la s&eacute;curit&eacute; des SI</span>
+      <span class="meta">6 contr&ocirc;les &middot; 83% conforme</span>
+    </div>
+
+    <!-- Rows -->
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--success); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 1-1</span>
+      <span style="font-size:12px; flex:1; color:var(--text-700);">Formation des AQSSI au Comit&eacute; de s&eacute;curit&eacute;</span>
+      <span class="badge badge-success">Conforme</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--success); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 1-2</span>
+      <span style="font-size:12px; flex:1; color:var(--text-700);">Formation confi&eacute;e aux organismes comp&eacute;tents</span>
+      <span class="badge badge-success">Conforme</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer; background:var(--gold-50);">
+      <span style="width:8px; height:8px; background:var(--gold-500); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:#fff; padding:1px 5px; border-radius:3px; min-width:60px;">REG 1-3</span>
+      <span style="font-size:12px; flex:1; color:var(--text-900); font-weight:500;">Sensibilisation permanente des ASSI</span>
+      <span class="badge badge-gold">Observation</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold-600)" stroke-width="2" title="Vous avez post&eacute; une observation"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--success); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 1-4</span>
+      <span style="font-size:12px; flex:1; color:var(--text-700);">Note d&rsquo;organisation fixant la r&eacute;partition des responsabilit&eacute;s</span>
+      <span class="badge badge-success">Conforme</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--success); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 1-5</span>
+      <span style="font-size:12px; flex:1; color:var(--text-700);">Planification des actions PSSI-ES</span>
+      <span class="badge badge-success">Conforme</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--success); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 1-6</span>
+      <span style="font-size:12px; flex:1; color:var(--text-700);">Formalisation et tenue &agrave; jour des documents valid&eacute;s</span>
+      <span class="badge badge-success">Conforme</span>
+    </div>
+
+    <!-- Header domaine LOG -->
+    <div style="padding:10px 16px; background:var(--forest-50); border-bottom:1px solid var(--border); border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; cursor:pointer;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--forest-700)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">LOG</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">S&eacute;curit&eacute; logique</span>
+      <span class="meta">31 contr&ocirc;les &middot; 42% conforme</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--error); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 17-5</span>
+      <span style="font-size:12px; flex:1; color:var(--text-900); font-weight:500;">Mise &agrave; jour r&eacute;guli&egrave;re des droits d&rsquo;acc&egrave;s</span>
+      <span class="badge badge-error">NC majeure</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:#F59E0B; border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 18-9</span>
+      <span style="font-size:12px; flex:1; color:var(--text-900); font-weight:500;">Mots de passe robustes, non transmis en clair</span>
+      <span class="badge" style="background:#FEF3C7; color:#92400E;">NC mineure</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer; background:var(--gold-50);">
+      <span style="width:8px; height:8px; background:var(--error); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:#fff; padding:1px 5px; border-radius:3px; min-width:60px;">REG 19-4</span>
+      <span style="font-size:12px; flex:1; color:var(--text-900); font-weight:500;">Surveillance et journalisation des activit&eacute;s r&eacute;seau</span>
+      <span class="badge badge-error">NC majeure</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold-600)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--success); border-radius:50%; flex-shrink:0;"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 19-8</span>
+      <span style="font-size:12px; flex:1; color:var(--text-700);">Cloisonnement physique et/ou logique des r&eacute;seaux</span>
+      <span class="badge badge-success">Conforme</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; cursor:pointer;">
+      <span style="width:8px; height:8px; background:var(--gold-500); border-radius:50%; flex-shrink:0; border:2px solid var(--gold-600);"></span>
+      <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 19-9-1</span>
+      <span style="font-size:12px; flex:1; color:var(--text-700);">Algorithmes de chiffrement labellis&eacute;s</span>
+      <span class="badge" style="background:#FEF9C3; color:#854D0E; border:1px solid var(--gold-500);">Point fort</span>
+    </div>
+
+    <!-- Footer "voir plus" -->
+    <div style="padding:10px 16px; background:#F9FAFB; text-align:center; border-top:1px solid var(--border);">
+      <button class="btn btn-ghost" style="font-size:11px;">D&eacute;velopper les 11 domaines &middot; 155 contr&ocirc;les &darr;</button>
+    </div>
+  </div>
+
+  <div style="margin-top:16px; padding:12px 16px; background:var(--forest-50); border:1px solid var(--forest-100); border-radius:8px; font-size:12px; color:var(--forest-700); display:flex; align-items:center; gap:8px;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    Cliquez sur un contr&ocirc;le pour voir le d&eacute;tail (constat, risque, recommandation) et ajouter une observation si besoin.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- CLIENT — Détail contrôle en drawer sur la liste           -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="client-before" class="panel" style="padding:0; max-width:none;">
+  <div style="padding:32px; max-width:1200px; margin: 0 auto 0;">
+    <div class="info-label">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      D&eacute;tail d&rsquo;un contr&ocirc;le &mdash; Drawer qui glisse depuis la droite quand on clique sur un contr&ocirc;le dans la liste.
+    </div>
+  </div>
+
+  <!-- Container avec liste grisée + drawer -->
+  <div style="position:relative; max-width:1200px; margin:0 auto; min-height:700px;">
+
+    <!-- Liste en arrière-plan (estompée) -->
+    <div style="padding: 0 32px 32px; opacity:0.35; pointer-events:none;">
+      <div class="card" style="padding:14px 16px; margin-bottom:16px; display:flex; gap:8px; align-items:center;">
+        <span style="font-size:11px; font-weight:600; color:var(--text-500); text-transform:uppercase;">Filtrer :</span>
+        <button class="btn btn-primary" style="padding:5px 12px;">Tous (155)</button>
+        <button class="btn btn-secondary" style="padding:5px 12px;">Conformes (96)</button>
+        <button class="btn btn-secondary" style="padding:5px 12px;">NC (23)</button>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <div style="padding:10px 16px; background:var(--forest-50); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;">
+          <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">LOG</span>
+          <span style="font-size:13px; font-weight:600;">S&eacute;curit&eacute; logique</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB; background:var(--forest-50);">
+          <span style="width:8px; height:8px; background:var(--error); border-radius:50%;"></span>
+          <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:#fff; padding:1px 5px; border-radius:3px; min-width:60px;">REG 17-5</span>
+          <span style="font-size:12px; flex:1; color:var(--text-900); font-weight:500;">Mise &agrave; jour r&eacute;guli&egrave;re des droits d&rsquo;acc&egrave;s</span>
+          <span class="badge badge-error">NC majeure</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB;">
+          <span style="width:8px; height:8px; background:#F59E0B; border-radius:50%;"></span>
+          <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 18-9</span>
+          <span style="font-size:12px; flex:1;">Mots de passe robustes, non transmis en clair</span>
+          <span class="badge" style="background:#FEF3C7; color:#92400E;">NC mineure</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F9FAFB;">
+          <span style="width:8px; height:8px; background:var(--success); border-radius:50%;"></span>
+          <span class="mono" style="font-size:10px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:1px 5px; border-radius:3px; min-width:60px;">REG 19-8</span>
+          <span style="font-size:12px; flex:1;">Cloisonnement physique et/ou logique des r&eacute;seaux</span>
+          <span class="badge badge-success">Conforme</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay sombre -->
+    <div style="position:absolute; inset:0; background:rgba(0,0,0,0.35); z-index:1;"></div>
+
+    <!-- Drawer depuis la droite -->
+    <aside style="position:absolute; top:0; right:0; bottom:0; width:620px; background:#fff; box-shadow:-8px 0 32px rgba(0,0,0,0.15); z-index:2; display:flex; flex-direction:column;">
+
+      <!-- Header drawer -->
+      <div style="padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px;">
+        <button class="btn btn-ghost" style="padding:4px 8px;" title="Fermer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <span class="mono" style="font-size:12px; font-weight:600; color:var(--forest-700); background:var(--forest-50); padding:3px 8px; border-radius:4px;">REG 17-5</span>
+        <span class="badge badge-error">NC majeure</span>
+        <div style="margin-left:auto; display:flex; gap:4px;">
+          <button class="btn btn-secondary" style="padding:4px 8px;" title="Contr&ocirc;le pr&eacute;c&eacute;dent">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="btn btn-secondary" style="padding:4px 8px;" title="Contr&ocirc;le suivant">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Content drawer -->
+      <div style="flex:1; overflow-y:auto; padding:20px 24px;">
+        <h2 style="font-size:16px; font-weight:700; color:var(--text-900); margin-bottom:4px;">
+          Mise &agrave; jour r&eacute;guli&egrave;re des droits d&rsquo;acc&egrave;s
+        </h2>
+        <p class="meta" style="margin-bottom:20px;">Domaine LOG &middot; S&eacute;curit&eacute; logique &middot; Objectif 17</p>
+
+        <!-- Exigence du référentiel -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:10px; font-weight:700; color:var(--text-500); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">&#x1F4CB; EXIGENCE PSSI-ES</div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5; padding:12px; background:#F9FAFB; border-left:3px solid var(--text-300); border-radius:4px;">
+            &laquo; Mettre &agrave; jour r&eacute;guli&egrave;rement les droits d&rsquo;acc&egrave;s attribu&eacute;s aux utilisateurs. &raquo;
+          </p>
+        </div>
+
+        <!-- Niveau de conformité -->
+        <div style="margin-bottom:20px; padding:14px; background:#FDE8E8; border:1px solid #FCA5A5; border-radius:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span style="font-size:13px; font-weight:700; color:var(--error);">Non-conformit&eacute; majeure</span>
+          </div>
+          <p style="font-size:12px; color:var(--error); line-height:1.4;">
+            Risque &eacute;lev&eacute; &mdash; &eacute;l&eacute;vation de privil&egrave;ges non d&eacute;tect&eacute;e pouvant conduire &agrave; une compromission ou une fraude interne.
+          </p>
+        </div>
+
+        <!-- Constat -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:10px; font-weight:700; color:var(--text-500); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">&#x1F50D; CONSTAT D&rsquo;AUDIT</div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            L&rsquo;absence de revue p&eacute;riodique des droits d&rsquo;acc&egrave;s utilisateurs expose l&rsquo;organisation &agrave; un risque d&rsquo;&eacute;l&eacute;vation de privil&egrave;ges non d&eacute;tect&eacute;e. Aucune proc&eacute;dure formalis&eacute;e n&rsquo;a &eacute;t&eacute; identifi&eacute;e lors de l&rsquo;audit.
+          </p>
+        </div>
+
+        <!-- Recommandation -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:10px; font-weight:700; color:var(--text-500); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">&#x1F4A1; RECOMMANDATION</div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            Mettre en place une revue trimestrielle des droits d&rsquo;acc&egrave;s avec validation du responsable hi&eacute;rarchique. Formaliser la proc&eacute;dure et d&eacute;signer un responsable du processus.
+          </p>
+        </div>
+
+        <!-- Mapping ISO 27001 -->
+        <div style="margin-bottom:24px; padding:10px 14px; background:var(--forest-50); border-radius:8px; display:flex; align-items:center; gap:8px; font-size:11px; color:var(--forest-700);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span>Mapping ISO 27001 : <b>A.5.18</b> &middot; Droits d&rsquo;acc&egrave;s</span>
+        </div>
+
+        <!-- Section observation -->
+        <div style="border-top:1px solid var(--border); padding-top:20px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--forest-700)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span style="font-size:13px; font-weight:600;">Votre observation (optionnelle)</span>
+          </div>
+          <textarea class="textarea" placeholder="Si vous avez un &eacute;l&eacute;ment de contexte ou une pr&eacute;cision &agrave; apporter sur ce constat..."></textarea>
+          <p class="meta" style="margin-top:6px;">
+            Votre observation sera envoy&eacute;e &agrave; l&rsquo;&eacute;quipe d&rsquo;audit qui pourra y r&eacute;pondre et &eacute;ventuellement r&eacute;viser le constat.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer drawer -->
+      <div style="padding:14px 24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; background:#FAFAFA;">
+        <button class="btn btn-secondary">Fermer</button>
+        <button class="btn btn-primary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Envoyer l&rsquo;observation
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- CLIENT — Avec observation postée et réponse auditeur      -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="client-after" class="panel">
+  <div class="info-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Apr&egrave;s observation &mdash; le client voit sa question et la r&eacute;ponse de l&rsquo;auditeur.
+  </div>
+
+  <!-- Finding card 1: Observation en cours de saisie -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.9.2</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Gestion des acc&egrave;s utilisateurs</span>
+      <span class="badge badge-error">NC majeure</span>
+    </div>
+    <div class="finding-body">
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px; font-weight:600; color:var(--text-500); margin-bottom:4px;">CONSTAT</div>
+        <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+          L&rsquo;absence de revue p&eacute;riodique des droits d&rsquo;acc&egrave;s utilisateurs expose l&rsquo;organisation &agrave; un risque d&rsquo;&eacute;l&eacute;vation de privil&egrave;ges non d&eacute;tect&eacute;e.
+        </p>
+      </div>
+    </div>
+    <!-- Form d'observation -->
+    <div class="observation-block">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <div class="avatar" style="background:var(--forest-700);">YS</div>
+        <div>
+          <div style="font-size:12px; font-weight:600;">Votre observation</div>
+          <div class="meta">Visible par l&rsquo;&eacute;quipe d&rsquo;audit</div>
+        </div>
+      </div>
+      <textarea class="textarea" placeholder="Ex: Nous avons une proc&eacute;dure en cours de validation depuis janvier, est-ce que cela peut &ecirc;tre pris en compte ?">Nous avons une proc&eacute;dure en cours de validation depuis janvier 2026. Le document est disponible mais n&rsquo;a pas encore &eacute;t&eacute; communiqu&eacute; &agrave; l&rsquo;&eacute;quipe.</textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+        <button class="btn btn-secondary">Annuler</button>
+        <button class="btn btn-primary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Envoyer l&rsquo;observation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finding card 2: Observation postée, en attente -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.12.4</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Journalisation des &eacute;v&eacute;nements</span>
+      <span class="badge badge-error">NC majeure</span>
+      <span class="badge badge-gold" style="margin-left:auto;">Observation en attente</span>
+    </div>
+    <div class="finding-body">
+      <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+        Les logs ne sont pas centralis&eacute;s dans un SIEM. Aucune corr&eacute;lation automatique n&rsquo;est effectu&eacute;e.
+      </p>
+    </div>
+    <div class="observation-block">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <div class="avatar" style="background:var(--forest-700);">YS</div>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:600;">Votre observation</span>
+            <span class="meta">Post&eacute;e il y a 2 heures</span>
+          </div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            Nous avons acquis une solution SIEM d&eacute;but avril. Son d&eacute;ploiement est planifi&eacute; sur le S1 2026. Est-ce que ce contexte peut att&eacute;nuer la classification ?
+          </p>
+        </div>
+      </div>
+      <div style="margin-top:10px; padding: 8px 12px; background: #fff; border: 1px dashed var(--border); border-radius: 8px; font-size:11px; color:var(--text-500); display:flex; align-items:center; gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        L&rsquo;auditeur r&eacute;pondra prochainement
+      </div>
+    </div>
+  </div>
+
+  <!-- Finding card 3: Observation avec réponse "Conservé" -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.8.1</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Inventaire des actifs informationnels</span>
+      <span class="badge badge-gold">Observation</span>
+      <span class="badge badge-success" style="margin-left:auto;">R&eacute;pondu</span>
+    </div>
+    <div class="finding-body">
+      <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+        L&rsquo;inventaire existe mais n&rsquo;est pas mis &agrave; jour de mani&egrave;re syst&eacute;matique lors des entr&eacute;es/sorties de mat&eacute;riel.
+      </p>
+    </div>
+    <div class="observation-block">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <div class="avatar" style="background:var(--forest-700);">YS</div>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:600;">Votre observation</span>
+            <span class="meta">3 avr. 2026</span>
+          </div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            Une mise &agrave; jour trimestrielle est effectu&eacute;e par la DSI. Est-ce suffisant selon vous ?
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="response-block">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <div class="avatar" style="background:var(--gold-500);">OG</div>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:600;">R&eacute;ponse de Oumar Gueye (Auditeur)</span>
+            <span class="meta">5 avr. 2026</span>
+            <span class="badge badge-forest" style="font-size:10px; margin-left:auto;">Constat conserv&eacute;</span>
+          </div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            Merci pour cette pr&eacute;cision. La mise &agrave; jour trimestrielle est un bon d&eacute;but mais l&rsquo;observation porte sur l&rsquo;absence de d&eacute;clenchement lors des mouvements (recrutements, d&eacute;parts). Le constat est maintenu en observation.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finding card 4: Observation avec réponse "Modifié" -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.18.1</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Conformit&eacute; l&eacute;gale</span>
+      <span class="badge badge-gold">Observation</span>
+      <span class="badge badge-forest" style="margin-left:auto;">Constat modifi&eacute;</span>
+    </div>
+    <div class="finding-body">
+      <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+        Quelques traitements sont &agrave; documenter sur le registre CDP-SN. La majeure partie est conforme &agrave; la loi 2008-12.
+      </p>
+      <div class="meta" style="margin-top:6px;">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Constat mis &agrave; jour le 6 avr. apr&egrave;s votre observation
+      </div>
+    </div>
+    <div class="observation-block">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <div class="avatar" style="background:var(--forest-700);">YS</div>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:600;">Votre observation</span>
+            <span class="meta">4 avr. 2026</span>
+          </div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            Le registre CDP-SN existe depuis 2023 et couvre les traitements principaux. Il a &eacute;t&eacute; mis &agrave; jour en mars 2026.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="response-block">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <div class="avatar" style="background:var(--gold-500);">OG</div>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:600;">R&eacute;ponse de Oumar Gueye (Auditeur)</span>
+            <span class="meta">6 avr. 2026</span>
+            <span class="badge badge-forest" style="font-size:10px; margin-left:auto;">Constat modifi&eacute;</span>
+          </div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            Merci pour cette pr&eacute;cision et la preuve jointe. Apr&egrave;s v&eacute;rification du registre mis &agrave; jour, le constat a &eacute;t&eacute; reclassifi&eacute; de NC mineure &agrave; observation. Quelques traitements restent &agrave; documenter.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- AUDITEUR — Gestion des observations                       -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="auditor" class="panel">
+  <div class="info-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Vue auditeur &mdash; Onglet &laquo; Observations client &raquo; (remplace l&rsquo;ancien &laquo; Revue client &raquo;)
+  </div>
+
+  <!-- Stepper mini -->
+  <div style="background:#fff; border-bottom:1px solid var(--border); padding:10px 32px; margin: -32px -32px 24px -32px; display:flex; gap:12px; align-items:center; font-size:12px;">
+    <span style="color:var(--success); display:flex; align-items:center; gap:4px;">&#10003; Cadrage</span>
+    <span style="color:var(--text-300);">&rsaquo;</span>
+    <span style="color:var(--success); display:flex; align-items:center; gap:4px;">&#10003; Planification</span>
+    <span style="color:var(--text-300);">&rsaquo;</span>
+    <span style="color:var(--success); display:flex; align-items:center; gap:4px;">&#10003; Travaux terrain</span>
+    <span style="color:var(--text-300);">&rsaquo;</span>
+    <span style="color:var(--success); display:flex; align-items:center; gap:4px;">&#10003; Revue interne</span>
+    <span style="color:var(--text-300);">&rsaquo;</span>
+    <span style="color:var(--forest-700); font-weight:600; display:flex; align-items:center; gap:4px; background:var(--forest-50); padding:4px 8px; border-radius:6px;">&#9679; Observations client</span>
+    <span style="color:var(--text-300);">&rsaquo;</span>
+    <span style="color:var(--text-300);">Cl&ocirc;ture</span>
+  </div>
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+    <div>
+      <h2 class="section-title" style="margin-bottom:4px;">Observations du client</h2>
+      <p style="font-size:12px; color:var(--text-500);">3 en attente de r&eacute;ponse &middot; 2 r&eacute;pondues</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary">Ignorer et cl&ocirc;turer la mission &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div style="display:flex; gap:8px; margin-bottom:16px;">
+    <button class="btn btn-primary" style="padding:6px 14px;">En attente (3)</button>
+    <button class="btn btn-secondary" style="padding:6px 14px;">R&eacute;pondues (2)</button>
+    <button class="btn btn-secondary" style="padding:6px 14px;">Toutes (5)</button>
+  </div>
+
+  <!-- Observation 1: En attente de réponse, avec formulaire -->
+  <div class="finding-card" style="border-left: 3px solid var(--gold-500);">
+    <div class="finding-header">
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.12.4</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Journalisation des &eacute;v&eacute;nements</span>
+      <span class="badge badge-error">NC majeure</span>
+      <span class="badge badge-gold" style="margin-left:auto;">En attente</span>
+    </div>
+
+    <div class="finding-body" style="background:#FAFAFA;">
+      <div style="font-size:11px; font-weight:600; color:var(--text-500); margin-bottom:4px;">CONSTAT INITIAL</div>
+      <p style="font-size:12px; color:var(--text-700); line-height:1.5;">
+        Les logs ne sont pas centralis&eacute;s dans un SIEM. Aucune corr&eacute;lation automatique n&rsquo;est effectu&eacute;e.
+      </p>
+    </div>
+
+    <div class="observation-block">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <div class="avatar" style="background:var(--forest-700);">YS</div>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:600;">Younouss Sarr</span>
+            <span class="meta">Client &middot; post&eacute; il y a 2 heures</span>
+          </div>
+          <p style="font-size:13px; color:var(--text-700); line-height:1.5;">
+            Nous avons acquis une solution SIEM d&eacute;but avril. Son d&eacute;ploiement est planifi&eacute; sur le S1 2026. Est-ce que ce contexte peut att&eacute;nuer la classification ?
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Réponse auditeur -->
+    <div style="padding: 14px 18px; border-top: 1px solid var(--border); background: #fff;">
+      <div style="font-size:11px; font-weight:600; color:var(--text-500); margin-bottom:8px;">VOTRE R&Eacute;PONSE</div>
+      <textarea class="textarea" placeholder="R&eacute;pondre au client et expliquer votre d&eacute;cision..."></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+        <div class="meta">Votre r&eacute;ponse sera visible imm&eacute;diatement par le client</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Conserver le constat
+          </button>
+          <button class="btn btn-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Modifier le constat
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observation 2: En attente, collapsée -->
+  <div class="finding-card" style="border-left: 3px solid var(--gold-500);">
+    <div class="finding-header">
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.9.2</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Gestion des acc&egrave;s utilisateurs</span>
+      <span class="badge badge-error">NC majeure</span>
+      <span class="badge badge-gold" style="margin-left:auto;">En attente</span>
+    </div>
+    <div class="observation-block" style="padding:12px 18px;">
+      <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-500);">
+        <div class="avatar" style="background:var(--forest-700); width:22px; height:22px;">YS</div>
+        <span>Younouss Sarr &middot; il y a 4 heures</span>
+        <button class="btn btn-ghost" style="margin-left:auto; padding:4px 10px;">Voir et r&eacute;pondre &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observation 3: Répondue "modifié" -->
+  <div class="finding-card">
+    <div class="finding-header">
+      <span class="mono" style="font-size:11px; font-weight:600; color:var(--forest-700);">A.18.1</span>
+      <span style="font-size:13px; font-weight:600; flex:1;">Conformit&eacute; l&eacute;gale</span>
+      <span class="badge badge-gold">Observation</span>
+      <span class="badge badge-forest" style="margin-left:auto;">Constat modifi&eacute;</span>
+    </div>
+    <div class="observation-block" style="padding:12px 18px; opacity:0.7;">
+      <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-500);">
+        <div class="avatar" style="background:var(--forest-700); width:22px; height:22px;">YS</div>
+        <span>Younouss Sarr &middot; r&eacute;pondu le 6 avr.</span>
+        <button class="btn btn-ghost" style="margin-left:auto; padding:4px 10px;">Voir le fil &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- FLUX GLOBAL                                               -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="flow" class="panel">
+  <div class="info-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Flux global &mdash; Observations non bloquantes
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <!-- AVANT -->
+    <div>
+      <div style="padding:10px 16px; background:var(--error); color:#fff; font-size:13px; font-weight:700; border-radius:10px 10px 0 0; text-align:center;">
+        &#x2717; AVANT &mdash; Validation bloquante
+      </div>
+      <div class="card" style="border-radius:0 0 10px 10px; padding:20px;">
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">
+          <div style="padding:10px; background:var(--forest-50); border-radius:8px;">
+            1. Auditeur soumet le constat
+          </div>
+          <div style="padding:10px; background:var(--forest-50); border-radius:8px;">
+            2. Revue lead + associ&eacute;
+          </div>
+          <div style="padding:10px; background:#FDE8E8; border:1px solid #FCA5A5; border-radius:8px;">
+            3. <b>Client doit valider ou contester</b>
+            <div style="font-size:10px; color:var(--error); margin-top:4px;">&rarr; Mission bloqu&eacute;e tant que non trait&eacute;</div>
+          </div>
+          <div style="padding:10px; background:#FDE8E8; border:1px solid #FCA5A5; border-radius:8px;">
+            4. Si contest&eacute; &rarr; re-travail de l&rsquo;auditeur
+          </div>
+          <div style="padding:10px; background:var(--forest-50); border-radius:8px;">
+            5. Cl&ocirc;ture
+          </div>
+        </div>
+        <div style="margin-top:16px; padding:12px; background:#FDE8E8; border-radius:8px;">
+          <div style="font-size:12px; font-weight:600; color:var(--error); margin-bottom:4px;">Probl&egrave;mes :</div>
+          <ul style="font-size:11px; color:var(--text-700); list-style:none; display:flex; flex-direction:column; gap:4px; padding-left:0;">
+            <li>&#x26A0; Client peut bloquer la mission en contestant</li>
+            <li>&#x26A0; D&eacute;calage entre timing client et cabinet</li>
+            <li>&#x26A0; R&eacute;le "juge" pas adapt&eacute; au client</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- APRÈS -->
+    <div>
+      <div style="padding:10px 16px; background:var(--success); color:#fff; font-size:13px; font-weight:700; border-radius:10px 10px 0 0; text-align:center;">
+        &#x2713; APR&Egrave;S &mdash; Observations non bloquantes
+      </div>
+      <div class="card" style="border-radius:0 0 10px 10px; padding:20px;">
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">
+          <div style="padding:10px; background:var(--forest-50); border-radius:8px;">
+            1. Auditeur soumet le constat
+          </div>
+          <div style="padding:10px; background:var(--forest-50); border-radius:8px;">
+            2. Revue lead + associ&eacute;
+          </div>
+          <div style="padding:10px; background:var(--gold-50); border:1px solid var(--gold-200); border-radius:8px;">
+            3. Client voit les constats (pas d&rsquo;action requise)
+            <div style="font-size:10px; color:var(--gold-600); margin-top:4px;">&rarr; Peut ajouter des observations <b>si souhait&eacute;</b></div>
+          </div>
+          <div style="padding:10px; background:var(--gold-50); border:1px solid var(--gold-200); border-radius:8px;">
+            4. Auditeur r&eacute;pond aux observations et d&eacute;cide :
+            <div style="font-size:10px; color:var(--gold-600); margin-top:4px;">&rarr; Modifier le constat OU Conserver tel quel</div>
+          </div>
+          <div style="padding:10px; background:var(--forest-50); border-radius:8px;">
+            5. Cl&ocirc;ture (possible &agrave; tout moment)
+          </div>
+        </div>
+        <div style="margin-top:16px; padding:12px; background:#E8F8EF; border-radius:8px;">
+          <div style="font-size:12px; font-weight:600; color:var(--success); margin-bottom:4px;">Am&eacute;liorations :</div>
+          <ul style="font-size:11px; color:var(--text-700); list-style:none; display:flex; flex-direction:column; gap:4px; padding-left:0;">
+            <li>&#x2713; Client n&rsquo;est jamais bloquant</li>
+            <li>&#x2713; Processus naturel de dialogue</li>
+            <li>&#x2713; L&rsquo;auditeur reste d&eacute;cisionnaire</li>
+            <li>&#x2713; Mission peut cl&ocirc;turer m&ecirc;me sans r&eacute;ponse client</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialogue détaillé -->
+  <h3 style="font-size:14px; font-weight:700; margin-top:32px; margin-bottom:16px;">Exemple concret de dialogue</h3>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+      <div class="avatar" style="background:var(--gold-500); width:32px; height:32px; font-size:11px;">OG</div>
+      <div class="card" style="padding:12px 16px; flex:1; max-width:500px;">
+        <div class="meta" style="margin-bottom:4px;">Auditeur Oumar Gueye &middot; 1 avr.</div>
+        <p style="font-size:13px; color:var(--text-700);">
+          Constat A.9.2 : Gestion des acc&egrave;s utilisateurs &mdash; NC majeure.
+          Absence de revue p&eacute;riodique des droits d&rsquo;acc&egrave;s.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px; align-items:flex-start; justify-content:flex-end;">
+      <div class="card" style="padding:12px 16px; flex:1; max-width:500px; background:var(--forest-50); border-color:var(--forest-100);">
+        <div class="meta" style="margin-bottom:4px;">Younouss Sarr (Client) &middot; 4 avr.</div>
+        <p style="font-size:13px; color:var(--text-700);">
+          &laquo; Nous avons une proc&eacute;dure en cours de validation. Est-ce que cela peut &ecirc;tre pris en compte ? &raquo;
+        </p>
+      </div>
+      <div class="avatar" style="background:var(--forest-700); width:32px; height:32px; font-size:11px;">YS</div>
+    </div>
+
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+      <div class="avatar" style="background:var(--gold-500); width:32px; height:32px; font-size:11px;">OG</div>
+      <div class="card" style="padding:12px 16px; flex:1; max-width:500px;">
+        <div class="meta" style="margin-bottom:4px;">Auditeur Oumar Gueye &middot; 5 avr.</div>
+        <p style="font-size:13px; color:var(--text-700);">
+          &laquo; Merci pour cette pr&eacute;cision. Une proc&eacute;dure en projet ne constitue pas une mise en &oelig;uvre effective. Le constat est <b>maintenu</b> avec mention du plan d&rsquo;action en cours. &raquo;
+        </p>
+        <div style="margin-top:8px;">
+          <span class="badge badge-forest">D&eacute;cision : constat conserv&eacute;</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = {'client-synthese':0, 'client-liste':1, 'client-before':2, 'client-after':3, 'auditor':4, 'flow':5}[id];
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

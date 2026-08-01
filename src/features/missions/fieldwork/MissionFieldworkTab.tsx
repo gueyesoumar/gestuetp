@@ -1,17 +1,36 @@
 import { useMemo, useState, useCallback } from 'react'
-import { ArrowRight, Check, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Keyboard } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { useAuditorAssessments } from '../useAuditorAssessments'
 import { useReviewAssessments } from '../useReviewAssessments'
 import { useFieldworkState } from './useFieldworkState'
+import { useFieldworkShortcuts } from './useFieldworkShortcuts'
 import { FieldworkSidebar } from './FieldworkSidebar'
 import { ControlWorkArea } from './ControlWorkArea'
+import { ShortcutsHelpModal } from './ShortcutsHelpModal'
+import { RightRail } from './right-rail/RightRail'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
+import {
+  FieldworkProgressBanner,
+  FieldworkLaunchReviewBanner,
+  FieldworkTransitionBanner,
+} from './FieldworkProgressBanner'
+import { FieldworkPhaseRibbon } from './FieldworkPhaseRibbon'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionMemberRow, ControlAssignmentRow, MissionDetail } from '../useMissionDetail'
+
+const RAIL_KEY = 'gestu:fieldwork-right-rail-open'
+
+function readRailDefault(): boolean {
+  try {
+    const stored = localStorage.getItem(RAIL_KEY)
+    if (stored !== null) return stored === 'true'
+  } catch { /* ignore */ }
+  return typeof window !== 'undefined' ? window.innerWidth >= 1280 : true
+}
 
 interface MissionFieldworkTabProps {
   mission: MissionDetail
@@ -26,16 +45,13 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   const { assessments: myAssessments, loading, error, refetch } = useAuditorAssessments(mission.id)
   const { assessments: allSubmitted } = useReviewAssessments(mission.id)
 
-  // Determine role of current user in this mission
   const isLead = profile?.id === mission.lead_auditor_user?.id
   const isAssociate = profile?.id === mission.associate_user?.id
   const isLeadOrAssociate = isLead || isAssociate
 
-  // For lead/associate: merge all assessments (own + submitted by others)
-  // For auditor: only own assessments
+  // For lead/associate: merge own + submitted by others. For auditor: own only.
   const assessments = useMemo(() => {
     if (!isLeadOrAssociate) return myAssessments
-    // Merge: start with own assessments, add submitted ones not already included
     const ids = new Set(myAssessments.map((a) => a.id))
     const merged = [...myAssessments]
     for (const a of allSubmitted) {
@@ -49,8 +65,15 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
 
   const state = useFieldworkState(assessments, refetch)
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
+  const [railOpen, setRailOpen] = useState<boolean>(readRailDefault)
+  const toggleRail = useCallback(() => {
+    setRailOpen((prev) => {
+      const next = !prev
+      try { localStorage.setItem(RAIL_KEY, String(next)) } catch { /* ignore */ }
+      return next
+    })
+  }, [])
 
-  // Count controls and assessments
   const totalControls = domains.reduce((sum, d) => sum + d.controls.length, 0)
   const totalAssigned = assignments.length
   const totalReference = totalAssigned > 0 ? totalAssigned : totalControls
@@ -58,25 +81,23 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   const submittedCount = assessments.filter((a) => a.status === 'submitted' || a.status === 'in_review' || a.status === 'approved').length
   const draftCount = assessments.filter((a) => a.status === 'draft').length
   const notStartedCount = totalReference - assessments.length
-  // Only propose review if at least 50% of controls are submitted or all assigned are done
   const completionPct = totalReference > 0 ? (submittedCount / totalReference) * 100 : 0
+  // Propose review when ≥50% submitted or all assigned done
   const canLaunchReview = isLeadOrAssociate && submittedCount > 0 && mission.status === 'fieldwork' && (completionPct >= 50 || notStartedCount === 0)
 
   const handleLaunchReview = useCallback(async () => {
     setReviewTransition(null)
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/missions?id=eq.${mission.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ status: 'internal_review' }),
-    })
-    if (res.ok) {
-      setReviewTransition('Mission pass\u00e9e en revue interne.')
-      onRefetch()
-    } else {
+    const { error: updateError } = await supabase
+      .from('missions')
+      .update({ status: 'internal_review' })
+      .eq('id', mission.id)
+    if (updateError) {
+      console.error('[MissionFieldworkTab] launch review:', updateError.message)
       setReviewTransition('Erreur lors de la transition.')
+      return
     }
+    setReviewTransition('Mission passée en revue interne.')
+    onRefetch()
   }, [mission.id, onRefetch])
 
   // Filter assignments: auditors see only their own, lead/associate see all
@@ -86,30 +107,16 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     return assignments.filter((a) => a.auditor_id === profile.id)
   }, [assignments, profile, isLeadOrAssociate])
 
-  // Filter domains: only show domains that have at least one assigned control for this user
+  // Filter domains: only show domains with at least one assigned control for this user
   const filteredDomains = useMemo(() => {
     if (isLeadOrAssociate) return domains
     const assignedControlIds = new Set(filteredAssignments.map((a) => a.control_id))
     return domains
-      .map((d) => ({
-        ...d,
-        controls: d.controls.filter((c) => assignedControlIds.has(c.id)),
-      }))
+      .map((d) => ({ ...d, controls: d.controls.filter((c) => assignedControlIds.has(c.id)) }))
       .filter((d) => d.controls.length > 0)
   }, [domains, filteredAssignments, isLeadOrAssociate])
 
-  if (loading) return <LoadingSpinner />
-  if (error) return <ErrorAlert message={error} />
-  // Lead/associate always sees all domains; auditors need assignments
-  if (!isLeadOrAssociate && filteredAssignments.length === 0 && assessments.length === 0) {
-    return (
-      <EmptyState
-        title={'Aucun contr\u00f4le affect\u00e9'}
-        description={'Les contr\u00f4les vous seront affect\u00e9s par le chef de mission dans l\u2019onglet Planification.'}
-      />
-    )
-  }
-
+  // Compute selected assessment + reviewer role BEFORE any early return so hooks below stay above the rule-of-hooks line
   const selectedAssessment = assessments.find((a) => a.control_id === state.selectedId)
   const reviewerRole: 'lead' | 'associate' | 'none' = isLead ? 'lead' : isAssociate ? 'associate' : 'none'
   const isReviewerForSelected = isLeadOrAssociate && !!selectedAssessment && selectedAssessment.auditor_id !== profile?.id
@@ -118,94 +125,141 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     (v) => v.stage === 'lead_review' && v.decision === 'approved'
   ) ?? false
 
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false)
+
+  const triggerSave = useCallback(() => {
+    if (!selectedAssessment) return
+    void state.saveAssessment(selectedAssessment.id, {
+      evidence_notes: selectedAssessment.evidence_notes ?? '',
+      observations: selectedAssessment.observations ?? '',
+      conformity_level: selectedAssessment.conformity_level ?? null,
+    })
+  }, [selectedAssessment, state])
+
+  const triggerSubmit = useCallback(() => {
+    if (!selectedAssessment) return
+    if (selectedAssessment.status === 'draft') {
+      void state.submitAssessment(selectedAssessment.id)
+    }
+  }, [selectedAssessment, state])
+
+  useFieldworkShortcuts({
+    assessments,
+    selectedId: state.selectedId,
+    guidedStep: state.guidedStep,
+    mode: state.mode,
+    enabled: !isReviewerForSelected,
+    onSelectControl: state.selectControl,
+    onSetGuidedStep: state.setGuidedStep,
+    onSave: triggerSave,
+    onSubmit: triggerSubmit,
+    onShowHelp: () => setShowShortcutsHelp(true),
+  })
+
+  if (loading) return <LoadingSpinner />
+  if (error) return <ErrorAlert message={error} />
+  if (!isLeadOrAssociate && filteredAssignments.length === 0 && assessments.length === 0) {
+    return (
+      <EmptyState
+        title="Aucun contrôle affecté"
+        description="Les contrôles vous seront affectés par le chef de mission dans l’onglet Planification."
+      />
+    )
+  }
+
   return (
     <div>
-      {/* Review launch banner */}
-      {/* Progress banner when review not yet available */}
-      {!canLaunchReview && mission.status === 'fieldwork' && isLeadOrAssociate && totalReference > 0 && (
-        <div className="flex items-center gap-4 p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-gray-900">
-              Progression : {submittedCount}/{totalReference} contr&ocirc;les soumis
-            </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {draftCount > 0 ? `${draftCount} en brouillon. ` : ''}{notStartedCount > 0 ? `${notStartedCount} non commenc\u00e9${notStartedCount > 1 ? 's' : ''}.` : ''}
-            </p>
-          </div>
-          <div className="w-32">
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-2 bg-forest-500 rounded-full transition-all" style={{ width: `${completionPct}%` }} />
+      <FieldworkPhaseRibbon
+        mission={mission}
+        scopedTotal={totalReference}
+        scopedDone={submittedCount}
+      />
+      <FieldworkProgressBanner
+        visible={!canLaunchReview && mission.status === 'fieldwork' && isLeadOrAssociate && totalReference > 0}
+        submittedCount={submittedCount}
+        totalReference={totalReference}
+        draftCount={draftCount}
+        notStartedCount={notStartedCount}
+        completionPct={completionPct}
+      />
+      <FieldworkLaunchReviewBanner
+        visible={canLaunchReview}
+        submittedCount={submittedCount}
+        totalReference={totalReference}
+        draftCount={draftCount}
+        notStartedCount={notStartedCount}
+        onLaunch={() => void handleLaunchReview()}
+      />
+      <FieldworkTransitionBanner message={reviewTransition} />
+
+      <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}>
+        <div className="w-80 shrink-0 overflow-y-auto">
+          <FieldworkSidebar
+            domains={filteredDomains}
+            assessments={assessments}
+            members={members}
+            selectedControlId={state.selectedId}
+            onSelectControl={state.selectControl}
+          />
+        </div>
+
+        {selectedAssessment ? (
+          <ControlWorkArea
+            assessment={selectedAssessment}
+            clientName={mission.client?.name ?? null}
+            mode={state.mode}
+            guidedStep={state.guidedStep}
+            autoAdvance={state.autoAdvance}
+            saving={state.saving}
+            saveError={state.saveError}
+            isReviewer={isReviewerForSelected}
+            reviewerRole={reviewerRole}
+            leadApproved={leadHasApprovedSelected}
+            onModeChange={state.setMode}
+            onGuidedStepChange={state.setGuidedStep}
+            onToggleAutoAdvance={state.toggleAutoAdvance}
+            onSave={state.saveAssessment}
+            onSubmit={state.submitAssessment}
+            onApprove={state.approveAssessment}
+            onReject={state.rejectAssessment}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-[#FAFAF8]">
+            <div className="text-center max-w-sm px-6">
+              <div className="w-12 h-12 rounded-full bg-forest-50 border border-forest-200 mx-auto mb-3 flex items-center justify-center">
+                <ArrowLeft size={20} className="text-forest-700" />
+              </div>
+              <p className="text-sm font-semibold text-gray-700 mb-1">S&eacute;lectionnez un contr&ocirc;le</p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                {assessments.length} contr&ocirc;le{assessments.length > 1 ? 's' : ''} disponible{assessments.length > 1 ? 's' : ''} dans la liste &agrave; gauche.
+                {draftCount > 0 && (
+                  <> {draftCount} en brouillon &mdash; commencez ou reprenez votre travail.</>
+                )}
+              </p>
             </div>
-            <p className="text-[10px] text-gray-400 text-right mt-1">{Math.round(completionPct)}%</p>
           </div>
-        </div>
-      )}
+        )}
 
-      {canLaunchReview && (
-        <div className="flex items-center justify-between p-4 mb-4 bg-forest-50 border border-forest-300 rounded-xl">
-          <div>
-            <p className="text-sm font-semibold text-forest-900">
-              {notStartedCount === 0 && draftCount === 0
-                ? `Tous les contr\u00f4les sont soumis (${submittedCount}/${totalReference}).`
-                : `${submittedCount}/${totalReference} contr\u00f4les soumis.${draftCount > 0 ? ` ${draftCount} en brouillon.` : ''}${notStartedCount > 0 ? ` ${notStartedCount} non commenc\u00e9${notStartedCount > 1 ? 's' : ''}.` : ''}`}
-            </p>
-            <p className="text-xs text-forest-600 mt-0.5">
-              {notStartedCount === 0 && draftCount === 0
-                ? 'Vous pouvez lancer la revue interne.'
-                : 'Vous pouvez lancer la revue sans attendre les contr\u00f4les restants.'}
-            </p>
-          </div>
-          <button onClick={handleLaunchReview}
-            className="px-5 py-2.5 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 transition-colors shrink-0">
-            <ArrowRight size={14} className="inline" /> Lancer la revue interne
-          </button>
-        </div>
-      )}
-      {reviewTransition && (
-        <div className="p-3 mb-4 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700">
-          <Check size={14} className="inline mr-1" />{reviewTransition}
-        </div>
-      )}
-
-    <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
-      {/* Left panel */}
-      <div className="w-80 shrink-0 overflow-y-auto">
-        <FieldworkSidebar
-          domains={filteredDomains}
-          assessments={assessments}
-          assignments={filteredAssignments}
-          members={members}
-          selectedControlId={state.selectedId}
-          onSelectControl={state.selectControl}
+        <RightRail
+          mission={mission}
+          assessment={selectedAssessment ?? null}
+          collapsed={!railOpen}
+          onToggle={toggleRail}
         />
+
+        {/* Floating shortcuts help button */}
+        <button
+          type="button"
+          onClick={() => setShowShortcutsHelp(true)}
+          className="fixed bottom-4 right-4 z-30 w-9 h-9 rounded-full bg-forest-700 text-white shadow-lg hover:bg-forest-900 flex items-center justify-center transition-colors"
+          title="Raccourcis clavier (?)"
+          aria-label="Raccourcis clavier"
+        >
+          <Keyboard size={15} />
+        </button>
       </div>
 
-      {/* Right panel */}
-      {selectedAssessment ? (
-        <ControlWorkArea
-          assessment={selectedAssessment}
-          mode={state.mode}
-          guidedStep={state.guidedStep}
-          autoAdvance={state.autoAdvance}
-          saving={state.saving}
-          saveError={state.saveError}
-          isReviewer={isReviewerForSelected}
-          reviewerRole={reviewerRole}
-          leadApproved={leadHasApprovedSelected}
-          onModeChange={state.setMode}
-          onGuidedStepChange={state.setGuidedStep}
-          onToggleAutoAdvance={state.toggleAutoAdvance}
-          onSave={state.saveAssessment}
-          onSubmit={state.submitAssessment}
-          onApprove={state.approveAssessment}
-          onReject={state.rejectAssessment}
-        />
-      ) : (
-        <div className="flex-1 flex items-center justify-center text-sm text-gray-300">
-          <ArrowLeft size={14} className="inline mr-1" />S{'\u00e9'}lectionnez un contr{'\u00f4'}le dans la liste
-        </div>
-      )}
-    </div>
+      {showShortcutsHelp && <ShortcutsHelpModal onClose={() => setShowShortcutsHelp(false)} />}
     </div>
   )
 }

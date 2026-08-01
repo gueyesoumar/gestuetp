@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Marque blanche multi-cabinet — Gëstu Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#FAFAF8;--white:#fff;
+  --t9:#1A1A1A;--t7:#374151;--t5:#6B7280;--t3:#9CA3AF;--t1:#D1D5DB;
+  --border:#E5E7EB;--border2:#D1D5DB;
+  --f9:#1B4332;--f7:#2D6A4F;--f5:#52B788;--f3:#74C69D;--f1:#D8F3DC;--f0:#F0FFF4;
+  --gold:#D4A843;--g6:#B8922E;--g4:#E2C26B;--g2:#F2E2B1;--g0:#FDF8E8;
+  --ok:#27AE60;--ok-bg:#ECFDF5;
+  --err:#C0392B;--err-bg:#FEF2F2;
+  --warn:#B45309;--warn-bg:#FFFBEB;
+  --info:#1D4ED8;--info-bg:#EFF6FF;
+
+  /* Couleur custom Audit&Co (exemple cabinet brandé) */
+  --auditco:#1E40AF;--auditco-light:#3B82F6;--auditco-bg:#EFF6FF;--auditco-text:#1E3A8A;
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--t9); -webkit-font-smoothing:antialiased; padding:32px 24px 64px }
+.mono { font-family:'JetBrains Mono',monospace }
+
+.wrap { max-width:1320px; margin:0 auto }
+
+/* Hero */
+.hero { margin-bottom:36px }
+.hero-tag { display:inline-block; padding:4px 12px; background:var(--g0); color:var(--gold); border:1px solid var(--g2); border-radius:99px; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:12px }
+.hero h1 { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px }
+.hero p { font-size:15px; color:var(--t5); max-width:780px; line-height:1.6 }
+
+/* Sections */
+.section { margin-bottom:48px }
+.section-h { display:flex; align-items:baseline; gap:12px; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--f9) }
+.section-h h2 { font-size:20px; font-weight:700; color:var(--f9) }
+.section-h .num { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--gold); font-weight:700 }
+.section-desc { font-size:13px; color:var(--t5); margin-bottom:20px; max-width:880px; line-height:1.6 }
+
+/* Strategy comparison */
+.strat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px }
+.strat-card { background:white; border:1px solid var(--border); border-radius:14px; padding:18px; position:relative }
+.strat-card.recommended { border-color:var(--gold); border-width:2px; background:var(--g0) }
+.strat-card .badge { position:absolute; top:-10px; right:14px; padding:3px 10px; border-radius:99px; font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; background:var(--gold); color:var(--f9) }
+.strat-card h3 { font-size:14px; font-weight:700; color:var(--f9); margin-bottom:6px }
+.strat-card .small { font-size:11.5px; color:var(--t5); margin-bottom:10px }
+.strat-card .pros { font-size:12px; color:var(--t7); line-height:1.55 }
+.strat-card .pros b { color:var(--ok) }
+.strat-card .cons b { color:var(--warn) }
+
+/* Browser scenes */
+.scene { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(15,42,34,.06) }
+.scene-h { padding:12px 18px; background:#F3F4F6; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px }
+.scene-h .dot { width:10px; height:10px; border-radius:50%; background:#E5E7EB }
+.scene-h .dot.r { background:#FCA5A5 }
+.scene-h .dot.y { background:#FDE68A }
+.scene-h .dot.g { background:#A7F3D0 }
+.scene-h .url { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--t5); margin-left:8px; flex:1; padding:4px 10px; background:white; border-radius:6px; border:1px solid var(--border) }
+.scene-h .ctx { font-size:11px; color:var(--t3); font-weight:500 }
+
+/* Generic Gestu Layout */
+.gestu-shell { display:flex; min-height:540px }
+.gestu-side { width:220px; background:var(--f9); padding:0; flex-shrink:0; display:flex; flex-direction:column; color:white }
+.gestu-side .gestu-logo { padding:16px 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,.1) }
+.gestu-side .gestu-logo .lg { width:30px; height:30px; background:var(--gold); border-radius:7px; display:flex; align-items:center; justify-content:center; color:var(--f9); font-weight:900; font-family:Georgia,serif; font-size:13px }
+.gestu-side .gestu-logo .titles { line-height:1.25 }
+.gestu-side .gestu-logo .b { font-weight:800; font-size:13px }
+.gestu-side .gestu-logo .b i { font-style:normal; color:var(--gold) }
+.gestu-side .gestu-logo .sub { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:var(--gold); font-weight:700; text-transform:uppercase }
+.gestu-side .nav { padding:8px 0; flex:1 }
+.gestu-side .nav-item { display:flex; align-items:center; gap:9px; padding:8px 16px; margin:1px 8px; border-radius:6px; font-size:12.5px; color:rgba(255,255,255,.55); cursor:pointer }
+.gestu-side .nav-item.active { background:rgba(255,255,255,.1); color:white }
+.gestu-side .nav-item .ico { width:14px; opacity:.85 }
+
+.app-main { flex:1; padding:24px; overflow:auto; background:var(--bg) }
+.app-h { display:flex; align-items:baseline; gap:8px; margin-bottom:14px }
+.app-h h1 { font-size:18px; font-weight:700 }
+.app-h .sub { font-size:12px; color:var(--t5) }
+
+/* Branded layout (Audit&Co exemple) — logo dark-variant (Option D) */
+.branded-side { background:var(--auditco) !important }
+.branded-side .gestu-logo .lg {
+  background:transparent; color:white; font-family:'Manrope',sans-serif; border-radius:6px;
+  border:1.5px solid rgba(255,255,255,.45); font-size:10px;
+}
+.branded-side .gestu-logo .b { color:white }
+.branded-side .gestu-logo .b i { color:white }
+.branded-side .gestu-logo .sub { color:rgba(255,255,255,.7) }
+.branded-side .nav-item.active { background:rgba(255,255,255,.18) }
+.branded-side .nav-item:hover { background:rgba(255,255,255,.08); color:white }
+.branded-side .powered { padding:10px 14px; border-top:1px solid rgba(255,255,255,.1); font-size:9.5px; color:rgba(255,255,255,.45); letter-spacing:.5px }
+.branded-side .powered span { color:rgba(255,255,255,.6); font-weight:600 }
+
+.brand-accent { color:var(--auditco) !important }
+.brand-bg { background:var(--auditco) !important; color:white !important }
+.brand-soft { background:var(--auditco-bg) !important; color:var(--auditco-text) !important }
+
+/* Mission card */
+.mission-card { background:white; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; cursor:pointer }
+.mission-card:hover { border-color:var(--f5) }
+.mission-card .name { font-weight:700; color:var(--t9); font-size:13px }
+.mission-card .meta { display:flex; gap:8px; align-items:center; font-size:11px; color:var(--t5); margin-top:5px; flex-wrap:wrap }
+.mission-card .cabinet-tag { display:inline-flex; align-items:center; gap:5px; padding:1px 7px; border-radius:5px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.4px }
+.mission-card .cabinet-tag.auditco { background:var(--auditco-bg); color:var(--auditco-text) }
+.mission-card .cabinet-tag.sonner { background:#FEF3C7; color:#92400E }
+.mission-card .cabinet-tag.dcssi { background:#FEE2E2; color:#991B1B }
+.mission-card .progress { width:100%; height:5px; background:#F3F4F6; border-radius:5px; margin-top:8px; overflow:hidden }
+.mission-card .progress-fill { height:100%; border-radius:5px }
+
+.mission-detail-banner {
+  padding:10px 16px; border-radius:10px; margin-bottom:14px; display:flex; align-items:center; gap:10px;
+  background:var(--auditco-bg); border-left:3px solid var(--auditco);
+}
+.mission-detail-banner .lg { width:28px; height:28px; border-radius:6px; background:transparent; border:1.5px solid var(--auditco); display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; color:var(--auditco); font-size:10.5px }
+.mission-detail-banner .text { font-size:12px; color:var(--auditco-text) }
+.mission-detail-banner .text b { font-weight:700 }
+
+/* Page detail mockup */
+.page-content h2 { font-size:16px; font-weight:700; margin-bottom:8px }
+.page-content .meta { font-size:11.5px; color:var(--t5); margin-bottom:14px }
+.tabs-fake { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:14px }
+.tab-fake { padding:7px 13px; font-size:11.5px; color:var(--t5); border-bottom:2px solid transparent; font-weight:500 }
+.tab-fake.active { color:var(--auditco); border-color:var(--auditco); font-weight:700 }
+.tab-fake.active.green { color:var(--f9); border-color:var(--gold) }
+.fake-card { background:white; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; font-size:12px; color:var(--t7) }
+
+/* Cross-cabinet banner */
+.cross-banner { padding:10px 14px; border-radius:8px; background:var(--info-bg); border:1px solid #BFDBFE; font-size:12px; color:var(--info); display:flex; align-items:center; gap:10px; margin-bottom:14px }
+.cross-banner b { color:var(--info) }
+.cross-banner .arr { margin-left:auto; font-size:14px }
+
+/* Configuration screen (cabinet side) */
+.config-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:18px }
+.config-form { background:white; border:1px solid var(--border); border-radius:14px; padding:20px }
+.config-form h3 { font-size:13px; font-weight:700; margin-bottom:14px; color:var(--f9); text-transform:uppercase; letter-spacing:.4px }
+.field-grp { margin-bottom:14px }
+.field-grp label { display:block; font-size:11px color:var(--t5); font-weight:600; text-transform:uppercase; letter-spacing:.4px; margin-bottom:5px }
+.field-grp .input { padding:8px 11px; border:1px solid var(--border); border-radius:7px; font-size:13px; background:white }
+.field-grp.row { display:flex; gap:8px; align-items:center }
+.color-pickers { display:flex; gap:8px }
+.color-swatch { display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid var(--border); border-radius:7px; flex:1 }
+.color-swatch .chip { width:18px; height:18px; border-radius:4px }
+.color-swatch .hex { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--t7) }
+.upload-zone { border:2px dashed var(--border); border-radius:10px; padding:24px; text-align:center; background:#FAFAFA; font-size:12px; color:var(--t5) }
+.upload-zone .lg-preview { width:60px; height:60px; background:var(--auditco); color:white; border-radius:8px; margin:0 auto 8px; display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; font-size:18px }
+.upload-zone .info { font-size:10.5px; color:var(--t3); margin-top:5px }
+
+.preview-pane { background:white; border:1px solid var(--border); border-radius:14px; padding:20px }
+.preview-pane h3 { font-size:13px; font-weight:700; color:var(--f9); margin-bottom:14px; text-transform:uppercase; letter-spacing:.4px }
+.preview-mini { background:#F3F4F6; border-radius:10px; padding:8px; height:180px; overflow:hidden; position:relative }
+.preview-mini-head { background:var(--auditco); color:white; padding:6px 10px; border-radius:5px; font-size:10px; font-weight:700; display:flex; align-items:center; gap:6px; margin-bottom:6px }
+.preview-mini-head .lg { width:18px; height:18px; background:transparent; border:1px solid rgba(255,255,255,.55); color:white; border-radius:3px; display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; font-size:7.5px }
+.preview-mini-body { background:white; border-radius:5px; padding:8px; height:140px; font-size:9px; color:var(--t7) }
+.preview-pane .ok-line { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ok); margin-top:10px }
+
+/* DNS / Domain */
+.domain-card { background:white; border:1px solid var(--border); border-radius:10px; padding:14px; margin-top:14px }
+.domain-card .row { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12.5px }
+.domain-card .row .lab { color:var(--t5); width:120px; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.4px }
+.domain-card .row .v { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--t7) }
+.domain-card .status { padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase }
+.domain-card .status.ok { background:var(--ok-bg); color:var(--ok) }
+.domain-card .status.pending { background:var(--warn-bg); color:var(--warn) }
+
+/* Email comparison */
+.email-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px }
+.mail { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(15,42,34,.06) }
+.mail-meta { padding:10px 14px; background:#FAFAF8; border-bottom:1px solid var(--border); font-size:10.5px; color:var(--t5) }
+.mail-meta .from { font-weight:700; color:var(--t9); font-size:12px }
+.mail-meta .subj { font-size:12.5px; color:var(--t9); font-weight:700; margin-top:5px }
+.mail-body { background:white }
+.mail-body .eh-default { background:var(--f9); color:white; padding:18px 22px; display:flex; align-items:center; gap:10px }
+.mail-body .eh-default .lg { width:28px; height:28px; background:var(--gold); border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--f9); font-weight:900; font-family:Georgia,serif; font-size:11px }
+.mail-body .eh-default .b { font-size:13px; font-weight:800; color:white }
+.mail-body .eh-default .b i { font-style:normal; color:var(--gold) }
+.mail-body .eh-brand { background:var(--auditco); color:white; padding:18px 22px; display:flex; align-items:center; gap:10px }
+.mail-body .eh-brand .lg { width:34px; height:34px; background:transparent; border:1.5px solid rgba(255,255,255,.5); border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-family:'Manrope',sans-serif; font-weight:800; font-size:11.5px }
+.mail-body .eh-brand .b { font-size:14px; font-weight:800; color:white }
+.mail-body .eh-brand .small { font-size:9.5px; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.6px }
+.mail-content { padding:18px 22px; font-size:12.5px; color:var(--t9); line-height:1.55 }
+.mail-content h2 { font-size:15px; font-weight:800; margin-bottom:6px }
+.mail-content .cta { display:inline-block; background:var(--f9); color:white !important; padding:9px 14px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; margin-top:6px }
+.mail-content .cta.brand { background:var(--auditco) }
+.mail-foot { padding:12px 22px; background:#FAFAF8; border-top:1px solid var(--border); font-size:10.5px; color:var(--t5) }
+.mail-foot.brand { background:#F8FAFF }
+.mail-foot a { color:var(--t7); text-decoration:underline }
+.mail-foot .powered { font-size:9.5px; color:var(--t3); margin-top:4px; letter-spacing:.4px }
+
+/* Architecture diagram */
+.arch { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:14px; align-items:center; margin:18px 0 }
+.arch-card { background:white; border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center }
+.arch-card.host { background:var(--g0); border-color:var(--g2) }
+.arch-card.host b { color:var(--gold) }
+.arch-card.fn { background:var(--f1); border-color:var(--f3) }
+.arch-card.fn b { color:var(--f9) }
+.arch-card .lab { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--t3); font-weight:700; text-transform:uppercase; margin-bottom:4px }
+.arch-card .v { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--t9); font-weight:600 }
+.arch-card .extra { font-size:10.5px; color:var(--t5); margin-top:5px; line-height:1.4 }
+.arch-arrow { color:var(--t3); font-size:18px }
+
+/* Pricing tier note */
+.pricing-note { background:var(--g0); border:1px solid var(--g2); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:14px 16px; font-size:13px; color:var(--t7); line-height:1.6; margin-top:16px }
+.pricing-note b { color:var(--f9) }
+
+/* Code */
+.code { background:#1A1A1A; color:#A7F3D0; padding:18px 22px; border-radius:12px; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7; overflow-x:auto; margin-top:16px }
+.code .kw { color:#FCD34D }
+.code .str { color:#86EFAC }
+.code .com { color:#6B7280 }
+.code .fn { color:#93C5FD }
+.code .ty { color:#F472B6 }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-tag">Marque blanche · Niveaux 2 + 3 · mockup d'impact</div>
+    <h1>Marque blanche multi-cabinet — stratégie « Hybrid β »</h1>
+    <p>
+      Un client peut être audité par plusieurs cabinets simultanément. La stratégie retenue : <b>un seul compte client</b>,
+      mais <b>deux portes d'entrée</b>. Sur le portail neutre <span class="mono">app.gestucomply.com</span>, il voit toutes ses
+      missions avec une bannière du cabinet par mission. Sur le portail brandé <span class="mono">audit.auditco.sn</span>, il
+      ne voit que les missions du cabinet, l'UI est 100 % personnalisée, et un bandeau discret rappelle qu'il a aussi des missions ailleurs.
+    </p>
+  </div>
+
+  <!-- Section 1 — Stratégies -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">01</span>
+      <h2>Trois stratégies possibles · pourquoi Hybrid β gagne</h2>
+    </div>
+    <div class="strat-grid">
+      <div class="strat-card">
+        <h3>A. Mono-tenant strict</h3>
+        <div class="small">1 compte par cabinet · 3 logins distincts pour Marie</div>
+        <div class="pros">
+          <p><b>+</b> Branding propre et net</p>
+          <p style="color:var(--warn)"><b>−</b> Friction max : 3 emails, 3 mots de passe, knowledge silos</p>
+        </div>
+      </div>
+      <div class="strat-card">
+        <h3>B. Switch tenant</h3>
+        <div class="small">1 compte, sélecteur cabinet en header</div>
+        <div class="pros">
+          <p><b>+</b> Un seul login</p>
+          <p style="color:var(--warn)"><b>−</b> Cognitive load · branding qui flippe à chaque clic</p>
+        </div>
+      </div>
+      <div class="strat-card recommended">
+        <span class="badge">Recommandé</span>
+        <h3>C. Hybrid β</h3>
+        <div class="small">1 compte · 2 portes d'entrée selon le besoin</div>
+        <div class="pros">
+          <p><b>+</b> Cabinet : branding 100 % chez lui</p>
+          <p><b>+</b> Marie : portail unifié possible si besoin</p>
+          <p><b>+</b> Pricing tier naturel (option premium)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 — Configuration côté super-admin -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">02</span>
+      <h2>Configuration côté super-admin · onglet « Marque blanche » sur la fiche organisation</h2>
+    </div>
+    <div class="section-desc">
+      Le cabinet ne self-serve pas — le <b>super-admin Gëstu</b> configure la marque blanche pour chaque cabinet
+      qui paye le tier Premium, depuis <span class="mono">/admin/cabinets/:id</span> via un nouvel onglet
+      <b>Marque blanche</b>. C&apos;est cohérent avec le modèle commercial : tu encaisses, tu actives ; tu coupes,
+      tu désactives. Le cabinet n&apos;a aucun accès à ces paramètres dans sa propre UI.
+    </div>
+
+    <div class="scene">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">app.gestucomply.com/admin/cabinets/audit-co-senegal</span>
+        <span class="ctx">Super-admin · onglet Marque blanche</span>
+      </div>
+      <div style="background:var(--gold); color:var(--f9); padding:8px 18px; font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:10px">
+        <span style="background:var(--f9); color:var(--gold); padding:1px 8px; border-radius:99px; font-size:9.5px; letter-spacing:.5px">ADMIN MODE</span>
+        Console super-admin Gëstu — toutes vos actions sont tracées dans l&apos;audit log.
+      </div>
+      <div style="padding:18px 28px 6px">
+        <div style="font-size:11.5px; color:var(--t5); margin-bottom:6px"><b style="color:var(--f9)">Admin</b> &rsaquo; Organisations &rsaquo; Audit&amp;Co Sénégal</div>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px">
+          <div style="width:38px; height:38px; background:var(--f1); color:var(--f9); border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800">A</div>
+          <div>
+            <div style="font-size:17px; font-weight:700">Audit&amp;Co Sénégal</div>
+            <div style="font-size:11px; color:var(--t5)">Cabinet · plan Pro · onboardé le 14 février 2026</div>
+          </div>
+          <span style="margin-left:auto; padding:3px 10px; background:var(--ok-bg); color:var(--ok); border-radius:99px; font-size:11px; font-weight:700">Actif</span>
+        </div>
+        <div style="display:flex; gap:2px; border-bottom:1px solid var(--border); margin-bottom:18px">
+          <span style="padding:8px 14px; font-size:12px; color:var(--t5); font-weight:500">Vue d&apos;ensemble</span>
+          <span style="padding:8px 14px; font-size:12px; color:var(--t5); font-weight:500">Membres · 14</span>
+          <span style="padding:8px 14px; font-size:12px; color:var(--t5); font-weight:500">Missions · 9</span>
+          <span style="padding:8px 14px; font-size:12px; color:var(--t5); font-weight:500">Facturation</span>
+          <span style="padding:8px 14px; font-size:12px; color:var(--f9); font-weight:700; border-bottom:2px solid var(--gold); margin-bottom:-1px">Marque blanche</span>
+          <span style="padding:8px 14px; font-size:12px; color:var(--t5); font-weight:500">Feature flags</span>
+          <span style="padding:8px 14px; font-size:12px; color:var(--t5); font-weight:500">Audit log</span>
+        </div>
+      </div>
+      <div style="padding:0 28px 28px">
+        <h2 style="font-size:16px; margin-bottom:6px">Marque blanche</h2>
+        <p style="font-size:12.5px; color:var(--t5); margin-bottom:18px">
+          Configurez le branding qui sera appliqué quand les clients de ce cabinet se connectent. Logo, couleurs,
+          domaine custom, support email. Le cabinet ne voit pas cette page — vous êtes le seul à pouvoir l&apos;activer.
+        </p>
+
+        <div class="config-grid">
+          <div class="config-form">
+            <h3>Identité visuelle <span style="font-size:9.5px; background:var(--g0); color:var(--gold); padding:2px 7px; border-radius:99px; margin-left:6px; font-weight:700; letter-spacing:.4px">Stratégie hybride</span></h3>
+
+            <div style="background:#FAFAF8; border:1px solid var(--border); border-radius:8px; padding:11px 13px; margin-bottom:14px; font-size:11.5px; color:var(--t7); line-height:1.55">
+              On demande <b>deux variantes</b> du logo pour qu&apos;il rende bien partout.
+              <b>Variante claire</b> sur les fonds blancs (emails, fiches mission). <b>Variante fond sombre</b> sur les fonds colorés
+              (login, hub, sidebar). Si la variante sombre n&apos;est pas fournie, on encadre la variante claire dans une
+              pastille blanche automatique &mdash; lisibilité garantie sans intervention du cabinet.
+            </div>
+
+            <div class="field-grp">
+              <label>Logo principal &mdash; fond clair <span style="color:var(--err); margin-left:2px">*</span></label>
+              <div class="upload-zone">
+                <div class="lg-preview" style="background:white; color:var(--auditco); border:1px solid var(--border)">A&amp;Co</div>
+                <div>auditco-logo-light.svg &middot; 12 Ko</div>
+                <div class="info">Affiché dans les emails, fiches mission, écrans clairs</div>
+              </div>
+            </div>
+
+            <div class="field-grp">
+              <label>
+                Logo variante fond sombre
+                <span style="font-size:10px; color:var(--t3); font-weight:500; text-transform:none; letter-spacing:0; margin-left:4px">optionnel &mdash; recommandé</span>
+              </label>
+              <div class="upload-zone" style="background:#0c1f4d">
+                <div class="lg-preview" style="background:transparent; border:1.5px solid rgba(255,255,255,.5); color:white">A&amp;Co</div>
+                <div style="color:rgba(255,255,255,.85)">auditco-logo-dark.svg &middot; 11 Ko</div>
+                <div class="info" style="color:rgba(255,255,255,.45)">Affiché sur login, hub, sidebar (fonds colorés)</div>
+              </div>
+            </div>
+
+            <div style="background:var(--info-bg); border:1px solid #BFDBFE; border-left:3px solid var(--info); padding:9px 12px; border-radius:0 7px 7px 0; font-size:11px; color:var(--info); line-height:1.5; margin-bottom:14px">
+              <b>Pas de variante sombre fournie ?</b> Le logo principal sera automatiquement encadré dans une pastille blanche &mdash; le fallback fast-setup pour les cabinets qui ne veulent pas s&apos;embêter.
+            </div>
+
+            <div class="field-grp">
+              <label>Couleurs de marque</label>
+              <div class="color-pickers">
+                <div class="color-swatch">
+                  <span class="chip" style="background:#1E40AF"></span>
+                  <span class="hex">#1E40AF</span>
+                  <span style="font-size:10.5px; color:var(--t3); margin-left:auto">Primaire</span>
+                </div>
+                <div class="color-swatch">
+                  <span class="chip" style="background:#3B82F6"></span>
+                  <span class="hex">#3B82F6</span>
+                  <span style="font-size:10.5px; color:var(--t3); margin-left:auto">Accent</span>
+                </div>
+              </div>
+              <p style="font-size:10.5px; color:var(--t3); margin-top:5px">Validation auto du contraste pour l&apos;accessibilité.</p>
+            </div>
+
+            <h3 style="margin-top:18px">Personnalisation email</h3>
+            <div class="field-grp">
+              <label>Nom expéditeur des emails</label>
+              <div class="input">Audit&Co Sénégal via Gëstu</div>
+              <p style="font-size:10.5px; color:var(--t3); margin-top:5px">Display name affiché dans la boîte du destinataire. Adresse technique reste <span class="mono">noreply@gestucomply.com</span>.</p>
+            </div>
+
+            <div class="field-grp">
+              <label>Email de support visible aux clients</label>
+              <div class="input">support@auditco.sn</div>
+            </div>
+
+            <h3 style="margin-top:18px">Domaine personnalisé <span style="font-size:10px; background:var(--g0); color:var(--gold); padding:2px 8px; border-radius:99px; margin-left:6px; font-weight:700">Niveau 3</span></h3>
+            <div class="field-grp">
+              <label>Hostname souhaité</label>
+              <div class="input">audit.auditco.sn</div>
+              <p style="font-size:10.5px; color:var(--t3); margin-top:5px">
+                Une fois saisi, on vous donne l&apos;enregistrement DNS à ajouter chez votre registrar.
+                La validation prend 5–60 minutes après publication DNS.
+              </p>
+            </div>
+
+            <div class="domain-card">
+              <div class="row">
+                <span class="lab">Type</span>
+                <span class="v">CNAME</span>
+                <span class="status ok">Configuré</span>
+              </div>
+              <div class="row">
+                <span class="lab">Nom</span>
+                <span class="v">audit</span>
+              </div>
+              <div class="row">
+                <span class="lab">Valeur</span>
+                <span class="v">tenants.gestucomply.com.</span>
+              </div>
+              <div class="row">
+                <span class="lab">SSL</span>
+                <span class="v" style="color:var(--ok)">✓ Émis automatiquement (Cloudflare)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-pane">
+            <h3>Aperçu en direct</h3>
+            <p style="font-size:11.5px; color:var(--t5); margin-bottom:10px">Voici à peu près ce que verront les clients du cabinet après publication.</p>
+
+            <div class="preview-mini">
+              <div class="preview-mini-head">
+                <span class="lg">A&Co</span>
+                Audit&Co Sénégal
+              </div>
+              <div class="preview-mini-body">
+                <div style="font-weight:700; margin-bottom:4px">Mes audits</div>
+                <div style="background:#F3F4F6; padding:5px; border-radius:3px; margin-bottom:3px">BNS · ISO 27001</div>
+                <div style="background:#F3F4F6; padding:5px; border-radius:3px">BNS · PSSI-ES</div>
+              </div>
+            </div>
+
+            <div class="ok-line">
+              ✓ Logo détecté · contraste accessible (AAA) · couleurs validées
+            </div>
+
+            <div class="ok-line" style="color:var(--info)">
+              <span style="background:var(--info-bg); padding:1px 6px; border-radius:3px; font-size:9px; font-weight:700">i</span>
+              <span>Mention &laquo; Powered by Gëstu &raquo; conservée dans le footer (obligatoire).</span>
+            </div>
+
+            <div style="margin-top:16px; padding:10px; background:var(--ok-bg); border:1px solid #A7F3D0; border-radius:8px; font-size:11.5px; color:var(--ok)">
+              <b>✓ Domaine actif</b> &mdash; <span class="mono">audit.auditco.sn</span> redirige vers votre portail brandé.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3 — Pages publiques (login + hub) -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">03</span>
+      <h2>Pages publiques · login &amp; hub brandés selon le hostname</h2>
+    </div>
+    <div class="section-desc">
+      Quand Marie tape <span class="mono">audit.auditco.sn/login</span>, elle voit déjà le branding Audit&Co AVANT même de se
+      connecter. Idem pour le Hub auditeurs : sur le domaine custom, tout est aux couleurs du cabinet, sans aucune mention
+      Gëstu sauf le « Powered by Gëstu » discret en bas. Le middleware résout le tenant via le hostname avant le rendu.
+    </div>
+
+    <div style="background:white; border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:18px; display:grid; grid-template-columns:1fr 1fr; gap:14px">
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--gold); font-weight:700; margin-bottom:6px">Cabinet « soigné » &mdash; variante sombre fournie</div>
+        <div style="background:var(--auditco); border-radius:7px; padding:14px; display:flex; align-items:center; justify-content:center; gap:8px; min-height:60px">
+          <span style="color:white; font-family:Manrope,sans-serif; font-weight:800; font-size:22px; letter-spacing:-.5px">A&amp;Co</span>
+        </div>
+        <div style="font-size:11px; color:var(--t5); margin-top:6px; line-height:1.5">Le logo blanc dédié est posé directement sur le fond coloré. Maximum de finesse visuelle.</div>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--t5); font-weight:700; margin-bottom:6px">Cabinet « fast setup » &mdash; fallback automatique</div>
+        <div style="background:var(--auditco); border-radius:7px; padding:14px; display:flex; align-items:center; justify-content:center; gap:8px; min-height:60px">
+          <span style="background:white; color:var(--auditco); border-radius:8px; padding:6px 11px; font-family:Manrope,sans-serif; font-weight:800; font-size:16px">A&amp;Co</span>
+        </div>
+        <div style="font-size:11px; color:var(--t5); margin-top:6px; line-height:1.5">La variante claire est encadrée dans une pastille blanche par défaut. Lisibilité garantie.</div>
+      </div>
+    </div>
+
+    <!-- Login comparison -->
+    <h3 style="font-size:14px; font-weight:700; color:var(--f9); margin-bottom:10px">Page de connexion</h3>
+    <div class="email-grid" style="margin-bottom:24px">
+
+      <!-- Login Gëstu neutre -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">app.gestucomply.com/login</span>
+          <span class="ctx">Login neutre Gëstu</span>
+        </div>
+        <div style="background:linear-gradient(180deg, #0F2A22 0%, #1B4332 100%); padding:60px 32px; min-height:340px; display:flex; align-items:center; justify-content:center">
+          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(212,168,67,0.2); border-radius:16px; padding:32px; max-width:340px; width:100%; backdrop-filter:blur(8px)">
+            <div style="text-align:center; margin-bottom:24px">
+              <div style="width:54px; height:54px; background:var(--gold); border-radius:14px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; color:var(--f9); font-weight:900; font-family:Georgia,serif; font-size:24px">G</div>
+              <div style="color:white; font-weight:800; font-size:18px; letter-spacing:.3px">G<span style="color:var(--gold)">ë</span>stu</div>
+              <div style="color:var(--g2); font-size:10px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-top:2px">Comply</div>
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="display:block; color:rgba(255,255,255,0.6); font-size:11px; letter-spacing:.4px; font-weight:600; margin-bottom:4px">Email</label>
+              <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:7px; padding:8px 12px; color:white; font-size:12.5px">marie.diallo@bns.sn</div>
+            </div>
+            <div style="margin-bottom:14px">
+              <label style="display:block; color:rgba(255,255,255,0.6); font-size:11px; letter-spacing:.4px; font-weight:600; margin-bottom:4px">Mot de passe</label>
+              <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:7px; padding:8px 12px; color:white; font-size:12.5px">••••••••</div>
+            </div>
+            <button style="width:100%; background:var(--gold); color:var(--f9); border:none; border-radius:8px; padding:10px; font-size:13px; font-weight:700; cursor:pointer">Se connecter</button>
+            <div style="text-align:center; margin-top:12px"><a href="#" style="color:rgba(255,255,255,0.45); font-size:11px">Mot de passe oublié ?</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Audit&Co brandé -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">audit.auditco.sn/login</span>
+          <span class="ctx">Login brandé Audit&Co</span>
+        </div>
+        <div style="background:linear-gradient(180deg, #0c1f4d 0%, var(--auditco) 100%); padding:60px 32px; min-height:340px; display:flex; align-items:center; justify-content:center">
+          <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:16px; padding:32px; max-width:340px; width:100%; backdrop-filter:blur(8px)">
+            <div style="text-align:center; margin-bottom:24px">
+              <div style="margin:0 auto 10px; color:white; font-family:Manrope,sans-serif; font-weight:800; font-size:34px; letter-spacing:-1px; line-height:1">A&amp;Co</div>
+              <div style="color:rgba(255,255,255,0.85); font-size:13px; letter-spacing:.3px; font-family:Manrope,sans-serif; font-weight:600">Audit&amp;Co Sénégal</div>
+              <div style="color:rgba(255,255,255,0.55); font-size:9.5px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-top:4px">Plateforme d&apos;audit</div>
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="display:block; color:rgba(255,255,255,0.6); font-size:11px; letter-spacing:.4px; font-weight:600; margin-bottom:4px">Email</label>
+              <div style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:7px; padding:8px 12px; color:white; font-size:12.5px">marie.diallo@bns.sn</div>
+            </div>
+            <div style="margin-bottom:14px">
+              <label style="display:block; color:rgba(255,255,255,0.6); font-size:11px; letter-spacing:.4px; font-weight:600; margin-bottom:4px">Mot de passe</label>
+              <div style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:7px; padding:8px 12px; color:white; font-size:12.5px">••••••••</div>
+            </div>
+            <button style="width:100%; background:white; color:var(--auditco); border:none; border-radius:8px; padding:10px; font-size:13px; font-weight:700; cursor:pointer">Se connecter</button>
+            <div style="text-align:center; margin-top:12px"><a href="#" style="color:rgba(255,255,255,0.55); font-size:11px">Mot de passe oublié ?</a></div>
+            <div style="text-align:center; margin-top:24px; font-size:9.5px; color:rgba(255,255,255,0.35); letter-spacing:.4px">Powered by <span style="color:rgba(255,255,255,0.55); font-weight:600">Gëstu</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Hub comparison -->
+    <h3 style="font-size:14px; font-weight:700; color:var(--f9); margin-bottom:10px">Hub auditeurs</h3>
+    <div class="section-desc" style="margin-bottom:14px">
+      Le Hub liste les produits Gëstu disponibles (Comply, Risk, Privacy…). Sur le domaine custom du cabinet, les
+      cartes restent mais brandées. Mention « Powered by Gëstu » obligatoire.
+    </div>
+
+    <div class="email-grid">
+
+      <!-- Hub Gëstu neutre -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">app.gestucomply.com/hub</span>
+          <span class="ctx">Hub neutre · Aïssatou (auditeur Audit&Co)</span>
+        </div>
+        <div style="background:linear-gradient(180deg, #0F2A22 0%, #1B4332 100%); padding:32px; min-height:380px">
+          <div style="text-align:center; margin-bottom:24px">
+            <div style="width:48px; height:48px; background:var(--gold); border-radius:12px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; color:var(--f9); font-weight:900; font-family:Georgia,serif; font-size:20px">G</div>
+            <div style="color:white; font-weight:800; font-size:18px">G<span style="color:var(--gold)">ë</span>stu</div>
+            <div style="color:rgba(255,255,255,0.5); font-size:11.5px; margin-top:8px">Bonjour, Aïssatou. Choisissez votre espace.</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; max-width:380px; margin:0 auto">
+            <div style="background:rgba(64,145,108,0.15); border:1px solid rgba(64,145,108,0.4); border-radius:10px; padding:14px">
+              <div style="color:#40916C; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px">Comply</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">Conformité &amp; Audit SI</div>
+              <div style="color:rgba(255,255,255,0.4); font-size:10px; margin-top:6px">3 missions</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px; opacity:.4">
+              <div style="color:#DC2626; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px">Risk</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">Gestion des risques</div>
+              <div style="color:rgba(255,255,255,0.3); font-size:10px; margin-top:6px">Bientôt</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px; opacity:.4">
+              <div style="color:#7B68EE; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px">Privacy</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">RGPD &amp; PII</div>
+              <div style="color:rgba(255,255,255,0.3); font-size:10px; margin-top:6px">Bientôt</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px; opacity:.4">
+              <div style="color:#3B82F6; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px">Policy</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">Politiques &amp; Procédures</div>
+              <div style="color:rgba(255,255,255,0.3); font-size:10px; margin-top:6px">Bientôt</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hub Audit&Co brandé -->
+      <div class="scene">
+        <div class="scene-h">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">audit.auditco.sn/hub</span>
+          <span class="ctx">Hub brandé · Aïssatou sur le domaine cabinet</span>
+        </div>
+        <div style="background:linear-gradient(180deg, #0c1f4d 0%, var(--auditco) 100%); padding:32px; min-height:380px">
+          <div style="text-align:center; margin-bottom:24px">
+            <div style="color:white; font-family:Manrope,sans-serif; font-weight:800; font-size:30px; letter-spacing:-.8px; line-height:1; margin-bottom:6px">A&amp;Co</div>
+            <div style="color:rgba(255,255,255,0.85); font-weight:600; font-size:13px; font-family:Manrope,sans-serif">Audit&amp;Co Sénégal</div>
+            <div style="color:rgba(255,255,255,0.7); font-size:11.5px; margin-top:10px">Bonjour, Aïssatou. Choisissez votre espace.</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; max-width:380px; margin:0 auto">
+            <div style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); border-radius:10px; padding:14px">
+              <div style="color:white; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px; opacity:.85">Comply</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">Conformité &amp; Audit SI</div>
+              <div style="color:rgba(255,255,255,0.7); font-size:10px; margin-top:6px">3 missions</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:14px; opacity:.5">
+              <div style="color:rgba(255,255,255,0.7); font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px">Risk</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">Gestion des risques</div>
+              <div style="color:rgba(255,255,255,0.5); font-size:10px; margin-top:6px">Bientôt</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:14px; opacity:.5">
+              <div style="color:rgba(255,255,255,0.7); font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px">Privacy</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">RGPD &amp; PII</div>
+              <div style="color:rgba(255,255,255,0.5); font-size:10px; margin-top:6px">Bientôt</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:14px; opacity:.5">
+              <div style="color:rgba(255,255,255,0.7); font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:4px">Policy</div>
+              <div style="color:white; font-size:12.5px; font-weight:700">Politiques &amp; Procédures</div>
+              <div style="color:rgba(255,255,255,0.5); font-size:10px; margin-top:6px">Bientôt</div>
+            </div>
+          </div>
+          <div style="text-align:center; margin-top:18px; font-size:9.5px; color:rgba(255,255,255,0.35); letter-spacing:.4px">Powered by <span style="color:rgba(255,255,255,0.55); font-weight:600">Gëstu</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="pricing-note" style="margin-top:18px">
+      <b>Implémentation</b> — le middleware Edge résout le hostname AVANT le rendu, donc même la page de login (qui n&apos;exige
+      pas d&apos;auth) connaît déjà le tenant. Le branding (logo, couleurs, nom) est passé à <span class="mono">LoginPage</span> et
+      <span class="mono">HubPage</span> via le contexte React, qui injecte les CSS variables et le composant logo dynamiquement.
+    </div>
+  </div>
+
+  <!-- Section 4 — Portail neutre (default) -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">04</span>
+      <h2>Portail neutre · <span class="mono" style="font-size:14px;color:var(--gold)">app.gestucomply.com/client</span></h2>
+    </div>
+    <div class="section-desc">
+      Marie tape l&apos;URL de Gëstu directement → elle voit <b>toutes ses missions, tous cabinets confondus</b>, dans une UI Gëstu standard.
+      Chaque mission est étiquetée par cabinet pour qu&apos;elle sache qui l&apos;audite. Quand elle ouvre une mission précise, une bannière
+      colorée du cabinet apparaît en haut.
+    </div>
+
+    <div class="scene">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">app.gestucomply.com/client</span>
+        <span class="ctx">Marie Diallo · BNS · 3 missions de 3 cabinets différents</span>
+      </div>
+      <div class="gestu-shell">
+        <aside class="gestu-side">
+          <div class="gestu-logo">
+            <div class="lg">G</div>
+            <div class="titles">
+              <div class="b">G<i>ë</i>stu</div>
+              <div class="sub">Comply</div>
+            </div>
+          </div>
+          <nav class="nav">
+            <div class="nav-item active"><span class="ico">⌂</span>Tableau de bord</div>
+            <div class="nav-item"><span class="ico">📋</span>Mes audits</div>
+            <div class="nav-item"><span class="ico">📁</span>Documents</div>
+            <div class="nav-item"><span class="ico">🔔</span>Notifications</div>
+          </nav>
+          <div style="padding:10px 14px; border-top:1px solid rgba(255,255,255,.1); font-size:10px; color:rgba(255,255,255,.5)">
+            Marie Diallo<br/>marie.diallo@bns.sn
+          </div>
+        </aside>
+        <div class="app-main">
+          <div class="app-h">
+            <h1>Mes audits</h1>
+            <span class="sub">3 missions en cours · 3 cabinets</span>
+          </div>
+
+          <div class="mission-card">
+            <div class="name">Audit ISO 27001 · 2026</div>
+            <div class="meta">
+              <span class="cabinet-tag auditco">Audit&Co</span>
+              <span>Phase travaux · 73 % avancée</span>
+              <span>· 5 documents demandés</span>
+            </div>
+            <div class="progress"><div class="progress-fill" style="background:#3B82F6; width:73%"></div></div>
+          </div>
+
+          <div class="mission-card">
+            <div class="name">Audit PSSI-ES · DCSSI 2026</div>
+            <div class="meta">
+              <span class="cabinet-tag dcssi">DCSSI</span>
+              <span>Cadrage · 12 % avancée</span>
+              <span>· 8 documents demandés</span>
+            </div>
+            <div class="progress"><div class="progress-fill" style="background:var(--err); width:12%"></div></div>
+          </div>
+
+          <div class="mission-card">
+            <div class="name">Évaluation continuité · Plan PCA</div>
+            <div class="meta">
+              <span class="cabinet-tag sonner">Sonner Audit</span>
+              <span>Revue interne · 88 % avancée</span>
+              <span>· 0 documents en attente</span>
+            </div>
+            <div class="progress"><div class="progress-fill" style="background:var(--gold); width:88%"></div></div>
+          </div>
+
+          <div style="margin-top:14px; font-size:11.5px; color:var(--t5)">
+            💡 <b>Astuce :</b> certains cabinets vous donnent une URL personnalisée (ex. <span class="mono">audit.auditco.sn</span>).
+            Vous pouvez toujours utiliser celle-ci ou le portail Gëstu, votre compte est unique.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-desc" style="margin-top:18px">
+      <b>Quand Marie clique sur la mission Audit&amp;Co</b> → la fiche détail s&apos;ouvre, l&apos;UI reste Gëstu mais une bannière colorée
+      du cabinet apparaît en haut. Discrète mais nette.
+    </div>
+
+    <div class="scene">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">app.gestucomply.com/client/missions/audit-iso-27001-bns</span>
+        <span class="ctx">Marie · fiche mission · bannière cabinet</span>
+      </div>
+      <div class="gestu-shell">
+        <aside class="gestu-side">
+          <div class="gestu-logo">
+            <div class="lg">G</div>
+            <div class="titles">
+              <div class="b">G<i>ë</i>stu</div>
+              <div class="sub">Comply</div>
+            </div>
+          </div>
+          <nav class="nav">
+            <div class="nav-item"><span class="ico">⌂</span>Tableau de bord</div>
+            <div class="nav-item active"><span class="ico">📋</span>Mes audits</div>
+          </nav>
+        </aside>
+        <div class="app-main">
+          <div class="mission-detail-banner">
+            <div class="lg">A&Co</div>
+            <div class="text">Cette mission est conduite par <b>Audit&amp;Co Sénégal</b> · Pour une expérience dédiée, accédez aussi à <span class="mono" style="background:white; padding:1px 6px; border-radius:3px">audit.auditco.sn</span></div>
+          </div>
+
+          <div class="page-content">
+            <h2>Audit ISO 27001 · BNS · 2026</h2>
+            <div class="meta">Audit&Co Sénégal · Phase Travaux · Lead : Aïssatou Ndiaye</div>
+
+            <div class="tabs-fake">
+              <span class="tab-fake active green">Aperçu</span>
+              <span class="tab-fake">Documents · 5 demandés</span>
+              <span class="tab-fake">Questionnaire</span>
+              <span class="tab-fake">Entretiens</span>
+            </div>
+
+            <div class="fake-card">
+              <b>Documents en attente :</b> Politique d&apos;accès, Procédure revue comptes, Plan continuité, Charte sécurité, Inventaire SI
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5 — Portail brandé -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">05</span>
+      <h2>Portail brandé · <span class="mono" style="font-size:14px;color:var(--auditco)">audit.auditco.sn</span></h2>
+    </div>
+    <div class="section-desc">
+      Marie tape l&apos;URL de son cabinet → elle ne voit que les missions Audit&amp;Co. Tout est aux couleurs du cabinet : sidebar, header,
+      icônes, CTA. Mention « Powered by Gëstu » discrète en pied de sidebar (obligatoire). Si Marie a aussi des missions ailleurs,
+      un bandeau d&apos;information le mentionne.
+    </div>
+
+    <div class="scene">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">audit.auditco.sn</span>
+        <span class="ctx">Marie · Portail brandé Audit&Co · Option β bandeau</span>
+      </div>
+      <div class="gestu-shell">
+        <aside class="gestu-side branded-side">
+          <div class="gestu-logo">
+            <div class="lg">A&Co</div>
+            <div class="titles">
+              <div class="b" style="font-family:Manrope;sans-serif">Audit&amp;Co</div>
+              <div class="sub">Sénégal</div>
+            </div>
+          </div>
+          <nav class="nav">
+            <div class="nav-item active"><span class="ico">⌂</span>Tableau de bord</div>
+            <div class="nav-item"><span class="ico">📋</span>Mes audits</div>
+            <div class="nav-item"><span class="ico">📁</span>Documents</div>
+            <div class="nav-item"><span class="ico">🔔</span>Notifications</div>
+            <div class="nav-item"><span class="ico">📞</span>Contacter Audit&amp;Co</div>
+          </nav>
+          <div class="powered">Powered by <span>Gëstu</span></div>
+        </aside>
+        <div class="app-main">
+          <div class="cross-banner">
+            <span style="background:var(--info); color:white; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700">i</span>
+            <div>
+              <b>Vous avez aussi 2 missions ailleurs</b> &mdash; DCSSI · PSSI-ES &nbsp;·&nbsp; Sonner Audit · Plan PCA
+            </div>
+            <a href="#" class="arr" style="font-size:11.5px; color:var(--info); font-weight:700; text-decoration:underline">Voir tout sur app.gestucomply.com →</a>
+          </div>
+
+          <div class="app-h">
+            <h1 style="color:var(--auditco)">Mes audits Audit&amp;Co</h1>
+            <span class="sub">1 mission active</span>
+          </div>
+
+          <div class="mission-card" style="border-left:3px solid var(--auditco)">
+            <div class="name">Audit ISO 27001 · 2026</div>
+            <div class="meta">
+              <span style="font-size:11px; color:var(--auditco); font-weight:600">Audit&amp;Co · Lead : Aïssatou Ndiaye</span>
+              <span>· Phase travaux · 73 % avancée</span>
+              <span>· 5 documents demandés</span>
+            </div>
+            <div class="progress"><div class="progress-fill" style="background:var(--auditco); width:73%"></div></div>
+          </div>
+
+          <div style="margin-top:18px; padding:14px; background:var(--auditco-bg); border-left:3px solid var(--auditco); border-radius:0 8px 8px 0">
+            <p style="font-size:12px; color:var(--auditco-text)">
+              <b>Besoin d&apos;aide ?</b> Contactez votre auditeur Audit&amp;Co directement à <span class="mono">support@auditco.sn</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-desc" style="margin-top:18px">
+      <b>Sur la fiche mission</b> du portail brandé, l&apos;UI reste 100 % Audit&Co — onglets, tabs, couleurs, boutons.
+      Pas de bannière, pas de mention Gëstu sauf le footer discret.
+    </div>
+
+    <div class="scene">
+      <div class="scene-h">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="url">audit.auditco.sn/missions/iso-27001-bns</span>
+        <span class="ctx">Marie · fiche mission brandée 100 %</span>
+      </div>
+      <div class="gestu-shell">
+        <aside class="gestu-side branded-side">
+          <div class="gestu-logo">
+            <div class="lg">A&Co</div>
+            <div class="titles">
+              <div class="b" style="font-family:Manrope,sans-serif">Audit&amp;Co</div>
+              <div class="sub">Sénégal</div>
+            </div>
+          </div>
+          <nav class="nav">
+            <div class="nav-item"><span class="ico">⌂</span>Tableau de bord</div>
+            <div class="nav-item active"><span class="ico">📋</span>Mes audits</div>
+          </nav>
+          <div class="powered">Powered by <span>Gëstu</span></div>
+        </aside>
+        <div class="app-main">
+          <div class="page-content">
+            <h2 style="color:var(--auditco)">Audit ISO 27001 · BNS · 2026</h2>
+            <div class="meta">Audit&amp;Co Sénégal · Phase Travaux · Lead : Aïssatou Ndiaye</div>
+
+            <div class="tabs-fake">
+              <span class="tab-fake active">Aperçu</span>
+              <span class="tab-fake">Documents · 5 demandés</span>
+              <span class="tab-fake">Questionnaire</span>
+              <span class="tab-fake">Entretiens</span>
+            </div>
+
+            <div class="fake-card" style="border-left:3px solid var(--auditco)">
+              <b style="color:var(--auditco)">Documents en attente :</b> Politique d&apos;accès, Procédure revue comptes, Plan continuité, Charte sécurité, Inventaire SI
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:14px">
+              <a href="#" class="brand-bg" style="padding:8px 14px; border-radius:7px; font-size:12px; font-weight:700; color:white; text-decoration:none">Déposer un document</a>
+              <a href="#" style="padding:8px 14px; border:1px solid var(--auditco); color:var(--auditco); border-radius:7px; font-size:12px; font-weight:700; text-decoration:none">Contacter Audit&amp;Co</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 6 — Email comparison -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">06</span>
+      <h2>Email de relance · neutre vs brandé</h2>
+    </div>
+    <div class="section-desc">
+      Le même email, généré par la même Edge Function <span class="mono">evidence-reminders</span>. Si le cabinet a configuré sa marque blanche,
+      le template change : header coloré, logo, signature, lien CTA pointant vers le domaine custom. L&apos;adresse technique reste
+      <span class="mono">noreply@gestucomply.com</span> (pas de DKIM custom — trop lourd Niveau 2).
+    </div>
+
+    <div class="email-grid">
+      <div class="mail">
+        <div class="mail-meta">
+          <div class="from">Gëstu Comply</div>
+          <div style="font-size:10.5px; color:var(--t5)">noreply@gestucomply.com · 26 avr. 07:02</div>
+          <div class="subj">Rappel — Politique d&apos;accès demandée le 22 avril</div>
+        </div>
+        <div class="mail-body">
+          <div class="eh-default">
+            <div class="lg">G</div>
+            <div>
+              <div class="b">G<i>ë</i>stu</div>
+              <div style="font-size:9.5px; color:var(--g2); text-transform:uppercase; letter-spacing:.5px">Comply</div>
+            </div>
+          </div>
+          <div class="mail-content">
+            <h2>Bonjour Marie,</h2>
+            <p>Nous nous permettons de revenir vers vous concernant un document attendu pour la mission d&apos;audit ISO 27001 (Audit&amp;Co Sénégal).</p>
+            <p>Vous pouvez déposer le document directement depuis votre espace client.</p>
+            <a href="#" class="cta">Déposer le document</a>
+          </div>
+          <div class="mail-foot">
+            <p>Vous recevez cet email car vous êtes référent métier sur cette mission.</p>
+            <p>Vous pouvez <a href="#">désactiver les relances</a> à tout moment.</p>
+            <p class="powered">Gëstu Comply · noreply@gestucomply.com</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail">
+        <div class="mail-meta">
+          <div class="from">Audit&amp;Co Sénégal via Gëstu</div>
+          <div style="font-size:10.5px; color:var(--t5)">noreply@gestucomply.com · 26 avr. 07:02</div>
+          <div class="subj">Rappel — Politique d&apos;accès demandée le 22 avril</div>
+        </div>
+        <div class="mail-body">
+          <div class="eh-brand">
+            <div class="lg">A&Co</div>
+            <div>
+              <div class="b" style="font-family:Manrope,sans-serif">Audit&amp;Co Sénégal</div>
+              <div class="small">Cabinet d&apos;audit · Dakar</div>
+            </div>
+          </div>
+          <div class="mail-content">
+            <h2 style="color:var(--auditco)">Bonjour Marie,</h2>
+            <p>Nous revenons vers vous concernant un document attendu pour votre audit ISO 27001 que nous menons ensemble.</p>
+            <p>Pour faciliter la suite, vous pouvez le déposer directement sur votre espace dédié :</p>
+            <a href="#" class="cta brand">Déposer le document</a>
+          </div>
+          <div class="mail-foot brand">
+            <p>Cet email vous est adressé par <b>Audit&amp;Co Sénégal</b>. Pour toute question : <a href="#">support@auditco.sn</a></p>
+            <p>Vous pouvez <a href="#">désactiver les relances</a> à tout moment.</p>
+            <p class="powered">Audit&amp;Co · Powered by Gëstu</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 7 — Architecture -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">07</span>
+      <h2>Architecture du routing par hostname (Niveau 3)</h2>
+    </div>
+    <div class="section-desc">
+      Le hostname (<span class="mono">audit.auditco.sn</span>) est résolu en cabinet via la table <span class="mono">cabinet_domains</span>.
+      Le tenant_id est injecté dans la session, le branding chargé au runtime via CSS variables, les missions filtrées automatiquement.
+    </div>
+
+    <div class="arch">
+      <div class="arch-card host">
+        <div class="lab">DNS du cabinet</div>
+        <div class="v">audit.auditco.sn</div>
+        <div class="extra">CNAME → tenants.gestucomply.com</div>
+      </div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-card">
+        <div class="lab">Hosting (Vercel / Cloudflare)</div>
+        <div class="v">request.host = ?</div>
+        <div class="extra">SSL automatique<br/>edge middleware lit hostname</div>
+      </div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-card fn">
+        <div class="lab">Tenant resolver</div>
+        <div class="v">SELECT cabinet_id<br/>FROM cabinet_domains</div>
+        <div class="extra">Cache 60s<br/>Injection tenant_id session</div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div class="arch-card fn">
+        <div class="lab">Frontend</div>
+        <div class="v">useCabinetBranding(tenant_id)</div>
+        <div class="extra">Logo + couleurs<br/>via CSS variables :root</div>
+      </div>
+      <span class="arch-arrow">+</span>
+      <div class="arch-card fn">
+        <div class="lab">Filtrage missions</div>
+        <div class="v">WHERE cabinet_id = tenant_id</div>
+        <div class="extra">Hook useClientMissions<br/>scope sur le tenant</div>
+      </div>
+      <span class="arch-arrow">+</span>
+      <div class="arch-card fn">
+        <div class="lab">Banner cross-cabinet</div>
+        <div class="v">if (other_missions &gt; 0) show</div>
+        <div class="extra">Lien vers app.gestucomply.com<br/>(option β)</div>
+      </div>
+    </div>
+
+<div class="code">
+<span class="com">-- Migration · cabinet_domains</span>
+<span class="kw">CREATE TABLE</span> <span class="fn">public.cabinet_domains</span> (
+  id              <span class="ty">uuid</span> <span class="kw">PRIMARY KEY DEFAULT</span> gen_random_uuid(),
+  cabinet_id      <span class="ty">uuid</span> <span class="kw">NOT NULL REFERENCES</span> public.organizations(id) <span class="kw">ON DELETE CASCADE</span>,
+  hostname        <span class="ty">text</span> <span class="kw">NOT NULL UNIQUE</span>,
+  is_verified     <span class="ty">boolean</span> <span class="kw">NOT NULL DEFAULT</span> <span class="kw">false</span>,
+  ssl_status      <span class="ty">text</span> <span class="kw">DEFAULT</span> <span class="str">'pending'</span>,  <span class="com">-- pending, issued, error</span>
+  verified_at     <span class="ty">timestamptz</span>,
+  created_at      <span class="ty">timestamptz</span> <span class="kw">NOT NULL DEFAULT</span> now()
+);
+
+<span class="com">-- Migration · branding par organisation (Option D : dual-logo)</span>
+<span class="kw">CREATE TABLE</span> <span class="fn">public.organization_branding</span> (
+  organization_id     <span class="ty">uuid</span> <span class="kw">PRIMARY KEY REFERENCES</span> public.organizations(id) <span class="kw">ON DELETE CASCADE</span>,
+  logo_light_url      <span class="ty">text</span>,           <span class="com">-- requis · fond clair (emails, fiches mission)</span>
+  logo_dark_url       <span class="ty">text</span>,           <span class="com">-- optionnel · fond sombre (login, hub, sidebar)</span>
+  primary_color       <span class="ty">text</span>,           <span class="com">-- #RRGGBB</span>
+  accent_color        <span class="ty">text</span>,
+  support_email       <span class="ty">text</span>,
+  email_from_name     <span class="ty">text</span>,           <span class="com">-- "Audit&Co Sénégal via Gëstu"</span>
+  footer_text         <span class="ty">text</span>,
+  updated_at          <span class="ty">timestamptz</span> <span class="kw">NOT NULL DEFAULT</span> now(),
+  updated_by          <span class="ty">uuid</span> <span class="kw">REFERENCES</span> public.users(id) <span class="kw">ON DELETE SET NULL</span>
+);
+
+<span class="com">-- Règle de rendu côté client :</span>
+<span class="com">--   surface claire  → logo_light_url tel quel</span>
+<span class="com">--   surface sombre  → logo_dark_url si présent, sinon logo_light_url dans pastille blanche (fallback)</span>
+
+<span class="com">-- Edge middleware (Vercel ou Cloudflare Worker)</span>
+<span class="kw">export async function</span> <span class="fn">middleware</span>(req) {
+  <span class="kw">const</span> hostname = req.headers.get(<span class="str">'host'</span>)
+  <span class="kw">if</span> (hostname === <span class="str">'app.gestucomply.com'</span>) <span class="kw">return</span> NextResponse.next()  <span class="com">// neutre</span>
+
+  <span class="kw">const</span> { data } = <span class="kw">await</span> supabase
+    .<span class="fn">from</span>(<span class="str">'cabinet_domains'</span>)
+    .<span class="fn">select</span>(<span class="str">'cabinet_id'</span>)
+    .<span class="fn">eq</span>(<span class="str">'hostname'</span>, hostname)
+    .<span class="fn">eq</span>(<span class="str">'is_verified'</span>, <span class="kw">true</span>)
+    .<span class="fn">single</span>()
+
+  <span class="kw">if</span> (data) {
+    <span class="kw">const</span> res = NextResponse.<span class="fn">next</span>()
+    res.cookies.<span class="fn">set</span>(<span class="str">'tenant_id'</span>, data.cabinet_id)
+    <span class="kw">return</span> res
+  }
+  <span class="kw">return</span> NextResponse.<span class="fn">redirect</span>(<span class="str">'https://app.gestucomply.com'</span>)
+}
+</div>
+  </div>
+
+  <!-- Section 8 — Pricing tier -->
+  <div class="section">
+    <div class="section-h">
+      <span class="num">08</span>
+      <h2>Pricing tier · qui a accès à quoi ?</h2>
+    </div>
+
+    <div class="strat-grid">
+      <div class="strat-card">
+        <h3>Découverte (gratuit)</h3>
+        <div class="small">Aucune marque blanche</div>
+        <div class="pros">
+          <p>Le portail client affiche Gëstu</p>
+          <p>Emails de relance « Gëstu Comply »</p>
+        </div>
+      </div>
+      <div class="strat-card">
+        <h3>Pro</h3>
+        <div class="small">Niveau 2 inclus</div>
+        <div class="pros">
+          <p><b>+</b> Logo cabinet · couleurs custom</p>
+          <p><b>+</b> Email branding (display name + footer)</p>
+          <p><b>+</b> Support email custom</p>
+        </div>
+      </div>
+      <div class="strat-card recommended">
+        <span class="badge">Premium</span>
+        <h3>Pro Premium</h3>
+        <div class="small">Niveaux 2 + 3</div>
+        <div class="pros">
+          <p>Tout du Pro</p>
+          <p><b>+</b> Domaine custom (CNAME)</p>
+          <p><b>+</b> SSL automatique</p>
+          <p><b>+</b> Bannière cross-cabinet (option β)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pricing-note">
+      <b>Implémentation</b> — la marque blanche est <b>configurée et activée par le super-admin Gëstu</b>
+      depuis l&apos;onglet « Marque blanche » de la fiche organisation (<span class="mono">/admin/cabinets/:id</span>).
+      Pas de self-service côté cabinet : c&apos;est cohérent avec le modèle commercial premium.
+      Pour activer / couper instantanément sans perdre la config, le flag <span class="mono">white_label_branding</span>
+      (override par cabinet) reste utilisable comme kill-switch. Aucun déploiement nécessaire dans tous les cas.
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:14px; font-size:12px; color:var(--t5)">
+    <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--f9)">Gestu Comply</div>
+    <div>·</div>
+    <div>Mockup marque blanche · stratégie Hybrid β · Niveaux 2 + 3</div>
+    <div style="margin-left:auto">Couleurs : Vert forêt #1B4332 · Or #D4A843 · Police : Inter</div>
+  </div>
+
+</div>
+
+</body>
+</html>

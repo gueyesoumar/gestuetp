@@ -1,0 +1,240 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import {
+  SCORE_DIMENSION_KEYS, SCORE_DIMENSION_KIND, type ScoreDimensionKey,
+  SCORE_FACTOR_WEIGHTS, SCORE_COEFFICIENT_FLOOR, ASSURANCE_FRESHNESS_MONTHS,
+  SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
+} from '../../lib/constants'
+
+// Score de confiance par dimension pour l'organisation courante (Phase B).
+// Meme perimetre que le score composite actuel (missions du cabinet), mais
+// ventile par dimension via la jointure control_assessments -> controls.dimension.
+// 6 axes (moyennes dans le composite) + facteurs transverses qui TEMPERENT le
+// composite (penalite seule, jamais de bonus) :
+//   composite_posture = moyenne(axes mesures)
+//   coefficient       = produit(1 - w * (1 - score/100)) sur facteurs mesures, borne
+//   composite         = round(composite_posture * coefficient)
+// Facteurs : human_factor + third_party (mappes) + assurance (calcule sur la
+// fraicheur/documentation des preuves). Degradation gracieuse : une dimension
+// ou un facteur sans mesure reste `null` (non compte, neutre).
+
+export interface DimScore {
+  key: ScoreDimensionKey
+  score: number | null
+  total: number
+  approved: number
+}
+
+export interface FactorScore {
+  key: ScoreFactorKey
+  score: number | null
+  // Detail lisible : "12/40 controles" (mappe) ou "8/12 preuves fiables" (assurance).
+  total: number
+  covered: number
+  // Points de composite retires par ce facteur (>= 0), pour l'affichage.
+  penaltyPts: number
+}
+
+export interface SelfDimensionData {
+  loading: boolean
+  axes: DimScore[]
+  factors: FactorScore[]
+  compositePosture: number | null
+  composite: number | null
+  coefficient: number
+  measuredAxes: number
+  totalAxes: number
+}
+
+const AXIS_KEYS = SCORE_DIMENSION_KEYS.filter((k) => SCORE_DIMENSION_KIND[k] === 'axis')
+const MAPPED_FACTOR_KEYS = SCORE_DIMENSION_KEYS.filter(
+  (k) => SCORE_DIMENSION_KIND[k] === 'factor',
+) as ReadonlyArray<Extract<ScoreFactorKey, ScoreDimensionKey>>
+
+const EMPTY: SelfDimensionData = {
+  loading: false, axes: [], factors: [], compositePosture: null, composite: null,
+  coefficient: 1, measuredAxes: 0, totalAxes: AXIS_KEYS.length,
+}
+
+function toDimScore(key: ScoreDimensionKey, agg: { total: number; approved: number } | undefined): DimScore {
+  const total = agg?.total ?? 0
+  const approved = agg?.approved ?? 0
+  return { key, total, approved, score: total > 0 ? Math.round((approved / total) * 100) : null }
+}
+
+interface AssessmentRow {
+  id: string
+  status: string
+  control_id: string
+  updated_at: string
+  evidence_notes: string | null
+}
+
+// Assurance : qualite ponderee des preuves des controles approuves, sur 3 signaux
+//   - fraicheur   : updated_at dans la fenetre d'un cycle
+//   - documentation: evidence_notes non vide
+//   - scellement  : validation independante approuvee dans la chaine probante
+// Mesure la confiance dans la mesure elle-meme ; plafonnee a 100 par nature.
+// Le scellement est *gradue* : profondeur ∈ {0 ; 0,5 ; 0,8 ; 1} selon l'etape de
+// revue la plus profonde atteinte (SEAL_STAGE_WEIGHTS). `sealedDepth` = null ->
+// scellement indisponible (RLS) : degradation gracieuse vers le modele 2 signaux
+// (frais/documente), l'assurance n'est jamais cassee.
+function computeAssurance(
+  rows: AssessmentRow[],
+  freshCutoffMs: number,
+  sealedDepth: Map<string, number> | null,
+): { score: number | null; total: number; covered: number } {
+  const approved = rows.filter((r) => r.status === 'approved')
+  if (approved.length === 0) return { score: null, total: 0, covered: 0 }
+  const withSeal = sealedDepth !== null
+  const wFresh = withSeal ? 0.3 : 0.5
+  const wDoc = withSeal ? 0.3 : 0.5
+  const wSeal = withSeal ? 0.4 : 0
+  let qualitySum = 0
+  let covered = 0
+  for (const r of approved) {
+    const fresh = new Date(r.updated_at).getTime() >= freshCutoffMs ? 1 : 0
+    const documented = (r.evidence_notes ?? '').trim().length > 0 ? 1 : 0
+    const depth = withSeal ? (sealedDepth.get(r.id) ?? 0) : 0
+    qualitySum += wFresh * fresh + wDoc * documented + wSeal * depth
+    if (withSeal ? depth > 0 : fresh && documented) covered += 1
+  }
+  return { score: Math.round((qualitySum / approved.length) * 100), total: approved.length, covered }
+}
+
+// Coefficient conservateur : chaque facteur mesure retire une part, borne au plancher.
+function toFactorScore(
+  key: ScoreFactorKey,
+  score: number | null,
+  total: number,
+  covered: number,
+  posture: number | null,
+): FactorScore {
+  const weight = SCORE_FACTOR_WEIGHTS[key]
+  const penaltyFrac = score === null ? 0 : weight * (1 - score / 100)
+  const penaltyPts = posture === null ? 0 : Math.round(posture * penaltyFrac)
+  return { key, score, total, covered, penaltyPts }
+}
+
+export function useSelfDimensionScores(): SelfDimensionData {
+  const { profile } = useAuth()
+  const [data, setData] = useState<SelfDimensionData>({ ...EMPTY, loading: true })
+
+  useEffect(() => {
+    const orgId = profile?.organization_id
+    if (!orgId) { setData(EMPTY); return }
+    const ctrl = new AbortController()
+
+    void (async () => {
+      const { data: missions, error: mErr } = await supabase
+        .from('missions').select('id').eq('cabinet_id', orgId).eq('is_active', true).abortSignal(ctrl.signal)
+      if (ctrl.signal.aborted) return
+      if (mErr) { console.error('dimension scores missions:', mErr.message); setData(EMPTY); return }
+
+      const missionIds = (missions ?? []).map((m: { id: string }) => m.id)
+      const emptyMeasured: SelfDimensionData = {
+        ...EMPTY,
+        axes: AXIS_KEYS.map((k) => toDimScore(k, undefined)),
+        factors: (['human_factor', 'third_party', 'assurance'] as ScoreFactorKey[]).map(
+          (k) => toFactorScore(k, null, 0, 0, null),
+        ),
+      }
+      if (missionIds.length === 0) { setData(emptyMeasured); return }
+
+      const { data: assessments, error: aErr } = await supabase
+        .from('control_assessments')
+        .select('id, status, control_id, updated_at, evidence_notes')
+        .in('mission_id', missionIds).abortSignal(ctrl.signal)
+      if (ctrl.signal.aborted) return
+      if (aErr) { console.error('dimension scores assessments:', aErr.message); setData(EMPTY); return }
+
+      const rows = (assessments ?? []) as AssessmentRow[]
+      const controlIds = [...new Set(rows.map((r) => r.control_id))]
+      if (controlIds.length === 0) { setData(emptyMeasured); return }
+
+      const { data: controls, error: cErr } = await supabase
+        .from('controls').select('id, dimension').in('id', controlIds).abortSignal(ctrl.signal)
+      if (ctrl.signal.aborted) return
+      if (cErr) { console.error('dimension scores controls:', cErr.message); setData(EMPTY); return }
+
+      const dimByControl = new Map<string, ScoreDimensionKey | null>()
+      for (const c of (controls ?? []) as Array<{ id: string; dimension: ScoreDimensionKey | null }>) {
+        dimByControl.set(c.id, c.dimension)
+      }
+
+      const agg = new Map<ScoreDimensionKey, { total: number; approved: number }>()
+      for (const r of rows) {
+        const dim = dimByControl.get(r.control_id)
+        if (!dim) continue
+        const cur = agg.get(dim) ?? { total: 0, approved: 0 }
+        cur.total += 1
+        if (r.status === 'approved') cur.approved += 1
+        agg.set(dim, cur)
+      }
+
+      const axes = AXIS_KEYS.map((k) => toDimScore(k, agg.get(k)))
+      const measured = axes.filter((a) => a.score !== null)
+      const compositePosture = measured.length > 0
+        ? Math.round(measured.reduce((s, a) => s + (a.score ?? 0), 0) / measured.length)
+        : null
+
+      // Scellement : validations independantes approuvees sur mes assessments
+      // approuves. Perimetre deja restreint (assessment_id in mes controles).
+      const approvedIds = rows.filter((r) => r.status === 'approved').map((r) => r.id)
+      let sealedDepth: Map<string, number> | null = new Map()
+      if (approvedIds.length > 0) {
+        const { data: validations, error: vErr } = await supabase
+          .from('assessment_validations')
+          .select('assessment_id, stage')
+          .in('assessment_id', approvedIds)
+          .eq('decision', 'approved')
+          .in('stage', ['lead_review', 'associate_review', 'client_review'])
+          .abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        if (vErr) {
+          console.error('dimension scores validations:', vErr.message)
+          sealedDepth = null // degradation gracieuse -> modele 2 signaux
+        } else {
+          const depth = new Map<string, number>()
+          for (const v of (validations ?? []) as Array<{ assessment_id: string; stage: string }>) {
+            const tier = SEAL_STAGE_WEIGHTS[v.stage as keyof typeof SEAL_STAGE_WEIGHTS] ?? 0
+            depth.set(v.assessment_id, Math.max(depth.get(v.assessment_id) ?? 0, tier))
+          }
+          sealedDepth = depth
+        }
+      }
+
+      const cutoff = new Date()
+      cutoff.setMonth(cutoff.getMonth() - ASSURANCE_FRESHNESS_MONTHS)
+      const assurance = computeAssurance(rows, cutoff.getTime(), sealedDepth)
+
+      const factors: FactorScore[] = [
+        ...MAPPED_FACTOR_KEYS.map((k) => {
+          const a = agg.get(k)
+          const dim = toDimScore(k, a)
+          return toFactorScore(k, dim.score, dim.total, dim.approved, compositePosture)
+        }),
+        toFactorScore('assurance', assurance.score, assurance.total, assurance.covered, compositePosture),
+      ]
+
+      const coefficient = Math.max(
+        SCORE_COEFFICIENT_FLOOR,
+        factors.reduce((acc, f) => {
+          if (f.score === null) return acc
+          return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
+        }, 1),
+      )
+      const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
+
+      setData({
+        loading: false, axes, factors, compositePosture, composite, coefficient,
+        measuredAxes: measured.length, totalAxes: AXIS_KEYS.length,
+      })
+    })()
+
+    return () => ctrl.abort()
+  }, [profile?.organization_id])
+
+  return data
+}

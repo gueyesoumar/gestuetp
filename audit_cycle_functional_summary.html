@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gëstu ETP — Cycle Audit Fonctionnel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: #fafbf9;
+      padding: 2rem;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1 { 
+      font-size: 2rem;
+      color: #1B4332;
+      margin-bottom: 0.5rem;
+      border-bottom: 3px solid #D4A843;
+      padding-bottom: 0.5rem;
+    }
+    .subtitle { 
+      font-size: 0.95rem;
+      color: #555;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+    h2 { 
+      font-size: 1.4rem;
+      color: #1B4332;
+      margin: 2rem 0 1rem 0;
+      border-left: 4px solid #D4A843;
+      padding-left: 1rem;
+    }
+    h3 { 
+      font-size: 1.1rem;
+      color: #2d5a3d;
+      margin: 1.5rem 0 0.8rem 0;
+      font-weight: 600;
+    }
+    .phase-block {
+      background: white;
+      border-left: 5px solid #1B4332;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .phase-block.phase-1 { border-left-color: #0066cc; }
+    .phase-block.phase-2 { border-left-color: #2ecc71; }
+    .phase-block.phase-3 { border-left-color: #ff9800; }
+    .phase-block.phase-4 { border-left-color: #9c27b0; }
+    .phase-block.phase-5 { border-left-color: #e74c3c; }
+    .phase-block.phase-6 { border-left-color: #34495e; }
+    
+    .phase-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1B4332;
+      margin-bottom: 0.5rem;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 0.3rem 0.7rem;
+      border-radius: 0.3rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin: 0.2rem 0.2rem 0.2rem 0;
+    }
+    .status-draft { background: #f0f0f0; color: #666; }
+    .status-submitted { background: #e3f2fd; color: #1565c0; }
+    .status-in-review { background: #fff3e0; color: #e65100; }
+    .status-approved { background: #e8f5e9; color: #2e7d32; }
+    .status-rejected { background: #ffebee; color: #c62828; }
+    
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+    .content-box {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      padding: 1rem;
+      border-radius: 0.4rem;
+    }
+    .content-box h4 {
+      color: #1B4332;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    ul, ol { margin-left: 1.5rem; margin-bottom: 0.8rem; }
+    li { margin-bottom: 0.4rem; line-height: 1.5; }
+    code {
+      background: #f5f5f5;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.3rem;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.9rem;
+      color: #d73a49;
+    }
+    .file-ref {
+      background: #f0f5ff;
+      padding: 0.8rem;
+      margin: 1rem 0;
+      border-left: 3px solid #0066cc;
+      border-radius: 0.3rem;
+      font-size: 0.9rem;
+    }
+    .file-ref strong { color: #0066cc; }
+    .conformity-levels {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 0.5rem 0;
+    }
+    .conformity-badge {
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.3rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .conf-c { background: #c8e6c9; color: #1b5e20; }
+    .conf-lc { background: #fff9c4; color: #f57f17; }
+    .conf-pc { background: #ffccbc; color: #bf360c; }
+    .conf-nc { background: #ffcdd2; color: #b71c1c; }
+    .conf-na { background: #e0e0e0; color: #424242; }
+    
+    .workflow-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .workflow-table th {
+      background: #1B4332;
+      color: white;
+      padding: 0.8rem;
+      text-align: left;
+      font-weight: 700;
+    }
+    .workflow-table td {
+      padding: 0.8rem;
+      border-bottom: 1px solid #ddd;
+    }
+    .workflow-table tr:last-child td { border-bottom: none; }
+    .workflow-table tr:hover { background: #f9f9f9; }
+    
+    .evidence-flow {
+      background: white;
+      border: 2px solid #d4a843;
+      padding: 1.2rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+    }
+    .evidence-flow h4 {
+      color: #d4a843;
+      margin-bottom: 0.8rem;
+      font-weight: 700;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      margin: 0.8rem 0;
+    }
+    .flow-step::before {
+      content: "→";
+      color: #d4a843;
+      font-weight: bold;
+      margin-right: 0.8rem;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    
+    .key-concept {
+      background: #fffef0;
+      border-left: 4px solid #d4a843;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.3rem;
+    }
+    .key-concept strong { color: #d4a843; }
+    
+    @media (max-width: 768px) {
+      .content-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gëstu ETP — Cycle de Vie d'une Mission d'Audit</h1>
+    <p class="subtitle">Détail fonctionnel complet : statuts, workflows, artefacts, validations et livrables</p>
+
+    <!-- ============ CYCLE GLOBAL ============ -->
+    <h2>Vue d'ensemble du cycle</h2>
+    <p style="margin-bottom: 1rem;">Une mission d'audit suit 6 phases linéaires (audit standard) ou 5 phases (supervision continue). Les contrôles transversent ces phases de manière progressive jusqu'à clôture. Le système enregistre les évaluations (assessments) au niveau contrôle, puis génère des constats (findings), demandes correctives (CAR) et rapports.</p>
+
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem; border: 1px solid #e0e0e0;">
+      <strong style="color: #1B4332;">Phases (standard):</strong><br>
+      <code>initialization/scoping</code> → <code>planning</code> → <code>fieldwork</code> → <code>internal_review</code> → <code>client_review</code> → <code>closure</code>
+      <br><br>
+      Source : <code>src/features/missions/mission-constants.ts</code> (MISSION_PHASES), <code>src/types/database.types.ts</code> (MissionStatus type)
+    </div>
+
+    <!-- ============ PHASE 1: CADRAGE ============ -->
+    <div class="phase-block phase-1">
+      <div class="phase-title">Phase 1 : CADRAGE (Scoping)</div>
+      <p><strong>Statut mission:</strong> <code>scoping</code></p>
+      <p style="margin-top: 0.5rem;"><strong>Objectif:</strong> Fixer le périmètre, les objectifs, critères, parties prenantes, documents et acteurs de la mission.</p>
+
+      <h3>Activités et artefacts</h3>
+      <ul>
+        <li><strong>Défition des objectifs audit</strong> : <code>mission.audit_objectives</code>, <code>audit_criteria</code>, <code>scoping_notes</code></li>
+        <li><strong>Sélection du framework</strong> : lien vers une référentiel (ex. PSSAI, COBIT)</li>
+        <li><strong>Import organigramme</strong> : chargement de la structure client via <code>OrgChartImportModal</code></li>
+        <li><strong>Questionnaire cadrage</strong> : lance un <code>QuestionnaireInstance</code> pour collecter contexte client</li>
+        <li><strong>Gestion des contacts</strong> : création des <code>ClientPortalContact</code> pour accès au portail client</li>
+        <li><strong>Demandes initiales de preuves</strong> : création des <code>MissionEvidenceRequest</code> optionnelles</li>
+        <li><strong>Livrables générés</strong> : Note de cadrage PDF (optionnel)</li>
+      </ul>
+
+      <h3>Validations et transitions</h3>
+      <ul>
+        <li>Lead auditeur complète les champs obligatoires (objectives, criteria)</li>
+        <li>Questionnaire soumis par lead</li>
+        <li>Passage vers <code>planning</code> : manuel (clic lead) ou via étape guidée</li>
+      </ul>
+
+      <div class="file-ref">
+        <strong>Modules clés:</strong><br>
+        • <code>src/features/missions/scoping/MissionScopingTab.tsx</code><br>
+        • <code>src/features/missions/scoping/ScopingQuestionnaireTab.tsx</code><br>
+        • <code>src/features/missions/scoping/ScopingActorsTab.tsx</code><br>
+        • <code>src/features/missions/scoping/ScopingDocumentsTab.tsx</code>
+      </div>
+    </div>
+
+    <!-- ============ PHASE 2: PLANIFICATION ============ -->
+    <div class="phase-block phase-2">
+      <div class="phase-title">Phase 2 : PLANIFICATION (Planning)</div>
+      <p><strong>Statut mission:</strong> <code>planning</code></p>
+      <p style="margin-top: 0.5rem;"><strong>Objectif:</strong> Affecter les contrôles aux auditeurs, définir calendrier, préparer ressources.</p>
+
+      <h3>Activités et artefacts</h3>
+      <ul>
+        <li><strong>Affectation des contrôles</strong> : création des <code>MissionControlAssignment</code> (contrôle → auditeur)</li>
+        <li><strong>Définition des équipes</strong> : ajout des <code>MissionMember</code> (rôles: auditor, associate, lead_auditor)</li>
+        <li><strong>Calendrier</strong> : dates de début/fin mission (<code>mission.start_date</code>, <code>end_date</code>)</li>
+        <li><strong>Stratégie de preuve</strong> : choix des preuves obligatoires vs optionnelles par contrôle via <code>MissionEvidenceOverride</code></li>
+        <li><strong>Documents de référence</strong> : uploads initiaux pour contextualiser l'audit</li>
+      </ul>
+
+      <h3>Validations et transitions</h3>
+      <ul>
+        <li>Tous les contrôles du framework affectés à au moins un auditeur</li>
+        <li>Lead et associate identifiés</li>
+        <li>Passage vers <code>fieldwork</code> : transition lead auditeur</li>
+      </ul>
+
+      <div class="file-ref">
+        <strong>Modules clés:</strong><br>
+        • <code>src/features/missions/planning/MissionPlanningTab.tsx</code><br>
+        • <code>src/features/missions/MissionTeamSection.tsx</code><br>
+        • <code>src/features/missions/DomainAssignmentBlock.tsx</code>
+      </div>
+    </div>
+
+    <!-- ============ PHASE 3: TRAVAUX ============ -->
+    <div class="phase-block phase-3">
+      <div class="phase-title">Phase 3 : TRAVAUX (Fieldwork)</div>
+      <p><strong>Statut mission:</strong> <code>fieldwork</code></p>
+      <p style="margin-top: 0.5rem;"><strong>Objectif:</strong> Auditeurs rédigent les évaluations de contrôles, collectent preuves, identifient constats.</p>
+
+      <h3>Workflow d'évaluation de contrôle</h3>
+      <p>Chaque contrôle assigné passe par un <strong>assessment</strong> avec le cycle de statuts :</p>
+      
+      <table class="workflow-table">
+        <tr>
+          <th>Statut Assessment</th>
+          <th>Rôle actif</th>
+          <th>Actions</th>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-draft">draft</span></td>
+          <td>Auditeur assigné</td>
+          <td>Rédige observations, preuves, notes. Pas visible aux autres. État initial.</td>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-submitted">submitted</span></td>
+          <td>Auditeur</td>
+          <td>Soumet pour revue interne. Visible au lead et associate.</td>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-in-review">in_review</span></td>
+          <td>Lead/Associate</td>
+          <td>En révision interne. Peut être rejeté ou approuvé.</td>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-approved">approved</span></td>
+          <td>Lead/Associate</td>
+          <td>Validé. Prêt pour envoi au client (phase client_review).</td>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-rejected">rejected</span></td>
+          <td>Auditeur (après rejet)</td>
+          <td>Revenir à draft et corriger suite aux commentaires de révision.</td>
+        </tr>
+      </table>
+
+      <h3>Contenu d'une évaluation (ControlAssessment)</h3>
+      <ul>
+        <li><strong>evidence_notes</strong> : notes sur les preuves collectées</li>
+        <li><strong>observations</strong> : faits observés durant l'audit</li>
+        <li><strong>conformity_level</strong> : évaluation conforme/partiellement/non-conforme/NA
+          <div class="conformity-levels">
+            <span class="conformity-badge conf-c">Conforme (C)</span>
+            <span class="conformity-badge conf-lc">Largement (LC)</span>
+            <span class="conformity-badge conf-pc">Partiellement (PC)</span>
+            <span class="conformity-badge conf-nc">Non-conforme (NC)</span>
+            <span class="conformity-badge conf-na">N/A</span>
+          </div>
+        </li>
+        <li><strong>findings</strong> : constats détaillés (table <code>assessment_findings</code>, N findings par assessment)</li>
+      </ul>
+
+      <h3>Modèle Constats (AssessmentFinding) — NEW</h3>
+      <p>Chaque assessment peut contenir <strong>plusieurs constats indépendants</strong>, chacun avec:</p>
+      <ul>
+        <li><code>classification</code> : major_nc | minor_nc | observation | strength</li>
+        <li><code>description</code> : texte du constat</li>
+        <li><code>risk</code> : analyse de risque associée</li>
+        <li><code>recommendation</code> : recommandation auditeur</li>
+        <li><code>priority</code> : critical | high | medium | low</li>
+        <li><code>proposed_deadline</code> : délai proposé pour correction</li>
+        <li><code>ai_generated</code> : flag pour suggestion IA</li>
+      </ul>
+      <p style="margin-top: 0.8rem;"><em>Source: <code>assessment_findings</code> table, visible en phase revue/client_review/clôture</em></p>
+
+      <h3>Gestion des preuves (Evidence Requests)</h3>
+      <div class="evidence-flow">
+        <h4>Cycle d'une demande de preuve</h4>
+        <div class="flow-step"><strong>pending</strong> : demande créée, en attente client</div>
+        <div class="flow-step"><strong>uploaded</strong> : client a téléchargé preuve, auditeur à valider</div>
+        <div class="flow-step"><strong>accepted</strong> : preuve validée par auditeur</div>
+        <div class="flow-step"><strong>declined_by_client</strong> : client déclare preuve inexistante/non-applicable/confidentielle</div>
+        <div class="flow-step"><strong>reissued</strong> : auditeur réémet demande après rejet client</div>
+        <div class="flow-step"><strong>escalated_to_finding</strong> : absence preuve devient un constat (major_nc/observation)</div>
+      </div>
+      <p>Source : <code>MissionEvidenceRequest</code> table + <code>useMissionEvidenceRequests.ts</code></p>
+
+      <h3>Interface et UX</h3>
+      <ul>
+        <li><strong>Fieldwork Sidebar</strong> : liste des contrôles assignés (filtre par statut)</li>
+        <li><strong>ControlWorkArea</strong> : édition assessment, étapes guidées (observer → documenter → analyser → validation)</li>
+        <li><strong>RightRail</strong> : preuves, commentaires, observations équipe</li>
+        <li><strong>Shortcuts</strong> : clavier pour naviguer (J/K pour contrôle suivant/précédent, etc.)</li>
+      </ul>
+
+      <div class="file-ref">
+        <strong>Modules clés:</strong><br>
+        • <code>src/features/missions/fieldwork/MissionFieldworkTab.tsx</code><br>
+        • <code>src/features/missions/fieldwork/ControlWorkArea.tsx</code><br>
+        • <code>src/features/missions/fieldwork/findings/FindingsList.tsx</code><br>
+        • <code>src/features/missions/useAuditorAssessments.ts</code>
+      </div>
+    </div>
+
+    <!-- ============ PHASE 4: REVUE INTERNE ============ -->
+    <div class="phase-block phase-4">
+      <div class="phase-title">Phase 4 : REVUE INTERNE (Internal Review)</div>
+      <p><strong>Statut mission:</strong> <code>internal_review</code></p>
+      <p style="margin-top: 0.5rem;"><strong>Objectif:</strong> Lead et associate valident/rejettent les assessments soumis, assurent cohérence et qualité.</p>
+
+      <h3>Workflow de validation interne</h3>
+      <table class="workflow-table">
+        <tr>
+          <th>Étape</th>
+          <th>Rôle</th>
+          <th>Actions</th>
+        </tr>
+        <tr>
+          <td><code>auditor_submitted</code></td>
+          <td>Auditeur</td>
+          <td>Assessment passé de draft → submitted</td>
+        </tr>
+        <tr>
+          <td><code>lead_review</code></td>
+          <td>Lead auditeur</td>
+          <td>Revue, approbation ou rejet avec commentaires</td>
+        </tr>
+        <tr>
+          <td><code>associate_review</code></td>
+          <td>Associate (optionnel)</td>
+          <td>Revue complémentaire si configuré</td>
+        </tr>
+        <tr>
+          <td>Validation finale</td>
+          <td>Lead</td>
+          <td>Assessment → approved ou rejected (retour auditeur)</td>
+        </tr>
+      </table>
+
+      <h3>Données de révision (AssessmentValidation)</h3>
+      <ul>
+        <li>Enregistre chaque étape (stage), décision (approved/rejected), commentaires</li>
+        <li>Piste d'audit complète (qui a validé, quand)</li>
+        <li>Permet rejets multiples → corrections → nouvelles soumissions</li>
+      </ul>
+
+      <h3>Artefacts produits</h3>
+      <ul>
+        <li><strong>Synthèse des constats</strong> : agrégation par classification (NC maj/min, observations)</li>
+        <li><strong>Score de conformité</strong> : moyenne pondérée (c=100, lc=75, pc=50, nc=0, NA exclu)</li>
+        <li><strong>Plan d'action préliminaire</strong> : génération auto des CAR à partir des NC majeures/mineures</li>
+      </ul>
+
+      <div class="file-ref">
+        <strong>Modules clés:</strong><br>
+        • <code>src/features/missions/review/MissionReviewTab.tsx</code><br>
+        • <code>src/features/missions/review/ValidationDetailPanel.tsx</code><br>
+        • <code>src/features/missions/useReviewAssessments.ts</code>
+      </div>
+    </div>
+
+    <!-- ============ PHASE 5: REVUE CLIENT ============ -->
+    <div class="phase-block phase-5">
+      <div class="phase-title">Phase 5 : VALIDATION CLIENT (Client Review)</div>
+      <p><strong>Statut mission:</strong> <code>client_review</code></p>
+      <p style="margin-top: 0.5rem;"><strong>Objectif:</strong> Client valide assessments approuvés, pose observations non-bloquantes, lance portail de suivi d'actions.</p>
+
+      <h3>Accès portail client</h3>
+      <ul>
+        <li><strong>Contacts portail</strong> : <code>ClientPortalContact</code> avec statut (pending/invited/active)</li>
+        <li><strong>Permissions</strong> : <code>ClientPermission</code> (contributor | viewer | approver)</li>
+        <li><strong>Missions accessibles</strong> : <code>ClientMissionAccess</code> régit qui voit quoi</li>
+      </ul>
+
+      <h3>Revue de contrôles côté client</h3>
+      <p>Client accède via portail à chaque <code>approved</code> assessment :</p>
+      <ul>
+        <li>Vue des contrôles, conformité, constats et recommandations</li>
+        <li>Permissions : <strong>approver</strong> peut valider/rejeter, <strong>viewer</strong> lit seul</li>
+        <li><strong>Decision</strong> : approved → constat accepté, rejected → contestation client</li>
+        <li><strong>Observations</strong> : client poste observations non-bloquantes (table <code>AssessmentObservation</code>)</li>
+      </ul>
+
+      <h3>Observations client</h3>
+      <p>Flux d'observation-réponse:</p>
+      <ul>
+        <li><code>observation_text</code> : client pose question/doute</li>
+        <li><code>observation_by/at</code> : auditeur/lead réagit</li>
+        <li><code>response_text</code> : réponse auditeur</li>
+        <li><code>response_action</code> : modified (constat modifié) | kept (constat maintenu)</li>
+      </ul>
+      <p><em>Observations non-bloquantes, le contrôle reste approuvé</em></p>
+
+      <h3>Interface</h3>
+      <ul>
+        <li><code>ClientMissionDetailPage</code> : vue client du détail mission</li>
+        <li><code>ControlDetailDrawer</code> : évaluation détaillée + revue</li>
+        <li><code>ClientReviewPanel</code> : validation et commentaires</li>
+        <li><code>SmartInterviewContainer</code> : questionnaires client + demandes de preuves</li>
+      </ul>
+
+      <div class="file-ref">
+        <strong>Modules clés:</strong><br>
+        • <code>src/features/client-portal/missions/ClientMissionDetailPage.tsx</code><br>
+        • <code>src/features/client-portal/missions/ControlDetailDrawer.tsx</code><br>
+        • <code>src/features/client-portal/missions/useClientControlReview.ts</code><br>
+        • <code>src/features/missions/client-review/MissionClientReviewTab.tsx</code>
+      </div>
+    </div>
+
+    <!-- ============ PHASE 6: CLÔTURE ============ -->
+    <div class="phase-block phase-6">
+      <div class="phase-title">Phase 6 : CLÔTURE (Closure)</div>
+      <p><strong>Statut mission:</strong> <code>closure</code></p>
+      <p style="margin-top: 0.5rem;"><strong>Objectif:</strong> Finaliser audit, générer rapports, consolider plan d'action client.</p>
+
+      <h3>Synthèse de conformité</h3>
+      <ul>
+        <li><strong>Score global</strong> : moyenne pondérée sur tous les approved assessments</li>
+        <li><strong>Répartition domaines</strong> : score par domaine (ex. domaine A.5: 75%)</li>
+        <li><strong>Histogramme conformité</strong> : nb contrôles C/LC/PC/NC/NA</li>
+        <li><strong>Conclusion audit</strong> : conformant | partially_conformant | non_conformant</li>
+      </ul>
+
+      <h3>Constats agrégés (Finding Synthesis)</h3>
+      <ul>
+        <li>Tous les <code>assessment_findings</code> des assessments approved, triés par sévérité</li>
+        <li>Agrégation : NC maj | NC min | Observation | Strength</li>
+        <li>Support pour synthèse narrative et graphique</li>
+      </ul>
+
+      <h3>Livrables PDF/PPTX/Excel générés</h3>
+      
+      <div class="content-grid">
+        <div class="content-box">
+          <h4>Rapport d'Audit (PDF)</h4>
+          <ul>
+            <li>En-tête avec logo/adresse cabinet</li>
+            <li>Distribution client (RSSI + contacts)</li>
+            <li>Contexte audit (objectifs, périmètre, cadrage)</li>
+            <li>Synthèse conformité + score domaines</li>
+            <li>Constats détaillés par domaine</li>
+            <li>Recommandations par constat</li>
+            <li>Annexes (questionnaires, documents)</li>
+          </ul>
+          <p style="margin-top: 0.8rem;"><em>Source: <code>src/features/reports/generateAuditReportPDF.ts</code> + <code>audit-report/</code> modules</em></p>
+        </div>
+        <div class="content-box">
+          <h4>Plan d'Action (Excel)</h4>
+          <ul>
+            <li>Toutes CAR (Corrective Action Requests)</li>
+            <li>Classification (NC maj/min, obs)</li>
+            <li>Recommandations auditeur</li>
+            <li>Responsable client + deadline</li>
+            <li>Statut CAR (open/responded/verified/closed)</li>
+            <li>Suivi vérification auditeur</li>
+            <li>Graphiques de progression</li>
+          </ul>
+          <p style="margin-top: 0.8rem;"><em>Source: <code>src/features/reports/generateActionPlanXLSX.ts</code></em></p>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <div class="content-box">
+          <h4>Note de Cadrage (PDF)</h4>
+          <ul>
+            <li>Objectifs audit</li>
+            <li>Périmètre et critères</li>
+            <li>Contexte client</li>
+            <li>Questionnaire cadrage</li>
+            <li>Planning proposé</li>
+          </ul>
+          <p style="margin-top: 0.8rem;"><em>Source: <code>src/features/reports/scoping-note/</code></em></p>
+        </div>
+        <div class="content-box">
+          <h4>Compte-rendu Entretiens (PDF)</h4>
+          <ul>
+            <li>Notes d'entretiens réalisés</li>
+            <li>Interlocuteurs rencontrés</li>
+            <li>Observations directes</li>
+            <li>Prochaines étapes</li>
+          </ul>
+          <p style="margin-top: 0.8rem;"><em>Source: <code>src/features/reports/interview-cr/</code></em></p>
+        </div>
+      </div>
+
+      <h3>Plan d'Action Correctif (CAR Management)</h3>
+      <ul>
+        <li><strong>Création auto</strong> : à partir NC majeures/mineures (classifications major_nc, minor_nc)</li>
+        <li><strong>Status CAR</strong> : open → client_responded → verified → closed</li>
+        <li><strong>Vérification</strong> : auditeur valide réponse client (pending/accepted/rejected)</li>
+        <li><strong>Suivi</strong> : en phase action_plan (post-clôture), client répond aux actions, auditeur vérifie</li>
+      </ul>
+
+      <h3>Interface clôture</h3>
+      <ul>
+        <li><strong>HeroScoreCard</strong> : score conformité global</li>
+        <li><strong>DomainBreakdownList</strong> : détail domaines</li>
+        <li><strong>FindingSynthesis</strong> : agrégation constats par classification</li>
+        <li><strong>ReportGenerator</strong> : boutons génération PDF/Excel/PPTX</li>
+        <li><strong>ClosureActionCards</strong> : actions à accomplir avant clôture finale</li>
+      </ul>
+
+      <div class="file-ref">
+        <strong>Modules clés:</strong><br>
+        • <code>src/features/missions/closure/MissionClosureTab.tsx</code><br>
+        • <code>src/features/missions/closure/HeroScoreCard.tsx</code><br>
+        • <code>src/features/missions/closure/FindingSynthesis.tsx</code><br>
+        • <code>src/features/missions/closure/ReportGenerator.tsx</code><br>
+        • <code>src/features/reports/loadAuditReportData.ts</code>
+      </div>
+    </div>
+
+    <!-- ============ PHASE VIRTUELLE: PLAN D'ACTION ============ -->
+    <div class="phase-block" style="border-left-color: #00897b;">
+      <div class="phase-title">Phase Virtuelle : PLAN D'ACTION (Action Plan)</div>
+      <p><strong>Contexte:</strong> Visible uniquement en phase closure, gestion des corrections post-audit</p>
+
+      <h3>Cycle de vie CAR</h3>
+      <table class="workflow-table">
+        <tr>
+          <th>Statut CAR</th>
+          <th>Étape de vérification</th>
+          <th>Rôle actif</th>
+          <th>Actions</th>
+        </tr>
+        <tr>
+          <td><code>open</code></td>
+          <td><code>pending</code></td>
+          <td>Client</td>
+          <td>Client planifie et engage action corrective</td>
+        </tr>
+        <tr>
+          <td><code>client_responded</code></td>
+          <td><code>pending</code></td>
+          <td>Auditeur</td>
+          <td>Client a fourni réponse/preuve, auditeur à valider</td>
+        </tr>
+        <tr>
+          <td><code>client_responded</code></td>
+          <td><code>accepted</code></td>
+          <td>Auditeur</td>
+          <td>Preuve acceptée, CAR → verified</td>
+        </tr>
+        <tr>
+          <td><code>client_responded</code></td>
+          <td><code>rejected</code></td>
+          <td>Auditeur</td>
+          <td>Preuve rejetée, client doit re-soumettre</td>
+        </tr>
+        <tr>
+          <td><code>verified</code></td>
+          <td>-</td>
+          <td>Lead</td>
+          <td>CAR → closed après validation complète</td>
+        </tr>
+        <tr>
+          <td><code>closed</code></td>
+          <td>-</td>
+          <td>-</td>
+          <td>Action corrective terminée et clôturée</td>
+        </tr>
+      </table>
+
+      <h3>Vue & gestion</h3>
+      <ul>
+        <li><strong>Deux modes</strong> : List (tableau) ou Timeline (calendrier)</li>
+        <li><strong>Filtres</strong> : par status, classification, recherche texte</li>
+        <li><strong>ActionPlanKPIs</strong> : nb CAR ouvertes, répondues, vérifiées, clôturées</li>
+        <li><strong>Liens bidirectionnels</strong> : CAR ← assessment_findings (source de vérité)</li>
+      </ul>
+
+      <div class="file-ref">
+        <strong>Modules clés:</strong><br>
+        • <code>src/features/missions/action-plan/MissionActionPlanTab.tsx</code><br>
+        • <code>src/features/missions/action-plan/ActionPlanList.tsx</code><br>
+        • <code>src/features/missions/closure/useActionPlan.ts</code>
+      </div>
+    </div>
+
+    <!-- ============ SURVEILLANCE CONTINUE (OPTIONNEL) ============ -->
+    <h2>Surveillance Continue (Optionnel)</h2>
+    <div style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #00897b;">
+      <p><strong>Kind = continuous_supervision</strong> : modèle de missions répétées et cycliques.</p>
+      <ul style="margin-top: 1rem;">
+        <li><strong>SupervisionCycle</strong> : périodes d'audit (ex. T1, T2, T3, T4)</li>
+        <li><strong>Phases adaptées</strong> : scoping → planning → fieldwork → internal_review → closure (pas client_review)</li>
+        <li><strong>Assessments cyclés</strong> : chaque assessment lié à <code>cycle_id</code></li>
+        <li><strong>Évaluation dynamique</strong> : comparaison écart d'un trimestre à l'autre</li>
+      </ul>
+      <p style="margin-top: 1rem;"><em>Implémentée mais moins utilisée que audit standard. Voir <code>useMissionProgress.ts</code> pour logique phases.</em></p>
+    </div>
+
+    <!-- ============ GESTION DES ERREURS & VALIDATIONS ============ -->
+    <h2>Validations & Gestion des Statuts</h2>
+    
+    <h3>Règles de progression</h3>
+    <div class="key-concept">
+      <strong>Critères de passage de phase:</strong> Le système n'applique pas de blocage automatique strict, mais expose des <strong>nextAction</strong> au lead auditeur via useMissionProgress :
+      <ul style="margin-top: 0.8rem;">
+        <li><strong>scoping→planning</strong> : questionnaire cadrage soumis</li>
+        <li><strong>planning→fieldwork</strong> : équipe et affectations complètes</li>
+        <li><strong>fieldwork→internal_review</strong> : tous contrôles soumis (status ≠ draft)</li>
+        <li><strong>internal_review→client_review</strong> : tous assessments approved</li>
+        <li><strong>client_review→closure</strong> : client validation complète</li>
+      </ul>
+    </div>
+
+    <h3>Calcul des KPIs</h3>
+    <ul>
+      <li><strong>overallPercent</strong> : 50% phase avancement + 50% assessments soumis/approuvés</li>
+      <li><strong>conformityScore</strong> : moyenne pondérée c=100, lc=75, pc=50, nc=0 (NA exclu)</li>
+      <li><strong>daysRemaining</strong> : delta date fin mission</li>
+      <li><strong>assessedControls</strong> : count status ∈ {submitted, in_review, approved}</li>
+    </ul>
+
+    <div class="file-ref">
+      <strong>Source:</strong> <code>src/features/missions/useMissionProgress.ts</code> (définit MissionProgress interface et logique complète)
+    </div>
+
+    <!-- ============ TYPES & ENUMS CLÉS ============ -->
+    <h2>Types et Énumérations Clés</h2>
+
+    <h3>Statuts Mission (MissionStatus)</h3>
+    <pre style="background: #f5f5f5; padding: 1rem; border-radius: 0.4rem; overflow-x: auto;"><code>
+initialization | scoping | planning | fieldwork | 
+internal_review | client_review | closure
+    </code></pre>
+
+    <h3>Statuts Évaluation (AssessmentStatus)</h3>
+    <pre style="background: #f5f5f5; padding: 1rem; border-radius: 0.4rem; overflow-x: auto;"><code>
+draft | submitted | in_review | approved | rejected
+    </code></pre>
+
+    <h3>Classification Constats (FindingClassification)</h3>
+    <pre style="background: #f5f5f5; padding: 1rem; border-radius: 0.4rem; overflow-x: auto;"><code>
+major_nc | minor_nc | observation | strength
+    </code></pre>
+
+    <h3>Priorité & Deadline</h3>
+    <ul>
+      <li><code>FindingPriority</code> : critical | high | medium | low</li>
+      <li><code>proposed_deadline</code> : date suggérée correction</li>
+      <li><code>ActionStatus</code> : open | in_progress | done</li>
+    </ul>
+
+    <!-- ============ RÉSUMÉ TABLES BASES ============ -->
+    <h2>Tables Supabase Essentielles</h2>
+
+    <table class="workflow-table" style="margin-bottom: 2rem;">
+      <tr>
+        <th>Table</th>
+        <th>Rôle</th>
+        <th>Champs clés</th>
+      </tr>
+      <tr>
+        <td><code>missions</code></td>
+        <td>Container audit</td>
+        <td>id, status, name, cabinet_id, client_id, start_date, end_date, kind</td>
+      </tr>
+      <tr>
+        <td><code>mission_members</code></td>
+        <td>Équipe</td>
+        <td>mission_id, user_id, role (auditor/lead_auditor/associate)</td>
+      </tr>
+      <tr>
+        <td><code>mission_control_assignments</code></td>
+        <td>Affectations</td>
+        <td>mission_id, control_id, auditor_id</td>
+      </tr>
+      <tr>
+        <td><code>control_assessments</code></td>
+        <td>Évaluation contrôle</td>
+        <td>mission_id, control_id, auditor_id, status, conformity_level, observations, evidence_notes</td>
+      </tr>
+      <tr>
+        <td><code>assessment_findings</code></td>
+        <td>Constats</td>
+        <td>assessment_id, ord, classification, description, risk, recommendation, priority, proposed_deadline</td>
+      </tr>
+      <tr>
+        <td><code>assessment_validations</code></td>
+        <td>Piste revue</td>
+        <td>assessment_id, stage, decision (approved/rejected), comment, validated_by</td>
+      </tr>
+      <tr>
+        <td><code>assessment_observations</code></td>
+        <td>Observations client</td>
+        <td>assessment_id, observation_text, observation_by, response_text, response_action</td>
+      </tr>
+      <tr>
+        <td><code>mission_evidence_requests</code></td>
+        <td>Demandes preuves</td>
+        <td>mission_id, evidence_catalog_id, status, decline_reason, auditor_response</td>
+      </tr>
+      <tr>
+        <td><code>corrective_action_requests</code></td>
+        <td>Plan d'action</td>
+        <td>mission_id, assessment_id, finding_id, code, status, client_root_cause, client_action, deadline</td>
+      </tr>
+      <tr>
+        <td><code>client_portal_contacts</code></td>
+        <td>Accès client</td>
+        <td>cabinet_client_id, email, portal_status (pending/invited/active), permission</td>
+      </tr>
+      <tr>
+        <td><code>supervision_cycles</code></td>
+        <td>Cycles supervision</td>
+        <td>mission_id, period_label, status, score, period_start/end</td>
+      </tr>
+    </table>
+
+    <!-- ============ SÉCURITÉ & RLS ============ -->
+    <h2>Sécurité & Row-Level Security (RLS)</h2>
+    <ul>
+      <li><strong>Missions</strong> : auditeurs ne voient que missions cabinet courant + rôle spécifique</li>
+      <li><strong>Assessments</strong> : auditeur voit seulement ses assessments (sauf lead/associate)</li>
+      <li><strong>Client Review</strong> : client ne voit que ses missions + assessments approuvés</li>
+      <li><strong>Admin</strong> : service_role bypass RLS pour opérations critiques (création mission, transitions de phase)</li>
+    </ul>
+    <div class="file-ref">
+      <strong>Conventions:</strong> voir <code>CLAUDE.md</code> § Sécurité : jamais RLS auto-référente, utiliser SECURITY DEFINER functions (<code>get_my_user_id()</code>, <code>get_my_organization_id()</code>, etc.)
+    </div>
+
+    <!-- ============ POINTS CLÉS ARCHITECTURE ============ -->
+    <h2>Points Clés d'Architecture</h2>
+
+    <h3>Séparation responsabilités</h3>
+    <ul>
+      <li><strong>Hooks</strong> : <code>useMissionDetail</code>, <code>useReviewAssessments</code>, <code>useClientMissionDetail</code> — chargement données</li>
+      <li><strong>Tabs</strong> : <code>MissionScopingTab</code>, <code>MissionFieldworkTab</code>, etc. — vue d'ensemble phase</li>
+      <li><strong>Composants</strong> : sections, cards, modals — logique métier encapsulée</li>
+      <li><strong>Reports</strong> : génération PDF/Excel hors UI (Web Workers pour PDF)</li>
+    </ul>
+
+    <h3>État et localStorage</h3>
+    <ul>
+      <li>Préférence vue Fieldwork (right-rail open/close) : <code>localStorage:gestu:fieldwork-right-rail-open</code></li>
+      <li>Préférence vue Missions : liste/kanban/cards sauvegardée</li>
+      <li>Aucune donnée critique en localStorage (mutations via API)</li>
+    </ul>
+
+    <h3>Gestion asynchrone</h3>
+    <ul>
+      <li>Tous les <code>useEffect</code> async munis d'<code>AbortController</code></li>
+      <li>Mutations via Supabase functions serverless (<code>client-review-assessment</code>, <code>request-evidence</code>, etc.)</li>
+      <li>Gestion d'erreurs : log console + toast utilisateur (messages génériques)</li>
+    </ul>
+
+    <!-- ============ RÉSUMÉ LIVRABLES ============ -->
+    <h2>Livrables & Exports</h2>
+    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 2rem;">
+      <h3 style="margin-top: 0; color: #1B4332;">Par phase</h3>
+      <ul style="column-count: 2; column-gap: 2rem;">
+        <li><strong>Scoping</strong> : Note de cadrage PDF (optionnel)</li>
+        <li><strong>Planning</strong> : Planning projet, affectations</li>
+        <li><strong>Fieldwork</strong> : Observations preuves, constats draft</li>
+        <li><strong>Internal Review</strong> : Constats finalisés, score conformité</li>
+        <li><strong>Client Review</strong> : Validation client, observations</li>
+        <li><strong>Closure</strong> : <strong>Rapport audit PDF</strong> (principal), <strong>Plan action XLS</strong>, Compte-rendu entretiens PDF</li>
+        <li><strong>Action Plan</strong> : Suivi CAR, état validations</li>
+      </ul>
+    </div>
+
+    <div style="background: #fffef0; border: 1px solid #e8dcc4; padding: 1.5rem; border-radius: 0.5rem;">
+      <p style="margin-bottom: 1rem;"><strong style="color: #1B4332;">Module rapports:</strong></p>
+      <ul>
+        <li><code>src/features/reports/generateAuditReportPDF.ts</code> — Rapport audit complet (PDF pDFKit)</li>
+        <li><code>src/features/reports/generateActionPlanXLSX.ts</code> — Plan action avec progression CAR (Excel ExcelJS)</li>
+        <li><code>src/features/reports/generateScopingNotePDF.ts</code> — Note cadrage</li>
+        <li><code>src/features/reports/generateInterviewCRPDF.ts</code> — Compte-rendu entretiens</li>
+        <li><code>src/features/reports/loadAuditReportData.ts</code> — Agrégation données (assessments, findings, CAR, contacts)</li>
+        <li><code>src/features/reports/audit-report/</code> — Modules spécialisés (sections, charts, narratives)</li>
+      </ul>
+    </div>
+
+    <p style="text-align: center; color: #999; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd; font-size: 0.9rem;">
+      Documenté à partir des sources : mission-constants.ts, database.types.ts, useMissionDetail.ts, useReviewAssessments.ts, loadAuditReportData.ts<br>
+      et modules features/missions/* + features/client-portal/* + features/reports/* (avril-juin 2026)
+    </p>
+  </div>
+</body>
+</html>

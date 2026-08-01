@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Matrice plans × fonctionnalités sans colonne GLOBAL</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background: #F7F8F7; color: #111827; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .bg-forest-50 { background:#F0F5F2 } .bg-forest-100{background:#DCE8E2}
+  .bg-forest-700{background:#1B4332} .bg-forest-900{background:#0F2920}
+  .text-forest-700{color:#1B4332} .text-forest-900{color:#0F2920}
+  .bg-gold-50{background:#FBF5DD} .bg-gold-100{background:#FAEFD0}
+  .bg-gold-300{background:#E8C474}
+  .bg-gold-500{background:#D4A843}
+  .text-gold-700{color:#A37F2F} .text-gold-900{color:#5C4519}
+  .border-gold-300{border-color:#E8C474}
+
+  section.demo {
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04);
+  }
+  section.demo > h2.section-title {
+    color: #5C4519;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    padding: 6px 12px;
+    background: #FAEFD0;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+  }
+</style>
+</head>
+<body class="px-7 py-6 space-y-6">
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- AVANT : matrice actuelle avec colonne GLOBAL                        -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">AVANT — Colonne GLOBAL en permanence</h2>
+
+  <!-- ReasonBar -->
+  <div class="bg-gold-50 border border-gold-300 rounded-lg p-3 flex items-start gap-3 mb-3">
+    <svg width="16" height="16" fill="none" stroke="#A37F2F" stroke-width="2" viewBox="0 0 24 24" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div class="flex-1">
+      <label class="block text-[11px] uppercase tracking-wider text-gold-700 font-bold mb-1">Motif de la session *</label>
+      <input type="text" placeholder="Ex: ajustement offre Q2…" class="w-full px-3 py-1.5 text-[12.5px] border border-gold-300 rounded-lg bg-white">
+      <p class="text-[10.5px] text-gold-700 mt-1">Tracé dans l'audit log pour les modifications de cellules plan. Le kill switch global utilise un motif dédié par action.</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto">
+    <table class="w-full min-w-[720px]">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-left text-[11px] uppercase tracking-wider font-bold text-gray-500 px-5 py-3">Fonctionnalité</th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-red-700 px-3 py-3 w-24 bg-red-50/40 border-r-2 border-red-100">
+            <div class="flex flex-col items-center gap-0.5">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" class="mb-0.5"><path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+              <span>Global</span>
+              <span class="text-[9.5px] font-normal normal-case text-red-600">kill switch</span>
+            </div>
+          </th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32">
+            <div class="flex flex-col items-center gap-0.5">
+              <span>Découverte</span>
+              <span class="text-[10px] mono text-gray-400 normal-case">0 €</span>
+            </div>
+          </th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32 bg-gold-50">
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="text-gold-900">Pro</span>
+              <span class="text-[10px] mono text-gray-400 normal-case">800 €</span>
+            </div>
+          </th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32">
+            <div class="flex flex-col items-center gap-0.5">
+              <span>Régulateur</span>
+              <span class="text-[10px] mono text-gray-400 normal-case">Devis</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-[12.5px]">
+        <tr class="bg-gray-50">
+          <td colspan="5" class="px-5 py-2 text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">IA &amp; Productivité</td>
+        </tr>
+        <tr class="hover:bg-gray-50/50 border-b border-gray-100">
+          <td class="px-5 py-3">
+            <div class="text-[12.5px] font-semibold text-gray-900">Plan d'action IA</div>
+            <div class="text-[10.5px] text-gray-400 mono">smart_action_plan</div>
+          </td>
+          <td class="text-center bg-red-50/40 border-r-2 border-red-100">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[11px]">ON</span>
+          </td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-50 text-gray-300 font-bold">—</span></td>
+          <td class="text-center bg-gold-50/30"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+        </tr>
+        <tr class="hover:bg-gray-50/50 border-b border-gray-100 opacity-60">
+          <td class="px-5 py-3">
+            <div class="text-[12.5px] font-semibold text-gray-900 flex items-center gap-1.5">
+              Assistant conversationnel
+              <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700">Beta</span>
+            </div>
+            <div class="text-[10.5px] text-gray-400 mono">ai_chat_assistant</div>
+          </td>
+          <td class="text-center bg-red-50/40 border-r-2 border-red-100">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-700 font-bold text-[11px]">OFF</span>
+          </td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-50 text-gray-300 font-bold">—</span></td>
+          <td class="text-center bg-gold-50/30"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold-100 text-gold-700 font-bold">β</span></td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+        </tr>
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-5 py-3">
+            <div class="text-[12.5px] font-semibold text-gray-900">Vérification CAR par IA</div>
+            <div class="text-[10.5px] text-gray-400 mono">car_ai_verification</div>
+          </td>
+          <td class="text-center bg-red-50/40 border-r-2 border-red-100">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[11px]">ON</span>
+          </td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-50 text-gray-300 font-bold">—</span></td>
+          <td class="text-center bg-gold-50/30"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="mt-3 text-[11.5px] text-gray-500 italic">
+    🔴 <b>Problème :</b> 5 « ON » verts dans la colonne GLOBAL pour 3 lignes = bruit visuel constant. Une feature en kill switch (Assistant) se distingue par un OFF rouge mais reste perdue au milieu des ON. La colonne suggère faussement qu'on l'ajuste régulièrement.
+  </p>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- APRÈS : matrice sans colonne GLOBAL                                  -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">APRÈS — Kill switch contextuel sur la ligne</h2>
+
+  <!-- ReasonBar (inchangé) -->
+  <div class="bg-gold-50 border border-gold-300 rounded-lg p-3 flex items-start gap-3 mb-3">
+    <svg width="16" height="16" fill="none" stroke="#A37F2F" stroke-width="2" viewBox="0 0 24 24" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div class="flex-1">
+      <label class="block text-[11px] uppercase tracking-wider text-gold-700 font-bold mb-1">Motif de la session *</label>
+      <input type="text" placeholder="Ex: ajustement offre Q2…" class="w-full px-3 py-1.5 text-[12.5px] border border-gold-300 rounded-lg bg-white">
+      <p class="text-[10.5px] text-gold-700 mt-1">Tracé dans l'audit log pour les modifications de cellules plan.</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto">
+    <table class="w-full min-w-[640px]">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-left text-[11px] uppercase tracking-wider font-bold text-gray-500 px-5 py-3">Fonctionnalité</th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32">
+            <div class="flex flex-col items-center gap-0.5">
+              <span>Découverte</span>
+              <span class="text-[10px] mono text-gray-400 normal-case">0 €</span>
+            </div>
+          </th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32 bg-gold-50">
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="text-gold-900">Pro</span>
+              <span class="text-[10px] mono text-gray-400 normal-case">800 €</span>
+            </div>
+          </th>
+          <th class="text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32">
+            <div class="flex flex-col items-center gap-0.5">
+              <span>Régulateur</span>
+              <span class="text-[10px] mono text-gray-400 normal-case">Devis</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-[12.5px]">
+        <tr class="bg-gray-50">
+          <td colspan="4" class="px-5 py-2 text-[10.5px] uppercase tracking-wider text-gray-500 font-bold">IA &amp; Productivité</td>
+        </tr>
+
+        <!-- Ligne normale (kill switch ON, discret) -->
+        <tr class="hover:bg-gray-50/50 border-b border-gray-100 group">
+          <td class="px-5 py-3">
+            <div class="flex items-start gap-2">
+              <div class="flex-1">
+                <div class="text-[12.5px] font-semibold text-gray-900">Plan d'action IA</div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[10.5px] text-gray-400 mono">smart_action_plan</span>
+                  <button title="Couper globalement (kill switch)" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-50 text-gray-300 font-bold">—</span></td>
+          <td class="text-center bg-gold-50/30"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+        </tr>
+
+        <!-- Ligne KILLED : bandeau rouge + ligne dimmed + cellules plan en X rouge -->
+        <tr class="bg-red-50/50">
+          <td colspan="4" class="px-5 py-1.5 text-[10.5px] font-bold text-red-700 uppercase tracking-wider inline-flex items-center gap-1.5 w-full">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Kill switch actif — coupée pour tous les cabinets
+          </td>
+        </tr>
+        <tr class="bg-red-50/30 border-b border-red-100">
+          <td class="px-5 py-3">
+            <div class="flex items-start gap-2">
+              <div class="flex-1">
+                <div class="text-[12.5px] font-semibold text-red-900 flex items-center gap-1.5 line-through opacity-80">
+                  Assistant conversationnel
+                  <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700 no-underline">Beta</span>
+                </div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[10.5px] text-red-400 mono">ai_chat_assistant</span>
+                  <button title="Réactiver globalement" class="text-red-600 hover:text-red-700 inline-flex items-center gap-1 text-[10.5px] font-semibold">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                    Réactiver
+                  </button>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-400 font-bold opacity-60" title="Coupée par kill switch">✗</span></td>
+          <td class="text-center bg-gold-50/30"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-400 font-bold opacity-60" title="Coupée par kill switch">✗</span></td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-400 font-bold opacity-60" title="Coupée par kill switch">✗</span></td>
+        </tr>
+
+        <!-- Ligne normale -->
+        <tr class="hover:bg-gray-50/50 group">
+          <td class="px-5 py-3">
+            <div class="flex items-start gap-2">
+              <div class="flex-1">
+                <div class="text-[12.5px] font-semibold text-gray-900 flex items-center gap-1.5">
+                  Vérification CAR par IA
+                  <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-emerald-100 text-emerald-700">Nouveau</span>
+                </div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[10.5px] text-gray-400 mono">car_ai_verification</span>
+                  <button title="Couper globalement (kill switch)" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-50 text-gray-300 font-bold">—</span></td>
+          <td class="text-center bg-gold-50/30"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+          <td class="text-center"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="mt-3 text-[11.5px] text-gray-500 italic">
+    ✅ <b>Résultat :</b> en temps normal, l'icône kill switch ⚡ est cachée (visible au hover). Une feature killée saute aux yeux : bandeau rouge plein, ligne dimmed avec barré, cellules plan ✗ rouges. Le kill switch redevient une <b>action exceptionnelle</b> au lieu d'un <b>état permanent à scruter</b>.
+  </p>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- DÉTAIL : icône au hover                                              -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="demo">
+  <h2 class="section-title">Détail — Action de kill switch sur hover</h2>
+
+  <div class="grid grid-cols-2 gap-6">
+    <div>
+      <p class="text-[11.5px] text-gray-500 font-semibold uppercase tracking-wider mb-2">Au repos</p>
+      <div class="bg-white border border-gray-200 rounded-lg p-3">
+        <div class="text-[12.5px] font-semibold text-gray-900">Plan d'action IA</div>
+        <div class="text-[10.5px] text-gray-400 mono mt-0.5">smart_action_plan</div>
+      </div>
+      <p class="text-[10.5px] text-gray-400 italic mt-1.5">L'icône kill switch est invisible au repos.</p>
+    </div>
+
+    <div>
+      <p class="text-[11.5px] text-gray-500 font-semibold uppercase tracking-wider mb-2">Au survol de la ligne</p>
+      <div class="bg-gray-50/50 border border-gray-200 rounded-lg p-3">
+        <div class="text-[12.5px] font-semibold text-gray-900">Plan d'action IA</div>
+        <div class="flex items-center gap-2 mt-0.5">
+          <span class="text-[10.5px] text-gray-400 mono">smart_action_plan</span>
+          <button title="Couper globalement" class="text-gray-400 hover:text-red-600 inline-flex items-center gap-1">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <p class="text-[10.5px] text-gray-400 italic mt-1.5">L'icône ⚡ apparaît à côté du slug. Clic → modal de confirmation avec motif obligatoire.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- LÉGENDE                                                              -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="bg-gradient-to-br from-forest-50 to-white border border-gold-300 rounded-xl p-5">
+  <h3 class="text-[14px] font-bold text-forest-900 mb-3">Logique du redesign</h3>
+  <ul class="text-[12px] text-gray-700 space-y-2 leading-relaxed">
+    <li><b>1. Suppression de la colonne GLOBAL</b> — elle suggérait à tort que le kill switch est un état configurable au même rang que les plans. C'est en réalité une action d'urgence.</li>
+    <li><b>2. Icône ⚡ au hover</b> — apparaît à côté du slug uniquement quand on survole une ligne, conformément au principe « actions discrètes mais accessibles ».</li>
+    <li><b>3. État KILLED ultra-visible</b> — bandeau rouge plein avec icône d'alerte au-dessus de la ligne, ligne en background rouge clair, nom barré, cellules plan en ✗ rouge dimmed. Une feature coupée saute aux yeux.</li>
+    <li><b>4. Bouton "Réactiver" inline</b> — sur les lignes killed, l'icône ⚡ devient un bouton "Réactiver" explicite et visible (pas en hover) car c'est l'action attendue dans cet état.</li>
+    <li><b>5. Largeur libérée</b> — sans la colonne GLOBAL, la matrice est plus compacte et peut accueillir plus de plans sans scroll horizontal.</li>
+    <li><b>6. Logique back inchangée</b> — la modal de motif et l'edge function restent identiques. Seule la disposition UI change.</li>
+  </ul>
+</div>
+
+</body>
+</html>

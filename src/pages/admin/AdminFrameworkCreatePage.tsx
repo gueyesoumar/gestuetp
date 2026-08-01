@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 
 const CATEGORIES = [
@@ -50,7 +51,12 @@ export function AdminFrameworkCreatePage() {
     })
     setSubmitting(false)
     if (error) { toast.error('Création impossible', error); return }
-    if (data?.error) { toast.error('Création impossible'); console.error(data.error); return }
+    if (data?.error) {
+      const detail = await readInvokeError(error, data, 'Création impossible')
+      toast.error('Création impossible')
+      console.error(detail)
+      return
+    }
     toast.success('Référentiel créé', { description: 'Ajoutez maintenant les domaines et contrôles.' })
     navigate(`/admin/frameworks/${data.framework.slug}`)
   }

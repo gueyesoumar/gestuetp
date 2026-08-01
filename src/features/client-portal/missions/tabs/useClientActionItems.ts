@@ -24,10 +24,12 @@ export function useClientActionItems(missionId: string): UseClientActionItemsRet
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
 
-  const fetchData = useCallback(async (): Promise<void> => {
+  const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     setLoading(true)
+    try {
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
+    if (signal?.aborted) return
     if (!token) { setLoading(false); return }
 
     const baseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -36,22 +38,25 @@ export function useClientActionItems(missionId: string): UseClientActionItemsRet
 
     const res = await fetch(
       `${baseUrl}/rest/v1/client_action_items?mission_id=eq.${missionId}&select=id,title,description,priority,due_date,status,control_id&order=priority,due_date`,
-      { headers }
+      { headers, signal }
     )
+    if (signal?.aborted) return
     if (!res.ok) { setItems([]); setLoading(false); return }
     const data = await res.json() as Record<string, unknown>[]
+    if (signal?.aborted) return
 
     // Fetch control codes
     const controlIds = [...new Set(data.map((d) => d.control_id as string).filter(Boolean))]
     let controlMap: Record<string, string> = {}
     if (controlIds.length > 0) {
-      const ctrlRes = await fetch(`${baseUrl}/rest/v1/controls?id=in.(${controlIds.join(',')})&select=id,code`, { headers })
+      const ctrlRes = await fetch(`${baseUrl}/rest/v1/controls?id=in.(${controlIds.join(',')})&select=id,code`, { headers, signal })
       if (ctrlRes.ok) {
         const controls = await ctrlRes.json() as { id: string; code: string }[]
         controlMap = Object.fromEntries(controls.map((c) => [c.id, c.code]))
       }
     }
 
+    if (signal?.aborted) return
     setItems(data.map((d) => ({
       id: d.id as string,
       title: d.title as string,
@@ -62,9 +67,19 @@ export function useClientActionItems(missionId: string): UseClientActionItemsRet
       controlCode: controlMap[d.control_id as string] ?? null,
     })))
     setLoading(false)
+    } catch {
+      // Abort lors d'un démontage/navigation : on ignore (pas une vraie erreur)
+      if (signal?.aborted) return
+      setItems([])
+      setLoading(false)
+    }
   }, [missionId])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    const ac = new AbortController()
+    void fetchData(ac.signal)
+    return () => ac.abort()
+  }, [fetchData])
 
   const updateStatus = useCallback(async (itemId: string, status: ActionStatus): Promise<boolean> => {
     setUpdating(true)

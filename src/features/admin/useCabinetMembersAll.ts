@@ -63,7 +63,7 @@ export function useCabinetMembersAll(cabinetId: string | undefined): Result {
           .in('user_id', ids)
           .abortSignal(abort.signal)
 
-        for (const r of ((roleRows ?? []) as Array<{ user_id: string; platform_roles: { name: string } | null }>)) {
+        for (const r of ((roleRows ?? []) as unknown as Array<{ user_id: string; platform_roles: { name: string } | null }>)) {
           const existing = rolesByUser.get(r.user_id) ?? []
           if (r.platform_roles?.name) existing.push(r.platform_roles.name)
           rolesByUser.set(r.user_id, existing)

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Fonctionnalités (refonte de Feature flags)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background: #F7F8F7; color: #111827; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .bg-forest-50 { background:#F0F5F2 } .bg-forest-100{background:#DCE8E2}
+  .bg-forest-500{background:#2D5A47} .bg-forest-700{background:#1B4332}
+  .text-forest-700{color:#1B4332} .text-forest-900{color:#0F2920}
+  .bg-gold-50{background:#FBF5DD} .bg-gold-100{background:#FAEFD0}
+  .bg-gold-500{background:#D4A843}
+  .text-gold-700{color:#A37F2F} .text-gold-900{color:#5C4519}
+  .border-gold-300{border-color:#E8C474}
+
+  /* Toggle moderne */
+  .toggle { position: relative; width: 44px; height: 24px; background: #d1d5db; border-radius: 999px; transition: background .2s; cursor: pointer; flex-shrink: 0; }
+  .toggle.on { background: #10b981; }
+  .toggle.off-forced { background: #ef4444; }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; background: white; border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .2s;
+  }
+  .toggle.on::after, .toggle.off-forced::after { left: 22px; }
+  .toggle.off-forced::after { left: 2px; } /* OFF forcé : à gauche */
+  .toggle.on { background: #10b981; }
+  .toggle.on::after { left: 22px; }
+
+  .ring-soft { box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.04); }
+  .card-hover:hover { box-shadow: 0 0 0 1px rgba(212,168,67,.4), 0 4px 14px rgba(0,0,0,.06); transition: all .2s; }
+
+  .tab-active { border-bottom: 2px solid #D4A843; color: #0F2920; font-weight: 700; }
+  .tab-inactive { border-bottom: 2px solid transparent; color: #6B7280; }
+
+  .filter-active { background: #1B4332; color: white; }
+  .filter-inactive { background: white; color: #4B5563; border: 1px solid #E5E7EB; }
+  .filter-inactive:hover { background: #F9FAFB; }
+
+  .badge-beta { background: linear-gradient(135deg, #FAEFD0, #E8C474); color: #5C4519; }
+  .badge-new { background: #DCFCE7; color: #166534; }
+  .badge-stable { background: #F3F4F6; color: #6B7280; }
+
+  .chevron { transition: transform .15s; }
+  .open .chevron { transform: rotate(180deg); }
+</style>
+</head>
+<body class="px-7 py-6">
+
+  <!-- Breadcrumb + retour -->
+  <div class="text-[12px] text-forest-700 font-semibold mb-3">← Retour aux organisations</div>
+
+  <!-- Header organisation -->
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-[16px] font-extrabold bg-forest-100 text-forest-700">G</div>
+    <div>
+      <h1 class="text-[19px] font-bold text-gray-900">Gëstu Advisory</h1>
+      <div class="text-[11.5px] text-gray-500">Cabinet · onboardé le 12 octobre 2024</div>
+    </div>
+  </div>
+
+  <!-- Tabs (Feature flags renommé en Fonctionnalités) -->
+  <div class="flex gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Vue d'ensemble</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Membres · 7</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Missions · 12</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Facturation</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Marque blanche</button>
+    <button class="px-4 py-2 text-[12.5px] tab-active whitespace-nowrap">Fonctionnalités</button>
+    <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Audit log</button>
+  </div>
+
+  <!-- ─────────── Header section ─────────── -->
+  <div class="mb-5">
+    <h2 class="text-[16px] font-bold text-gray-900">Fonctionnalités du cabinet</h2>
+    <p class="text-[12px] text-gray-500 mt-0.5">
+      Active ou désactive des fonctionnalités <b>spécifiquement pour ce cabinet</b>. Sans override, chaque cabinet hérite de la valeur globale gérée par la plateforme.
+    </p>
+  </div>
+
+  <!-- ─────────── 4 KPIs ─────────── -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-xl ring-soft p-4">
+      <p class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold mb-1">Total</p>
+      <p class="text-[24px] font-extrabold text-gray-900">14</p>
+      <p class="text-[11px] text-gray-500">fonctionnalités déployées</p>
+    </div>
+    <div class="bg-white rounded-xl ring-soft p-4 border-l-4 border-emerald-500">
+      <p class="text-[10.5px] uppercase tracking-wider text-emerald-700 font-bold mb-1">Actives chez ce cabinet</p>
+      <p class="text-[24px] font-extrabold text-emerald-700">9</p>
+      <p class="text-[11px] text-gray-500">utilisables aujourd'hui</p>
+    </div>
+    <div class="bg-white rounded-xl ring-soft p-4 border-l-4 border-gold-500">
+      <p class="text-[10.5px] uppercase tracking-wider text-gold-700 font-bold mb-1">Personnalisées</p>
+      <p class="text-[24px] font-extrabold text-gold-700">3</p>
+      <p class="text-[11px] text-gray-500">overrides spécifiques</p>
+    </div>
+    <div class="bg-white rounded-xl ring-soft p-4 border-l-4 border-gray-300">
+      <p class="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold mb-1">Désactivées</p>
+      <p class="text-[24px] font-extrabold text-gray-700">5</p>
+      <p class="text-[11px] text-gray-500">non disponibles</p>
+    </div>
+  </div>
+
+  <!-- ─────────── Recherche + Filtres rapides ─────────── -->
+  <div class="bg-white rounded-xl ring-soft p-3 mb-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Recherche -->
+      <div class="relative flex-1 min-w-[220px]">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input
+          type="text"
+          placeholder="Rechercher une fonctionnalité…"
+          class="w-full pl-9 pr-3 py-2 text-[12.5px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
+        />
+      </div>
+      <!-- Filtres -->
+      <div class="flex gap-1.5">
+        <button class="px-3 py-2 text-[11.5px] font-semibold rounded-lg filter-active">Tous · 14</button>
+        <button class="px-3 py-2 text-[11.5px] font-semibold rounded-lg filter-inactive">Actives · 9</button>
+        <button class="px-3 py-2 text-[11.5px] font-semibold rounded-lg filter-inactive">Personnalisées · 3</button>
+        <button class="px-3 py-2 text-[11.5px] font-semibold rounded-lg filter-inactive">Désactivées · 5</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── Catégorie : IA & Productivité ─────────── -->
+  <div class="mb-5">
+    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-2 flex items-center gap-2">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1z"/></svg>
+      IA &amp; Productivité
+      <span class="text-gray-400 normal-case text-[10.5px] font-medium">3 fonctionnalités</span>
+    </h3>
+
+    <div class="space-y-2.5">
+
+      <!-- ▶ Carte 1 — Active héritée -->
+      <div class="bg-white rounded-xl ring-soft card-hover p-4">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <h4 class="text-[14px] font-bold text-gray-900">Plan d'action généré par IA</h4>
+              <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide badge-stable">Stable</span>
+            </div>
+            <p class="text-[11.5px] text-gray-500 mb-1.5">Génère automatiquement un plan d'action depuis les findings d'une mission.</p>
+            <div class="flex items-center gap-3 text-[10.5px]">
+              <span class="mono text-gray-400">smart_action_plan</span>
+              <span class="text-gray-300">·</span>
+              <span class="text-gray-500">Hérite du global (<b class="text-emerald-600">activé</b>)</span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2 shrink-0">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 inline-flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Active
+            </span>
+            <div class="toggle on" title="Activée"></div>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+          <span class="text-[10.5px] text-gray-400">Aucun override pour ce cabinet</span>
+          <button class="text-[11px] font-semibold text-forest-700 hover:text-forest-900 inline-flex items-center gap-1">
+            Personnaliser
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ▶ Carte 2 — Forcée OFF (override) -->
+      <div class="bg-white rounded-xl ring-soft card-hover p-4 border-l-4 border-red-400">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <h4 class="text-[14px] font-bold text-gray-900">Assistant conversationnel</h4>
+              <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide badge-beta">Beta</span>
+            </div>
+            <p class="text-[11.5px] text-gray-500 mb-1.5">Chatbot IA pour interroger les données d'une mission en langage naturel.</p>
+            <div class="flex items-center gap-3 text-[10.5px]">
+              <span class="mono text-gray-400">ai_chat_assistant</span>
+              <span class="text-gray-300">·</span>
+              <span class="text-gray-500">Global (activé) <span class="text-red-600 font-semibold">→ forcé OFF ici</span></span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2 shrink-0">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 inline-flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              Désactivée
+            </span>
+            <div class="toggle off-forced" title="Forcée OFF"></div>
+          </div>
+        </div>
+        <!-- Bandeau override avec motif et historique -->
+        <div class="mt-3 bg-red-50 border border-red-200 rounded-lg p-2.5">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] uppercase tracking-wider font-bold text-red-700 inline-flex items-center gap-1">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Override actif — Forcé OFF
+            </span>
+            <span class="text-[10px] text-gray-500">par <b>Soumar Gueye</b> · il y a 3 jours</span>
+          </div>
+          <p class="text-[11.5px] text-red-800 italic">« Le client a explicitement refusé le chatbot pour des raisons de confidentialité (cf. ticket #482). »</p>
+        </div>
+        <div class="mt-2 flex items-center justify-between">
+          <button class="text-[10.5px] text-gray-500 font-semibold hover:text-gray-700 inline-flex items-center gap-1">
+            Voir l'historique (2 changements)
+            <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button class="text-[11px] font-semibold text-forest-700 hover:text-forest-900">Réinitialiser (hériter)</button>
+        </div>
+      </div>
+
+      <!-- ▶ Carte 3 — Forcée ON (override) -->
+      <div class="bg-white rounded-xl ring-soft card-hover p-4 border-l-4 border-emerald-400">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <h4 class="text-[14px] font-bold text-gray-900">Vérification CAR par IA</h4>
+              <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide badge-new">Nouveau</span>
+            </div>
+            <p class="text-[11.5px] text-gray-500 mb-1.5">Évalue automatiquement la complétude des Comptes Rendus d'Audit avant validation.</p>
+            <div class="flex items-center gap-3 text-[10.5px]">
+              <span class="mono text-gray-400">car_ai_verification</span>
+              <span class="text-gray-300">·</span>
+              <span class="text-gray-500">Global (désactivé) <span class="text-emerald-700 font-semibold">→ forcé ON ici</span></span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2 shrink-0">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 inline-flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Active
+            </span>
+            <div class="toggle on" title="Activée"></div>
+          </div>
+        </div>
+        <div class="mt-3 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] uppercase tracking-wider font-bold text-emerald-700 inline-flex items-center gap-1">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Override actif — Forcé ON
+            </span>
+            <span class="text-[10px] text-gray-500">par <b>Soumar Gueye</b> · il y a 8 jours</span>
+          </div>
+          <p class="text-[11.5px] text-emerald-800 italic">« Cabinet pilote pour la phase beta de la fonctionnalité, retours attendus avant déploiement global. »</p>
+        </div>
+        <div class="mt-2 flex items-center justify-between">
+          <button class="text-[10.5px] text-gray-500 font-semibold hover:text-gray-700">Voir l'historique</button>
+          <button class="text-[11px] font-semibold text-forest-700 hover:text-forest-900">Réinitialiser (hériter)</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─────────── Catégorie : Reporting ─────────── -->
+  <div class="mb-5">
+    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-2 flex items-center gap-2">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reporting &amp; Exports
+      <span class="text-gray-400 normal-case text-[10.5px] font-medium">2 fonctionnalités</span>
+    </h3>
+
+    <div class="space-y-2.5">
+
+      <!-- Active héritée minimalist -->
+      <div class="bg-white rounded-xl ring-soft card-hover p-4">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-[14px] font-bold text-gray-900 mb-0.5">Rapport PDF mission</h4>
+            <p class="text-[11.5px] text-gray-500 mb-1.5">Génération d'un rapport complet en PDF à partir des données de la mission.</p>
+            <div class="flex items-center gap-3 text-[10.5px]">
+              <span class="mono text-gray-400">mission_pdf_export</span>
+              <span class="text-gray-300">·</span>
+              <span class="text-gray-500">Hérite du global (<b class="text-emerald-600">activé</b>)</span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2 shrink-0">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 inline-flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Active
+            </span>
+            <div class="toggle on"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Désactivée héritée -->
+      <div class="bg-white rounded-xl ring-soft card-hover p-4 opacity-90">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/><path d="M9 9h6v6H9z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <h4 class="text-[14px] font-bold text-gray-700">Tableau de bord exécutif</h4>
+              <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide badge-beta">Beta</span>
+            </div>
+            <p class="text-[11.5px] text-gray-500 mb-1.5">Vue synthétique des KPIs de toutes les missions du cabinet, à destination du management.</p>
+            <div class="flex items-center gap-3 text-[10.5px]">
+              <span class="mono text-gray-400">executive_dashboard</span>
+              <span class="text-gray-300">·</span>
+              <span class="text-gray-500">Hérite du global (<b class="text-gray-500">désactivé</b>)</span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2 shrink-0">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500 inline-flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+              Désactivée
+            </span>
+            <div class="toggle"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─────────── Modal ouverte sur Personnaliser (mockup) ─────────── -->
+  <div class="bg-gradient-to-br from-forest-50 to-white border border-forest-200 rounded-xl p-5 mt-6">
+    <h3 class="text-[14px] font-bold text-forest-900 mb-3">Logique du revamp</h3>
+    <ul class="text-[12px] text-gray-700 space-y-1.5 leading-relaxed">
+      <li><b>1. Renommage</b> — &laquo; Feature flags &raquo; (jargon dev) → <b>&laquo; Fonctionnalités &raquo;</b> (compréhensible immédiatement par un super-admin métier).</li>
+      <li><b>2. KPI strip 4 cards</b> — Total / Actives / Personnalisées / Désactivées avec accent visuel sur les overrides (gold) pour identifier vite l'exception.</li>
+      <li><b>3. Recherche + filtres rapides</b> — pour 14+ flags, indispensable. Filter as you type sur nom/slug/description.</li>
+      <li><b>4. Cartes plutôt que lignes</b> — chaque fonctionnalité respire : icône, nom convivial, description, slug technique discret, badge maturité (Stable/Beta/Nouveau).</li>
+      <li><b>5. Toggle simple par défaut</b> — un clic active/désactive (override). Plus de segmented control 3-options en première lecture.</li>
+      <li><b>6. Override visuel fort</b> — bord coloré gauche (rouge/vert) + bandeau motif + auteur + date. L'admin voit immédiatement ce qui dévie du global.</li>
+      <li><b>7. Catégories</b> — IA &amp; Productivité, Reporting, Collaboration, Sécurité… pour scanner par usage métier plutôt que par ordre alphabétique de slug.</li>
+      <li><b>8. Maturité signalée</b> — badges Beta/Nouveau/Stable pour décider si on peut activer pour un cabinet client en prod.</li>
+      <li><b>9. Action "Réinitialiser"</b> — un seul lien clair pour repasser en mode hérité, plutôt que 3 boutons confus.</li>
+      <li><b>10. Historique des changements</b> — collapsible accessible mais pas encombrant, pour audit complet sans noyer la lecture.</li>
+    </ul>
+
+    <h3 class="text-[14px] font-bold text-forest-900 mt-5 mb-3">Prérequis backend</h3>
+    <ul class="text-[12px] text-gray-700 space-y-1.5 leading-relaxed">
+      <li><b>Catégorisation</b> — ajouter un champ <code class="mono bg-white px-1 rounded text-[11px]">category</code> sur <code class="mono bg-white px-1 rounded text-[11px]">feature_flags</code> (ai, reporting, collab, security, beta).</li>
+      <li><b>Maturité</b> — ajouter un champ <code class="mono bg-white px-1 rounded text-[11px]">maturity</code> (stable, beta, new) ou utiliser un tag.</li>
+      <li><b>Description / icône</b> — <code class="mono bg-white px-1 rounded text-[11px]">description</code> existe déjà, on peut ajouter <code class="mono bg-white px-1 rounded text-[11px]">icon_name</code> (lucide-react slug) optionnel.</li>
+      <li><b>Historique</b> — déjà présent dans <code class="mono bg-white px-1 rounded text-[11px]">audit_log</code> filtrable par <code class="mono bg-white px-1 rounded text-[11px]">target_id = flag_id</code>.</li>
+    </ul>
+  </div>
+
+</body>
+</html>

@@ -9,7 +9,7 @@ export interface DashboardStats {
   approvedCount: number
   clientRejections: number
   missionsByStatus: Record<string, number>
-  averageScore: number
+  averageProgress: number
   totalDocuments: number
 }
 
@@ -71,7 +71,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
     approvedCount: 0,
     clientRejections: 0,
     missionsByStatus: {},
-    averageScore: 0,
+    averageProgress: 0,
     totalDocuments: 0,
   })
   const [missions, setMissions] = useState<MissionSummary[]>([])
@@ -91,6 +91,15 @@ export function useDashboardStats(): UseDashboardStatsResult {
 
     const fetchData = async (): Promise<void> => {
       // 1. Missions du cabinet
+      type MissionRow = {
+        id: string
+        name: string
+        status: string
+        start_date: string | null
+        end_date: string | null
+        updated_at: string
+        client: { name: string; sector: string | null } | null
+      }
       const { data: missionsData, error: mErr } = await supabase
         .from('missions')
         .select('id, name, status, start_date, end_date, updated_at, client:organizations!missions_client_id_fkey(name, sector)')
@@ -107,7 +116,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         return
       }
 
-      const missionsList = missionsData ?? []
+      const missionsList = (missionsData ?? []) as unknown as MissionRow[]
       const activeMissions = missionsList.filter((m) => m.status !== 'closure').length
       const missionsByStatus: Record<string, number> = {}
       for (const m of missionsList) {
@@ -193,7 +202,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
       // 6. Average score
       const totalControlsSum = activeMissionsList.reduce((s, m) => s + m.totalControls, 0)
       const evaluatedSum = activeMissionsList.reduce((s, m) => s + m.evaluatedControls, 0)
-      const averageScore = totalControlsSum > 0 ? Math.round((evaluatedSum / totalControlsSum) * 100) : 0
+      const averageProgress = totalControlsSum > 0 ? Math.round((evaluatedSum / totalControlsSum) * 100) : 0
 
       // 7. Nearest deadline
       const now = new Date()
@@ -254,7 +263,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         approvedCount,
         clientRejections,
         missionsByStatus,
-        averageScore,
+        averageProgress,
         totalDocuments,
       })
       setMissions(activeMissionsList)

@@ -36,10 +36,12 @@ export function useClientDashboardData(mission: ClientMissionDetail): ClientDash
   })
   const [loading, setLoading] = useState(true)
 
-  const fetchAll = useCallback(async (): Promise<void> => {
+  const fetchAll = useCallback(async (signal?: AbortSignal): Promise<void> => {
     setLoading(true)
+    try {
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
+    if (signal?.aborted) return
     if (!token) { setLoading(false); return }
 
     const baseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -60,11 +62,12 @@ export function useClientDashboardData(mission: ClientMissionDetail): ClientDash
 
     // Parallel fetches
     const [docsResult, findingsResult, interviewsResult, carsResult] = await Promise.all([
-      fetchDocsCounts(mission.id, headers, baseUrl),
-      fetchPendingFindings(mission.id, headers, baseUrl),
-      fetchUpcomingInterviews(mission.id, headers, baseUrl),
-      fetchPendingCARs(mission.id, headers, baseUrl),
+      fetchDocsCounts(mission.id, headers, baseUrl, signal),
+      fetchPendingFindings(mission.id, headers, baseUrl, signal),
+      fetchUpcomingInterviews(mission.id, headers, baseUrl, signal),
+      fetchPendingCARs(mission.id, headers, baseUrl, signal),
     ])
+    if (signal?.aborted) return
 
     // Observations are non-blocking info, NOT counted in pending actions
     const totalPendingActions = docsResult.pending + interviewsResult + carsResult
@@ -78,20 +81,29 @@ export function useClientDashboardData(mission: ClientMissionDetail): ClientDash
       totalPendingActions,
     })
     setLoading(false)
+    } catch {
+      // Abort lors d'un démontage/navigation : on ignore (pas une vraie erreur)
+      if (signal?.aborted) return
+      setLoading(false)
+    }
   }, [mission.id, mission.status, mission.end_date])
 
-  useEffect(() => { fetchAll() }, [fetchAll])
+  useEffect(() => {
+    const ac = new AbortController()
+    void fetchAll(ac.signal)
+    return () => ac.abort()
+  }, [fetchAll])
 
   return { ...data, loading }
 }
 
 type Headers = Record<string, string>
 
-async function fetchDocsCounts(missionId: string, headers: Headers, baseUrl: string): Promise<{ expected: number; uploaded: number; pending: number }> {
+async function fetchDocsCounts(missionId: string, headers: Headers, baseUrl: string, signal?: AbortSignal): Promise<{ expected: number; uploaded: number; pending: number }> {
   // 1. Count only documents explicitly requested by auditor
   const reqRes = await fetch(
     `${baseUrl}/rest/v1/mission_evidence_requests?mission_id=eq.${missionId}&select=evidence_catalog_id`,
-    { headers }
+    { headers, signal }
   )
   if (!reqRes.ok) return { expected: 0, uploaded: 0, pending: 0 }
   const requestRows = await reqRes.json() as { evidence_catalog_id: string }[]
@@ -101,7 +113,7 @@ async function fetchDocsCounts(missionId: string, headers: Headers, baseUrl: str
   const catalogIds = requestRows.map((r) => r.evidence_catalog_id)
   const catRes = await fetch(
     `${baseUrl}/rest/v1/evidence_catalog?id=in.(${catalogIds.join(',')})&select=name`,
-    { headers }
+    { headers, signal }
   )
   const requestedNames = new Set<string>()
   if (catRes.ok) {
@@ -112,7 +124,7 @@ async function fetchDocsCounts(missionId: string, headers: Headers, baseUrl: str
   // 3. Count uploaded documents matching requested evidence
   const docsRes = await fetch(
     `${baseUrl}/rest/v1/documents?mission_id=eq.${missionId}&select=description`,
-    { headers }
+    { headers, signal }
   )
   const uploadedNames = new Set<string>()
   if (docsRes.ok) {
@@ -128,12 +140,12 @@ async function fetchDocsCounts(missionId: string, headers: Headers, baseUrl: str
   return { expected, uploaded, pending: Math.max(0, expected - uploaded) }
 }
 
-async function fetchPendingFindings(missionId: string, headers: Headers, baseUrl: string): Promise<number> {
+async function fetchPendingFindings(missionId: string, headers: Headers, baseUrl: string, signal?: AbortSignal): Promise<number> {
   // Count observations posted by client that haven't been responded to yet.
   // Replaces the old "pending validations" concept.
   const res = await fetch(
     `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${missionId}&select=id`,
-    { headers }
+    { headers, signal }
   )
   if (!res.ok) return 0
   const assessments = await res.json() as { id: string }[]
@@ -142,28 +154,28 @@ async function fetchPendingFindings(missionId: string, headers: Headers, baseUrl
   const ids = assessments.map((a) => a.id)
   const obsRes = await fetch(
     `${baseUrl}/rest/v1/assessment_observations?assessment_id=in.(${ids.join(',')})&response_text=is.null&select=id`,
-    { headers }
+    { headers, signal }
   )
   if (!obsRes.ok) return 0
   const pendingObs = await obsRes.json() as { id: string }[]
   return pendingObs.length
 }
 
-async function fetchUpcomingInterviews(missionId: string, headers: Headers, baseUrl: string): Promise<number> {
+async function fetchUpcomingInterviews(missionId: string, headers: Headers, baseUrl: string, signal?: AbortSignal): Promise<number> {
   const today = new Date().toISOString().split('T')[0]
   const res = await fetch(
     `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&status=eq.scheduled&scheduled_date=gte.${today}&select=id`,
-    { headers }
+    { headers, signal }
   )
   if (!res.ok) return 0
   const interviews = await res.json() as { id: string }[]
   return interviews.length
 }
 
-async function fetchPendingCARs(missionId: string, headers: Headers, baseUrl: string): Promise<number> {
+async function fetchPendingCARs(missionId: string, headers: Headers, baseUrl: string, signal?: AbortSignal): Promise<number> {
   const res = await fetch(
     `${baseUrl}/rest/v1/corrective_action_requests?mission_id=eq.${missionId}&status=eq.sent_to_client&select=id`,
-    { headers }
+    { headers, signal }
   )
   if (!res.ok) return 0
   const cars = await res.json() as { id: string }[]

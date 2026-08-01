@@ -9,9 +9,12 @@ export interface ClientMissionDetail {
   status_label: string
   start_date: string | null
   end_date: string | null
+  framework_id: string | null
   framework_name: string | null
   cabinet_name: string | null
   cabinet_id: string
+  client_id: string | null
+  client_name: string | null
 }
 
 interface UseClientMissionDetailReturn {
@@ -28,13 +31,15 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = useCallback(async (): Promise<void> => {
+  const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!missionId) return
     setLoading(true)
     setError(null)
 
+    try {
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
+    if (signal?.aborted) return
     if (!token) {
       setError('Non authentifi\u00e9')
       setLoading(false)
@@ -47,9 +52,10 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
 
     // Fetch mission (sans join pour éviter erreur 300)
     const missionRes = await fetch(
-      `${baseUrl}/rest/v1/missions?id=eq.${missionId}&select=id,name,status,start_date,end_date,cabinet_id,framework_id`,
-      { headers }
+      `${baseUrl}/rest/v1/missions?id=eq.${missionId}&select=id,name,status,start_date,end_date,cabinet_id,framework_id,client_id`,
+      { headers, signal }
     )
+    if (signal?.aborted) return
 
     if (!missionRes.ok) {
       setError('Mission introuvable ou acc\u00e8s refus\u00e9')
@@ -66,24 +72,34 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
 
     const m = missions[0]
 
-    // Fetch framework & cabinet names
+    // Fetch framework, cabinet, client names
     let frameworkName: string | null = null
     let cabinetName: string | null = null
+    let clientName: string | null = null
 
     if (m.framework_id) {
-      const fwRes = await fetch(`${baseUrl}/rest/v1/frameworks?id=eq.${m.framework_id}&select=name`, { headers })
+      const fwRes = await fetch(`${baseUrl}/rest/v1/frameworks?id=eq.${m.framework_id}&select=name`, { headers, signal })
       if (fwRes.ok) {
         const fwData = await fwRes.json() as { name: string }[]
         frameworkName = fwData[0]?.name ?? null
       }
     }
     if (m.cabinet_id) {
-      const cabRes = await fetch(`${baseUrl}/rest/v1/organizations?id=eq.${m.cabinet_id}&select=name`, { headers })
+      const cabRes = await fetch(`${baseUrl}/rest/v1/organizations?id=eq.${m.cabinet_id}&select=name`, { headers, signal })
       if (cabRes.ok) {
         const cabData = await cabRes.json() as { name: string }[]
         cabinetName = cabData[0]?.name ?? null
       }
     }
+    if (m.client_id) {
+      const clRes = await fetch(`${baseUrl}/rest/v1/organizations?id=eq.${m.client_id}&select=name`, { headers, signal })
+      if (clRes.ok) {
+        const clData = await clRes.json() as { name: string }[]
+        clientName = clData[0]?.name ?? null
+      }
+    }
+
+    if (signal?.aborted) return
 
     setMission({
       id: m.id as string,
@@ -92,24 +108,36 @@ export function useClientMissionDetail(missionId: string | undefined): UseClient
       status_label: PHASE_LABELS[m.status as string] ?? (m.status as string),
       start_date: m.start_date as string | null,
       end_date: m.end_date as string | null,
+      framework_id: (m.framework_id as string | null) ?? null,
       framework_name: frameworkName,
       cabinet_name: cabinetName,
       cabinet_id: m.cabinet_id as string,
+      client_id: (m.client_id as string | null) ?? null,
+      client_name: clientName,
     })
 
     // Fetch permission
     const accessRes = await fetch(
       `${baseUrl}/rest/v1/client_mission_access?mission_id=eq.${missionId}&select=permission&limit=1`,
-      { headers }
+      { headers, signal }
     )
+    if (signal?.aborted) return
     const accessData = await accessRes.json() as { permission: string }[]
     setPermission(accessData?.[0]?.permission ?? 'viewer')
 
     setLoading(false)
+    } catch {
+      // Abort lors d'un démontage/navigation : on ignore (pas une vraie erreur)
+      if (signal?.aborted) return
+      setError('Erreur de chargement de la mission')
+      setLoading(false)
+    }
   }, [missionId])
 
   useEffect(() => {
-    fetchData()
+    const ac = new AbortController()
+    void fetchData(ac.signal)
+    return () => ac.abort()
   }, [fetchData])
 
   return { mission, permission, loading, error, refetch: fetchData }

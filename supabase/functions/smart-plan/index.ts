@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
 const SYSTEM_PROMPT = `Tu es un expert en audit SI. Pour chaque contrôle, tu détermines le risk_level, les audit_techniques, et l'auditor_id.
 
@@ -24,7 +25,11 @@ Règles affectation IMPORTANTES :
 - Équilibre le NOMBRE DE CONTRÔLES entre auditeurs (pas les heures)
 - Le chef de mission (lead_auditor) prend les domaines de gouvernance/politique
 
-Réponds UNIQUEMENT en JSON : {"controls":[{"id":"...","risk_level":"...","techniques":["..."],"auditor_id":"...","notes":null}]}`
+Champ "reasoning" (OBLIGATOIRE) :
+- 1 phrase max (≤120 caractères) qui justifie le risk_level retenu pour ce contrôle, en référençant la réponse du questionnaire ou le contexte client si applicable
+- Exemples : "Client déclare absence de PSSI formalisée → critique" / "Maturité élevée déclarée sur la GIA → low"
+
+Réponds UNIQUEMENT en JSON : {"controls":[{"id":"...","risk_level":"...","techniques":["..."],"auditor_id":"...","notes":null,"reasoning":"..."}]}`
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -40,18 +45,13 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    // Auth
-    const authHeader = req.headers.get('Authorization') ?? req.headers.get('x-auth-token')
-    let callerId: string | null = null
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '')
-      const { data: { user } } = await supabaseAdmin.auth.getUser(token)
-      if (user) callerId = user.id
+    // Auth + cloisonnement
+    const auth = await authenticateCaller(supabaseAdmin, req)
+    if (!auth.ok) {
+      return new Response(JSON.stringify({ error: auth.message }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
-    if (!callerId) {
-      return new Response(JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
+    const caller = auth.profile
 
     const { mission_id } = await req.json()
     if (!mission_id) {
@@ -65,6 +65,12 @@ Deno.serve(async (req) => {
     if (!mission) {
       return new Response(JSON.stringify({ error: 'Mission introuvable' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // La mission doit appartenir au cabinet de l'appelant
+    if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
+      return new Response(JSON.stringify({ error: ACCESS_DENIED }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: domains } = await supabaseAdmin
@@ -136,7 +142,7 @@ IMPORTANT: Utilise les réponses du questionnaire pour ajuster les niveaux de ri
 ${controls.length} contrôles (id|code|nom|domaine):
 ${controls.join('\n')}
 
-Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_level":"critical|high|medium|low","techniques":["inspection","entretien"],"auditor_id":"uuid","notes":null}]}`
+Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_level":"critical|high|medium|low","techniques":["inspection","entretien"],"auditor_id":"uuid","notes":null,"reasoning":"≤120 chars"}]}`
 
     console.log(`[smart-plan] Calling Claude with ${controls.length} controls...`)
 
@@ -166,7 +172,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
       const errText = await claudeRes.text()
       console.error('[smart-plan] Claude API error:', claudeRes.status, errText.slice(0, 500))
       void logAiCall({ admin: supabaseAdmin, function_name: 'smart-plan', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${errText.slice(0, 200)}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
-      return new Response(JSON.stringify({ error: `Erreur Claude: ${claudeRes.status}`, detail: errText.slice(0, 200) }),
+      return new Response(JSON.stringify({ error: `Erreur Claude: ${claudeRes.status}` }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -179,7 +185,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
     const fullJson = '{"controls":[' + rawContent
 
     // Parse response — try multiple strategies
-    let parsed: { controls: { id: string; risk_level: string; techniques: string[]; auditor_id: string; notes: string | null }[] }
+    let parsed: { controls: { id: string; risk_level: string; techniques: string[]; auditor_id: string; notes: string | null; reasoning?: string | null }[] }
     try {
       // Strategy 1: direct parse (ideal case)
       parsed = JSON.parse(fullJson)
@@ -200,7 +206,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
           }
         } catch {
           console.error('[smart-plan] All parse strategies failed. Raw:', fullJson.slice(0, 500))
-          return new Response(JSON.stringify({ error: 'Réponse IA invalide', raw: fullJson.slice(0, 300) }),
+          return new Response(JSON.stringify({ error: 'Réponse IA invalide' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
       }
@@ -215,6 +221,7 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
       sampling_population: null,
       sampling_size: null,
       notes: c.notes,
+      reasoning: typeof c.reasoning === 'string' ? c.reasoning.slice(0, 200) : null,
     }))
 
     const resultAssignments = (parsed.controls ?? [])

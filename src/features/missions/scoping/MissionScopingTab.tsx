@@ -4,15 +4,16 @@ import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { useScopingData } from './useScopingData'
 import { useSaveScoping } from './useSaveScoping'
-import { generateScopingNotePDF } from '../../reports/generateScopingNotePDF'
+import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionQuestionnaire } from '../useMissionQuestionnaire'
-import { ScopingClientTab } from './ScopingClientTab'
 import { ScopingScopeTab } from './ScopingScopeTab'
 import { ScopingQuestionnaireTab } from './ScopingQuestionnaireTab'
 import { ScopingDocumentsTab } from './ScopingDocumentsTab'
 import { ScopingRisksTab } from './ScopingRisksTab'
+import { ScopingActorsTab } from './ScopingActorsTab'
+import { useMissionActors } from './useMissionActors'
 import { ScopingProgressSidebar } from './ScopingProgressSidebar'
 import { PortalInviteModal } from './PortalInviteModal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -29,16 +30,18 @@ interface MissionScopingTabProps {
   onRefetch: () => void
 }
 
-type ScopingTab = 'client' | 'scope' | 'questionnaire' | 'documents' | 'risks'
+type ScopingTab = 'scope' | 'questionnaire' | 'documents' | 'risks' | 'actors'
 
 export function MissionScopingTab({ mission, members, domains, client, onRefetch }: MissionScopingTabProps) {
   const { profile } = useAuth()
-  const { exclusions, risks, auditHistory, loading, error, refetch: refetchScoping } = useScopingData(mission.id, client?.id)
+  const { lead, associate } = useReviewLabels()
+  const { exclusions, risks, loading, error, refetch: refetchScoping } = useScopingData(mission.id)
   const { addExclusion, removeExclusion, addRisk, removeRisk, saving, error: saveError } = useSaveScoping(refetchScoping)
   const { answeredCount, totalCount } = useMissionQuestionnaire(mission.id)
   const { documents } = useMissionDocuments(mission.id)
   const { requests } = useMissionEvidenceRequests(mission.id)
-  const [activeTab, setActiveTab] = useState<ScopingTab>('client')
+  const { actors } = useMissionActors(mission.id)
+  const [activeTab, setActiveTab] = useState<ScopingTab>('scope')
   const [actionLoading, setActionLoading] = useState(false)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
   const [showPortalModal, setShowPortalModal] = useState(false)
@@ -81,7 +84,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
       setDocsReceived(uploadedNames.size)
     }
 
-    fetchEvidenceNames()
+    fetchEvidenceNames().catch(() => { /* abort au démontage : ignoré */ })
     return () => controller.abort()
   }, [requests, documents])
 
@@ -148,16 +151,17 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   }, [mission, requests, totalCount, answeredCount])
 
   // === ACTION 2: Generer la note de cadrage (PDF) ===
-  const handleGenerateNote = useCallback(() => {
+  const handleGenerateNote = useCallback(async () => {
     setActionSuccess(null)
     try {
-      generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected })
+      const { generateScopingNotePDF } = await import('../../reports/generateScopingNotePDF')
+      await generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } })
       setActionSuccess('Note de cadrage PDF t\u00e9l\u00e9charg\u00e9e.')
     } catch (err) {
       console.error('handleGenerateNote:', err)
       setActionSuccess('Erreur lors de la g\u00e9n\u00e9ration du PDF.')
     }
-  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected])
+  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected, lead, associate])
 
   // === ACTION 3: Valider le cadrage ===
   const handleValidateScoping = useCallback(async () => {
@@ -206,17 +210,16 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
 
         {/* Tabs */}
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
-          <TabBtn label="Fiche client" active={activeTab === 'client'} onClick={() => setActiveTab('client')} />
           <TabBtn label="P&eacute;rim&egrave;tre" count={domains.length} active={activeTab === 'scope'} onClick={() => setActiveTab('scope')} />
           <TabBtn label="Questionnaire" count={`${answeredCount}/${totalCount}`} active={activeTab === 'questionnaire'} onClick={() => setActiveTab('questionnaire')} />
           <TabBtn label="Documents" count={docsExpected > 0 ? `${docsReceived}/${docsExpected}` : undefined} active={activeTab === 'documents'} onClick={() => setActiveTab('documents')} />
           <TabBtn label="Risques" count={risks.length} active={activeTab === 'risks'} onClick={() => setActiveTab('risks')} />
+          <TabBtn label="Acteurs" count={actors.length} active={activeTab === 'actors'} onClick={() => setActiveTab('actors')} />
         </div>
 
         {saveError && <div className="mx-4 mt-3"><ErrorAlert message={saveError} /></div>}
 
         {/* Tab content */}
-        {activeTab === 'client' && <ScopingClientTab client={client} auditHistory={auditHistory} />}
         {activeTab === 'scope' && (
           <ScopingScopeTab mission={mission} domains={domains} exclusions={exclusions} client={client} onAddExclusion={handleAddExclusion} onRemoveExclusion={removeExclusion} saving={saving} />
         )}
@@ -229,6 +232,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         {activeTab === 'risks' && (
           <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} saving={saving} error={saveError} />
         )}
+        {activeTab === 'actors' && <ScopingActorsTab missionId={mission.id} />}
       </div>
 
       {/* RIGHT SIDEBAR */}

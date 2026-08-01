@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { KANBAN_COLUMNS } from '../mission-constants'
+import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import type { MissionDetail } from '../useMissionDetail'
 import type { ReviewAssessment } from '../useReviewAssessments'
 
@@ -18,6 +19,14 @@ export function MissionReviewTab({ mission }: MissionReviewTabProps){
   const { profile } = useAuth()
   const { assessments, loading, error, refetch } = useReviewAssessments(mission.id)
   const [selected, setSelected] = useState<ReviewAssessment | null>(null)
+  const { lead, associate } = useReviewLabels()
+  const columnLabels: Record<string, string> = {
+    submitted: 'Soumis',
+    lead_review: `Revue ${lead}`,
+    associate_review: `Revue ${associate}`,
+    client_review: 'Revue Client',
+    validated: 'Validé',
+  }
 
   const isLead = profile?.id === mission.lead_auditor_user?.id
   const isAssociate = profile?.id === mission.associate_user?.id
@@ -73,7 +82,7 @@ export function MissionReviewTab({ mission }: MissionReviewTabProps){
         {KANBAN_COLUMNS.map((col) => (
           <ValidationKanbanColumn
             key={col.key}
-            title={col.label}
+            title={columnLabels[col.key] ?? col.label}
             color={col.color}
             assessments={columns[col.key] ?? []}
             onCardClick={handleCardClick}

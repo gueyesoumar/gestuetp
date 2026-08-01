@@ -3,77 +3,76 @@ import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { MissionMemberRow } from '../useMissionDetail'
 import type { ClientContact } from '../../../types/database.types'
+import type { AuditTopicWithControls } from './useAuditTopics'
 
 interface InterviewFormModalProps {
   missionId: string
   members: MissionMemberRow[]
-  contacts: ClientContact[]
+  actors: ClientContact[]
+  topics: AuditTopicWithControls[]
   onCreateInterview: (data: {
-    mission_id: string; title: string; auditor_id: string; contact_id: string | null
+    mission_id: string; title: string; auditor_id: string
     scheduled_date: string; scheduled_time: string; duration_minutes: number
     location: string; notes: string
+    topic_ids: string[]; actor_ids: string[]
   }) => Promise<boolean>
-  onCreateContact: (data: { mission_id: string; name: string; job_title: string; department: string }) => Promise<string | null>
   onClose: () => void
   saving: boolean
   error: string | null
 }
 
-export function InterviewFormModal({ missionId, members, contacts, onCreateInterview, onCreateContact, onClose, saving, error }: InterviewFormModalProps) {
+export function InterviewFormModal({ missionId, members, actors, topics, onCreateInterview, onClose, saving, error }: InterviewFormModalProps) {
   const [title, setTitle] = useState('')
   const [auditorId, setAuditorId] = useState('')
-  const [contactId, setContactId] = useState('')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('09:00')
   const [duration, setDuration] = useState(60)
   const [location, setLocation] = useState('')
   const [notes, setNotes] = useState('')
+  const [selectedActorIds, setSelectedActorIds] = useState<Set<string>>(new Set())
+  const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set())
 
-  // New contact form
-  const [showNewContact, setShowNewContact] = useState(false)
-  const [newContactName, setNewContactName] = useState('')
-  const [newContactTitle, setNewContactTitle] = useState('')
-  const [newContactDept, setNewContactDept] = useState('')
+  const auditorMembers = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
+  const canSubmit = title.trim().length > 0 && auditorId && date
 
-  const auditors = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
-  const canSubmit = title.trim() && auditorId && date
+  const toggleActor = (id: string) => {
+    setSelectedActorIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
 
-  const handleSubmit = async () => {
+  const toggleTopic = (id: string) => {
+    setSelectedTopicIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  const handleSubmit = async (): Promise<void> => {
     if (!canSubmit) return
-
-    let finalContactId = contactId || null
-
-    // Create new contact if needed
-    if (showNewContact && newContactName.trim()) {
-      const id = await onCreateContact({
-        mission_id: missionId,
-        name: newContactName,
-        job_title: newContactTitle,
-        department: newContactDept,
-      })
-      if (id) finalContactId = id
-    }
-
     const ok = await onCreateInterview({
       mission_id: missionId,
       title,
       auditor_id: auditorId,
-      contact_id: finalContactId,
       scheduled_date: date,
       scheduled_time: time,
       duration_minutes: duration,
       location,
       notes,
+      topic_ids: Array.from(selectedTopicIds),
+      actor_ids: Array.from(selectedActorIds),
     })
     if (ok) onClose()
   }
 
   return (
     <Modal open onClose={onClose} title="Planifier un entretien">
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-[70vh] overflow-y-auto">
         {error && <ErrorAlert message={error} />}
 
-        {/* Title */}
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Titre de l&apos;entretien <span className="text-red-500">*</span></label>
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
@@ -81,7 +80,6 @@ export function InterviewFormModal({ missionId, members, contacts, onCreateInter
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500" />
         </div>
 
-        {/* Date + Time + Duration */}
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
@@ -106,51 +104,61 @@ export function InterviewFormModal({ missionId, members, contacts, onCreateInter
           </div>
         </div>
 
-        {/* Auditor */}
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Auditeur <span className="text-red-500">*</span></label>
           <select value={auditorId} onChange={(e) => setAuditorId(e.target.value)}
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500">
             <option value="">S&eacute;lectionner...</option>
-            {auditors.map((a) => (
+            {auditorMembers.map((a) => (
               <option key={a.user_id} value={a.user_id}>{a.user.first_name} {a.user.last_name}</option>
             ))}
           </select>
         </div>
 
-        {/* Contact client */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Interlocuteur client</label>
-          {!showNewContact ? (
-            <div className="flex gap-2">
-              <select value={contactId} onChange={(e) => setContactId(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500">
-                <option value="">Aucun / Non d&eacute;fini</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}{c.job_title ? ` (${c.job_title})` : ''}</option>
-                ))}
-              </select>
-              <button onClick={() => setShowNewContact(true)}
-                className="text-xs text-forest-700 bg-forest-50 border border-forest-300 px-3 py-2 rounded-lg hover:bg-forest-100 shrink-0">
-                + Nouveau
-              </button>
-            </div>
+          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+            Acteurs convoqu&eacute;s <span className="text-gray-300">({selectedActorIds.size})</span>
+          </label>
+          {actors.length === 0 ? (
+            <p className="text-[11px] text-gray-400 italic">
+              Aucun acteur. D&eacute;clarez-les dans l&rsquo;onglet &laquo; Acteurs &raquo; du cadrage.
+            </p>
           ) : (
-            <div className="bg-forest-50 border border-forest-200 rounded-lg p-3 space-y-2">
-              <input type="text" value={newContactName} onChange={(e) => setNewContactName(e.target.value)}
-                placeholder="Nom complet" className="w-full px-3 py-1.5 border border-gray-200 rounded text-[12px] outline-none focus:border-forest-500" />
-              <div className="grid grid-cols-2 gap-2">
-                <input type="text" value={newContactTitle} onChange={(e) => setNewContactTitle(e.target.value)}
-                  placeholder="Fonction (ex: RSSI)" className="px-3 py-1.5 border border-gray-200 rounded text-[12px] outline-none focus:border-forest-500" />
-                <input type="text" value={newContactDept} onChange={(e) => setNewContactDept(e.target.value)}
-                  placeholder="D&eacute;partement" className="px-3 py-1.5 border border-gray-200 rounded text-[12px] outline-none focus:border-forest-500" />
-              </div>
-              <button onClick={() => setShowNewContact(false)} className="text-[10px] text-gray-400 hover:text-gray-600">Annuler</button>
+            <div className="border border-gray-200 rounded-lg max-h-[140px] overflow-y-auto">
+              {actors.map((a) => (
+                <label key={a.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-forest-50 cursor-pointer text-xs">
+                  <input type="checkbox" checked={selectedActorIds.has(a.id)} onChange={() => toggleActor(a.id)}
+                    className="rounded border-gray-300 accent-forest-700" />
+                  <span className="text-gray-700">{a.name}</span>
+                  {a.job_title && <span className="text-gray-400">· {a.job_title}</span>}
+                </label>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Location */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+            Sujets couverts <span className="text-gray-300">({selectedTopicIds.size})</span>
+          </label>
+          {topics.length === 0 ? (
+            <p className="text-[11px] text-gray-400 italic">Aucun sujet disponible pour ce r&eacute;f&eacute;rentiel.</p>
+          ) : (
+            <div className="border border-gray-200 rounded-lg max-h-[180px] overflow-y-auto">
+              {topics.map((t) => (
+                <label key={t.id} className="flex items-start gap-2 px-3 py-1.5 hover:bg-gold-50 cursor-pointer text-xs">
+                  <input type="checkbox" checked={selectedTopicIds.has(t.id)} onChange={() => toggleTopic(t.id)}
+                    className="mt-0.5 rounded border-gray-300 accent-gold-500" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-gray-700 font-medium">{t.name}</span>
+                    <span className="ml-1.5 text-[10px] text-gold-700">({t.control_ids.length} ctrl)</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Lieu</label>
           <input type="text" value={location} onChange={(e) => setLocation(e.target.value)}
@@ -158,7 +166,6 @@ export function InterviewFormModal({ missionId, members, contacts, onCreateInter
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500" />
         </div>
 
-        {/* Notes */}
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Notes (optionnel)</label>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
@@ -166,12 +173,11 @@ export function InterviewFormModal({ missionId, members, contacts, onCreateInter
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500 resize-y" />
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <button onClick={onClose} className="px-4 py-2 border border-gray-200 rounded-lg text-[13px] text-gray-500 hover:bg-gray-50">Annuler</button>
-          <button onClick={handleSubmit} disabled={!canSubmit || saving}
+          <button onClick={() => void handleSubmit()} disabled={!canSubmit || saving}
             className="px-5 py-2 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors">
-            {saving ? 'Cr\u00e9ation...' : 'Planifier l\u2019entretien'}
+            {saving ? 'Création...' : 'Planifier l’entretien'}
           </button>
         </div>
       </div>

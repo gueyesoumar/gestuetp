@@ -1,8 +1,7 @@
 import { AlertTriangle, AlertCircle, Eye, ThumbsUp } from 'lucide-react'
-import type { ControlAssessment } from '../../../types/database.types'
 
 interface Props {
-  assessments: ControlAssessment[]
+  classifications: string[]
 }
 
 const CARDS = [
@@ -12,11 +11,10 @@ const CARDS = [
   { key: 'strength', label: 'Points forts', icon: ThumbsUp, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
 ] as const
 
-export function FindingSynthesis({ assessments }: Props): JSX.Element {
+export function FindingSynthesis({ classifications }: Props): JSX.Element {
   const counts: Record<string, number> = { major_nc: 0, minor_nc: 0, observation: 0, strength: 0 }
-  for (const a of assessments) {
-    const cls = a.finding_classification
-    if (cls && cls in counts) counts[cls]++
+  for (const cls of classifications) {
+    if (cls in counts) counts[cls]++
   }
 
   return (

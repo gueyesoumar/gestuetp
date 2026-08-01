@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 
 interface Props {
@@ -36,7 +37,8 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
     })
     setSubmitting(false)
     if (error) {
-      toast.error('Suppression impossible', error)
+      const detail = await readInvokeError(error, data, 'Suppression impossible')
+      toast.error('Suppression impossible', detail)
       return
     }
     if (data?.error) {

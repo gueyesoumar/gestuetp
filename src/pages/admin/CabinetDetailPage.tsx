@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Download, Trash2 } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useAdminCabinetDetail } from '../../features/admin/useAdminCabinetDetail'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -13,6 +14,9 @@ import { CabinetMissionsTab } from '../../features/admin/CabinetMissionsTab'
 import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
+import { CabinetOverviewTab } from '../../features/admin/health/CabinetOverviewTab'
+import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
+import { labelOrganizationType } from '../../features/admin/cabinetLabels'
 
 type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
 
@@ -26,6 +30,7 @@ export function CabinetDetailPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [reasonModal, setReasonModal] = useState<'suspend' | 'reactivate' | 'export' | null>(null)
   const [reason, setReason] = useState('')
+  const [typesModalOpen, setTypesModalOpen] = useState(false)
 
   if (loading) return <div className="p-8"><LoadingSpinner /></div>
   if (error || !cabinet) return <div className="p-8"><ErrorAlert message={error ?? 'Organisation introuvable'} /></div>
@@ -59,8 +64,10 @@ export function CabinetDetailPage() {
         const { data, error: fnError } = await supabase.functions.invoke('admin-cabinet', {
           body: { action: reasonModal, cabinet_id: cabinet.id, reason },
         })
-        if (fnError) throw new Error(fnError.message)
-        if (data?.error) throw new Error(data.error)
+        if (fnError || data?.error) {
+          const msg = await readInvokeError(fnError, data, 'Action impossible')
+          throw new Error(msg)
+        }
         toast.success(reasonModal === 'suspend' ? 'Organisation suspendue' : 'Organisation réactivée', { description: cabinet.name })
         refetch()
       }
@@ -85,7 +92,7 @@ export function CabinetDetailPage() {
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[14px] font-extrabold ${cabinet.is_active ? 'bg-forest-100 text-forest-700' : 'bg-red-50 text-red-600'}`}>{initials}</div>
         <div>
           <h1 className="text-[18px] font-bold text-gray-900">{cabinet.name}</h1>
-          <div className="text-[11.5px] text-gray-500">{labelType(cabinet.types)} · onboardé le {new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+          <div className="text-[11.5px] text-gray-500">{labelOrganizationType(cabinet.types)} · onboardé le {new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
         </div>
         <div className="ml-auto flex items-center gap-2">
           {cabinet.is_active ? (
@@ -102,46 +109,19 @@ export function CabinetDetailPage() {
         <TabBtn k="missions" label={`Missions · ${cabinet.missions.length}`} active={activeTab === 'missions'} onClick={setActiveTab} />
         <TabBtn k="billing" label="Facturation" active={activeTab === 'billing'} onClick={setActiveTab} />
         <TabBtn k="whitelabel" label="Marque blanche" active={activeTab === 'whitelabel'} onClick={setActiveTab} />
-        <TabBtn k="flags" label="Feature flags" active={activeTab === 'flags'} onClick={setActiveTab} />
+        <TabBtn k="flags" label="Fonctionnalités" active={activeTab === 'flags'} onClick={setActiveTab} />
         <TabBtn k="audit" label="Audit log" active={activeTab === 'audit'} onClick={setActiveTab} />
       </div>
 
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-[1fr_320px] gap-5">
-          <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <header className="px-4 py-3 border-b border-gray-200">
-              <span className="text-[13px] font-bold text-gray-900">Identité</span>
-            </header>
-            <div className="px-5 py-4">
-              <dl className="grid grid-cols-[140px_1fr] gap-y-2.5 gap-x-5 text-[13px]">
-                <dt className="text-gray-500 text-[12px]">Nom</dt><dd className="text-gray-900 font-medium">{cabinet.name}</dd>
-                <dt className="text-gray-500 text-[12px]">Slug</dt><dd className="text-gray-900 font-mono text-[12px]">{cabinet.slug}</dd>
-                <dt className="text-gray-500 text-[12px]">Plan</dt><dd className="text-gray-900">{cabinet.plan_name ?? '—'}{cabinet.plan_price != null && cabinet.plan_price > 0 ? ` · ${cabinet.plan_price} €/mois` : ''}</dd>
-                <dt className="text-gray-500 text-[12px]">Onboardé</dt><dd className="text-gray-900">{new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
-                <dt className="text-gray-500 text-[12px]">Membres</dt><dd className="text-gray-900">{cabinet.members.length}</dd>
-                <dt className="text-gray-500 text-[12px]">Missions</dt><dd className="text-gray-900">{cabinet.missions.length}</dd>
-              </dl>
-            </div>
-          </section>
-
-          <section className="bg-red-50 border border-red-200 rounded-xl p-4 self-start">
-            <h4 className="text-[12px] uppercase tracking-wider text-red-700 font-bold mb-1.5">Zone sensible</h4>
-            <p className="text-[11.5px] text-red-700 leading-relaxed mb-3">Toute action est tracée dans l&apos;audit log avec le motif que vous saisirez.</p>
-            <div className="flex flex-wrap gap-2">
-              {cabinet.is_active ? (
-                <button onClick={() => setReasonModal('suspend')} className="px-3 py-1.5 border border-red-400 bg-white text-red-700 rounded-lg text-[12px] font-semibold hover:bg-red-50">Suspendre</button>
-              ) : (
-                <button onClick={() => setReasonModal('reactivate')} className="px-3 py-1.5 border border-green-400 bg-white text-green-700 rounded-lg text-[12px] font-semibold hover:bg-green-50">Réactiver</button>
-              )}
-              <button onClick={() => setReasonModal('export')} className="px-3 py-1.5 border border-red-200 bg-white text-red-700 rounded-lg text-[12px] font-semibold hover:bg-red-50 inline-flex items-center gap-1">
-                <Download size={12} /> Exporter CSV
-              </button>
-              <button onClick={() => setDeleteOpen(true)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-[12px] font-semibold hover:bg-red-700 inline-flex items-center gap-1">
-                <Trash2 size={12} /> Supprimer définitivement
-              </button>
-            </div>
-          </section>
-        </div>
+        <CabinetOverviewTab
+          cabinet={cabinet}
+          onSuspend={() => setReasonModal('suspend')}
+          onReactivate={() => setReasonModal('reactivate')}
+          onExport={() => setReasonModal('export')}
+          onDelete={() => setDeleteOpen(true)}
+          onEditTypes={() => setTypesModalOpen(true)}
+        />
       )}
 
       {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}
@@ -156,6 +136,16 @@ export function CabinetDetailPage() {
           cabinetId={cabinet.id}
           cabinetName={cabinet.name}
           onClose={() => setDeleteOpen(false)}
+        />
+      )}
+
+      {typesModalOpen && (
+        <EditOrganizationTypesModal
+          organizationId={cabinet.id}
+          organizationName={cabinet.name}
+          currentTypes={cabinet.types}
+          onClose={() => setTypesModalOpen(false)}
+          onSuccess={refetch}
         />
       )}
 
@@ -223,11 +213,3 @@ function TabBtn({ k, label, active, onClick }: { k: TabKey; label: string; activ
   )
 }
 
-function labelType(types: string[]): string {
-  if (types.includes('cabinet') && types.includes('client')) return 'Cabinet · Client'
-  if (types.includes('cabinet')) return 'Cabinet'
-  if (types.includes('client')) return 'Client'
-  if (types.includes('groupe')) return 'Groupe'
-  if (types.includes('platform')) return 'Plateforme'
-  return 'Organisation'
-}

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 
 interface AssignRoleParams {
   user_id: string
@@ -26,8 +27,9 @@ export function useAssignRole(onSuccess?: () => void): UseAssignRoleResult {
     })
 
     if (fnError) {
-      console.error('useAssignRole:', fnError.message)
-      setError('Erreur lors de l\u2019attribution du r\u00f4le.')
+      const msg = await readInvokeError(fnError, data, 'Erreur lors de l\u2019attribution du r\u00f4le.')
+      console.error('useAssignRole:', msg)
+      setError(msg)
       setAssigning(false)
       return false
     }

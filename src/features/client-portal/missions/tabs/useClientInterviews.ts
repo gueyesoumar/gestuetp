@@ -7,6 +7,8 @@ export interface ClientInterview {
   date_label: string
   auditor_name: string
   status: string
+  // Phase C : remplace controlCodes par les noms des sujets couverts.
+  // Le champ garde son nom pour minimiser le churn cote consommateur.
   controlCodes: string[]
 }
 
@@ -20,10 +22,12 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchData = async (): Promise<void> => {
+    const fetchData = async (signal: AbortSignal): Promise<void> => {
       setLoading(true)
+      try {
       const session = await supabase.auth.getSession()
       const token = session.data.session?.access_token
+      if (signal.aborted) return
       if (!token) { setLoading(false); return }
 
       const baseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -31,12 +35,14 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
       const headers = { 'apikey': apikey, 'Authorization': `Bearer ${token}` }
 
       const res = await fetch(
-        `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&select=id,title,scheduled_date,scheduled_time,location,status,auditor_id,control_ids&order=scheduled_date`,
-        { headers }
+        `${baseUrl}/rest/v1/interview_schedules?mission_id=eq.${missionId}&select=id,title,scheduled_date,scheduled_time,location,status,auditor_id&order=scheduled_date`,
+        { headers, signal }
       )
 
+      if (signal.aborted) return
       if (!res.ok) { setLoading(false); return }
       const data = await res.json() as Record<string, unknown>[]
+      if (signal.aborted) return
 
       // Fetch auditor names
       const auditorIds = [...new Set(data.map((d) => d.auditor_id as string).filter(Boolean))]
@@ -44,7 +50,7 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
       if (auditorIds.length > 0) {
         const audRes = await fetch(
           `${baseUrl}/rest/v1/users?id=in.(${auditorIds.join(',')})&select=id,first_name,last_name`,
-          { headers }
+          { headers, signal }
         )
         if (audRes.ok) {
           const auditors = await audRes.json() as { id: string; first_name: string; last_name: string }[]
@@ -52,17 +58,33 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
         }
       }
 
-      // Resolve control_ids \u2192 codes
-      const allControlIds = [...new Set(data.flatMap((d) => (d.control_ids as string[]) ?? []))]
-      let controlCodeMap: Record<string, string> = {}
-      if (allControlIds.length > 0) {
-        const ctrlRes = await fetch(
-          `${baseUrl}/rest/v1/controls?id=in.(${allControlIds.join(',')})&select=id,code`,
-          { headers }
+      // Fetch interview_topics → audit_topics name (replaces control_ids)
+      const interviewIds = data.map((d) => d.id as string).filter(Boolean)
+      const topicsByInterview = new Map<string, string[]>()
+      if (interviewIds.length > 0) {
+        const linksRes = await fetch(
+          `${baseUrl}/rest/v1/interview_topics?interview_id=in.(${interviewIds.join(',')})&select=interview_id,topic_id`,
+          { headers, signal }
         )
-        if (ctrlRes.ok) {
-          const ctrls = await ctrlRes.json() as { id: string; code: string }[]
-          controlCodeMap = Object.fromEntries(ctrls.map((c) => [c.id, c.code]))
+        if (linksRes.ok) {
+          const links = await linksRes.json() as { interview_id: string; topic_id: string }[]
+          const allTopicIds = [...new Set(links.map((l) => l.topic_id))]
+          let topicNameMap: Record<string, string> = {}
+          if (allTopicIds.length > 0) {
+            const tRes = await fetch(
+              `${baseUrl}/rest/v1/audit_topics?id=in.(${allTopicIds.join(',')})&select=id,name`,
+              { headers, signal }
+            )
+            if (tRes.ok) {
+              const tRows = await tRes.json() as { id: string; name: string }[]
+              topicNameMap = Object.fromEntries(tRows.map((t) => [t.id, t.name]))
+            }
+          }
+          for (const link of links) {
+            const list = topicsByInterview.get(link.interview_id) ?? []
+            if (topicNameMap[link.topic_id]) list.push(topicNameMap[link.topic_id])
+            topicsByInterview.set(link.interview_id, list)
+          }
         }
       }
 
@@ -70,11 +92,8 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
         const date = d.scheduled_date as string | null
         const time = d.scheduled_time as string | null
         const dateLabel = date
-          ? `${new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}${time ? ` \u00e0 ${time}` : ''}`
-          : 'Date \u00e0 d\u00e9finir'
-
-        const ctrlIds = (d.control_ids as string[]) ?? []
-        const controlCodes = ctrlIds.map((id) => controlCodeMap[id]).filter(Boolean)
+          ? `${new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}${time ? ` à ${time}` : ''}`
+          : 'Date à définir'
 
         return {
           id: d.id as string,
@@ -82,15 +101,23 @@ export function useClientInterviews(missionId: string): UseClientInterviewsRetur
           date_label: dateLabel,
           auditor_name: auditorMap[d.auditor_id as string] ?? 'Auditeur',
           status: (d.status as string) ?? 'scheduled',
-          controlCodes,
+          controlCodes: topicsByInterview.get(d.id as string) ?? [],
         }
       })
 
+      if (signal.aborted) return
       setInterviews(mapped)
       setLoading(false)
+      } catch {
+        // Abort lors d'un démontage/navigation : on ignore (pas une vraie erreur)
+        if (signal.aborted) return
+        setLoading(false)
+      }
     }
 
-    fetchData()
+    const ac = new AbortController()
+    void fetchData(ac.signal)
+    return () => ac.abort()
   }, [missionId])
 
   return { interviews, loading }

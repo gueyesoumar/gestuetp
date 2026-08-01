@@ -30,14 +30,14 @@ export function ClientBrandingSection({
     const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')
     const filePath = `client-logos/${clientId}/${Date.now()}_${safeName}`
 
-    const { error } = await supabase.storage.from('documents').upload(filePath, file)
+    const { error } = await supabase.storage.from('client-branding').upload(filePath, file)
     if (error) {
       console.error('Logo upload error:', error.message)
       setUploading(false)
       return
     }
 
-    const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from('client-branding').getPublicUrl(filePath)
     if (urlData?.publicUrl) {
       onLogoUrl(urlData.publicUrl)
     }
@@ -114,7 +114,7 @@ export function ClientBrandingSection({
           )}
           <div className="flex-1">
             <p className="text-xs text-gray-400 leading-relaxed">
-              Formats accept&eacute;s : PNG, SVG, JPG. Le logo sera utilis&eacute; dans les rapports d&rsquo;audit et les documents g&eacute;n&eacute;r&eacute;s.
+              Formats accept&eacute;s : PNG, JPG, WEBP. Le logo sera utilis&eacute; dans les rapports d&rsquo;audit et les documents g&eacute;n&eacute;r&eacute;s.
             </p>
             {logoUrl && !disabled && (
               <button type="button" onClick={handleExtractColors} disabled={extracting}
@@ -129,7 +129,7 @@ export function ClientBrandingSection({
             )}
           </div>
         </div>
-        <input ref={fileRef} type="file" className="hidden" accept=".png,.jpg,.jpeg,.svg,.webp"
+        <input ref={fileRef} type="file" className="hidden" accept=".png,.jpg,.jpeg,.webp"
           onChange={() => { const f = fileRef.current?.files?.[0]; if (f) handleUpload(f) }} />
       </div>
 

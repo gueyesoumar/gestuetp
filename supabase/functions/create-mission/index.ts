@@ -1,16 +1,29 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
+
+type MissionKind = 'audit' | 'continuous_supervision'
 
 interface CreateMissionPayload {
   name: string
   description: string
-  cabinet_client_id: string
+  /** Chemin Comply : fiche client du cabinet. */
+  cabinet_client_id?: string
+  /** Chemin Regul : organisation assujettie (entité du sous-arbre régulateur). */
+  assujetti_org_id?: string
   framework_id: string
   lead_auditor_id: string
   associate_id: string
   start_date: string
   end_date: string
   member_ids: string[]
+  kind?: MissionKind
+}
+
+function quarterLabel(dateIso: string): string {
+  const d = new Date(dateIso)
+  const q = Math.floor(d.getUTCMonth() / 3) + 1
+  return `Q${q} ${d.getUTCFullYear()}`
 }
 
 Deno.serve(async (req) => {
@@ -23,7 +36,11 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
-    // 1. Identifier l'appelant via le JWT (Authorization OU x-auth-token)
+    // 1. Identifier l'appelant via le JWT (Authorization OU x-auth-token).
+    //    L'identite provient EXCLUSIVEMENT du token verifie cryptographiquement
+    //    par auth.getUser. Aucun fallback sur un header fourni par le client :
+    //    ce serait une usurpation d'identite (le client tourne en service_role,
+    //    donc plus aucune barriere RLS ne rattraperait la fuite).
     const authHeader = req.headers.get('Authorization') ?? req.headers.get('x-auth-token')
 
     let callerId: string | null = null
@@ -33,30 +50,6 @@ Deno.serve(async (req) => {
       const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
       if (!authError && user) {
         callerId = user.id
-      }
-    }
-
-    // Fallback: extraire l'user depuis le context Supabase (fonctions hosted)
-    if (!callerId) {
-      // Sur Supabase hosted, le user_id est injecte dans le header x-supabase-auth
-      const supabaseAuth = req.headers.get('x-supabase-auth')
-      if (supabaseAuth) {
-        try {
-          const parsed = JSON.parse(supabaseAuth)
-          callerId = parsed.sub ?? parsed.user_id ?? null
-        } catch { /* */ }
-      }
-    }
-
-    if (!callerId) {
-      // Dernier recours : creer un client avec la cle anon + le JWT du user
-      const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
-      if (anonKey && authHeader) {
-        const userClient = createClient(supabaseUrl, anonKey, {
-          global: { headers: { Authorization: authHeader } },
-        })
-        const { data: { user } } = await userClient.auth.getUser()
-        if (user) callerId = user.id
       }
     }
 
@@ -81,94 +74,123 @@ Deno.serve(async (req) => {
       )
     }
 
+    // 2.bis Permissions cabinet — can_create_mission obligatoire
+    if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_create_mission'))) {
+      return new Response(
+        JSON.stringify({ error: 'Permission can_create_mission requise' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // 3. Parser le payload
     const body: CreateMissionPayload = await req.json()
     const {
       name, description, cabinet_client_id, framework_id,
       lead_auditor_id, associate_id, start_date, end_date, member_ids,
     } = body
+    const kind: MissionKind = body.kind === 'continuous_supervision' ? 'continuous_supervision' : 'audit'
 
-    if (!name || !cabinet_client_id || !framework_id || !lead_auditor_id || !associate_id || !start_date || !end_date) {
+    if (!name || !framework_id || !lead_auditor_id || !associate_id || !start_date || !end_date || (!cabinet_client_id && !body.assujetti_org_id)) {
       return new Response(
         JSON.stringify({ error: 'Champs requis manquants' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // 4. Charger la fiche client du cabinet
-    const { data: cabinetClient, error: ccError } = await supabaseAdmin
-      .from('cabinet_clients')
-      .select('id, cabinet_id, client_org_id, client_name, client_registration_number, client_email_domain')
-      .eq('id', cabinet_client_id)
-      .single()
-
-    if (ccError || !cabinetClient) {
-      return new Response(
-        JSON.stringify({ error: 'Client introuvable' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // 3.bis Permissions sur la désignation du chef de mission
+    // - Si on désigne quelqu'un d'autre que soi-même → can_designate_lead requis
+    // - Le désigné doit avoir can_be_lead
+    if (lead_auditor_id !== callerProfile.id) {
+      if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_designate_lead'))) {
+        return new Response(
+          JSON.stringify({ error: 'Permission can_designate_lead requise pour désigner un autre chef de mission' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
-
-    // Verifier que la fiche appartient au cabinet de l'appelant
-    if (cabinetClient.cabinet_id !== callerProfile.organization_id) {
+    if (!(await hasCabinetPerm(supabaseAdmin, lead_auditor_id, 'can_be_lead'))) {
       return new Response(
-        JSON.stringify({ error: 'Accès interdit à ce client' }),
+        JSON.stringify({ error: 'Le chef de mission désigné n\'a pas la permission can_be_lead' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // 5. Resoudre ou creer l'organisation client (deduplication)
-    let clientOrgId = cabinetClient.client_org_id
+    // 4-5. Résoudre l'organisation cible (client audité).
+    let clientOrgId: string | null = null
 
-    if (!clientOrgId) {
-      // Tenter la deduplication par registration_number
-      if (cabinetClient.client_registration_number) {
-        const { data: existing } = await supabaseAdmin
-          .from('organizations')
-          .select('id')
-          .contains('types', ['client'])
-          .eq('registration_number', cabinetClient.client_registration_number)
-          .limit(1)
-
-        if (existing && existing.length > 0) {
-          clientOrgId = existing[0].id
-        }
+    if (body.assujetti_org_id) {
+      // Chemin Regul : l'assujetti est une organisation entité. Cloisonnement —
+      // il doit appartenir au sous-arbre du régulateur appelant (get_subsidiary_ids
+      // récursif, SECURITY DEFINER). Pas de fiche cabinet_clients requise.
+      const { data: descRows } = await supabaseAdmin.rpc('get_subsidiary_ids', { parent_id: callerProfile.organization_id })
+      const descendants = new Set<string>(
+        ((descRows ?? []) as Array<string | { get_subsidiary_ids?: string; id?: string }>)
+          .map((r) => (typeof r === 'string' ? r : (r.get_subsidiary_ids ?? r.id ?? '')))
+      )
+      if (!descendants.has(body.assujetti_org_id)) {
+        return new Response(
+          JSON.stringify({ error: "Cet assujetti n'appartient pas à votre périmètre" }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
       }
-
-      // Si toujours pas trouve, creer l'organisation
-      if (!clientOrgId) {
-        const slug = cabinetClient.client_name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '')
-          + '-' + Date.now().toString(36)
-
-        const { data: newOrg, error: orgError } = await supabaseAdmin
-          .from('organizations')
-          .insert({
-            name: cabinetClient.client_name,
-            slug,
-            types: ['client'],
-          })
-          .select('id')
-          .single()
-
-        if (orgError || !newOrg) {
-          console.error('create-mission create org:', orgError?.message)
-          return new Response(
-            JSON.stringify({ error: 'Erreur lors de la création de l\'organisation client' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        clientOrgId = newOrg.id
-      }
-
-      // Mettre a jour la fiche cabinet_clients avec l'org_id
-      await supabaseAdmin
+      clientOrgId = body.assujetti_org_id
+    } else {
+      // Chemin Comply : via la fiche client du cabinet.
+      const { data: cabinetClient, error: ccError } = await supabaseAdmin
         .from('cabinet_clients')
-        .update({ client_org_id: clientOrgId })
+        .select('id, cabinet_id, client_org_id, client_name, client_registration_number, client_email_domain')
         .eq('id', cabinet_client_id)
+        .single()
+
+      if (ccError || !cabinetClient) {
+        return new Response(
+          JSON.stringify({ error: 'Client introuvable' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      if (cabinetClient.cabinet_id !== callerProfile.organization_id) {
+        return new Response(
+          JSON.stringify({ error: 'Accès interdit à ce client' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      clientOrgId = cabinetClient.client_org_id
+      if (!clientOrgId) {
+        if (cabinetClient.client_registration_number) {
+          const { data: existing } = await supabaseAdmin
+            .from('organizations')
+            .select('id')
+            .contains('types', ['client'])
+            .eq('registration_number', cabinetClient.client_registration_number)
+            .limit(1)
+          if (existing && existing.length > 0) clientOrgId = existing[0].id
+        }
+        if (!clientOrgId) {
+          const slug = cabinetClient.client_name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+            + '-' + Date.now().toString(36)
+          const { data: newOrg, error: orgError } = await supabaseAdmin
+            .from('organizations')
+            .insert({ name: cabinetClient.client_name, slug, types: ['client'] })
+            .select('id')
+            .single()
+          if (orgError || !newOrg) {
+            console.error('create-mission create org:', orgError?.message)
+            return new Response(
+              JSON.stringify({ error: 'Erreur lors de la création de l\'organisation client' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+          clientOrgId = newOrg.id
+        }
+        await supabaseAdmin
+          .from('cabinet_clients')
+          .update({ client_org_id: clientOrgId })
+          .eq('id', cabinet_client_id)
+      }
     }
 
     // 6. Verifier que le referentiel existe
@@ -194,6 +216,7 @@ Deno.serve(async (req) => {
         cabinet_id: callerProfile.organization_id,
         client_id: clientOrgId,
         framework_id,
+        kind,
         lead_auditor_id,
         associate_id,
         start_date,
@@ -209,6 +232,33 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Erreur lors de la création de la mission' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // 7.bis En supervision continue, ouvrir automatiquement le 1er cycle (trimestre courant
+    //       basé sur start_date) pour que les évaluations soient rattachées dès la première
+    //       phase de travaux.
+    if (kind === 'continuous_supervision') {
+      const startD = new Date(start_date)
+      const startMonth = startD.getUTCMonth()
+      const quarterStartMonth = startMonth - (startMonth % 3)
+      const cycleStart = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth, 1))
+      const cycleEnd = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth + 3, 0))
+
+      const { error: cycleErr } = await supabaseAdmin
+        .from('supervision_cycles')
+        .insert({
+          mission_id: mission.id,
+          period_label: quarterLabel(start_date),
+          period_start: cycleStart.toISOString().slice(0, 10),
+          period_end: cycleEnd.toISOString().slice(0, 10),
+          status: 'in_progress',
+          lead_auditor_id,
+          created_by: callerProfile.id,
+        })
+      if (cycleErr) {
+        console.error('create-mission cycle insert:', cycleErr.message)
+        // Non bloquant : la mission est créée, le cycle peut être ajouté plus tard manuellement
+      }
     }
 
     // 8. Ajouter les membres de la mission

@@ -62,8 +62,8 @@ export function SupervisionReport({ entities, frameworkName, frameworkPublisher 
             </label>
             <div className="flex gap-2 mt-0.5">
               <button className="flex-1 rounded-lg border-2 border-forest-700 bg-forest-50 px-3 py-2 text-[12px] font-semibold text-forest-700 text-center">PDF</button>
-              <button className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] font-medium text-gray-500 text-center hover:border-gray-300">PPTX</button>
-              <button className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] font-medium text-gray-500 text-center hover:border-gray-300">Excel</button>
+              <button disabled title="Bient&ocirc;t disponible" className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] font-medium text-gray-300 text-center cursor-not-allowed">PPTX</button>
+              <button disabled title="Bient&ocirc;t disponible" className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] font-medium text-gray-300 text-center cursor-not-allowed">Excel</button>
             </div>
           </div>
         </div>
@@ -161,16 +161,22 @@ export function SupervisionReport({ entities, frameworkName, frameworkPublisher 
           <div className="text-[13px] font-semibold text-gray-700 mt-2">{emetteur}</div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-center gap-3 mt-6">
-          <button className="flex items-center gap-2 rounded-lg border border-gray-200 px-5 py-2.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50">
-            <Eye size={14} />
-            Aper&ccedil;u complet
-          </button>
-          <button className="flex items-center gap-2 rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-forest-900">
-            <Download size={14} />
-            G&eacute;n&eacute;rer le PDF
-          </button>
+        {/* Actions — export non encore implémenté : boutons désactivés pour ne pas
+            laisser croire à une fonctionnalité opérationnelle (cf. revue F5). */}
+        <div className="flex flex-col items-center gap-2 mt-6">
+          <div className="flex justify-center gap-3">
+            <button disabled title="Bient&ocirc;t disponible"
+              className="flex items-center gap-2 rounded-lg border border-gray-200 px-5 py-2.5 text-[13px] font-medium text-gray-400 cursor-not-allowed opacity-60">
+              <Eye size={14} />
+              Aper&ccedil;u complet
+            </button>
+            <button disabled title="Bient&ocirc;t disponible"
+              className="flex items-center gap-2 rounded-lg bg-forest-700/60 px-5 py-2.5 text-[13px] font-medium text-white cursor-not-allowed opacity-60">
+              <Download size={14} />
+              G&eacute;n&eacute;rer le PDF
+            </button>
+          </div>
+          <p className="text-[11px] text-gray-400">Export du rapport bient&ocirc;t disponible</p>
         </div>
       </div>
     </div>

@@ -59,14 +59,14 @@ export function useAdminUserDetail(userId: string | undefined): Result {
           .single()
         if (uError || !u) throw uError ?? new Error('Utilisateur introuvable')
 
-        const row = u as Record<string, unknown> & { organizations: { id: string; name: string; slug: string; types: string[]; is_active: boolean } }
+        const row = u as unknown as Record<string, unknown> & { organizations: { id: string; name: string; slug: string; types: string[]; is_active: boolean } }
 
         const { data: roles } = await supabase
           .from('user_platform_roles')
           .select('platform_roles(id, name)')
           .eq('user_id', userId)
           .abortSignal(abort.signal)
-        const platformRoles = ((roles ?? []) as Array<{ platform_roles: { id: string; name: string } | null }>)
+        const platformRoles = ((roles ?? []) as unknown as Array<{ platform_roles: { id: string; name: string } | null }>)
           .map((r) => r.platform_roles)
           .filter((r): r is { id: string; name: string } => r !== null)
 

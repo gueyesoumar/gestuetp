@@ -1,6 +1,16 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import type { MissionEvidenceRequest } from '../../types/database.types'
+
+export type DeclineDecisionAction = 'accept' | 'reissue' | 'escalate'
+
+interface RespondToDeclineParams {
+  evidence_request_id: string
+  action: DeclineDecisionAction
+  response_text?: string
+  finding_classification?: 'major_nc' | 'minor_nc' | 'observation'
+}
 
 interface UseMissionEvidenceRequestsResult {
   requests: MissionEvidenceRequest[]
@@ -9,6 +19,8 @@ interface UseMissionEvidenceRequestsResult {
   error: string | null
   requestEvidence: (missionId: string, evidenceCatalogIds: string[]) => Promise<boolean>
   requesting: boolean
+  respondToDecline: (params: RespondToDeclineParams) => Promise<{ ok: boolean; error?: string; assessment_id?: string }>
+  responding: boolean
   refetch: () => void
 }
 
@@ -17,6 +29,7 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [requesting, setRequesting] = useState(false)
+  const [responding, setResponding] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
@@ -57,7 +70,8 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
     })
 
     if (fnError) {
-      console.error('requestEvidence:', fnError.message)
+      const detail = await readInvokeError(fnError, data, 'Demande de preuves impossible')
+      console.error('requestEvidence:', detail)
       setRequesting(false)
       return false
     }
@@ -73,7 +87,24 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
     return true
   }, [refetch])
 
+  const respondToDecline = useCallback(async (
+    params: RespondToDeclineParams,
+  ): Promise<{ ok: boolean; error?: string; assessment_id?: string }> => {
+    setResponding(true)
+    const { data, error: fnError } = await supabase.functions.invoke('respond-evidence-decline', {
+      body: params,
+    })
+    setResponding(false)
+    if (fnError || data?.error) {
+      const message = await readInvokeError(fnError, data, 'Décision impossible')
+      console.error('respondToDecline:', message)
+      return { ok: false, error: message }
+    }
+    refetch()
+    return { ok: true, assessment_id: data?.assessment_id as string | undefined }
+  }, [refetch])
+
   const requestedIds = new Set(requests.map((r) => r.evidence_catalog_id))
 
-  return { requests, requestedIds, loading, error, requestEvidence, requesting, refetch }
+  return { requests, requestedIds, loading, error, requestEvidence, requesting, respondToDecline, responding, refetch }
 }

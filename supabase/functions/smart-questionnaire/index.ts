@@ -1,6 +1,25 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+
+/**
+ * Edge Function : smart-questionnaire (Passe 2 du pipeline IA)
+ *
+ * Synthèse multi-document mission-wide. Consomme les ai_metadata produites
+ * par la Passe 1 (extract-document-metadata) au lieu de re-feeder Claude
+ * avec chaque fichier brut.
+ *
+ * Sortie par question :
+ *   - answer (string)
+ *   - evidence_type ('declared_only' | 'declared_with_doc' | 'declared_with_signed_doc')
+ *   - confidence (0-100)
+ *   - source_documents (string[])
+ *
+ * Cache : missions.ai_synthesis_cache + ai_synthesis_at (TTL 24h).
+ *         Invalidé automatiquement par la Passe 1 sur tout nouvel upload.
+ */
 
 type SupabaseAdmin = ReturnType<typeof createClient>
 
@@ -10,222 +29,110 @@ interface QuestionInput {
   description: string | null
 }
 
+type EvidenceType = 'declared_only' | 'declared_with_doc' | 'declared_with_signed_doc'
+
 interface AIAnswer {
   questionCode: string
   questionLabel: string
   answer: string
   confidence: number
-  sourceDoc: string | null
+  evidenceType: EvidenceType
+  sourceDocs: string[]
 }
 
-const BATCH_SIZE = 4 // PDFs per Claude call (smaller = more reliable for big docs)
-const MAX_BATCHES = 6 // Up to 24 docs total
-const MAX_PDF_SIZE = 32 * 1024 * 1024 // 32 Mo (Anthropic limit per PDF)
-const CLAUDE_TIMEOUT_MS = 90_000 // 90s per call
+interface SignatureEvidence {
+  page: number | null
+  quote: string
+}
 
-type ContentBlock =
-  | { type: 'text'; text: string }
-  | { type: 'image'; source: { type: 'url'; url: string; media_type: string } }
-  | { type: 'document'; source: { type: 'url'; url: string } | { type: 'file'; file_id: string } }
+interface DocumentSignature {
+  role: string | null
+  name: string | null
+  signed: boolean
+  date: string | null
+  evidence?: SignatureEvidence | null
+}
 
-interface DocEntry {
+interface VersionEvidence {
+  location: string
+  quote: string
+}
+
+interface DocumentAiMetadata {
+  version: string | null
+  version_evidence?: VersionEvidence | null
+  last_revision_date: string | null
+  signatures: DocumentSignature[]
+  formality_score: number | null
+  scope_declared: string | null
+  key_topics: string[]
+  page_count: number | null
+  synthesis: string | null
+}
+
+interface DocRow {
+  id: string
   file_name: string
-  file_path: string
-  mime_type: string | null
-  file_size: number | null
   anthropic_file_id: string | null
+  anthropic_file_kind: 'document' | 'image' | null
+  ai_metadata: DocumentAiMetadata | null
+  ai_extracted_at: string | null
+  ai_extract_error: string | null
 }
 
-interface BatchResult {
-  answers: AIAnswer[]
-  analyzed: string[]
-  failed: { name: string; reason: string }[]
-}
+const MODEL = CLAUDE_SONNET
+const MAX_TOKENS = 4000
+const CLAUDE_TIMEOUT_MS = 120_000
+const CACHE_TTL_HOURS = 24
+const FALLBACK_DOC_LIMIT = 8 // si aucun ai_metadata dispo, on attache jusqu'à 8 docs bruts
+const BACKFILL_INTER_DOC_DELAY_MS = 3_000 // pacing TPM Anthropic
+// Budget temps strict pour le backfill : si on s'approche de la limite Supabase
+// (~150s wall-time en hosted), on arrête et on dit au frontend de rappeler.
+// Marge confortable sous 150s pour laisser place à la Passe 2 si tout est extrait.
+const BACKFILL_TIME_BUDGET_MS = 90_000
+// Si reste de budget < ce seuil, on n'entame pas un nouveau doc (130s max par doc
+// dans extract-document-metadata avec retries pleins).
+const BACKFILL_MIN_REMAINING_MS = 70_000
 
-const IMAGE_MEDIA_TYPES: Record<string, string> = {
-  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
-}
-
-/**
- * Build content blocks for a list of documents (resolves URLs / Files API).
- * Returns the parts + names of docs successfully prepared + immediate failures.
- */
-async function prepareDocs(
-  admin: SupabaseAdmin,
-  docs: DocEntry[],
-): Promise<{ parts: ContentBlock[]; names: string[]; failed: { name: string; reason: string }[]; hasPdf: boolean; useFilesApi: boolean }> {
-  const parts: ContentBlock[] = []
-  const names: string[] = []
-  const failed: { name: string; reason: string }[] = []
-  let hasPdf = false
-  let useFilesApi = false
-
-  for (const doc of docs) {
-    const ext = doc.file_name.split('.').pop()?.toLowerCase() ?? ''
-    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
-    const isPdf = ext === 'pdf'
-
-    if (!isImage && !isPdf) {
-      failed.push({ name: doc.file_name, reason: 'format non supporté' })
-      continue
-    }
-
-    if (isPdf && doc.anthropic_file_id) {
-      parts.push({ type: 'document', source: { type: 'file', file_id: doc.anthropic_file_id } })
-      hasPdf = true
-      useFilesApi = true
-      names.push(doc.file_name)
-      continue
-    }
-
-    if (isPdf && doc.file_size && doc.file_size > MAX_PDF_SIZE) {
-      failed.push({ name: doc.file_name, reason: `trop volumineux (${(doc.file_size / 1024 / 1024).toFixed(1)} Mo)` })
-      continue
-    }
-
-    const { data: signedData, error: signErr } = await admin.storage
-      .from('documents')
-      .createSignedUrl(doc.file_path, 3600)
-
-    if (signErr || !signedData?.signedUrl) {
-      failed.push({ name: doc.file_name, reason: 'erreur URL signée' })
-      continue
-    }
-
-    if (isPdf) {
-      parts.push({ type: 'document', source: { type: 'url', url: signedData.signedUrl } })
-      hasPdf = true
-    } else {
-      parts.push({
-        type: 'image',
-        source: { type: 'url', url: signedData.signedUrl, media_type: IMAGE_MEDIA_TYPES[ext] ?? 'image/jpeg' },
-      })
-    }
-    names.push(doc.file_name)
-  }
-
-  return { parts, names, failed, hasPdf, useFilesApi }
-}
-
-/**
- * Try to analyze a list of documents in one Claude call.
- * Returns success or failure with reason.
- */
-async function analyzeBatch(
-  admin: SupabaseAdmin,
-  docs: DocEntry[],
-  anthropicKey: string,
-  clientContext: string,
-  questionsText: string,
-  batchLabel: string,
-  logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
-): Promise<BatchResult> {
-  const { parts, names, failed, hasPdf, useFilesApi } = await prepareDocs(admin, docs)
-
-  if (parts.length === 0) {
-    return { answers: [], analyzed: [], failed }
-  }
-
-  const docsListed = names.map((n) => `[${n}]`).join('; ')
-  const prompt = `Tu es un auditeur SI senior rigoureux. Tu analyses UNIQUEMENT les documents fournis en pièces jointes pour pré-remplir un questionnaire de prise de connaissance.
-
-${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
-DOCUMENTS DE CE LOT (${batchLabel}): ${docsListed}
-
-QUESTIONS DU QUESTIONNAIRE:
-${questionsText}
-
-RÈGLES STRICTES D'ÉVALUATION DES PREUVES:
-
-1. PREUVE DIRECTE (confiance 75-95%) : Le document joint traite directement du sujet.
-2. DÉCLARATION SANS PREUVE (confiance 25-40%) : Mention sans document joint.
-3. AUCUNE INFORMATION (ne pas répondre) : Aucun document ne mentionne le sujet.
-
-Ne réponds qu'aux questions où tu trouves une information dans CES documents.
-
-Génère un JSON avec un tableau "answers" contenant pour chaque question répondue :
-- "questionCode": code de la question
-- "questionLabel": libellé de la question
-- "answer": réponse précise (2-4 phrases)
-- "confidence": 0-100 (75-95 preuve directe, 25-40 déclaration)
-- "sourceDoc": nom du document source ou null
-
-JSON uniquement, en français.`
-
-  parts.push({ type: 'text', text: prompt })
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'x-api-key': anthropicKey,
-    'anthropic-version': '2023-06-01',
-  }
-  // 1M context flag included — silently ignored if API tier doesn't support it
-  const betaFlags: string[] = ['context-1m-2025-08-07']
-  if (hasPdf) betaFlags.push('pdfs-2024-09-25')
-  if (useFilesApi) betaFlags.push('files-api-2025-04-14')
-  headers['anthropic-beta'] = betaFlags.join(',')
-
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS)
-  const startedAt = Date.now()
-  const MODEL = 'claude-sonnet-4-20250514'
-
-  let claudeRes: Response
-  try {
-    claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers,
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 4000,
-        messages: [{ role: 'user', content: parts }],
-      }),
-    })
-  } catch (err) {
-    clearTimeout(timeout)
-    const isAbort = err instanceof Error && err.name === 'AbortError'
-    console.error(`[smart-questionnaire] ${batchLabel} ${isAbort ? 'timeout' : 'fetch error'}:`, err)
-    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: isAbort ? 'timeout' : 'fetch error', duration_ms: Date.now() - startedAt, mission_id: logCtx.mission_id, organization_id: logCtx.organization_id, user_id: logCtx.user_id })
-    return { answers: [], analyzed: [], failed: [...failed, ...names.map((n) => ({ name: n, reason: isAbort ? 'timeout IA' : 'erreur réseau IA' }))] }
-  }
-  clearTimeout(timeout)
-
-  if (!claudeRes.ok) {
-    const errText = await claudeRes.text()
-    console.error(`[smart-questionnaire] ${batchLabel} Claude ${claudeRes.status}:`, errText.slice(0, 800))
-
-    let reason = `Claude ${claudeRes.status}`
-    try {
-      const errJson = JSON.parse(errText)
-      const msg = errJson?.error?.message ?? ''
-      if (msg.toLowerCase().includes('page')) reason = 'PDF > 100 pages'
-      else if (msg.toLowerCase().includes('token')) reason = 'trop volumineux pour le contexte IA'
-      else if (msg.toLowerCase().includes('size')) reason = 'document trop volumineux'
-      else if (msg) reason = `IA: ${msg.slice(0, 80)}`
-    } catch { /* keep default */ }
-
-    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${reason}`, duration_ms: Date.now() - startedAt, mission_id: logCtx.mission_id, organization_id: logCtx.organization_id, user_id: logCtx.user_id })
-    return { answers: [], analyzed: [], failed: [...failed, ...names.map((n) => ({ name: n, reason }))] }
-  }
-
-  const claudeData = await claudeRes.json()
-  const rawText = claudeData.content?.[0]?.text ?? ''
-  const clean = rawText.replace(/```json|```/g, '').trim()
-  void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: logCtx.mission_id, organization_id: logCtx.organization_id, user_id: logCtx.user_id })
-
-  let parsed: { answers?: AIAnswer[] } = {}
-  try {
-    parsed = JSON.parse(clean)
-  } catch {
-    const match = clean.match(/\{[\s\S]*\}/)
-    if (match) {
-      try { parsed = JSON.parse(match[0]) } catch { /* parsed stays empty */ }
-    }
-  }
-
-  return { answers: parsed.answers ?? [], analyzed: names, failed }
-}
+const SYNTHESIZE_TOOL = {
+  name: 'propose_answers',
+  description: 'Renvoie une réponse pré-remplie pour chaque question du questionnaire de prise de connaissance, en exploitant les métadonnées des documents fournis par le client.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      answers: {
+        type: 'array',
+        description: 'Une entrée par question pour laquelle tu trouves au moins un élément dans le corpus. Ne pas inclure les questions sans aucune information.',
+        items: {
+          type: 'object',
+          properties: {
+            question_code: { type: 'string' },
+            question_label: { type: 'string' },
+            answer: { type: 'string', description: 'Réponse en 2-4 phrases, factuelle, en français.' },
+            confidence: {
+              type: 'number',
+              minimum: 0,
+              maximum: 100,
+              description: 'Confiance globale 0-100. 90-95 si plusieurs docs concordants signés ; 70-85 si un doc signé ; 50-70 si un doc non signé ; 25-45 si simple déclaration sans doc.',
+            },
+            evidence_type: {
+              type: 'string',
+              enum: ['declared_only', 'declared_with_doc', 'declared_with_signed_doc'],
+              description: "Qualité de la preuve. 'declared_with_signed_doc' EXIGE simultanément : un doc dédié au sujet + au moins une signature avec preuve visuelle (Signatures avec preuve non vide) + formalité observée >= 70. Sinon 'declared_with_doc' (doc dédié mais une condition manque) ou 'declared_only' (aucun doc dédié, pure mention textuelle). Une simple mention 'signé par X' sans preuve visuelle est PROSCRITE comme declared_with_signed_doc.",
+            },
+            source_documents: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Noms exacts des documents (file_name) ayant servi de source. Vide si declared_only.',
+            },
+          },
+          required: ['question_code', 'question_label', 'answer', 'confidence', 'evidence_type', 'source_documents'],
+        },
+      },
+    },
+    required: ['answers'],
+  },
+} as const
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -235,152 +142,883 @@ Deno.serve(async (req) => {
   try {
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') ?? Deno.env.get('ANTHROPIC_KEY')
     if (!anthropicKey) {
-      return new Response(JSON.stringify({ error: 'Clé API IA non configurée' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
-
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return jsonResponse({ error: 'Clé API IA non configurée' }, 500)
     }
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+    // JWT brut relayé tel quel à runBackfill (appel inter-fonctions)
+    const authHeader = req.headers.get('Authorization') ?? ''
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user: caller } } = await admin.auth.getUser(token)
-    if (!caller) {
-      return new Response(JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
+    const caller = auth.profile
 
     const { mission_id, questions } = await req.json() as { mission_id: string; questions: QuestionInput[] }
-
     if (!mission_id || !questions?.length) {
-      return new Response(JSON.stringify({ error: 'mission_id et questions requis' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return jsonResponse({ error: 'mission_id et questions requis' }, 400)
     }
 
-    // ── 1. Contexte client ──────────────────────────────────────────
-    const { data: mission } = await admin.from('missions').select('name, client_id, cabinet_id, framework:frameworks(name)').eq('id', mission_id).single()
+    // 1. Mission + cabinet + kill switch
+    const { data: missionData } = await admin
+      .from('missions')
+      .select('name, client_id, cabinet_id, framework:frameworks(name), ai_synthesis_cache, ai_synthesis_at')
+      .eq('id', mission_id)
+      .single()
 
-    let clientContext = ''
-    if (mission) {
-      const { data: clients } = await admin.from('cabinet_clients')
-        .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems, it_environment')
-        .eq('cabinet_id', mission.cabinet_id)
-        .eq('client_org_id', mission.client_id)
-        .limit(1)
+    const mission = missionData as {
+      name: string
+      client_id: string
+      cabinet_id: string
+      framework: { name: string } | null
+      ai_synthesis_cache: { answers: AIAnswer[]; docs_analyzed_names: string[]; docs_total: number; docs_failed: { name: string; reason: string }[] } | null
+      ai_synthesis_at: string | null
+    } | null
 
-      const cc = clients?.[0]
-      if (cc) {
-        const regs = (cc.exigences_reglementaires ?? []).map((r: { nom: string }) => r.nom).join(', ')
-        clientContext = `Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}, IT: ${(cc.it_systems ?? []).join(', ')}, Réglementations: ${regs || 'aucune'}, Référentiel: ${mission.framework?.name ?? '?'}`
-      }
+    if (!mission) return jsonResponse({ error: 'Mission introuvable' }, 404)
+
+    // Cloisonnement : la mission doit appartenir au cabinet de l'appelant
+    // (bloque toute lecture des documents/preuves ET toute écriture du cache IA)
+    if (!sameCabinet(caller, mission.cabinet_id)) {
+      return jsonResponse({ error: ACCESS_DENIED }, 403)
     }
 
-    // ── 2. Récupérer les documents ─────────────────────────────────
-    const totalCap = BATCH_SIZE * MAX_BATCHES
-    const { data: allDocs } = await admin.from('documents')
-      .select('file_name, file_path, mime_type, file_size, anthropic_file_id')
+    const { data: orgData } = await admin
+      .from('organizations')
+      .select('ai_analysis_enabled')
+      .eq('id', mission.cabinet_id)
+      .maybeSingle()
+    const aiEnabled = (orgData as { ai_analysis_enabled?: boolean } | null)?.ai_analysis_enabled ?? true
+    if (!aiEnabled) {
+      return jsonResponse({
+        answers: [], docs_analyzed: 0, docs_total: 0,
+        docs_analyzed_names: [], docs_skipped: [], docs_failed: [],
+        skipped_reason: 'cabinet_ai_disabled',
+      })
+    }
+
+    // 2. Documents + métadonnées Passe 1 — chargés AVANT le check de cache
+    // pour pouvoir détecter les docs en attente de Passe 1 et invalider le
+    // cache obsolète automatiquement.
+    const { data: docsData } = await admin
+      .from('documents')
+      .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
       .eq('mission_id', mission_id)
       .order('created_at', { ascending: false })
-      .limit(totalCap + 5)
 
-    const docList = (allDocs ?? []) as DocEntry[]
-    const docsToProcess = docList.slice(0, totalCap)
-    const docsSkipped = docList.length > totalCap ? docList.slice(totalCap).map((d) => d.file_name) : []
-
-    // Split into batches
-    const batches: DocEntry[][] = []
-    for (let i = 0; i < docsToProcess.length; i += BATCH_SIZE) {
-      batches.push(docsToProcess.slice(i, i + BATCH_SIZE))
+    let allDocs = (docsData ?? []) as DocRow[]
+    if (allDocs.length === 0) {
+      return jsonResponse({
+        answers: [], docs_analyzed: 0, docs_total: 0,
+        docs_analyzed_names: [], docs_skipped: [], docs_failed: [],
+      })
     }
 
-    if (batches.length === 0) {
-      return new Response(JSON.stringify({ answers: [], docs_analyzed: 0, docs_total: 0, docs_skipped: [], docs_failed: [] }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    // Inclut aussi les docs marqués en erreur transient (429/503/timeout) pour
+    // qu'ils soient retentés. Les erreurs permanentes (no_file_id, no_tool_use,
+    // unsupported, convert_error, file_not_found, anthropic_4xx hors 429) restent
+    // filtrées pour ne pas boucler.
+    const isTransientError = (code: string | null): boolean => {
+      if (!code) return false
+      return (
+        code === 'anthropic_429'
+        || code === 'anthropic_500'
+        || code === 'anthropic_502'
+        || code === 'anthropic_503'
+        || code === 'anthropic_504'
+        || code === 'anthropic_529'
+        || code === 'timeout'
+        || code.startsWith('fetch_')
+      )
+    }
+    const pendingDocs = allDocs.filter(
+      (d) => d.anthropic_file_id && !d.ai_extracted_at && (!d.ai_extract_error || isTransientError(d.ai_extract_error)),
+    )
+
+    // 3. Auto-backfill Passe 1 (impératif AVANT le cache : un cache produit
+    //    sans métadonnées Passe 1 doit être balayé dès qu'on a la chance de
+    //    refaire une synthèse de qualité).
+    if (pendingDocs.length > 0) {
+      console.log(`[smart-questionnaire] Auto-backfill: ${pendingDocs.length} doc(s) en attente de Passe 1`)
+      const backfillResult = await runBackfill(admin, pendingDocs, authHeader)
+      const { data: refreshed } = await admin
+        .from('documents')
+        .select('id, file_name, anthropic_file_id, anthropic_file_kind, ai_metadata, ai_extracted_at, ai_extract_error')
+        .eq('mission_id', mission_id)
+        .order('created_at', { ascending: false })
+      allDocs = (refreshed ?? []) as DocRow[]
+      const postExtracted = allDocs.filter((d) => d.ai_extracted_at).length
+      const postFailed = allDocs.filter((d) => d.ai_extract_error && !isTransientError(d.ai_extract_error)).length
+      const postPendingAll = allDocs.filter(
+        (d) => d.anthropic_file_id && !d.ai_extracted_at && (!d.ai_extract_error || isTransientError(d.ai_extract_error)),
+      ).length
+      console.log(`[smart-questionnaire] Post-backfill: extracted=${postExtracted} failed=${postFailed} pending=${postPendingAll} (this call processed=${backfillResult.processed})`)
+
+      // Si reste > 0 : budget temps épuisé → on rend la main au frontend pour
+      // qu'il rappelle. Pas de Passe 2 sur un corpus partiellement extrait.
+      if (postPendingAll > 0) {
+        // Comptage cohérent : on rapporte le progrès parmi les docs qu'il
+        // restait à traiter au début de la boucle (pendingDocs.length), pas
+        // l'effectif total des docs extraits (qui inclut ceux déjà OK avant).
+        const totalToBackfill = pendingDocs.length
+        const doneAmongTodo = totalToBackfill - postPendingAll
+        return jsonResponse({
+          answers: [],
+          docs_analyzed: 0,
+          docs_total: allDocs.length,
+          docs_analyzed_names: [],
+          docs_skipped: [],
+          docs_failed: [],
+          backfill_in_progress: true,
+          backfill_processed: doneAmongTodo,
+          backfill_remaining: postPendingAll,
+          backfill_total: totalToBackfill,
+        })
+      }
     }
 
-    // ── 2bis. Résolution du contexte pour ai_calls_log
-    const { data: callerProfile } = await admin
-      .from('users')
-      .select('id')
-      .eq('auth_id', caller.id)
-      .maybeSingle()
+    // 4. Cache check (TTL 24h) — uniquement si AUCUN doc n'était en attente
+    //    ET si le cache contient au moins une réponse. Un cache vide vient
+    //    forcément d'un run raté et doit être recompilé.
+    if (
+      pendingDocs.length === 0
+      && mission.ai_synthesis_cache?.answers
+      && mission.ai_synthesis_cache.answers.length > 0
+      && mission.ai_synthesis_at
+    ) {
+      const ageMs = Date.now() - new Date(mission.ai_synthesis_at).getTime()
+      if (ageMs < CACHE_TTL_HOURS * 3600 * 1000) {
+        const cached = mission.ai_synthesis_cache
+        console.log(`[smart-questionnaire] Cache HIT (age=${(ageMs / 3600 / 1000).toFixed(1)}h, answers=${cached.answers.length})`)
+        return jsonResponse({
+          answers: (cached.answers ?? []).map((a) => ({ ...a, validated: false })),
+          docs_analyzed: cached.docs_analyzed_names?.length ?? 0,
+          docs_total: cached.docs_total ?? 0,
+          docs_analyzed_names: cached.docs_analyzed_names ?? [],
+          docs_skipped: [],
+          docs_failed: cached.docs_failed ?? [],
+          from_cache: true,
+        })
+      }
+    }
+
+    // 4. Contexte client
+    const { data: clients } = await admin
+      .from('cabinet_clients')
+      .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems')
+      .eq('cabinet_id', mission.cabinet_id)
+      .eq('client_org_id', mission.client_id)
+      .limit(1)
+
+    const cc = clients?.[0] as {
+      client_name: string
+      client_sector: string | null
+      effectifs: string | null
+      exigences_reglementaires: { nom: string }[] | null
+      it_systems: string[] | null
+    } | undefined
+
+    let clientContext = ''
+    if (cc) {
+      const regs = (cc.exigences_reglementaires ?? []).map((r) => r.nom).join(', ')
+      clientContext = `Client: ${cc.client_name} | Secteur: ${cc.client_sector ?? '?'} | Taille: ${cc.effectifs ?? '?'} | IT: ${(cc.it_systems ?? []).join(', ') || '?'} | Réglementations: ${regs || 'aucune'} | Référentiel: ${mission.framework?.name ?? '?'}`
+    }
+
+    // 5. Caller user_id pour log (profil déjà résolu par authenticateCaller)
     const logCtx = {
       mission_id,
-      organization_id: (mission as { cabinet_id?: string } | null)?.cabinet_id ?? null,
-      user_id: (callerProfile as { id?: string } | null)?.id ?? null,
+      organization_id: mission.cabinet_id,
+      user_id: caller.id,
     }
 
-    // ── 3. Process batches with single-doc fallback on failure ─────
-    const mergedAnswers = new Map<string, AIAnswer>()
-    const analyzedDocNames: string[] = []
-    const failedDocs: { name: string; reason: string }[] = []
-    const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
-
-    const mergeAnswers = (answers: AIAnswer[]): void => {
-      for (const a of answers) {
-        const existing = mergedAnswers.get(a.questionCode)
-        if (!existing || a.confidence > existing.confidence) {
-          mergedAnswers.set(a.questionCode, a)
-        }
-      }
+    // 6. Pièces dédiées : docs uploadés en réponse à une demande de preuve
+    //    (mapping fort doc → contrôle / sujet) + pièces déclinées par le client.
+    const evidenceContext = await loadEvidenceContext(admin, mission_id)
+    if (evidenceContext.dedicatedDocs.length > 0 || evidenceContext.declinedRequests.length > 0) {
+      console.log(`[smart-questionnaire] Evidence context: ${evidenceContext.dedicatedDocs.length} dedicated, ${evidenceContext.declinedRequests.length} declined`)
     }
 
-    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
-      const batch = batches[batchIdx]
-      const batchLabel = `${batchIdx + 1}/${batches.length}`
+    // 7. Mode : metadata-driven (préféré) ou fallback raw-doc
+    const docsWithMeta = allDocs.filter((d) => d.ai_metadata && d.ai_extracted_at)
+    const docsForFallback = allDocs.filter((d) => d.anthropic_file_id && !d.ai_metadata)
+    const useMetadataMode = docsWithMeta.length >= Math.min(3, allDocs.length)
 
-      // Try the full batch first
-      const batchResult = await analyzeBatch(admin, batch, anthropicKey, clientContext, questionsText, batchLabel, logCtx)
+    console.log(`[smart-questionnaire] Mode=${useMetadataMode ? 'metadata' : 'fallback'} docsWithMeta=${docsWithMeta.length} docsForFallback=${docsForFallback.length}`)
 
-      if (batchResult.answers.length > 0 || batchResult.failed.length === 0) {
-        // Success or no failures
-        mergeAnswers(batchResult.answers)
-        analyzedDocNames.push(...batchResult.analyzed)
-        failedDocs.push(...batchResult.failed)
-        console.log(`[smart-questionnaire] Batch ${batchLabel}: ${batchResult.answers.length} answers, ${batchResult.analyzed.length} docs analyzed`)
-        continue
-      }
+    const result = useMetadataMode
+      ? await synthesizeWithMetadata(admin, anthropicKey, allDocs, docsWithMeta, questions, clientContext, evidenceContext, logCtx)
+      : await synthesizeWithRawDocs(admin, anthropicKey, docsForFallback.slice(0, FALLBACK_DOC_LIMIT), questions, clientContext, evidenceContext, logCtx)
 
-      // Batch failed entirely. If batch has > 1 doc, retry each individually.
-      if (batch.length > 1) {
-        console.log(`[smart-questionnaire] Batch ${batchLabel} failed, retrying each doc individually`)
-        for (let i = 0; i < batch.length; i++) {
-          const singleLabel = `${batchLabel} retry ${i + 1}/${batch.length}`
-          const singleResult = await analyzeBatch(admin, [batch[i]], anthropicKey, clientContext, questionsText, singleLabel, logCtx)
-          mergeAnswers(singleResult.answers)
-          analyzedDocNames.push(...singleResult.analyzed)
-          failedDocs.push(...singleResult.failed)
-        }
-      } else {
-        // Already a singleton — just record the failure
-        failedDocs.push(...batchResult.failed)
-      }
+    console.log(`[smart-questionnaire] Synthesis returned ${result.answers.length} answer(s), ${result.docs_failed.length} failure(s)`)
+
+    // 7. Cache — uniquement si la synthèse a produit au moins une réponse.
+    //    Sinon on laisse le cache existant (au pire l'ancien, au mieux NULL)
+    //    pour ne pas bloquer un retry ultérieur sur un cache vide.
+    if (result.answers.length > 0) {
+      // deno-lint-ignore no-explicit-any
+      await (admin.from('missions') as any)
+        .update({
+          ai_synthesis_cache: {
+            answers: result.answers,
+            docs_analyzed_names: result.docs_analyzed_names,
+            docs_total: allDocs.length,
+            docs_failed: result.docs_failed,
+          },
+          ai_synthesis_at: new Date().toISOString(),
+        })
+        .eq('id', mission_id)
+    } else {
+      // deno-lint-ignore no-explicit-any
+      await (admin.from('missions') as any)
+        .update({ ai_synthesis_cache: null, ai_synthesis_at: null })
+        .eq('id', mission_id)
     }
 
-    const answers = [...mergedAnswers.values()].map((a) => ({ ...a, validated: false }))
-
-    console.log(`[smart-questionnaire] Total: ${analyzedDocNames.length}/${docList.length} docs analyzed, ${answers.length} answers, ${failedDocs.length} failed`)
-
-    return new Response(JSON.stringify({
-      answers,
-      docs_analyzed: analyzedDocNames.length,
-      docs_total: docList.length,
-      docs_analyzed_names: analyzedDocNames,
-      docs_skipped: docsSkipped,
-      docs_failed: failedDocs,
-      batches: batches.length,
-    }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-
+    return jsonResponse({
+      answers: result.answers.map((a) => ({ ...a, validated: false })),
+      docs_analyzed: result.docs_analyzed_names.length,
+      docs_total: allDocs.length,
+      docs_analyzed_names: result.docs_analyzed_names,
+      docs_skipped: [],
+      docs_failed: result.docs_failed,
+      mode: useMetadataMode ? 'metadata' : 'fallback',
+    })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
     console.error('[smart-questionnaire] Error:', message)
-    return new Response(
-      JSON.stringify({ error: 'Erreur interne' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return jsonResponse({ error: 'Erreur interne' }, 500)
   }
 })
+
+// ── MODE METADATA ──────────────────────────────────────────────────────────
+// Envoie les ai_metadata résumées + les anthropic_file_id en pièces jointes
+// (pour citation/vérif). Un seul appel Claude.
+
+async function synthesizeWithMetadata(
+  admin: SupabaseAdmin,
+  anthropicKey: string,
+  allDocs: DocRow[],
+  docsWithMeta: DocRow[],
+  questions: QuestionInput[],
+  clientContext: string,
+  evidenceContext: EvidenceContext,
+  logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
+): Promise<{ answers: AIAnswer[]; docs_analyzed_names: string[]; docs_failed: { name: string; reason: string }[] }> {
+  const corpusBlocks = docsWithMeta.map((d) => formatMetadataBlock(d))
+  const failures = allDocs
+    .filter((d) => d.ai_extract_error && !d.ai_metadata)
+    .map((d) => ({ name: d.file_name, reason: d.ai_extract_error ?? 'extraction_failed' }))
+
+  const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
+  const evidenceSection = formatEvidenceSection(evidenceContext)
+  const mappings = computeQuestionMappings(questions, evidenceContext.dedicatedDocs)
+  const mappingSection = formatMappingSection(mappings)
+  if (mappings.length > 0) {
+    console.log(`[smart-questionnaire] Computed ${mappings.length} forced question→doc mapping(s)`)
+  }
+
+  const prompt = `Tu es un auditeur SI senior rigoureux. Tu disposes d'un corpus de documents fournis par le client avec leurs métadonnées extraites (Passe 1, signatures avec preuve visuelle).
+
+${clientContext ? `CONTEXTE CLIENT: ${clientContext}\n` : ''}
+CORPUS (${docsWithMeta.length} documents avec métadonnées vérifiées) :
+
+${corpusBlocks.join('\n\n---\n\n')}
+${evidenceSection}${mappingSection}
+QUESTIONS :
+${questionsText}
+
+RÈGLES STRICTES :
+1. Tu peux croiser les informations de plusieurs documents.
+
+2. Pour evidence_type, applique CE QUI SUIT À LA LETTRE :
+   - 'declared_with_signed_doc' : il existe ≥1 document qui (a) traite le sujet de la question dans une section dédiée ou via ses sujets clés ET (b) a au moins une signature avec preuve visuelle (champ "Signatures avec preuve" non vide) ET (c) a une formalité observée >= 70.
+   - 'declared_with_doc' : un document traite le sujet mais ne remplit PAS toutes les conditions ci-dessus (ex: document non signé, ou formalité < 70, ou signature mentionnée sans preuve visuelle).
+   - 'declared_only' : aucun document du corpus ne traite directement le sujet, ta réponse repose uniquement sur des mentions textuelles indirectes ou sur la synthèse générale d'un doc.
+
+3. Une SIMPLE MENTION (« le RSSI a signé la PSSI ») dans un document non dédié au sujet NE compte PAS comme 'declared_with_signed_doc' — c'est 'declared_only'. Seule la présence d'un document dédié + signé (preuve visuelle) compte.
+
+4. PREUVE TANGIBLE D'EXISTENCE — règle critique pour un audit. Quand un document AFFIRME l'existence d'une personne, d'une instance ou d'un mécanisme, tu DOIS chercher dans le corpus une PREUVE TANGIBLE DISTINCTE de cette affirmation, sinon tu rétrogrades l'evidence_type :
+   - Personne (RSSI, DPO, RSIO, etc.) : preuve tangible = fiche de poste signée, lettre de mission, organigramme nominatif, contrat de travail, mail signé du nommé. La seule mention « le RSSI fait X » dans la PSSI NE prouve PAS l'existence effective d'un RSSI.
+   - Instance / Comité (Comité de Sécurité, COSEC, COPIL) : preuve tangible = note de création signée, charte du comité, compte-rendu de séance (avec date + participants). La seule mention dans une procédure NE prouve PAS l'existence effective.
+   - Mécanisme récurrent (revue annuelle, audit interne périodique) : preuve tangible = au moins un livrable historique daté (CR, rapport, attestation). La seule mention dans une politique NE prouve PAS la réalisation effective.
+
+   Si la mention est présente mais la preuve tangible ABSENTE du corpus :
+   - evidence_type ne peut PAS être 'declared_with_signed_doc' — au mieux 'declared_with_doc' ou 'declared_only'
+   - confidence plafonné à 50
+   - ta réponse DOIT mentionner explicitement le manque ("mention de [X] dans [doc] mais aucune preuve tangible (fiche de poste / note de création / livrable daté) n'a été fournie pour confirmer l'existence effective")
+
+5. Confidence (0-100) :
+   - 90-95 : plusieurs docs concordants signés avec preuve visuelle ET preuves tangibles d'existence
+   - 70-85 : un doc dédié signé avec preuve visuelle ET preuves tangibles
+   - 50-70 : un doc dédié non signé OU formalité moyenne OU mention sans preuve tangible
+   - 25-45 : declared_only
+
+6. PIÈCES DÉDIÉES (priorité absolue) : si une question porte sur un sujet pour lequel une PIÈCE DÉDIÉE figure dans la section ci-dessus, tu DOIS placer cette pièce en premier dans source_documents. Les documents généralistes (PSSI, charte) ne viennent qu'en complément. Ne tombe JAMAIS sur la PSSI quand une pièce dédiée existe pour le sujet.
+
+7. PIÈCES INDISPONIBLES : pour toute question qui touche un sujet listé en "PIÈCES DÉCLARÉES INDISPONIBLES", ta réponse DOIT explicitement mentionner que le client a déclaré ne pas avoir ce document, en reprenant le motif et la justification. evidence_type doit être 'declared_only' (jamais 'declared_with_doc' ni 'declared_with_signed_doc'), confidence ≤ 30, source_documents vide.
+
+8. Ne renvoie pas les questions sans aucune information disponible (ni doc ni déclinaison).
+
+9. source_documents = noms exacts (file_name) du corpus. Vide pour declared_only.
+
+Appelle UNIQUEMENT l'outil propose_answers.`
+
+  // deno-lint-ignore no-explicit-any
+  const content: any[] = []
+  // Pièces jointes Anthropic Files API pour vérification (kind correct via 00089)
+  for (const d of docsWithMeta.slice(0, 5)) {
+    if (d.anthropic_file_id) {
+      content.push({
+        type: d.anthropic_file_kind ?? 'document',
+        source: { type: 'file', file_id: d.anthropic_file_id },
+      })
+    }
+  }
+  content.push({ type: 'text', text: prompt })
+
+  const out = await callClaudeWithTool(anthropicKey, content, logCtx, admin)
+  if (!out.success) {
+    return { answers: [], docs_analyzed_names: [], docs_failed: [...failures, { name: 'tous', reason: out.error ?? 'erreur IA' }] }
+  }
+  // Ceinture + bretelles : on impose les pièces dédiées en premier dans
+  // source_documents même si Sonnet n'a pas suivi la règle dans son output.
+  const enforced = enforceMappings(out.answers, mappings)
+  if (mappings.length > 0) {
+    const corrected = enforced.filter((a, i) => a.sourceDocs?.[0] !== out.answers[i]?.sourceDocs?.[0]).length
+    if (corrected > 0) {
+      console.log(`[smart-questionnaire] Post-process corrected ${corrected} answer(s) to honor question→doc mapping`)
+    }
+  }
+  return {
+    answers: enforced,
+    docs_analyzed_names: docsWithMeta.map((d) => d.file_name),
+    docs_failed: failures,
+  }
+}
+
+function formatMetadataBlock(d: DocRow): string {
+  const m = d.ai_metadata!
+  const signedSigs = m.signatures.filter((s) => s.signed)
+  const sigSummary = m.signatures.length === 0
+    ? 'aucune signature détectée'
+    : `${signedSigs.length}/${m.signatures.length} signées avec preuve visuelle`
+  // Détail des signatures signées (preuve concrète) — décisif pour evidence_type
+  const sigDetail = signedSigs.length === 0
+    ? ''
+    : '\n- Signatures avec preuve : ' + signedSigs
+        .slice(0, 3)
+        .map((s) => `${s.role ?? '?'}${s.name ? ' (' + s.name + ')' : ''} → "${s.evidence?.quote ?? 'preuve visuelle'}"`)
+        .join(' ; ')
+  const versionDetail = m.version_evidence
+    ? ` (${m.version_evidence.location} : "${m.version_evidence.quote}")`
+    : ''
+  return `Document: ${d.file_name}
+- Synthèse: ${m.synthesis ?? '?'}
+- Version: ${m.version ?? 'aucune'}${versionDetail} | Dernière révision: ${m.last_revision_date ?? '?'} | Pages: ${m.page_count ?? '?'}
+- Formalité observée: ${m.formality_score ?? '?'}/100 | Signatures: ${sigSummary}${sigDetail}
+- Scope déclaré: ${m.scope_declared ?? '?'}
+- Sujets clés: ${m.key_topics.join(', ') || '?'}`
+}
+
+// ── BACKFILL ───────────────────────────────────────────────────────────────
+// Invoque extract-document-metadata pour chaque doc en attente, avec
+// concurrence bornée. await complet avant de rendre la main pour que la
+// Passe 2 puisse exploiter les ai_metadata fraîchement écrits.
+
+interface BackfillResult {
+  processed: number
+  remaining: number
+}
+
+async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[], callerAuthHeader: string): Promise<BackfillResult> {
+  // Séquentiel + budget temps strict : on n'entame pas un nouveau doc si on
+  // risque de dépasser la wall-time Supabase. Le reste sera traité au prochain
+  // appel (frontend rejoue automatiquement).
+  //
+  // Auth : on forwarde le JWT utilisateur reçu du frontend (callerAuthHeader)
+  // au lieu de fabriquer un Bearer service-role. Ainsi la passerelle Supabase
+  // de extract-document-metadata accepte l'appel sans avoir à désactiver
+  // verify_jwt — solution résiliente aux re-déploiements.
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+  const targetUrl = `${supabaseUrl}/functions/v1/extract-document-metadata`
+
+  const startedAt = Date.now()
+  let processed = 0
+
+  for (let i = 0; i < docs.length; i++) {
+    const elapsed = Date.now() - startedAt
+    const remainingBudget = BACKFILL_TIME_BUDGET_MS - elapsed
+    if (remainingBudget < BACKFILL_MIN_REMAINING_MS) {
+      console.log(`[smart-questionnaire] Backfill budget exhausted (elapsed=${(elapsed / 1000).toFixed(0)}s, processed=${processed}, remaining=${docs.length - i})`)
+      return { processed, remaining: docs.length - i }
+    }
+
+    const doc = docs[i]
+    try {
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': callerAuthHeader,
+          'apikey': anonKey,
+        },
+        body: JSON.stringify({ document_id: doc.id }),
+      })
+      if (!res.ok) {
+        const bodyText = await res.text().catch(() => '<no body>')
+        console.warn(`[smart-questionnaire] backfill doc ${doc.file_name}: status=${res.status} body=${bodyText.slice(0, 200)}`)
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'unknown'
+      console.warn(`[smart-questionnaire] backfill doc ${doc.file_name} threw:`, msg)
+    }
+    processed++
+
+    if (i + 1 < docs.length) {
+      await sleep(BACKFILL_INTER_DOC_DELAY_MS)
+    }
+  }
+  return { processed, remaining: 0 }
+}
+
+// ── MODE FALLBACK ──────────────────────────────────────────────────────────
+// Si aucune métadonnée Passe 1 disponible, envoie directement les fichiers.
+
+async function synthesizeWithRawDocs(
+  admin: SupabaseAdmin,
+  anthropicKey: string,
+  docs: DocRow[],
+  questions: QuestionInput[],
+  clientContext: string,
+  evidenceContext: EvidenceContext,
+  logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
+): Promise<{ answers: AIAnswer[]; docs_analyzed_names: string[]; docs_failed: { name: string; reason: string }[] }> {
+  if (docs.length === 0) {
+    return { answers: [], docs_analyzed_names: [], docs_failed: [{ name: 'aucun', reason: 'pas de document avec anthropic_file_id' }] }
+  }
+
+  const questionsText = questions.map((q) => `- ${q.code}: ${q.label}${q.description ? ` (${q.description})` : ''}`).join('\n')
+  const docNames = docs.map((d) => `[${d.file_name}]`).join('; ')
+  const evidenceSection = formatEvidenceSection(evidenceContext)
+  const mappings = computeQuestionMappings(questions, evidenceContext.dedicatedDocs)
+  const mappingSection = formatMappingSection(mappings)
+
+  const prompt = `Tu es un auditeur SI senior. Analyse les documents joints pour pré-remplir un questionnaire de prise de connaissance.
+
+${clientContext ? `CONTEXTE: ${clientContext}\n` : ''}
+DOCUMENTS: ${docNames}
+${evidenceSection}${mappingSection}
+QUESTIONS :
+${questionsText}
+
+RÈGLES :
+1. Pour evidence_type :
+   - 'declared_with_signed_doc' : doc présente le sujet ET tu vois une signature/cachet/paraphe + en-tête formel
+   - 'declared_with_doc' : doc traite le sujet mais signature/formalité absente
+   - 'declared_only' : seule mention textuelle dans un doc non dédié
+2. PREUVE TANGIBLE D'EXISTENCE : si un doc affirme l'existence d'un RSSI, d'un Comité de Sécurité, d'une revue annuelle, etc., tu cherches une preuve tangible distincte (fiche de poste, note de création, compte-rendu de séance, livrable daté). Sans cette preuve : evidence_type au mieux 'declared_with_doc' ou 'declared_only', confidence ≤ 50, et la réponse mentionne explicitement le manque de preuve tangible.
+3. Pour confidence : 70-85 si doc direct + preuve tangible, 50 si mention sans preuve tangible, 25-45 si déclaration sans doc dédié.
+4. PIÈCES DÉDIÉES : si une question porte sur un sujet pour lequel une pièce dédiée existe, place-la EN PREMIER dans source_documents. Ne tombe jamais sur la PSSI quand une pièce dédiée existe.
+5. PIÈCES INDISPONIBLES : pour les questions touchant les sujets déclinés, evidence_type='declared_only', confidence ≤ 30, source_documents vide. Mentionne explicitement le motif et la justification du client dans answer.
+6. Ne renvoie pas les questions sans information ni déclinaison.
+7. source_documents = noms exacts (file_name) ayant servi de source.
+
+Appelle UNIQUEMENT l'outil propose_answers.`
+
+  // deno-lint-ignore no-explicit-any
+  const content: any[] = []
+  for (const d of docs) {
+    if (d.anthropic_file_id) {
+      content.push({
+        type: d.anthropic_file_kind ?? 'document',
+        source: { type: 'file', file_id: d.anthropic_file_id },
+      })
+    }
+  }
+  content.push({ type: 'text', text: prompt })
+
+  const out = await callClaudeWithTool(anthropicKey, content, logCtx, admin)
+  if (!out.success) {
+    return { answers: [], docs_analyzed_names: [], docs_failed: [{ name: 'tous', reason: out.error ?? 'erreur IA' }] }
+  }
+  return {
+    answers: enforceMappings(out.answers, mappings),
+    docs_analyzed_names: docs.map((d) => d.file_name),
+    docs_failed: [],
+  }
+}
+
+// ── CLAUDE CALL ─────────────────────────────────────────────────────────────
+
+// Backoff sur erreurs transient Anthropic. Attend 5s puis 15s puis 45s.
+const RETRY_DELAYS_MS = [5_000, 15_000, 45_000]
+const TRANSIENT_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504, 529])
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function callClaudeWithTool(
+  anthropicKey: string,
+  // deno-lint-ignore no-explicit-any
+  content: any[],
+  logCtx: { mission_id: string; organization_id: string | null; user_id: string | null },
+  admin: SupabaseAdmin,
+): Promise<{ success: true; answers: AIAnswer[] } | { success: false; error: string }> {
+  const startedAt = Date.now()
+  const reqBody = JSON.stringify({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    tools: [SYNTHESIZE_TOOL],
+    tool_choice: { type: 'tool', name: 'propose_answers' },
+    messages: [{ role: 'user', content }],
+  })
+
+  let res: Response | null = null
+  let lastErrText = ''
+  let lastStatus = 0
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    const ctrl = new AbortController()
+    const timeout = setTimeout(() => ctrl.abort(), CLAUDE_TIMEOUT_MS)
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'files-api-2025-04-14,context-1m-2025-08-07',
+        },
+        signal: ctrl.signal,
+        body: reqBody,
+      })
+      if (res.ok) break
+      lastStatus = res.status
+      lastErrText = await res.text().catch(() => '')
+      if (!TRANSIENT_STATUSES.has(res.status) || attempt === RETRY_DELAYS_MS.length) break
+      const retryAfterSec = Number(res.headers.get('retry-after'))
+      const waitMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0
+        ? Math.min(retryAfterSec * 1000, 90_000)
+        : RETRY_DELAYS_MS[attempt]
+      console.warn(`[smart-questionnaire] Claude ${res.status}, retry in ${(waitMs / 1000).toFixed(0)}s (attempt ${attempt + 1}/${RETRY_DELAYS_MS.length})`)
+      await sleep(waitMs)
+    } catch (err) {
+      const isAbort = err instanceof Error && err.name === 'AbortError'
+      lastErrText = isAbort ? 'timeout' : (err instanceof Error ? err.message : 'fetch_error')
+      lastStatus = 0
+      if (attempt === RETRY_DELAYS_MS.length) {
+        void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: lastErrText, duration_ms: Date.now() - startedAt, ...logCtx })
+        return { success: false, error: isAbort ? 'timeout IA' : 'erreur réseau IA' }
+      }
+      console.warn(`[smart-questionnaire] fetch error, retry: ${lastErrText}`)
+      await sleep(RETRY_DELAYS_MS[attempt])
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
+  if (!res || !res.ok) {
+    console.error(`[smart-questionnaire] Claude ${lastStatus} (after retries):`, lastErrText.slice(0, 400))
+    void logAiCall({ admin, function_name: 'smart-questionnaire', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${lastStatus}: ${lastErrText.slice(0, 200)}`, duration_ms: Date.now() - startedAt, ...logCtx })
+    let reason = `IA ${lastStatus}`
+    try {
+      const j = JSON.parse(lastErrText)
+      if (j?.error?.message) reason = j.error.message.slice(0, 100)
+    } catch { /* keep default */ }
+    return { success: false, error: reason }
+  }
+
+  const data = await res.json()
+  const usage = data.usage ?? {}
+  // deno-lint-ignore no-explicit-any
+  const toolUse = (data.content ?? []).find((b: any) => b.type === 'tool_use' && b.name === 'propose_answers')
+
+  void logAiCall({ admin, function_name: 'smart-questionnaire', model: data.model ?? MODEL, input_tokens: usage.input_tokens ?? null, output_tokens: usage.output_tokens ?? null, success: !!toolUse, error_message: toolUse ? null : 'no_tool_use', duration_ms: Date.now() - startedAt, ...logCtx })
+
+  if (!toolUse?.input?.answers) {
+    return { success: false, error: 'Réponse IA invalide' }
+  }
+
+  const raw = toolUse.input.answers as Array<{
+    question_code: string
+    question_label: string
+    answer: string
+    confidence: number
+    evidence_type: EvidenceType
+    source_documents: string[]
+  }>
+
+  const answers: AIAnswer[] = raw
+    .filter((a) => a.question_code && a.answer)
+    .map((a) => ({
+      questionCode: a.question_code,
+      questionLabel: a.question_label,
+      answer: a.answer,
+      confidence: Math.max(0, Math.min(100, Math.round(a.confidence ?? 0))),
+      evidenceType: a.evidence_type,
+      sourceDocs: a.source_documents ?? [],
+    }))
+
+  return { success: true, answers }
+}
+
+// ── EVIDENCE CONTEXT (pièces dédiées + pièces déclinées) ───────────────────
+// Permet à la Passe 2 de :
+//   - prioriser les docs uploadés EN RÉPONSE à une demande de preuve précise
+//     (mapping fort doc → contrôle / sujet) plutôt qu'un doc généraliste (PSSI)
+//   - mentionner explicitement les sujets pour lesquels le client a déclaré
+//     ne pas avoir de document (decline_reason + decline_justification)
+
+interface DedicatedDoc {
+  file_name: string
+  evidence_name: string
+  evidence_description: string | null
+  control_code: string | null
+  control_name: string | null
+}
+
+interface DeclinedEvidence {
+  evidence_name: string
+  evidence_description: string | null
+  control_code: string | null
+  control_name: string | null
+  decline_reason: string | null
+  decline_justification: string | null
+}
+
+interface EvidenceContext {
+  dedicatedDocs: DedicatedDoc[]
+  declinedRequests: DeclinedEvidence[]
+}
+
+async function loadEvidenceContext(admin: SupabaseAdmin, missionId: string): Promise<EvidenceContext> {
+  // Pièces dédiées : docs uploadés via le workflow "demande de preuve"
+  const { data: docsRaw } = await admin
+    .from('documents')
+    .select(`
+      file_name,
+      evidence_request:mission_evidence_requests!evidence_request_id (
+        evidence_catalog:evidence_catalog!evidence_catalog_id (
+          name,
+          description,
+          control:controls!control_id ( code, name )
+        )
+      )
+    `)
+    .eq('mission_id', missionId)
+    .not('evidence_request_id', 'is', null)
+
+  const dedicatedDocs: DedicatedDoc[] = []
+  for (const row of (docsRaw ?? []) as Array<{
+    file_name: string
+    evidence_request: {
+      evidence_catalog: {
+        name: string
+        description: string | null
+        control: { code: string; name: string } | null
+      } | null
+    } | null
+  }>) {
+    const ec = row.evidence_request?.evidence_catalog
+    if (!ec) continue
+    dedicatedDocs.push({
+      file_name: row.file_name,
+      evidence_name: ec.name,
+      evidence_description: ec.description,
+      control_code: ec.control?.code ?? null,
+      control_name: ec.control?.name ?? null,
+    })
+  }
+
+  // Pièces déclinées : demandes que le client a explicitement marquées indisponibles
+  const { data: declinedRaw } = await admin
+    .from('mission_evidence_requests')
+    .select(`
+      decline_reason,
+      decline_justification,
+      evidence_catalog:evidence_catalog!evidence_catalog_id (
+        name,
+        description,
+        control:controls!control_id ( code, name )
+      )
+    `)
+    .eq('mission_id', missionId)
+    .in('status', ['declined_by_client', 'accepted'])
+
+  const declinedRequests: DeclinedEvidence[] = []
+  for (const row of (declinedRaw ?? []) as Array<{
+    decline_reason: string | null
+    decline_justification: string | null
+    evidence_catalog: {
+      name: string
+      description: string | null
+      control: { code: string; name: string } | null
+    } | null
+  }>) {
+    const ec = row.evidence_catalog
+    if (!ec) continue
+    declinedRequests.push({
+      evidence_name: ec.name,
+      evidence_description: ec.description,
+      control_code: ec.control?.code ?? null,
+      control_name: ec.control?.name ?? null,
+      decline_reason: row.decline_reason,
+      decline_justification: row.decline_justification,
+    })
+  }
+
+  return { dedicatedDocs, declinedRequests }
+}
+
+// ── MAPPING QUESTION → PIÈCE DÉDIÉE (pré-calcul serveur) ──────────────────
+// On ne laisse plus le modèle deviner : pour chaque question on calcule
+// par recouvrement de mots-clés la pièce dédiée la plus pertinente, et on
+// force ce mapping dans le prompt + en post-traitement.
+
+const STOPWORDS = new Set([
+  'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'au', 'aux', 'à', 'a',
+  'et', 'ou', 'mais', 'donc', 'car', 'ni', 'or',
+  'que', 'qui', 'quoi', 'dont', 'quel', 'quelle', 'quels', 'quelles',
+  'est', 'sont', 'être', 'avoir', 'ont', 'a', 'fait', 'faites',
+  'pour', 'par', 'sur', 'avec', 'sans', 'dans', 'en', 'vers', 'chez',
+  'son', 'sa', 'ses', 'leur', 'leurs', 'votre', 'vos', 'mon', 'ma', 'mes', 'notre', 'nos',
+  'ce', 'cette', 'ces', 'cet',
+  'disposez', 'disposer', 'disposez-vous', 'avez-vous', 'existe', 'existe-t-il',
+  'vous', 'vos', 'votre', 'tu', 'on', 'nous',
+  'oui', 'non', 'plus', 'moins', 'tres', 'très', 'aussi', 'donc',
+  'precise', 'précise', 'précisé', 'definie', 'définie',
+  'mise', 'place', 'mises', 'places',
+])
+
+function normalizeText(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function contentTokens(s: string): Set<string> {
+  return new Set(
+    normalizeText(s)
+      .split(' ')
+      .filter((w) => w.length >= 4 && !STOPWORDS.has(w)),
+  )
+}
+
+interface QuestionMapping {
+  questionCode: string
+  dedicatedFileName: string
+  evidenceName: string
+  overlap: number
+}
+
+function computeQuestionMappings(
+  questions: QuestionInput[],
+  dedicatedDocs: DedicatedDoc[],
+): QuestionMapping[] {
+  if (dedicatedDocs.length === 0) return []
+  const mappings: QuestionMapping[] = []
+  for (const q of questions) {
+    const qTokens = contentTokens(`${q.label} ${q.description ?? ''}`)
+    if (qTokens.size === 0) continue
+    let best: { doc: DedicatedDoc; overlap: number } | null = null
+    for (const d of dedicatedDocs) {
+      const dTokens = contentTokens(d.evidence_name)
+      if (dTokens.size === 0) continue
+      let count = 0
+      for (const t of dTokens) if (qTokens.has(t)) count++
+      // Seuil : au moins 2 mots-clés en commun ET ≥ 50 % des tokens du nom de la preuve
+      const ratio = count / dTokens.size
+      if (count >= 2 && ratio >= 0.5 && (!best || count > best.overlap)) {
+        best = { doc: d, overlap: count }
+      }
+    }
+    if (best) {
+      mappings.push({
+        questionCode: q.code,
+        dedicatedFileName: best.doc.file_name,
+        evidenceName: best.doc.evidence_name,
+        overlap: best.overlap,
+      })
+    }
+  }
+  return mappings
+}
+
+function formatMappingSection(mappings: QuestionMapping[]): string {
+  if (mappings.length === 0) return ''
+  const lines = [
+    '',
+    'MAPPINGS QUESTION → PIÈCE DÉDIÉE OBLIGATOIRE (calculés par recouvrement de mots-clés, à respecter à la lettre) :',
+  ]
+  for (const m of mappings) {
+    lines.push(`- ${m.questionCode} → "${m.dedicatedFileName}" (preuve "${m.evidenceName}")`)
+  }
+  lines.push('')
+  lines.push('Pour ces questions, source_documents DOIT commencer EXACTEMENT par le file_name indiqué. Tu peux ajouter ensuite d\'autres docs en complément, JAMAIS avant.')
+  lines.push('')
+  return lines.join('\n')
+}
+
+// Post-traitement : force la pièce dédiée en première position des sources
+// pour toute réponse dont la question a un mapping fort. Ceinture + bretelles
+// au cas où le modèle ignorerait le prompt.
+function enforceMappings(answers: AIAnswer[], mappings: QuestionMapping[]): AIAnswer[] {
+  if (mappings.length === 0) return answers
+  const byCode = new Map(mappings.map((m) => [m.questionCode, m]))
+  return answers.map((a) => {
+    const m = byCode.get(a.questionCode)
+    if (!m) return a
+    const current = a.sourceDocs ?? []
+    if (current[0] === m.dedicatedFileName) return a
+    const filtered = current.filter((s) => s !== m.dedicatedFileName)
+    const fixed: AIAnswer = { ...a, sourceDocs: [m.dedicatedFileName, ...filtered] }
+    // Si le modèle avait classé en declared_only sans citer la pièce, on
+    // remonte au moins en declared_with_doc puisqu'une pièce dédiée existe.
+    if (fixed.evidenceType === 'declared_only') {
+      fixed.evidenceType = 'declared_with_doc'
+      if (fixed.confidence < 60) fixed.confidence = 60
+    }
+    return fixed
+  })
+}
+
+function formatEvidenceSection(ctx: EvidenceContext): string {
+  if (ctx.dedicatedDocs.length === 0 && ctx.declinedRequests.length === 0) return ''
+  const parts: string[] = ['']
+
+  if (ctx.dedicatedDocs.length > 0) {
+    parts.push(`PIÈCES DÉDIÉES (le client les a fournies en réponse à une demande de preuve précise — à utiliser EN PRIORITÉ pour les questions du sujet correspondant) :`)
+    for (const d of ctx.dedicatedDocs) {
+      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' — ' + d.control_name : ''}]` : ''
+      const desc = d.evidence_description ? ` — ${d.evidence_description}` : ''
+      parts.push(`- ${d.file_name} → preuve attendue : "${d.evidence_name}"${desc}${ctrl}`)
+    }
+    parts.push('')
+  }
+
+  if (ctx.declinedRequests.length > 0) {
+    parts.push(`PIÈCES DÉCLARÉES INDISPONIBLES (le client a explicitement déclaré ne pas avoir ces preuves — pour ces sujets ta réponse DOIT mentionner cette indisponibilité, evidence_type='declared_only', confidence ≤ 30, source_documents vide) :`)
+    for (const d of ctx.declinedRequests) {
+      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' — ' + d.control_name : ''}]` : ''
+      const reason = d.decline_reason ?? '?'
+      const justif = d.decline_justification ? ` — Justification : "${d.decline_justification}"` : ''
+      parts.push(`- "${d.evidence_name}"${ctrl} — Motif : ${reason}${justif}`)
+    }
+    parts.push('')
+  }
+
+  return parts.join('\n')
+}
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+
+function jsonResponse(data: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}

@@ -1,14 +1,18 @@
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { EmptyState } from '../../../components/ui/EmptyState'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { useToast } from '../../../hooks/useToast'
+import { useMissionUserRole } from '../useMissionUserRole'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
 import { ClosureActionCards } from './ClosureActionCards'
 import { FindingSynthesis } from './FindingSynthesis'
-import { CARTracking } from './CARTracking'
 import { AuditConclusion } from './AuditConclusion'
 import { ReportGenerator } from './ReportGenerator'
+import { loadAuditReportData } from '../../reports/loadAuditReportData'
 import type { MissionDetail } from '../useMissionDetail'
 import type { ControlAssessment } from '../../../types/database.types'
 
@@ -26,6 +30,11 @@ interface ScoringData {
   approved_controls: number
   rejected_controls: number
   pending_controls: number
+  /** Compteurs de conformité (basés sur conformity_level), affichés dans les StatCards. */
+  conformes: number
+  partiels: number
+  non_conformes: number
+  non_applicables: number
   domain_scores: DomainScore[]
 }
 
@@ -35,12 +44,15 @@ interface MissionClosureTabProps {
 }
 
 export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps){
+  const toast = useToast()
   const [closing, setClosing] = useState(false)
   const [closeError, setCloseError] = useState<string | null>(null)
   const [scoring, setScoring] = useState<ScoringData | null>(null)
-  const [assessments, setAssessments] = useState<ControlAssessment[]>([])
+  const [findingClassifications, setFindingClassifications] = useState<string[]>([])
+  const [generatingPdf, setGeneratingPdf] = useState(false)
   const isClosed = mission.status === 'closure'
   const reportFlag = useFeatureFlag('report_generator_advanced')
+  const userRole = useMissionUserRole(mission)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -51,15 +63,45 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       const baseUrl = import.meta.env.VITE_SUPABASE_URL
       const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
       const res = await fetch(
-        `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${mission.id}&select=id,mission_id,control_id,auditor_id,status,findings,recommendations,ai_draft,evidence_notes,observations,risk_notes,conformity_level,finding_classification,created_at,updated_at`,
+        `${baseUrl}/rest/v1/control_assessments?mission_id=eq.${mission.id}&select=id,mission_id,control_id,auditor_id,status,evidence_notes,observations,conformity_level,created_at,updated_at`,
         { headers: { 'apikey': apikey, 'Authorization': `Bearer ${token}` }, signal: controller.signal }
       )
       if (controller.signal.aborted) return
-      if (res.ok) setAssessments((await res.json()) as ControlAssessment[])
+      if (!res.ok) return
+      const assess = (await res.json()) as ControlAssessment[]
+
+      // Fetch findings classifications for the synthesis card
+      const ids = assess.map((a) => a.id)
+      if (ids.length === 0) {
+        setFindingClassifications([])
+        return
+      }
+      const { data: findingsRows } = await supabase
+        .from('assessment_findings')
+        .select('classification')
+        .in('assessment_id', ids)
+      if (controller.signal.aborted) return
+      setFindingClassifications((findingsRows ?? []).map((f: { classification: string }) => f.classification))
     }
-    load()
+    load().catch(() => { /* abort au démontage : ignoré */ })
     return () => controller.abort()
   }, [mission.id])
+
+  const handleGenerateAuditReport = useCallback(async () => {
+    setGeneratingPdf(true)
+    try {
+      const [data, { runAuditReportPdfInWorker }] = await Promise.all([
+        loadAuditReportData(mission),
+        import('../../reports/runAuditReportPdfInWorker'),
+      ])
+      await runAuditReportPdfInWorker(data)
+      toast.success('Rapport PDF généré', { description: mission.name })
+    } catch (err) {
+      toast.error('Génération du rapport impossible', err)
+    } finally {
+      setGeneratingPdf(false)
+    }
+  }, [mission, toast])
 
   const handleClose = useCallback(async () => {
     setClosing(true)
@@ -68,7 +110,8 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       body: { mission_id: mission.id },
     })
     if (fnError || data?.error) {
-      setCloseError(fnError?.message ?? data?.error ?? 'Erreur.')
+      const msg = await readInvokeError(fnError, data, 'Erreur.')
+      setCloseError(msg)
       setClosing(false)
       return
     }
@@ -76,6 +119,16 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     setClosing(false)
     onRefetch()
   }, [mission.id, onRefetch])
+
+  // Auditeur sans contrôle affecté → rien à afficher.
+  if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
+    return (
+      <EmptyState
+        title="Aucun contrôle affecté"
+        description="Vous n'avez pas de contrôle dans cette mission, donc aucun résultat à consulter ici."
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -88,7 +141,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
 
       {closeError && <ErrorAlert message={closeError} />}
 
-      {!isClosed && !scoring && (
+      {!isClosed && !scoring && userRole.isPrivileged && (
         <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div>
             <p className="text-sm font-medium text-amber-800">Pr&ecirc;t &agrave; cl&ocirc;turer la mission ?</p>
@@ -103,30 +156,39 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
 
       {scoring && (
         <>
-          <HeroScoreCard score={scoring.conformity_score} approvedControls={scoring.approved_controls} totalControls={scoring.total_controls} />
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <StatCard label="Conformes" value={scoring.approved_controls} color="text-green-600" bg="bg-green-50 border-green-200" />
-            <StatCard label="Non conformes" value={scoring.rejected_controls} color="text-red-600" bg="bg-red-50 border-red-200" />
-            <StatCard label="En attente" value={scoring.pending_controls} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
+          <HeroScoreCard score={scoring.conformity_score} conformes={scoring.conformes} totalControls={scoring.total_controls} />
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <StatCard label="Conformes" value={scoring.conformes} color="text-green-600" bg="bg-green-50 border-green-200" />
+            <StatCard label="Partiels" value={scoring.partiels} color="text-amber-600" bg="bg-amber-50 border-amber-200" />
+            <StatCard label="Non conformes" value={scoring.non_conformes} color="text-red-600" bg="bg-red-50 border-red-200" />
+            <StatCard label="Non applicables" value={scoring.non_applicables} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
           </div>
           <DomainBreakdownList domainScores={scoring.domain_scores} />
-          <ClosureActionCards />
+          <ClosureActionCards
+            busy={{ pdf: generatingPdf }}
+            onGenerateAuditReport={userRole.isPrivileged ? handleGenerateAuditReport : undefined}
+          />
         </>
       )}
 
-      {isClosed && !scoring && <ScoringLoader missionId={mission.id} />}
+      {isClosed && !scoring && (
+        <ScoringLoader
+          missionId={mission.id}
+          actionsBusy={{ pdf: generatingPdf }}
+          onGenerateAuditReport={userRole.isPrivileged ? handleGenerateAuditReport : undefined}
+        />
+      )}
 
       {/* ISO 27001 closure enrichments */}
       {(isClosed || scoring) && (
         <>
-          <FindingSynthesis assessments={assessments} />
-          <CARTracking missionId={mission.id} />
+          <FindingSynthesis classifications={findingClassifications} />
           <AuditConclusion
             missionId={mission.id}
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}
             initialComment={(mission as unknown as Record<string, unknown>).audit_conclusion_comment as string | null ?? null}
           />
-          {!reportFlag.loading && reportFlag.enabled && (
+          {!reportFlag.loading && reportFlag.enabled && userRole.isPrivileged && (
             <ReportGenerator missionId={mission.id} missionName={mission.name} />
           )}
         </>
@@ -144,26 +206,39 @@ function StatCard({ label, value, color, bg }: { label: string; value: number; c
   )
 }
 
-function ScoringLoader({ missionId }: { missionId: string }){
+interface ScoringLoaderProps {
+  missionId: string
+  actionsBusy?: { pdf?: boolean; pptx?: boolean; plan?: boolean; archive?: boolean }
+  onGenerateAuditReport?: () => void | Promise<void>
+}
+
+function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport }: ScoringLoaderProps){
   const [scoring, setScoring] = useState<ScoringData | null>(null)
 
   useEffect(() => {
     supabase.functions.invoke('close-mission', { body: { mission_id: missionId } })
-      .then(({ data }) => { if (data?.scoring) setScoring(data.scoring as ScoringData) })
+      .then(async ({ data, error }) => {
+        if (error || data?.error) {
+          console.error('close-mission (scoring):', await readInvokeError(error, data, 'Chargement du scoring impossible'))
+          return
+        }
+        if (data?.scoring) setScoring(data.scoring as ScoringData)
+      })
   }, [missionId])
 
   if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du scoring...</p>
 
   return (
     <>
-      <HeroScoreCard score={scoring.conformity_score} approvedControls={scoring.approved_controls} totalControls={scoring.total_controls} />
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <StatCard label="Conformes" value={scoring.approved_controls} color="text-green-600" bg="bg-green-50 border-green-200" />
-        <StatCard label="Non conformes" value={scoring.rejected_controls} color="text-red-600" bg="bg-red-50 border-red-200" />
-        <StatCard label="En attente" value={scoring.pending_controls} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
+      <HeroScoreCard score={scoring.conformity_score} conformes={scoring.conformes} totalControls={scoring.total_controls} />
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <StatCard label="Conformes" value={scoring.conformes} color="text-green-600" bg="bg-green-50 border-green-200" />
+        <StatCard label="Partiels" value={scoring.partiels} color="text-amber-600" bg="bg-amber-50 border-amber-200" />
+        <StatCard label="Non conformes" value={scoring.non_conformes} color="text-red-600" bg="bg-red-50 border-red-200" />
+        <StatCard label="Non applicables" value={scoring.non_applicables} color="text-gray-500" bg="bg-gray-50 border-gray-200" />
       </div>
       <DomainBreakdownList domainScores={scoring.domain_scores} />
-      <ClosureActionCards />
+      <ClosureActionCards busy={actionsBusy} onGenerateAuditReport={onGenerateAuditReport} />
     </>
   )
 }

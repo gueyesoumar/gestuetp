@@ -14,6 +14,7 @@ const PHASE_TO_TAB: Record<string, string> = {
   internal_review: 'internal_review',
   client_review: 'client_review',
   closure: 'closure',
+  action_plan: 'action_plan',
 }
 
 export function MissionStepper({ phases, activeTab, onTabChange }: MissionStepperProps) {

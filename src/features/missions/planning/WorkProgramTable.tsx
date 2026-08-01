@@ -1,11 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Badge } from '../../../components/ui/Badge'
 import { WorkProgramControlRow } from './WorkProgramControlRow'
+import { WorkProgramBulkToolbar } from './WorkProgramBulkToolbar'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
-import type { ControlPlanning } from '../../../types/database.types'
+import type { ControlPlanning, RiskLevel, AuditTechnique } from '../../../types/database.types'
 import type { MissionMemberRow, ControlAssignmentRow } from '../useMissionDetail'
 
 interface WorkProgramTableProps {
+  missionId: string
   domains: DomainWithControls[]
   plannings: ControlPlanning[]
   assignments: ControlAssignmentRow[]
@@ -13,18 +15,77 @@ interface WorkProgramTableProps {
   onPlanningChange: (controlId: string, field: string, value: unknown) => void
   onAssign: (controlId: string, auditorId: string) => void
   onAssignDomain: (controlIds: string[], auditorId: string) => void
+  onBulkPlanning: (controlIds: string[], data: { risk_level?: RiskLevel; audit_techniques?: AuditTechnique[] }) => Promise<boolean>
+  onBulkAssign: (controlIds: string[], auditorId: string) => Promise<void>
+  bulkSaving: boolean
+  externalSelection?: Set<string>
+  onSelectionChange?: (ids: Set<string>) => void
 }
 
-export function WorkProgramTable({ domains, plannings, assignments, members, onPlanningChange, onAssign, onAssignDomain }: WorkProgramTableProps) {
+export function WorkProgramTable({
+  missionId,
+  domains, plannings, assignments, members,
+  onPlanningChange, onAssign, onAssignDomain,
+  onBulkPlanning, onBulkAssign, bulkSaving,
+  externalSelection, onSelectionChange,
+}: WorkProgramTableProps) {
+  void missionId
   const [search, setSearch] = useState('')
+  const [internalSelection, setInternalSelection] = useState<Set<string>>(new Set())
+  const selection = externalSelection ?? internalSelection
+  const setSelection = useCallback((next: Set<string>) => {
+    if (onSelectionChange) onSelectionChange(next)
+    else setInternalSelection(next)
+  }, [onSelectionChange])
+
   const planMap = useMemo(() => new Map(plannings.map((p) => [p.control_id, p])), [plannings])
   const assignMap = useMemo(() => new Map(assignments.map((a) => [a.control_id, a])), [assignments])
   const auditors = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
-  void plannings // referenced by child components
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
+
+  const toggleControl = useCallback((id: string) => {
+    const next = new Set(selection)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    setSelection(next)
+  }, [selection, setSelection])
+
+  const toggleDomain = useCallback((controlIds: string[]) => {
+    const next = new Set(selection)
+    const allIn = controlIds.every((id) => next.has(id))
+    if (allIn) controlIds.forEach((id) => next.delete(id))
+    else controlIds.forEach((id) => next.add(id))
+    setSelection(next)
+  }, [selection, setSelection])
+
+  const clearSelection = useCallback(() => setSelection(new Set()), [setSelection])
+
+  const handleBulkAssign = useCallback(async (auditorId: string) => {
+    await onBulkAssign([...selection], auditorId)
+  }, [selection, onBulkAssign])
+
+  const handleBulkRisk = useCallback(async (risk: RiskLevel) => {
+    await onBulkPlanning([...selection], { risk_level: risk })
+  }, [selection, onBulkPlanning])
+
+  const handleBulkTechniques = useCallback(async (techniques: AuditTechnique[]) => {
+    await onBulkPlanning([...selection], { audit_techniques: techniques })
+  }, [selection, onBulkPlanning])
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      {/* Bulk toolbar (sticky when selection > 0) */}
+      {selection.size > 0 && (
+        <WorkProgramBulkToolbar
+          selectedCount={selection.size}
+          auditors={auditors}
+          saving={bulkSaving}
+          onClear={clearSelection}
+          onAssignAuditor={handleBulkAssign}
+          onSetRisk={handleBulkRisk}
+          onSetTechniques={handleBulkTechniques}
+        />
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
         <div className="flex items-center gap-2">
@@ -35,7 +96,7 @@ export function WorkProgramTable({ domains, plannings, assignments, members, onP
           />
         </div>
         <div className="flex gap-2 items-center">
-          <Badge label={`${assignments.length}/${totalControls} affect\u00e9s`} variant={assignments.length === totalControls ? 'green' : 'gray'} />
+          <Badge label={`${assignments.length}/${totalControls} affectés`} variant={assignments.length === totalControls ? 'green' : 'gray'} />
         </div>
       </div>
 
@@ -44,7 +105,8 @@ export function WorkProgramTable({ domains, plannings, assignments, members, onP
         <table className="w-full border-collapse" style={{ tableLayout: 'auto' }}>
           <thead>
             <tr className="bg-[#FAFAFA] border-b border-gray-200 sticky top-0 z-[1]">
-              <th className="pl-4 pr-2 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500" style={{ width: '7%' }}>Code</th>
+              <th className="pl-4 pr-1 py-2.5 text-left" style={{ width: '32px' }}></th>
+              <th className="px-2 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500" style={{ width: '7%' }}>Code</th>
               <th className="px-2 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">Contr&ocirc;le</th>
               <th className="px-2 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500" style={{ width: '10%' }}>Risque</th>
               <th className="pl-2 pr-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500" style={{ width: '18%' }}>Auditeur</th>
@@ -58,10 +120,36 @@ export function WorkProgramTable({ domains, plannings, assignments, members, onP
               const filtered = domain.controls.filter((c) => !q || c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
               if (filtered.length === 0) return null
 
+              const filteredIds = filtered.map((c) => c.id)
+              const allInDomainSelected = filteredIds.every((id) => selection.has(id))
+              const someInDomainSelected = filteredIds.some((id) => selection.has(id))
+
               return (
-                <DomainGroup key={domain.id} code={domain.code} name={domain.name} assigned={domainAssigned} total={domain.controls.length} unassignedIds={unassigned} auditors={auditors} onAssignDomain={onAssignDomain}>
+                <DomainGroup
+                  key={domain.id}
+                  code={domain.code}
+                  name={domain.name}
+                  assigned={domainAssigned}
+                  total={domain.controls.length}
+                  unassignedIds={unassigned}
+                  auditors={auditors}
+                  onAssignDomain={onAssignDomain}
+                  domainSelected={allInDomainSelected}
+                  domainPartial={!allInDomainSelected && someInDomainSelected}
+                  onToggleDomain={() => toggleDomain(filteredIds)}
+                >
                   {filtered.map((control) => (
-                    <WorkProgramControlRow key={control.id} control={control} planning={planMap.get(control.id)} assignment={assignMap.get(control.id)} auditors={auditors} onPlanningChange={onPlanningChange} onAssign={onAssign} />
+                    <WorkProgramControlRow
+                      key={control.id}
+                      control={control}
+                      planning={planMap.get(control.id)}
+                      assignment={assignMap.get(control.id)}
+                      auditors={auditors}
+                      onPlanningChange={onPlanningChange}
+                      onAssign={onAssign}
+                      selected={selection.has(control.id)}
+                      onToggleSelect={() => toggleControl(control.id)}
+                    />
                   ))}
                 </DomainGroup>
               )
@@ -73,16 +161,37 @@ export function WorkProgramTable({ domains, plannings, assignments, members, onP
   )
 }
 
-function DomainGroup({ code, name, assigned, total, unassignedIds, auditors, onAssignDomain, children }: {
-  code: string; name: string; assigned: number; total: number; unassignedIds: string[]
-  auditors: MissionMemberRow[]; onAssignDomain: (ids: string[], auditorId: string) => void; children: React.ReactNode
-}) {
+interface DomainGroupProps {
+  code: string
+  name: string
+  assigned: number
+  total: number
+  unassignedIds: string[]
+  auditors: MissionMemberRow[]
+  onAssignDomain: (ids: string[], auditorId: string) => void
+  domainSelected: boolean
+  domainPartial: boolean
+  onToggleDomain: () => void
+  children: React.ReactNode
+}
+
+function DomainGroup({ code, name, assigned, total, unassignedIds, auditors, onAssignDomain, domainSelected, domainPartial, onToggleDomain, children }: DomainGroupProps) {
   const [bulkAuditor, setBulkAuditor] = useState('')
   const [open, setOpen] = useState(true)
   return (
     <>
       <tr className="bg-[#FAFAFA] border-b border-gray-200 border-t border-t-gray-200 cursor-pointer select-none" onClick={() => setOpen(!open)}>
-        <td colSpan={4} className="px-4 py-3">
+        <td className="pl-4 pr-1 py-3" onClick={(e) => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={domainSelected}
+            ref={(el) => { if (el) el.indeterminate = domainPartial }}
+            onChange={onToggleDomain}
+            className="w-3.5 h-3.5 accent-forest-700 cursor-pointer"
+            aria-label={`Sélectionner tous les contrôles de ${code}`}
+          />
+        </td>
+        <td colSpan={4} className="px-2 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <svg className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>

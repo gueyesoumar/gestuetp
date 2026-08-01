@@ -2,12 +2,14 @@ export const CLIENT_TABS = [
   { key: 'dashboard', label: 'Tableau de bord' },
   { key: 'exchanges', label: '\u00c9changes' },
   { key: 'results', label: 'R\u00e9sultats' },
+  { key: 'action_plan', label: 'Plan d\u2019action' },
   { key: 'reports', label: 'Rapports' },
 ] as const
 
 export type ClientTabKey = typeof CLIENT_TABS[number]['key']
 
 export const PERMISSION_LABELS: Record<string, string> = {
+  approver: 'Approbateur',
   contributor: 'Contributeur',
   viewer: 'Lecteur',
 }

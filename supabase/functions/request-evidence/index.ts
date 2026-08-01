@@ -32,13 +32,21 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile } = await supabaseAdmin
       .from('users')
-      .select('id, organization_id')
+      .select('id, organization_id, is_active')
       .eq('auth_id', caller.id)
       .single()
 
     if (!callerProfile) {
       return new Response(
         JSON.stringify({ error: 'Profil introuvable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Un compte désactivé conserve un JWT valide jusqu'à expiration : on refuse.
+    if (!callerProfile.is_active) {
+      return new Response(
+        JSON.stringify({ error: 'Compte désactivé' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

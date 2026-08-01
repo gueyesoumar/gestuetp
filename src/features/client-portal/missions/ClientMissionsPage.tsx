@@ -3,6 +3,7 @@ import { useClientMissions } from '../useClientMissions'
 import { ClientMissionCard } from './ClientMissionCard'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { isRegul } from '../../../lib/product'
 
 export function ClientMissionsPage(): JSX.Element {
   const [cabinetFilter, setCabinetFilter] = useState<string | undefined>()
@@ -17,7 +18,9 @@ export function ClientMissionsPage(): JSX.Element {
     <div>
       <h1 className="text-xl font-bold mb-1">Mes missions</h1>
       <p className="text-sm text-gray-400 mb-5">
-        Toutes vos missions d{'\u2019'}audit, tous cabinets confondus
+        {isRegul
+          ? 'Vos missions de contr\u00f4le'
+          : `Toutes vos missions d${'\u2019'}audit, tous cabinets confondus`}
       </p>
 
       {/* Cabinet filter */}

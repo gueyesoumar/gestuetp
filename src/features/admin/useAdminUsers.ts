@@ -54,7 +54,7 @@ export function useAdminUsers(query: string): Result {
           console.error('useAdminUsers:', queryError.message)
           setError('Recherche impossible')
         } else {
-          const rows = (data ?? []) as Array<Record<string, unknown> & { organizations: { name: string } | null }>
+          const rows = (data ?? []) as unknown as Array<Record<string, unknown> & { organizations: { name: string } | null }>
           setUsers(rows.map((r) => ({
             id: r.id as string,
             auth_id: r.auth_id as string,

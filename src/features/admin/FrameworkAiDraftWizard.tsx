@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, FileText, X, Loader2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 
 interface DraftDomain {
   code: string
   name: string
   description?: string
-  controls: Array<{ code: string; name: string; description?: string; guidance?: string }>
+  controls: Array<{ code: string; name: string; description?: string; guidance?: string; dimension?: string }>
 }
 
 interface Draft {
@@ -123,7 +124,8 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
       },
     })
     if (fwError || fwData?.error) {
-      toast.error('Création impossible', fwData?.error ?? fwError)
+      const detail = await readInvokeError(fwError, fwData, 'Création impossible')
+      toast.error('Création impossible', detail)
       setPersisting(false)
       return
     }
@@ -137,7 +139,8 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
         body: { action: 'create_domain', framework_id: frameworkId, code: d.code, name: d.name, description: d.description ?? null },
       })
       if (dError || dData?.error) {
-        console.error('domain create:', dError ?? dData?.error)
+        const detail = await readInvokeError(dError, dData, 'Création du domaine impossible')
+        console.error('domain create:', detail)
         continue
       }
       createdDomains++
@@ -145,10 +148,11 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
 
       for (const c of (d.controls ?? [])) {
         const { data: cData, error: cError } = await supabase.functions.invoke('admin-framework', {
-          body: { action: 'create_control', domain_id: domainId, code: c.code, name: c.name, description: c.description ?? null, guidance: c.guidance ?? null },
+          body: { action: 'create_control', domain_id: domainId, code: c.code, name: c.name, description: c.description ?? null, guidance: c.guidance ?? null, dimension: c.dimension ?? null, dimension_source: 'ai' },
         })
         if (cError || cData?.error) {
-          console.error('control create:', cError ?? cData?.error)
+          const detail = await readInvokeError(cError, cData, 'Création du contrôle impossible')
+          console.error('control create:', detail)
           continue
         }
         createdControls++

@@ -1,0 +1,240 @@
+import { useEffect, useState } from 'react'
+import { Lock, Sparkles, Brain } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
+import { useToast } from '../../hooks/useToast'
+import { useAuth } from '../../hooks/useAuth'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+
+/**
+ * Onglet Paramètres : permet aux Associés de personnaliser les libellés
+ * des étapes de revue (Chef de mission / Associé) selon les conventions
+ * de leur cabinet.
+ */
+
+const DEFAULT_LEAD = 'Chef de mission'
+const DEFAULT_ASSOCIATE = 'Associé'
+const MAX_LEN = 40
+
+export function WorkflowSettingsTab(): JSX.Element {
+  const { profile } = useAuth()
+  const { canEditOrganization, loading: permLoading } = useCabinetPermissions()
+  const toast = useToast()
+
+  const [leadLabel, setLeadLabel] = useState('')
+  const [associateLabel, setAssociateLabel] = useState('')
+  const [initialLead, setInitialLead] = useState('')
+  const [initialAssociate, setInitialAssociate] = useState('')
+  const [aiEnabled, setAiEnabled] = useState(true)
+  const [aiToggling, setAiToggling] = useState(false)
+  const [reason, setReason] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!profile?.organization_id) return
+    const abort = new AbortController()
+    void (async () => {
+      const { data } = await supabase
+        .from('organizations')
+        .select('review_lead_label, review_associate_label, ai_analysis_enabled')
+        .eq('id', profile.organization_id)
+        .abortSignal(abort.signal)
+        .maybeSingle()
+      if (abort.signal.aborted) return
+      const o = data as {
+        review_lead_label: string | null
+        review_associate_label: string | null
+        ai_analysis_enabled: boolean | null
+      } | null
+      const lead = o?.review_lead_label ?? ''
+      const assoc = o?.review_associate_label ?? ''
+      setLeadLabel(lead)
+      setAssociateLabel(assoc)
+      setInitialLead(lead)
+      setInitialAssociate(assoc)
+      setAiEnabled(o?.ai_analysis_enabled ?? true)
+      setLoading(false)
+    })()
+    return () => abort.abort()
+  }, [profile?.organization_id])
+
+  const toggleAi = async (next: boolean): Promise<void> => {
+    if (!canEditOrganization) return
+    setAiToggling(true)
+    const { data, error } = await supabase.functions.invoke('update-cabinet-settings', {
+      body: { ai_analysis_enabled: next },
+    })
+    setAiToggling(false)
+    if (error || data?.error) {
+      const msg = await readInvokeError(error, data, 'Mise à jour impossible')
+      toast.error(msg)
+      return
+    }
+    setAiEnabled(next)
+    toast.success(next ? 'Analyse IA activée' : 'Analyse IA désactivée pour ce cabinet')
+  }
+
+  const dirty = leadLabel.trim() !== initialLead && (leadLabel.trim().length > 0 || initialLead.length > 0)
+    || associateLabel.trim() !== initialAssociate && (associateLabel.trim().length > 0 || initialAssociate.length > 0)
+  const validLead = leadLabel.trim().length === 0 || leadLabel.trim().length <= MAX_LEN
+  const validAssociate = associateLabel.trim().length === 0 || associateLabel.trim().length <= MAX_LEN
+
+  const submit = async () => {
+    if (!canEditOrganization || !dirty || !validLead || !validAssociate) return
+    setSubmitting(true)
+    const { data, error } = await supabase.functions.invoke('update-cabinet-settings', {
+      body: {
+        review_lead_label: leadLabel.trim() || null,
+        review_associate_label: associateLabel.trim() || null,
+        reason: reason.trim() || undefined,
+      },
+    })
+    setSubmitting(false)
+    if (error || data?.error) {
+      const msg = await readInvokeError(error, data, 'Mise à jour impossible')
+      toast.error(msg)
+      return
+    }
+    // Invalider le cache sessionStorage pour que tout l'app (PDF de cadrage,
+    // écrans de revue, notifications) reflète immédiatement les nouveaux libellés.
+    if (profile?.organization_id) {
+      try { sessionStorage.removeItem(`reviewLabels:${profile.organization_id}`) } catch { /* ignore */ }
+    }
+    toast.success('Libellés mis à jour')
+    setInitialLead(leadLabel.trim())
+    setInitialAssociate(associateLabel.trim())
+    setReason('')
+  }
+
+  if (loading || permLoading) return <LoadingSpinner />
+
+  return (
+    <div className="max-w-3xl">
+      <p className="mb-5 text-sm text-gray-600">
+        Personnalisez les libell&eacute;s des deux niveaux de revue selon les conventions de votre cabinet
+        (ex : <i>Manager</i> / <i>Partner</i> au lieu de <i>Chef de mission</i> / <i>Associé</i>).
+        Les libell&eacute;s s&apos;appliquent partout dans l&apos;app et dans les emails de notification.
+      </p>
+
+      {!canEditOrganization && (
+        <div className="mb-5 flex items-start gap-2.5 rounded-lg bg-amber-50 border border-amber-200 px-3.5 py-2.5">
+          <Lock size={14} className="mt-0.5 flex-shrink-0 text-amber-700" />
+          <span className="text-[12.5px] text-amber-900">
+            La permission <b>can_edit_organization</b> est requise pour modifier ces libell&eacute;s. Vous voyez la configuration en lecture seule.
+          </span>
+        </div>
+      )}
+
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <header className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+          <Sparkles size={14} className="text-gold-600" />
+          <span className="text-[13px] font-bold text-gray-900">Libellés des étapes de revue</span>
+        </header>
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <LabelField
+            label="Niveau 1 — revue principale"
+            value={leadLabel}
+            onChange={setLeadLabel}
+            placeholder={DEFAULT_LEAD}
+            disabled={!canEditOrganization || submitting}
+            invalid={!validLead}
+          />
+          <LabelField
+            label="Niveau 2 — validation finale"
+            value={associateLabel}
+            onChange={setAssociateLabel}
+            placeholder={DEFAULT_ASSOCIATE}
+            disabled={!canEditOrganization || submitting}
+            invalid={!validAssociate}
+          />
+        </div>
+
+        {canEditOrganization && (
+          <div className="px-5 pb-5">
+            <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Motif <span className="text-gray-400 font-normal">(optionnel)</span></label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              placeholder="Pourquoi ce changement ?"
+              className="w-full text-[12.5px]"
+              disabled={submitting}
+            />
+          </div>
+        )}
+
+        {canEditOrganization && (
+          <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => { setLeadLabel(initialLead); setAssociateLabel(initialAssociate); setReason('') }}
+              disabled={!dirty || submitting}
+              className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg disabled:opacity-50"
+            >Annuler les changements</button>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!dirty || !validLead || !validAssociate || submitting}
+              className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50"
+            >{submitting ? 'Enregistrement…' : 'Enregistrer'}</button>
+          </div>
+        )}
+      </div>
+
+      {/* Kill switch IA cabinet */}
+      <div className="mt-6 rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <header className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+          <Brain size={14} className="text-forest-700" />
+          <span className="text-[13px] font-bold text-gray-900">Analyse IA des documents</span>
+        </header>
+        <div className="p-5 flex items-start gap-4">
+          <div className="flex-1">
+            <p className="text-[13px] text-gray-700 leading-relaxed">
+              {aiEnabled
+                ? <>L&rsquo;<b>analyse IA</b> est <b>activ&eacute;e</b> pour ce cabinet. Les documents fournis par les clients sont analys&eacute;s automatiquement (extraction de m&eacute;tadonn&eacute;es&nbsp;: version, signatures, couverture des contr&ocirc;les) et le questionnaire est pr&eacute;-rempli intelligemment.</>
+                : <>L&rsquo;<b>analyse IA</b> est <b>d&eacute;sactiv&eacute;e</b>. Aucun document n&rsquo;est envoy&eacute; aux serveurs Anthropic. L&rsquo;extraction de m&eacute;tadonn&eacute;es et le pr&eacute;-remplissage du questionnaire sont indisponibles pour toutes les missions de ce cabinet.</>
+              }
+            </p>
+            <p className="mt-2 text-[11.5px] text-gray-400">
+              Utile en cas d&rsquo;exigence de confidentialit&eacute; cabinet ou client. Les documents restent stock&eacute;s sur Supabase, seul le pipeline IA est coup&eacute;.
+            </p>
+          </div>
+          <label className="inline-flex items-center cursor-pointer flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={aiEnabled}
+              onChange={(e) => toggleAi(e.target.checked)}
+              disabled={!canEditOrganization || aiToggling}
+              className="sr-only peer"
+            />
+            <div className="w-10 h-6 rounded-full bg-gray-300 peer-checked:bg-forest-700 transition-colors relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-4 peer-disabled:opacity-50"></div>
+            <span className="ml-2 text-[12px] font-semibold text-gray-700">{aiEnabled ? 'Activ&eacute;e' : 'D&eacute;sactiv&eacute;e'}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LabelField({ label, value, onChange, placeholder, disabled, invalid }: { label: string; value: string; onChange: (v: string) => void; placeholder: string; disabled: boolean; invalid: boolean }) {
+  return (
+    <div>
+      <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        maxLength={MAX_LEN + 5}
+        disabled={disabled}
+        className={`w-full text-[13px] ${invalid ? 'border-red-400' : ''}`}
+      />
+      <div className="mt-1 flex justify-between text-[10.5px] text-gray-400">
+        <span>Vide = utilise le défaut Gëstu (&laquo; {placeholder} &raquo;)</span>
+        <span className={value.length > MAX_LEN ? 'text-red-500' : ''}>{value.length}/{MAX_LEN}</span>
+      </div>
+    </div>
+  )
+}

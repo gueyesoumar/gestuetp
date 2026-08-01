@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
-import type { AssessmentObservation, FindingClassification } from '../../../types/database.types'
+import type { AssessmentObservation, AssessmentFinding, AssessmentStatus, FindingClassification } from '../../../types/database.types'
 
 export interface ControlWithAssessment {
   controlId: string
@@ -13,9 +13,9 @@ export interface ControlWithAssessment {
   domainName: string
   domainSortOrder: number
   assessmentId: string | null
-  findings: string | null
-  recommendations: string | null
-  riskNotes: string | null
+  /** Statut de l'assessment côté serveur : 'submitted' | 'in_review' | 'approved' (les autres ne sont pas chargés). */
+  assessmentStatus: string | null
+  findings: AssessmentFinding[]
   conformityLevel: string | null
   classification: FindingClassification | null
   observationCount: number
@@ -53,9 +53,11 @@ interface UseMissionControlsReturn {
   refetch: () => void
 }
 
+const SEVERITY: Record<FindingClassification, number> = { major_nc: 4, minor_nc: 3, observation: 2, strength: 1 }
+
 /**
- * Loads all controls of the mission's framework with their assessment data
- * and observation state. Used by the client-side results tab.
+ * Loads all controls of the mission's framework with their assessment data,
+ * findings (assessment_findings), and observation state. Used by the client-side results tab.
  */
 export function useMissionControls(missionId: string | undefined): UseMissionControlsReturn {
   const [controls, setControls] = useState<ControlWithAssessment[]>([])
@@ -77,8 +79,8 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         .from('missions')
         .select('framework_id')
         .eq('id', missionId)
-        .single()
         .abortSignal(controller.signal)
+        .single()
 
       if (controller.signal.aborted) return
       if (mErr || !mission) { setError('Mission introuvable.'); setLoading(false); return }
@@ -108,16 +110,35 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
       // 4. Get assessments for this mission
       const { data: assessments } = await supabase
         .from('control_assessments')
-        .select('id, control_id, findings, recommendations, risk_notes, conformity_level, finding_classification, status')
+        .select('id, control_id, conformity_level, status')
         .eq('mission_id', missionId)
         .in('status', ['submitted', 'in_review', 'approved'])
         .abortSignal(controller.signal)
 
       if (controller.signal.aborted) return
 
-      const assessmentMap = new Map<string, typeof assessments[0]>()
-      for (const a of assessments ?? []) {
+      type AssessRow = { id: string; control_id: string; conformity_level: string | null; status: AssessmentStatus }
+      const assessmentMap = new Map<string, AssessRow>()
+      for (const a of (assessments ?? []) as AssessRow[]) {
         assessmentMap.set(a.control_id, a)
+      }
+
+      // 4b. Get findings for these assessments
+      const allAssessmentIds = (assessments ?? []).map((a) => a.id)
+      const findingsByAssessment = new Map<string, AssessmentFinding[]>()
+      if (allAssessmentIds.length > 0) {
+        const { data: findingsRows } = await supabase
+          .from('assessment_findings')
+          .select('*')
+          .in('assessment_id', allAssessmentIds)
+          .order('ord', { ascending: true })
+          .abortSignal(controller.signal)
+        if (controller.signal.aborted) return
+        for (const f of (findingsRows ?? []) as AssessmentFinding[]) {
+          const list = findingsByAssessment.get(f.assessment_id) ?? []
+          list.push(f)
+          findingsByAssessment.set(f.assessment_id, list)
+        }
       }
 
       // 5. Get observations for these assessments
@@ -159,6 +180,13 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
         const myObs = myUserId ? obsList.find((o) => o.observation_by === myUserId) : null
         const hasResponse = obsList.some((o) => o.response_text !== null)
 
+        const findings = assessment ? (findingsByAssessment.get(assessment.id) ?? []) : []
+        const topClassification = findings.length === 0
+          ? null
+          : findings.reduce<FindingClassification | null>((acc, f) => (
+            !acc || SEVERITY[f.classification] > SEVERITY[acc] ? f.classification : acc
+          ), null)
+
         return {
           controlId: ctrl.id,
           controlCode: ctrl.code,
@@ -170,11 +198,10 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
           domainName: domain.name,
           domainSortOrder: domain.sort_order,
           assessmentId: assessment?.id ?? null,
-          findings: assessment?.findings ?? null,
-          recommendations: assessment?.recommendations ?? null,
-          riskNotes: assessment?.risk_notes ?? null,
+          assessmentStatus: assessment?.status ?? null,
+          findings,
           conformityLevel: assessment?.conformity_level ?? null,
-          classification: (assessment?.finding_classification ?? null) as FindingClassification | null,
+          classification: topClassification,
           observationCount: obsList.length,
           myObservationId: myObs?.id ?? null,
           hasResponse,
@@ -185,7 +212,10 @@ export function useMissionControls(missionId: string | undefined): UseMissionCon
       setLoading(false)
     }
 
-    fetchData()
+    fetchData().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [missionId, refreshKey])
 

@@ -1,14 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
-import { LayoutGrid, ShieldCheck } from 'lucide-react'
+import shieldSvg from '../../assets/logo-shield.svg'
+import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
+import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy, Inbox, UserCircle } from 'lucide-react'
 import {
   DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
-  ProfileIcon, OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
+  OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
   CollapseIcon, ExpandIcon, ChevronUpIcon,
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
+import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 import { useNotifications } from '../../features/notifications/useNotifications'
 import type { User } from '../../types/database.types'
 import type { ReactNode } from 'react'
@@ -34,16 +38,25 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/missions', label: 'Missions', icon: <MissionsIcon /> },
 ]
 
+const GROUP_NAV_ITEMS: { to: string; label: string; icon: ReactNode }[] = [
+  { to: '/filiales', label: 'Filiales', icon: <Building2 size={20} strokeWidth={1.5} /> },
+  { to: '/revues', label: 'Revues continues', icon: <RefreshCw size={20} strokeWidth={1.5} /> },
+  { to: '/plans-transverses', label: "Plans d'action", icon: <ListChecks size={20} strokeWidth={1.5} /> },
+]
+
 const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
-  { to: '/profil', label: 'Mon profil', icon: <ProfileIcon /> },
+  { to: '/compte', label: 'Mon compte', icon: <UserCircle size={20} strokeWidth={1.5} /> },
   { to: '/notifications', label: 'Notifications', icon: <BellIcon /> },
   { to: '/organisation', label: 'Organisation', icon: <OrganizationIcon /> },
   { to: '/membres', label: 'Membres', icon: <MembersIcon /> },
+  { to: '/aide', label: "Centre d'aide", icon: <LifeBuoy size={20} strokeWidth={1.5} /> },
 ]
 
 export function Sidebar({ profile, open, onClose }: SidebarProps) {
   const { signOut } = useAuth()
   const { canViewSupervision } = useGroupPermissions()
+  const { canManageMembers } = useCabinetPermissions()
+  const { isGroup } = useOrganizationHierarchy(profile?.organization_id)
   const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
@@ -84,7 +97,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className={`flex items-center border-b border-white/10 ${collapsed ? 'justify-center py-4' : 'px-5 py-4'}`}>
           {collapsed ? (
-            <img src="/src/assets/logo-shield.svg" alt="G&euml;stu" width={24} height={28} />
+            <img src={shieldSvg} alt="G&euml;stu" width={24} height={28} />
           ) : (
             <div className="flex flex-1 items-center justify-between">
               <GestuLogo size="xs" variant="dark" product="comply" />
@@ -148,14 +161,54 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
               )}
             </NavLink>
           ))}
+
+          {isGroup && (
+            <>
+              {!collapsed && (
+                <p className="mt-5 mb-2 px-3.5 text-[10px] font-bold uppercase tracking-wider text-gold-300">Module Groupe</p>
+              )}
+              {collapsed && <div className="my-3 mx-auto h-px w-8 bg-white/10" />}
+              {GROUP_NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={onClose}
+                  title={collapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    collapsed
+                      ? `relative flex items-center justify-center w-11 h-11 mx-auto mb-1 rounded-xl transition-colors ${
+                          isActive ? 'bg-white/12 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/70'
+                        }`
+                      : `relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 mb-0.5 text-[13px] font-medium transition-colors ${
+                          isActive ? 'bg-white/12 text-white' : 'text-white/45 hover:bg-white/8 hover:text-white/80'
+                        }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && <span className={`absolute top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gold-500 ${collapsed ? '-left-2' : 'left-0'}`} />}
+                      <span className="flex-shrink-0">{item.icon}</span>
+                      {!collapsed && <span>{item.label}</span>}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </>
+          )}
         </nav>
+
+        {/* Co-branding cabinet footer */}
+        <CoBrandingFooter collapsed={collapsed} />
 
         {/* Profile area with popup menu */}
         {profile && (
           <div ref={menuRef} className="relative border-t border-white/10">
             {profileMenuOpen && (
               <div className={`absolute bottom-full mb-1 rounded-xl bg-forest-700 border border-white/10 shadow-xl overflow-hidden ${collapsed ? 'left-1 w-48' : 'left-2 right-2'}`}>
-                {profileMenuItems.map((item) => (
+                {(canManageMembers
+                  ? [...profileMenuItems, { to: '/demandes-support', label: 'Demandes support', icon: <Inbox size={20} strokeWidth={1.5} /> }]
+                  : profileMenuItems
+                ).map((item) => (
                   <button
                     key={item.to}
                     onClick={() => handleProfileNav(item.to)}

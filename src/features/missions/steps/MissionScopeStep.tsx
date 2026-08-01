@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
-import type { Framework, Domain, Control } from '../../../types/database.types'
-
-interface DomainWithControls extends Domain {
-  controls: Control[]
-}
+import type { Framework, Control } from '../../../types/database.types'
+import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 
 interface MissionScopeStepProps {
   framework: Framework | null
@@ -31,10 +28,12 @@ export function MissionScopeStep({ framework, missionName, onMissionName, select
       .abortSignal(abortController.signal)
       .then(({ data }) => {
         if (abortController.signal.aborted) return
-        const mapped = (data ?? []).map((d) => ({
+        type DomainRow = { id: string; framework_id: string; code: string; name: string; sort_order: number; description: string | null; controls: Control[] }
+        const rows = (data ?? []) as unknown as DomainRow[]
+        const mapped = rows.map((d) => ({
           ...d,
           controls: ((d.controls ?? []) as Control[]).sort((a, b) => a.sort_order - b.sort_order),
-        }))
+        })) as DomainWithControls[]
         setDomains(mapped)
         setLoading(false)
       })

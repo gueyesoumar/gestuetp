@@ -1,13 +1,18 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, ClipboardList, Paperclip, Bell } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
+import { isRegul, productVocab } from '../../../lib/product'
+import { GestuLogo } from '../../../components/GestuLogo'
 import type { ReactNode } from 'react'
 
 const NAV_ITEMS: { to: string; label: string; icon: ReactNode; end: boolean }[] = [
   { to: '/client', label: 'Tableau de bord', icon: <LayoutDashboard size={16} />, end: true },
   { to: '/client/missions', label: 'Mes missions', icon: <ClipboardList size={16} />, end: false },
+  // Incidents : uniquement en mode régulateur (self-déclaration assujetti, M5-2).
+  ...(isRegul ? [{ to: '/client/incidents', label: 'Incidents', icon: <AlertTriangle size={16} />, end: false }] : []),
   { to: '/client/documents', label: 'Documents', icon: <Paperclip size={16} />, end: false },
   { to: '/client/notifications', label: 'Notifications', icon: <Bell size={16} />, end: false },
+  { to: '/client/aide', label: 'Aide', icon: <LifeBuoy size={16} />, end: false },
 ]
 
 export function ClientSidebar(): JSX.Element {
@@ -20,10 +25,14 @@ export function ClientSidebar(): JSX.Element {
     <aside className="w-60 shrink-0 bg-forest-900 flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 py-4 border-b border-white/10">
-        <p className="text-lg font-extrabold text-white">
-          G{'\u00eb'}stu<span className="text-gold-500">.</span>
-        </p>
-        <p className="text-[9px] tracking-[2px] uppercase text-white/40 mt-0.5">Portail Client</p>
+        {isRegul ? (
+          <GestuLogo size="xs" variant="dark" product="regul" />
+        ) : (
+          <p className="text-lg font-extrabold text-white">
+            G{'\u00eb'}stu<span className="text-gold-500">.</span>
+          </p>
+        )}
+        <p className="text-[9px] tracking-[2px] uppercase text-white/40 mt-0.5">{productVocab.portalLabel}</p>
       </div>
 
       {/* Navigation */}

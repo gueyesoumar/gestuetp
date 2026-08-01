@@ -4,6 +4,8 @@ import type { MemberWithRoles } from './types'
 
 interface MemberTableProps {
   members: MemberWithRoles[]
+  canManageMembers: boolean
+  canManageRoles: boolean
   onAssignRole: (member: MemberWithRoles) => void
   onToggleStatus: (member: MemberWithRoles) => void
   onResendInvite: (member: MemberWithRoles) => void
@@ -13,6 +15,8 @@ interface MemberTableProps {
 
 export function MemberTable({
   members,
+  canManageMembers,
+  canManageRoles,
   onAssignRole,
   onToggleStatus,
   onResendInvite,
@@ -45,6 +49,8 @@ export function MemberTable({
             <MemberRow
               key={member.id}
               member={member}
+              canManageMembers={canManageMembers}
+              canManageRoles={canManageRoles}
               onAssignRole={onAssignRole}
               onToggleStatus={onToggleStatus}
               onResendInvite={onResendInvite}

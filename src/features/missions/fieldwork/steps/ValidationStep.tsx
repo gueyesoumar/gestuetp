@@ -3,13 +3,15 @@ import { Check, AlertTriangle, Play, Clock, UserCheck, Users } from 'lucide-reac
 import { Badge } from '../../../../components/ui/Badge'
 import { supabase } from '../../../../lib/supabase'
 import { ASSESSMENT_STATUS_CONFIG } from '../../mission-constants'
+import { findIncompleteNcFindings, isConformityCoherent } from '../findings/conformityRules'
+import type { ConformityLevel } from '../../mission-constants'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
+import type { UseAssessmentFindingsReturn, FindingClassification } from '../findings/useAssessmentFindings'
 
 interface ValidationStepProps {
   assessment: AssessmentWithControl
   observations: string
-  findings: string
-  recommendations: string
+  findingsHook: UseAssessmentFindingsReturn
   onSubmit: () => void
   saving: boolean
 }
@@ -19,6 +21,13 @@ type ValidationInfo = {
   associateApproved: boolean
   clientApproved: boolean
   clientRejected: boolean
+}
+
+const FINDING_LABELS: Record<FindingClassification, { label: string; color: string }> = {
+  major_nc: { label: 'NC majeure', color: 'text-red-700' },
+  minor_nc: { label: 'NC mineure', color: 'text-orange-700' },
+  observation: { label: 'Observation', color: 'text-blue-700' },
+  strength: { label: 'Point fort', color: 'text-green-700' },
 }
 
 function useValidationInfo(assessmentId: string): ValidationInfo {
@@ -49,11 +58,19 @@ function useValidationInfo(assessmentId: string): ValidationInfo {
   return info
 }
 
-export function ValidationStep({ assessment, observations, findings, recommendations, onSubmit, saving }: ValidationStepProps) {
-  const canSubmit = findings.trim().length > 0
+export function ValidationStep({ assessment, observations, findingsHook, onSubmit, saving }: ValidationStepProps) {
+  const findings = findingsHook.findings
+  const incompleteNc = findIncompleteNcFindings(findings)
+  const coherent = isConformityCoherent(assessment.conformity_level as ConformityLevel | null, findings)
+  const canSubmit = findings.length > 0 && incompleteNc.length === 0
   const status = ASSESSMENT_STATUS_CONFIG[assessment.status]
   const alreadySubmitted = assessment.status !== 'draft' && assessment.status !== 'rejected'
   const val = useValidationInfo(assessment.id)
+
+  const counts = findings.reduce<Record<FindingClassification, number>>((acc, f) => {
+    acc[f.classification] = (acc[f.classification] ?? 0) + 1
+    return acc
+  }, { major_nc: 0, minor_nc: 0, observation: 0, strength: 0 })
 
   return (
     <div className="space-y-4">
@@ -66,23 +83,44 @@ export function ValidationStep({ assessment, observations, findings, recommendat
           : 'V&eacute;rifiez le r&eacute;sum&eacute; de vos travaux avant de soumettre au chef de mission.'}
       </p>
 
-      {/* Summary */}
       <div className="rounded-xl border border-gray-200 bg-[#FAFAF8] divide-y divide-gray-100">
         <SummaryRow label="Statut"><Badge label={status.label} variant={status.variant} /></SummaryRow>
         <SummaryRow label="Observations">
-          <p className="text-[13px] text-gray-700 line-clamp-3">{observations || '\u2014'}</p>
+          <p className="text-[13px] text-gray-700 line-clamp-3">{observations || '—'}</p>
         </SummaryRow>
-        <SummaryRow label="Constats">
-          <p className="text-[13px] text-gray-700 line-clamp-3">{findings || <span className="text-red-500">Non renseign&eacute; (obligatoire)</span>}</p>
-        </SummaryRow>
-        <SummaryRow label="Recommandations">
-          <p className="text-[13px] text-gray-700 line-clamp-3">{recommendations || '\u2014'}</p>
+        <SummaryRow label={`Constats (${findings.length})`}>
+          {findings.length === 0 ? (
+            <p className="text-[13px] text-red-500">Aucun constat (obligatoire)</p>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap gap-2 text-[11px]">
+                {(['major_nc', 'minor_nc', 'observation', 'strength'] as FindingClassification[])
+                  .filter((c) => counts[c] > 0)
+                  .map((c) => (
+                    <span key={c} className={`font-semibold ${FINDING_LABELS[c].color}`}>
+                      {counts[c]} {FINDING_LABELS[c].label}{counts[c] > 1 ? 's' : ''}
+                    </span>
+                  ))}
+              </div>
+              <ul className="text-[12px] text-gray-700 space-y-0.5 list-disc list-inside">
+                {findings.slice(0, 5).map((f) => (
+                  <li key={f.id} className="line-clamp-1">
+                    <span className={`font-semibold ${FINDING_LABELS[f.classification].color}`}>
+                      {FINDING_LABELS[f.classification].label}
+                    </span>{' '}— {f.description.slice(0, 80)}{f.description.length > 80 ? '…' : ''}
+                  </li>
+                ))}
+                {findings.length > 5 && (
+                  <li className="text-gray-400 italic">… et {findings.length - 5} autre{findings.length - 5 > 1 ? 's' : ''}</li>
+                )}
+              </ul>
+            </div>
+          )}
         </SummaryRow>
       </div>
 
       {alreadySubmitted ? (
         <div className="space-y-2">
-          {/* Validation pipeline */}
           <ValidationPipelineStep
             icon={<UserCheck size={13} />}
             label="Chef de mission"
@@ -105,9 +143,26 @@ export function ValidationStep({ assessment, observations, findings, recommendat
         </div>
       ) : (
         <>
-          {!canSubmit && (
-            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
-              <AlertTriangle size={13} className="inline mr-1" />Les constats sont obligatoires pour soumettre ce contr&ocirc;le.
+          {findings.length === 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <AlertTriangle size={13} className="inline mr-1" />Au moins un constat est requis pour soumettre ce contr&ocirc;le.
+            </p>
+          )}
+          {incompleteNc.length > 0 && (
+            <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <p className="flex items-start gap-1.5">
+                <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+                <span>
+                  {incompleteNc.length} non-conformit&eacute;{incompleteNc.length > 1 ? 's' : ''}
+                  {' '}sans recommandation ou priorit&eacute;. Compl&eacute;tez ces champs avant de soumettre.
+                </span>
+              </p>
+            </div>
+          )}
+          {findings.length > 0 && incompleteNc.length === 0 && !coherent && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <AlertTriangle size={13} className="inline mr-1" />
+              Le niveau de conformit&eacute; choisi ne correspond pas aux findings. Une justification &eacute;crite vous sera demand&eacute;e.
             </p>
           )}
 
@@ -137,11 +192,11 @@ function ValidationPipelineStep({ icon, label, done, active, rejected }: {
 
   if (done) {
     bgClass = 'bg-forest-50 border-forest-200 text-forest-700'
-    statusLabel = 'Valid\u00e9'
+    statusLabel = 'Validé'
     statusIcon = <Check size={12} className="text-forest-600" />
   } else if (rejected) {
     bgClass = 'bg-red-50 border-red-200 text-red-700'
-    statusLabel = 'Rejet\u00e9'
+    statusLabel = 'Rejeté'
     statusIcon = <AlertTriangle size={12} className="text-red-500" />
   } else if (active) {
     bgClass = 'bg-gold-50 border-gold-200 text-gold-700'

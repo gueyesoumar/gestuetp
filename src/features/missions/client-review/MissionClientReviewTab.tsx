@@ -4,8 +4,10 @@ import { useAssessmentObservations } from '../observations/useAssessmentObservat
 import { supabase } from '../../../lib/supabase'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { FindingsList } from '../fieldwork/findings/FindingsList'
 import type { MissionDetail } from '../useMissionDetail'
 import type { ObservationWithAuthor } from '../observations/useAssessmentObservations'
+import type { AssessmentFinding } from '../../../types/database.types'
 
 interface MissionClientReviewTabProps {
   mission: MissionDetail
@@ -16,9 +18,7 @@ type FilterKey = 'pending' | 'responded' | 'all'
 interface AssessmentContext {
   controlCode: string
   controlName: string
-  findings: string | null
-  recommendations: string | null
-  classification: string | null
+  findings: AssessmentFinding[]
 }
 
 export function MissionClientReviewTab({ mission }: MissionClientReviewTabProps): JSX.Element {
@@ -125,22 +125,26 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
     const { data } = await supabase
       .from('control_assessments')
       .select(`
-        findings, recommendations, finding_classification,
+        id,
         control:controls(code, name)
       `)
       .eq('id', observation.assessment_id)
       .single()
 
-    if (data) {
-      const ctrl = (data.control as unknown as { code: string; name: string } | null)
-      setAssessment({
-        controlCode: ctrl?.code ?? '',
-        controlName: ctrl?.name ?? '',
-        findings: (data as { findings: string | null }).findings,
-        recommendations: (data as { recommendations: string | null }).recommendations,
-        classification: (data as { finding_classification: string | null }).finding_classification,
-      })
-    }
+    if (!data) return
+    const ctrl = ((data as unknown as { control: { code: string; name: string } | null }).control)
+
+    const { data: findingsRows } = await supabase
+      .from('assessment_findings')
+      .select('*')
+      .eq('assessment_id', observation.assessment_id)
+      .order('ord', { ascending: true })
+
+    setAssessment({
+      controlCode: ctrl?.code ?? '',
+      controlName: ctrl?.name ?? '',
+      findings: (findingsRows ?? []) as AssessmentFinding[],
+    })
   }
 
   const isResponded = observation.response_text !== null
@@ -190,17 +194,17 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
           {/* Assessment context */}
           {assessment && (
             <div className="px-4 py-3 border-b border-gray-200 bg-white">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-2">
                 <span className="font-mono text-[11px] font-semibold text-forest-700 bg-forest-50 px-1.5 py-0.5 rounded">
                   {assessment.controlCode}
                 </span>
                 <span className="text-[13px] font-semibold">{assessment.controlName}</span>
               </div>
-              {assessment.findings && (
-                <p className="text-[12px] text-gray-600 leading-relaxed">
-                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Constat :</span> {assessment.findings}
-                </p>
-              )}
+              <FindingsList
+                findings={assessment.findings}
+                emptyMessage="Aucun constat enregistr&eacute; sur ce contr&ocirc;le."
+                density="compact"
+              />
             </div>
           )}
 

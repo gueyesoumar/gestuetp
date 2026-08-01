@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 
 interface UseResetPasswordResult {
   resetPassword: (userId: string, newPassword: string) => Promise<boolean>
@@ -20,16 +21,7 @@ export function useResetPassword(onSuccess?: () => void): UseResetPasswordResult
     })
 
     if (fnError) {
-      let detail = fnError.message
-      try {
-        const context = (fnError as unknown as { context: { json: () => Promise<{ error?: string }> } }).context
-        if (context?.json) {
-          const body = await context.json()
-          if (body?.error) detail = body.error
-        }
-      } catch {
-        // pas de body json
-      }
+      const detail = await readInvokeError(fnError, data, 'Réinitialisation impossible')
       console.error('useResetPassword:', detail)
       setError(detail)
       setResetting(false)

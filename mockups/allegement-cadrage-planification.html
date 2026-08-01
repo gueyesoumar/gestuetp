@@ -1,0 +1,1384 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1280" />
+  <title>Gëstu Comply — Allègement Cadrage & Planification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --forest-50: #ECF4EF;
+      --forest-100: #C6DFCE;
+      --forest-300: #6FA683;
+      --forest-500: #2D6A4F;
+      --forest-700: #1B4332;
+      --forest-900: #0E2A1F;
+      --gold-50: #FBF3DC;
+      --gold-100: #F4E1A4;
+      --gold-300: #E0BD63;
+      --gold-500: #D4A843;
+      --gold-700: #8E7128;
+      --bg: #FFFFFF;
+      --surface: #FAFAF8;
+      --border: #E5E2DD;
+      --border-soft: #EFEDE8;
+      --text-900: #1A1A1A;
+      --text-700: #404040;
+      --text-500: #707070;
+      --text-300: #A8A8A8;
+      --success: #27AE60;
+      --success-bg: #E8F5EE;
+      --warn: #B45309;
+      --warn-bg: #FEF3C7;
+      --error: #C0392B;
+      --error-bg: #FDECEA;
+      --info: #2563EB;
+      --info-bg: #EFF6FF;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--surface);
+      color: var(--text-900);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 32px 32px 120px; }
+
+    /* Header */
+    .doc-header {
+      background: linear-gradient(135deg, var(--forest-700), var(--forest-900));
+      color: white;
+      padding: 28px 32px;
+      border-radius: 16px;
+      margin-bottom: 28px;
+    }
+    .doc-header .eyebrow {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--gold-300); margin-bottom: 8px;
+    }
+    .doc-header h1 { font-size: 28px; margin: 0 0 8px; font-weight: 800; letter-spacing: -0.01em; }
+    .doc-header p { font-size: 14px; color: rgba(255,255,255,0.85); margin: 0; max-width: 800px; }
+
+    /* Phase section */
+    .phase-section { margin-bottom: 48px; }
+    .phase-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 22px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px 12px 0 0;
+      border-bottom: 3px solid var(--gold-500);
+    }
+    .phase-header .num {
+      width: 38px; height: 38px;
+      background: var(--forest-50);
+      color: var(--forest-700);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .phase-header h2 { margin: 0; font-size: 20px; font-weight: 700; flex: 1; }
+    .phase-header .impact-pill {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .impact-pill.client { background: var(--info-bg); color: var(--info); }
+    .impact-pill.auditor { background: var(--gold-50); color: var(--gold-700); }
+    .impact-pill.lead { background: #f3e8ff; color: #6b21a8; }
+    .impact-pill.universal { background: var(--forest-50); color: var(--forest-700); }
+
+    /* Change card */
+    .change-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-top: 0;
+      padding: 0;
+    }
+    .change-card:last-child { border-radius: 0 0 12px 12px; }
+    .change-card .change-head {
+      padding: 14px 22px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .change-card .change-head .step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 700; color: var(--gold-700);
+      background: var(--gold-50);
+      padding: 2px 8px; border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .change-card .change-head h3 {
+      margin: 0; font-size: 15px; font-weight: 700; flex: 1;
+    }
+    .change-card .change-head .role-tags {
+      display: flex; gap: 4px;
+    }
+    .role-tag {
+      font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
+      background: var(--border-soft); color: var(--text-500);
+    }
+    .role-tag.win { background: var(--success-bg); color: var(--success); }
+
+    .ab-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .ab-cell {
+      padding: 22px 24px;
+      min-height: 220px;
+    }
+    .ab-cell.before {
+      background: #FFF8F8;
+      border-right: 1px solid var(--border);
+    }
+    .ab-cell.after {
+      background: #F7FCF9;
+    }
+    .ab-cell .ab-label {
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 14px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .ab-cell.before .ab-label { color: var(--error); }
+    .ab-cell.after .ab-label { color: var(--success); }
+    .ab-cell .ab-label::before {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+    }
+    .ab-cell.before .ab-label::before { background: var(--error); }
+    .ab-cell.after .ab-label::before { background: var(--success); }
+
+    .friction-list { margin: 0; padding: 0; list-style: none; }
+    .friction-list li {
+      padding: 8px 0 8px 22px;
+      position: relative;
+      font-size: 13px; line-height: 1.55;
+      color: var(--text-700);
+    }
+    .friction-list li::before {
+      content: '×';
+      position: absolute; left: 0; top: 7px;
+      width: 16px; height: 16px; line-height: 14px;
+      background: var(--error); color: white;
+      border-radius: 50%; font-size: 11px; font-weight: 700;
+      text-align: center;
+    }
+    .ab-cell.after .friction-list li::before {
+      content: '✓';
+      background: var(--success);
+    }
+
+    /* Métrique gain */
+    .metric {
+      display: inline-flex; gap: 6px; align-items: baseline;
+      background: white; border: 1px solid var(--border);
+      padding: 6px 12px; border-radius: 99px;
+      font-size: 11px; color: var(--text-500);
+      margin: 14px 6px 0 0;
+    }
+    .metric strong { color: var(--success); font-weight: 700; }
+
+    /* Mini UI examples */
+    .ui-mock {
+      margin-top: 14px;
+      background: white; border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .ui-mock .head {
+      padding: 8px 12px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px; color: var(--text-500); font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ui-mock .body { padding: 12px; }
+
+    /* Wizard question card */
+    .qcard { padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: white; }
+    .qcard + .qcard { margin-top: 8px; }
+    .qcard .q-code { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--gold-700); }
+    .qcard .q-label { font-size: 13px; font-weight: 600; margin-top: 2px; color: var(--text-900); }
+    .qcard .q-input {
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-700);
+      background: var(--surface);
+    }
+    .qcard .q-input.req-tag {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 10px; font-weight: 700; padding: 2px 6px;
+      background: var(--error-bg); color: var(--error); border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .qcard .q-input.opt-tag {
+      display: inline-block; margin-top: 6px;
+      font-size: 10px; font-weight: 700; padding: 2px 6px;
+      background: var(--gold-50); color: var(--gold-700); border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .prefill-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      background: var(--forest-50); color: var(--forest-700); border-radius: 4px;
+    }
+    .qcard .skip-row {
+      margin-top: 8px;
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .skip-chip {
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px;
+      border: 1px dashed var(--border);
+      border-radius: 99px;
+      color: var(--text-500);
+      background: white;
+      cursor: pointer;
+    }
+    .skip-chip.active { background: var(--gold-50); color: var(--gold-700); border-color: var(--gold-300); border-style: solid; }
+
+    /* Planning row */
+    .row-table {
+      width: 100%; border-collapse: collapse; font-size: 12px;
+    }
+    .row-table th {
+      text-align: left; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-500); font-weight: 700;
+      padding: 6px 8px; border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .row-table td {
+      padding: 6px 8px; border-bottom: 1px solid var(--border-soft);
+      color: var(--text-700);
+    }
+    .row-table .code { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--forest-700); font-size: 11px; }
+    .row-table .pill-risk {
+      display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--gold-500);
+    }
+    .row-table select {
+      font-size: 11px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px;
+      background: white;
+    }
+    .row-table .checkbox {
+      width: 14px; height: 14px;
+      border: 1.5px solid var(--text-300); border-radius: 3px;
+      display: inline-block; vertical-align: middle;
+    }
+    .row-table .checkbox.checked {
+      background: var(--forest-700); border-color: var(--forest-700);
+      position: relative;
+    }
+    .row-table .checkbox.checked::after {
+      content: '✓'; color: white; font-size: 10px; line-height: 1;
+      position: absolute; left: 2px; top: -1px; font-weight: 800;
+    }
+
+    .bulk-bar {
+      background: var(--forest-700); color: white;
+      padding: 8px 12px;
+      border-radius: 8px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px;
+    }
+    .bulk-bar .count {
+      background: var(--gold-500); color: var(--forest-900);
+      font-weight: 800; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px;
+    }
+    .bulk-bar button {
+      background: rgba(255,255,255,0.15); color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 3px 9px; border-radius: 4px; font-size: 10px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .bulk-bar button:hover { background: rgba(255,255,255,0.25); }
+
+    .ghost-btn {
+      background: white; border: 1px solid var(--border);
+      padding: 4px 9px; border-radius: 4px; font-size: 11px;
+      color: var(--text-500); cursor: not-allowed;
+      text-decoration: line-through;
+    }
+    .live-btn {
+      background: var(--forest-700); color: white;
+      border: 0; padding: 5px 10px; border-radius: 4px;
+      font-size: 11px; font-weight: 600;
+      cursor: pointer;
+    }
+    .live-btn.gold {
+      background: var(--gold-500); color: var(--forest-900);
+    }
+
+    /* Risk callout */
+    .risk-callout {
+      background: var(--warn-bg); border: 1px solid var(--gold-300);
+      border-radius: 8px; padding: 10px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .risk-callout .ico {
+      width: 24px; height: 24px;
+      background: var(--gold-500); color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 12px;
+      flex-shrink: 0;
+    }
+    .risk-callout strong { color: var(--gold-700); }
+    .risk-callout a { color: var(--forest-700); font-weight: 600; cursor: pointer; }
+
+    /* Recap section */
+    .recap-section {
+      margin-top: 56px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+    }
+    .recap-section h2 {
+      font-size: 20px; margin: 0 0 18px;
+    }
+    .recap-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .recap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold-500);
+      padding: 14px 16px;
+      border-radius: 8px;
+    }
+    .recap-card .role {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-500); margin-bottom: 6px;
+    }
+    .recap-card h4 { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+    .recap-card ul { margin: 0; padding-left: 18px; font-size: 12px; color: var(--text-700); line-height: 1.65; }
+
+    .footer-note {
+      margin-top: 32px; padding: 16px 20px;
+      background: var(--forest-50); border: 1px solid var(--forest-300);
+      border-radius: 8px;
+      font-size: 12px; color: var(--forest-900);
+    }
+    .footer-note strong { color: var(--forest-700); }
+
+    /* Generic */
+    .arrow-divider {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; margin: 8px 0;
+      font-size: 11px; font-weight: 700;
+      color: var(--gold-700);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="doc-header">
+      <div class="eyebrow">Analyse critique · phases 2 & 3 + refonte Entretiens</div>
+      <h1>Allègement Cadrage / Planification + refonte des Entretiens</h1>
+      <p>Avant / Après pour les principales frictions identifiées sur les 2 phases, plus une refonte transverse de la fonction <strong>Entretiens</strong> (acteur-centrée, basée sur l'organigramme client + matrice acteurs × sujets + PV pré-rempli). Tous les changements sont valables pour <strong>tous les référentiels</strong> (ISO 27001, NIST CSF, PSSI-ES, COBIT, ITIL...) — pas spécifiques à PSSI.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PHASE 2 · CADRAGE -->
+    <!-- ============================================================ -->
+    <div class="phase-section">
+      <div class="phase-header">
+        <div class="num">02</div>
+        <h2>Cadrage — questionnaire client</h2>
+        <span class="impact-pill universal">Tous référentiels</span>
+      </div>
+
+      <!-- Change 1 : Pré-remplissage depuis fiche client -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">CADRAGE 01</span>
+          <h3>Pré-remplir les questions de contexte depuis la fiche client</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Client +</span>
+            <span class="role-tag win">Auditeur +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Le client retape l'effectif, le nombre de sites, le secteur — alors que ces infos sont déjà dans la fiche client côté cabinet.</li>
+              <li>Risque d'incohérence : les chiffres saisis par le client peuvent diverger de la fiche.</li>
+              <li>Première impression "questionnaire générique".</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Wizard cadrage · question 2/14</div>
+              <div class="body">
+                <div class="qcard">
+                  <span class="q-code">CTX-02 · Contexte</span>
+                  <div class="q-label">Quel est l'effectif de votre entité ?</div>
+                  <div class="q-input">_____________</div>
+                  <span class="q-input req-tag">Obligatoire</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Réponse pré-remplie depuis la fiche client, badge "Pré-rempli" visible.</li>
+              <li>Le client confirme d'un clic ou corrige si besoin — temps divisé par 3 sur ces questions.</li>
+              <li>Cohérence garantie : un seul lieu de vérité.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Wizard cadrage · question 2/14</div>
+              <div class="body">
+                <div class="qcard">
+                  <span class="q-code">CTX-02 · Contexte</span>
+                  <div class="q-label">Quel est l'effectif de votre entité ?</div>
+                  <div class="q-input" style="background:var(--forest-50); color:var(--forest-900); font-weight:600;">240 collaborateurs</div>
+                  <div style="display:flex; gap:6px; margin-top:6px; align-items:center;">
+                    <span class="prefill-badge">✓ Pré-rempli depuis la fiche client</span>
+                    <span class="skip-chip">Modifier</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metric">Gain client <strong>~3 min</strong></div>
+            <div class="metric">Cohérence <strong>+100%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 2 : Optionnel + Je ne sais pas -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">CADRAGE 02</span>
+          <h3>Rendre les questions techniques optionnelles + ajouter "Je ne sais pas"</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Client +</span>
+            <span class="role-tag win">Auditeur +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Sur PSSI-ES : 29/30 questions obligatoires. Sur ISO : la plupart aussi.</li>
+              <li>Le contact client (souvent IT manager, pas RSSI) reste bloqué sur des questions techniques pointues (chiffrement, segmentation, journalisation...).</li>
+              <li>Conséquence réelle : il bâcle ou met "N/A" partout pour pouvoir soumettre.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Wizard cadrage · question 12/30</div>
+              <div class="body">
+                <div class="qcard">
+                  <span class="q-code">LOG-03 · Logique</span>
+                  <div class="q-label">Le chiffrement intégral des terminaux est-il imposé par MDM ?</div>
+                  <div class="q-input">○ Oui &nbsp;&nbsp; ○ Non &nbsp;&nbsp; ○ Partiellement</div>
+                  <span class="q-input req-tag">Obligatoire</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Question marquée "Optionnel" si le client n'a pas l'information.</li>
+              <li>Chip "À valider avec le RSSI" qui marque la question comme à creuser en interview.</li>
+              <li>L'auditeur voit une liste claire des zones à investiguer en Phase 4.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Wizard cadrage · question 12/30</div>
+              <div class="body">
+                <div class="qcard">
+                  <span class="q-code">LOG-03 · Logique</span>
+                  <div class="q-label">Le chiffrement intégral des terminaux est-il imposé par MDM ?</div>
+                  <div class="q-input">○ Oui &nbsp;&nbsp; ○ Non &nbsp;&nbsp; ○ Partiellement</div>
+                  <div class="skip-row">
+                    <span class="skip-chip active">À valider avec le RSSI</span>
+                    <span class="skip-chip">Sans objet</span>
+                    <span class="q-input opt-tag">Optionnel</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metric">Taux de complétion réel <strong>+30%</strong></div>
+            <div class="metric">Données fiables <strong>+++</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 3 : Personnalisation auditeur -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">CADRAGE 03</span>
+          <h3>Permettre à l'auditeur de personnaliser le questionnaire avant envoi</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Auditeur +</span>
+            <span class="role-tag win">Client +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>L'auditeur lance <code>launch-questionnaire</code> qui fige <em>toutes</em> les questions du template, sans filtre périmètre.</li>
+              <li>Sur une mission ciblée (ex : audit SI ne couvrant que la GRC + accès), le client reçoit quand même les questions sur le développement, le RH, la physique...</li>
+              <li>Le client perd 15-20 min à répondre à des questions hors-scope.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Avant envoi · figé sur 30 questions</div>
+              <div class="body">
+                <div style="font-size:12px; color:var(--text-500); margin-bottom:8px;">Sections incluses :</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <span class="role-tag">CTX</span><span class="role-tag">ORG</span><span class="role-tag">PER</span><span class="role-tag">ACQ</span><span class="role-tag">ACT</span><span class="role-tag">FRN</span><span class="role-tag">PHY</span><span class="role-tag">LOG</span><span class="role-tag">EXP</span><span class="role-tag">CLM</span><span class="role-tag">INC</span><span class="role-tag">AUD</span>
+                </div>
+                <div style="margin-top:10px; font-size:11px; color:var(--text-500);">→ <strong>30/30</strong> questions envoyées, sans option d'exclure</div>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Étape "Personnaliser le questionnaire" insérée avant l'envoi.</li>
+              <li>Sections désactivables d'un clic, questions exclues alignées avec les <code>mission_exclusions</code>.</li>
+              <li>Aperçu en temps réel du nombre de questions effectives.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Personnalisation · 30 → 18 questions</div>
+              <div class="body">
+                <div style="font-size:12px; color:var(--text-500); margin-bottom:8px;">Sections incluses :</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <span class="role-tag win">✓ CTX</span><span class="role-tag win">✓ ORG</span>
+                  <span class="role-tag" style="text-decoration:line-through; opacity:.5;">PER</span>
+                  <span class="role-tag" style="text-decoration:line-through; opacity:.5;">ACQ</span>
+                  <span class="role-tag win">✓ ACT</span><span class="role-tag win">✓ FRN</span>
+                  <span class="role-tag" style="text-decoration:line-through; opacity:.5;">PHY</span>
+                  <span class="role-tag win">✓ LOG</span><span class="role-tag win">✓ EXP</span><span class="role-tag win">✓ CLM</span><span class="role-tag win">✓ INC</span><span class="role-tag win">✓ AUD</span>
+                </div>
+                <div style="margin-top:10px; font-size:11px; color:var(--forest-700); font-weight:600;">→ <strong>18 questions</strong> ciblées (3 sections exclues)</div>
+              </div>
+            </div>
+            <div class="metric">Temps client <strong>-40%</strong></div>
+            <div class="metric">Pertinence <strong>+++</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 4 : Validation bloquante -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">CADRAGE 04</span>
+          <h3>Validation Phase 2 → 3 : checklist actionnable + SLA</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Chef de mission +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Bouton "Valider la planification" passe direct en <code>planning</code>, même si le cadrage est à 20%.</li>
+              <li>Checklist sidebar pas vérifiée — items "Note de cadrage validée" toujours <code>done:false</code>.</li>
+              <li>Aucune date d'échéance, aucun rappel automatique au client.</li>
+              <li>Bannière "SmartScope · Analyser" sans handler.</li>
+            </ul>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Bouton "Valider" désactivé tant que checklist n'est pas verte (ou avertissement explicite).</li>
+              <li>Champ "Échéance souhaitée" sur le questionnaire client, rappels J-3 et J-1 automatiques par email.</li>
+              <li>Bannière SmartScope branchée OU retirée — pas de UI fantôme.</li>
+              <li>Vue cross-mission "Cadrages en cours" pour le chef de mission.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Sidebar progression cadrage</div>
+              <div class="body">
+                <div style="font-size:12px;">
+                  <div style="display:flex; align-items:center; gap:8px; padding:4px 0;"><span style="color:var(--success);">✓</span> Périmètre défini</div>
+                  <div style="display:flex; align-items:center; gap:8px; padding:4px 0;"><span style="color:var(--success);">✓</span> Questionnaire envoyé</div>
+                  <div style="display:flex; align-items:center; gap:8px; padding:4px 0;"><span style="color:var(--gold-500);">●</span> Réponses client (12/18)</div>
+                  <div style="display:flex; align-items:center; gap:8px; padding:4px 0; color:var(--text-300);"><span>○</span> Note de cadrage validée</div>
+                </div>
+                <div style="margin-top:8px; padding:6px 8px; background:var(--warn-bg); border-radius:4px; font-size:11px; color:var(--gold-700); font-weight:600;">
+                  ⚠ Validation possible à 67% — risque de retravail en Phase 4
+                </div>
+              </div>
+            </div>
+            <div class="metric">Qualité données entrant Phase 4 <strong>+++</strong></div>
+            <div class="metric">Relances manuelles <strong>-80%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 5 : Organigramme client → liste d'acteurs -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">CADRAGE 05</span>
+          <h3>Organigramme client → liste d'acteurs SI extraite par IA</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Client +</span>
+            <span class="role-tag win">Auditeur ++</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Aucune feature dédiée à l'identification des acteurs SI du client.</li>
+              <li>L'auditeur découvre les contacts en arrivant sur le terrain — risque d'oublis, de doublons, de noms incorrects.</li>
+              <li>Les <code>client_contacts</code> sont saisis manuellement, un par un, par le chef de mission au moment de planifier les entretiens.</li>
+              <li>Pas de visibilité sur la cartographie des rôles (qui est responsable de quoi).</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Wizard cadrage · pas de question organigramme</div>
+              <div class="body">
+                <div class="qcard" style="border-style:dashed; opacity:0.6;">
+                  <span class="q-code">∅</span>
+                  <div class="q-label" style="color:var(--text-300);">Aucune question sur les acteurs SI / l'organisation interne</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Nouveau type de réponse <code>organigramme</code> dans le wizard : upload PDF/image.</li>
+              <li>Extraction IA des personnes : Nom · Fonction · Direction · Email (si visible).</li>
+              <li>Le client valide / corrige / complète la liste.</li>
+              <li>Fallback : saisie manuelle si pas d'organigramme disponible.</li>
+              <li>L'auditeur récupère la liste structurée en Phase 3 — base de la matrice d'entretiens.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Wizard cadrage · question 5/18 · organigramme</div>
+              <div class="body">
+                <div class="qcard">
+                  <span class="q-code">ORG-04 · Organisation</span>
+                  <div class="q-label">Pouvez-vous nous transmettre l'organigramme de la DSI / direction Sécurité ?</div>
+                  <div style="margin-top:10px; padding:10px; border:1.5px dashed var(--forest-300); border-radius:6px; background:var(--forest-50); font-size:11px; color:var(--forest-700); text-align:center;">
+                    📎 Glissez votre organigramme ici (PDF, PNG, JPG)<br/>
+                    <span style="color:var(--text-500); font-weight:normal;">ou <a style="color:var(--forest-700); cursor:pointer;">parcourir</a> · max 5 Mo</span>
+                  </div>
+                  <div style="margin-top:8px; font-size:11px; color:var(--text-500);">3 acteurs extraits par IA :</div>
+                  <div style="margin-top:4px;">
+                    <div style="padding:6px 10px; background:white; border:1px solid var(--border); border-radius:4px; font-size:11px; display:flex; gap:8px; align-items:center;">
+                      <span style="width:22px; height:22px; border-radius:50%; background:var(--forest-100); color:var(--forest-700); display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:10px;">ML</span>
+                      <span><strong>Marie Lefèvre</strong> · RSSI · Direction Sécurité</span>
+                      <span style="margin-left:auto; color:var(--success);">✓ extrait IA</span>
+                    </div>
+                    <div style="padding:6px 10px; background:white; border:1px solid var(--border); border-radius:4px; font-size:11px; display:flex; gap:8px; align-items:center; margin-top:4px;">
+                      <span style="width:22px; height:22px; border-radius:50%; background:var(--forest-100); color:var(--forest-700); display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:10px;">PD</span>
+                      <span><strong>Paul Dupont</strong> · Resp. infrastructure · DSI</span>
+                      <span style="margin-left:auto; color:var(--success);">✓ extrait IA</span>
+                    </div>
+                    <div style="padding:6px 10px; background:white; border:1px solid var(--border); border-radius:4px; font-size:11px; display:flex; gap:8px; align-items:center; margin-top:4px;">
+                      <span style="width:22px; height:22px; border-radius:50%; background:var(--forest-100); color:var(--forest-700); display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:10px;">SK</span>
+                      <span><strong>Sophie Konaté</strong> · DPO · Direction Juridique</span>
+                      <span style="margin-left:auto; color:var(--success);">✓ extrait IA</span>
+                    </div>
+                  </div>
+                  <div style="margin-top:6px; display:flex; gap:6px;">
+                    <span class="skip-chip active">+ Ajouter manuellement</span>
+                    <span class="skip-chip">Ré-extraire</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metric">Acteurs identifiés <strong>en Phase 2</strong></div>
+            <div class="metric">Saisie chef de mission Phase 3 <strong>-100%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 6 : Compression de la Fiche client en widget -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">CADRAGE 06</span>
+          <h3>Fiche client → widget compact (libère un onglet)</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Auditeur +</span>
+            <span class="role-tag win">Chef de mission +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Onglet plein écran read-only avec 6 champs identité (nom, secteur, effectif, CA, pays, adresse) déjà visibles sur la page client.</li>
+              <li><strong>Effectif affiché ici + redemandé au client</strong> dans le questionnaire (CTX-02) — incohérence non détectée.</li>
+              <li>Pas d'édition possible : si un champ manque, il faut quitter la mission.</li>
+              <li>L'historique audits (la vraie valeur) noyé sous des champs décoratifs.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Onglet "Fiche client" · plein écran</div>
+              <div class="body" style="font-size:11px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Secteur</div>Industrie</div>
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Effectif</div>240</div>
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Chiffre d'affaires</div>—</div>
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Pays</div>Sénégal</div>
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Adresse</div>Dakar</div>
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Contact</div>—</div>
+                </div>
+                <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px; margin-bottom:6px;">
+                  <div style="font-weight:700; margin-bottom:4px;">Environnement réglementaire</div>
+                  <span class="role-tag">RGPD</span> <span class="role-tag">Loi 2008-12 SN</span>
+                </div>
+                <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px; margin-bottom:6px;">
+                  <div style="font-weight:700; margin-bottom:4px;">Environnement SI</div>
+                  <span style="color:var(--text-500); font-style:italic;">Non renseigné. Complétez la fiche client...</span>
+                </div>
+                <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;">
+                  <div style="font-weight:700; margin-bottom:4px;">Historique audits</div>
+                  <span class="role-tag" style="background:var(--success-bg); color:var(--success);">2024</span> ISO 27001 — Score 72% — 8 NC
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Widget compact dans la sidebar (toggleable comme la sidebar Programme/Charge).</li>
+              <li>Garde uniquement ce qui sert au cadrage : <strong>historique audits, contexte réglementaire, contexte SI</strong>.</li>
+              <li>Lien "Modifier la fiche" qui ouvre la page client en sidedrawer (pas de perte de contexte).</li>
+              <li>Onglet plein écran libéré — disponible pour la matrice acteurs × sujets ou pour les risques mission.</li>
+              <li>L'identité (nom + secteur) reste visible en permanence dans le ribbon de phase (déjà existant).</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Sidebar · widget Fiche client</div>
+              <div class="body" style="font-size:11px;">
+                <!-- Audit history en haut (la vraie valeur) -->
+                <div style="background:white; border:1px solid var(--border); border-radius:6px; padding:10px;">
+                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="width:18px; height:18px; background:var(--gold-50); color:var(--gold-700); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:800;">📋</span>
+                    <strong style="font-size:12px;">Historique audits</strong>
+                    <span style="margin-left:auto; font-size:9px; color:var(--text-500);">2 audits</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--border-soft);">
+                    <span class="role-tag" style="background:var(--success-bg); color:var(--success);">2024</span>
+                    <span style="flex:1;">ISO 27001 — <strong>72%</strong></span>
+                    <span style="color:var(--text-500); font-size:10px;">8 NC</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px; padding:4px 0;">
+                    <span class="role-tag" style="background:var(--warn-bg); color:var(--warn);">2022</span>
+                    <span style="flex:1;">PSSI-ES — <strong>58%</strong></span>
+                    <span style="color:var(--text-500); font-size:10px;">14 NC</span>
+                  </div>
+                </div>
+
+                <!-- Réglementaire -->
+                <div style="background:white; border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:6px;">
+                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="width:18px; height:18px; background:var(--info-bg); color:var(--info); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:10px;">⚖</span>
+                    <strong style="font-size:12px;">Cadres réglementaires</strong>
+                  </div>
+                  <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                    <span class="role-tag">RGPD</span>
+                    <span class="role-tag">Loi 2008-12 SN</span>
+                    <span class="role-tag">DCSSI</span>
+                  </div>
+                </div>
+
+                <!-- Environnement SI -->
+                <div style="background:white; border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:6px;">
+                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="width:18px; height:18px; background:var(--forest-50); color:var(--forest-700); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:10px;">🖥</span>
+                    <strong style="font-size:12px;">Environnement SI</strong>
+                  </div>
+                  <p style="margin:0 0 6px; color:var(--text-700); line-height:1.5;">Hybride cloud Azure / on-prem · 240 utilisateurs · 5 sites Dakar+Thiès</p>
+                  <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                    <span class="role-tag">Azure AD</span>
+                    <span class="role-tag">Microsoft 365</span>
+                    <span class="role-tag">Intune MDM</span>
+                  </div>
+                </div>
+
+                <!-- Action discrète -->
+                <button class="live-btn" style="margin-top:8px; background:white; color:var(--forest-700); border:1px solid var(--forest-300); width:100%; font-size:10px; padding:6px;">✎ Modifier la fiche client</button>
+              </div>
+            </div>
+            <div class="metric">Onglets cadrage <strong>5 → 4</strong></div>
+            <div class="metric">Onglet libéré <strong>pour matrice acteurs</strong></div>
+            <div class="metric">Édition <strong>sans quitter la mission</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PHASE 3 · PLANIFICATION -->
+    <!-- ============================================================ -->
+    <div class="phase-section">
+      <div class="phase-header">
+        <div class="num">03</div>
+        <h2>Planification — affectation des contrôles & entretiens</h2>
+        <span class="impact-pill universal">Tous référentiels</span>
+      </div>
+
+      <!-- Change 1 : Multi-sélection transverse -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">PLANIF 01</span>
+          <h3>Multi-sélection transverse + barre d'action bulk</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Chef de mission ++</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Pour reaffecter 10 contrôles dispersés sur 4 domaines : 10 selects unitaires.</li>
+              <li>Bulk uniquement par domaine entier — pas de transverse.</li>
+              <li>Aucune checkbox sur les lignes.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Programme · contrôles ISO 27001</div>
+              <div class="body">
+                <table class="row-table">
+                  <tr><th></th><th>Code</th><th>Risque</th><th>Auditeur</th></tr>
+                  <tr><td></td><td><span class="code">A.5.7</span></td><td><span class="pill-risk"></span></td><td><select><option>—</option></select></td></tr>
+                  <tr><td></td><td><span class="code">A.8.2</span></td><td><span class="pill-risk"></span></td><td><select><option>—</option></select></td></tr>
+                  <tr><td></td><td><span class="code">A.8.5</span></td><td><span class="pill-risk"></span></td><td><select><option>—</option></select></td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Checkbox sur chaque ligne + checkbox header "tout sélectionner".</li>
+              <li>Barre d'action sticky qui apparaît dès qu'au moins 1 ligne cochée.</li>
+              <li>Actions : Affecter à... · Risque... · Technique... · Heures estimées...</li>
+              <li>Couvre le cas "10 contrôles dispersés à reaffecter" en 2 clics.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Programme · contrôles ISO 27001</div>
+              <div class="body">
+                <div class="bulk-bar">
+                  <span class="count">3</span>
+                  <span style="flex:1;">contrôles sélectionnés</span>
+                  <button>Affecter à...</button>
+                  <button>Risque...</button>
+                  <button>Technique...</button>
+                </div>
+                <table class="row-table">
+                  <tr><th></th><th>Code</th><th>Risque</th><th>Auditeur</th></tr>
+                  <tr><td><span class="checkbox checked"></span></td><td><span class="code">A.5.7</span></td><td><span class="pill-risk"></span></td><td>Marie L.</td></tr>
+                  <tr><td><span class="checkbox checked"></span></td><td><span class="code">A.8.2</span></td><td><span class="pill-risk" style="background:var(--error);"></span></td><td>Marie L.</td></tr>
+                  <tr><td><span class="checkbox checked"></span></td><td><span class="code">A.8.5</span></td><td><span class="pill-risk" style="background:var(--error);"></span></td><td>Marie L.</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="metric">Clics <strong>-80%</strong></div>
+            <div class="metric">Temps de planif <strong>-60%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 2 : Boutons fantômes -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">PLANIF 02</span>
+          <h3>Câbler les boutons fantômes (ou les retirer)</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Chef de mission +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li><strong>3 boutons sans handler</strong> : "Répartition équilibrée auto", "Exporter Excel", "Envoyer planning au client".</li>
+              <li>Dette de confiance UI — le chef croit aux fonctionnalités, elles n'existent pas.</li>
+              <li>"Répartition équilibrée auto" est <em>déjà codée</em> dans <code>generateWorkProgram.ts</code> mais pas branchée.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Actions planification</div>
+              <div class="body">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <span class="ghost-btn">Répartition équilibrée auto</span>
+                  <span class="ghost-btn">Exporter Excel</span>
+                  <span class="ghost-btn">Envoyer au client</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li><strong>"Répartition équilibrée"</strong> branché à la fonction existante (effort S, déjà écrit).</li>
+              <li><strong>"Exporter Excel"</strong> implémenté ou retiré explicitement.</li>
+              <li><strong>"Envoyer au client"</strong> connecté à un Edge Function mailer.</li>
+              <li>Aucun bouton ne ment.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Actions planification</div>
+              <div class="body">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="live-btn gold">⚡ Répartition équilibrée auto</button>
+                  <button class="live-btn">⬇ Exporter Excel</button>
+                  <button class="live-btn">📧 Envoyer au client</button>
+                </div>
+              </div>
+            </div>
+            <div class="metric">Confiance UI <strong>+100%</strong></div>
+            <div class="metric">Temps répartition <strong>-90%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 3 : Risques cadrage actionnables -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">PLANIF 03</span>
+          <h3>Rappel des risques identifiés en cadrage + édition inline</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Chef de mission +</span>
+            <span class="role-tag win">Auditeur +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Les <code>mission_risks</code> saisis en Phase 2 ne sont pas affichés en Phase 3.</li>
+              <li>L'IA backend les lit, mais le chef de mission ne voit rien (boucle ouverte Phase 2 ↔ Phase 3).</li>
+              <li>Champs <code>audit_techniques</code>, <code>estimated_hours</code>, <code>sampling_size</code> non éditables inline — uniquement modifiables par SmartPlan.</li>
+            </ul>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Callout en haut de la page Programme : "5 risques identifiés en cadrage" avec liens directs vers les contrôles concernés.</li>
+              <li>Édition inline des techniques, heures estimées, taille d'échantillon via popover.</li>
+              <li>Le chef de mission ferme la boucle entre cadrage et terrain.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Programme · contrôles</div>
+              <div class="body">
+                <div class="risk-callout">
+                  <div class="ico">!</div>
+                  <div>
+                    <strong>5 risques identifiés en cadrage</strong> à couvrir en priorité.<br/>
+                    <a>BYOD non encadré (3 ctrl)</a> · <a>Cloud non audité (4 ctrl)</a> · <a>Prestataires sécurité (2 ctrl)</a>
+                  </div>
+                </div>
+                <table class="row-table">
+                  <tr><th>Code</th><th>Technique</th><th>Heures</th><th>Échantillon</th></tr>
+                  <tr><td><span class="code">A.8.5</span></td><td>Entretien <span style="color:var(--gold-500);">▾</span></td><td>4h <span style="color:var(--gold-500);">▾</span></td><td>10/142 <span style="color:var(--gold-500);">▾</span></td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="metric">Boucle cadrage→planning <strong>fermée</strong></div>
+            <div class="metric">Édition manuelle <strong>+++</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change 4 : Vue auditeur + visibilité client -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">PLANIF 04</span>
+          <h3>Vue dédiée auditeur + visibilité client</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Auditeur +</span>
+            <span class="role-tag win">Client +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>L'auditeur découvre sa charge en arrivant en Phase 4 — push-only depuis le chef.</li>
+              <li>Aucune vue "mes contrôles affectés en planning" avant le terrain.</li>
+              <li>Aucune validation/négociation possible.</li>
+              <li>Le client n'a aucune visibilité Phase 3 (aucune transparence sur le planning des entretiens, contacts désignés...).</li>
+            </ul>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Vue auditeur "Mon planning" : contrôles affectés, charge estimée, entretiens prévus.</li>
+              <li>Bouton "Soulever une question" sur chaque contrôle (commentaire au chef avant le terrain).</li>
+              <li>Page de transparence côté client : planning des entretiens, contacts à mobiliser, livrables attendus.</li>
+              <li>Boucle de validation 3-rôles avant lancement Phase 4.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Mon planning · vue auditeur</div>
+              <div class="body" style="font-size:12px;">
+                <div style="margin-bottom:6px;"><strong>14 contrôles affectés</strong> · 38h estimées · 3 entretiens</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <span class="role-tag" style="background:var(--gold-50); color:var(--gold-700);">A.5.7</span>
+                  <span class="role-tag" style="background:var(--error-bg); color:var(--error);">A.8.2 · risque ↑</span>
+                  <span class="role-tag" style="background:var(--gold-50); color:var(--gold-700);">A.8.5</span>
+                  <span class="role-tag">+11 autres</span>
+                </div>
+                <button class="live-btn" style="margin-top:8px; background:white; color:var(--forest-700); border:1px solid var(--forest-300);">💬 Soulever une question</button>
+              </div>
+            </div>
+            <div class="metric">Surprise terrain <strong>-100%</strong></div>
+            <div class="metric">Engagement auditeur <strong>+++</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ENTRETIENS · refonte transverse Phase 2 → Phase 4 -->
+    <!-- ============================================================ -->
+    <div class="phase-section">
+      <div class="phase-header" style="border-bottom-color: var(--forest-500);">
+        <div class="num" style="background:var(--gold-50); color:var(--gold-700);">📅</div>
+        <h2>Entretiens — refonte acteur-centrée</h2>
+        <span class="impact-pill universal">Tous référentiels · transverse</span>
+      </div>
+
+      <!-- ENTRETIEN 01 : Catalogue de sujets -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">ENTRETIEN 01</span>
+          <h3>Catalogue de "Sujets d'audit" — méta-thèmes qui couvrent N contrôles</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Cabinet ++</span>
+            <span class="role-tag win">Auditeur +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>L'entretien est rattaché à un <strong>domaine</strong> du référentiel (A.5, A.6, A.7, A.8...) — granularité trop large.</li>
+              <li>Pas de notion de "sujet d'audit" qui regrouperait des contrôles transverses (ex : <em>Gestion des accès</em> couvre A.5.15, A.8.2, A.8.5 — 3 domaines).</li>
+              <li>Conséquence : l'auditeur doit imaginer manuellement le découpage par interview.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Génération actuelle · par domaine</div>
+              <div class="body">
+                <table class="row-table">
+                  <tr><th>Entretien</th><th>Domaine</th><th>Contrôles</th></tr>
+                  <tr><td>Entretien 1</td><td>A.5 Organisationnel</td><td>37 contrôles</td></tr>
+                  <tr><td>Entretien 2</td><td>A.8 Technologique</td><td>34 contrôles</td></tr>
+                </table>
+                <p style="font-size:11px; color:var(--text-500); margin-top:8px;">→ Surcharge artificielle : impossible de tenir un entretien de 37 contrôles.</p>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Nouvelle entité <code>audit_topics</code> : catalogue maintenu par le cabinet (curated par framework).</li>
+              <li>Chaque sujet est lié à N contrôles (table M:N <code>topic_controls</code>).</li>
+              <li>Sujets type : <em>Gestion des accès</em>, <em>Gestion des fournisseurs</em>, <em>Continuité d'activité</em>, <em>Sensibilisation</em>, <em>Sécurité physique</em>, <em>Conformité légale</em>, <em>Développement sécurisé</em>...</li>
+              <li>L'auditeur peut ajouter des sujets custom sur la mission.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Catalogue de sujets · ISO 27001 (cabinet-curated)</div>
+              <div class="body">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px;">
+                  <div style="padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:6px;">
+                    <strong>Gestion des accès</strong> <span style="color:var(--gold-700); font-weight:700;">7 ctrl</span>
+                    <div style="color:var(--text-500); font-size:10px; margin-top:2px;">A.5.15-18, A.8.2, A.8.3, A.8.5</div>
+                  </div>
+                  <div style="padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:6px;">
+                    <strong>Gestion des fournisseurs</strong> <span style="color:var(--gold-700); font-weight:700;">5 ctrl</span>
+                    <div style="color:var(--text-500); font-size:10px; margin-top:2px;">A.5.19-23</div>
+                  </div>
+                  <div style="padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:6px;">
+                    <strong>Continuité d'activité</strong> <span style="color:var(--gold-700); font-weight:700;">4 ctrl</span>
+                    <div style="color:var(--text-500); font-size:10px; margin-top:2px;">A.5.29, A.5.30, A.8.13, A.8.14</div>
+                  </div>
+                  <div style="padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:6px;">
+                    <strong>Sécurité physique</strong> <span style="color:var(--gold-700); font-weight:700;">14 ctrl</span>
+                    <div style="color:var(--text-500); font-size:10px; margin-top:2px;">A.7.1-14</div>
+                  </div>
+                  <div style="padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:6px;">
+                    <strong>Sensibilisation & RH</strong> <span style="color:var(--gold-700); font-weight:700;">8 ctrl</span>
+                    <div style="color:var(--text-500); font-size:10px; margin-top:2px;">A.6.1-8</div>
+                  </div>
+                  <div style="padding:6px 10px; background:var(--surface); border:1.5px dashed var(--gold-500); border-radius:6px;">
+                    <strong>+ Ajouter sujet custom</strong>
+                    <div style="color:var(--text-500); font-size:10px; margin-top:2px;">spécifique à cette mission</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metric">Granularité utile <strong>+++</strong></div>
+            <div class="metric">Réutilisation cross-mission <strong>+++</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENTRETIEN 02 : Matrice acteurs × sujets -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">ENTRETIEN 02</span>
+          <h3>Matrice "Acteurs × Sujets" — qui rencontre qui sur quoi</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Chef de mission ++</span>
+            <span class="role-tag win">Auditeur +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Génération <code>generateInterviews.ts</code> : groupe par <code>domain × auditor</code>.</li>
+              <li>Aucune notion d'acteur client précis dans la logique.</li>
+              <li>Le chef de mission doit ensuite, pour chaque entretien généré, ajouter manuellement un <code>contact_id</code> (saisi à la main).</li>
+              <li>Pas de visibilité sur la couverture des contrôles par acteur.</li>
+            </ul>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>Nouvel onglet "Matrice d'entretiens" en Phase 3.</li>
+              <li>Lignes = acteurs (issus de l'organigramme cadrage ou ajoutés manuellement).</li>
+              <li>Colonnes = sujets sélectionnés pour cette mission.</li>
+              <li>Cellules = ✓ (cocher pour assigner un sujet à un acteur).</li>
+              <li>Un acteur peut couvrir N sujets ; un sujet peut être couvert par 1 ou plusieurs acteurs (cross-validation).</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Matrice acteurs × sujets · 5 acteurs · 5 sujets sélectionnés</div>
+              <div class="body" style="overflow-x:auto;">
+                <table class="row-table" style="min-width:600px;">
+                  <tr>
+                    <th style="text-align:left;">Acteur</th>
+                    <th style="text-align:center;">Accès</th>
+                    <th style="text-align:center;">Fournisseurs</th>
+                    <th style="text-align:center;">Physique</th>
+                    <th style="text-align:center;">Continuité</th>
+                    <th style="text-align:center;">RH</th>
+                  </tr>
+                  <tr>
+                    <td><strong>Marie L.</strong> · RSSI</td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Paul D.</strong> · Resp. infra</td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Sophie K.</strong> · DPO</td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Aïssa N.</strong> · DRH</td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Karim T.</strong> · Resp. site</td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox checked"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                    <td style="text-align:center;"><span class="checkbox"></span></td>
+                  </tr>
+                </table>
+                <div style="margin-top:8px; padding:8px 12px; background:var(--forest-50); border-radius:6px; font-size:11px; color:var(--forest-900);">
+                  <strong>5 entretiens à générer</strong> · 9 cellules cochées · couverture des 5 sujets <span style="color:var(--success); font-weight:700;">complète</span> (chaque colonne ≥1 acteur)
+                </div>
+              </div>
+            </div>
+            <div class="metric">Couverture audit <strong>vérifiable</strong></div>
+            <div class="metric">Identification doublons <strong>auto</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENTRETIEN 03 : PV pré-rempli -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">ENTRETIEN 03</span>
+          <h3>Entretien = PV pré-rempli (template + zones de saisie)</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Auditeur ++</span>
+            <span class="role-tag win">Chef de mission +</span>
+          </div>
+        </div>
+        <div class="ab-grid">
+          <div class="ab-cell before">
+            <div class="ab-label">Avant</div>
+            <ul class="friction-list">
+              <li>Un entretien = simple créneau (date · heure · durée · lieu · titre).</li>
+              <li>Aucun ordre du jour structuré, aucun template de PV.</li>
+              <li>L'auditeur arrive sans guide — note libre dans un fichier externe ou une zone <code>notes</code> sans structure.</li>
+              <li>Pas de lien direct entre l'entretien et les contrôles à investiguer.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">Entretien actuel · structure plate</div>
+              <div class="body">
+                <div style="font-size:12px; color:var(--text-700);">
+                  <strong>Titre</strong> : Entretien Marie Lefèvre<br/>
+                  <strong>Date</strong> : 15 nov. 14h, 1h30, sur site<br/>
+                  <strong>Notes</strong> : <em>(zone de texte libre, vide)</em>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ab-cell after">
+            <div class="ab-label">Après</div>
+            <ul class="friction-list">
+              <li>L'entretien généré contient un <strong>PV pré-rempli</strong> structuré par sujet.</li>
+              <li>Chaque sujet liste : les contrôles couverts, les items audit_checklist, des questions-clés type.</li>
+              <li>Zones de saisie pour le compte-rendu, par sujet et par contrôle.</li>
+              <li>Pendant l'entretien : l'auditeur déroule le PV, prend des notes structurées, marque les points à creuser.</li>
+              <li>Après : les notes alimentent automatiquement les <code>observations</code> des assessments correspondants.</li>
+            </ul>
+            <div class="ui-mock">
+              <div class="head">PV · Marie Lefèvre · RSSI · 15 nov 14h</div>
+              <div class="body" style="font-size:11px;">
+                <div style="padding:8px 10px; background:var(--gold-50); border-left:3px solid var(--gold-500); margin-bottom:6px;">
+                  <div style="font-weight:700; color:var(--gold-700); text-transform:uppercase; font-size:10px; letter-spacing:0.06em;">Sujet 1 · Gestion des accès</div>
+                  <div style="color:var(--text-500); font-size:10px; margin-top:2px;">7 contrôles · A.5.15-18, A.8.2, A.8.3, A.8.5</div>
+                  <div style="margin-top:6px; padding:6px 8px; background:white; border:1px solid var(--border); border-radius:4px;">
+                    <strong>Points à investiguer :</strong><br/>
+                    · La politique de gestion des accès est-elle formalisée ?<br/>
+                    · Comment sont gérés les comptes à privilèges ?<br/>
+                    · MFA imposée pour les accès distants ?<br/>
+                    <em style="color:var(--text-300);">(zone CR à compléter pendant l'entretien)</em>
+                  </div>
+                </div>
+                <div style="padding:8px 10px; background:var(--gold-50); border-left:3px solid var(--gold-500); margin-bottom:6px;">
+                  <div style="font-weight:700; color:var(--gold-700); text-transform:uppercase; font-size:10px; letter-spacing:0.06em;">Sujet 2 · Gestion des fournisseurs</div>
+                  <div style="color:var(--text-500); font-size:10px; margin-top:2px;">5 contrôles · A.5.19-23</div>
+                </div>
+                <div style="padding:8px 10px; background:var(--gold-50); border-left:3px solid var(--gold-500);">
+                  <div style="font-weight:700; color:var(--gold-700); text-transform:uppercase; font-size:10px; letter-spacing:0.06em;">Sujet 3 · Continuité d'activité</div>
+                  <div style="color:var(--text-500); font-size:10px; margin-top:2px;">4 contrôles · A.5.29, A.5.30, A.8.13, A.8.14</div>
+                </div>
+              </div>
+            </div>
+            <div class="metric">Préparation auditeur <strong>-50%</strong></div>
+            <div class="metric">Saisie post-entretien <strong>-70%</strong></div>
+            <div class="metric">Lien entretien → assessment <strong>auto</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENTRETIEN 04 : Schéma data flow -->
+      <div class="change-card">
+        <div class="change-head">
+          <span class="step-num">ENTRETIEN 04</span>
+          <h3>Vue d'ensemble · le flux complet acteur → entretien → assessment</h3>
+          <div class="role-tags">
+            <span class="role-tag win">Tous rôles</span>
+          </div>
+        </div>
+        <div style="padding: 24px; background: white;">
+          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:16px; align-items:start;">
+            <div style="background:var(--info-bg); border:1px solid var(--info); border-radius:8px; padding:14px; min-height:160px;">
+              <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--info);">Phase 2 · Cadrage</div>
+              <h4 style="margin:6px 0; font-size:13px;">Organigramme client</h4>
+              <p style="font-size:11px; color:var(--text-700); margin:0;">Le client uploade l'organigramme. <strong>IA extrait les acteurs SI</strong> (Nom · Rôle · Direction).</p>
+              <div style="margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--info);">→ client_actors[]</div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:center; padding-top:60px; color:var(--gold-500); font-size:24px;">→</div>
+            <div style="background:var(--gold-50); border:1px solid var(--gold-300); border-radius:8px; padding:14px; min-height:160px;">
+              <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--gold-700);">Phase 3 · Planification</div>
+              <h4 style="margin:6px 0; font-size:13px;">Matrice + génération</h4>
+              <p style="font-size:11px; color:var(--text-700); margin:0;">L'auditeur coche <strong>acteur × sujet</strong>. Génération de N entretiens avec PV pré-rempli structuré.</p>
+              <div style="margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--gold-700);">→ interviews[] + agenda[]</div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:center; padding-top:60px; color:var(--forest-500); font-size:24px;">→</div>
+            <div style="background:var(--forest-50); border:1px solid var(--forest-300); border-radius:8px; padding:14px; min-height:160px;">
+              <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--forest-700);">Phase 4 · Terrain</div>
+              <h4 style="margin:6px 0; font-size:13px;">Conduite + saisie CR</h4>
+              <p style="font-size:11px; color:var(--text-700); margin:0;">L'auditeur déroule le PV. Notes par sujet → <strong>alimentent automatiquement</strong> les observations des contrôles couverts.</p>
+              <div style="margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--forest-700);">→ observations[]</div>
+            </div>
+          </div>
+          <div style="margin-top:20px; padding:14px 18px; background:var(--surface); border:1px dashed var(--border); border-radius:8px; font-size:12px; color:var(--text-700);">
+            <strong style="color:var(--forest-700);">Nouvelles entités proposées :</strong>
+            <code>client_actors</code> (acteurs du client) ·
+            <code>audit_topics</code> (catalogue cabinet) ·
+            <code>topic_controls</code> (M:N) ·
+            <code>interview_topics</code> (M:N entretien × sujet) ·
+            <code>interview_actors</code> (M:N entretien × acteur, optionnel pour multi-actor) ·
+            extension de <code>interview_schedules</code> avec <code>pv_template</code> et <code>pv_notes</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- RECAP -->
+    <!-- ============================================================ -->
+    <div class="recap-section">
+      <h2>Récap des gains par rôle</h2>
+      <div class="recap-grid">
+        <div class="recap-card">
+          <div class="role">Client</div>
+          <h4>Le moins solliciter, le mieux qualifier</h4>
+          <ul>
+            <li>Pré-remplissage = -3 min sur le contexte</li>
+            <li>"Je ne sais pas" = peut soumettre sans bâcler</li>
+            <li>Questionnaire ciblé = -40% de questions hors-scope</li>
+            <li>Organigramme = identification IA des acteurs SI</li>
+            <li>Visibilité Phase 3 = transparence du planning</li>
+          </ul>
+        </div>
+        <div class="recap-card">
+          <div class="role">Auditeur</div>
+          <h4>Voir avant, valider, tracer</h4>
+          <ul>
+            <li>Vue "Mon planning" avant le terrain</li>
+            <li>Données fiables en entrée Phase 4</li>
+            <li>Personnalisation du questionnaire selon scope</li>
+            <li><strong>PV pré-rempli</strong> = -50% prépa, -70% saisie</li>
+            <li>Lien entretien → assessment automatique</li>
+          </ul>
+        </div>
+        <div class="recap-card">
+          <div class="role">Chef de mission</div>
+          <h4>Industrialiser sans perdre le contrôle</h4>
+          <ul>
+            <li>Multi-sélection transverse = -80% clics</li>
+            <li>Risques cadrage actionnables en planning</li>
+            <li><strong>Matrice acteurs × sujets</strong> = couverture vérifiable</li>
+            <li>Boutons UI réels, pas de fantômes</li>
+            <li>Validation Phase 2/3 avec checklist gardienne</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <strong>Portée des changements.</strong> Les améliorations s'appliquent à <strong>tous les référentiels seedés</strong>. Aucun changement n'est PSSI-spécifique. Les chiffres "30 questions", "29 obligatoires" servent d'illustration la plus extrême — sur ISO 27001 (14 questions), les gains sont proportionnels (-40% de questions reste -40%).<br/><br/>
+      <strong>Effort total estimé.</strong>
+      Sprint 1 (5 quick wins Cadrage/Planification · ~1j) →
+      Sprint 2 (multi-sélection + vue auditeur · ~1j) →
+      Sprint 3 (refonte questionnaire personnalisable + visibilité client · ~3j) →
+      <strong>Sprint 4 (refonte Entretiens : organigramme + sujets + matrice + PV · ~5j)</strong>. Le Sprint 4 introduit 5 nouvelles tables et un Edge Function d'extraction IA d'organigramme — c'est une pièce structurante de la plateforme.
+    </div>
+
+  </div>
+</body>
+</html>

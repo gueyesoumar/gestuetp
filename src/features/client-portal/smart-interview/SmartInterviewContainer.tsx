@@ -1,17 +1,21 @@
 import { useState } from 'react'
-import { Sparkles, MessageCircle, BarChart3, Paperclip } from 'lucide-react'
+import { Sparkles, MessageCircle, Paperclip } from 'lucide-react'
 import { SmartPrefilledAnswers } from './SmartPrefilledAnswers'
 import { SmartConversation } from './SmartConversation'
-import { SmartRadar } from './SmartRadar'
 import type { Question } from '../../../types/database.types'
 import type { ReactNode } from 'react'
+
+export type EvidenceType = 'declared_only' | 'declared_with_doc' | 'declared_with_signed_doc'
 
 export interface SmartAnswer {
   questionCode: string
   questionLabel: string
   answer: string
   confidence: number
-  sourceDoc: string | null
+  /** @deprecated Conservé pour rétro-compat ; préférer sourceDocs. */
+  sourceDoc?: string | null
+  sourceDocs?: string[]
+  evidenceType?: EvidenceType
   validated: boolean
 }
 
@@ -35,19 +39,28 @@ interface SmartInterviewContainerProps {
   documentsCount: number
 }
 
-type SmartTab = 'prefill' | 'conversation' | 'radar'
+type SmartTab = 'prefill' | 'conversation'
 
 export function SmartInterviewContainer({
-  missionId, missionName, questions, instanceId, userId,
+  missionId, questions, instanceId, userId,
   initialResponses, readOnly, documentsCount,
 }: SmartInterviewContainerProps): JSX.Element {
   const [activeTab, setActiveTab] = useState<SmartTab>('prefill')
   const [prefilledAnswers, setPrefilledAnswers] = useState<SmartAnswer[]>([])
   const [analyzing, setAnalyzing] = useState(false)
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null)
+  // Codes répondus via l'onglet Conversation (persistés en DB mais hors initialResponses,
+  // qui n'est calculé qu'une fois côté parent) — sert à rafraîchir le compteur.
+  const [conversationAnswered, setConversationAnswered] = useState<Set<string>>(new Set())
 
-  const answeredCount = initialResponses.size + prefilledAnswers.filter((a) => a.validated).length
+  const answeredCodes = new Set<string>()
+  for (const code of initialResponses.keys()) answeredCodes.add(code)
+  for (const a of prefilledAnswers) if (a.validated) answeredCodes.add(a.questionCode)
+  for (const code of conversationAnswered) answeredCodes.add(code)
+  const answeredCount = answeredCodes.size
   const totalCount = questions.length
+  // NB : on ne réinjecte PAS conversationAnswered ici — sinon la liste passée à
+  // SmartConversation se réindexerait en plein flux et casserait la navigation.
   const unansweredQuestions = questions.filter((q) =>
     !initialResponses.has(q.code) && !prefilledAnswers.some((a) => a.questionCode === q.code && a.validated)
   )
@@ -55,7 +68,6 @@ export function SmartInterviewContainer({
   const tabs: { key: SmartTab; label: string; icon: ReactNode }[] = [
     { key: 'prefill', label: 'R\u00e9ponses IA', icon: <Sparkles size={13} /> },
     { key: 'conversation', label: 'Conversation', icon: <MessageCircle size={13} /> },
-    { key: 'radar', label: 'Mon radar', icon: <BarChart3 size={13} /> },
   ]
 
   return (
@@ -143,18 +155,15 @@ export function SmartInterviewContainer({
       )}
       {activeTab === 'conversation' && (
         <SmartConversation
-          missionId={missionId}
           questions={unansweredQuestions}
           instanceId={instanceId}
           userId={userId}
           readOnly={readOnly}
-        />
-      )}
-      {activeTab === 'radar' && (
-        <SmartRadar
-          questions={questions}
-          initialResponses={initialResponses}
-          prefilledAnswers={prefilledAnswers}
+          onAnswered={(code) => setConversationAnswered((prev) => {
+            const next = new Set(prev)
+            next.add(code)
+            return next
+          })}
         />
       )}
     </div>

@@ -1,6 +1,11 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { CLAUDE_SONNET } from '../_shared/models.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED, type CallerProfile } from '../_shared/auth.ts'
+// @deno-types="npm:@types/mammoth"
+import mammoth from 'npm:mammoth@1.6.0'
+import * as XLSX from 'npm:xlsx@0.18.5'
 
 /**
  * Edge Function: ai-documents
@@ -8,13 +13,26 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
  * Manages document lifecycle with Anthropic Files API.
  * Actions: upload, delete, analyze
  *
- * The Anthropic API key stays server-side — never exposed to the frontend.
+ * Format support (côté serveur, transparent pour le client) :
+ *   - PDF / TXT / CSV / HTML / HTM  → upload natif (kind=document)
+ *   - DOCX / DOC                    → mammoth → texte plat → upload .txt (kind=document)
+ *   - XLSX / XLS                    → SheetJS → CSV multi-feuilles → upload .csv (kind=document)
+ *   - PNG / JPG / JPEG / WEBP       → upload natif (kind=image)
+ *
+ * La clé Anthropic reste serveur — jamais exposée au frontend.
  */
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
 const ANTHROPIC_BETA = 'files-api-2025-04-14,context-1m-2025-08-07'
-const SUPPORTED_TYPES = ['application/pdf', 'text/plain', 'text/csv', 'text/html']
-const MAX_FILE_SIZE = 32 * 1024 * 1024 // 32 MB (Anthropic limit)
+const MAX_FILE_SIZE = 32 * 1024 * 1024 // 32 MB (Anthropic Files API limit)
+
+type FileKind = 'document' | 'image'
+
+interface PreparedAsset {
+  blob: Blob
+  fileName: string
+  kind: FileKind
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -24,23 +42,30 @@ Deno.serve(async (req) => {
   try {
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') ?? Deno.env.get('ANTHROPIC_KEY')
     if (!anthropicKey) {
-      return jsonResponse({ error: 'Cl\u00e9 API Anthropic non configur\u00e9e' }, 500)
+      return jsonResponse({ error: 'Clé API Anthropic non configurée' }, 500)
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceRoleKey)
+    const callerAuth = req.headers.get('Authorization') ?? ''
+
+    // Authentification obligatoire : toutes les actions operent sur des documents
+    // tenant via service_role et doivent etre cloisonnees par cabinet.
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
+    const caller = auth.profile
 
     const body = await req.json()
     const action = body.action as string
 
     switch (action) {
       case 'upload':
-        return await handleUpload(admin, anthropicKey, body)
+        return await handleUpload(admin, anthropicKey, body, callerAuth, caller)
       case 'delete':
-        return await handleDelete(admin, anthropicKey, body)
+        return await handleDelete(admin, anthropicKey, body, caller)
       case 'analyze':
-        return await handleAnalyze(admin, anthropicKey, body)
+        return await handleAnalyze(admin, anthropicKey, body, caller)
       default:
         return jsonResponse({ error: `Action inconnue: ${action}` }, 400)
     }
@@ -48,54 +73,85 @@ Deno.serve(async (req) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
     console.error('[ai-documents] Error:', message)
-    return jsonResponse({ error: message }, 500)
+    return jsonResponse({ error: 'Erreur interne' }, 500)
   }
 })
 
+// ── CLOISONNEMENT ─────────────────────────────────────────────────────────
+// Verifie qu'une mission appartient au cabinet de l'appelant.
+async function callerOwnsMission(
+  admin: ReturnType<typeof createClient>,
+  caller: CallerProfile,
+  missionId: string | null | undefined,
+): Promise<boolean> {
+  if (!missionId) return false
+  const { data: m } = await admin.from('missions').select('cabinet_id').eq('id', missionId).maybeSingle()
+  return sameCabinet(caller, (m as { cabinet_id?: string } | null)?.cabinet_id)
+}
+
 // ── UPLOAD ──────────────────────────────────────────────────────────────────
-// Downloads file from Supabase Storage → uploads to Anthropic Files API
-// Stores the file_id back in the documents table
+// Downloads file from Supabase Storage → (optional conversion) → uploads
+// to Anthropic Files API. Stores file_id + kind back in the documents table.
 
 async function handleUpload(
   admin: ReturnType<typeof createClient>,
   anthropicKey: string,
-  body: { document_id: string }
+  body: { document_id: string },
+  callerAuth: string,
+  caller: CallerProfile,
 ): Promise<Response> {
   const { document_id } = body
   if (!document_id) return jsonResponse({ error: 'document_id requis' }, 400)
 
-  // 1. Get document metadata from Supabase
   const { data: doc, error: docErr } = await admin
     .from('documents')
-    .select('id, file_name, file_path, file_size, mime_type, anthropic_file_id')
+    .select('id, file_name, file_path, file_size, mime_type, anthropic_file_id, mission_id')
     .eq('id', document_id)
     .single()
 
   if (docErr || !doc) return jsonResponse({ error: 'Document introuvable' }, 404)
 
-  // Already uploaded?
+  // Cloisonnement : le document doit appartenir a une mission du cabinet de l'appelant
+  if (!(await callerOwnsMission(admin, caller, (doc as { mission_id?: string }).mission_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+
   if (doc.anthropic_file_id) {
     return jsonResponse({ file_id: doc.anthropic_file_id, already_uploaded: true })
   }
 
-  // Check size
   if (doc.file_size && doc.file_size > MAX_FILE_SIZE) {
     return jsonResponse({ error: `Fichier trop volumineux (${(doc.file_size / 1024 / 1024).toFixed(1)}Mo). Maximum: 32Mo.` }, 400)
   }
 
-  // 2. Download from Supabase Storage
   const { data: fileData, error: dlErr } = await admin.storage
     .from('documents')
     .download(doc.file_path)
 
   if (dlErr || !fileData) {
     console.error('[ai-documents] Download error:', dlErr?.message)
-    return jsonResponse({ error: 'Impossible de t\u00e9l\u00e9charger le fichier depuis le stockage' }, 500)
+    return jsonResponse({ error: 'Impossible de télécharger le fichier depuis le stockage' }, 500)
   }
 
-  // 3. Upload to Anthropic Files API via multipart form
+  // Détection format + conversion serveur si nécessaire
+  let prepared: PreparedAsset
+  try {
+    prepared = await prepareAsset(fileData, doc.file_name)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Conversion impossible'
+    console.error(`[ai-documents] Convert error for ${doc.file_name}:`, msg)
+    await persistExtractError(admin, document_id, `convert_error: ${msg.slice(0, 200)}`)
+    return jsonResponse({ error: `Conversion du fichier impossible : ${msg}` }, 400)
+  }
+
+  if (prepared.blob.size > MAX_FILE_SIZE) {
+    const sizeMb = (prepared.blob.size / 1024 / 1024).toFixed(1)
+    await persistExtractError(admin, document_id, `converted_too_large: ${sizeMb}Mo`)
+    return jsonResponse({ error: `Fichier converti trop volumineux (${sizeMb}Mo). Maximum: 32Mo.` }, 400)
+  }
+
   const formData = new FormData()
-  formData.append('file', fileData, doc.file_name)
+  formData.append('file', prepared.blob, prepared.fileName)
 
   const uploadRes = await fetch(`${ANTHROPIC_API}/files`, {
     method: 'POST',
@@ -113,57 +169,86 @@ async function handleUpload(
 
     let userMessage = 'Erreur lors de l\'upload vers le service d\'analyse'
     if (errText.includes('file_too_large')) userMessage = 'Fichier trop volumineux pour l\'analyse IA'
-    if (errText.includes('unsupported')) userMessage = 'Type de fichier non support\u00e9 pour l\'analyse IA'
+    if (errText.includes('unsupported')) userMessage = 'Type de fichier non supporté pour l\'analyse IA'
 
+    await persistExtractError(admin, document_id, `anthropic_${uploadRes.status}`)
     return jsonResponse({ error: userMessage }, 502)
   }
 
   const uploadData = await uploadRes.json()
   const fileId = uploadData.id as string
 
-  console.log(`[ai-documents] Uploaded ${doc.file_name} → ${fileId}`)
+  console.log(`[ai-documents] Uploaded ${doc.file_name} (kind=${prepared.kind}) → ${fileId}`)
 
-  // 4. Store file_id in Supabase
-  const { error: updateErr } = await admin
-    .from('documents')
+  // deno-lint-ignore no-explicit-any
+  const { error: updateErr } = await (admin.from('documents') as any)
     .update({
       anthropic_file_id: fileId,
       anthropic_file_uploaded_at: new Date().toISOString(),
+      anthropic_file_kind: prepared.kind,
     })
     .eq('id', document_id)
 
   if (updateErr) {
     console.error('[ai-documents] DB update error:', updateErr.message)
-    // Non-blocking — the upload succeeded, we just failed to save the ID
   }
 
-  return jsonResponse({ file_id: fileId, file_name: doc.file_name })
+  // Fire-and-forget : Passe 1 (extraction métadonnées par doc).
+  // Forward du JWT utilisateur (callerAuth) pour passer la vérification
+  // gateway de extract-document-metadata sans dépendre de --no-verify-jwt.
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+  const extractPromise = fetch(`${supabaseUrl}/functions/v1/extract-document-metadata`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': callerAuth,
+      'apikey': anonKey,
+    },
+    body: JSON.stringify({ document_id }),
+  }).catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : 'unknown'
+    console.warn('[ai-documents] extract-document-metadata fetch failed:', msg)
+  })
+  // deno-lint-ignore no-explicit-any
+  const runtime = (globalThis as any).EdgeRuntime
+  if (runtime?.waitUntil) {
+    runtime.waitUntil(extractPromise)
+  } else {
+    void extractPromise
+  }
+
+  return jsonResponse({ file_id: fileId, file_name: doc.file_name, kind: prepared.kind })
 }
 
 // ── DELETE ──────────────────────────────────────────────────────────────────
-// Deletes a file from Anthropic and clears the file_id in Supabase
 
 async function handleDelete(
   admin: ReturnType<typeof createClient>,
   anthropicKey: string,
-  body: { document_id?: string; file_id?: string }
+  body: { document_id?: string; file_id?: string },
+  caller: CallerProfile,
 ): Promise<Response> {
   let fileId = body.file_id
 
-  // If document_id provided, look up the file_id
-  if (!fileId && body.document_id) {
-    const { data: doc } = await admin
-      .from('documents')
-      .select('anthropic_file_id')
-      .eq('id', body.document_id)
-      .single()
+  // Cloisonnement : on resout TOUJOURS le document parent (par id ou par
+  // anthropic_file_id) pour verifier qu'il appartient au cabinet de l'appelant.
+  const docQuery = admin
+    .from('documents')
+    .select('anthropic_file_id, mission_id')
+  const { data: ownerDoc } = body.document_id
+    ? await docQuery.eq('id', body.document_id).single()
+    : await docQuery.eq('anthropic_file_id', body.file_id ?? '').maybeSingle()
 
-    fileId = doc?.anthropic_file_id
+  if (!ownerDoc) return jsonResponse({ error: 'Document introuvable' }, 404)
+  if (!(await callerOwnsMission(admin, caller, (ownerDoc as { mission_id?: string }).mission_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
   }
+
+  if (!fileId) fileId = (ownerDoc as { anthropic_file_id?: string }).anthropic_file_id ?? undefined
 
   if (!fileId) return jsonResponse({ error: 'file_id ou document_id requis' }, 400)
 
-  // Delete from Anthropic
   const delRes = await fetch(`${ANTHROPIC_API}/files/${fileId}`, {
     method: 'DELETE',
     headers: {
@@ -179,11 +264,10 @@ async function handleDelete(
     return jsonResponse({ error: 'Erreur lors de la suppression' }, 502)
   }
 
-  // Clear from Supabase
   if (body.document_id) {
-    await admin
-      .from('documents')
-      .update({ anthropic_file_id: null, anthropic_file_uploaded_at: null })
+    // deno-lint-ignore no-explicit-any
+    await (admin.from('documents') as any)
+      .update({ anthropic_file_id: null, anthropic_file_uploaded_at: null, anthropic_file_kind: null })
       .eq('id', body.document_id)
   }
 
@@ -192,7 +276,8 @@ async function handleDelete(
 }
 
 // ── ANALYZE ─────────────────────────────────────────────────────────────────
-// Uses file_id(s) to analyze documents with Claude — zero memory for files
+// Builds content blocks per file_id : 'document' or 'image' selon le kind
+// stocké en BDD lors du upload. Indispensable pour les images.
 
 async function handleAnalyze(
   admin: ReturnType<typeof createClient>,
@@ -206,7 +291,8 @@ async function handleAnalyze(
     control_code?: string
     control_name?: string
     domain?: string
-  }
+  },
+  caller: CallerProfile,
 ): Promise<Response> {
   const { file_ids, prompt, model, max_tokens, mission_id, control_code, control_name, domain } = body
 
@@ -214,18 +300,50 @@ async function handleAnalyze(
     return jsonResponse({ error: 'file_ids et prompt requis' }, 400)
   }
 
-  // Build content blocks: files first, then text
+  const trimmedFileIds = file_ids.slice(0, 5)
+
+  // Lookup kinds + mission en un seul SELECT pour ne pas multiplier les RTT
+  const { data: docsForKind } = await admin
+    .from('documents')
+    .select('anthropic_file_id, anthropic_file_kind, mission_id')
+    .in('anthropic_file_id', trimmedFileIds)
+
+  const docRows = (docsForKind ?? []) as Array<{ anthropic_file_id: string; anthropic_file_kind: FileKind | null; mission_id: string }>
+
+  // Cloisonnement : chaque file_id doit correspondre a un document connu ET
+  // toutes leurs missions doivent appartenir au cabinet de l'appelant.
+  const foundFileIds = new Set(docRows.map((d) => d.anthropic_file_id))
+  if (trimmedFileIds.some((fid) => !foundFileIds.has(fid))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+  const missionIds = [...new Set(docRows.map((d) => d.mission_id).filter(Boolean))]
+  const { data: ownedMissions } = await admin.from('missions').select('id, cabinet_id').in('id', missionIds)
+  const owned = (ownedMissions ?? []) as Array<{ id: string; cabinet_id: string }>
+  if (owned.length !== missionIds.length || !owned.every((m) => sameCabinet(caller, m.cabinet_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+
+  const kindByFileId = new Map<string, FileKind>()
+  for (const d of docRows) {
+    if (d.anthropic_file_id) kindByFileId.set(d.anthropic_file_id, d.anthropic_file_kind ?? 'document')
+  }
+
   // deno-lint-ignore no-explicit-any
   const content: any[] = []
 
-  for (const fid of file_ids.slice(0, 5)) {
+  for (const fid of trimmedFileIds) {
+    const kind = kindByFileId.get(fid) ?? 'document'
     content.push({
-      type: 'document',
+      type: kind, // 'document' ou 'image'
       source: { type: 'file', file_id: fid },
     })
   }
 
-  // Enrich prompt with mission context if available
+  // Le mission_id de contexte (pour enrichir le prompt) doit lui aussi appartenir au cabinet
+  if (mission_id && !missionIds.includes(mission_id) && !(await callerOwnsMission(admin, caller, mission_id))) {
+    return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+
   let enrichedPrompt = prompt
   if (mission_id) {
     const ctx = await buildMissionContext(admin, mission_id, control_code, control_name, domain)
@@ -234,15 +352,13 @@ async function handleAnalyze(
 
   content.push({ type: 'text', text: enrichedPrompt })
 
-  console.log(`[ai-documents] Analyzing ${file_ids.length} file(s) with ${model ?? 'claude-sonnet-4-20250514'}`)
+  console.log(`[ai-documents] Analyzing ${trimmedFileIds.length} file(s) with ${model ?? CLAUDE_SONNET}`)
 
-  // Call Claude
   const claudeController = new AbortController()
-  const claudeTimeout = setTimeout(() => claudeController.abort(), 180_000) // 3 min for large docs
+  const claudeTimeout = setTimeout(() => claudeController.abort(), 180_000)
   const startedAt = Date.now()
-  const usedModel = model ?? 'claude-sonnet-4-20250514'
+  const usedModel = model ?? CLAUDE_SONNET
 
-  // Cabinet pour log : depuis mission_id si pr\u00e9sent
   let cabinetIdForLog: string | null = null
   if (mission_id) {
     const { data: m } = await admin.from('missions').select('cabinet_id').eq('id', mission_id).maybeSingle()
@@ -275,7 +391,7 @@ async function handleAnalyze(
     console.error('[ai-documents] Claude error:', claudeRes.status, errText.slice(0, 500))
 
     let userMessage = `Erreur d'analyse (${claudeRes.status})`
-    if (errText.includes('file_not_found')) userMessage = 'Un des fichiers a expir\u00e9. Veuillez le re-uploader.'
+    if (errText.includes('file_not_found')) userMessage = 'Un des fichiers a expiré. Veuillez le re-uploader.'
     if (errText.includes('too_large')) userMessage = 'Les documents sont trop volumineux pour une seule analyse.'
 
     void logAiCall({ admin, function_name: 'ai-documents', model: usedModel, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${userMessage}`, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
@@ -293,8 +409,92 @@ async function handleAnalyze(
     model: data.model,
     input_tokens: usage.input_tokens,
     output_tokens: usage.output_tokens,
-    files_analyzed: file_ids.length,
+    files_analyzed: trimmedFileIds.length,
   })
+}
+
+// ── PREPARE ASSET ───────────────────────────────────────────────────────────
+// Détermine le kind et applique la conversion serveur si nécessaire.
+// Throws si le format est non géré.
+
+async function prepareAsset(blob: Blob, fileName: string): Promise<PreparedAsset> {
+  const ext = (fileName.split('.').pop() ?? '').toLowerCase()
+
+  // PDF natif
+  if (ext === 'pdf') {
+    return { blob, fileName, kind: 'document' }
+  }
+
+  // Images natives
+  if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
+    return { blob, fileName, kind: 'image' }
+  }
+
+  // Texte natif (TXT, CSV, HTML, MD) → uniformiser en text/plain car
+  // Anthropic rejette text/csv et text/html sur le content block 'document'
+  // ("Only PDF and plaintext documents are supported"). Le contenu reste
+  // identique, seule l'enveloppe MIME et l'extension changent.
+  if (['txt', 'csv', 'html', 'htm', 'md'].includes(ext)) {
+    const text = await blob.text()
+    const newName = ext === 'txt' ? fileName : fileName.replace(/\.[^.]+$/, '') + '.txt'
+    return {
+      blob: new Blob([text], { type: 'text/plain' }),
+      fileName: newName,
+      kind: 'document',
+    }
+  }
+
+  // DOCX / DOC → texte plat via mammoth
+  if (ext === 'docx' || ext === 'doc') {
+    const buffer = await blob.arrayBuffer()
+    const result = await mammoth.extractRawText({ arrayBuffer: buffer })
+    const text = (result?.value ?? '').trim()
+    if (!text) throw new Error('Document Word vide ou illisible')
+    const newName = fileName.replace(/\.docx?$/i, '') + '.txt'
+    return {
+      blob: new Blob([text], { type: 'text/plain' }),
+      fileName: newName,
+      kind: 'document',
+    }
+  }
+
+  // XLSX / XLS → texte multi-feuilles (mime text/plain pour qu'Anthropic accepte)
+  if (ext === 'xlsx' || ext === 'xls') {
+    const buffer = await blob.arrayBuffer()
+    const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' })
+    if (!wb.SheetNames.length) throw new Error('Classeur Excel vide')
+    const parts: string[] = []
+    for (const sheetName of wb.SheetNames) {
+      const sheet = wb.Sheets[sheetName]
+      if (!sheet) continue
+      const csv = XLSX.utils.sheet_to_csv(sheet)
+      if (csv.trim()) {
+        parts.push(`--- Feuille: ${sheetName} ---\n${csv}`)
+      }
+    }
+    if (!parts.length) throw new Error('Classeur Excel sans données')
+    const merged = parts.join('\n\n')
+    const newName = fileName.replace(/\.xlsx?$/i, '') + '.txt'
+    return {
+      blob: new Blob([merged], { type: 'text/plain' }),
+      fileName: newName,
+      kind: 'document',
+    }
+  }
+
+  throw new Error(`Format .${ext} non supporté`)
+}
+
+async function persistExtractError(
+  admin: ReturnType<typeof createClient>,
+  documentId: string,
+  errorCode: string,
+): Promise<void> {
+  // deno-lint-ignore no-explicit-any
+  const { error } = await (admin.from('documents') as any)
+    .update({ ai_extract_error: errorCode })
+    .eq('id', documentId)
+  if (error) console.warn('[ai-documents] persistExtractError failed:', error.message)
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -325,8 +525,8 @@ async function buildMissionContext(
 
   if (cc) parts.push(`Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}`)
   const fw = m.framework as { name: string } | null
-  if (fw) parts.push(`R\u00e9f\u00e9rentiel: ${fw.name}`)
-  if (controlCode) parts.push(`Contr\u00f4le: ${controlCode}${controlName ? ` \u2014 ${controlName}` : ''}`)
+  if (fw) parts.push(`Référentiel: ${fw.name}`)
+  if (controlCode) parts.push(`Contrôle: ${controlCode}${controlName ? ` — ${controlName}` : ''}`)
   if (domain) parts.push(`Domaine: ${domain}`)
 
   return parts.length > 0 ? `CONTEXTE MISSION: ${parts.join(', ')}` : null

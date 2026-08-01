@@ -105,14 +105,14 @@ Deno.serve(async (req) => {
     const { error: deleteError } = await (admin.from('organizations') as any).delete().eq('id', c.id)
     if (deleteError) {
       console.error('[admin-delete-cabinet] delete error:', deleteError.message)
-      return jsonResponse({ error: 'Suppression impossible (contraintes FK)', detail: deleteError.message }, 500)
+      return jsonResponse({ error: 'Suppression impossible (contraintes FK)' }, 500)
     }
 
     return jsonResponse({ success: true, snapshot })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
     console.error('[admin-delete-cabinet] error:', message)
-    return jsonResponse({ error: message }, 500)
+    return jsonResponse({ error: 'Erreur interne' }, 500)
   }
 })
 

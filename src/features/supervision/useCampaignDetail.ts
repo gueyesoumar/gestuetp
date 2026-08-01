@@ -33,41 +33,49 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = useCallback(async (): Promise<void> => {
+  const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!campaignId) { setLoading(false); return }
     setLoading(true)
     setError(null)
 
     try {
       // 1. Fetch campaign
-      const { data: camp, error: campErr } = await supabase
+      const campQuery = supabase
         .from('audit_campaigns')
         .select('*')
         .eq('id', campaignId)
-        .single()
+      const { data: campRaw, error: campErr } = await (signal ? campQuery.abortSignal(signal) : campQuery).single()
+      if (signal?.aborted) return
 
-      if (campErr || !camp) {
+      if (campErr || !campRaw) {
         setError('Campagne introuvable.')
         setLoading(false)
         return
       }
-      setCampaign(camp as AuditCampaign)
+      const camp = campRaw as unknown as AuditCampaign
+      setCampaign(camp)
 
       // 2. Framework name
-      const { data: fw } = await supabase
+      const fwQuery = supabase
         .from('frameworks')
         .select('name')
         .eq('id', camp.framework_id)
-        .single()
+      const { data: fwRaw } = await (signal ? fwQuery.abortSignal(signal) : fwQuery).single()
+      if (signal?.aborted) return
+      const fw = fwRaw as { name: string } | null
       setFrameworkName(fw?.name ?? '')
 
       // 3. Fetch missions linked to this campaign
-      const { data: missions } = await supabase
+      type MissionRow = { id: string; client_id: string; status: string }
+      const missionsQuery = supabase
         .from('missions')
         .select('id, client_id, status')
         .eq('campaign_id', campaignId)
+      const { data: missionsRaw } = await (signal ? missionsQuery.abortSignal(signal) : missionsQuery)
+      if (signal?.aborted) return
 
-      if (!missions || missions.length === 0) {
+      const missions = (missionsRaw ?? []) as unknown as MissionRow[]
+      if (missions.length === 0) {
         setEntities([])
         setLoading(false)
         return
@@ -75,21 +83,29 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
 
       // 4. Entity names
       const entityIds = [...new Set(missions.map((m) => m.client_id))]
-      const { data: orgs } = await supabase
+      type OrgRow = { id: string; name: string; sector: string | null }
+      const orgsQuery = supabase
         .from('organizations')
         .select('id, name, sector')
         .in('id', entityIds)
-      const orgMap = new Map((orgs ?? []).map((o) => [o.id, { name: o.name, sector: o.sector }]))
+      const { data: orgsRaw } = await (signal ? orgsQuery.abortSignal(signal) : orgsQuery)
+      if (signal?.aborted) return
+      const orgs = (orgsRaw ?? []) as unknown as OrgRow[]
+      const orgMap = new Map(orgs.map((o) => [o.id, { name: o.name, sector: o.sector }]))
 
       // 5. Assessments
       const missionIds = missions.map((m) => m.id)
-      const { data: assessments } = await supabase
+      type AssessRow = { mission_id: string; status: string }
+      const assessmentsQuery = supabase
         .from('control_assessments')
         .select('mission_id, status')
         .in('mission_id', missionIds)
+      const { data: assessmentsRaw } = await (signal ? assessmentsQuery.abortSignal(signal) : assessmentsQuery)
+      if (signal?.aborted) return
+      const assessments = (assessmentsRaw ?? []) as unknown as AssessRow[]
 
       const missionScores = new Map<string, { total: number; approved: number }>()
-      for (const a of assessments ?? []) {
+      for (const a of assessments) {
         const entry = missionScores.get(a.mission_id) ?? { total: 0, approved: 0 }
         entry.total++
         if (a.status === 'approved') entry.approved++
@@ -97,15 +113,19 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
       }
 
       // 6. CARs
-      const { data: cars } = await supabase
+      type CarRow = { mission_id: string }
+      const carsQuery = supabase
         .from('corrective_action_requests')
         .select('mission_id')
         .in('mission_id', missionIds)
         .eq('finding_classification', 'major_nc')
         .in('status', ['open', 'client_responded'])
+      const { data: carsRaw } = await (signal ? carsQuery.abortSignal(signal) : carsQuery)
+      if (signal?.aborted) return
+      const cars = (carsRaw ?? []) as unknown as CarRow[]
 
       const carsByMission = new Map<string, number>()
-      for (const car of cars ?? []) {
+      for (const car of cars) {
         carsByMission.set(car.mission_id, (carsByMission.get(car.mission_id) ?? 0) + 1)
       }
 
@@ -130,15 +150,20 @@ export function useCampaignDetail(campaignId: string | undefined): CampaignDetai
 
       result.sort((a, b) => b.score - a.score)
       setEntities(result)
+      setLoading(false)
     } catch (err) {
+      if (signal?.aborted) return
       console.error('useCampaignDetail:', err)
       setError('Erreur lors du chargement.')
-    } finally {
       setLoading(false)
     }
   }, [campaignId])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    const ac = new AbortController()
+    void fetchData(ac.signal)
+    return () => ac.abort()
+  }, [fetchData])
 
   const completedStatuses = new Set(['closure', 'client_review', 'internal_review'])
   const completedEntities = entities.filter((e) => completedStatuses.has(e.missionStatus)).length

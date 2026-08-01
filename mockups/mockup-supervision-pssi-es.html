@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Supervision PSSI-ES — Gestu Comply</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        forest: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#1B4332', 800:'#14532d', 900:'#0f3d2a' },
+        gold: { 200:'#fef3c7', 400:'#facc15', 500:'#D4A843', 600:'#ca8a04' },
+      }
+    }
+  }
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  body { font-family: 'Inter', sans-serif; background: #f8faf9; }
+  .heatmap-cell { width: 52px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border-radius: 6px; }
+  .hc-green { background: #dcfce7; color: #166534; }
+  .hc-gold { background: #fef3c7; color: #92400e; }
+  .hc-red { background: #fee2e2; color: #991b1b; }
+  .bar { height: 8px; border-radius: 4px; background: #e5e7eb; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .tab-active { border-bottom: 2px solid #1B4332; color: #1B4332; font-weight: 600; }
+  .tab-inactive { border-bottom: 2px solid transparent; color: #9ca3af; }
+  .tab-inactive:hover { color: #6b7280; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.15s; }
+  .sidebar-item:hover { background: #f0fdf4; color: #1B4332; }
+  .sidebar-active { background: #1B4332 !important; color: white !important; }
+</style>
+</head>
+<body>
+
+<div class="flex h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-[220px] bg-white border-r border-gray-200 flex flex-col py-4 px-3 shrink-0">
+    <!-- Logo -->
+    <div class="flex items-center gap-2.5 px-3 mb-6">
+      <div class="w-8 h-8 bg-forest-700 rounded-lg flex items-center justify-center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="text-sm font-extrabold text-forest-700 tracking-tight">Gestu</div>
+        <div class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">COMPLY</div>
+      </div>
+    </div>
+
+    <div class="space-y-1">
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Hub ETP
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Tableau de bord
+      </div>
+      <div class="sidebar-active sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Supervision PSSI-ES
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Clients
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        Référentiels
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Missions
+      </div>
+    </div>
+
+    <!-- Bottom user -->
+    <div class="mt-auto pt-4 border-t border-gray-100 px-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center text-[11px] font-bold">DC</div>
+        <div>
+          <div class="text-[12px] font-semibold text-gray-900">Dir. du Chiffre</div>
+          <div class="text-[10px] text-gray-400">superviseur@gouv.sn</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 overflow-y-auto">
+    <div class="max-w-[1200px] mx-auto px-8 py-6">
+
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Supervision PSSI-ES</h1>
+          <p class="text-[13px] text-gray-500 mt-0.5">Commission Nationale de Cryptologie — État du Sénégal</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Exporter
+          </button>
+          <button class="flex items-center gap-2 rounded-lg bg-forest-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-forest-900 transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Rapport au Président
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Entités auditées</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-gray-900">12</span>
+            <span class="text-[12px] text-gray-400 mb-1">/ 45 identifiées</span>
+          </div>
+          <div class="mt-2 bar"><div class="bar-fill bg-forest-600" style="width:27%"></div></div>
+          <div class="mt-1 text-[10px] text-gray-400">27% de couverture</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Conformité moyenne</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-gold-500">58%</span>
+            <span class="text-[12px] text-emerald-600 mb-1">↑ +16 pts vs 2024</span>
+          </div>
+          <div class="mt-2 bar"><div class="bar-fill bg-gold-500" style="width:58%"></div></div>
+          <div class="mt-1 text-[10px] text-gray-400">Seuil cible : 80%</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">NC majeures ouvertes</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-red-600">47</span>
+            <span class="text-[12px] text-emerald-600 mb-1">↓ -42 vs 2024</span>
+          </div>
+          <div class="mt-2 flex gap-1">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">23 ouvertes</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">18 en cours</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">6 résolues</span>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+          <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Audits en cours</div>
+          <div class="mt-2 flex items-end gap-2">
+            <span class="text-3xl font-extrabold text-forest-700">5</span>
+            <span class="text-[12px] text-gray-400 mb-1">missions actives</span>
+          </div>
+          <div class="mt-2 flex gap-1">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-forest-100 text-forest-700 font-medium">2 terrain</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">2 revue</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">1 planif.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-6 border-b border-gray-200 mb-6">
+        <button class="tab-active pb-3 text-[13px]" onclick="showTab('classement')">Classement des entités</button>
+        <button class="tab-inactive pb-3 text-[13px]" onclick="showTab('heatmap')" id="tab-heatmap">Heatmap par domaine</button>
+        <button class="tab-inactive pb-3 text-[13px]" onclick="showTab('risques')" id="tab-risques">Risques systémiques</button>
+        <button class="tab-inactive pb-3 text-[13px]" onclick="showTab('rapport')" id="tab-rapport">Rapport de synthèse</button>
+      </div>
+
+      <!-- Tab 1: Classement -->
+      <div id="panel-classement">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                <th class="px-5 py-3 w-8">#</th>
+                <th class="px-3 py-3">Entité</th>
+                <th class="px-3 py-3">Tutelle</th>
+                <th class="px-3 py-3">Score</th>
+                <th class="px-3 py-3 w-[200px]">Conformité</th>
+                <th class="px-3 py-3">NC maj.</th>
+                <th class="px-3 py-3">Dernier audit</th>
+                <th class="px-3 py-3">Statut</th>
+              </tr>
+            </thead>
+            <tbody class="text-[13px]">
+              <tr class="border-b border-gray-50 hover:bg-forest-50/30 cursor-pointer">
+                <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">1</td>
+                <td class="px-3 py-3 font-semibold text-gray-900">Ministère des Forces Armées</td>
+                <td class="px-3 py-3 text-gray-500">Présidence</td>
+                <td class="px-3 py-3 font-bold text-emerald-700">82%</td>
+                <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill bg-emerald-500" style="width:82%"></div></div></td>
+                <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">2</span></td>
+                <td class="px-3 py-3 text-gray-500">Mars 2026</td>
+                <td class="px-3 py-3"><span class="text-[11px] px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">Conforme</span></td>
+              </tr>
+              <tr class="border-b border-gray-50 hover:bg-forest-50/30 cursor-pointer">
+                <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">2</td>
+                <td class="px-3 py-3 font-semibold text-gray-900">Ministère des Finances et du Budget</td>
+                <td class="px-3 py-3 text-gray-500">Primature</td>
+                <td class="px-3 py-3 font-bold text-emerald-700">76%</td>
+                <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill bg-emerald-400" style="width:76%"></div></div></td>
+                <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">4</span></td>
+                <td class="px-3 py-3 text-gray-500">Fév. 2026</td>
+                <td class="px-3 py-3"><span class="text-[11px] px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold">Partiel</span></td>
+              </tr>
+              <tr class="border-b border-gray-50 hover:bg-forest-50/30 cursor-pointer">
+                <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">3</td>
+                <td class="px-3 py-3 font-semibold text-gray-900">ADIE — Agence De l'Informatique de l'État</td>
+                <td class="px-3 py-3 text-gray-500">Présidence</td>
+                <td class="px-3 py-3 font-bold text-gold-500">71%</td>
+                <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill bg-gold-400" style="width:71%"></div></div></td>
+                <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">5</span></td>
+                <td class="px-3 py-3 text-gray-500">Jan. 2026</td>
+                <td class="px-3 py-3"><span class="text-[11px] px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold">Partiel</span></td>
+              </tr>
+              <tr class="border-b border-gray-50 hover:bg-forest-50/30 cursor-pointer">
+                <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">4</td>
+                <td class="px-3 py-3 font-semibold text-gray-900">Ministère de la Santé et de l'Action sociale</td>
+                <td class="px-3 py-3 text-gray-500">Primature</td>
+                <td class="px-3 py-3 font-bold text-amber-600">54%</td>
+                <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill bg-amber-400" style="width:54%"></div></div></td>
+                <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">7</span></td>
+                <td class="px-3 py-3 text-gray-500">Mars 2026</td>
+                <td class="px-3 py-3"><span class="text-[11px] px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-semibold">Non conforme</span></td>
+              </tr>
+              <tr class="border-b border-gray-50 hover:bg-forest-50/30 cursor-pointer">
+                <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">5</td>
+                <td class="px-3 py-3 font-semibold text-gray-900">Ministère de l'Éducation nationale</td>
+                <td class="px-3 py-3 text-gray-500">Primature</td>
+                <td class="px-3 py-3 font-bold text-red-600">43%</td>
+                <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill bg-red-400" style="width:43%"></div></div></td>
+                <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">11</span></td>
+                <td class="px-3 py-3 text-gray-500">Déc. 2025</td>
+                <td class="px-3 py-3"><span class="text-[11px] px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-semibold">Non conforme</span></td>
+              </tr>
+              <tr class="border-b border-gray-50 hover:bg-forest-50/30 cursor-pointer">
+                <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">6</td>
+                <td class="px-3 py-3 font-semibold text-gray-900">ARTP — Autorité de Régulation des Télécommunications</td>
+                <td class="px-3 py-3 text-gray-500">Présidence</td>
+                <td class="px-3 py-3 font-bold text-red-600">38%</td>
+                <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill bg-red-400" style="width:38%"></div></div></td>
+                <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">14</span></td>
+                <td class="px-3 py-3 text-gray-500">Nov. 2025</td>
+                <td class="px-3 py-3"><span class="text-[11px] px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-semibold">Non conforme</span></td>
+              </tr>
+              <tr class="hover:bg-forest-50/30 cursor-pointer">
+                <td class="px-5 py-3 text-gray-400 font-mono text-[11px]">7</td>
+                <td class="px-3 py-3 font-semibold text-gray-900">Université Cheikh Anta Diop</td>
+                <td class="px-3 py-3 text-gray-500">MESRI</td>
+                <td class="px-3 py-3 font-bold text-red-600">31%</td>
+                <td class="px-3 py-3"><div class="bar w-full"><div class="bar-fill bg-red-500" style="width:31%"></div></div></td>
+                <td class="px-3 py-3"><span class="text-[12px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">16</span></td>
+                <td class="px-3 py-3 text-gray-500">Oct. 2025</td>
+                <td class="px-3 py-3"><span class="text-[11px] px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-semibold">Non conforme</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-3 flex gap-4 text-[11px] text-gray-400">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ≥ 80% Conforme</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> 60-79% Partiel</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> &lt; 60% Non conforme</span>
+        </div>
+      </div>
+
+      <!-- Tab 2: Heatmap -->
+      <div id="panel-heatmap" class="hidden">
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 class="text-[14px] font-bold text-gray-900 mb-4">Conformité par domaine PSSI-ES × Entité</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="text-[10px] font-semibold uppercase text-gray-400">
+                  <th class="text-left px-2 py-2 w-[200px]">Entité</th>
+                  <th class="px-1 py-2">ORG</th>
+                  <th class="px-1 py-2">PER</th>
+                  <th class="px-1 py-2">ACQ</th>
+                  <th class="px-1 py-2">ACT</th>
+                  <th class="px-1 py-2">FRN</th>
+                  <th class="px-1 py-2">PHY</th>
+                  <th class="px-1 py-2">LOG</th>
+                  <th class="px-1 py-2">EXP</th>
+                  <th class="px-1 py-2">CLM</th>
+                  <th class="px-1 py-2">INC</th>
+                  <th class="px-1 py-2">AUD</th>
+                  <th class="px-2 py-2 font-bold">MOY.</th>
+                </tr>
+              </thead>
+              <tbody class="text-[12px]">
+                <tr class="border-t border-gray-50">
+                  <td class="px-2 py-2 font-medium text-gray-900 text-[12px]">Min. Forces Armées</td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">90</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">85</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">78</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">82</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">70</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">88</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">75</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">80</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">65</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">85</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">90</div></td>
+                  <td class="px-2 py-1 font-bold text-emerald-700">82%</td>
+                </tr>
+                <tr class="border-t border-gray-50">
+                  <td class="px-2 py-2 font-medium text-gray-900 text-[12px]">Min. Finances</td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">80</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">72</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">65</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">78</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">68</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">82</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">70</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">75</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">60</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">78</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">85</div></td>
+                  <td class="px-2 py-1 font-bold text-gold-500">76%</td>
+                </tr>
+                <tr class="border-t border-gray-50">
+                  <td class="px-2 py-2 font-medium text-gray-900 text-[12px]">ADIE</td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">75</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">70</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-green">80</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">65</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">60</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">72</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">78</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">68</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">55</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">70</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">75</div></td>
+                  <td class="px-2 py-1 font-bold text-gold-500">71%</td>
+                </tr>
+                <tr class="border-t border-gray-50">
+                  <td class="px-2 py-2 font-medium text-gray-900 text-[12px]">Min. Santé</td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">60</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">55</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">45</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">50</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">40</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">62</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">48</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">55</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">35</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">58</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold">60</div></td>
+                  <td class="px-2 py-1 font-bold text-red-600">54%</td>
+                </tr>
+                <tr class="border-t border-gray-50">
+                  <td class="px-2 py-2 font-medium text-gray-900 text-[12px]">Min. Éducation</td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">45</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">40</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">30</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">42</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">35</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">50</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">38</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">40</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">25</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">45</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red">48</div></td>
+                  <td class="px-2 py-1 font-bold text-red-600">43%</td>
+                </tr>
+                <!-- Moyenne nationale -->
+                <tr class="border-t-2 border-forest-200 bg-forest-50/50">
+                  <td class="px-2 py-2 font-bold text-forest-700 text-[12px]">MOYENNE NATIONALE</td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">70</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">64</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red font-bold">56</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">63</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red font-bold">55</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">71</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">62</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">64</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-red font-bold">48</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">67</div></td>
+                  <td class="px-1 py-1"><div class="heatmap-cell hc-gold font-bold">72</div></td>
+                  <td class="px-2 py-1 font-extrabold text-forest-700">58%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Domaines les plus faibles -->
+          <div class="mt-6 grid grid-cols-3 gap-4">
+            <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+              <div class="text-[10px] font-semibold text-red-400 uppercase">Domaine le plus faible</div>
+              <div class="mt-1 text-[14px] font-bold text-red-700">CLM — Cloud, Mobile, Télétravail</div>
+              <div class="mt-1 text-[12px] text-red-600">48% de conformité moyenne</div>
+              <div class="mt-1 text-[11px] text-red-500">Aucune entité ≥ 80%</div>
+            </div>
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <div class="text-[10px] font-semibold text-amber-400 uppercase">2e domaine faible</div>
+              <div class="mt-1 text-[14px] font-bold text-amber-700">FRN — Relation fournisseurs</div>
+              <div class="mt-1 text-[12px] text-amber-600">55% de conformité moyenne</div>
+              <div class="mt-1 text-[11px] text-amber-500">Chaîne d'approvisionnement non maîtrisée</div>
+            </div>
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <div class="text-[10px] font-semibold text-amber-400 uppercase">3e domaine faible</div>
+              <div class="mt-1 text-[14px] font-bold text-amber-700">ACQ — Acquisition / Développement</div>
+              <div class="mt-1 text-[12px] text-amber-600">56% de conformité moyenne</div>
+              <div class="mt-1 text-[11px] text-amber-500">Sécurité non intégrée au cycle de vie</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Risques systémiques -->
+      <div id="panel-risques" class="hidden">
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Risque 1 -->
+          <div class="bg-white rounded-xl border border-red-200 p-5">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div>
+                <div class="text-[10px] font-semibold text-red-400 uppercase">Risque critique</div>
+                <div class="text-[14px] font-bold text-gray-900 mt-0.5">Souveraineté numérique</div>
+                <div class="text-[12px] text-gray-600 mt-1">8 entités sur 12 hébergent des données sensibles en dehors du territoire national, en violation de la REG 28-2.</div>
+                <div class="mt-2 flex gap-2">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">REG 28-2</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">8 entités concernées</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Risque 2 -->
+          <div class="bg-white rounded-xl border border-red-200 p-5">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div>
+                <div class="text-[10px] font-semibold text-red-400 uppercase">Risque critique</div>
+                <div class="text-[14px] font-bold text-gray-900 mt-0.5">Absence de RSSI / AQSSI</div>
+                <div class="text-[12px] text-gray-600 mt-1">6 entités n'ont pas nommé de Responsable SSI ni d'AQSSI, rendant impossible la mise en œuvre de la PSSI-ES.</div>
+                <div class="mt-2 flex gap-2">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">REG 1-4</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">6 entités concernées</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Risque 3 -->
+          <div class="bg-white rounded-xl border border-amber-200 p-5">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div>
+                <div class="text-[10px] font-semibold text-amber-400 uppercase">Risque élevé</div>
+                <div class="text-[14px] font-bold text-gray-900 mt-0.5">Chiffrement non labellisé</div>
+                <div class="text-[12px] text-gray-600 mt-1">10 entités utilisent des algorithmes de chiffrement non labellisés par la Commission nationale de cryptologie.</div>
+                <div class="mt-2 flex gap-2">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">REG 19-9-1</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">10 entités concernées</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Risque 4 -->
+          <div class="bg-white rounded-xl border border-amber-200 p-5">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div>
+                <div class="text-[10px] font-semibold text-amber-400 uppercase">Risque élevé</div>
+                <div class="text-[14px] font-bold text-gray-900 mt-0.5">Pas de plan de continuité testé</div>
+                <div class="text-[12px] text-gray-600 mt-1">9 entités n'ont jamais testé leur plan de continuité d'activité. Vulnérabilité critique en cas d'attaque majeure.</div>
+                <div class="mt-2 flex gap-2">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">REG 29-6</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">9 entités concernées</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Rapport de synthèse -->
+      <div id="panel-rapport" class="hidden">
+        <div class="bg-white rounded-xl border border-gray-200 p-8 max-w-[800px]">
+          <!-- En-tête officiel -->
+          <div class="text-center border-b border-gray-200 pb-6 mb-6">
+            <div class="text-[11px] uppercase tracking-widest text-gray-400">République du Sénégal — Un Peuple, Un But, Une Foi</div>
+            <div class="text-[12px] font-semibold text-gray-500 mt-1">Présidence de la République — Commission Nationale de Cryptologie</div>
+            <div class="mt-4 text-[18px] font-extrabold text-forest-700">Rapport de synthèse sur la sécurité des systèmes d'information de l'État</div>
+            <div class="text-[13px] text-gray-500 mt-1">Période : Année 2025-2026</div>
+            <div class="text-[12px] text-gray-400 mt-0.5">Conformément à l'article 30 — REG 30-3 de la PSSI-ES</div>
+          </div>
+
+          <!-- Résumé exécutif -->
+          <div class="mb-6">
+            <h3 class="text-[14px] font-bold text-gray-900 mb-3">I. Résumé exécutif</h3>
+            <div class="space-y-2 text-[13px] text-gray-700 leading-relaxed">
+              <p>La Commission Nationale de Cryptologie a supervisé l'audit de conformité PSSI-ES de <strong>12 entités</strong> étatiques sur les <strong>45 identifiées</strong>, soit un taux de couverture de 27%.</p>
+              <p>Le score moyen de conformité s'établit à <strong>58%</strong>, en progression de <strong>+16 points</strong> par rapport à l'exercice précédent (42% en 2024-2025). <strong>47 non-conformités majeures</strong> restent ouvertes (contre 89 l'an dernier, soit une réduction de 47%).</p>
+            </div>
+          </div>
+
+          <!-- Classement -->
+          <div class="mb-6">
+            <h3 class="text-[14px] font-bold text-gray-900 mb-3">II. État de conformité par entité</h3>
+            <div class="grid grid-cols-3 gap-3 text-[12px]">
+              <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
+                <div class="font-bold text-emerald-700">3 entités conformes (≥ 80%)</div>
+                <div class="text-emerald-600 mt-1">Min. Forces Armées, Min. Intérieur, STCC-SSI</div>
+              </div>
+              <div class="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <div class="font-bold text-amber-700">5 entités partielles (60-79%)</div>
+                <div class="text-amber-600 mt-1">Min. Finances, ADIE, Min. Justice, Douanes, ARTP</div>
+              </div>
+              <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+                <div class="font-bold text-red-700">4 entités non conformes (&lt; 60%)</div>
+                <div class="text-red-600 mt-1">Min. Santé, Min. Éducation, UCAD, Min. Agriculture</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Risques -->
+          <div class="mb-6">
+            <h3 class="text-[14px] font-bold text-gray-900 mb-3">III. Risques systémiques</h3>
+            <ol class="list-decimal list-inside space-y-2 text-[13px] text-gray-700">
+              <li><strong>Cloud et télétravail (CLM)</strong> — 48% de conformité moyenne, aucune entité ≥ 80%. L'utilisation non encadrée de services cloud étrangers représente un risque majeur pour la souveraineté numérique.</li>
+              <li><strong>Relation fournisseurs (FRN)</strong> — La chaîne d'approvisionnement informatique n'est pas maîtrisée dans 55% des cas.</li>
+              <li><strong>Hébergement hors territoire</strong> — 8 entités hébergent des données sensibles à l'étranger en violation de la REG 28-2.</li>
+            </ol>
+          </div>
+
+          <!-- Recommandations -->
+          <div class="mb-6">
+            <h3 class="text-[14px] font-bold text-gray-900 mb-3">IV. Recommandations</h3>
+            <ol class="list-decimal list-inside space-y-2 text-[13px] text-gray-700">
+              <li>Publier une circulaire de rappel sur l'obligation d'hébergement national des données sensibles (REG 28-2)</li>
+              <li>Organiser un programme de formation AQSSI/ASSI pour les 15 entités non encore couvertes</li>
+              <li>Planifier un audit prioritaire des 4 entités non conformes au T1 2027</li>
+              <li>Exiger un plan de remédiation sous 90 jours pour les entités ayant des NC majeures ouvertes</li>
+            </ol>
+          </div>
+
+          <!-- Signature -->
+          <div class="border-t border-gray-200 pt-6 mt-8 text-center">
+            <div class="text-[12px] text-gray-400">Dakar, le 15 avril 2026</div>
+            <div class="text-[13px] font-semibold text-gray-700 mt-2">Le Président de la Commission Nationale de Cryptologie</div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex justify-center gap-3 mt-6">
+            <button class="flex items-center gap-2 rounded-lg border border-gray-200 px-5 py-2.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Aperçu complet
+            </button>
+            <button class="flex items-center gap-2 rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-forest-900">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Exporter en PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+function showTab(name) {
+  // Hide all panels
+  document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
+  // Show selected panel
+  document.getElementById('panel-' + name).classList.remove('hidden');
+  // Update tab styles
+  document.querySelectorAll('[onclick^="showTab"]').forEach(t => {
+    t.classList.remove('tab-active');
+    t.classList.add('tab-inactive');
+  });
+  event.target.classList.remove('tab-inactive');
+  event.target.classList.add('tab-active');
+}
+</script>
+
+</body>
+</html>

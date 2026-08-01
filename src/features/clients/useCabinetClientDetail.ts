@@ -31,8 +31,8 @@ export function useCabinetClientDetail(clientId: string | undefined): UseCabinet
       .from('cabinet_clients')
       .select('*')
       .eq('id', clientId)
-      .single()
       .abortSignal(abortController.signal)
+      .single()
       .then(({ data, error: queryError }) => {
         if (abortController.signal.aborted) return
         if (queryError) {

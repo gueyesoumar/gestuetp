@@ -30,46 +30,50 @@ values (
 );
 
 -- Roles plateforme par defaut pour le cabinet demo
+-- Schema des permissions (cf. migration 00082):
+--   can_create_mission, can_assign_team, can_be_lead, can_designate_lead,
+--   can_delete_mission, can_manage_members, can_manage_clients,
+--   can_edit_organization, can_manage_roles
 insert into public.platform_roles (organization_id, name, description, permissions, is_default) values
 (
   '00000000-0000-0000-0000-000000000001',
   'Associé',
   'Validateur ultime, tous les droits',
-  '{"can_create_mission": true, "can_assign_team": true, "can_be_lead": true, "can_designate_lead": true}',
+  '{"can_create_mission": true, "can_assign_team": true, "can_be_lead": true, "can_designate_lead": true, "can_delete_mission": true, "can_manage_members": true, "can_manage_clients": true, "can_edit_organization": true, "can_manage_roles": true}',
   true
 ),
 (
   '00000000-0000-0000-0000-000000000001',
   'Sénior Manager',
   'Gestion de missions et equipes',
-  '{"can_create_mission": true, "can_assign_team": true, "can_be_lead": true, "can_designate_lead": true}',
+  '{"can_create_mission": true, "can_assign_team": true, "can_be_lead": true, "can_designate_lead": true, "can_delete_mission": true, "can_manage_members": true, "can_manage_clients": true, "can_edit_organization": false, "can_manage_roles": false}',
   true
 ),
 (
   '00000000-0000-0000-0000-000000000001',
   'Manager',
   'Gestion de missions, ne peut pas designer de chef de mission',
-  '{"can_create_mission": true, "can_assign_team": true, "can_be_lead": true, "can_designate_lead": false}',
+  '{"can_create_mission": true, "can_assign_team": true, "can_be_lead": true, "can_designate_lead": false, "can_delete_mission": false, "can_manage_members": false, "can_manage_clients": true, "can_edit_organization": false, "can_manage_roles": false}',
   true
 ),
 (
   '00000000-0000-0000-0000-000000000001',
   'Sénior',
   'Peut etre chef de mission',
-  '{"can_create_mission": false, "can_assign_team": false, "can_be_lead": true, "can_designate_lead": false}',
+  '{"can_create_mission": false, "can_assign_team": false, "can_be_lead": true, "can_designate_lead": false, "can_delete_mission": false, "can_manage_members": false, "can_manage_clients": false, "can_edit_organization": false, "can_manage_roles": false}',
   true
 ),
 (
   '00000000-0000-0000-0000-000000000001',
   'Junior',
   'Auditeur debutant, droits limites',
-  '{"can_create_mission": false, "can_assign_team": false, "can_be_lead": false, "can_designate_lead": false}',
+  '{"can_create_mission": false, "can_assign_team": false, "can_be_lead": false, "can_designate_lead": false, "can_delete_mission": false, "can_manage_members": false, "can_manage_clients": false, "can_edit_organization": false, "can_manage_roles": false}',
   true
 ),
 (
   '00000000-0000-0000-0000-000000000001',
   'Consultant Externe',
   'Intervenant externe, droits limites',
-  '{"can_create_mission": false, "can_assign_team": false, "can_be_lead": false, "can_designate_lead": false}',
+  '{"can_create_mission": false, "can_assign_team": false, "can_be_lead": false, "can_designate_lead": false, "can_delete_mission": false, "can_manage_members": false, "can_manage_clients": false, "can_edit_organization": false, "can_manage_roles": false}',
   true
 );

@@ -1,10 +1,13 @@
-import type { InterviewSchedule } from '../../../types/database.types'
+import type { InterviewWithRelations } from './usePlanningData'
+import type { AuditTopicWithControls } from './useAuditTopics'
 
 interface PlanningNextInterviewProps {
-  interviews: InterviewSchedule[]
+  interviews: InterviewWithRelations[]
+  topics: AuditTopicWithControls[]
 }
 
-export function PlanningNextInterview({ interviews }: PlanningNextInterviewProps) {
+export function PlanningNextInterview({ interviews, topics }: PlanningNextInterviewProps) {
+  const topicLabels = new Map(topics.map((t) => [t.id, t.name]))
   const upcoming = interviews
     .filter((i) => i.status === 'scheduled' && i.scheduled_date >= new Date().toISOString().slice(0, 10))
     .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0]
@@ -29,12 +32,14 @@ export function PlanningNextInterview({ interviews }: PlanningNextInterviewProps
             {upcoming.scheduled_time.slice(0, 5)} &middot; {upcoming.duration_minutes}min
             {upcoming.location && <> &middot; {upcoming.location}</>}
           </p>
-          {upcoming.control_ids.length > 0 && (
+          {upcoming.topic_ids.length > 0 && (
             <div className="flex gap-1 mt-1.5 flex-wrap">
-              {upcoming.control_ids.slice(0, 3).map((id) => (
-                <span key={id} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono">{id.slice(0, 8)}</span>
+              {upcoming.topic_ids.slice(0, 3).map((id) => (
+                <span key={id} className="text-[9px] px-1.5 py-0.5 rounded bg-gold-50 text-gold-700 border border-gold-200">
+                  {topicLabels.get(id) ?? id.slice(0, 8)}
+                </span>
               ))}
-              {upcoming.control_ids.length > 3 && <span className="text-[9px] text-gray-300">+{upcoming.control_ids.length - 3}</span>}
+              {upcoming.topic_ids.length > 3 && <span className="text-[9px] text-gray-300">+{upcoming.topic_ids.length - 3}</span>}
             </div>
           )}
         </div>

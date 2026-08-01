@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup &mdash; Phase 4 Mission Workspace (transposition handoff)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --forest-900: #1B4332; --forest-800: #234E3D; --forest-700: #2D6A4F;
+    --forest-500: #40916C; --forest-300: #74C69D; --forest-100: #D8F3DC; --forest-50: #F0FFF4;
+    --gold-700: #9A7B26; --gold-600: #B8922E; --gold-500: #D4A843; --gold-400: #E2C26B;
+    --gold-200: #F2E2B1; --gold-100: #FAEFC9; --gold-50: #FDF8E8;
+    --bg: #FAFAF8; --surface: #FFFFFF;
+    --text-900: #1A1A1A; --text-700: #374151; --text-500: #6B7280; --text-300: #9CA3AF;
+    --border: #E5E7EB; --border-soft: #EFEFEC;
+    --success: #27AE60; --success-bg: #ECFDF5;
+    --error: #C0392B; --error-bg: #FEF2F2;
+    --warn: #B45309; --warn-bg: #FFFBEB;
+    --info: #1D4ED8; --info-bg: #EFF6FF;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-900); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; cursor: pointer; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .mock-bar { position: sticky; top: 0; z-index: 100; background: var(--forest-900); padding: 14px 24px; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.85); font-size: 12px; }
+  .mock-bar .lbl { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mock-bar .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.45); font-size: 11px; }
+
+  /* Shell */
+  .app { display: grid; grid-template-columns: 240px 1fr; height: calc(100vh - 47px); overflow: hidden; }
+  .sidebar { background: var(--forest-900); color: rgba(255,255,255,0.78); display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 18px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-logo svg { width: 28px; height: 32px; }
+  .sidebar-logo .brand { font-weight: 800; font-size: 17px; color: white; line-height: 1; }
+  .sidebar-logo .brand .uml { color: var(--gold-500); }
+  .sidebar-logo .product { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-500); font-weight: 600; margin-top: 4px; }
+  .sidebar-section { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 14px 20px 6px; font-weight: 600; }
+  .sidebar-nav { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 1px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; }
+  .sidebar-item.active { background: rgba(255,255,255,0.08); color: white; position: relative; }
+  .sidebar-item.active::before { content: ''; position: absolute; left: -8px; top: 8px; bottom: 8px; width: 3px; background: var(--gold-500); border-radius: 0 3px 3px 0; }
+  .sidebar-user { border-top: 1px solid rgba(255,255,255,0.08); padding: 12px; display: flex; align-items: center; gap: 10px; margin-top: auto; }
+  .sidebar-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--forest-500); color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+  .sidebar-user .who .name { color: white; font-size: 13px; font-weight: 600; }
+  .sidebar-user .who .role { color: rgba(255,255,255,0.5); font-size: 11px; }
+
+  /* Topbar */
+  .main-col { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+  .topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 16px; flex-shrink: 0; }
+  .crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-500); }
+  .crumbs a { color: var(--text-500); text-decoration: none; }
+  .crumbs .here { color: var(--text-900); font-weight: 500; }
+  .crumbs .sep { color: var(--text-300); }
+  .topbar-spacer { flex: 1; }
+  .topbar-icon-btn { width: 32px; height: 32px; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; color: var(--text-500); display: inline-flex; align-items: center; justify-content: center; }
+  .topbar-icon-btn:hover { color: var(--text-900); border-color: var(--forest-300); }
+
+  /* Phase ribbon (compact) */
+  .phase-ribbon { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .phase-ribbon h2 { font-size: 14px; font-weight: 700; margin: 0; }
+  .phase-ribbon .pill-mono { font-family: 'JetBrains Mono', monospace; background: var(--forest-50); color: var(--forest-700); padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .phase-ribbon .meta { font-size: 12px; color: var(--text-500); }
+  .phase-ribbon .progress-mini { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-500); }
+  .phase-ribbon .progress-mini .bar { width: 120px; height: 5px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .phase-ribbon .progress-mini .bar .fill { height: 100%; background: var(--forest-500); }
+  .phase-ribbon .progress-mini .pct { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--text-900); }
+
+  /* Workbench: 3 columns */
+  .workbench { display: grid; grid-template-columns: 280px 1fr 340px; flex: 1; min-height: 0; overflow: hidden; }
+
+  /* LEFT: Control tree */
+  .nav-rail { border-right: 1px solid var(--border); background: var(--surface); overflow-y: auto; padding: 16px 0; }
+  .rail-search { margin: 0 14px 12px; position: relative; }
+  .rail-search input { width: 100%; height: 30px; border: 1px solid var(--border); border-radius: 8px; padding: 0 10px 0 30px; font-size: 12px; background: var(--bg); color: var(--text-900); font-family: inherit; }
+  .rail-search input:focus { outline: none; border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); }
+  .rail-search .ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-300); }
+  .rail-filters { padding: 0 14px 12px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .rail-filter { font-size: 10px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text-700); cursor: pointer; font-weight: 500; }
+  .rail-filter.active { background: var(--forest-50); color: var(--forest-700); border-color: var(--forest-300); }
+  .rail-filter .count { margin-left: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9px; opacity: 0.7; }
+  .rail-domain { margin-top: 4px; }
+  .rail-domain-head { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-500); cursor: pointer; user-select: none; background: transparent; border: 0; width: 100%; text-align: left; }
+  .rail-domain-head:hover { color: var(--text-900); }
+  .rail-domain-head .chev { transition: transform 0.15s; }
+  .rail-domain-head[data-open="true"] .chev { transform: rotate(90deg); }
+  .rail-domain-head .progress-mini { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: var(--text-500); text-transform: none; letter-spacing: 0; }
+  .rail-controls { display: flex; flex-direction: column; }
+  .rail-control { display: flex; gap: 8px; align-items: flex-start; padding: 8px 14px 8px 32px; background: transparent; border: 0; border-left: 2px solid transparent; text-align: left; cursor: pointer; }
+  .rail-control:hover { background: var(--forest-50); }
+  .rail-control[aria-current="true"] { background: var(--forest-50); border-left-color: var(--gold-500); }
+  .rail-control .code { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: var(--forest-700); flex-shrink: 0; margin-top: 1px; }
+  .rail-control .name { font-size: 12px; color: var(--text-700); line-height: 1.4; flex: 1; }
+  .rail-control[aria-current="true"] .name { color: var(--text-900); font-weight: 500; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; background: var(--text-300); }
+  .status-dot.draft { background: var(--gold-500); }
+  .status-dot.submitted { background: var(--forest-500); }
+  .status-dot.approved { background: var(--success); }
+  .status-dot.rejected { background: var(--error); }
+  .rail-control .auditor { font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--bg); color: var(--text-500); font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+
+  /* CENTER: Workbench (flex column with scroll wrapper + fixed foot) */
+  .workbench-center { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--bg); }
+  .workbench-scroll { flex: 1; overflow-y: auto; padding: 24px 28px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .workbench-foot { flex-shrink: 0; background: var(--surface); border-top: 1px solid var(--border); box-shadow: 0 -2px 8px rgba(0,0,0,0.04); }
+  .workbench-foot > * { padding: 12px 28px; }
+  /* Mode-aware foot */
+  .workbench-center[data-mode="libre"] .libre-only { display: flex; }
+  .workbench-center[data-mode="libre"] .guided-only { display: none; }
+  .workbench-center[data-mode="guided"] .libre-only { display: none; }
+  .workbench-center[data-mode="guided"] .guided-only { display: flex; }
+  .control-header { display: flex; align-items: flex-start; gap: 14px; }
+  .control-header .code-large { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--forest-700); background: var(--surface); border: 1px solid var(--forest-300); padding: 6px 10px; border-radius: 8px; flex-shrink: 0; }
+  .control-header h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; line-height: 1.25; }
+  .control-header .control-domain { font-size: 12px; color: var(--text-500); }
+  .control-header .actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* Mode toggle (Guidé / Libre) */
+  .mode-toggle { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2px; gap: 1px; }
+  .mode-toggle button { padding: 4px 10px; font-size: 11px; font-weight: 500; border: 0; background: transparent; color: var(--text-500); border-radius: 6px; cursor: pointer; }
+  .mode-toggle button.active { background: var(--forest-50); color: var(--forest-900); font-weight: 600; }
+
+  /* Status badge */
+  .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .status-badge.draft { background: var(--gold-100); color: var(--gold-700); }
+  .status-badge.draft .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold-500); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .card-head { padding: 12px 18px 10px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; }
+  .card-head h3 { font-size: 13px; font-weight: 600; margin: 0; }
+  .card-head .meta { margin-left: auto; font-size: 11px; color: var(--text-500); }
+  .card-head .ico { width: 26px; height: 26px; background: var(--forest-50); color: var(--forest-700); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .card-body { padding: 16px 18px; }
+
+  /* Section row */
+  .section-row { display: flex; align-items: center; gap: 10px; }
+  .section-row h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--text-500); margin: 0; }
+  .section-row .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-300); }
+
+  /* Risk dots */
+  .risk-row { display: flex; gap: 4px; align-items: center; }
+  .risk-row .dot { width: 18px; height: 6px; background: var(--border); border-radius: 2px; }
+  .risk-row .dot.on { background: var(--gold-500); }
+  .risk-row.high .dot.on { background: var(--error); }
+  .risk-row.low .dot.on { background: var(--success); }
+  .risk-row .lbl { margin-left: 8px; font-size: 11px; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+
+  /* Editable textarea */
+  .editable { padding: 12px 14px; border: 1px solid transparent; border-radius: 8px; cursor: text; transition: border-color 0.15s; position: relative; }
+  .editable:hover { border-color: var(--border); background: var(--bg); }
+  .editable[data-editing="true"] { border-color: var(--forest-500); box-shadow: 0 0 0 3px var(--forest-100); background: var(--surface); }
+  .editable .edit-tag { position: absolute; top: 8px; right: 8px; font-size: 10px; color: var(--text-300); opacity: 0; transition: opacity 0.15s; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .editable:hover .edit-tag { opacity: 1; }
+  .editable textarea { width: 100%; border: 0; background: transparent; font-family: inherit; font-size: 14px; line-height: 1.6; resize: vertical; outline: none; min-height: 100px; color: var(--text-900); }
+  .editable .content { font-size: 14px; line-height: 1.6; color: var(--text-700); white-space: pre-wrap; }
+
+  /* Conformity selector */
+  .conformity-row { display: flex; gap: 6px; }
+  .conf-btn { flex: 1; padding: 10px 8px; border: 1.5px solid var(--border); background: var(--surface); border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 600; color: var(--text-500); cursor: pointer; text-align: center; transition: all 0.12s; }
+  .conf-btn:hover { border-color: var(--forest-300); }
+  .conf-btn .code { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; display: block; margin-bottom: 2px; }
+  .conf-btn .lbl { font-size: 10px; }
+  .conf-btn.c[aria-pressed="true"] { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+  .conf-btn.lc[aria-pressed="true"] { background: var(--forest-50); color: var(--forest-700); border-color: var(--forest-300); }
+  .conf-btn.pc[aria-pressed="true"] { background: var(--gold-50); color: var(--gold-700); border-color: var(--gold-500); }
+  .conf-btn.nc[aria-pressed="true"] { background: var(--error-bg); color: var(--error); border-color: var(--error); }
+  .conf-btn.na[aria-pressed="true"] { background: var(--bg); color: var(--text-700); border-color: var(--text-500); }
+
+  /* Finding classification */
+  .classif-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .classif-btn { padding: 6px 12px; border: 1.5px solid var(--border); background: var(--surface); border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text-700); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .classif-btn .ico-pill { width: 8px; height: 8px; border-radius: 50%; }
+  .classif-btn[data-kind="major"] .ico-pill { background: var(--error); }
+  .classif-btn[data-kind="minor"] .ico-pill { background: var(--warn); }
+  .classif-btn[data-kind="observation"] .ico-pill { background: var(--info); }
+  .classif-btn[data-kind="strength"] .ico-pill { background: var(--success); }
+  .classif-btn[aria-pressed="true"] { background: var(--forest-50); border-color: var(--forest-700); color: var(--forest-900); font-weight: 600; }
+
+  /* AI Smart Analyse panel */
+  .ai-panel { background: linear-gradient(180deg, var(--gold-50), var(--surface)); border: 1px solid var(--gold-200); border-radius: 10px; padding: 0; overflow: hidden; }
+  .ai-panel-head { padding: 12px 18px 10px; border-bottom: 1px solid var(--gold-200); display: flex; align-items: center; gap: 10px; }
+  .ai-panel-head h3 { font-size: 12px; font-weight: 700; margin: 0; color: var(--gold-700); text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; }
+  .ai-panel-head .pulse { width: 6px; height: 6px; background: var(--gold-500); border-radius: 50%; box-shadow: 0 0 0 0 rgba(212, 168, 67, 0.55); animation: pulse-gold 2s infinite; }
+  @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(212, 168, 67, 0.55); } 100% { box-shadow: 0 0 0 6px rgba(212, 168, 67, 0); } }
+  .ai-panel-head .conf { margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--success-bg); color: var(--success); font-weight: 700; }
+  .ai-panel-body { padding: 16px 18px; }
+  .ai-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .ai-cell .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-500); font-weight: 700; margin-bottom: 4px; }
+  .ai-cell .val { font-size: 13px; color: var(--text-900); line-height: 1.4; }
+  .ai-cell .val .pill { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+  .ai-cell .val .pill.lc { background: var(--forest-50); color: var(--forest-700); }
+  .ai-suggestion-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+  .ai-suggestion-block .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-500); font-weight: 700; margin-bottom: 4px; }
+  .ai-suggestion-block .text { font-size: 12px; color: var(--text-700); line-height: 1.5; }
+  .ai-actions { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--gold-200); background: var(--surface); }
+
+  /* Evidence grid */
+  .evidence-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .evidence-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; cursor: pointer; transition: all 0.15s; position: relative; }
+  .evidence-card:hover { border-color: var(--forest-300); }
+  .evidence-card[data-linked="true"] { border-color: var(--forest-300); background: var(--forest-50); }
+  .evidence-card .filetype { width: 32px; height: 40px; border-radius: 4px; flex-shrink: 0; position: relative; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; color: white; }
+  .evidence-card .filetype::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 16px; border-radius: 4px 4px 0 0; }
+  .evidence-card .filetype[data-ext="pdf"]::before { background: #C0392B; }
+  .evidence-card .filetype[data-ext="xlsx"]::before { background: var(--forest-700); }
+  .evidence-card .filetype[data-ext="docx"]::before { background: #2C5AA0; }
+  .evidence-card .meta { min-width: 0; flex: 1; }
+  .evidence-card .name { font-size: 12px; font-weight: 600; color: var(--text-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .evidence-card .sub { font-size: 11px; color: var(--text-500); }
+  .evidence-card .badge-ai { position: absolute; top: 6px; right: 6px; font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+  .evidence-card .badge-ai.ok { background: var(--success-bg); color: var(--success); }
+  .evidence-card .badge-ai.warn { background: var(--warn-bg); color: var(--warn); }
+
+  .dropzone { border: 1.5px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; color: var(--text-500); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: all 0.15s; }
+  .dropzone:hover { border-color: var(--forest-500); background: var(--forest-50); color: var(--forest-700); }
+
+  /* Submit bar (libre mode foot) */
+  .submit-bar { display: flex; align-items: center; gap: 12px; }
+  .submit-bar .info { flex: 1; }
+  .submit-bar .info-title { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .submit-bar .info-sub { font-size: 11px; color: var(--text-500); }
+
+  /* RIGHT: Context rail */
+  .context-rail { border-left: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; overflow: hidden; }
+  .rail-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 12px; gap: 2px; flex-shrink: 0; }
+  .rail-tab { padding: 14px 12px; font-size: 12px; font-weight: 600; color: var(--text-500); background: transparent; border: 0; cursor: pointer; position: relative; display: inline-flex; align-items: center; gap: 6px; }
+  .rail-tab[aria-selected="true"] { color: var(--text-900); }
+  .rail-tab[aria-selected="true"]::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; background: var(--gold-500); }
+  .rail-tab .badge-count { background: var(--bg); color: var(--text-500); font-size: 10px; padding: 0 5px; height: 16px; border-radius: 99px; display: inline-flex; align-items: center; font-weight: 600; }
+  .rail-content { flex: 1; overflow-y: auto; padding: 16px; }
+  .rail-content[data-tab="comments"] .timeline { display: none; }
+  .rail-content[data-tab="comments"] .comment-section { display: block; }
+  .rail-content[data-tab="info"] .timeline,
+  .rail-content[data-tab="info"] .comment-section { display: none; }
+  .rail-content[data-tab="info"] .info-section { display: block; }
+
+  /* Validation timeline */
+  .timeline { position: relative; padding-left: 8px; }
+  .timeline-step { display: flex; gap: 12px; position: relative; padding-bottom: 18px; }
+  .timeline-step:last-child { padding-bottom: 0; }
+  .timeline-step::before { content: ''; position: absolute; left: 7px; top: 16px; bottom: 0; width: 1.5px; background: var(--border); }
+  .timeline-step:last-child::before { display: none; }
+  .timeline-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); flex-shrink: 0; margin-top: 2px; position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; color: white; }
+  .timeline-step[data-state="done"] .timeline-dot { background: var(--success); border-color: var(--success); }
+  .timeline-step[data-state="done"]::before { background: var(--success); }
+  .timeline-step[data-state="current"] .timeline-dot { background: var(--gold-500); border-color: var(--gold-500); box-shadow: 0 0 0 4px var(--gold-100); }
+  .timeline-step[data-state="rejected"] .timeline-dot { background: var(--error); border-color: var(--error); }
+  .timeline-body { flex: 1; min-width: 0; }
+  .timeline-actor { font-size: 12px; font-weight: 600; color: var(--text-900); margin-bottom: 2px; }
+  .timeline-meta { font-size: 11px; color: var(--text-500); }
+  .timeline-action { font-size: 11px; color: var(--text-500); margin-top: 2px; }
+  .timeline-comment { margin-top: 6px; font-size: 12px; padding: 8px 10px; background: var(--bg); border-radius: 6px; color: var(--text-700); line-height: 1.5; border-left: 2px solid var(--border); }
+
+  /* Comments (NEW) */
+  .comment-section { display: none; }
+  .comment-section .deadline-callout { padding: 12px; background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 8px; margin-bottom: 14px; }
+  .comment-section .dl-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold-700); margin-bottom: 4px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .comment-section .dl-text { font-size: 12px; color: var(--text-700); line-height: 1.5; }
+  .comment { display: flex; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); }
+  .comment:last-child { border-bottom: 0; }
+  .comment .av { width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .comment .body { flex: 1; min-width: 0; }
+  .comment .head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .comment .who { font-size: 12px; font-weight: 600; color: var(--text-900); }
+  .comment .when { font-size: 10px; color: var(--text-300); }
+  .comment .role { font-size: 10px; color: var(--text-500); margin-bottom: 4px; }
+  .comment .text { font-size: 12px; line-height: 1.5; color: var(--text-700); }
+  .comment .text .mention { color: var(--forest-700); font-weight: 600; }
+  .comment .actions { display: flex; gap: 10px; margin-top: 6px; }
+  .comment .actions button { background: transparent; border: 0; font-size: 11px; color: var(--text-500); font-weight: 500; cursor: pointer; padding: 0; }
+  .comment .actions button:hover { color: var(--forest-700); }
+  .comment-composer { padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-top: 12px; background: var(--bg); }
+  .comment-composer textarea { width: 100%; border: 0; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.5; resize: vertical; outline: none; color: var(--text-900); min-height: 60px; }
+  .comment-composer-bar { display: flex; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); align-items: center; }
+  .comment-composer-bar .at { font-size: 11px; color: var(--text-500); margin-right: auto; }
+
+  /* Info panel */
+  .info-section { display: none; }
+  .compliance-mini .label { display: flex; justify-content: space-between; font-size: 11px; }
+  .compliance-mini .label span:first-child { color: var(--text-700); font-weight: 500; }
+  .compliance-mini .label span:last-child { font-family: 'JetBrains Mono', monospace; color: var(--text-500); font-weight: 600; }
+  .compliance-mini .bar { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; display: flex; margin-top: 4px; }
+  .compliance-mini .bar .fill { height: 100%; }
+  .compliance-mini .fill-green { background: var(--success); }
+  .compliance-mini .fill-gold { background: var(--gold-500); }
+  .compliance-mini .fill-error { background: var(--error); }
+
+  /* Mode views (Libre / Guidé) */
+  .libre-view, .guided-view { display: none; flex-direction: column; gap: 20px; }
+  .workbench-center[data-mode="libre"] .libre-view { display: flex; }
+  .workbench-center[data-mode="guided"] .guided-view { display: flex; }
+
+  /* Guided stepper */
+  .guided-stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  .guided-step { padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg); display: flex; flex-direction: column; gap: 3px; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; position: relative; }
+  .guided-step:hover { border-color: var(--forest-300); }
+  .guided-step .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--text-500); letter-spacing: 0.04em; display: flex; align-items: center; gap: 5px; }
+  .guided-step .lbl { font-size: 13px; font-weight: 600; color: var(--text-900); }
+  .guided-step .sub { font-size: 11px; color: var(--text-500); line-height: 1.3; }
+  .guided-step.done { background: var(--forest-50); border-color: var(--forest-300); }
+  .guided-step.done .num { color: var(--success); }
+  .guided-step.current { border-color: var(--gold-500); background: var(--gold-50); box-shadow: 0 0 0 3px var(--gold-100); }
+  .guided-step.current .num { color: var(--gold-700); }
+  .guided-step.future { opacity: 0.55; }
+
+  /* Guided step content */
+  .guided-step-content { display: none; flex-direction: column; gap: 16px; }
+  .guided-step-content.active { display: flex; }
+  .guided-step-header { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+  .guided-step-header .step-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold-700); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .guided-step-header h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: var(--text-900); }
+  .guided-step-header p { font-size: 13px; color: var(--text-500); margin: 0; line-height: 1.5; }
+
+  /* Guided footer (guided mode foot) */
+  .guided-footer { display: flex; align-items: center; gap: 12px; }
+  .guided-footer .step-counter { font-size: 12px; color: var(--text-500); font-family: 'JetBrains Mono', monospace; }
+  .guided-footer .auto-save { font-size: 12px; color: var(--text-500); display: flex; align-items: center; gap: 6px; }
+  .guided-footer .auto-save .live-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; }
+  .guided-footer .spacer { flex: 1; }
+
+  /* Tip card (used in guided steps) */
+  .tip-card { background: var(--bg); border: 1px dashed var(--border); border-radius: 10px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .tip-card .ico { width: 28px; height: 28px; background: var(--gold-100); color: var(--gold-700); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tip-card .body { flex: 1; }
+  .tip-card .title { font-size: 12px; font-weight: 600; color: var(--text-900); margin-bottom: 4px; }
+  .tip-card .text { font-size: 12px; color: var(--text-700); line-height: 1.6; }
+
+  /* Collapsible rail */
+  .workbench[data-rail="collapsed"] { grid-template-columns: 280px 1fr; }
+  .workbench[data-rail="collapsed"] .context-rail { display: none; }
+  .topbar-icon-btn[aria-pressed="true"] { background: var(--forest-50); color: var(--forest-700); border-color: var(--forest-300); }
+
+  /* Findings list (NEW — findings-centric model) */
+  .findings-list { display: flex; flex-direction: column; gap: 12px; }
+  .finding-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .finding-card-head { padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .finding-card-head .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--text-500); letter-spacing: 0.04em; }
+  .finding-card-head .classif-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .finding-card-head .classif-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .finding-card-head .classif-pill[data-kind="major"] { background: var(--error-bg); color: var(--error); }
+  .finding-card-head .classif-pill[data-kind="major"] .dot { background: var(--error); }
+  .finding-card-head .classif-pill[data-kind="minor"] { background: var(--warn-bg); color: var(--warn); }
+  .finding-card-head .classif-pill[data-kind="minor"] .dot { background: var(--warn); }
+  .finding-card-head .classif-pill[data-kind="observation"] { background: var(--info-bg); color: var(--info); }
+  .finding-card-head .classif-pill[data-kind="observation"] .dot { background: var(--info); }
+  .finding-card-head .classif-pill[data-kind="strength"] { background: var(--success-bg); color: var(--success); }
+  .finding-card-head .classif-pill[data-kind="strength"] .dot { background: var(--success); }
+  .finding-card-head .priority-pill { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .finding-card-head .priority-pill.critical { background: var(--error); color: white; }
+  .finding-card-head .priority-pill.high { background: var(--error-bg); color: var(--error); }
+  .finding-card-head .priority-pill.medium { background: var(--warn-bg); color: var(--warn); }
+  .finding-card-head .priority-pill.low { background: var(--bg); color: var(--text-500); }
+  .finding-card-head .actions { margin-left: auto; display: flex; gap: 2px; }
+  .finding-card-head .actions button { width: 26px; height: 26px; border: 0; background: transparent; color: var(--text-500); border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .finding-card-head .actions button:hover { background: var(--surface); color: var(--text-900); }
+  .finding-card-head .actions button.delete:hover { background: var(--error-bg); color: var(--error); }
+  .finding-card-body { padding: 4px; display: flex; flex-direction: column; gap: 2px; }
+  .finding-card-body .editable { padding: 10px 12px; }
+  .finding-card-body .editable .field-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-500); font-weight: 700; margin-bottom: 4px; }
+  .finding-card-body .editable .content { font-size: 13px; line-height: 1.55; color: var(--text-700); }
+  .finding-meta-row { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--border-soft); margin-top: 4px; font-size: 12px; flex-wrap: wrap; }
+  .finding-meta-row .meta-item { display: flex; align-items: center; gap: 6px; color: var(--text-500); }
+  .finding-meta-row .meta-item .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .finding-meta-row .meta-item .val { color: var(--text-900); font-weight: 500; }
+  .finding-add-btn { padding: 14px; border: 1.5px dashed var(--border); background: transparent; color: var(--text-500); font-size: 13px; font-weight: 500; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.12s; }
+  .finding-add-btn:hover { border-color: var(--forest-500); color: var(--forest-700); background: var(--forest-50); }
+
+  /* AI suggested findings inside AI panel */
+  .ai-finding-suggestion { background: var(--surface); border: 1px solid var(--gold-200); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .ai-finding-suggestion:last-child { margin-bottom: 0; }
+  .ai-finding-suggestion .head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .ai-finding-suggestion .head .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--gold-700); }
+  .ai-finding-suggestion .desc { font-size: 12px; color: var(--text-700); line-height: 1.5; font-weight: 500; }
+  .ai-finding-suggestion .extras { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-soft); font-size: 11px; color: var(--text-500); line-height: 1.55; }
+  .ai-finding-suggestion .extras strong { color: var(--text-700); font-weight: 600; }
+  .ai-finding-suggestion .apply-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-soft); display: flex; gap: 6px; align-items: center; }
+
+  /* Recap row in step 4 */
+  .recap-row { display: grid; grid-template-columns: 160px 1fr; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); align-items: baseline; }
+  .recap-row:last-child { border-bottom: 0; }
+  .recap-row .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-500); font-weight: 600; }
+  .recap-row .v { font-size: 13px; color: var(--text-900); line-height: 1.5; }
+  .recap-row .v .pill-result { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-right: 6px; }
+  .recap-row .v .pill-lc { background: var(--forest-50); color: var(--forest-700); border: 1px solid var(--forest-300); }
+  .recap-row .v .pill-minor { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
+
+  /* Buttons */
+  .btn { height: 32px; padding: 0 14px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; transition: all 0.12s; white-space: nowrap; }
+  .btn-primary { background: var(--forest-700); color: white; border-color: var(--forest-700); }
+  .btn-primary:hover { background: var(--forest-900); }
+  .btn-gold { background: var(--gold-500); color: var(--forest-900); border-color: var(--gold-500); font-weight: 600; }
+  .btn-gold:hover { background: var(--gold-600); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--text-700); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--forest-300); color: var(--forest-900); }
+  .btn-ghost { background: transparent; color: var(--text-700); border-color: transparent; }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+  .btn-danger-ghost { background: transparent; color: var(--error); border-color: var(--border); }
+  .btn-danger-ghost:hover { background: var(--error-bg); border-color: var(--error); }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <span class="lbl">MOCKUP</span>
+  <span>Phase 4 Workspace contr&ocirc;le &mdash; <strong style="color:var(--gold-400)">findings-centric</strong> &middot; mode Guid&eacute; par d&eacute;faut &middot; rail droit repliable</span>
+  <span class="meta">handoff-6-phase4-workspace</span>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 28 32" fill="none">
+        <path d="M14 1.5L2 5.5v9c0 8 5.4 14 12 16 6.6-2 12-8 12-16v-9l-12-4z" fill="#1B4332" stroke="#D4A843" stroke-width="1.5"/>
+      </svg>
+      <div>
+        <div class="brand">G<span class="uml">&euml;</span>stu</div>
+        <div class="product">Comply</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Espace cabinet</div>
+      <a class="sidebar-item active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+        <span>Missions</span>
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar">LM</div>
+      <div class="who">
+        <div class="name">L&eacute;a Mercier</div>
+        <div class="role">Auditrice</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main column -->
+  <div class="main-col">
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="handoff-1-hub-missions.html">Missions</a>
+        <span class="sep">&rsaquo;</span>
+        <a href="#">M-2026-014 &middot; Helios Industrie</a>
+        <span class="sep">&rsaquo;</span>
+        <span class="here">Travaux terrain &middot; A.6.2.1</span>
+      </div>
+      <div class="topbar-spacer"></div>
+      <button class="topbar-icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button class="topbar-icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 9a6 6 0 0112 0v5l2 3H4l2-3V9z"/></svg></button>
+      <button class="topbar-icon-btn" id="rail-toggle" aria-pressed="true" onclick="toggleRail()" title="Volet contextuel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
+      </button>
+    </header>
+
+    <div class="phase-ribbon">
+      <h2>Audit ISO 27001 &mdash; Helios Industrie</h2>
+      <span class="pill-mono">M-2026-014</span>
+      <span class="meta">Phase 4 &middot; Travaux terrain</span>
+      <div class="progress-mini">
+        <span>Mes contr&ocirc;les</span>
+        <div class="bar"><div class="fill" style="width:42%"></div></div>
+        <span class="pct">11/26</span>
+      </div>
+    </div>
+
+    <div class="workbench">
+
+      <!-- LEFT: Control tree -->
+      <aside class="nav-rail">
+        <div class="rail-search">
+          <svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" placeholder="Rechercher un contr&ocirc;le..."/>
+        </div>
+        <div class="rail-filters">
+          <button class="rail-filter active">Tous<span class="count">26</span></button>
+          <button class="rail-filter">Brouillon<span class="count">5</span></button>
+          <button class="rail-filter">Soumis<span class="count">3</span></button>
+          <button class="rail-filter">Valid&eacute;<span class="count">11</span></button>
+        </div>
+
+        <div class="rail-domain">
+          <button class="rail-domain-head" data-open="false">
+            <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+            <span>A.5 &middot; Politiques</span>
+            <span class="progress-mini">5/5</span>
+          </button>
+        </div>
+
+        <div class="rail-domain">
+          <button class="rail-domain-head" data-open="true">
+            <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+            <span>A.6 &middot; Organisation</span>
+            <span class="progress-mini">3/7</span>
+          </button>
+          <div class="rail-controls">
+            <button class="rail-control">
+              <span class="status-dot approved"></span>
+              <span class="code">A.6.1.1</span>
+              <span class="name">R&ocirc;les et responsabilit&eacute;s</span>
+            </button>
+            <button class="rail-control">
+              <span class="status-dot approved"></span>
+              <span class="code">A.6.1.2</span>
+              <span class="name">S&eacute;paration des t&acirc;ches</span>
+            </button>
+            <button class="rail-control">
+              <span class="status-dot approved"></span>
+              <span class="code">A.6.1.3</span>
+              <span class="name">Relations avec les autorit&eacute;s</span>
+            </button>
+            <button class="rail-control" aria-current="true">
+              <span class="status-dot draft"></span>
+              <span class="code">A.6.2.1</span>
+              <span class="name">Politique des appareils mobiles</span>
+            </button>
+            <button class="rail-control">
+              <span class="status-dot submitted"></span>
+              <span class="code">A.6.2.2</span>
+              <span class="name">T&eacute;l&eacute;travail</span>
+            </button>
+            <button class="rail-control">
+              <span class="status-dot rejected"></span>
+              <span class="code">A.6.3</span>
+              <span class="name">S&eacute;curit&eacute; projet</span>
+            </button>
+            <button class="rail-control">
+              <span class="status-dot"></span>
+              <span class="code">A.6.4</span>
+              <span class="name">Renseignement sur les menaces</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="rail-domain">
+          <button class="rail-domain-head" data-open="false">
+            <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+            <span>A.8 &middot; Gestion des actifs</span>
+            <span class="progress-mini">2/6</span>
+          </button>
+        </div>
+
+        <div class="rail-domain">
+          <button class="rail-domain-head" data-open="false">
+            <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+            <span>A.9 &middot; Contr&ocirc;le d&apos;acc&egrave;s</span>
+            <span class="progress-mini">1/8</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CENTER: Workbench -->
+      <div class="workbench-center" data-mode="guided">
+        <div class="workbench-scroll">
+
+        <!-- Control header -->
+        <div class="control-header">
+          <div class="code-large">A.6.2.1</div>
+          <div style="flex:1; min-width:0">
+            <h1>Politique des appareils mobiles</h1>
+            <div class="control-domain">A.6 &mdash; Organisation de la s&eacute;curit&eacute;</div>
+          </div>
+          <div class="actions">
+            <span class="status-badge draft"><span class="dot"></span>Brouillon</span>
+            <div class="mode-toggle">
+              <button class="active" onclick="switchMode('guided')">Guid&eacute;</button>
+              <button onclick="switchMode('libre')">Libre</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description card -->
+        <div class="card">
+          <div class="card-head">
+            <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.1"/></svg></span>
+            <h3>&Eacute;nonc&eacute; du contr&ocirc;le</h3>
+            <div class="risk-row" style="margin-left:auto" data-level="mid">
+              <div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div>
+              <span class="lbl">Risque 4/5 &middot; Mod&eacute;r&eacute;</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px; line-height:1.6; color:var(--text-700); margin: 0 0 12px">Une politique et des mesures de s&eacute;curit&eacute; de soutien doivent &ecirc;tre adopt&eacute;es pour g&eacute;rer les risques introduits par l&apos;utilisation d&apos;appareils mobiles.</p>
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-500); margin-bottom:4px">Objectif d&apos;audit</div>
+            <p style="font-size:12px; line-height:1.6; color:var(--text-700); margin:0">S&apos;assurer que l&apos;organisation dispose d&apos;une politique formalis&eacute;e encadrant l&apos;usage des terminaux mobiles et que les mesures techniques associ&eacute;es (MDM, chiffrement, MFA) sont effectivement d&eacute;ploy&eacute;es.</p>
+          </div>
+        </div>
+
+        <!-- Cadrage evidence (NEW from question_controls linkage) -->
+        <div class="card" style="background: var(--forest-50); border-color: var(--forest-300)">
+          <div class="card-head" style="border-bottom-color: var(--forest-300)">
+            <span class="ico" style="background:var(--forest-700); color:white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>
+            <h3>R&eacute;ponses cadrage li&eacute;es</h3>
+            <span class="meta">3 questions du questionnaire client</span>
+          </div>
+          <div class="card-body" style="display:flex; flex-direction:column; gap:8px">
+            <div style="font-size:12px; color:var(--text-700); line-height:1.5">
+              <strong>OPS-04 &middot; Outils IAM utilis&eacute;s</strong> &mdash; le RSSI a d&eacute;clar&eacute; <strong>Microsoft Entra ID + Okta + solution interne</strong>. <em>R&eacute;pondu le 28 avril.</em>
+            </div>
+            <div style="font-size:12px; color:var(--text-700); line-height:1.5">
+              <strong>OPS-08 &middot; Taille &eacute;quipe s&eacute;curit&eacute;</strong> &mdash; <em>6 internes + 3 prestataires</em>.
+            </div>
+            <div style="font-size:12px; color:var(--text-700); line-height:1.5">
+              <strong>GOV-03 &middot; Politiques formalis&eacute;es</strong> &mdash; document upload&eacute; : <em>Politique-MDM-v3.2.pdf</em> (rattach&eacute; automatiquement &agrave; ce contr&ocirc;le).
+            </div>
+          </div>
+        </div>
+
+        <!-- ============== LIBRE VIEW ============== -->
+        <div class="libre-view">
+
+        <!-- 01 · Observations terrain -->
+        <div>
+          <div class="section-row" style="margin-bottom:8px">
+            <h2>Observations terrain</h2>
+            <span class="num">01 / 04</span>
+            <span style="margin-left:auto; font-size:11px; color:var(--text-500)">Contexte g&eacute;n&eacute;ral &middot; non publi&eacute; dans le rapport</span>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding:10px">
+              <div class="editable">
+                <span class="edit-tag">Cliquer pour &eacute;diter</span>
+                <div class="content">Sur les 142 postes inventori&eacute;s par Intune (export du 24/04), 38 ne sont pas chiffr&eacute;s int&eacute;gralement (BitLocker absent ou suspendu). Concernant la MFA, Entra ID est configur&eacute; en politique conditionnelle mais l&apos;exception &laquo; users without MFA &raquo; contient 47 utilisateurs (12% du total). Pas d&apos;automation observ&eacute;e pour la mise en quarantaine BYOD : la d&eacute;tection se fait sur signalement utilisateur uniquement.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Smart Analyse panel — suggests list of findings -->
+        <div class="ai-panel">
+          <div class="ai-panel-head">
+            <h3><span class="pulse"></span>Smart-analyse G&euml;stu IA</h3>
+            <span class="conf">Confiance 83%</span>
+          </div>
+          <div class="ai-panel-body">
+            <div class="ai-grid">
+              <div class="ai-cell">
+                <div class="lbl">Maturit&eacute; globale sugg&eacute;r&eacute;e</div>
+                <div class="val"><span class="pill lc">LC &middot; Largement conforme</span></div>
+              </div>
+              <div class="ai-cell">
+                <div class="lbl">Constats identifi&eacute;s</div>
+                <div class="val"><strong>3</strong> &middot; 1 NC majeure, 1 mineure, 1 point fort</div>
+              </div>
+              <div class="ai-cell">
+                <div class="lbl">Sources analys&eacute;es</div>
+                <div class="val">3 docs &middot; 2 r&eacute;ponses cadrage</div>
+              </div>
+            </div>
+
+            <div class="ai-finding-suggestion">
+              <div class="head">
+                <span class="num">SUGGESTION 01</span>
+                <span class="finding-card-head" style="padding:0; background:transparent; border:0">
+                  <span class="classif-pill" data-kind="minor"><span class="dot"></span>NC mineure</span>
+                </span>
+              </div>
+              <div class="desc">Chiffrement BitLocker absent ou suspendu sur 27% du parc (38 postes / 142).</div>
+              <div class="extras">
+                <strong>Risque :</strong> fuite/exfiltration via terminal vol&eacute; ou perdu &middot; <strong>Reco :</strong> &eacute;tendre BitLocker &agrave; 100% du parc sous 60 j.
+              </div>
+            </div>
+
+            <div class="ai-finding-suggestion">
+              <div class="head">
+                <span class="num">SUGGESTION 02</span>
+                <span class="finding-card-head" style="padding:0; background:transparent; border:0">
+                  <span class="classif-pill" data-kind="major"><span class="dot"></span>NC majeure</span>
+                </span>
+              </div>
+              <div class="desc">MFA optionnelle pour 47 utilisateurs (12%) ayant acc&egrave;s aux donn&eacute;es classifi&eacute;es &laquo; confidentiel &raquo;.</div>
+              <div class="extras">
+                <strong>Risque :</strong> compromission de comptes privil&eacute;gi&eacute;s &middot; <strong>Reco :</strong> MFA obligatoire pour tous les acc&egrave;s classifi&eacute;s, sous 30 j.
+              </div>
+            </div>
+
+            <div class="ai-finding-suggestion">
+              <div class="head">
+                <span class="num">SUGGESTION 03</span>
+                <span class="finding-card-head" style="padding:0; background:transparent; border:0">
+                  <span class="classif-pill" data-kind="strength"><span class="dot"></span>Point fort</span>
+                </span>
+              </div>
+              <div class="desc">Politique MDM r&eacute;cente (mars 2026), bien r&eacute;dig&eacute;e et align&eacute;e ISO 27001:2022.</div>
+            </div>
+          </div>
+          <div class="ai-actions">
+            <button class="btn btn-gold btn-sm">Appliquer tout (3 constats)</button>
+            <button class="btn btn-ghost btn-sm">R&eacute;g&eacute;n&eacute;rer</button>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto">Voir les hypoth&egrave;ses</button>
+          </div>
+        </div>
+
+        <!-- 02 · Conformité globale -->
+        <div>
+          <div class="section-row" style="margin-bottom:8px">
+            <h2>Niveau de conformit&eacute; global</h2>
+            <span class="num">02 / 04</span>
+            <span style="margin-left:auto; font-size:11px; color:var(--text-500)">D&eacute;cision finale de l&apos;auditeur</span>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="conformity-row">
+                <button class="conf-btn c"><span class="code">C</span><span class="lbl">Conforme</span></button>
+                <button class="conf-btn lc" aria-pressed="true"><span class="code">LC</span><span class="lbl">Largement conforme</span></button>
+                <button class="conf-btn pc"><span class="code">PC</span><span class="lbl">Partiellement</span></button>
+                <button class="conf-btn nc"><span class="code">NC</span><span class="lbl">Non conforme</span></button>
+                <button class="conf-btn na"><span class="code">N/A</span><span class="lbl">Non applicable</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 · Constats (findings list) -->
+        <div>
+          <div class="section-row" style="margin-bottom:8px">
+            <h2>Constats</h2>
+            <span class="num">03 / 04</span>
+            <span style="margin-left:auto; font-size:11px; color:var(--text-500)"><strong style="color:var(--text-900); font-weight:600">3 constats</strong> &middot; 1 NC majeure, 1 mineure, 1 point fort</span>
+          </div>
+          <div class="findings-list">
+
+            <!-- Finding #1 -->
+            <div class="finding-card">
+              <div class="finding-card-head">
+                <span class="num">CONSTAT 01</span>
+                <button class="classif-pill" data-kind="minor"><span class="dot"></span>NC mineure <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
+                <span class="priority-pill high">Priorit&eacute; haute</span>
+                <div class="actions">
+                  <button title="Monter"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                  <button title="Descendre"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+                  <button class="delete" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg></button>
+                </div>
+              </div>
+              <div class="finding-card-body">
+                <div class="editable">
+                  <span class="field-label">Constat</span>
+                  <div class="content">Chiffrement BitLocker absent ou suspendu sur 27% du parc (38 postes inventori&eacute;s sur 142, export Intune du 24/04).</div>
+                </div>
+                <div class="editable">
+                  <span class="field-label">Risque associ&eacute;</span>
+                  <div class="content">Fuite ou exfiltration de donn&eacute;es depuis un terminal vol&eacute; ou perdu. Impact potentiel : sanction RGPD, atteinte r&eacute;putationnelle.</div>
+                </div>
+                <div class="editable">
+                  <span class="field-label">Recommandation</span>
+                  <div class="content">&Eacute;tendre BitLocker &agrave; 100% du parc dans un d&eacute;lai de 60 jours. Mettre en place une remont&eacute;e de conformit&eacute; mensuelle au RSSI.</div>
+                </div>
+                <div class="finding-meta-row">
+                  <div class="meta-item"><span class="lbl">Priorit&eacute;</span> <span class="val">Haute</span></div>
+                  <div class="meta-item"><span class="lbl">&Eacute;ch&eacute;ance propos&eacute;e</span> <span class="val">30 juin 2026</span></div>
+                  <div class="meta-item" style="margin-left:auto"><span style="font-size:10px; padding:1px 6px; background:var(--gold-50); color:var(--gold-700); border-radius:3px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em">G&eacute;n&eacute;r&eacute; par IA</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Finding #2 -->
+            <div class="finding-card">
+              <div class="finding-card-head">
+                <span class="num">CONSTAT 02</span>
+                <button class="classif-pill" data-kind="major"><span class="dot"></span>NC majeure <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
+                <span class="priority-pill critical">Priorit&eacute; critique</span>
+                <div class="actions">
+                  <button title="Monter"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                  <button title="Descendre"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+                  <button class="delete" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg></button>
+                </div>
+              </div>
+              <div class="finding-card-body">
+                <div class="editable">
+                  <span class="field-label">Constat</span>
+                  <div class="content">MFA optionnelle pour 47 utilisateurs (12%) ayant acc&egrave;s aux donn&eacute;es classifi&eacute;es &laquo; confidentiel &raquo;. L&apos;exception &laquo; users without MFA &raquo; dans Entra ID n&apos;a pas &eacute;t&eacute; r&eacute;visit&eacute;e depuis 2024.</div>
+                </div>
+                <div class="editable">
+                  <span class="field-label">Risque associ&eacute;</span>
+                  <div class="content">Compromission de comptes privil&eacute;gi&eacute;s par phishing ou credential stuffing. Probabilit&eacute; 4/5 compte tenu de la sensibilit&eacute; des donn&eacute;es bancaires.</div>
+                </div>
+                <div class="editable">
+                  <span class="field-label">Recommandation</span>
+                  <div class="content">Imposer la MFA &agrave; tous les utilisateurs ayant acc&egrave;s aux donn&eacute;es classifi&eacute;es. Supprimer l&apos;exception &laquo; users without MFA &raquo; ou la r&eacute;duire aux comptes de service techniquement incompatibles, &eacute;ch&eacute;ance 30 jours.</div>
+                </div>
+                <div class="finding-meta-row">
+                  <div class="meta-item"><span class="lbl">Priorit&eacute;</span> <span class="val">Critique</span></div>
+                  <div class="meta-item"><span class="lbl">&Eacute;ch&eacute;ance propos&eacute;e</span> <span class="val">3 juin 2026</span></div>
+                  <div class="meta-item" style="margin-left:auto"><span style="font-size:10px; padding:1px 6px; background:var(--gold-50); color:var(--gold-700); border-radius:3px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em">G&eacute;n&eacute;r&eacute; par IA</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Finding #3 (point fort) -->
+            <div class="finding-card">
+              <div class="finding-card-head">
+                <span class="num">CONSTAT 03</span>
+                <button class="classif-pill" data-kind="strength"><span class="dot"></span>Point fort <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
+                <div class="actions">
+                  <button title="Monter"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                  <button title="Descendre"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+                  <button class="delete" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg></button>
+                </div>
+              </div>
+              <div class="finding-card-body">
+                <div class="editable">
+                  <span class="field-label">Constat</span>
+                  <div class="content">Politique MDM r&eacute;cente (mars 2026), bien r&eacute;dig&eacute;e, align&eacute;e sur ISO 27001:2022 et int&eacute;grant les exigences DORA. Bonne pratique &agrave; conserver et &agrave; r&eacute;viser annuellement.</div>
+                </div>
+                <div style="padding: 8px 14px; font-size: 11px; color: var(--text-500); font-style: italic">Pas de risque ni de recommandation pour un point fort.</div>
+              </div>
+            </div>
+
+            <button class="finding-add-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Ajouter un constat
+            </button>
+          </div>
+        </div>
+
+        <!-- Preuves -->
+        <div>
+          <div class="section-row" style="margin-bottom:8px">
+            <h2>Preuves &amp; pi&egrave;ces jointes</h2>
+            <span class="num">04 / 04</span>
+            <span style="margin-left:auto; font-size:11px; color:var(--text-500)"><strong style="color:var(--forest-700); font-weight:600">3</strong> / 5 li&eacute;es au contr&ocirc;le</span>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="evidence-grid">
+                <div class="evidence-card" data-linked="true">
+                  <div class="filetype" data-ext="pdf">PDF</div>
+                  <div class="meta">
+                    <div class="name">Politique-MDM-v3.2.pdf</div>
+                    <div class="sub">1.2 Mo &middot; il y a 3j</div>
+                  </div>
+                  <span class="badge-ai ok">&#10003; IA</span>
+                </div>
+                <div class="evidence-card" data-linked="true">
+                  <div class="filetype" data-ext="xlsx">XLS</div>
+                  <div class="meta">
+                    <div class="name">Export-Intune-2026-04.xlsx</div>
+                    <div class="sub">486 Ko &middot; il y a 5j</div>
+                  </div>
+                  <span class="badge-ai ok">&#10003; IA</span>
+                </div>
+                <div class="evidence-card" data-linked="true">
+                  <div class="filetype" data-ext="docx">DOC</div>
+                  <div class="meta">
+                    <div class="name">Entretien-DSI-Helios.docx</div>
+                    <div class="sub">92 Ko &middot; il y a 1 sem.</div>
+                  </div>
+                  <span class="badge-ai ok">&#10003; IA</span>
+                </div>
+                <div class="evidence-card">
+                  <div class="filetype" data-ext="xlsx">XLS</div>
+                  <div class="meta">
+                    <div class="name">Liste-BYOD-Helios.xlsx</div>
+                    <div class="sub">204 Ko &middot; il y a 4j</div>
+                  </div>
+                </div>
+              </div>
+              <div class="dropzone" style="margin-top:12px">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 16v3a1 1 0 001 1h12a1 1 0 001-1v-3"/></svg>
+                <div><strong style="color:var(--text-900)">Glisser-d&eacute;poser</strong> ou <span style="color:var(--forest-700); font-weight:600; text-decoration:underline">parcourir</span></div>
+                <div style="font-size:11px; color:var(--text-300)">PDF, DOCX, XLSX, PNG &middot; 25 Mo max</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </div><!-- /libre-view -->
+
+        <!-- ============== GUIDED VIEW ============== -->
+        <div class="guided-view">
+
+          <!-- Stepper -->
+          <div class="guided-stepper">
+            <button class="guided-step current" onclick="goGuidedStep(0)">
+              <div class="num">&Eacute;TAPE 01</div>
+              <div class="lbl">Observer</div>
+              <div class="sub">D&eacute;crire ce qui a &eacute;t&eacute; constat&eacute;</div>
+            </button>
+            <button class="guided-step future" onclick="goGuidedStep(1)">
+              <div class="num">&Eacute;TAPE 02</div>
+              <div class="lbl">Documenter</div>
+              <div class="sub">Rattacher les preuves</div>
+            </button>
+            <button class="guided-step future" onclick="goGuidedStep(2)">
+              <div class="num">&Eacute;TAPE 03</div>
+              <div class="lbl">Analyser</div>
+              <div class="sub">Conformit&eacute;, constat, reco</div>
+            </button>
+            <button class="guided-step future" onclick="goGuidedStep(3)">
+              <div class="num">&Eacute;TAPE 04</div>
+              <div class="lbl">Validation</div>
+              <div class="sub">R&eacute;cap &amp; soumission</div>
+            </button>
+          </div>
+
+          <!-- STEP 1 · Observer -->
+          <div class="guided-step-content active" id="gstep-0">
+            <div class="guided-step-header">
+              <div class="step-meta">&Eacute;TAPE 01 / 04</div>
+              <h2>Observer &middot; d&eacute;crire ce qui a &eacute;t&eacute; constat&eacute;</h2>
+              <p>Soyez factuel et pr&eacute;cis. Les analyses, classifications et recommandations viennent &agrave; l&apos;&eacute;tape 3.</p>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                <h3>Observations terrain</h3>
+                <span class="meta">Visible par vous uniquement jusqu&apos;&agrave; soumission</span>
+              </div>
+              <div class="card-body" style="padding:10px">
+                <div class="editable" data-editing="true">
+                  <span class="edit-tag">En cours d&apos;&eacute;dition</span>
+                  <textarea>Sur les 142 postes inventori&eacute;s par Intune (export du 24/04), 38 ne sont pas chiffr&eacute;s int&eacute;gralement (BitLocker absent ou suspendu). Ils repr&eacute;sentent 27% du parc.
+
+Concernant la MFA, Entra ID est configur&eacute; en politique conditionnelle mais l&apos;exception &laquo; users without MFA &raquo; contient 47 utilisateurs (12% du total), dont certains ont acc&egrave;s aux donn&eacute;es classifi&eacute;es &laquo; confidentiel &raquo; (vu en entretien DSI le 26/04).
+
+Pas d&apos;automation observ&eacute;e pour la mise en quarantaine BYOD : le RSSI confirme que la d&eacute;tection se fait sur signalement utilisateur uniquement.</textarea>
+                </div>
+              </div>
+            </div>
+            <div class="tip-card">
+              <div class="ico">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.5V17h8v-2.5A7 7 0 0012 2z"/></svg>
+              </div>
+              <div class="body">
+                <div class="title">Points d&apos;attention &middot; A.6.2.1 Politique des appareils mobiles</div>
+                <div class="text" style="margin-bottom:10px">
+                  <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; color:var(--gold-700); margin-bottom:4px">Checklist du contr&ocirc;le</div>
+                  &middot; La politique MDM existe-t-elle formellement ? Date de derni&egrave;re r&eacute;vision ?<br>
+                  &middot; Quelle proportion du parc impose le chiffrement int&eacute;gral (BitLocker / FileVault) ?<br>
+                  &middot; Comment sont g&eacute;r&eacute;s les terminaux personnels (BYOD) : enrollment obligatoire, conteneurisation, wipe ?<br>
+                  &middot; La MFA est-elle impos&eacute;e pour les acc&egrave;s distants depuis terminal mobile ?<br>
+                  &middot; Existe-t-il un processus formel de wipe &agrave; distance pour les terminaux perdus / vol&eacute;s ?<br>
+                  &middot; Comment les mises &agrave; jour de s&eacute;curit&eacute; OS sont-elles d&eacute;ploy&eacute;es et trac&eacute;es ?
+                </div>
+                <div style="border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 8px">
+                  <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; color:var(--forest-700); margin-bottom:4px; display:flex; align-items:center; gap:5px">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+                    &Agrave; v&eacute;rifier d&apos;apr&egrave;s le cadrage Helios
+                  </div>
+                  <div class="text">
+                    &middot; <strong>OPS-04</strong> &mdash; le RSSI a d&eacute;clar&eacute; <strong>Entra ID + Okta + solution interne</strong>. La politique MDM s&apos;applique-t-elle aux 3 environnements ? Y a-t-il des &eacute;carts entre eux ?<br>
+                    &middot; <strong>OPS-08</strong> &mdash; <strong>3 prestataires externes</strong> dans l&apos;&eacute;quipe s&eacute;curit&eacute;. Leurs terminaux sont-ils inclus dans le p&eacute;rim&egrave;tre Intune ?<br>
+                    &middot; <strong>GOV-03</strong> &mdash; <em>Politique-MDM-v3.2.pdf</em> upload&eacute;e en cadrage. V&eacute;rifier la coh&eacute;rence entre le doc et la mise en &oelig;uvre observ&eacute;e.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2 · Documenter -->
+          <div class="guided-step-content" id="gstep-1">
+            <div class="guided-step-header">
+              <div class="step-meta">&Eacute;TAPE 02 / 04</div>
+              <h2>Documenter &middot; rattacher les preuves</h2>
+              <p>3 documents d&eacute;j&agrave; li&eacute;s automatiquement depuis le cadrage. Ajoutez des preuves compl&eacute;mentaires si besoin (captures, exports, comptes-rendus d&apos;entretien).</p>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5M14 3l5 5M19 8v9a3 3 0 01-3 3H8a3 3 0 01-3-3V6a3 3 0 013-3h6"/></svg></span>
+                <h3>Preuves attach&eacute;es</h3>
+                <span class="meta">3 / 5 li&eacute;es</span>
+              </div>
+              <div class="card-body">
+                <div class="evidence-grid">
+                  <div class="evidence-card" data-linked="true">
+                    <div class="filetype" data-ext="pdf">PDF</div>
+                    <div class="meta">
+                      <div class="name">Politique-MDM-v3.2.pdf</div>
+                      <div class="sub">1.2 Mo &middot; cadrage auto</div>
+                    </div>
+                    <span class="badge-ai ok">&#10003; IA</span>
+                  </div>
+                  <div class="evidence-card" data-linked="true">
+                    <div class="filetype" data-ext="xlsx">XLS</div>
+                    <div class="meta">
+                      <div class="name">Export-Intune-2026-04.xlsx</div>
+                      <div class="sub">486 Ko &middot; il y a 5j</div>
+                    </div>
+                    <span class="badge-ai ok">&#10003; IA</span>
+                  </div>
+                  <div class="evidence-card" data-linked="true">
+                    <div class="filetype" data-ext="docx">DOC</div>
+                    <div class="meta">
+                      <div class="name">Entretien-DSI-Helios.docx</div>
+                      <div class="sub">92 Ko &middot; il y a 1 sem.</div>
+                    </div>
+                    <span class="badge-ai ok">&#10003; IA</span>
+                  </div>
+                  <div class="evidence-card">
+                    <div class="filetype" data-ext="xlsx">XLS</div>
+                    <div class="meta">
+                      <div class="name">Liste-BYOD-Helios.xlsx</div>
+                      <div class="sub">204 Ko &middot; il y a 4j</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="dropzone" style="margin-top:12px">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 16v3a1 1 0 001 1h12a1 1 0 001-1v-3"/></svg>
+                  <div><strong style="color:var(--text-900)">Glisser-d&eacute;poser</strong> ou <span style="color:var(--forest-700); font-weight:600; text-decoration:underline">parcourir</span></div>
+                  <div style="font-size:11px; color:var(--text-300)">PDF, DOCX, XLSX, PNG &middot; 25 Mo max</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <h3>Notes sur les preuves</h3>
+                <span class="meta">Optionnel</span>
+              </div>
+              <div class="card-body" style="padding:10px">
+                <div class="editable">
+                  <span class="edit-tag">Cliquer pour &eacute;diter</span>
+                  <div class="content">Politique r&eacute;cente (mars 2026), bien r&eacute;dig&eacute;e mais sans m&eacute;trique de suivi. L&apos;export Intune confirme le diff&eacute;rentiel parc/politique. L&apos;entretien DSI valide l&apos;analyse mais souligne un manque de moyens RH pour le BYOD.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3 · Analyser -->
+          <div class="guided-step-content" id="gstep-2">
+            <div class="guided-step-header">
+              <div class="step-meta">&Eacute;TAPE 03 / 04</div>
+              <h2>Analyser &middot; lister les constats</h2>
+              <p>L&apos;IA propose une liste de constats &agrave; partir de vos observations. Chaque constat est autonome (description + risque + reco + classification + priorit&eacute;) et alimentera le rapport et le plan d&apos;action.</p>
+            </div>
+
+            <div class="ai-panel">
+              <div class="ai-panel-head">
+                <h3><span class="pulse"></span>Smart-analyse &middot; 3 constats sugg&eacute;r&eacute;s</h3>
+                <span class="conf">Confiance 83%</span>
+              </div>
+              <div class="ai-panel-body">
+                <div class="ai-finding-suggestion">
+                  <div class="head">
+                    <span class="num">SUGGESTION 01</span>
+                    <span class="finding-card-head" style="padding:0; background:transparent; border:0">
+                      <span class="classif-pill" data-kind="minor"><span class="dot"></span>NC mineure</span>
+                    </span>
+                    <button class="btn btn-gold btn-sm" style="margin-left:auto; height:24px; padding:0 10px; font-size:11px">Appliquer</button>
+                  </div>
+                  <div class="desc">Chiffrement BitLocker absent ou suspendu sur 27% du parc (38 / 142 postes).</div>
+                  <div class="extras"><strong>Risque :</strong> fuite via terminal vol&eacute;/perdu &middot; <strong>Reco :</strong> BitLocker 100% sous 60 j</div>
+                </div>
+                <div class="ai-finding-suggestion">
+                  <div class="head">
+                    <span class="num">SUGGESTION 02</span>
+                    <span class="finding-card-head" style="padding:0; background:transparent; border:0">
+                      <span class="classif-pill" data-kind="major"><span class="dot"></span>NC majeure</span>
+                    </span>
+                    <button class="btn btn-gold btn-sm" style="margin-left:auto; height:24px; padding:0 10px; font-size:11px">Appliquer</button>
+                  </div>
+                  <div class="desc">MFA optionnelle pour 47 utilisateurs (12%) sur donn&eacute;es classifi&eacute;es.</div>
+                  <div class="extras"><strong>Risque :</strong> compromission de comptes privil&eacute;gi&eacute;s &middot; <strong>Reco :</strong> MFA obligatoire 30 j</div>
+                </div>
+                <div class="ai-finding-suggestion">
+                  <div class="head">
+                    <span class="num">SUGGESTION 03</span>
+                    <span class="finding-card-head" style="padding:0; background:transparent; border:0">
+                      <span class="classif-pill" data-kind="strength"><span class="dot"></span>Point fort</span>
+                    </span>
+                    <button class="btn btn-gold btn-sm" style="margin-left:auto; height:24px; padding:0 10px; font-size:11px">Appliquer</button>
+                  </div>
+                  <div class="desc">Politique MDM r&eacute;cente (mars 2026) bien r&eacute;dig&eacute;e et align&eacute;e ISO 27001.</div>
+                </div>
+              </div>
+              <div class="ai-actions">
+                <button class="btn btn-gold btn-sm">Appliquer tout (3 constats)</button>
+                <button class="btn btn-ghost btn-sm">R&eacute;g&eacute;n&eacute;rer</button>
+                <button class="btn btn-ghost btn-sm" style="margin-left:auto">Voir les hypoth&egrave;ses</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Niveau de conformit&eacute; global</h3><span class="meta">D&eacute;cision finale</span></div>
+              <div class="card-body">
+                <div class="conformity-row">
+                  <button class="conf-btn c"><span class="code">C</span><span class="lbl">Conforme</span></button>
+                  <button class="conf-btn lc" aria-pressed="true"><span class="code">LC</span><span class="lbl">Largement</span></button>
+                  <button class="conf-btn pc"><span class="code">PC</span><span class="lbl">Partiellement</span></button>
+                  <button class="conf-btn nc"><span class="code">NC</span><span class="lbl">Non conforme</span></button>
+                  <button class="conf-btn na"><span class="code">N/A</span><span class="lbl">N/A</span></button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="section-row" style="margin-bottom:8px">
+                <h2>Constats &middot; 3 retenus</h2>
+                <span style="margin-left:auto; font-size:11px; color:var(--text-500)">1 NC majeure &middot; 1 NC mineure &middot; 1 point fort</span>
+              </div>
+              <div class="findings-list">
+
+                <div class="finding-card">
+                  <div class="finding-card-head">
+                    <span class="num">CONSTAT 01</span>
+                    <button class="classif-pill" data-kind="minor"><span class="dot"></span>NC mineure <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
+                    <span class="priority-pill high">Priorit&eacute; haute</span>
+                    <div class="actions">
+                      <button title="Monter"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                      <button title="Descendre"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+                      <button class="delete" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg></button>
+                    </div>
+                  </div>
+                  <div class="finding-card-body">
+                    <div class="editable">
+                      <span class="field-label">Constat</span>
+                      <div class="content">Chiffrement BitLocker absent ou suspendu sur 27% du parc (38 postes inventori&eacute;s sur 142).</div>
+                    </div>
+                    <div class="editable">
+                      <span class="field-label">Risque associ&eacute;</span>
+                      <div class="content">Fuite ou exfiltration de donn&eacute;es depuis un terminal vol&eacute; ou perdu.</div>
+                    </div>
+                    <div class="editable">
+                      <span class="field-label">Recommandation</span>
+                      <div class="content">&Eacute;tendre BitLocker &agrave; 100% du parc sous 60 jours.</div>
+                    </div>
+                    <div class="finding-meta-row">
+                      <div class="meta-item"><span class="lbl">Priorit&eacute;</span> <span class="val">Haute</span></div>
+                      <div class="meta-item"><span class="lbl">&Eacute;ch&eacute;ance</span> <span class="val">30 juin 2026</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="finding-card">
+                  <div class="finding-card-head">
+                    <span class="num">CONSTAT 02</span>
+                    <button class="classif-pill" data-kind="major"><span class="dot"></span>NC majeure <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
+                    <span class="priority-pill critical">Priorit&eacute; critique</span>
+                    <div class="actions">
+                      <button title="Monter"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                      <button title="Descendre"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+                      <button class="delete" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg></button>
+                    </div>
+                  </div>
+                  <div class="finding-card-body">
+                    <div class="editable">
+                      <span class="field-label">Constat</span>
+                      <div class="content">MFA optionnelle pour 47 utilisateurs (12%) ayant acc&egrave;s aux donn&eacute;es classifi&eacute;es &laquo; confidentiel &raquo;.</div>
+                    </div>
+                    <div class="editable">
+                      <span class="field-label">Risque associ&eacute;</span>
+                      <div class="content">Compromission de comptes privil&eacute;gi&eacute;s par phishing ou credential stuffing.</div>
+                    </div>
+                    <div class="editable">
+                      <span class="field-label">Recommandation</span>
+                      <div class="content">Imposer la MFA &agrave; tous les acc&egrave;s donn&eacute;es classifi&eacute;es, &eacute;ch&eacute;ance 30 jours.</div>
+                    </div>
+                    <div class="finding-meta-row">
+                      <div class="meta-item"><span class="lbl">Priorit&eacute;</span> <span class="val">Critique</span></div>
+                      <div class="meta-item"><span class="lbl">&Eacute;ch&eacute;ance</span> <span class="val">3 juin 2026</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="finding-card">
+                  <div class="finding-card-head">
+                    <span class="num">CONSTAT 03</span>
+                    <button class="classif-pill" data-kind="strength"><span class="dot"></span>Point fort <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
+                    <div class="actions">
+                      <button title="Monter"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                      <button title="Descendre"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+                      <button class="delete" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg></button>
+                    </div>
+                  </div>
+                  <div class="finding-card-body">
+                    <div class="editable">
+                      <span class="field-label">Constat</span>
+                      <div class="content">Politique MDM r&eacute;cente (mars 2026), bien r&eacute;dig&eacute;e et align&eacute;e ISO 27001:2022.</div>
+                    </div>
+                    <div style="padding: 8px 14px; font-size: 11px; color: var(--text-500); font-style: italic">Pas de risque ni de recommandation pour un point fort.</div>
+                  </div>
+                </div>
+
+                <button class="finding-add-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  Ajouter un constat
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4 · Validation -->
+          <div class="guided-step-content" id="gstep-3">
+            <div class="guided-step-header">
+              <div class="step-meta">&Eacute;TAPE 04 / 04</div>
+              <h2>Validation &middot; r&eacute;capitulatif et soumission</h2>
+              <p>V&eacute;rifiez votre travail puis soumettez au chef de mission. Vous pourrez revenir aux &eacute;tapes pr&eacute;c&eacute;dentes pour ajuster.</p>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>R&eacute;capitulatif &middot; A.6.2.1</h3>
+                <span class="meta">Politique des appareils mobiles</span>
+              </div>
+              <div class="card-body">
+                <div class="recap-row">
+                  <div class="k">Conformit&eacute; globale</div>
+                  <div class="v"><span class="pill-result pill-lc">LC &middot; Largement conforme</span></div>
+                </div>
+                <div class="recap-row">
+                  <div class="k">Constats</div>
+                  <div class="v" style="color:var(--text-700)">
+                    <div style="display:flex; flex-direction:column; gap:8px">
+                      <div style="display:flex; gap:8px; align-items:flex-start">
+                        <span class="classif-pill" data-kind="minor" style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:600; flex-shrink:0; margin-top:1px"><span class="dot" style="width:6px; height:6px; border-radius:50%; background:var(--warn)"></span>NC mineure</span>
+                        <span style="font-size:12px; line-height:1.5"><strong style="color:var(--text-900)">Chiffrement BitLocker absent sur 27% du parc</strong> &middot; Reco : BitLocker 100% sous 60 j</span>
+                      </div>
+                      <div style="display:flex; gap:8px; align-items:flex-start">
+                        <span class="classif-pill" data-kind="major" style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:600; flex-shrink:0; margin-top:1px"><span class="dot" style="width:6px; height:6px; border-radius:50%; background:var(--error)"></span>NC majeure</span>
+                        <span style="font-size:12px; line-height:1.5"><strong style="color:var(--text-900)">MFA optionnelle pour 12% des utilisateurs sensibles</strong> &middot; Reco : MFA obligatoire 30 j</span>
+                      </div>
+                      <div style="display:flex; gap:8px; align-items:flex-start">
+                        <span class="classif-pill" data-kind="strength" style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:600; flex-shrink:0; margin-top:1px"><span class="dot" style="width:6px; height:6px; border-radius:50%; background:var(--success)"></span>Point fort</span>
+                        <span style="font-size:12px; line-height:1.5"><strong style="color:var(--text-900)">Politique MDM r&eacute;cente bien r&eacute;dig&eacute;e</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="recap-row">
+                  <div class="k">Plan d&apos;action g&eacute;n&eacute;r&eacute;</div>
+                  <div class="v" style="color:var(--text-700); font-size:12px"><strong style="color:var(--text-900)">2 actions</strong> seront cr&eacute;&eacute;es automatiquement (les NC). Le point fort sera report&eacute; dans la section &laquo; Bonnes pratiques &raquo; du rapport.</div>
+                </div>
+                <div class="recap-row">
+                  <div class="k">Preuves</div>
+                  <div class="v" style="color:var(--text-700)">3 documents li&eacute;s &middot; Politique-MDM-v3.2.pdf, Export-Intune-2026-04.xlsx, Entretien-DSI-Helios.docx</div>
+                </div>
+                <div class="recap-row">
+                  <div class="k">R&eacute;ponses cadrage</div>
+                  <div class="v" style="color:var(--text-700)">3 questions client li&eacute;es &middot; OPS-04, OPS-08, GOV-03</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:var(--gold-50); border:1px solid var(--gold-200); border-radius:10px; padding:14px 16px; display:flex; gap:12px; align-items:center">
+              <div style="width:32px; height:32px; background:var(--gold-500); color:var(--forest-900); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4h12l-2 4 2 4H5"/></svg>
+              </div>
+              <div style="flex:1; font-size:12px; color:var(--text-700); line-height:1.5">
+                <strong style="color:var(--text-900)">Pr&ecirc;t &agrave; soumettre</strong> &middot; La soumission envoie le contr&ocirc;le &agrave; <strong>Camille Roussel</strong> (chef de mission) pour validation interne. Vous pourrez r&eacute;pondre &agrave; ses commentaires depuis le panneau Discussion.
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /guided-view -->
+
+        </div><!-- /workbench-scroll -->
+
+        <!-- ============== WORKBENCH FOOT (mode-aware) ============== -->
+        <div class="workbench-foot">
+
+          <!-- Libre mode: submit-bar -->
+          <div class="submit-bar libre-only">
+            <div class="info">
+              <div class="info-title">Pr&ecirc;t &agrave; soumettre pour revue ?</div>
+              <div class="info-sub">La soumission envoie le contr&ocirc;le &agrave; <strong>Camille Roussel</strong> (chef de mission) pour validation interne.</div>
+            </div>
+            <button class="btn btn-secondary btn-sm">Sauvegarder</button>
+            <button class="btn btn-danger-ghost btn-sm">Marquer N/A</button>
+            <button class="btn btn-primary">Soumettre au chef de mission &nbsp;&rsaquo;</button>
+          </div>
+
+          <!-- Guided mode: prev/next/submit -->
+          <div class="guided-footer guided-only">
+            <span class="auto-save"><span class="live-dot"></span>Sauvegard&eacute; &middot; il y a 4s</span>
+            <span class="step-counter" id="gstep-counter">&Eacute;TAPE 01 / 04</span>
+            <span class="spacer"></span>
+            <button class="btn btn-secondary btn-sm" id="gprev-btn" style="display:none" onclick="goGuidedStep(currentGuidedStep - 1)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Pr&eacute;c&eacute;dent
+            </button>
+            <button class="btn btn-primary btn-sm" id="gnext-btn" onclick="goGuidedStep(currentGuidedStep + 1)">
+              Suivant
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+
+        </div><!-- /workbench-foot -->
+
+      </div>
+
+      <!-- RIGHT: Context rail -->
+      <aside class="context-rail">
+        <div class="rail-tabs">
+          <button class="rail-tab" aria-selected="true" onclick="switchRailContent(this, 'validation')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg>
+            Validation
+          </button>
+          <button class="rail-tab" aria-selected="false" onclick="switchRailContent(this, 'comments')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H7l-3 3V5z"/></svg>
+            Discussion
+            <span class="badge-count">3</span>
+          </button>
+          <button class="rail-tab" aria-selected="false" onclick="switchRailContent(this, 'info')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.1"/></svg>
+            Mission
+          </button>
+        </div>
+        <div class="rail-content" data-tab="validation" id="rail-content">
+
+          <!-- Validation timeline -->
+          <div class="timeline">
+            <div style="margin-bottom:14px">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-500); margin-bottom:6px">Cascade de validation</div>
+              <div style="font-size:12px; color:var(--text-500); line-height:1.5">Suivi du contr&ocirc;le <span class="mono" style="font-family:'JetBrains Mono', monospace; color:var(--forest-700); font-weight:600">A.6.2.1</span> &agrave; travers les paliers de revue.</div>
+            </div>
+
+            <div class="timeline-step" data-state="done">
+              <div class="timeline-dot">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-actor">L&eacute;a Mercier</div>
+                <div class="timeline-meta">Auditrice &middot; Lun 28 avril, 14:32</div>
+                <div class="timeline-action">A soumis le contr&ocirc;le pour revue</div>
+              </div>
+            </div>
+
+            <div class="timeline-step" data-state="done">
+              <div class="timeline-dot">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-actor">Camille Roussel</div>
+                <div class="timeline-meta">Chef de mission &middot; Mar 29 avril, 09:15</div>
+                <div class="timeline-action">Validation interne</div>
+                <div class="timeline-comment">Bon travail, constats clairs. V&eacute;rifier les chiffres MDM c&ocirc;t&eacute; Intune avant de soumettre &agrave; l&apos;associ&eacute;.</div>
+              </div>
+            </div>
+
+            <div class="timeline-step" data-state="current">
+              <div class="timeline-dot"></div>
+              <div class="timeline-body">
+                <div class="timeline-actor">Patrick Lemoine</div>
+                <div class="timeline-meta">Associ&eacute; &middot; En attente</div>
+                <div class="timeline-action">Revue associ&eacute; (palier final)</div>
+              </div>
+            </div>
+
+            <div class="timeline-step" data-state="future">
+              <div class="timeline-dot"></div>
+              <div class="timeline-body">
+                <div class="timeline-actor">Helios Industrie</div>
+                <div class="timeline-meta">Client &middot; Phase 6</div>
+                <div class="timeline-action">Validation client</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px; padding:12px; background:var(--gold-50); border:1px solid var(--gold-200); border-radius:8px">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--gold-700); margin-bottom:6px; display:flex; align-items:center; gap:6px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4h12l-2 4 2 4H5"/></svg>
+              &Eacute;ch&eacute;ance
+            </div>
+            <div style="font-size:12px; color:var(--text-700); line-height:1.5">&Agrave; soumettre pour revue avant le <strong>3 mai 2026</strong> (J-3).</div>
+          </div>
+
+          <!-- Comments section (hidden by default, shown via tab) -->
+          <div class="comment-section">
+            <div class="deadline-callout">
+              <div class="dl-label">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+                Nouveau &middot; discussion par contr&ocirc;le
+              </div>
+              <div class="dl-text">Patten ajout&eacute; par le handoff. Permet aux auditeurs et chefs de mission de commenter / mentionner sur un contr&ocirc;le sp&eacute;cifique. N&eacute;cessite une nouvelle table <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">control_comments</span>.</div>
+            </div>
+
+            <div class="comment">
+              <div class="av" style="background:var(--forest-700)">CR</div>
+              <div class="body">
+                <div class="head">
+                  <span class="who">Camille Roussel</span>
+                  <span class="when">Hier 16:42</span>
+                </div>
+                <div class="role">Chef de mission</div>
+                <div class="text"><span class="mention">@L&eacute;a</span> peux-tu re-v&eacute;rifier le chiffre du chiffrement sur les postes ? L&apos;export Intune semble couvrir aussi les terminaux d&eacute;sactiv&eacute;s.</div>
+                <div class="actions">
+                  <button>R&eacute;pondre</button>
+                  <button>R&eacute;agir</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="comment">
+              <div class="av" style="background:var(--forest-500)">LM</div>
+              <div class="body">
+                <div class="head">
+                  <span class="who">L&eacute;a Mercier</span>
+                  <span class="when">Aujourd&apos;hui 09:14</span>
+                </div>
+                <div class="role">Auditrice</div>
+                <div class="text">V&eacute;rifi&eacute; &mdash; j&apos;ai filtr&eacute; sur les postes actifs uniquement. Le chiffre passe &agrave; 73% (vs 81% brut). Mis &agrave; jour dans le constat.</div>
+                <div class="actions"><button>R&eacute;pondre</button><button>R&eacute;agir</button></div>
+              </div>
+            </div>
+
+            <div class="comment">
+              <div class="av" style="background:var(--forest-700)">PL</div>
+              <div class="body">
+                <div class="head">
+                  <span class="who">Patrick Lemoine</span>
+                  <span class="when">Aujourd&apos;hui 11:02</span>
+                </div>
+                <div class="role">Associ&eacute;</div>
+                <div class="text">Tr&egrave;s bien. Une recommandation &agrave; pousser sur le BYOD &mdash; c&apos;est un risque structurant chez ce client.</div>
+                <div class="actions"><button>R&eacute;pondre</button><button>R&eacute;agir</button></div>
+              </div>
+            </div>
+
+            <div class="comment-composer">
+              <textarea placeholder="&Eacute;crire un commentaire... (utilisez @ pour mentionner)"></textarea>
+              <div class="comment-composer-bar">
+                <span class="at">@ pour mentionner &middot; ancr&eacute; sur A.6.2.1</span>
+                <button class="btn btn-primary btn-sm" disabled style="opacity:0.5">Publier</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info section (hidden by default) -->
+          <div class="info-section" style="display:flex; flex-direction:column; gap:18px">
+            <div>
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-500); margin-bottom:8px">Avancement global mission</div>
+              <div class="compliance-mini">
+                <div class="label"><span>Contr&ocirc;les valid&eacute;s</span><span>16 / 26</span></div>
+                <div class="bar">
+                  <div class="fill fill-green" style="width:61%"></div>
+                  <div class="fill fill-gold" style="width:12%"></div>
+                  <div class="fill fill-error" style="width:4%"></div>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:6px; font-size:10px; color:var(--text-500)">
+                  <span>&#9679; Valid&eacute; 61%</span>
+                  <span style="color:var(--gold-700)">&#9679; En cours 12%</span>
+                  <span style="color:var(--error)">&#9679; Rejet&eacute; 4%</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-500); margin-bottom:8px">&Eacute;quipe mission</div>
+              <div style="font-size:12px; color:var(--text-700); line-height:1.7">
+                <strong style="color:var(--text-900)">Patrick Lemoine</strong> &middot; Associ&eacute;<br>
+                <strong style="color:var(--text-900)">Camille Roussel</strong> &middot; Chef de mission<br>
+                <strong style="color:var(--text-900)">L&eacute;a Mercier</strong> &middot; Auditrice (vous)<br>
+                <strong style="color:var(--text-900)">Yann Doukour&eacute;</strong> &middot; Auditeur junior
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<!-- Decisions footer -->
+<div style="padding:18px 28px; background:var(--surface); border-top:1px solid var(--border)">
+  <div style="max-width:1500px; margin:0 auto; padding:14px 18px; background:var(--bg); border:1px dashed var(--border); border-radius:10px; font-size:12px; color:var(--text-500); line-height:1.6">
+    <strong style="color:var(--text-900)">D&eacute;cisions / &eacute;carts vs code actuel</strong>
+    <br>1. <strong>Layout 3 colonnes avec rail droit repliable</strong> &mdash; le rail droit (Validation / Discussion / Mission) peut &ecirc;tre cach&eacute; via l&apos;ic&ocirc;ne en haut &agrave; droite. Donne le meilleur des deux mondes : rail visible quand on a besoin de contexte, plein &eacute;cran central quand on r&eacute;dige.
+    <br>2. <strong>Discussion par contr&ocirc;le</strong> &mdash; <span style="color:var(--warn); font-weight:600">N&apos;EXISTE PAS aujourd&apos;hui</span>. N&eacute;cessite : nouvelle table <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">control_comments</span> + RLS + composant <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">CommentsPanel</span> + notifications par mention. Chantier moyen.
+    <br>3. <strong>Carte &laquo; R&eacute;ponses cadrage li&eacute;es &raquo;</strong> en haut du workbench &mdash; mat&eacute;rialise la valeur du refactor `question_controls`. L&apos;auditeur voit imm&eacute;diatement quelles r&eacute;ponses du questionnaire client alimentent le contr&ocirc;le qu&apos;il &eacute;value. Tr&egrave;s fort apport produit.
+    <br>4. <strong>Mode Guid&eacute; / Libre</strong> conserv&eacute; (existe d&eacute;j&agrave;). <strong>Guid&eacute; par d&eacute;faut</strong> avec 4 steps lin&eacute;aires (Observer &rarr; Documenter &rarr; Analyser &rarr; Validation), navigation Pr&eacute;c&eacute;dent/Suivant, bouton final &laquo; Soumettre &raquo; en gold sur le step 4. <strong>Libre</strong> = formulaire complet en une page, pour les auditeurs exp&eacute;riment&eacute;s qui veulent tout voir.
+    <br>5. <strong>Mod&egrave;le findings-centric</strong> &mdash; refactor architectural valid&eacute; : nouvelle table <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">assessment_findings</span> (N findings par assessment, chacun avec classif/risk/reco/priority). 5 niveaux de conformit&eacute; <strong>globaux</strong> (C/LC/PC/NC/N/A) restent au niveau assessment. 4 classifications (NC majeure/mineure, Observation, Point fort) sont par <strong>finding</strong>. Plan d&apos;action et rapport PDF en b&eacute;n&eacute;ficient directement. Voir m&eacute;moire <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">project_findings_centric</span>.
+    <br>6. <strong>Smart-analyse IA</strong> conserv&eacute; et habill&eacute; en panel doux (gradient gold-50). Confiance %, maturit&eacute; sugg&eacute;r&eacute;e, classification, recommandation, risque, bouton &laquo; Appliquer les suggestions &raquo;. &laquo; Voir les hypoth&egrave;ses &raquo; comme dans Phase 3.
+    <br>7. <strong>Cascade de validation</strong> dans le rail droit (timeline 4 paliers : Auditeur &rarr; Chef de mission &rarr; Associ&eacute; &rarr; Client). Plus visible que dans le ValidationStep actuel embarqu&eacute; dans le formulaire.
+    <br>8. <strong>Badge IA sur les preuves</strong> (&#10003; IA / &#9888; Trop volumineux) &mdash; existe d&eacute;j&agrave;, conserv&eacute; tel quel.
+    <br>9. <strong>Points d&apos;attention contr&ocirc;le-sp&eacute;cifiques</strong> (Step 1 Observer) &mdash; deux sources : (a) <strong>checklist statique</strong> g&eacute;r&eacute;e par G&euml;stu admin (nouvelle colonne <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">controls.audit_checklist text[]</span> ou nouvelle table <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">control_audit_checklist</span>) &middot; (b) <strong>points d&apos;attention dynamiques</strong> d&eacute;riv&eacute;s des r&eacute;ponses cadrage du client via la liaison <span class="mono" style="font-family:'JetBrains Mono', monospace; background:var(--surface); padding:1px 5px; border-radius:3px; font-size:11px">question_controls</span>. La partie dynamique peut &ecirc;tre g&eacute;n&eacute;r&eacute;e &agrave; la vol&eacute;e par l&apos;IA ou pr&eacute;-calcul&eacute;e au lancement de la phase 4.
+  </div>
+</div>
+
+<script>
+  function switchRailContent(btn, key) {
+    btn.parentElement.querySelectorAll('.rail-tab').forEach(b => b.setAttribute('aria-selected', 'false'));
+    btn.setAttribute('aria-selected', 'true');
+    document.getElementById('rail-content').setAttribute('data-tab', key);
+  }
+
+  function switchMode(mode) {
+    const wbCenter = document.querySelector('.workbench-center');
+    wbCenter.setAttribute('data-mode', mode);
+    document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mode-toggle button').forEach(b => {
+      const isThis = (mode === 'guided' && b.textContent.trim() === 'Guidé') || (mode === 'libre' && b.textContent.trim() === 'Libre');
+      if (isThis) b.classList.add('active');
+    });
+  }
+
+  function toggleRail() {
+    const wb = document.querySelector('.workbench');
+    const isCollapsed = wb.getAttribute('data-rail') === 'collapsed';
+    wb.setAttribute('data-rail', isCollapsed ? '' : 'collapsed');
+    document.getElementById('rail-toggle').setAttribute('aria-pressed', isCollapsed ? 'true' : 'false');
+  }
+
+  let currentGuidedStep = 0;
+  const TOTAL_GSTEPS = 4;
+  function goGuidedStep(n) {
+    if (n < 0 || n >= TOTAL_GSTEPS) return;
+    currentGuidedStep = n;
+    document.querySelectorAll('.guided-step').forEach((s, i) => {
+      s.classList.remove('done', 'current', 'future');
+      s.classList.add(i < n ? 'done' : i === n ? 'current' : 'future');
+    });
+    document.querySelectorAll('.guided-step-content').forEach((c, i) => {
+      c.classList.toggle('active', i === n);
+    });
+    document.getElementById('gstep-counter').textContent = `ÉTAPE ${String(n+1).padStart(2,'0')} / 04`;
+    document.getElementById('gprev-btn').style.display = n === 0 ? 'none' : '';
+    const nextBtn = document.getElementById('gnext-btn');
+    if (n === TOTAL_GSTEPS - 1) {
+      nextBtn.classList.remove('btn-primary');
+      nextBtn.classList.add('btn-gold');
+      nextBtn.innerHTML = 'Soumettre au chef de mission <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>';
+    } else {
+      nextBtn.classList.remove('btn-gold');
+      nextBtn.classList.add('btn-primary');
+      nextBtn.innerHTML = 'Suivant <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 6l6 6-6 6"/></svg>';
+    }
+  }
+</script>
+</body>
+</html>

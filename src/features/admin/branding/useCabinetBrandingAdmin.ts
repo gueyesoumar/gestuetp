@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 
 export interface CabinetBrandingRow {
   organization_id: string
@@ -52,8 +53,8 @@ export function useCabinetBrandingAdmin(cabinetId: string) {
         }),
       ])
 
-      if (brandingRes.error) throw new Error(brandingRes.error.message)
-      if (domainsRes.error) throw new Error(domainsRes.error.message)
+      if (brandingRes.error) throw new Error(await readInvokeError(brandingRes.error, brandingRes.data, 'Lecture impossible'))
+      if (domainsRes.error) throw new Error(await readInvokeError(domainsRes.error, domainsRes.data, 'Lecture impossible'))
 
       const branding = brandingRes.data?.branding ?? null
       const domains = domainsRes.data?.domains ?? []

@@ -79,7 +79,6 @@ export function ClientMissionDashboardTab({ mission, onTabChange }: Props): JSX.
         <div className="flex flex-col gap-6">
           <ClientActionsList
             docsPending={data.docsPending}
-            findingsPending={0}
             interviewsPending={data.upcomingInterviewCount}
             carsPending={data.carsPendingCount}
             totalPending={data.totalPendingActions}
@@ -94,7 +93,7 @@ export function ClientMissionDashboardTab({ mission, onTabChange }: Props): JSX.
 
         {/* Right column */}
         <div className="flex flex-col gap-6">
-          <ClientTeamCard missionId={mission.id} />
+          <ClientTeamCard missionId={mission.id} cabinetId={mission.cabinet_id} />
           <ClientUpcomingDeadlines
             missionId={mission.id}
             endDate={mission.end_date}

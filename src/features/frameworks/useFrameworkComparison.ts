@@ -58,8 +58,9 @@ export function useFrameworkComparison(
         return
       }
 
-      const sourceControls = sourceRes.data ?? []
-      const targetControls = targetRes.data ?? []
+      type CtrlRow = { id: string; code: string; name: string; description: string | null; guidance: string | null; domain_id: string; sort_order: number }
+      const sourceControls = (sourceRes.data ?? []) as unknown as CtrlRow[]
+      const targetControls = (targetRes.data ?? []) as unknown as CtrlRow[]
       const sourceIds = sourceControls.map((c) => c.id)
       const targetIds = targetControls.map((c) => c.id)
 

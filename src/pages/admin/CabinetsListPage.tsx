@@ -7,19 +7,19 @@ import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { CreateCabinetWizard } from '../../features/admin/CreateCabinetWizard'
 
 type StatusFilter = 'all' | 'active' | 'suspended'
-type TypeFilter = 'all' | 'cabinet' | 'client' | 'groupe' | 'platform' | 'autre'
+type TypeFilter = 'all' | 'cabinet' | 'client' | 'group' | 'platform' | 'autre'
 
 const TYPE_LABELS: Record<string, { label: string; variant: 'forest' | 'blue' | 'gold' | 'purple' | 'gray' }> = {
   cabinet: { label: 'Cabinet', variant: 'forest' },
   client: { label: 'Client', variant: 'blue' },
-  groupe: { label: 'Groupe', variant: 'gold' },
+  group: { label: 'Groupe', variant: 'gold' },
   platform: { label: 'Plateforme', variant: 'purple' },
 }
 
 function classifyType(types: string[]): TypeFilter {
   if (types.includes('cabinet')) return 'cabinet'
   if (types.includes('client')) return 'client'
-  if (types.includes('groupe')) return 'groupe'
+  if (types.includes('group')) return 'group'
   if (types.includes('platform')) return 'platform'
   return 'autre'
 }
@@ -43,7 +43,7 @@ export function CabinetsListPage() {
   }, [cabinets, search, statusFilter, typeFilter])
 
   const counts = useMemo(() => {
-    const byType: Record<string, number> = { cabinet: 0, client: 0, groupe: 0, platform: 0, autre: 0 }
+    const byType: Record<string, number> = { cabinet: 0, client: 0, group: 0, platform: 0, autre: 0 }
     let active = 0
     let suspended = 0
     for (const c of cabinets) {
@@ -64,7 +64,7 @@ export function CabinetsListPage() {
       <h1 className="text-xl font-bold text-gray-900 mb-1">Toutes les organisations</h1>
       <p className="text-[12.5px] text-gray-500 mb-5">
         {counts.total} organisations &mdash; {counts.byType.cabinet} cabinets, {counts.byType.client} clients
-        {counts.byType.groupe > 0 && `, ${counts.byType.groupe} groupes`}
+        {counts.byType.group > 0 && `, ${counts.byType.group} groupes`}
         {counts.byType.platform > 0 && `, ${counts.byType.platform} plateforme`}
         {counts.byType.autre > 0 && `, ${counts.byType.autre} autres`}
         {' · '}{counts.active} actives, {counts.suspended} suspendues.
@@ -98,7 +98,7 @@ export function CabinetsListPage() {
         <TypePill label="Tous" active={typeFilter === 'all'} count={counts.total} onClick={() => setTypeFilter('all')} variant="gray" />
         <TypePill label="Cabinets" active={typeFilter === 'cabinet'} count={counts.byType.cabinet} onClick={() => setTypeFilter('cabinet')} variant="forest" />
         <TypePill label="Clients" active={typeFilter === 'client'} count={counts.byType.client} onClick={() => setTypeFilter('client')} variant="blue" />
-        {counts.byType.groupe > 0 && <TypePill label="Groupes" active={typeFilter === 'groupe'} count={counts.byType.groupe} onClick={() => setTypeFilter('groupe')} variant="gold" />}
+        {counts.byType.group > 0 && <TypePill label="Groupes" active={typeFilter === 'group'} count={counts.byType.group} onClick={() => setTypeFilter('group')} variant="gold" />}
         {counts.byType.platform > 0 && <TypePill label="Plateforme" active={typeFilter === 'platform'} count={counts.byType.platform} onClick={() => setTypeFilter('platform')} variant="purple" />}
         {counts.byType.autre > 0 && <TypePill label="Autres" active={typeFilter === 'autre'} count={counts.byType.autre} onClick={() => setTypeFilter('autre')} variant="gray" />}
       </div>

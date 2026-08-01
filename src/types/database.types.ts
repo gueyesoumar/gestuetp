@@ -43,6 +43,11 @@ export type QuestionType =
   | 'multiple_choice'
   | 'boolean'
   | 'file_upload'
+  | 'date'
+  | 'number'
+  | 'scale_percent'
+  | 'file'
+  | 'organigramme'
 
 export type ReportFormat = 'pdf' | 'pptx'
 
@@ -68,6 +73,10 @@ export interface Organization {
   sector: string | null
   description: string | null
   is_active: boolean
+  /** Nature de l'entité interne d'un groupe (cf. migration 00136). NULL sinon. */
+  entity_type?: 'filiale' | 'site' | 'direction' | 'business_unit' | null
+  /** Kill switch IA cabinet (cf. migration 00088). */
+  ai_analysis_enabled?: boolean
   created_at: string
   updated_at: string
 }
@@ -201,13 +210,15 @@ export interface UserUpdate {
 // ============================================================
 
 export type PortalStatus = 'pending' | 'invited' | 'active'
-export type ClientPermission = 'contributor' | 'viewer'
+export type ClientPermission = 'contributor' | 'viewer' | 'approver'
 export type ActionPriority = 'critical' | 'high' | 'medium' | 'low'
 export type ActionStatus = 'open' | 'in_progress' | 'done'
 
 export interface ClientPortalContact {
   id: string
-  cabinet_client_id: string
+  // Polymorphe (mig 00141) : cabinet_client_id (Comply) XOR entity_org_id (Regul).
+  cabinet_client_id: string | null
+  entity_org_id: string | null
   user_id: string | null
   contact_name: string
   email: string
@@ -251,6 +262,13 @@ export interface PlatformRolePermissions {
   can_assign_team: boolean
   can_be_lead: boolean
   can_designate_lead: boolean
+  /** Permissions cabinet ajoutées par migration 00082 (optionnelles côté
+   *  TypeScript pour les rôles legacy, traitées comme false si absentes). */
+  can_delete_mission?: boolean
+  can_manage_members?: boolean
+  can_manage_clients?: boolean
+  can_edit_organization?: boolean
+  can_manage_roles?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
@@ -335,6 +353,25 @@ export interface Domain {
   updated_at: string
 }
 
+export interface AuditChecklistItem {
+  label: string
+  hint?: string
+  evidence_type?: 'document' | 'interview' | 'observation' | 'test'
+}
+
+// Dimensions du score de confiance (6 axes + 2 facteurs). Cf migration 00159.
+export type ScoreDimension =
+  | 'security'
+  | 'data_protection'
+  | 'resilience'
+  | 'integrity'
+  | 'governance'
+  | 'verifiability'
+  | 'human_factor'
+  | 'third_party'
+
+export type DimensionSource = 'ai' | 'inherited' | 'manual'
+
 export interface Control {
   id: string
   domain_id: string
@@ -342,6 +379,13 @@ export interface Control {
   name: string
   description: string | null
   guidance: string | null
+  audit_checklist?: AuditChecklistItem[]
+  // 1=very low, 5=critical. Default 3. From migration 00105.
+  risk_level?: number
+  // Dimension du score informée par ce contrôle (null = non classé). Migration 00159.
+  dimension?: ScoreDimension | null
+  dimension_source?: DimensionSource | null
+  dimension_confidence?: number | null
   sort_order: number
   created_at: string
   updated_at: string
@@ -358,7 +402,15 @@ export interface ControlMapping {
   created_at: string
 }
 
-export type EvidenceRequestStatus = 'pending' | 'uploaded' | 'validated' | 'rejected'
+export type EvidenceRequestStatus =
+  | 'pending'
+  | 'uploaded'
+  | 'declined_by_client'
+  | 'accepted'
+  | 'reissued'
+  | 'escalated_to_finding'
+
+export type EvidenceDeclineReason = 'inexistant' | 'non_applicable' | 'confidentialite'
 
 export interface EvidenceCatalogItem {
   id: string
@@ -378,6 +430,14 @@ export interface MissionEvidenceRequest {
   requested_by: string
   status: EvidenceRequestStatus
   created_at: string
+  decline_reason?: EvidenceDeclineReason | null
+  decline_justification?: string | null
+  declined_by?: string | null
+  declined_at?: string | null
+  auditor_response?: string | null
+  auditor_decided_by?: string | null
+  auditor_decided_at?: string | null
+  escalated_assessment_id?: string | null
 }
 
 export interface QuestionnaireTemplate {
@@ -391,6 +451,14 @@ export interface QuestionnaireTemplate {
   updated_at: string
 }
 
+export type ShowIfOperator = 'equals' | 'not_equals' | 'truthy' | 'falsy'
+
+export interface ShowIfCondition {
+  question_code: string
+  operator: ShowIfOperator
+  value?: unknown
+}
+
 export interface Question {
   id: string
   template_id: string
@@ -401,6 +469,8 @@ export interface Question {
   options: string[] | null
   is_required: boolean
   sort_order: number
+  prefill_source?: string | null
+  show_if?: ShowIfCondition | null
   created_at: string
   updated_at: string
 }
@@ -408,6 +478,8 @@ export interface Question {
 // ============================================================
 // Tables mission
 // ============================================================
+
+export type MissionKind = 'audit' | 'continuous_supervision'
 
 export interface Mission {
   id: string
@@ -417,6 +489,7 @@ export interface Mission {
   name: string
   description: string | null
   status: MissionStatus
+  kind: MissionKind
   lead_auditor_id: string | null
   associate_id: string | null
   start_date: string | null
@@ -438,6 +511,7 @@ export interface MissionInsert {
   name: string
   description?: string | null
   status?: MissionStatus
+  kind?: MissionKind
   lead_auditor_id?: string | null
   associate_id?: string | null
   start_date?: string | null
@@ -497,14 +571,11 @@ export interface ControlAssessment {
   control_id: string
   auditor_id: string
   status: AssessmentStatus
-  findings: string | null
-  recommendations: string | null
-  ai_draft: string | null
   evidence_notes: string | null
   observations: string | null
-  risk_notes: string | null
   conformity_level: string | null
-  finding_classification: string | null
+  conformity_override_reason: string | null
+  cycle_id: string | null
   created_at: string
   updated_at: string
 }
@@ -515,10 +586,8 @@ export interface ControlAssessmentInsert {
   control_id: string
   auditor_id: string
   status?: AssessmentStatus
-  findings?: string | null
-  recommendations?: string | null
-  ai_draft?: string | null
   evidence_notes?: string | null
+  cycle_id?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -530,21 +599,20 @@ export type AuditConclusion = 'conformant' | 'partially_conformant' | 'non_confo
 
 export interface ControlAssessmentUpdate {
   status?: AssessmentStatus
-  findings?: string | null
-  recommendations?: string | null
-  ai_draft?: string | null
   evidence_notes?: string | null
   observations?: string | null
-  risk_notes?: string | null
   conformity_level?: string | null
-  finding_classification?: FindingClassification | null
+  conformity_override_reason?: string | null
 }
 
 export interface CorrectiveActionRequest {
   id: string
   mission_id: string
   assessment_id: string
+  /** FK vers assessment_findings.id depuis migration 00100 (source de verite). */
+  finding_id: string | null
   code: string
+  /** Snapshot denormalise au moment de la creation. Source de verite : finding_id. */
   finding_classification: string
   control_code: string | null
   control_name: string | null
@@ -561,9 +629,42 @@ export interface CorrectiveActionRequest {
   verified_by: string | null
   verified_at: string | null
   status: CARStatus
+  cycle_id: string | null
   created_by: string
   created_at: string
   updated_at: string
+}
+
+export type SupervisionCycleStatus = 'planned' | 'in_progress' | 'closed'
+
+export interface SupervisionCycle {
+  id: string
+  mission_id: string
+  period_label: string
+  period_start: string
+  period_end: string
+  status: SupervisionCycleStatus
+  score: number | null
+  conformity_summary: Record<string, unknown> | null
+  lead_auditor_id: string | null
+  created_by: string
+  closed_by: string | null
+  closed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface SupervisionCycleInsert {
+  id?: string
+  mission_id: string
+  period_label: string
+  period_start: string
+  period_end: string
+  status?: SupervisionCycleStatus
+  score?: number | null
+  conformity_summary?: Record<string, unknown> | null
+  lead_auditor_id?: string | null
+  created_by: string
 }
 
 export interface AssessmentValidation {
@@ -586,11 +687,14 @@ export interface AssessmentValidationInsert {
   created_at?: string
 }
 
+export type QuestionnaireSkipReason = 'rssi_validation' | 'no_object' | 'unknown'
+
 export interface QuestionnaireInstance {
   id: string
   mission_id: string
   template_id: string
   snapshot: Record<string, unknown>
+  due_date: string | null
   created_at: string
 }
 
@@ -599,6 +703,7 @@ export interface QuestionnaireInstanceInsert {
   mission_id: string
   template_id: string
   snapshot: Record<string, unknown>
+  due_date?: string | null
   created_at?: string
 }
 
@@ -608,8 +713,41 @@ export interface QuestionnaireResponse {
   question_code: string
   response: Record<string, unknown> | null
   responded_by: string
+  skip_reason: QuestionnaireSkipReason | null
+  is_prefilled: boolean
+  entered_by_auditor: boolean
   created_at: string
   updated_at: string
+}
+
+export interface QuestionnaireResponseCommentRow {
+  id: string
+  instance_id: string
+  question_code: string
+  // null when the original author has been deleted (preserves audit trail)
+  author_id: string | null
+  parent_id: string | null
+  text: string
+  mentioned_user_ids: string[]
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
+export interface QuestionnaireResponseCommentInsert {
+  id?: string
+  instance_id: string
+  question_code: string
+  author_id: string
+  parent_id?: string | null
+  text: string
+  mentioned_user_ids?: string[]
+}
+
+export interface QuestionnaireResponseCommentUpdate {
+  text?: string
+  mentioned_user_ids?: string[]
+  deleted_at?: string | null
 }
 
 export interface QuestionnaireResponseInsert {
@@ -618,12 +756,15 @@ export interface QuestionnaireResponseInsert {
   question_code: string
   response?: Record<string, unknown> | null
   responded_by: string
+  skip_reason?: QuestionnaireSkipReason | null
+  is_prefilled?: boolean
   created_at?: string
   updated_at?: string
 }
 
 export interface QuestionnaireResponseUpdate {
   response?: Record<string, unknown> | null
+  skip_reason?: QuestionnaireSkipReason | null
 }
 
 export interface PartieInteressee {
@@ -719,6 +860,39 @@ export interface CabinetClientUpdate {
   notes?: string | null
 }
 
+export interface SignatureEvidence {
+  page: number | null
+  quote: string
+}
+
+export interface DocumentSignature {
+  role: string | null
+  name: string | null
+  signed: boolean
+  date: string | null
+  /** Required when signed=true (Pass 1 schema 2026+). Optional for older extractions. */
+  evidence?: SignatureEvidence | null
+}
+
+export interface VersionEvidence {
+  location: string
+  quote: string
+}
+
+export interface DocumentAiMetadata {
+  version: string | null
+  /** Optional (Pass 1 schema 2026+). Where + citation supporting `version`. */
+  version_evidence?: VersionEvidence | null
+  last_revision_date: string | null
+  signatures: DocumentSignature[]
+  formality_score: number | null
+  scope_declared: string | null
+  key_topics: string[]
+  page_count: number | null
+  /** Optional: human-readable summary of what the doc covers (1-2 sentences). */
+  synthesis: string | null
+}
+
 export interface Document {
   id: string
   mission_id: string
@@ -733,6 +907,10 @@ export interface Document {
   description: string | null
   anthropic_file_id: string | null
   anthropic_file_uploaded_at: string | null
+  anthropic_file_kind: 'document' | 'image' | null
+  ai_metadata: DocumentAiMetadata | null
+  ai_extracted_at: string | null
+  ai_extract_error: string | null
   created_at: string
 }
 
@@ -983,19 +1161,52 @@ export interface ClientContactInsert {
   is_primary?: boolean
 }
 
+export interface ClientContactUpdate {
+  name?: string
+  job_title?: string | null
+  department?: string | null
+  email?: string | null
+  phone?: string | null
+  is_primary?: boolean
+}
+
+// Phase D : PV pre-rempli structure par sujet (snapshot a la creation).
+export interface PvTemplateSection {
+  topic_id: string
+  topic_name: string
+  control_codes: string[]
+  questions: string[]
+}
+
+export interface PvTemplate {
+  sections: PvTemplateSection[]
+}
+
+// Saisie progressive de l'auditeur. Les indices de question_responses
+// correspondent aux indices de pv_template.sections[i].questions.
+export interface PvNotesSection {
+  topic_id: string
+  summary: string
+  question_responses: Record<string, string>
+}
+
+export interface PvNotes {
+  sections: PvNotesSection[]
+}
+
 export interface InterviewSchedule {
   id: string
   mission_id: string
-  contact_id: string | null
   auditor_id: string
   title: string
   scheduled_date: string
   scheduled_time: string
   duration_minutes: number
   location: string | null
-  control_ids: string[]
   notes: string | null
   status: InterviewStatus
+  pv_template: PvTemplate | null
+  pv_notes: PvNotes | null
   created_at: string
   updated_at: string
 }
@@ -1003,197 +1214,532 @@ export interface InterviewSchedule {
 export interface InterviewScheduleInsert {
   id?: string
   mission_id: string
-  contact_id?: string | null
   auditor_id: string
   title: string
   scheduled_date: string
   scheduled_time: string
   duration_minutes?: number
   location?: string | null
-  control_ids?: string[]
   notes?: string | null
   status?: InterviewStatus
+  pv_template?: PvTemplate | null
+  pv_notes?: PvNotes | null
 }
 
 export interface InterviewScheduleUpdate {
-  contact_id?: string | null
   auditor_id?: string
   title?: string
   scheduled_date?: string
   scheduled_time?: string
   duration_minutes?: number
   location?: string | null
-  control_ids?: string[]
   notes?: string | null
   status?: InterviewStatus
+  pv_notes?: PvNotes | null
+}
+
+// ============================================================
+// Interview matrix : N:N entretien <-> sujet, entretien <-> acteur
+// (migration 00113 - phase C refonte Entretiens)
+// ============================================================
+
+export interface InterviewTopicLink {
+  interview_id: string
+  topic_id: string
+}
+
+export interface InterviewActorLink {
+  interview_id: string
+  actor_id: string
+}
+
+// ============================================================
+// Question <-> Control link (migration 00098)
+// ============================================================
+
+export interface QuestionControlLink {
+  question_id: string
+  control_id: string
+  weight: number
+}
+
+export interface QuestionControlLinkInsert {
+  question_id: string
+  control_id: string
+  weight?: number
+}
+
+// ============================================================
+// Assessment Findings (migration 00099, hardened by 00104)
+// ============================================================
+// FindingClassification is already declared above (line ~564).
+
+export type FindingPriority = 'critical' | 'high' | 'medium' | 'low'
+
+export interface AssessmentFinding {
+  id: string
+  assessment_id: string
+  ord: number
+  classification: FindingClassification
+  description: string
+  risk: string | null
+  recommendation: string | null
+  priority: FindingPriority | null
+  proposed_deadline: string | null
+  ai_generated: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AssessmentFindingInsert {
+  id?: string
+  assessment_id: string
+  ord?: number
+  classification: FindingClassification
+  description: string
+  risk?: string | null
+  recommendation?: string | null
+  priority?: FindingPriority | null
+  proposed_deadline?: string | null
+  ai_generated?: boolean
+}
+
+export interface AssessmentFindingUpdate {
+  ord?: number
+  classification?: FindingClassification
+  description?: string
+  risk?: string | null
+  recommendation?: string | null
+  priority?: FindingPriority | null
+  proposed_deadline?: string | null
+}
+
+// ============================================================
+// Control Comments / Discussion (migration 00103, hardened by 00104)
+// ============================================================
+
+export interface ControlCommentRow {
+  id: string
+  mission_id: string
+  control_id: string
+  // null when the original author has been deleted (preserves audit trail)
+  author_id: string | null
+  parent_id: string | null
+  text: string
+  mentioned_user_ids: string[]
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
+export interface ControlCommentInsert {
+  id?: string
+  mission_id: string
+  control_id: string
+  author_id: string
+  parent_id?: string | null
+  text: string
+  mentioned_user_ids?: string[]
+}
+
+export interface ControlCommentUpdate {
+  text?: string
+  mentioned_user_ids?: string[]
+  deleted_at?: string | null
+}
+
+// ============================================================
+// Audit topics — meta-themes regroupant N controles d'un referentiel
+// (ex: "Gestion des acces" couvre A.5.15-18, A.8.2, A.8.3, A.8.5).
+// framework_id non null = template plateforme, mission_id non null = custom mission.
+// ============================================================
+
+export interface AuditTopic {
+  id: string
+  framework_id: string | null
+  mission_id: string | null
+  name: string
+  description: string | null
+  is_active: boolean
+  sort_order: number
+  default_questions: string[]
+  created_at: string
+  updated_at: string
+}
+
+export interface AuditTopicInsert {
+  id?: string
+  framework_id?: string | null
+  mission_id?: string | null
+  name: string
+  description?: string | null
+  is_active?: boolean
+  sort_order?: number
+}
+
+export interface AuditTopicUpdate {
+  name?: string
+  description?: string | null
+  is_active?: boolean
+  sort_order?: number
+}
+
+export interface TopicControlLink {
+  topic_id: string
+  control_id: string
+}
+
+export interface TopicControlLinkInsert {
+  topic_id: string
+  control_id: string
 }
 
 // ============================================================
 // Database type (pour Supabase client type)
 // ============================================================
 
+// ============================================================
+// Centre d'aide / Support (Phase 0-1)
+// ============================================================
+
+export type SupportNature = 'bug' | 'demande' | 'suggestion'
+export type SupportStatus = 'open' | 'in_progress' | 'answered' | 'escalated' | 'resolved' | 'closed'
+export type SupportDemandeSubtype = 'password_reset' | 'feature_activation' | 'plan_change' | 'access_member'
+
+export interface SupportRequest {
+  id: string
+  nature: SupportNature
+  subtype: string | null
+  status: SupportStatus
+  title: string
+  body: string | null
+  requester_user_id: string
+  cabinet_id: string
+  mission_id: string | null
+  role_at_submit: string | null
+  context: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface SupportRequestInsert {
+  nature: SupportNature
+  subtype?: string | null
+  status?: SupportStatus
+  title: string
+  body?: string | null
+  requester_user_id: string
+  cabinet_id: string
+  mission_id?: string | null
+  role_at_submit?: string | null
+  context?: Record<string, unknown>
+}
+
+export interface SupportRequestUpdate {
+  status?: SupportStatus
+  body?: string | null
+  context?: Record<string, unknown>
+}
+
+/**
+ * Helper qui rend nos interfaces compatibles avec GenericTable de supabase-js v2.
+ * supabase-js requiert Row/Insert/Update extends Record<string, unknown> ; les
+ * `interface` TypeScript ne satisfont pas ce contrat structurellement (vs un type
+ * alias inline), ce qui faisait tomber l'inference de tous les .select() en `never`.
+ * L'intersection force la conformite sans modifier la forme reelle.
+ */
+// ============================================================
+// Graphe relationnel des organisations (RFC 0001, migration 00156)
+// ============================================================
+
+export type RelationshipNature =
+  | 'self'
+  | 'audit_engagement'
+  | 'group_ownership'
+  | 'regulatory_supervision'
+  | 'delegation'
+export type RelationshipStatus = 'active' | 'ended' | 'suspended'
+
+export interface OrganizationRelationship {
+  id: string
+  actor_org_id: string
+  target_org_id: string
+  nature: RelationshipNature
+  status: RelationshipStatus
+  visibility_overrides: Record<string, unknown> | null
+  scope: Record<string, unknown> | null
+  started_at: string
+  ended_at: string | null
+  created_by: string | null
+  created_at: string
+}
+
+type Rec = Record<string, unknown>
+
 export interface Database {
+  __InternalSupabase: {
+    PostgrestVersion: '12'
+  }
   public: {
     Tables: {
       organizations: {
-        Row: Organization
-        Insert: OrganizationInsert
-        Update: OrganizationUpdate
+        Row: Organization & Rec
+        Insert: OrganizationInsert & Rec
+        Update: OrganizationUpdate & Rec
+        Relationships: []
+      }
+      organization_relationships: {
+        Row: OrganizationRelationship & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       tenant_configs: {
-        Row: TenantConfig
-        Insert: TenantConfigInsert
-        Update: TenantConfigUpdate
+        Row: TenantConfig & Rec
+        Insert: TenantConfigInsert & Rec
+        Update: TenantConfigUpdate & Rec
+        Relationships: []
       }
       users: {
-        Row: User
-        Insert: UserInsert
-        Update: UserUpdate
+        Row: User & Rec
+        Insert: UserInsert & Rec
+        Update: UserUpdate & Rec
+        Relationships: []
       }
       platform_roles: {
-        Row: PlatformRole
-        Insert: PlatformRoleInsert
-        Update: PlatformRoleUpdate
+        Row: PlatformRole & Rec
+        Insert: PlatformRoleInsert & Rec
+        Update: PlatformRoleUpdate & Rec
+        Relationships: []
       }
       user_platform_roles: {
-        Row: UserPlatformRole
-        Insert: UserPlatformRoleInsert
-        Update: never
+        Row: UserPlatformRole & Rec
+        Insert: UserPlatformRoleInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       frameworks: {
-        Row: Framework
-        Insert: never
-        Update: never
+        Row: Framework & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       domains: {
-        Row: Domain
-        Insert: never
-        Update: never
+        Row: Domain & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       controls: {
-        Row: Control
-        Insert: never
-        Update: never
+        Row: Control & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questionnaire_templates: {
-        Row: QuestionnaireTemplate
-        Insert: never
-        Update: never
+        Row: QuestionnaireTemplate & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questions: {
-        Row: Question
-        Insert: never
-        Update: never
+        Row: Question & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       control_mappings: {
-        Row: ControlMapping
-        Insert: never
-        Update: never
+        Row: ControlMapping & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       cabinet_clients: {
-        Row: CabinetClient
-        Insert: CabinetClientInsert
-        Update: CabinetClientUpdate
+        Row: CabinetClient & Rec
+        Insert: CabinetClientInsert & Rec
+        Update: CabinetClientUpdate & Rec
+        Relationships: []
+      }
+      support_requests: {
+        Row: SupportRequest & Rec
+        Insert: SupportRequestInsert & Rec
+        Update: SupportRequestUpdate & Rec
+        Relationships: []
       }
       evidence_catalog: {
-        Row: EvidenceCatalogItem
-        Insert: never
-        Update: never
+        Row: EvidenceCatalogItem & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       mission_evidence_requests: {
-        Row: MissionEvidenceRequest
-        Insert: never
-        Update: never
+        Row: MissionEvidenceRequest & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       missions: {
-        Row: Mission
-        Insert: MissionInsert
-        Update: MissionUpdate
+        Row: Mission & Rec
+        Insert: MissionInsert & Rec
+        Update: MissionUpdate & Rec
+        Relationships: []
       }
       mission_members: {
-        Row: MissionMember
-        Insert: MissionMemberInsert
-        Update: never
+        Row: MissionMember & Rec
+        Insert: MissionMemberInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       mission_control_assignments: {
-        Row: MissionControlAssignment
-        Insert: MissionControlAssignmentInsert
-        Update: never
+        Row: MissionControlAssignment & Rec
+        Insert: MissionControlAssignmentInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       control_assessments: {
-        Row: ControlAssessment
-        Insert: ControlAssessmentInsert
-        Update: ControlAssessmentUpdate
+        Row: ControlAssessment & Rec
+        Insert: ControlAssessmentInsert & Rec
+        Update: ControlAssessmentUpdate & Rec
+        Relationships: []
       }
       assessment_validations: {
-        Row: AssessmentValidation
-        Insert: AssessmentValidationInsert
-        Update: never
+        Row: AssessmentValidation & Rec
+        Insert: AssessmentValidationInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questionnaire_instances: {
-        Row: QuestionnaireInstance
-        Insert: QuestionnaireInstanceInsert
-        Update: never
+        Row: QuestionnaireInstance & Rec
+        Insert: QuestionnaireInstanceInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       questionnaire_responses: {
-        Row: QuestionnaireResponse
-        Insert: QuestionnaireResponseInsert
-        Update: QuestionnaireResponseUpdate
+        Row: QuestionnaireResponse & Rec
+        Insert: QuestionnaireResponseInsert & Rec
+        Update: QuestionnaireResponseUpdate & Rec
+        Relationships: []
       }
       documents: {
-        Row: Document
-        Insert: DocumentInsert
-        Update: never
+        Row: Document & Rec
+        Insert: DocumentInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       comments: {
-        Row: Comment
-        Insert: CommentInsert
-        Update: CommentUpdate
+        Row: Comment & Rec
+        Insert: CommentInsert & Rec
+        Update: CommentUpdate & Rec
+        Relationships: []
       }
       reports: {
-        Row: Report
-        Insert: ReportInsert
-        Update: never
+        Row: Report & Rec
+        Insert: ReportInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       notifications: {
-        Row: Notification
-        Insert: never
-        Update: never
+        Row: Notification & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       regulatory_catalog: {
-        Row: RegulatoryCatalogItem
-        Insert: never
-        Update: never
+        Row: RegulatoryCatalogItem & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
       }
       control_planning: {
-        Row: ControlPlanning
-        Insert: ControlPlanningInsert
-        Update: ControlPlanningUpdate
+        Row: ControlPlanning & Rec
+        Insert: ControlPlanningInsert & Rec
+        Update: ControlPlanningUpdate & Rec
+        Relationships: []
       }
       client_contacts: {
-        Row: ClientContact
-        Insert: ClientContactInsert
-        Update: never
+        Row: ClientContact & Rec
+        Insert: ClientContactInsert & Rec
+        Update: ClientContactUpdate & Rec
+        Relationships: []
       }
       interview_schedules: {
-        Row: InterviewSchedule
-        Insert: InterviewScheduleInsert
-        Update: InterviewScheduleUpdate
+        Row: InterviewSchedule & Rec
+        Insert: InterviewScheduleInsert & Rec
+        Update: InterviewScheduleUpdate & Rec
+        Relationships: []
       }
       mission_exclusions: {
-        Row: MissionExclusion
-        Insert: MissionExclusionInsert
-        Update: never
+        Row: MissionExclusion & Rec
+        Insert: MissionExclusionInsert & Rec
+        Update: never & Rec
+        Relationships: []
       }
       mission_risks: {
-        Row: MissionRisk
-        Insert: MissionRiskInsert
-        Update: MissionRiskUpdate
+        Row: MissionRisk & Rec
+        Insert: MissionRiskInsert & Rec
+        Update: MissionRiskUpdate & Rec
+        Relationships: []
       }
       audit_history: {
-        Row: AuditHistoryEntry
-        Insert: AuditHistoryInsert
-        Update: never
+        Row: AuditHistoryEntry & Rec
+        Insert: AuditHistoryInsert & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      question_controls: {
+        Row: QuestionControlLink & Rec
+        Insert: QuestionControlLinkInsert & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      assessment_findings: {
+        Row: AssessmentFinding & Rec
+        Insert: AssessmentFindingInsert & Rec
+        Update: AssessmentFindingUpdate & Rec
+        Relationships: []
+      }
+      control_comments: {
+        Row: ControlCommentRow & Rec
+        Insert: ControlCommentInsert & Rec
+        Update: ControlCommentUpdate & Rec
+        Relationships: []
+      }
+      questionnaire_response_comments: {
+        Row: QuestionnaireResponseCommentRow & Rec
+        Insert: QuestionnaireResponseCommentInsert & Rec
+        Update: QuestionnaireResponseCommentUpdate & Rec
+        Relationships: []
+      }
+      audit_topics: {
+        Row: AuditTopic & Rec
+        Insert: AuditTopicInsert & Rec
+        Update: AuditTopicUpdate & Rec
+        Relationships: []
+      }
+      topic_controls: {
+        Row: TopicControlLink & Rec
+        Insert: TopicControlLinkInsert & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      interview_topics: {
+        Row: InterviewTopicLink & Rec
+        Insert: InterviewTopicLink & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      interview_actors: {
+        Row: InterviewActorLink & Rec
+        Insert: InterviewActorLink & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+    }
+    Views: Record<string, never>
+    Functions: {
+      get_subsidiary_ids: {
+        Args: { parent_id: string }
+        Returns: string[]
       }
     }
     Enums: {
@@ -1209,6 +1755,8 @@ export interface Database {
       interview_status: InterviewStatus
       campaign_status: CampaignStatus
       observation_response_action: ObservationResponseAction
+      relationship_nature: RelationshipNature
+      relationship_status: RelationshipStatus
     }
   }
 }

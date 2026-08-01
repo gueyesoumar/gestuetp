@@ -1,9 +1,14 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Settings } from 'lucide-react'
+import { Settings, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { readInvokeError } from '../lib/edgeError'
 import { useMembers } from '../features/members/useMembers'
 import { usePlatformRoles } from '../features/members/usePlatformRoles'
 import { useToggleMemberStatus } from '../features/members/useToggleMemberStatus'
+import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
+import { useMyCabinetQuotas } from '../hooks/useMyCabinetQuotas'
+import { useToast } from '../hooks/useToast'
+import { QuotaInlineBar, isQuotaReached } from '../components/quotas/QuotaInlineBar'
 import { MemberTable } from '../features/members/MemberTable'
 import { MemberSearchBar } from '../features/members/MemberSearchBar'
 import { InviteMemberModal } from '../features/members/InviteMemberModal'
@@ -20,6 +25,12 @@ export function MembersPage() {
   const { members, loading, error, refetch } = useMembers()
   const { roles } = usePlatformRoles()
   const { toggleStatus } = useToggleMemberStatus(refetch)
+  const { canManageMembers, canManageRoles } = useCabinetPermissions()
+  const { quotas, refetch: refetchQuotas } = useMyCabinetQuotas()
+  const toast = useToast()
+
+  const userQuotaReached = quotas !== null && !quotas.isPlatformOrg && isQuotaReached(quotas.currentActiveUsers, quotas.maxUsers)
+  const onInviteSuccess = useCallback(() => { refetch(); refetchQuotas() }, [refetch, refetchQuotas])
 
   // Modals
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -70,9 +81,14 @@ export function MembersPage() {
 
   const confirmToggleStatus = useCallback(async () => {
     if (!confirmTarget) return
-    await toggleStatus(confirmTarget.id, !confirmTarget.is_active)
+    const res = await toggleStatus(confirmTarget.id, !confirmTarget.is_active)
+    if (!res.ok) {
+      toast.error('Modification impossible', { description: res.error })
+    } else {
+      refetchQuotas()
+    }
     setConfirmTarget(null)
-  }, [confirmTarget, toggleStatus])
+  }, [confirmTarget, toggleStatus, toast, refetchQuotas])
 
   const handleResendInvite = useCallback((member: MemberWithRoles) => {
     setResendTarget(member)
@@ -80,7 +96,7 @@ export function MembersPage() {
 
   const confirmResendInvite = useCallback(async () => {
     if (!resendTarget) return
-    await supabase.functions.invoke('invite-member', {
+    const { data, error: fnError } = await supabase.functions.invoke('invite-member', {
       body: {
         email: resendTarget.email,
         first_name: resendTarget.first_name,
@@ -89,8 +105,14 @@ export function MembersPage() {
         resend: true,
       },
     })
+    if (fnError || data?.error) {
+      const msg = await readInvokeError(fnError, data, 'Envoi de l\'invitation impossible')
+      toast.error(msg)
+    } else {
+      toast.success(`Invitation renvoyée à ${resendTarget.email}`)
+    }
     setResendTarget(null)
-  }, [resendTarget])
+  }, [resendTarget, toast])
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
@@ -105,20 +127,42 @@ export function MembersPage() {
             G&eacute;rez les membres de votre organisation.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={() => setRoleManagementOpen(true)}
-          >
-            <Settings size={16} />
-            R&ocirc;les
-          </button>
-          <button
-            className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
-            onClick={() => setInviteOpen(true)}
-          >
-            Inviter un membre
-          </button>
+        <div className="flex items-center gap-3">
+          {quotas && !quotas.isPlatformOrg && (
+            <QuotaInlineBar
+              icon={<Users size={14} />}
+              label="Membres actifs"
+              current={quotas.currentActiveUsers}
+              max={quotas.maxUsers}
+              onCritical="Quota presque atteint"
+            />
+          )}
+          {canManageRoles && (
+            <button
+              className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              onClick={() => setRoleManagementOpen(true)}
+            >
+              <Settings size={16} />
+              R&ocirc;les
+            </button>
+          )}
+          {canManageMembers && (
+            <button
+              className={`rounded-md px-4 py-2 text-sm font-medium shadow-sm ${userQuotaReached
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-forest-700 text-white hover:bg-forest-900'}`}
+              onClick={() => {
+                if (userQuotaReached) {
+                  toast.error('Quota utilisateurs atteint', { description: `${quotas?.currentActiveUsers} / ${quotas?.maxUsers} membres actifs. Désactivez un membre ou faites évoluer le plan.` })
+                  return
+                }
+                setInviteOpen(true)
+              }}
+              title={userQuotaReached ? 'Quota utilisateurs atteint pour ce plan' : 'Inviter un nouveau membre'}
+            >
+              Inviter un membre
+            </button>
+          )}
         </div>
       </div>
 
@@ -145,6 +189,8 @@ export function MembersPage() {
       <div className="mt-2">
         <MemberTable
           members={filteredMembers}
+          canManageMembers={canManageMembers}
+          canManageRoles={canManageRoles}
           onAssignRole={(member) => setSelectedMember(member)}
           onToggleStatus={handleToggleStatus}
           onResendInvite={handleResendInvite}
@@ -157,7 +203,7 @@ export function MembersPage() {
       <InviteMemberModal
         open={inviteOpen}
         onClose={() => setInviteOpen(false)}
-        onSuccess={refetch}
+        onSuccess={onInviteSuccess}
       />
 
       {selectedMember && (

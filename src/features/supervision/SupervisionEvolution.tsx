@@ -32,8 +32,12 @@ export function SupervisionEvolution({ entities }: SupervisionEvolutionProps): J
     const fetchCampaigns = async (): Promise<void> => {
       setLoading(true)
 
+      type CampRow = { id: string; name: string; period_label: string; status: string }
+      type MissionRow = { id: string; campaign_id: string; client_id: string }
+      type AssessRow = { mission_id: string; status: string }
+
       // Fetch completed campaigns
-      const { data: camps } = await supabase
+      const { data: campsRaw } = await supabase
         .from('audit_campaigns')
         .select('id, name, period_label, status')
         .eq('organization_id', profile.organization_id)
@@ -42,19 +46,21 @@ export function SupervisionEvolution({ entities }: SupervisionEvolutionProps): J
         .abortSignal(controller.signal)
 
       if (controller.signal.aborted) return
-      if (!camps || camps.length === 0) { setPeriods([]); setLoading(false); return }
+      const camps = (campsRaw ?? []) as unknown as CampRow[]
+      if (camps.length === 0) { setPeriods([]); setLoading(false); return }
 
       // Fetch missions + assessments for each campaign
       const campIds = camps.map((c) => c.id)
-      const { data: missions } = await supabase
+      const { data: missionsRaw } = await supabase
         .from('missions')
         .select('id, campaign_id, client_id')
         .in('campaign_id', campIds)
         .abortSignal(controller.signal)
 
       if (controller.signal.aborted) return
+      const missions = (missionsRaw ?? []) as unknown as MissionRow[]
 
-      const missionIds = (missions ?? []).map((m) => m.id)
+      const missionIds = missions.map((m) => m.id)
       let scoresByMission = new Map<string, number>()
 
       if (missionIds.length > 0) {
@@ -67,7 +73,7 @@ export function SupervisionEvolution({ entities }: SupervisionEvolutionProps): J
         if (controller.signal.aborted) return
 
         const totals = new Map<string, { total: number; approved: number }>()
-        for (const a of assessments ?? []) {
+        for (const a of (assessments ?? []) as unknown as AssessRow[]) {
           const entry = totals.get(a.mission_id) ?? { total: 0, approved: 0 }
           entry.total++
           if (a.status === 'approved') entry.approved++
@@ -80,7 +86,7 @@ export function SupervisionEvolution({ entities }: SupervisionEvolutionProps): J
 
       // Build periods
       const result: CampaignPeriod[] = camps.map((c) => {
-        const campMissions = (missions ?? []).filter((m) => m.campaign_id === c.id)
+        const campMissions = missions.filter((m) => m.campaign_id === c.id)
         const scores = campMissions
           .map((m) => scoresByMission.get(m.id))
           .filter((s): s is number => s !== undefined)

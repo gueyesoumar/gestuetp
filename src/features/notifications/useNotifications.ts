@@ -57,29 +57,33 @@ export function useNotifications(): UseNotificationsResult {
   const markAsRead = useCallback(async (id: string) => {
     const { error: updateError } = await supabase
       .from('notifications')
-      .update({ is_read: true })
+      .update({ is_read: true } as never)
       .eq('id', id)
 
-    if (!updateError) {
-      setNotifications((prev) =>
-        prev.map((n) => n.id === id ? { ...n, is_read: true } : n)
-      )
+    if (updateError) {
+      console.error('[useNotifications] markAsRead:', updateError.message)
+      return
     }
+    setNotifications((prev) =>
+      prev.map((n) => n.id === id ? { ...n, is_read: true } : n)
+    )
   }, [])
 
   const markAllAsRead = useCallback(async () => {
     if (!profile) return
     const { error: updateError } = await supabase
       .from('notifications')
-      .update({ is_read: true })
+      .update({ is_read: true } as never)
       .eq('user_id', profile.id)
       .eq('is_read', false)
 
-    if (!updateError) {
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true }))
-      )
+    if (updateError) {
+      console.error('[useNotifications] markAllAsRead:', updateError.message)
+      return
     }
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, is_read: true }))
+    )
   }, [profile])
 
   return { notifications, unreadCount, loading, error, markAsRead, markAllAsRead, refetch }

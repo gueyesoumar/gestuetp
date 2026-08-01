@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
 import { FileText, Download } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
+import type { ReportFormat } from '../../../../types/database.types'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
 
 interface ReportData {
   id: string
   title: string
-  fileSize: number | null
   filePath: string
   createdAt: string
+}
+
+function reportTitle(format: ReportFormat, version: number): string {
+  const base = format === 'pdf' ? 'Rapport d’audit (PDF)' : 'Présentation (PPTX)'
+  return version > 1 ? `${base} — v${version}` : base
 }
 
 interface HistoryEntry {
@@ -39,19 +44,20 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
       const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
       const headers = { 'apikey': apikey, 'Authorization': `Bearer ${token}` }
 
-      // Fetch reports
+      // Fetch reports (only "ready" ones are downloadable)
       const repRes = await fetch(
-        `${baseUrl}/rest/v1/reports?mission_id=eq.${mission.id}&select=id,title,file_size,file_path,created_at&order=created_at.desc`,
+        `${baseUrl}/rest/v1/reports?mission_id=eq.${mission.id}&status=eq.ready&select=id,format,version,file_path,created_at&order=created_at.desc`,
         { headers }
       )
       if (repRes.ok) {
-        const data = await repRes.json() as Record<string, unknown>[]
+        const data = await repRes.json() as {
+          id: string; format: ReportFormat; version: number; file_path: string | null; created_at: string
+        }[]
         setReports(data.map((r) => ({
-          id: r.id as string,
-          title: (r.title as string) ?? 'Rapport',
-          fileSize: (r.file_size as number) ?? null,
-          filePath: (r.file_path as string) ?? '',
-          createdAt: r.created_at as string,
+          id: r.id,
+          title: reportTitle(r.format, r.version),
+          filePath: r.file_path ?? '',
+          createdAt: r.created_at,
         })))
       }
 
@@ -106,8 +112,7 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
                 <div className="flex-1">
                   <p className="text-sm font-semibold">{r.title}</p>
                   <p className="text-[10px] text-gray-300 mt-0.5">
-                    {r.fileSize ? `${(r.fileSize / 1024 / 1024).toFixed(1)} Mo` : ''}
-                    {r.createdAt ? ` \u00b7 ${new Date(r.createdAt).toLocaleDateString('fr-FR')}` : ''}
+                    {r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}
                   </p>
                 </div>
                 <button onClick={() => handleDownload(r.filePath, r.title)}

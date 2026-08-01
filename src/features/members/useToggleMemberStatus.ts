@@ -1,49 +1,51 @@
 import { useState, useCallback } from 'react'
-import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../hooks/useAuth'
+import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
 
 interface UseToggleMemberStatusResult {
-  toggleStatus: (userId: string, activate: boolean) => Promise<boolean>
+  toggleStatus: (userId: string, activate: boolean) => Promise<{ ok: boolean; error?: string }>
   toggling: boolean
   error: string | null
 }
 
+/**
+ * Suspend ou réactive un membre du cabinet via l'edge function manage-member.
+ *
+ * NOTE: avant migration 00082+00083, cette fonction faisait un UPDATE direct
+ * sur public.users, qui était bloqué silencieusement par la RLS users_update_self
+ * (auth_id = auth.uid()) → l'opération paraissait réussir mais ne faisait rien.
+ * On passe désormais par une edge function qui vérifie can_manage_members
+ * + protection anti-bricking (refus si on suspend le dernier admin du cabinet).
+ *
+ * Erreurs possibles surfacées via le helper :
+ *  - quota utilisateurs atteint (trigger trg_users_quota — migration 00125)
+ *  - dernier admin (refus de suspend)
+ *  - permission insuffisante (RLS)
+ */
 export function useToggleMemberStatus(onSuccess?: () => void): UseToggleMemberStatusResult {
-  const { profile } = useAuth()
   const [toggling, setToggling] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const toggleStatus = useCallback(async (userId: string, activate: boolean): Promise<boolean> => {
+  const toggleStatus = useCallback(async (userId: string, activate: boolean): Promise<{ ok: boolean; error?: string }> => {
     setToggling(true)
     setError(null)
 
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ is_active: activate })
-      .eq('id', userId)
-
-    if (updateError) {
-      console.error('useToggleMemberStatus:', updateError.message)
-      setError('Impossible de modifier le statut du membre.')
-      setToggling(false)
-      return false
-    }
-
-    // Log audit event (silently fails if table doesn't exist yet)
-    if (profile?.organization_id) {
-      const { error: logError } = await supabase.from('member_audit_logs').insert({
-        organization_id: profile.organization_id,
-        target_user_id: userId,
-        performed_by: profile.id,
-        action: activate ? 'reactivated' : 'deactivated',
-      })
-      if (logError) console.warn('audit log:', logError.message)
-    }
+    const res = await invokeEdgeFunction('manage-member', {
+      action: activate ? 'reactivate' : 'suspend',
+      target_user_id: userId,
+    })
 
     setToggling(false)
+
+    if (!res.ok) {
+      const msg = res.error ?? 'Impossible de modifier le statut du membre.'
+      console.warn('useToggleMemberStatus rejected:', msg)
+      setError(msg)
+      return { ok: false, error: msg }
+    }
+
     onSuccess?.()
-    return true
-  }, [onSuccess, profile?.organization_id, profile?.id])
+    return { ok: true }
+  }, [onSuccess])
 
   return { toggleStatus, toggling, error }
 }

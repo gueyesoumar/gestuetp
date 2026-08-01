@@ -1,10 +1,14 @@
 import { useState, useCallback } from 'react'
-import { Check, X, Pencil } from 'lucide-react'
+import { Check, X, Pencil, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { readInvokeError } from '../../../lib/edgeError'
 import { Badge } from '../../../components/ui/Badge'
 import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { FindingsList } from '../fieldwork/findings/FindingsList'
+import { getConformityLabel, deriveSuggestedConformity } from '../fieldwork/findings/conformityRules'
 import { ASSESSMENT_STATUS_CONFIG } from '../mission-constants'
+import type { ConformityLevel } from '../mission-constants'
 import type { ReviewAssessment } from '../useReviewAssessments'
 import type { ValidationStage } from '../../../types/database.types'
 
@@ -43,7 +47,8 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
       body: { assessment_id: assessment.id, decision, comment: comment || null },
     })
     if (fnError || data?.error) {
-      setError(fnError?.message ?? data?.error ?? 'Erreur lors de la validation.')
+      const msg = await readInvokeError(fnError, data, 'Erreur lors de la validation.')
+      setError(msg)
       setReviewing(false)
       return
     }
@@ -80,9 +85,44 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
           })}
         </div>
 
+        {/* Override justification (visible si l'auditeur a divergé de la suggestion) */}
+        {assessment.conformity_override_reason && (() => {
+          const chosen = assessment.conformity_level as ConformityLevel | null
+          const suggested = deriveSuggestedConformity(assessment.findings)
+          return (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3">
+              <div className="flex items-start gap-2 mb-2">
+                <AlertTriangle size={14} className="text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-[12px] font-semibold text-amber-900">
+                  &Eacute;cart conformit&eacute; justifi&eacute; par l&apos;auditeur
+                </p>
+              </div>
+              <div className="text-[11px] text-amber-800 mb-2 grid grid-cols-2 gap-2">
+                <div>
+                  <span className="font-semibold">Conformit&eacute; choisie :</span>{' '}
+                  {chosen ? getConformityLabel(chosen) : '—'}
+                </div>
+                <div>
+                  <span className="font-semibold">Sugg&eacute;r&eacute;e :</span>{' '}
+                  {suggested ? getConformityLabel(suggested) : '—'}
+                </div>
+              </div>
+              <div className="text-[12px] text-gray-700 bg-white rounded px-2 py-1.5 border border-amber-100 whitespace-pre-wrap leading-relaxed">
+                {assessment.conformity_override_reason}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Findings */}
-        <Section label="Constats" text={assessment.findings} />
-        {assessment.recommendations && <Section label="Recommandations" text={assessment.recommendations} />}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">Constats</p>
+          <FindingsList
+            findings={assessment.findings}
+            emptyMessage="Aucun constat enregistr&eacute; sur cette &eacute;valuation."
+            density="compact"
+          />
+        </div>
 
         {/* Review actions */}
         {canReview && (
@@ -117,17 +157,6 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
         )}
       </div>
     </Modal>
-  )
-}
-
-function Section({ label, text }: { label: string; text: string | null }){
-  return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">{label}</p>
-      <div className="bg-[#FAFAF8] border border-gray-100 rounded-lg p-3 text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">
-        {text || '\u2014'}
-      </div>
-    </div>
   )
 }
 

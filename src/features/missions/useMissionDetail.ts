@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Mission, Framework, Organization, User } from '../../types/database.types'
-import type { MemberWithRoles } from '../members/types'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
 import type { Control } from '../../types/database.types'
 
@@ -72,8 +71,8 @@ export function useMissionDetail(missionId: string | undefined): UseMissionDetai
           associate_user:users!missions_associate_id_fkey(id, first_name, last_name)
         `)
         .eq('id', missionId)
-        .single()
         .abortSignal(abortController.signal)
+        .single()
 
       if (abortController.signal.aborted) return
       if (mErr || !missionData) {
@@ -109,7 +108,9 @@ export function useMissionDetail(missionId: string | undefined): UseMissionDetai
 
         if (abortController.signal.aborted) return
         if (!domErr) {
-          const mapped = (domainsData ?? []).map((d) => ({
+          type DomainRow = { id: string; code: string; name: string; sort_order: number; description: string | null; controls: Control[] }
+          const rows = (domainsData ?? []) as unknown as DomainRow[]
+          const mapped = rows.map((d) => ({
             ...d,
             controls: ((d.controls ?? []) as Control[]).sort(
               (a, b) => a.sort_order - b.sort_order
@@ -134,7 +135,10 @@ export function useMissionDetail(missionId: string | undefined): UseMissionDetai
       setLoading(false)
     }
 
-    fetchAll()
+    fetchAll().catch(() => {
+      // Abort au démontage : rejet attendu, on l'ignore
+      if (!abortController.signal.aborted) setLoading(false)
+    })
     return () => abortController.abort()
   }, [missionId, refreshKey])
 

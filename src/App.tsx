@@ -1,6 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { isRegul } from './lib/product'
+import { RegulApp } from './regul/RegulApp'
 import { AuthProvider } from './features/auth/AuthContext'
+import { MfaGate } from './features/auth/mfa/MfaGate'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
@@ -21,16 +24,20 @@ import { MissionDetailPage } from './pages/MissionDetailPage'
 import { ClientsListPage } from './pages/ClientsListPage'
 import { ClientCreatePage } from './pages/ClientCreatePage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
-import { ProfilePage } from './pages/ProfilePage'
 import { NotificationsPage } from './pages/NotificationsPage'
+import { SupportCenterPage } from './pages/SupportCenterPage'
+import { CabinetSupportPage } from './pages/CabinetSupportPage'
 import { QuestionnaireClientPage } from './pages/QuestionnaireClientPage'
 import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDashboardPage'
 import { ClientMissionsPage } from './features/client-portal/missions/ClientMissionsPage'
 import { ClientMissionDetailPage } from './features/client-portal/missions/ClientMissionDetailPage'
 import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
+import { ClientSupportCenterPage } from './features/client-portal/ClientSupportCenterPage'
+import { RecorderProvider } from './features/support/recorder/RecorderContext'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
 import { SetPasswordPage } from './pages/SetPasswordPage'
 import { UnsubscribePage } from './pages/UnsubscribePage'
+import { AccountPage } from './pages/AccountPage'
 import { AdminLayout } from './features/admin/AdminLayout'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { CabinetsListPage } from './pages/admin/CabinetsListPage'
@@ -38,14 +45,19 @@ import { CabinetDetailPage } from './pages/admin/CabinetDetailPage'
 import { UsersSearchPage } from './pages/admin/UsersSearchPage'
 import { UserDetailPage } from './pages/admin/UserDetailPage'
 import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
-import { FeatureFlagsPage } from './pages/admin/FeatureFlagsPage'
+import { AdminPlansPage } from './pages/admin/AdminPlansPage'
 import { MonitoringPage } from './pages/admin/MonitoringPage'
+import { AdminSupportPage } from './pages/admin/AdminSupportPage'
 import { FrameworksAdminListPage } from './pages/admin/FrameworksAdminListPage'
 import { AdminFrameworkCreatePage } from './pages/admin/AdminFrameworkCreatePage'
 import { AdminFrameworkDetailPage } from './pages/admin/AdminFrameworkDetailPage'
 import { SupervisionPage } from './pages/SupervisionPage'
 import { EntityDetailPage } from './pages/EntityDetailPage'
 import { CampaignDetailPage } from './pages/CampaignDetailPage'
+import { SubsidiariesPage } from './features/group-module/SubsidiariesPage'
+import { SubsidiaryDetailPage } from './features/group-module/SubsidiaryDetailPage'
+import { ContinuousReviewsPage } from './features/group-module/ContinuousReviewsPage'
+import { TransversalPlansPage } from './features/group-module/TransversalPlansPage'
 
 function App() {
   return (
@@ -66,6 +78,9 @@ function App() {
             },
           }}
         />
+        <RecorderProvider>
+        <MfaGate>
+        {isRegul ? <RegulApp /> : (
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/set-password" element={<SetPasswordPage />} />
@@ -81,6 +96,16 @@ function App() {
             }
           />
 
+          {/* Compte — page profil dediee, partagee admin + cabinet (hors chrome) */}
+          <Route
+            path="/compte"
+            element={
+              <ProtectedRoute>
+                <AccountPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Auditor routes (Comply product) */}
           <Route
             element={
@@ -90,7 +115,7 @@ function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="profil" element={<ProfilePage />} />
+            <Route path="profil" element={<Navigate to="/compte" replace />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="organisation" element={<OrganizationPage />} />
             <Route path="membres" element={<MembersPage />} />
@@ -107,6 +132,13 @@ function App() {
             <Route path="missions/nouvelle" element={<MissionCreatePage />} />
             <Route path="missions/:id" element={<MissionDetailPage />} />
             <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
+            <Route path="aide" element={<SupportCenterPage />} />
+            <Route path="demandes-support" element={<CabinetSupportPage />} />
+            {/* Module Groupe */}
+            <Route path="filiales" element={<SubsidiariesPage />} />
+            <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
+            <Route path="revues" element={<ContinuousReviewsPage />} />
+            <Route path="plans-transverses" element={<TransversalPlansPage />} />
           </Route>
 
           {/* Super-admin routes (Gëstu platform owner) */}
@@ -123,8 +155,9 @@ function App() {
             <Route path="cabinets/:id" element={<CabinetDetailPage />} />
             <Route path="utilisateurs" element={<UsersSearchPage />} />
             <Route path="utilisateurs/:id" element={<UserDetailPage />} />
-            <Route path="feature-flags" element={<FeatureFlagsPage />} />
+            <Route path="plans" element={<AdminPlansPage />} />
             <Route path="monitoring" element={<MonitoringPage />} />
+            <Route path="support" element={<AdminSupportPage />} />
             <Route path="frameworks" element={<FrameworksAdminListPage />} />
             <Route path="frameworks/nouveau" element={<AdminFrameworkCreatePage />} />
             <Route path="frameworks/:slug" element={<AdminFrameworkDetailPage />} />
@@ -145,8 +178,12 @@ function App() {
             <Route path="missions/:id" element={<ClientMissionDetailPage />} />
             <Route path="documents" element={<ClientDocumentsPage />} />
             <Route path="notifications" element={<ClientNotificationsPage />} />
+            <Route path="aide" element={<ClientSupportCenterPage />} />
           </Route>
         </Routes>
+        )}
+        </MfaGate>
+        </RecorderProvider>
       </AuthProvider>
       </BrandingProvider>
     </BrowserRouter>

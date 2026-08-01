@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { isRegul } from '../lib/product'
 import { useBranding } from '../features/branding/useBranding'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 import { VaultBackground } from '../components/vault/VaultBackground'
@@ -11,7 +12,7 @@ import { VaultBranding } from '../components/vault/VaultBranding'
 import { TrustBadges } from '../components/vault/TrustBadges'
 
 export function LoginPage(): JSX.Element {
-  const { session, loading, signIn } = useAuth()
+  const { session, loading, signIn, profile } = useAuth()
   const { branding, loading: brandingLoading } = useBranding()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -29,7 +30,14 @@ export function LoginPage(): JSX.Element {
   }
 
   if (session) {
-    return <Navigate to="/hub" replace />
+    // Produit Regul : pas de hub multi-produits. L'assujetti (role=client) va sur
+    // son portail cloisonné, le staff régulateur sur le tableau de bord.
+    // Comply : le platform owner va dans sa console (sauf domaine cabinet co-brandé),
+    // les autres gardent le hub.
+    const target = isRegul
+      ? (profile?.role === 'client' ? '/client' : '/')
+      : (!branding && profile?.is_platform_owner ? '/admin' : '/hub')
+    return <Navigate to={target} replace />
   }
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {

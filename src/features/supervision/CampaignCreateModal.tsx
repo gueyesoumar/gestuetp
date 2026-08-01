@@ -41,8 +41,7 @@ export function CampaignCreateModal({ frameworks, onCreate, creating, onClose }:
     if (!profile?.organization_id) return
     setLoadingEntities(true)
 
-    supabase
-      .rpc('get_subsidiary_ids', { parent_id: profile.organization_id })
+    void (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>)('get_subsidiary_ids', { parent_id: profile.organization_id })
       .then(async ({ data: subIds }) => {
         if (!subIds || (subIds as string[]).length === 0) {
           setEntities([])

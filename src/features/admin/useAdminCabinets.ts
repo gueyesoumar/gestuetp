@@ -54,21 +54,24 @@ export function useAdminCabinets(): Result {
           return
         }
 
-        // Compter les membres par organisation
-        const { data: usersData } = await supabase
+        // Compter les membres par organisation (enrichissement secondaire : on
+        // journalise en cas d'echec mais on n'interrompt pas le chargement)
+        const { data: usersData, error: usersError } = await supabase
           .from('users')
           .select('organization_id')
           .in('organization_id', ids)
           .abortSignal(abort.signal)
+        if (usersError) console.error('[useAdminCabinets] member counts:', usersError.message)
         const memberCounts = countBy((usersData ?? []) as Array<{ organization_id: string }>, 'organization_id')
 
         // Compter les missions où l'organisation est CABINET et trouver la dernière activité
         // Pour les organisations clients, on n'a pas de count missions en tant que cabinet — c'est OK
-        const { data: missionsData } = await supabase
+        const { data: missionsData, error: missionsError } = await supabase
           .from('missions')
           .select('cabinet_id, updated_at')
           .in('cabinet_id', ids)
           .abortSignal(abort.signal)
+        if (missionsError) console.error('[useAdminCabinets] mission counts:', missionsError.message)
         const missionCounts = countBy((missionsData ?? []) as Array<{ cabinet_id: string }>, 'cabinet_id')
         const lastActivity = lastBy((missionsData ?? []) as Array<{ cabinet_id: string; updated_at: string }>, 'cabinet_id', 'updated_at')
 

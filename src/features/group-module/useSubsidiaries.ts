@@ -1,0 +1,266 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import type { RegulatoryProfile } from './useManageEntity'
+
+export interface SubsidiaryRow {
+  id: string
+  name: string
+  sector: string | null
+  city: string | null
+  entityType: 'filiale' | 'site' | 'direction' | 'business_unit' | null
+  parentOrgId: string | null
+  /** Profil réglementaire (Regul) — null si absent (cas Comply). */
+  regulatoryProfile: RegulatoryProfile | null
+  /** Score moyen pondéré (sur missions clôturées). Null si aucune. */
+  conformityScore: number | null
+  activeMissions: number
+  closedMissions: number
+  overdueCount: number
+  lastReviewDate: string | null
+  nextReviewDate: string | null
+  frameworkLabels: string[]
+}
+
+interface UseSubsidiariesResult {
+  subsidiaries: SubsidiaryRow[]
+  loading: boolean
+  error: string | null
+  totalCount: number
+  averageScore: number | null
+  totalActiveMissions: number
+  totalOverdue: number
+  refresh: () => void
+}
+
+interface MissionRow {
+  id: string
+  client_id: string | null
+  status: string
+  kind: string
+  framework_id: string | null
+}
+
+interface CycleRow {
+  mission_id: string
+  status: string
+  score: number | null
+  closed_at: string | null
+  period_start: string
+  period_end: string
+}
+
+function weightOf(level: string | null | undefined): number | null {
+  switch (level) {
+    case 'c':  return 100
+    case 'lc': return 75
+    case 'pc': return 50
+    case 'nc': return 0
+    default:   return null
+  }
+}
+
+export function useSubsidiaries(): UseSubsidiariesResult {
+  const { profile } = useAuth()
+  const [subsidiaries, setSubsidiaries] = useState<SubsidiaryRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  useEffect(() => {
+    if (!profile?.organization_id) return
+    const ac = new AbortController()
+    setLoading(true)
+    setError(null)
+
+    const load = async (): Promise<void> => {
+      // 1. Entités du sous-arbre (récursif, actives) via get_subsidiary_ids
+      const { data: idRows, error: idErr } = await supabase
+        .rpc('get_subsidiary_ids', { parent_id: profile.organization_id })
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      if (idErr) {
+        console.error('[useSubsidiaries] get_subsidiary_ids:', idErr.message)
+        setError('Erreur de chargement des filiales')
+        setLoading(false)
+        return
+      }
+      const subIds = ((idRows ?? []) as string[])
+      if (subIds.length === 0) {
+        setSubsidiaries([])
+        setLoading(false)
+        return
+      }
+      const { data: subs, error: subsErr } = await supabase
+        .from('organizations')
+        .select('id, name, sector, city, entity_type, parent_org_id')
+        .in('id', subIds)
+        .order('name')
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      if (subsErr) {
+        console.error('[useSubsidiaries] organizations:', subsErr.message)
+        setError('Erreur de chargement des filiales')
+        setLoading(false)
+        return
+      }
+      const subList = (subs ?? []) as Array<{ id: string; name: string; sector: string | null; city: string | null; entity_type: SubsidiaryRow['entityType']; parent_org_id: string | null }>
+
+      // Profils réglementaires (Regul) — table vide côté Comply, donc no-op.
+      const profileMap = new Map<string, RegulatoryProfile>()
+      const { data: profRows } = await supabase
+        .from('entity_regulatory_profile')
+        .select('organization_id, criticality, obligation_regime, tier, status, entry_date, exit_date')
+        .in('organization_id', subIds)
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      for (const p of (profRows ?? []) as Array<{ organization_id: string } & RegulatoryProfile>) {
+        profileMap.set(p.organization_id, {
+          criticality: p.criticality, obligation_regime: p.obligation_regime, tier: p.tier,
+          status: p.status, entry_date: p.entry_date, exit_date: p.exit_date,
+        })
+      }
+      if (subList.length === 0) {
+        setSubsidiaries([])
+        setLoading(false)
+        return
+      }
+
+      // 2. Toutes les missions de ces filiales (en tant que client)
+      const { data: missions, error: missionsErr } = await supabase
+        .from('missions')
+        .select('id, client_id, status, kind, framework_id')
+        .in('client_id', subIds)
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      if (missionsErr) console.error('[useSubsidiaries] missions:', missionsErr.message)
+      const missionList = (missions ?? []) as MissionRow[]
+
+      // 3. Frameworks pour les labels
+      const fwIds = Array.from(new Set(missionList.map((m) => m.framework_id).filter(Boolean) as string[]))
+      const fwMap = new Map<string, string>()
+      if (fwIds.length > 0) {
+        const { data: fws, error: fwsErr } = await supabase.from('frameworks').select('id, name').in('id', fwIds).abortSignal(ac.signal)
+        if (fwsErr) console.error('[useSubsidiaries] frameworks:', fwsErr.message)
+        for (const f of (fws ?? []) as Array<{ id: string; name: string }>) fwMap.set(f.id, f.name)
+      }
+
+      // 4. Assessments pour conformity_level (calcul du score moyen pondéré par filiale)
+      const missionIds = missionList.map((m) => m.id)
+      const { data: assessmentsRaw, error: assessmentsErr } = (missionIds.length > 0
+        ? await supabase
+            .from('control_assessments')
+            .select('mission_id, conformity_level')
+            .in('mission_id', missionIds)
+            .abortSignal(ac.signal)
+        : { data: [] as Array<{ mission_id: string; conformity_level: string | null }>, error: null }) as { data: Array<{ mission_id: string; conformity_level: string | null }>; error: { message: string } | null }
+      if (ac.signal.aborted) return
+      if (assessmentsErr) console.error('[useSubsidiaries] control_assessments:', assessmentsErr.message)
+      const assessments = assessmentsRaw ?? []
+
+      // 5. CAR ouvertes en retard
+      const today = new Date().toISOString().slice(0, 10)
+      const { data: overdueCarsRaw, error: overdueCarsErr } = (missionIds.length > 0
+        ? await supabase
+            .from('corrective_action_requests')
+            .select('mission_id, status, deadline, client_target_date, verification_status')
+            .in('mission_id', missionIds)
+            .neq('status', 'verified')
+            .neq('status', 'closed')
+            .abortSignal(ac.signal)
+        : { data: [] as Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }>, error: null }) as { data: Array<{ mission_id: string; deadline: string | null; client_target_date: string | null }>; error: { message: string } | null }
+      if (ac.signal.aborted) return
+      if (overdueCarsErr) console.error('[useSubsidiaries] corrective_action_requests:', overdueCarsErr.message)
+      const overdueCars = overdueCarsRaw ?? []
+
+      // 6. Cycles de supervision pour les dates dernière/prochaine revue
+      const { data: cyclesRaw, error: cyclesErr } = (missionIds.length > 0
+        ? await supabase
+            .from('supervision_cycles')
+            .select('mission_id, status, score, closed_at, period_start, period_end')
+            .in('mission_id', missionIds)
+            .abortSignal(ac.signal)
+        : { data: [] as CycleRow[], error: null }) as { data: CycleRow[]; error: { message: string } | null }
+      if (ac.signal.aborted) return
+      if (cyclesErr) console.error('[useSubsidiaries] supervision_cycles:', cyclesErr.message)
+      const cycles = cyclesRaw ?? []
+
+      // 7. Agrégation par filiale
+      const rows: SubsidiaryRow[] = subList.map((sub) => {
+        const subMissions = missionList.filter((m) => m.client_id === sub.id)
+        const subMissionIds = new Set(subMissions.map((m) => m.id))
+
+        // Score moyen pondéré (toutes missions, conformity_level)
+        let scoreSum = 0
+        let scoreCount = 0
+        for (const a of assessments) {
+          if (!subMissionIds.has(a.mission_id)) continue
+          const w = weightOf(a.conformity_level)
+          if (w !== null) { scoreSum += w; scoreCount += 1 }
+        }
+        const conformityScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : null
+
+        // Missions actives / closed
+        const activeMissions = subMissions.filter((m) => m.status !== 'closure').length
+        const closedMissions = subMissions.filter((m) => m.status === 'closure').length
+
+        // Retards
+        const overdueCount = overdueCars
+          .filter((c) => subMissionIds.has(c.mission_id))
+          .filter((c) => {
+            const due = c.client_target_date ?? c.deadline
+            return due !== null && due < today
+          }).length
+
+        // Dernière revue (cycle clôturé le plus récent) + prochaine (cycle planned/in_progress avec end le plus proche)
+        const subCycles = cycles.filter((c) => subMissionIds.has(c.mission_id))
+        const lastClosed = subCycles
+          .filter((c) => c.status === 'closed' && c.closed_at)
+          .sort((a, b) => (b.closed_at ?? '').localeCompare(a.closed_at ?? ''))[0]
+        const nextOpen = subCycles
+          .filter((c) => c.status !== 'closed')
+          .sort((a, b) => a.period_end.localeCompare(b.period_end))[0]
+
+        // Frameworks distincts
+        const frameworkLabels = Array.from(
+          new Set(subMissions.map((m) => m.framework_id ? fwMap.get(m.framework_id) : null).filter(Boolean) as string[])
+        )
+
+        return {
+          id: sub.id,
+          name: sub.name,
+          sector: sub.sector,
+          city: sub.city,
+          entityType: sub.entity_type,
+          parentOrgId: sub.parent_org_id,
+          regulatoryProfile: profileMap.get(sub.id) ?? null,
+          conformityScore,
+          activeMissions,
+          closedMissions,
+          overdueCount,
+          lastReviewDate: lastClosed?.closed_at?.slice(0, 10) ?? null,
+          nextReviewDate: nextOpen?.period_end ?? null,
+          frameworkLabels,
+        }
+      })
+
+      setSubsidiaries(rows)
+      setLoading(false)
+    }
+
+    void load()
+    return () => ac.abort()
+  }, [profile?.organization_id, refreshKey])
+
+  const totalCount = subsidiaries.length
+  const totalActiveMissions = subsidiaries.reduce((s, x) => s + x.activeMissions, 0)
+  const totalOverdue = subsidiaries.reduce((s, x) => s + x.overdueCount, 0)
+  const scored = subsidiaries.filter((x) => x.conformityScore !== null)
+  const averageScore = scored.length > 0
+    ? Math.round(scored.reduce((s, x) => s + (x.conformityScore ?? 0), 0) / scored.length)
+    : null
+
+  const refresh = (): void => setRefreshKey((k) => k + 1)
+
+  return { subsidiaries, loading, error, totalCount, averageScore, totalActiveMissions, totalOverdue, refresh }
+}

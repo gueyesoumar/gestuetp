@@ -36,10 +36,10 @@ export function InsightsBriefing({ name, stats }: InsightsBriefingProps): JSX.El
           <p className="mt-2 text-[13px] text-white/60 leading-relaxed max-w-2xl">
             {briefing}
           </p>
-          {stats.averageScore >= 60 && (
+          {stats.averageProgress >= 60 && (
             <div className="mt-3 flex items-center gap-1.5 text-[12px] text-forest-300">
               <TrendingUp className="h-3.5 w-3.5" />
-              <span>Score moyen de conformit&eacute;&nbsp;: {stats.averageScore}%</span>
+              <span>Avancement moyen&nbsp;: {stats.averageProgress}%</span>
             </div>
           )}
         </div>

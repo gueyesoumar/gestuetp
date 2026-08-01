@@ -2,7 +2,7 @@ import shieldSvg from '../assets/logo-shield.svg'
 
 type LogoSize = 'xs' | 'sm' | 'md' | 'lg'
 type LogoVariant = 'light' | 'dark'
-type ProductTag = 'group' | 'comply' | 'risk' | 'privacy' | 'policy'
+type ProductTag = 'group' | 'comply' | 'risk' | 'privacy' | 'policy' | 'admin' | 'regul'
 
 interface GestuLogoProps {
   size?: LogoSize
@@ -25,6 +25,8 @@ const productColors: Record<ProductTag, string> = {
   risk: 'text-[#E07A5F]',
   privacy: 'text-[#7B68EE]',
   policy: 'text-[#3B82F6]',
+  admin: 'text-[#D4A843]',
+  regul: 'text-[#D4A843]',
 }
 
 const productLabels: Record<ProductTag, string> = {
@@ -33,6 +35,8 @@ const productLabels: Record<ProductTag, string> = {
   risk: 'RISK',
   privacy: 'PRIVACY',
   policy: 'POLICY',
+  admin: 'ADMIN',
+  regul: 'REGUL',
 }
 
 export function GestuLogo({ size = 'sm', variant = 'light', product = 'comply', showTag = true, className = '' }: GestuLogoProps) {

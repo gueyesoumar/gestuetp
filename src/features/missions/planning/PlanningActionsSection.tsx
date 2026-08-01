@@ -1,15 +1,7 @@
-import { Shuffle, FileSpreadsheet, Mail, Check } from 'lucide-react'
+import { Shuffle, FileSpreadsheet, Mail } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-interface PlanningActionsSectionProps {
-  assignedCount: number
-  totalControls: number
-  onValidate: () => void
-}
-
-export function PlanningActionsSection({ assignedCount, totalControls, onValidate }: PlanningActionsSectionProps) {
-  const allAssigned = assignedCount === totalControls && totalControls > 0
-
+export function PlanningActionsSection() {
   return (
     <div className="p-4">
       <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Actions</h4>
@@ -17,13 +9,6 @@ export function PlanningActionsSection({ assignedCount, totalControls, onValidat
         <ActionButton icon={<Shuffle size={15} />} label="R&eacute;partition &eacute;quilibr&eacute;e auto" />
         <ActionButton icon={<FileSpreadsheet size={15} />} label="Exporter le programme (Excel)" />
         <ActionButton icon={<Mail size={15} />} label="Envoyer le planning au client" />
-        <button
-          onClick={onValidate}
-          disabled={!allAssigned}
-          className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <Check size={15} className="w-6 text-center" /> Valider la planification
-        </button>
       </div>
     </div>
   )

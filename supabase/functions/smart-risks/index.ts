@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -14,20 +15,14 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
-
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user: caller } } = await admin.auth.getUser(token)
-    if (!caller) {
-      return new Response(JSON.stringify({ error: 'Non autorisé' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    const auth = await authenticateCaller(admin, req)
+    if (!auth.ok) {
+      return new Response(JSON.stringify({ error: auth.message }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
+    const caller = auth.profile
 
     const { mission_id } = await req.json()
     if (!mission_id) {
@@ -40,6 +35,12 @@ Deno.serve(async (req) => {
     if (!mission) {
       return new Response(JSON.stringify({ error: 'Mission introuvable' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Cloisonnement multi-tenant : la mission doit appartenir au cabinet de l'appelant
+    if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
+      return new Response(JSON.stringify({ error: ACCESS_DENIED }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: ccArr } = await admin.from('cabinet_clients')
