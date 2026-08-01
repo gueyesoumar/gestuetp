@@ -3,9 +3,10 @@ import { useClientMissions } from '../useClientMissions'
 import { ClientMissionCard } from './ClientMissionCard'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
-import { isRegul } from '../../../lib/product'
+import { useIsRegul } from '../../edition/useIsRegul'
 
 export function ClientMissionsPage(): JSX.Element {
+  const isRegul = useIsRegul()
   const [cabinetFilter, setCabinetFilter] = useState<string | undefined>()
   const { missions, loading, error } = useClientMissions(cabinetFilter)
 

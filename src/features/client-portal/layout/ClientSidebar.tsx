@@ -1,24 +1,29 @@
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
-import { isRegul } from '../../../lib/product'
 import { useVocab } from '../../edition/useVocab'
+import { useIsRegul } from '../../edition/useIsRegul'
+import { useCapability } from '../../edition/EditionContext'
 import { GestuLogo } from '../../../components/GestuLogo'
 import type { ReactNode } from 'react'
 
-const NAV_ITEMS: { to: string; label: string; icon: ReactNode; end: boolean }[] = [
-  { to: '/client', label: 'Tableau de bord', icon: <LayoutDashboard size={16} />, end: true },
-  { to: '/client/missions', label: 'Mes missions', icon: <ClipboardList size={16} />, end: false },
-  // Incidents : uniquement en mode régulateur (self-déclaration assujetti, M5-2).
-  ...(isRegul ? [{ to: '/client/incidents', label: 'Incidents', icon: <AlertTriangle size={16} />, end: false }] : []),
-  { to: '/client/documents', label: 'Documents', icon: <Paperclip size={16} />, end: false },
-  { to: '/client/notifications', label: 'Notifications', icon: <Bell size={16} />, end: false },
-  { to: '/client/aide', label: 'Aide', icon: <LifeBuoy size={16} />, end: false },
-]
+type NavItem = { to: string; label: string; icon: ReactNode; end: boolean }
 
 export function ClientSidebar(): JSX.Element {
   const vocab = useVocab()
+  const isRegul = useIsRegul()
+  // Onglet Incidents : le superviseur de l'assujetti a-t-il le module incidents ?
+  const hasIncidents = useCapability('incidents')
   const { profile, signOut } = useAuth()
+
+  const navItems: NavItem[] = [
+    { to: '/client', label: 'Tableau de bord', icon: <LayoutDashboard size={16} />, end: true },
+    { to: '/client/missions', label: 'Mes missions', icon: <ClipboardList size={16} />, end: false },
+    ...(hasIncidents ? [{ to: '/client/incidents', label: 'Incidents', icon: <AlertTriangle size={16} />, end: false }] : []),
+    { to: '/client/documents', label: 'Documents', icon: <Paperclip size={16} />, end: false },
+    { to: '/client/notifications', label: 'Notifications', icon: <Bell size={16} />, end: false },
+    { to: '/client/aide', label: 'Aide', icon: <LifeBuoy size={16} />, end: false },
+  ]
   const initials = profile
     ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
     : '?'
@@ -39,7 +44,7 @@ export function ClientSidebar(): JSX.Element {
 
       {/* Navigation */}
       <nav className="flex-1 py-2">
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
