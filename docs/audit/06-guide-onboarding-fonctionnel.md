@@ -1,5 +1,7 @@
 # Guide d'onboarding fonctionnel — Gëstu ETP
 
+> **⚠ Évolution post-audit — voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime — le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
+
 > Complément au dossier fonctionnel, conçu pour être **autoporteur** : une personne externe au projet doit pouvoir comprendre l'application sans autre contexte. Version du 2026-07-09.
 > Contient : périmètre & hypothèses (§1), glossaire (§2), intégrations (§3), schémas (§4), **scénarios de bout en bout** (§5), **dictionnaire de données** (§6), **machines à états** (§7).
 

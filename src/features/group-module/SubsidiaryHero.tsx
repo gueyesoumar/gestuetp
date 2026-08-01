@@ -1,4 +1,4 @@
-import { productVocab } from '../../lib/product'
+import { useVocab } from '../edition/useVocab'
 import type { SubsidiaryDetail } from './useSubsidiaryDetail'
 
 interface SubsidiaryHeroProps {
@@ -10,6 +10,7 @@ function initials(name: string): string {
 }
 
 export function SubsidiaryHero({ data }: SubsidiaryHeroProps): JSX.Element {
+  const vocab = useVocab()
   const trendDelta = data.scoreTrend.length >= 2
     ? data.scoreTrend[data.scoreTrend.length - 1].score - data.scoreTrend[data.scoreTrend.length - 2].score
     : null
@@ -22,7 +23,7 @@ export function SubsidiaryHero({ data }: SubsidiaryHeroProps): JSX.Element {
             {initials(data.name)}
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] tracking-wider uppercase text-white/60">{productVocab.entitySingular}{data.sector ? ` · ${data.sector}` : ''}</p>
+            <p className="text-[11px] tracking-wider uppercase text-white/60">{vocab.entitySingular}{data.sector ? ` · ${data.sector}` : ''}</p>
             <h2 className="text-2xl font-bold truncate">{data.name}</h2>
             <p className="text-[12px] text-white/70 mt-1">
               {[data.city, data.country].filter(Boolean).join(' · ') || 'Localisation non renseignée'}

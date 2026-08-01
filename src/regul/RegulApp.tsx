@@ -24,10 +24,10 @@ import { ClientSupportCenterPage } from '../features/client-portal/ClientSupport
 import { AssujettiIncidentsPage } from './incidents/AssujettiIncidentsPage'
 
 /**
- * Application Gëstu Regul — produit à part entière (montée quand
- * VITE_PRODUCT=regul). Réutilise le moteur partagé (gestion d'entités, auth)
- * sous une coquille et une architecture de navigation propres au régulateur.
- * Comply n'est jamais rendu ici.
+ * Application Gëstu Regul — coquille du module régulateur, montée AU RUNTIME
+ * par AppRoot quand l'édition résolue est « regul » (plus de fork VITE_PRODUCT).
+ * Réutilise le moteur partagé (gestion d'entités, auth) sous une navigation
+ * propre au régulateur.
  */
 export function RegulApp(): JSX.Element {
   return (

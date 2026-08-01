@@ -1,13 +1,15 @@
 import { escapeHtml } from './reminder.ts'
+import { platformBrand, platformBrandSuffix, platformTagline } from '../brand.ts'
 
 /**
  * Templates emails pour les flows d'authentification admin :
  *  - cabinetOwnerInviteTemplate : envoyé au 1er owner d'un cabinet créé via /admin
  *  - passwordResetTemplate      : envoyé sur action "Réinitialiser le mot de passe"
  *
- * Ces emails sortent toujours en branding Gëstu Comply (admin platform side),
- * pas en marque blanche cabinet — l'audit log et la traçabilité supposent
- * que c'est Gëstu qui invite/réinitialise.
+ * Ces emails sortent toujours en branding PLATEFORME (admin platform side), pas
+ * en marque blanche cabinet — l'audit log et la traçabilité supposent que c'est
+ * la plateforme qui invite/réinitialise. La marque est résolue par instance via
+ * platformBrand() (Gëstu Comply par défaut, Gëstu Regul sur l'instance Regul).
  */
 
 const PRIMARY = '#1B4332'
@@ -24,9 +26,9 @@ export function cabinetOwnerInviteTemplate({ firstName, cabinetName, link }: Cab
   const safeCabinet = escapeHtml(cabinetName)
   const safeLink = escapeHtml(link)
   return baseTemplate({
-    title: 'Bienvenue sur Gëstu Comply',
+    title: `Bienvenue sur ${platformBrand()}`,
     intro: `Bonjour ${safeFirst},`,
-    body: `Votre compte d'administration pour le cabinet <strong>${safeCabinet}</strong> vient d'être créé sur Gëstu Comply. Définissez votre mot de passe pour vous connecter et commencer à configurer votre espace.`,
+    body: `Votre compte d'administration pour le cabinet <strong>${safeCabinet}</strong> vient d'être créé sur ${escapeHtml(platformBrand())}. Définissez votre mot de passe pour vous connecter et commencer à configurer votre espace.`,
     ctaLabel: 'Définir mon mot de passe',
     ctaLink: safeLink,
     expiry: 'Ce lien est valable 24 heures.',
@@ -46,8 +48,8 @@ export function memberInviteTemplate({ firstName, cabinetName, link, isResend }:
   const safeLink = escapeHtml(link)
   const title = isResend ? 'Nouvelle invitation à rejoindre le cabinet' : 'Vous êtes invité·e à rejoindre le cabinet'
   const body = isResend
-    ? `Voici un nouveau lien pour rejoindre le cabinet <strong>${safeCabinet}</strong> sur Gëstu Comply. Le lien précédent a peut-être expiré ou n'est plus valide.`
-    : `Vous avez été invité·e à rejoindre le cabinet <strong>${safeCabinet}</strong> sur Gëstu Comply, la plateforme d'audit et de conformité. Définissez votre mot de passe pour activer votre compte et accéder à votre espace de travail.`
+    ? `Voici un nouveau lien pour rejoindre le cabinet <strong>${safeCabinet}</strong> sur ${escapeHtml(platformBrand())}. Le lien précédent a peut-être expiré ou n'est plus valide.`
+    : `Vous avez été invité·e à rejoindre le cabinet <strong>${safeCabinet}</strong> sur ${escapeHtml(platformBrand())}. Définissez votre mot de passe pour activer votre compte et accéder à votre espace de travail.`
   return baseTemplate({
     title,
     intro: `Bonjour ${safeFirst},`,
@@ -69,7 +71,7 @@ export function passwordResetTemplate({ firstName, link }: PasswordResetParams):
   return baseTemplate({
     title: 'Réinitialisation de votre mot de passe',
     intro: `Bonjour ${safeFirst},`,
-    body: `Une demande de réinitialisation de mot de passe a été initiée pour votre compte Gëstu Comply. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — votre mot de passe actuel reste inchangé.`,
+    body: `Une demande de réinitialisation de mot de passe a été initiée pour votre compte ${escapeHtml(platformBrand())}. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — votre mot de passe actuel reste inchangé.`,
     ctaLabel: 'Réinitialiser mon mot de passe',
     ctaLink: safeLink,
     expiry: 'Ce lien est valable 1 heure.',
@@ -99,7 +101,7 @@ function baseTemplate({ title, intro, body, ctaLabel, ctaLink, expiry }: BasePar
         <td style="background:${ACCENT};width:36px;height:36px;border-radius:8px;text-align:center;vertical-align:middle;color:${PRIMARY};font-weight:900;font-size:14px;font-family:Georgia,serif;">G</td>
         <td style="padding-left:12px;vertical-align:middle;">
           <div style="color:white;font-weight:800;font-size:15px;letter-spacing:0.3px;">G<span style="color:${ACCENT}">ë</span>stu</div>
-          <div style="color:#F2E2B1;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;">Comply</div>
+          <div style="color:#F2E2B1;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;">${escapeHtml(platformBrandSuffix())}</div>
         </td>
       </tr>
     </table>
@@ -124,7 +126,7 @@ function baseTemplate({ title, intro, body, ctaLabel, ctaLink, expiry }: BasePar
   </td></tr>
 
   <tr><td style="background:#FAFAF8;padding:18px 40px;border-top:1px solid #E5E7EB;text-align:center;">
-    <p style="margin:0;font-size:11px;color:#9CA3AF;">&copy; G&euml;stu Comply &mdash; Plateforme d&rsquo;audit et de conformit&eacute;</p>
+    <p style="margin:0;font-size:11px;color:#9CA3AF;">&copy; ${escapeHtml(platformBrand())} &mdash; ${escapeHtml(platformTagline())}</p>
   </td></tr>
 </table>
 </td></tr>

@@ -10,9 +10,12 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useToast } from '../../hooks/useToast'
-import { isRegul, productVocab } from '../../lib/product'
+import { useVocab } from '../edition/useVocab'
+import { useIsRegul } from '../edition/useIsRegul'
 
 export function SubsidiariesPage(): JSX.Element {
+  const vocab = useVocab()
+  const isRegul = useIsRegul()
   const { profile } = useAuth()
   const { subsidiaries, loading, totalCount, averageScore, totalActiveMissions, totalOverdue, refresh } = useSubsidiaries()
   const { canManageSubsidiaries } = useGroupPermissions()
@@ -83,11 +86,11 @@ export function SubsidiariesPage(): JSX.Element {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">{productVocab.entitiesTitle}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{vocab.entitiesTitle}</h2>
           <p className="mt-1 text-[13px] text-gray-500">
             {totalCount === 0
-              ? `Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} rattaché${productVocab.entitySingular.endsWith('e') ? 'e' : ''}.`
-              : `${totalCount} ${totalCount > 1 ? productVocab.entityPlural : productVocab.entitySingular} ${averageScore !== null ? `· score moyen ${averageScore}%` : ''} · ${totalActiveMissions} mission${totalActiveMissions !== 1 ? 's' : ''} active${totalActiveMissions !== 1 ? 's' : ''}${totalOverdue > 0 ? ` · ${totalOverdue} plan${totalOverdue > 1 ? 's' : ''} en retard` : ''}`}
+              ? `Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular} rattaché${vocab.entitySingular.endsWith('e') ? 'e' : ''}.`
+              : `${totalCount} ${totalCount > 1 ? vocab.entityPlural : vocab.entitySingular} ${averageScore !== null ? `· score moyen ${averageScore}%` : ''} · ${totalActiveMissions} mission${totalActiveMissions !== 1 ? 's' : ''} active${totalActiveMissions !== 1 ? 's' : ''}${totalOverdue > 0 ? ` · ${totalOverdue} plan${totalOverdue > 1 ? 's' : ''} en retard` : ''}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -99,16 +102,16 @@ export function SubsidiariesPage(): JSX.Element {
           )}
           {canManageSubsidiaries && (
             <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
-              <Plus size={16} /> Cr&eacute;er {productVocab.entitySingular.endsWith('e') ? 'une' : 'un'} {productVocab.entitySingular}
+              <Plus size={16} /> Cr&eacute;er {vocab.entitySingular.endsWith('e') ? 'une' : 'un'} {vocab.entitySingular}
             </button>
           )}
         </div>
       </div>
 
       {totalCount === 0 ? (
-        <EmptyState title={`Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} n’est encore rattaché${productVocab.entitySingular.endsWith('e') ? 'e' : ''}.`} />
+        <EmptyState title={`Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular} n’est encore rattaché${vocab.entitySingular.endsWith('e') ? 'e' : ''}.`} />
       ) : filtered.length === 0 ? (
-        <EmptyState title="Aucun résultat" description={`Aucun${productVocab.entitySingular.endsWith('e') ? 'e' : ''} ${productVocab.entitySingular} ne correspond à votre recherche.`} />
+        <EmptyState title="Aucun résultat" description={`Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular} ne correspond à votre recherche.`} />
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {filtered.map((s) => (

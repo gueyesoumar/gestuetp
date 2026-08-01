@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
-import { isRegul } from '../../../lib/product'
+import { preAuthEdition } from '../../../lib/product'
 
 // Nom affiché comme émetteur dans l'app d'authentification (au lieu de la Site URL
 // par défaut de gotrue). Le produit est Gëstu ETP (Comply n'est qu'un module) ;
-// l'instance régulateur est brandée Gëstu Regul.
-const MFA_ISSUER = isRegul ? 'Gëstu Regul' : 'Gëstu ETP'
+// l'édition régulateur est brandée Gëstu Regul (résolue par hostname/env pré-auth).
+const MFA_ISSUER = preAuthEdition() === 'regul' ? 'Gëstu Regul' : 'Gëstu ETP'
 
 // Encapsule les appels MFA de Supabase (TOTP). Le secret n'existe que côté
 // Supabase (gotrue) ; on ne manipule ici que des identifiants de facteur.

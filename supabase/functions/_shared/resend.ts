@@ -1,3 +1,5 @@
+import { platformBrand } from './brand.ts'
+
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
 interface SendEmailParams {
@@ -22,7 +24,7 @@ export async function sendEmail({ to, subject, html, from, replyTo }: SendEmailP
     return { error: 'RESEND_API_KEY manquante' }
   }
 
-  const senderEmail = from ?? Deno.env.get('RESEND_FROM_EMAIL') ?? 'Gëstu Comply <noreply@gestugroup.com>'
+  const senderEmail = from ?? Deno.env.get('RESEND_FROM_EMAIL') ?? `${platformBrand()} <noreply@gestugroup.com>`
 
   const payload: Record<string, unknown> = {
     from: senderEmail,

@@ -2,6 +2,8 @@
 // Le rendu reste server-side : aucune interpolation de contenu utilisateur
 // sans passer par escapeHtml() pour empêcher l'XSS dans les clients mail.
 
+import { platformBrand } from '../brand.ts'
+
 export type Palier = 'j3' | 'j7' | 'j14'
 
 export interface ReminderContext {
@@ -93,8 +95,8 @@ export function reminderHtml(palier: Palier, ctx: ReminderContext, options: Remi
   // Couleurs effectives
   const primaryColor = branding?.primaryColor ?? '#1B4332'
   const accentColor = branding?.accentColor ?? '#D4A843'
-  const cabinetName = branding?.cabinetName ?? 'Gëstu Comply'
-  const isWhiteLabel = cabinetName !== 'Gëstu Comply'
+  const cabinetName = branding?.cabinetName ?? platformBrand()
+  const isWhiteLabel = cabinetName !== platformBrand()
 
   const cfg = PALIER_CONFIG[palier]
   const safe = {
@@ -140,7 +142,7 @@ export function reminderHtml(palier: Palier, ctx: ReminderContext, options: Remi
     : ''
   const technicalLine = isWhiteLabel
     ? `<p style="margin:0; color:#9CA3AF; font-size:11px;">${safe.cabinetName} · Powered by Gëstu</p>`
-    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">Gëstu Comply · noreply@gestugroup.com</p>`
+    : `<p style="margin:0; color:#9CA3AF; font-size:11px;">${escapeHtml(platformBrand())} · noreply@gestugroup.com</p>`
 
   const ctaBg = cfg.useAccentForCta ? safe.accentColor : safe.primaryColor
   const ctaText = cfg.useAccentForCta ? safe.primaryColor : '#FFFFFF'

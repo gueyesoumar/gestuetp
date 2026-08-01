@@ -1476,6 +1476,12 @@ export interface OrganizationRelationship {
 
 type Rec = Record<string, unknown>
 
+// Capacités / éditions (RFC 0001, migration 00160)
+export type Capability =
+  | 'comply' | 'risk' | 'policy' | 'privacy'
+  | 'awareness' | 'incidents' | 'measures' | 'supervision'
+export type CapabilityStatus = 'active' | 'trial' | 'disabled'
+
 export interface Database {
   __InternalSupabase: {
     PostgrestVersion: '12'
@@ -1741,6 +1747,14 @@ export interface Database {
         Args: { parent_id: string }
         Returns: string[]
       }
+      get_my_edition: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      my_capabilities: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
     }
     Enums: {
       mission_status: MissionStatus
@@ -1757,6 +1771,8 @@ export interface Database {
       observation_response_action: ObservationResponseAction
       relationship_nature: RelationshipNature
       relationship_status: RelationshipStatus
+      org_capability: Capability
+      capability_status: CapabilityStatus
     }
   }
 }
