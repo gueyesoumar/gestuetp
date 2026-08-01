@@ -10,11 +10,12 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useToast } from '../../hooks/useToast'
-import { isRegul } from '../../lib/product'
 import { useVocab } from '../edition/useVocab'
+import { useIsRegul } from '../edition/useIsRegul'
 
 export function SubsidiariesPage(): JSX.Element {
   const vocab = useVocab()
+  const isRegul = useIsRegul()
   const { profile } = useAuth()
   const { subsidiaries, loading, totalCount, averageScore, totalActiveMissions, totalOverdue, refresh } = useSubsidiaries()
   const { canManageSubsidiaries } = useGroupPermissions()

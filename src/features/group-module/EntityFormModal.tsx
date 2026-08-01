@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS, CRITICALITY_OPTIONS, REG_STATUS_OPTIONS } from '../../lib/constants'
 import type { EntityType } from '../../lib/constants'
-import { isRegul } from '../../lib/product'
 import { useVocab } from '../edition/useVocab'
+import { useIsRegul } from '../edition/useIsRegul'
 import { useManageEntity, type EntityInput, type RegulatoryProfile } from './useManageEntity'
 import { useToast } from '../../hooks/useToast'
 
@@ -33,6 +33,7 @@ interface Props {
 /** Modale création / édition d'une entité interne de groupe. */
 export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Props): JSX.Element {
   const vocab = useVocab()
+  const isRegul = useIsRegul()
   const toast = useToast()
   const { busy, createEntity, updateEntity } = useManageEntity()
   const isEdit = !!initial?.id

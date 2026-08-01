@@ -6,13 +6,14 @@ import { SubsidiaryKPIs } from './SubsidiaryKPIs'
 import { SubsidiaryMissionsList } from './SubsidiaryMissionsList'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { isRegul } from '../../lib/product'
 import { useVocab } from '../edition/useVocab'
+import { useIsRegul } from '../edition/useIsRegul'
 import { AssujettiInviteModal } from '../../regul/AssujettiInviteModal'
 
 export function SubsidiaryDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>()
   const vocab = useVocab()
+  const isRegul = useIsRegul()
   const { data, loading, error } = useSubsidiaryDetail(id)
   const [inviteOpen, setInviteOpen] = useState(false)
 

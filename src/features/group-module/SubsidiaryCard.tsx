@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import { Pencil, PowerOff } from 'lucide-react'
 import type { SubsidiaryRow } from './useSubsidiaries'
 import { ENTITY_TYPE_LABELS } from '../../lib/constants'
-import { isRegul } from '../../lib/product'
 import { useVocab } from '../edition/useVocab'
+import { useIsRegul } from '../edition/useIsRegul'
 
 interface SubsidiaryCardProps {
   subsidiary: SubsidiaryRow
@@ -38,6 +38,7 @@ function initials(name: string): string {
 
 export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }: SubsidiaryCardProps): JSX.Element {
   const vocab = useVocab()
+  const isRegul = useIsRegul()
   const { conformityScore, activeMissions, closedMissions, overdueCount, lastReviewDate, nextReviewDate, frameworkLabels, entityType } = subsidiary
   const band = bandFor(conformityScore)
   const dasharray = `${conformityScore ?? 0} 100`
