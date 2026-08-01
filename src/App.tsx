@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { isRegul } from './lib/product'
 import { RegulApp } from './regul/RegulApp'
 import { AuthProvider } from './features/auth/AuthContext'
+import { EditionProvider } from './features/edition/EditionContext'
 import { MfaGate } from './features/auth/mfa/MfaGate'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -78,6 +79,7 @@ function App() {
             },
           }}
         />
+        <EditionProvider>
         <RecorderProvider>
         <MfaGate>
         {isRegul ? <RegulApp /> : (
@@ -184,6 +186,7 @@ function App() {
         )}
         </MfaGate>
         </RecorderProvider>
+        </EditionProvider>
       </AuthProvider>
       </BrandingProvider>
     </BrowserRouter>
