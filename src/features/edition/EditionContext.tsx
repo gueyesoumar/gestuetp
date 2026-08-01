@@ -6,7 +6,7 @@ import type { Capability } from '../../types/database.types'
 
 // Résolveur d'édition/capacités AU RUNTIME (RFC 0001, Phase 2 — incrément 1).
 //
-// Remplacera progressivement le fork de build `VITE_PRODUCT`/`isRegul` :
+// Remplace le fork de build `VITE_PRODUCT`/`isRegul` (retiré) :
 // une fois l'utilisateur authentifié, on résout l'édition de son organisation
 // et ses capacités actives via les fonctions serveur `get_my_edition()` /
 // `my_capabilities()` (migration 00160). INCRÉMENT 1 : le contexte est monté et
