@@ -3,7 +3,7 @@ import { Toaster } from 'sonner'
 import { isRegul } from './lib/product'
 import { RegulApp } from './regul/RegulApp'
 import { AuthProvider } from './features/auth/AuthContext'
-import { EditionProvider } from './features/edition/EditionContext'
+import { EditionProvider, useEdition } from './features/edition/EditionContext'
 import { MfaGate } from './features/auth/mfa/MfaGate'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -60,6 +60,125 @@ import { SubsidiaryDetailPage } from './features/group-module/SubsidiaryDetailPa
 import { ContinuousReviewsPage } from './features/group-module/ContinuousReviewsPage'
 import { TransversalPlansPage } from './features/group-module/TransversalPlansPage'
 
+// Arbre de routes du produit Comply (édition comply/etp). Extrait pour être monté
+// au runtime par AppRoot selon l'édition résolue.
+function ComplyRoutes(): JSX.Element {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/set-password" element={<SetPasswordPage />} />
+      <Route path="/unsubscribe" element={<UnsubscribePage />} />
+
+      {/* Hub — product selection (auditors only) */}
+      <Route
+        path="/hub"
+        element={
+          <ProtectedRoute>
+            <HubPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Compte — page profil dediee, partagee admin + cabinet (hors chrome) */}
+      <Route
+        path="/compte"
+        element={
+          <ProtectedRoute>
+            <AccountPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Auditor routes (Comply product) */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="profil" element={<Navigate to="/compte" replace />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="organisation" element={<OrganizationPage />} />
+        <Route path="membres" element={<MembersPage />} />
+        <Route path="referentiels" element={<FrameworksPage />} />
+        <Route path="referentiels/comparer" element={<FrameworkComparisonPage />} />
+        <Route path="referentiels/:slug" element={<FrameworkDetailPage />} />
+        <Route path="supervision" element={<SupervisionPage />} />
+        <Route path="supervision/entites/:id" element={<EntityDetailPage />} />
+        <Route path="supervision/campagnes/:id" element={<CampaignDetailPage />} />
+        <Route path="clients" element={<ClientsListPage />} />
+        <Route path="clients/nouveau" element={<ClientCreatePage />} />
+        <Route path="clients/:id" element={<ClientDetailPage />} />
+        <Route path="missions" element={<MissionsListPage />} />
+        <Route path="missions/nouvelle" element={<MissionCreatePage />} />
+        <Route path="missions/:id" element={<MissionDetailPage />} />
+        <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
+        <Route path="aide" element={<SupportCenterPage />} />
+        <Route path="demandes-support" element={<CabinetSupportPage />} />
+        {/* Module Groupe */}
+        <Route path="filiales" element={<SubsidiariesPage />} />
+        <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
+        <Route path="revues" element={<ContinuousReviewsPage />} />
+        <Route path="plans-transverses" element={<TransversalPlansPage />} />
+      </Route>
+
+      {/* Super-admin routes (Gëstu platform owner) */}
+      <Route
+        path="/admin"
+        element={
+          <AdminProtectedRoute>
+            <AdminLayout />
+          </AdminProtectedRoute>
+        }
+      >
+        <Route index element={<AdminDashboardPage />} />
+        <Route path="cabinets" element={<CabinetsListPage />} />
+        <Route path="cabinets/:id" element={<CabinetDetailPage />} />
+        <Route path="utilisateurs" element={<UsersSearchPage />} />
+        <Route path="utilisateurs/:id" element={<UserDetailPage />} />
+        <Route path="plans" element={<AdminPlansPage />} />
+        <Route path="monitoring" element={<MonitoringPage />} />
+        <Route path="support" element={<AdminSupportPage />} />
+        <Route path="frameworks" element={<FrameworksAdminListPage />} />
+        <Route path="frameworks/nouveau" element={<AdminFrameworkCreatePage />} />
+        <Route path="frameworks/:slug" element={<AdminFrameworkDetailPage />} />
+        <Route path="audit-log" element={<AdminAuditLogPage />} />
+      </Route>
+
+      {/* Client portal routes */}
+      <Route
+        path="/client"
+        element={
+          <ClientProtectedRoute>
+            <ClientLayout />
+          </ClientProtectedRoute>
+        }
+      >
+        <Route index element={<ClientDashboardPage />} />
+        <Route path="missions" element={<ClientMissionsPage />} />
+        <Route path="missions/:id" element={<ClientMissionDetailPage />} />
+        <Route path="documents" element={<ClientDocumentsPage />} />
+        <Route path="notifications" element={<ClientNotificationsPage />} />
+        <Route path="aide" element={<ClientSupportCenterPage />} />
+      </Route>
+    </Routes>
+  )
+}
+
+// Décision de coquille AU RUNTIME (RFC 0001, Phase 2 — incrément 3).
+// L'édition résolue pilote l'arbre monté ; repli sur le drapeau de build `isRegul`
+// tant que l'édition n'est pas connue (pré-auth, ou role=client dont l'org est
+// neutralisée côté RLS). Sur chaque déploiement edition === isRegul → aucun flip,
+// zéro changement visible. Le repli `isRegul` sera retiré à l'incrément 4 (branding
+// login par hostname), supprimant `VITE_PRODUCT`.
+function AppRoot(): JSX.Element {
+  const { edition } = useEdition()
+  const showRegul = edition ? edition === 'regul' : isRegul
+  return showRegul ? <RegulApp /> : <ComplyRoutes />
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -82,108 +201,7 @@ function App() {
         <EditionProvider>
         <RecorderProvider>
         <MfaGate>
-        {isRegul ? <RegulApp /> : (
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/set-password" element={<SetPasswordPage />} />
-          <Route path="/unsubscribe" element={<UnsubscribePage />} />
-
-          {/* Hub — product selection (auditors only) */}
-          <Route
-            path="/hub"
-            element={
-              <ProtectedRoute>
-                <HubPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Compte — page profil dediee, partagee admin + cabinet (hors chrome) */}
-          <Route
-            path="/compte"
-            element={
-              <ProtectedRoute>
-                <AccountPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Auditor routes (Comply product) */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<DashboardPage />} />
-            <Route path="profil" element={<Navigate to="/compte" replace />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="organisation" element={<OrganizationPage />} />
-            <Route path="membres" element={<MembersPage />} />
-            <Route path="referentiels" element={<FrameworksPage />} />
-            <Route path="referentiels/comparer" element={<FrameworkComparisonPage />} />
-            <Route path="referentiels/:slug" element={<FrameworkDetailPage />} />
-            <Route path="supervision" element={<SupervisionPage />} />
-            <Route path="supervision/entites/:id" element={<EntityDetailPage />} />
-            <Route path="supervision/campagnes/:id" element={<CampaignDetailPage />} />
-            <Route path="clients" element={<ClientsListPage />} />
-            <Route path="clients/nouveau" element={<ClientCreatePage />} />
-            <Route path="clients/:id" element={<ClientDetailPage />} />
-            <Route path="missions" element={<MissionsListPage />} />
-            <Route path="missions/nouvelle" element={<MissionCreatePage />} />
-            <Route path="missions/:id" element={<MissionDetailPage />} />
-            <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
-            <Route path="aide" element={<SupportCenterPage />} />
-            <Route path="demandes-support" element={<CabinetSupportPage />} />
-            {/* Module Groupe */}
-            <Route path="filiales" element={<SubsidiariesPage />} />
-            <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
-            <Route path="revues" element={<ContinuousReviewsPage />} />
-            <Route path="plans-transverses" element={<TransversalPlansPage />} />
-          </Route>
-
-          {/* Super-admin routes (Gëstu platform owner) */}
-          <Route
-            path="/admin"
-            element={
-              <AdminProtectedRoute>
-                <AdminLayout />
-              </AdminProtectedRoute>
-            }
-          >
-            <Route index element={<AdminDashboardPage />} />
-            <Route path="cabinets" element={<CabinetsListPage />} />
-            <Route path="cabinets/:id" element={<CabinetDetailPage />} />
-            <Route path="utilisateurs" element={<UsersSearchPage />} />
-            <Route path="utilisateurs/:id" element={<UserDetailPage />} />
-            <Route path="plans" element={<AdminPlansPage />} />
-            <Route path="monitoring" element={<MonitoringPage />} />
-            <Route path="support" element={<AdminSupportPage />} />
-            <Route path="frameworks" element={<FrameworksAdminListPage />} />
-            <Route path="frameworks/nouveau" element={<AdminFrameworkCreatePage />} />
-            <Route path="frameworks/:slug" element={<AdminFrameworkDetailPage />} />
-            <Route path="audit-log" element={<AdminAuditLogPage />} />
-          </Route>
-
-          {/* Client portal routes */}
-          <Route
-            path="/client"
-            element={
-              <ClientProtectedRoute>
-                <ClientLayout />
-              </ClientProtectedRoute>
-            }
-          >
-            <Route index element={<ClientDashboardPage />} />
-            <Route path="missions" element={<ClientMissionsPage />} />
-            <Route path="missions/:id" element={<ClientMissionDetailPage />} />
-            <Route path="documents" element={<ClientDocumentsPage />} />
-            <Route path="notifications" element={<ClientNotificationsPage />} />
-            <Route path="aide" element={<ClientSupportCenterPage />} />
-          </Route>
-        </Routes>
-        )}
+        <AppRoot />
         </MfaGate>
         </RecorderProvider>
         </EditionProvider>
