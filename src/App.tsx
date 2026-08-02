@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { preAuthEdition } from './lib/product'
-import { RegulApp } from './regul/RegulApp'
 import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
 import { MfaGate } from './features/auth/mfa/MfaGate'
@@ -59,37 +58,37 @@ import { SubsidiariesPage } from './features/group-module/SubsidiariesPage'
 import { SubsidiaryDetailPage } from './features/group-module/SubsidiaryDetailPage'
 import { ContinuousReviewsPage } from './features/group-module/ContinuousReviewsPage'
 import { TransversalPlansPage } from './features/group-module/TransversalPlansPage'
+// Pages Regul — montées sous le shell unifié quand l'édition résolue est « regul ».
+import { RegulDashboard } from './regul/RegulDashboard'
+import { RegulMissionsListPage } from './regul/RegulMissionsListPage'
+import { RegulMissionCreatePage } from './regul/RegulMissionCreatePage'
+import { RegulMeasuresPage } from './regul/RegulMeasuresPage'
+import { RegulReferentielsPage } from './regul/RegulReferentielsPage'
+import { RegulIncidentsPage } from './regul/incidents/RegulIncidentsPage'
+import { AssujettiIncidentsPage } from './regul/incidents/AssujettiIncidentsPage'
 
-// Arbre de routes du produit Comply (édition comply/etp). Extrait pour être monté
-// au runtime par AppRoot selon l'édition résolue.
-function ComplyRoutes(): JSX.Element {
+// Arbre de routes UNIFIÉ du shell ETP (RFC 0001, Phase 2 — Hub-cockpit §5-6).
+// L'édition résolue AU RUNTIME choisit les routes-modules montées sous le même
+// AppLayout : Comply (clients/missions/supervision) ou Regul (assujettis/contrôles/
+// constats/incidents). Plus de fork d'application séparée (RegulApp supprimé) ; le
+// chrome (Hub, compte, notifications, admin, portail) est partagé. Repli sur
+// `preAuthEdition()` (hostname / VITE_EDITION) tant que l'édition n'est pas résolue.
+function AppRoutes(): JSX.Element {
+  const { edition } = useEdition()
+  const isRegul = (edition ?? preAuthEdition()) === 'regul'
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/set-password" element={<SetPasswordPage />} />
       <Route path="/unsubscribe" element={<UnsubscribePage />} />
 
-      {/* Hub — product selection (auditors only) */}
-      <Route
-        path="/hub"
-        element={
-          <ProtectedRoute>
-            <HubPage />
-          </ProtectedRoute>
-        }
-      />
+      {/* Hub — entrée unique pour tout le staff (RFC §5-6) */}
+      <Route path="/hub" element={<ProtectedRoute><HubPage /></ProtectedRoute>} />
 
-      {/* Compte — page profil dediee, partagee admin + cabinet (hors chrome) */}
-      <Route
-        path="/compte"
-        element={
-          <ProtectedRoute>
-            <AccountPage />
-          </ProtectedRoute>
-        }
-      />
+      {/* Compte — page profil dédiée, partagée (hors chrome) */}
+      <Route path="/compte" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
 
-      {/* Auditor routes (Comply product) */}
+      {/* Routes-modules sous le shell unifié — l'édition résolue choisit le jeu monté */}
       <Route
         element={
           <ProtectedRoute>
@@ -97,31 +96,46 @@ function ComplyRoutes(): JSX.Element {
           </ProtectedRoute>
         }
       >
-        <Route index element={<DashboardPage />} />
+        <Route index element={isRegul ? <RegulDashboard /> : <DashboardPage />} />
         <Route path="profil" element={<Navigate to="/compte" replace />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="organisation" element={<OrganizationPage />} />
         <Route path="membres" element={<MembersPage />} />
-        <Route path="referentiels" element={<FrameworksPage />} />
-        <Route path="referentiels/comparer" element={<FrameworkComparisonPage />} />
-        <Route path="referentiels/:slug" element={<FrameworkDetailPage />} />
-        <Route path="supervision" element={<SupervisionPage />} />
-        <Route path="supervision/entites/:id" element={<EntityDetailPage />} />
-        <Route path="supervision/campagnes/:id" element={<CampaignDetailPage />} />
-        <Route path="clients" element={<ClientsListPage />} />
-        <Route path="clients/nouveau" element={<ClientCreatePage />} />
-        <Route path="clients/:id" element={<ClientDetailPage />} />
-        <Route path="missions" element={<MissionsListPage />} />
-        <Route path="missions/nouvelle" element={<MissionCreatePage />} />
-        <Route path="missions/:id" element={<MissionDetailPage />} />
-        <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
         <Route path="aide" element={<SupportCenterPage />} />
-        <Route path="demandes-support" element={<CabinetSupportPage />} />
-        {/* Module Groupe */}
-        <Route path="filiales" element={<SubsidiariesPage />} />
-        <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
-        <Route path="revues" element={<ContinuousReviewsPage />} />
-        <Route path="plans-transverses" element={<TransversalPlansPage />} />
+        {isRegul ? (
+          <>
+            <Route path="referentiels" element={<RegulReferentielsPage />} />
+            <Route path="assujettis" element={<SubsidiariesPage />} />
+            <Route path="assujettis/:id" element={<SubsidiaryDetailPage />} />
+            <Route path="controles" element={<RegulMissionsListPage />} />
+            <Route path="controles/nouvelle" element={<RegulMissionCreatePage />} />
+            <Route path="controles/:id" element={<MissionDetailPage />} />
+            <Route path="constats" element={<RegulMeasuresPage />} />
+            <Route path="incidents" element={<RegulIncidentsPage />} />
+          </>
+        ) : (
+          <>
+            <Route path="referentiels" element={<FrameworksPage />} />
+            <Route path="referentiels/comparer" element={<FrameworkComparisonPage />} />
+            <Route path="referentiels/:slug" element={<FrameworkDetailPage />} />
+            <Route path="supervision" element={<SupervisionPage />} />
+            <Route path="supervision/entites/:id" element={<EntityDetailPage />} />
+            <Route path="supervision/campagnes/:id" element={<CampaignDetailPage />} />
+            <Route path="clients" element={<ClientsListPage />} />
+            <Route path="clients/nouveau" element={<ClientCreatePage />} />
+            <Route path="clients/:id" element={<ClientDetailPage />} />
+            <Route path="missions" element={<MissionsListPage />} />
+            <Route path="missions/nouvelle" element={<MissionCreatePage />} />
+            <Route path="missions/:id" element={<MissionDetailPage />} />
+            <Route path="questionnaire/:id" element={<QuestionnaireClientPage />} />
+            <Route path="demandes-support" element={<CabinetSupportPage />} />
+            {/* Module Groupe */}
+            <Route path="filiales" element={<SubsidiariesPage />} />
+            <Route path="filiales/:id" element={<SubsidiaryDetailPage />} />
+            <Route path="revues" element={<ContinuousReviewsPage />} />
+            <Route path="plans-transverses" element={<TransversalPlansPage />} />
+          </>
+        )}
       </Route>
 
       {/* Super-admin routes (Gëstu platform owner) */}
@@ -147,7 +161,7 @@ function ComplyRoutes(): JSX.Element {
         <Route path="audit-log" element={<AdminAuditLogPage />} />
       </Route>
 
-      {/* Client portal routes */}
+      {/* Portail client / assujetti — cloisonné (RLS cp_*) */}
       <Route
         path="/client"
         element={
@@ -159,22 +173,15 @@ function ComplyRoutes(): JSX.Element {
         <Route index element={<ClientDashboardPage />} />
         <Route path="missions" element={<ClientMissionsPage />} />
         <Route path="missions/:id" element={<ClientMissionDetailPage />} />
+        {isRegul && <Route path="incidents" element={<AssujettiIncidentsPage />} />}
         <Route path="documents" element={<ClientDocumentsPage />} />
         <Route path="notifications" element={<ClientNotificationsPage />} />
         <Route path="aide" element={<ClientSupportCenterPage />} />
       </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
-}
-
-// Décision de coquille AU RUNTIME (RFC 0001, Phase 2 — inc3/4c).
-// L'édition résolue pilote l'arbre monté ; repli sur `preAuthEdition()` (hostname /
-// VITE_EDITION) tant que l'édition n'est pas connue (pré-auth). Sur chaque
-// déploiement preAuthEdition === édition résolue → aucun flip, zéro changement.
-function AppRoot(): JSX.Element {
-  const { edition } = useEdition()
-  const showRegul = (edition ?? preAuthEdition()) === 'regul'
-  return showRegul ? <RegulApp /> : <ComplyRoutes />
 }
 
 function App() {
@@ -199,7 +206,7 @@ function App() {
         <EditionProvider>
         <RecorderProvider>
         <MfaGate>
-        <AppRoot />
+        <AppRoutes />
         </MfaGate>
         </RecorderProvider>
         </EditionProvider>

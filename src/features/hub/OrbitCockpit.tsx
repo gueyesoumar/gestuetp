@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { User } from '../../types/database.types'
 import { HUB_PRODUCTS } from '../../lib/hubProducts'
 import type { HubProduct } from '../../lib/hubProducts'
+import { useEdition } from '../edition/EditionContext'
 import { useHubPerspectives } from './useHubPerspectives'
 import type { HubPerspective } from './useHubPerspectives'
 import { HubTopBar } from './HubTopBar'
@@ -39,12 +40,17 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   const data = useHubPerspectives()
   const selfDims = useSelfDimensionScores()
   const navigate = useNavigate()
+  const { edition } = useEdition()
+  // Le produit « primaire » = celui de l'édition résolue de l'org. C'est la seule
+  // tuile qui ouvre le workspace interne (navigate('/')). Plus de lien externe :
+  // un cabinet qui clique « Regul » voit le détail, sans quitter son dashboard.
+  const primaryProduct = edition === 'regul' ? 'Regul' : 'Comply'
   const [current, setCurrent] = useState<HubPerspective>('self')
   const [selected, setSelected] = useState<Selection | null>(null)
 
   useEffect(() => {
     if (data.loading) return
-    const preferred: HubPerspective[] = ['clients', 'group', 'self']
+    const preferred: HubPerspective[] = ['clients', 'group', 'assujettis', 'self']
     const next = preferred.find((p) => data.perspectives.includes(p)) ?? 'self'
     setCurrent((c) => (data.perspectives.includes(c) ? c : next))
   }, [data.loading, data.perspectives])
@@ -55,12 +61,12 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   const onClose = useCallback(() => setSelected(null), [])
   const onOpen = useCallback((product: HubProduct) => {
     setSelected(null)
-    if (product.href) window.open(product.href, '_blank', 'noopener,noreferrer')
-    else if (product.active) navigate('/')
-  }, [navigate])
+    if (product.name === primaryProduct) navigate('/')
+  }, [navigate, primaryProduct])
 
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
+  const assujettisAvg = useMemo(() => average(data.assujettis.map((t) => t.score)), [data.assujettis])
 
   const topBar = (
     <HubTopBar
@@ -95,12 +101,15 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       ? { score: clientsAvg, subtitle: `Portefeuille · ${data.clients.length}` }
       : current === 'group'
         ? { score: groupAvg, subtitle: `Groupe · ${data.subsidiaries.length}` }
-        : { score: selfDims.composite ?? selfScore, subtitle: selfSubtitle }
+        : current === 'assujettis'
+          ? { score: assujettisAvg, subtitle: `Parc · ${data.assujettis.length}` }
+          : { score: selfDims.composite ?? selfScore, subtitle: selfSubtitle }
 
   const panelTitle =
     current === 'clients' ? 'Détail par client · plus exposé → plus solide'
       : current === 'group' ? 'Détail par filiale · plus exposé → plus solide'
-        : 'Profil de confiance — 6 dimensions'
+        : current === 'assujettis' ? 'Détail par assujetti · plus exposé → plus solide'
+          : 'Profil de confiance — 6 dimensions'
 
   return (
     <div className="flex h-full w-full flex-col px-6 py-3">
@@ -129,14 +138,14 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
           <HubSidePanel
             mode="entities"
             title={panelTitle}
-            tiles={current === 'clients' ? data.clients : data.subsidiaries}
-            emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : 'Aucune filiale rattachée.'}
+            tiles={current === 'clients' ? data.clients : current === 'group' ? data.subsidiaries : data.assujettis}
+            emptyLabel={current === 'clients' ? 'Aucun client dans votre périmètre.' : current === 'group' ? 'Aucune filiale rattachée.' : 'Aucun assujetti dans votre périmètre.'}
           />
         )}
       </div>
 
       <PoweredByGestu className="mt-2 shrink-0" />
-      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} onClose={onClose} onOpen={onOpen} />
+      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} enterable={selected?.product.name === primaryProduct} onClose={onClose} onOpen={onOpen} />
     </div>
   )
 }

@@ -3,17 +3,16 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
 import shieldSvg from '../../assets/logo-shield.svg'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
-import { LayoutGrid, ShieldCheck, Building2, RefreshCw, ListChecks, LifeBuoy, Inbox, UserCircle } from 'lucide-react'
+import { LayoutGrid, LifeBuoy, Inbox, UserCircle } from 'lucide-react'
 import {
-  DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon,
   OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
   CollapseIcon, ExpandIcon, ChevronUpIcon,
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
-import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
-import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 import { useNotifications } from '../../features/notifications/useNotifications'
+import { useVocab } from '../../features/edition/useVocab'
+import { useSidebarNavItems } from './useSidebarNav'
 import type { User } from '../../types/database.types'
 import type { ReactNode } from 'react'
 
@@ -22,27 +21,6 @@ interface SidebarProps {
   open: boolean
   onClose: () => void
 }
-
-interface NavItem {
-  to: string
-  label: string
-  icon: ReactNode
-  permissionKey?: 'supervision'
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: 'Tableau de bord', icon: <DashboardIcon /> },
-  { to: '/supervision', label: 'Supervision', icon: <ShieldCheck size={20} strokeWidth={1.5} />, permissionKey: 'supervision' },
-  { to: '/clients', label: 'Clients', icon: <ClientsIcon /> },
-  { to: '/referentiels', label: 'R\u00e9f\u00e9rentiels', icon: <FrameworksIcon /> },
-  { to: '/missions', label: 'Missions', icon: <MissionsIcon /> },
-]
-
-const GROUP_NAV_ITEMS: { to: string; label: string; icon: ReactNode }[] = [
-  { to: '/filiales', label: 'Filiales', icon: <Building2 size={20} strokeWidth={1.5} /> },
-  { to: '/revues', label: 'Revues continues', icon: <RefreshCw size={20} strokeWidth={1.5} /> },
-  { to: '/plans-transverses', label: "Plans d'action", icon: <ListChecks size={20} strokeWidth={1.5} /> },
-]
 
 const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/compte', label: 'Mon compte', icon: <UserCircle size={20} strokeWidth={1.5} /> },
@@ -54,10 +32,10 @@ const profileMenuItems: { to: string; label: string; icon: ReactNode }[] = [
 
 export function Sidebar({ profile, open, onClose }: SidebarProps) {
   const { signOut } = useAuth()
-  const { canViewSupervision } = useGroupPermissions()
   const { canManageMembers } = useCabinetPermissions()
-  const { isGroup } = useOrganizationHierarchy(profile?.organization_id)
   const { unreadCount } = useNotifications()
+  const vocab = useVocab()
+  const { mainItems, groupItems } = useSidebarNavItems(profile?.organization_id)
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
@@ -100,7 +78,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
             <img src={shieldSvg} alt="G&euml;stu" width={24} height={28} />
           ) : (
             <div className="flex flex-1 items-center justify-between">
-              <GestuLogo size="xs" variant="dark" product="comply" />
+              <GestuLogo size="xs" variant="dark" product={vocab.logoTag} />
               <button onClick={() => setCollapsed(true)} className="hidden text-white/30 hover:text-white/60 transition-colors lg:block">
                 <CollapseIcon />
               </button>
@@ -132,10 +110,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
 
         {/* Navigation principale */}
         <nav className={`flex-1 py-3 ${collapsed ? 'px-2' : 'px-3'}`}>
-          {NAV_ITEMS.filter((item) => {
-            if (item.permissionKey === 'supervision' && !canViewSupervision) return false
-            return true
-          }).map((item) => (
+          {mainItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -162,13 +137,13 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
             </NavLink>
           ))}
 
-          {isGroup && (
+          {groupItems.length > 0 && (
             <>
               {!collapsed && (
                 <p className="mt-5 mb-2 px-3.5 text-[10px] font-bold uppercase tracking-wider text-gold-300">Module Groupe</p>
               )}
               {collapsed && <div className="my-3 mx-auto h-px w-8 bg-white/10" />}
-              {GROUP_NAV_ITEMS.map((item) => (
+              {groupItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
