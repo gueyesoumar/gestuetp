@@ -32,11 +32,11 @@ export function LoginPage(): JSX.Element {
   if (session) {
     // Produit Regul : pas de hub multi-produits. L'assujetti (role=client) va sur
     // son portail cloisonné, le staff régulateur sur le tableau de bord.
-    // Comply : le platform owner va dans sa console (sauf domaine cabinet co-brandé),
-    // les autres gardent le hub.
+    // Comply : le platform owner (staff Gëstu) va toujours dans sa console /admin
+    // quel que soit le domaine ; les autres gardent le hub.
     const target = preAuthEdition() === 'regul'
       ? (profile?.role === 'client' ? '/client' : '/')
-      : (!branding && profile?.is_platform_owner ? '/admin' : '/hub')
+      : (profile?.is_platform_owner ? '/admin' : '/hub')
     return <Navigate to={target} replace />
   }
 
