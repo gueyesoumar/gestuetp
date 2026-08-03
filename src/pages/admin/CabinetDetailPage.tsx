@@ -15,10 +15,11 @@ import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
 import { CabinetOverviewTab } from '../../features/admin/health/CabinetOverviewTab'
+import { TerminologyEditor } from '../../features/organization-settings/TerminologyEditor'
 import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
 import { labelOrganizationType } from '../../features/admin/cabinetLabels'
 
-type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit'
+type TabKey = 'overview' | 'members' | 'missions' | 'billing' | 'whitelabel' | 'flags' | 'audit' | 'terminologie'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -110,6 +111,7 @@ export function CabinetDetailPage() {
         <TabBtn k="billing" label="Facturation" active={activeTab === 'billing'} onClick={setActiveTab} />
         <TabBtn k="whitelabel" label="Marque blanche" active={activeTab === 'whitelabel'} onClick={setActiveTab} />
         <TabBtn k="flags" label="Fonctionnalités" active={activeTab === 'flags'} onClick={setActiveTab} />
+        <TabBtn k="terminologie" label="Terminologie" active={activeTab === 'terminologie'} onClick={setActiveTab} />
         <TabBtn k="audit" label="Audit log" active={activeTab === 'audit'} onClick={setActiveTab} />
       </div>
 
@@ -129,6 +131,7 @@ export function CabinetDetailPage() {
       {activeTab === 'billing' && <CabinetBillingTab cabinet={cabinet} />}
       {activeTab === 'whitelabel' && <CabinetWhiteLabelTab cabinetId={cabinet.id} cabinetName={cabinet.name} />}
       {activeTab === 'flags' && <CabinetFeatureFlagsTab cabinetId={cabinet.id} />}
+      {activeTab === 'terminologie' && <TerminologyEditor orgId={cabinet.id} />}
       {activeTab === 'audit' && <CabinetAuditLogTab cabinetId={cabinet.id} />}
 
       {deleteOpen && (

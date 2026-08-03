@@ -1,16 +1,20 @@
 import { useState } from 'react'
 import { OrganizationInfoTab } from '../features/organization-settings/OrganizationInfoTab'
 import { WorkflowSettingsTab } from '../features/organization-settings/WorkflowSettingsTab'
+import { TerminologyEditor } from '../features/organization-settings/TerminologyEditor'
+import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
 
-type Tab = 'organisation' | 'parametres'
-
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'organisation', label: 'Organisation' },
-  { key: 'parametres', label: 'Paramètres' },
-]
+type Tab = 'organisation' | 'parametres' | 'terminologie'
 
 export function OrganizationPage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<Tab>('organisation')
+  const { canEditOrganization } = useCabinetPermissions()
+
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'organisation', label: 'Organisation' },
+    { key: 'parametres', label: 'Paramètres' },
+    ...(canEditOrganization ? [{ key: 'terminologie' as Tab, label: 'Terminologie' }] : []),
+  ]
 
   return (
     <div>
@@ -39,6 +43,7 @@ export function OrganizationPage(): JSX.Element {
 
       {activeTab === 'organisation' && <OrganizationInfoTab />}
       {activeTab === 'parametres' && <WorkflowSettingsTab />}
+      {activeTab === 'terminologie' && <TerminologyEditor />}
     </div>
   )
 }
