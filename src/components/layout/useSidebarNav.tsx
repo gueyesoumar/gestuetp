@@ -22,11 +22,11 @@ export interface NavItem {
 export function useSidebarNavItems(
   organizationId: string | null | undefined,
 ): { mainItems: NavItem[]; groupItems: NavItem[] } {
-  const { edition, hasCapability } = useEdition()
+  const { hasCapability } = useEdition()
   const vocab = useVocab()
   const { canViewSupervision } = useGroupPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
-  const isRegul = edition === 'regul'
+  const isRegul = hasCapability('supervision')
 
   const mainItems: NavItem[] = [
     { to: '/', label: 'Tableau de bord', icon: <DashboardIcon /> },
