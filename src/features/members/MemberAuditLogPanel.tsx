@@ -47,7 +47,7 @@ export function MemberAuditLogPanel({ userId }: MemberAuditLogPanelProps) {
             </p>
             {log.details && (
               <p className="text-xs text-gray-400 mt-0.5">
-                {Object.entries(log.details).map(([k, v]) => `${k}: ${v}`).join(' &bull; ')}
+                {Object.entries(log.details).map(([k, v]) => `${k}: ${v}`).join(' • ')}
               </p>
             )}
             <p className="text-xs text-gray-400 mt-0.5">{formatDate(log.created_at)}</p>
