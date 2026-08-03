@@ -1755,6 +1755,10 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: string[]
       }
+      my_vocab: {
+        Args: Record<PropertyKey, never>
+        Returns: { key: string; value: string }[]
+      }
     }
     Enums: {
       mission_status: MissionStatus
