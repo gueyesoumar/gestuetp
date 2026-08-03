@@ -13,12 +13,19 @@ export function useVocab(): ProductVocab {
   // entityRouteBase et logoTag restent structurels (issus de l'édition). Vide au
   // départ → base inchangée (iso-fonctionnel).
   if (vocab.size === 0) return base
+  const g = vocab.get('entity_gender')
   return {
     ...base,
     entitySingular: vocab.get('entity_singular') ?? base.entitySingular,
     entityPlural: vocab.get('entity_plural') ?? base.entityPlural,
     entitiesTitle: vocab.get('entities_title') ?? base.entitiesTitle,
     entityWithDem: vocab.get('entity_with_dem') ?? base.entityWithDem,
+    entityGender: g === 'm' || g === 'f' ? g : base.entityGender,
     portalLabel: vocab.get('portal_label') ?? base.portalLabel,
+    missionTerm: vocab.get('mission_term') ?? base.missionTerm,
+    findingTerm: vocab.get('finding_term') ?? base.findingTerm,
+    measureTerm: vocab.get('measure_term') ?? base.measureTerm,
+    contextBanner: vocab.get('context_banner') ?? base.contextBanner,
+    contextBannerSub: vocab.get('context_banner_sub') ?? base.contextBannerSub,
   }
 }

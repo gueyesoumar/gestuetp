@@ -6,6 +6,7 @@ import { MeasureFormModal } from './MeasureFormModal'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { EmptyState } from '../components/ui/EmptyState'
 import { useToast } from '../hooks/useToast'
+import { useVocab } from '../features/edition/useVocab'
 import { MEASURE_TYPE_LABELS, MEASURE_STATUS_LABELS, MEASURE_TYPE_ORDER } from '../lib/constants'
 import type { MeasureType } from '../lib/constants'
 
@@ -19,6 +20,8 @@ const STATUS_FLOW = ['issued', 'acknowledged', 'resolved', 'appealed', 'closed']
 
 export function RegulMeasuresPage(): JSX.Element {
   const toast = useToast()
+  const vocab = useVocab()
+  const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
   const { subsidiaries, loading: sLoading } = useSubsidiaries()
   const [entityId, setEntityId] = useState('')
   const { measures, loading, refresh } = useMeasures(entityId || null)
@@ -36,7 +39,7 @@ export function RegulMeasuresPage(): JSX.Element {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Constats &amp; mesures</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{cap(vocab.findingTerm)}s &amp; {vocab.measureTerm}s</h1>
         <p className="mt-1 text-[13px] text-gray-500">Actes gradués du régulateur, ancrés dans le journal probant.</p>
       </div>
 
@@ -47,7 +50,7 @@ export function RegulMeasuresPage(): JSX.Element {
         </select>
         {entityId && (
           <button onClick={() => setModal({ source: null })} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
-            <Plus size={16} /> Émettre une mesure
+            <Plus size={16} /> Émettre une {vocab.measureTerm}
           </button>
         )}
       </div>
@@ -57,7 +60,7 @@ export function RegulMeasuresPage(): JSX.Element {
       ) : loading ? (
         <LoadingSpinner />
       ) : measures.length === 0 ? (
-        <EmptyState title="Aucune mesure" description="Émettez une première mesure (recommandation, mise en demeure…) avec le bouton ci-dessus." />
+        <EmptyState title={`Aucune ${vocab.measureTerm}`} description="Émettez une première mesure (recommandation, mise en demeure…) avec le bouton ci-dessus." />
       ) : (
         <div className="space-y-3">
           {measures.map((m) => (
