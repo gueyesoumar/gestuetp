@@ -89,7 +89,7 @@ export function SubsidiariesPage(): JSX.Element {
           <h2 className="text-xl font-semibold text-gray-900">{vocab.entitiesTitle}</h2>
           <p className="mt-1 text-[13px] text-gray-500">
             {totalCount === 0
-              ? `Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular} rattaché${vocab.entitySingular.endsWith('e') ? 'e' : ''}.`
+              ? `Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} rattaché${vocab.entityGender === 'f' ? 'e' : ''}.`
               : `${totalCount} ${totalCount > 1 ? vocab.entityPlural : vocab.entitySingular} ${averageScore !== null ? `· score moyen ${averageScore}%` : ''} · ${totalActiveMissions} mission${totalActiveMissions !== 1 ? 's' : ''} active${totalActiveMissions !== 1 ? 's' : ''}${totalOverdue > 0 ? ` · ${totalOverdue} plan${totalOverdue > 1 ? 's' : ''} en retard` : ''}`}
           </p>
         </div>
@@ -102,16 +102,16 @@ export function SubsidiariesPage(): JSX.Element {
           )}
           {canManageSubsidiaries && (
             <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
-              <Plus size={16} /> Cr&eacute;er {vocab.entitySingular.endsWith('e') ? 'une' : 'un'} {vocab.entitySingular}
+              <Plus size={16} /> Cr&eacute;er {vocab.entityGender === 'f' ? 'une' : 'un'} {vocab.entitySingular}
             </button>
           )}
         </div>
       </div>
 
       {totalCount === 0 ? (
-        <EmptyState title={`Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular} n’est encore rattaché${vocab.entitySingular.endsWith('e') ? 'e' : ''}.`} />
+        <EmptyState title={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} n’est encore rattaché${vocab.entityGender === 'f' ? 'e' : ''}.`} />
       ) : filtered.length === 0 ? (
-        <EmptyState title="Aucun résultat" description={`Aucun${vocab.entitySingular.endsWith('e') ? 'e' : ''} ${vocab.entitySingular} ne correspond à votre recherche.`} />
+        <EmptyState title="Aucun résultat" description={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} ne correspond à votre recherche.`} />
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {filtered.map((s) => (

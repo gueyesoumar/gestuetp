@@ -46,7 +46,7 @@ export function InactiveEntitiesSection({ onReactivated, canManage }: Props): JS
     <div className="border border-gray-200 rounded-xl">
       <button onClick={toggle} className="w-full flex items-center gap-2 px-4 py-3 text-[13px] font-medium text-gray-600 hover:bg-gray-50 rounded-xl">
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-        {vocab.entitiesTitle} d&eacute;sactiv&eacute;{vocab.entitySingular.endsWith('e') ? 'e' : ''}s
+        {vocab.entitiesTitle} d&eacute;sactiv&eacute;{vocab.entityGender === 'f' ? 'e' : ''}s
         {loaded && <span className="text-gray-400">({rows.length})</span>}
       </button>
       {open && (
@@ -54,7 +54,7 @@ export function InactiveEntitiesSection({ onReactivated, canManage }: Props): JS
           {!loaded ? (
             <p className="text-[12px] text-gray-400 py-2">Chargement&hellip;</p>
           ) : rows.length === 0 ? (
-            <p className="text-[12px] text-gray-400 py-2">Aucun{vocab.entitySingular.endsWith('e') ? 'e' : ''} {vocab.entitySingular} d&eacute;sactiv&eacute;{vocab.entitySingular.endsWith('e') ? 'e' : ''}.</p>
+            <p className="text-[12px] text-gray-400 py-2">Aucun{vocab.entityGender === 'f' ? 'e' : ''} {vocab.entitySingular} d&eacute;sactiv&eacute;{vocab.entityGender === 'f' ? 'e' : ''}.</p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {rows.map((e) => (

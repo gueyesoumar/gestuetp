@@ -74,16 +74,33 @@ export function TerminologyEditor({ orgId }: TerminologyEditorProps): JSX.Elemen
               <label htmlFor={`voc-${k.key}`} className="text-sm font-medium text-gray-800">{k.label}</label>
               <code className="font-mono text-[11px] text-gray-400">{k.key}</code>
             </div>
-            <input
-              id={`voc-${k.key}`}
-              type="text"
-              value={values[k.key] ?? ''}
-              onChange={(e) => setValues((prev) => ({ ...prev, [k.key]: e.target.value }))}
-              placeholder={String(defaults[k.field])}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-forest-500 focus:outline-none focus:ring-2 focus:ring-forest-500/20"
-            />
+            {k.type === 'gender' ? (
+              <div className="inline-flex w-max overflow-hidden rounded-lg border border-gray-300">
+                {(['m', 'f'] as const).map((g) => {
+                  const current = values[k.key] || String(defaults[k.field])
+                  return (
+                    <button
+                      key={g} type="button"
+                      onClick={() => setValues((prev) => ({ ...prev, [k.key]: g }))}
+                      className={`px-4 py-2 text-sm font-medium ${current === g ? 'bg-forest-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      {g === 'm' ? 'Masculin' : 'F&eacute;minin'}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <input
+                id={`voc-${k.key}`}
+                type="text"
+                value={values[k.key] ?? ''}
+                onChange={(e) => setValues((prev) => ({ ...prev, [k.key]: e.target.value }))}
+                placeholder={String(defaults[k.field])}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-forest-500 focus:outline-none focus:ring-2 focus:ring-forest-500/20"
+              />
+            )}
             <span className="text-[11px] text-gray-400">
-              D&eacute;faut&nbsp;: <b className="font-medium text-gray-500">{String(defaults[k.field])}</b>
+              D&eacute;faut&nbsp;: <b className="font-medium text-gray-500">{k.type === 'gender' ? (String(defaults[k.field]) === 'f' ? 'Féminin' : 'Masculin') : String(defaults[k.field])}</b>
               {k.hint ? ` · ${k.hint}` : ''}
             </span>
           </div>
