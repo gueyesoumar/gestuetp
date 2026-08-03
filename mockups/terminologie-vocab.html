@@ -1,0 +1,505 @@
+<title>Gëstu — Terminologie de l'organisation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --forest-900:#12261C; --forest-800:#1B4332; --forest-700:#2D6A4F; --forest-500:#40916C;
+    --gold:#D4A843; --gold-light:#E2C26B; --gold-deep:#B8922E;
+    --bg:#F4F6F3; --surface:#FFFFFF; --surface-2:#FBFCFA;
+    --line:#E1E6DF; --line-strong:#CBD3C9;
+    --ink:#17201B; --muted:#66716A; --faint:#94A09A;
+    --lock:#9AA49D; --lock-bg:#EEF0ED;
+    --radius:14px; --radius-sm:9px;
+    --shadow:0 1px 2px rgba(18,38,28,.04), 0 8px 24px rgba(18,38,28,.06);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0E1712; --surface:#15211A; --surface-2:#121D16;
+      --line:#243328; --line-strong:#2F4234;
+      --ink:#E8EFE9; --muted:#93A197; --faint:#6C7A70;
+      --lock:#6C7A70; --lock-bg:#182219;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1712; --surface:#15211A; --surface-2:#121D16;
+    --line:#243328; --line-strong:#2F4234; --ink:#E8EFE9; --muted:#93A197; --faint:#6C7A70;
+    --lock:#6C7A70; --lock-bg:#182219; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    --bg:#F4F6F3; --surface:#FFFFFF; --surface-2:#FBFCFA; --line:#E1E6DF; --line-strong:#CBD3C9;
+    --ink:#17201B; --muted:#66716A; --faint:#94A09A; --lock:#9AA49D; --lock-bg:#EEF0ED;
+    --shadow:0 1px 2px rgba(18,38,28,.04),0 8px 24px rgba(18,38,28,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;-webkit-font-smoothing:antialiased;font-size:14px}
+  .wrap{max-width:1200px;margin:0 auto;padding:22px 20px 40px}
+
+  /* Top bar */
+  .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .shield{width:30px;height:34px;flex:0 0 auto}
+  .brand b{font-weight:700;letter-spacing:-.01em;font-size:15px}
+  .brand .etp{color:var(--gold-deep)}
+  .crumb{color:var(--faint);font-size:12.5px}
+  .crumb .sep{margin:0 7px;opacity:.5}
+  .crumb .cur{color:var(--muted);font-weight:600}
+  .spacer{flex:1}
+  .orgchip{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);
+    border-radius:999px;padding:6px 12px 6px 8px;font-weight:600;font-size:12.5px;box-shadow:var(--shadow)}
+  .orgchip .dot{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--forest-700),var(--forest-500));
+    color:#fff;display:grid;place-items:center;font-size:10px;font-weight:700}
+
+  h1{font-size:22px;letter-spacing:-.02em;margin:0 0 3px;text-wrap:balance}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 18px;max-width:62ch}
+
+  .grid{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:18px;align-items:start}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-h{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .card-h h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;margin:0;color:var(--muted);font-weight:700}
+  .card-h .ico{width:16px;height:16px;color:var(--forest-500)}
+
+  /* Editor */
+  .toolrow{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);
+    background:var(--surface-2);flex-wrap:wrap}
+  .toolrow label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  select,.btn{font-family:var(--sans);font-size:13px}
+  select{background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:var(--radius-sm);
+    padding:7px 10px;font-weight:600;cursor:pointer}
+  .btn{border:0;border-radius:var(--radius-sm);padding:8px 13px;font-weight:700;cursor:pointer}
+  .btn.primary{background:var(--gold);color:#3a2d05}
+  .btn.primary:hover{background:var(--gold-light)}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+  .editor-body{padding:6px 16px 16px}
+  .group{padding:14px 0;border-bottom:1px dashed var(--line)}
+  .group:last-child{border-bottom:0}
+  .group-t{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12.5px;margin:0 0 10px;color:var(--ink)}
+  .group-t .badge{font-size:10px;font-weight:700;color:var(--forest-700);background:rgba(64,145,108,.12);
+    border:1px solid rgba(64,145,108,.22);border-radius:999px;padding:1px 7px}
+  .group.roles .group-t .badge{color:var(--gold-deep);background:rgba(212,168,67,.14);border-color:rgba(212,168,67,.3)}
+
+  .field{display:grid;grid-template-columns:1fr;gap:5px;margin-bottom:11px}
+  .field .k{font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;align-items:center;gap:6px}
+  .field .k .new{color:#fff;background:var(--gold-deep);border-radius:4px;font-family:var(--sans);
+    font-size:8.5px;font-weight:800;letter-spacing:.04em;padding:1px 5px;text-transform:uppercase}
+  .field input[type=text]{width:100%;background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm);padding:8px 11px;font-size:13.5px;font-weight:600;transition:border-color .15s,box-shadow .15s}
+  .field input:focus{outline:0;border-color:var(--forest-500);box-shadow:0 0 0 3px rgba(64,145,108,.16);background:var(--surface)}
+  .field .def{font-size:11px;color:var(--faint)}
+  .field .def b{color:var(--muted);font-weight:600}
+
+  .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;overflow:hidden;background:var(--surface-2)}
+  .seg button{border:0;background:transparent;color:var(--muted);font-weight:700;font-size:12.5px;padding:7px 16px;cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--forest-700);color:#fff}
+  .genderline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .genderline .hint{font-size:11px;color:var(--faint);max-width:34ch}
+
+  .locked{margin-top:6px;background:var(--lock-bg);border:1px dashed var(--line-strong);border-radius:var(--radius-sm);
+    padding:12px 14px}
+  .locked summary{cursor:pointer;font-weight:700;font-size:12px;color:var(--lock);list-style:none;display:flex;align-items:center;gap:8px}
+  .locked summary::-webkit-details-marker{display:none}
+  .locked .lk{width:14px;height:14px}
+  .locked-items{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .lchip{font-family:var(--mono);font-size:10.5px;color:var(--lock);background:var(--surface);
+    border:1px solid var(--line);border-radius:6px;padding:3px 7px;text-decoration:line-through;text-decoration-color:var(--line-strong)}
+  .locked p{font-size:11.5px;color:var(--muted);margin:9px 0 0}
+
+  /* Preview */
+  .pv-tabs{display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+  .pv-tabs button{border:0;background:transparent;color:var(--muted);font-weight:700;font-size:12.5px;
+    padding:7px 13px;border-radius:8px;cursor:pointer;font-family:var(--sans)}
+  .pv-tabs button[aria-selected=true]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .pv-stage{padding:18px;min-height:430px;background:
+    radial-gradient(60% 80% at 80% -10%, rgba(64,145,108,.06), transparent 70%);}
+  .surface{display:none} .surface.on{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .live{color:var(--forest-700);font-weight:700}
+  :root[data-theme=dark] .live,@media (prefers-color-scheme:dark){.live{color:var(--gold-light)}}
+
+  /* App shell mini */
+  .app{display:grid;grid-template-columns:150px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    box-shadow:var(--shadow);background:var(--surface)}
+  .app-side{background:var(--forest-800);padding:12px 9px;display:flex;flex-direction:column;gap:3px;min-height:380px}
+  .app-side .logo{display:flex;align-items:center;gap:7px;color:#fff;font-weight:700;font-size:12px;padding:4px 6px 12px}
+  .app-side .logo svg{width:15px;height:17px}
+  .nav{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;
+    padding:7px 8px;border-radius:8px;position:relative}
+  .nav.act{background:rgba(255,255,255,.10);color:#fff}
+  .nav.act::before{content:"";position:absolute;left:-9px;top:50%;transform:translateY(-50%);width:3px;height:16px;
+    background:var(--gold);border-radius:0 3px 3px 0}
+  .nav .d{width:15px;height:15px;flex:0 0 auto;opacity:.9}
+  .app-main{padding:0}
+  .banner{display:flex;align-items:baseline;gap:9px;padding:9px 15px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+  .banner .bt{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--forest-700)}
+  .banner .bs{font-size:11.5px;color:var(--faint)}
+  .banner.empty{color:var(--faint);font-style:italic;font-size:11.5px}
+  .app-content{padding:15px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
+  .kpi{border:1px solid var(--line);border-radius:10px;padding:10px}
+  .kpi .n{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .kpi .l{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:1px}
+  .empty-demo{border:1px dashed var(--line-strong);border-radius:10px;padding:16px;text-align:center;color:var(--muted)}
+  .empty-demo .em-t{font-weight:600;font-size:13px;margin-bottom:9px}
+  .empty-demo .em-btn{display:inline-block;background:var(--forest-700);color:#fff;font-weight:700;font-size:12px;
+    padding:7px 13px;border-radius:8px}
+
+  /* Portal mini */
+  .portal{border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:var(--surface)}
+  .portal-top{background:linear-gradient(120deg,var(--forest-800),var(--forest-700));color:#fff;padding:14px 16px;
+    display:flex;align-items:center;justify-content:space-between}
+  .portal-top .chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;
+    padding:4px 11px;font-size:11.5px;font-weight:700}
+  .portal-top .who{font-size:11px;opacity:.75;margin-top:2px}
+  .portal-body{padding:16px}
+  .portal-body h3{margin:0 0 3px;font-size:15px;letter-spacing:-.01em}
+  .portal-body .psub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .prow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:8px}
+  .prow .pi{width:9px;height:9px;border-radius:50%;background:var(--gold)}
+  .prow .pt{font-weight:600;font-size:12.5px} .prow .pm{margin-left:auto;font-size:11px;color:var(--faint)}
+
+  /* Email mini */
+  .mail{border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:var(--surface);max-width:520px}
+  .mail-h{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+  .mail-h .from{font-weight:700;font-size:12.5px}
+  .mail-h .subj{color:var(--muted);font-size:12px;margin-top:2px}
+  .mail-b{padding:16px;font-size:13px;color:var(--ink)}
+  .mail-b p{margin:0 0 11px}
+  .mail-cta{display:inline-block;background:var(--gold);color:#3a2d05;font-weight:700;font-size:12px;padding:8px 14px;border-radius:8px}
+  .mail-sign{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .mail-sign b{color:var(--ink)}
+
+  .foot{margin-top:20px;display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);
+    border-left:3px solid var(--gold);border-radius:10px;padding:13px 15px;box-shadow:var(--shadow)}
+  .foot svg{width:18px;height:18px;color:var(--gold-deep);flex:0 0 auto;margin-top:1px}
+  .foot p{margin:0;font-size:12.5px;color:var(--muted)} .foot b{color:var(--ink)}
+
+  .themetog{position:fixed;top:14px;right:14px;background:var(--surface);border:1px solid var(--line);border-radius:999px;
+    width:34px;height:34px;cursor:pointer;color:var(--muted);display:grid;place-items:center;box-shadow:var(--shadow);z-index:9}
+</style>
+
+<button class="themetog" id="themeBtn" title="Thème" aria-label="Basculer le thème">◐</button>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <svg class="shield" viewBox="0 0 30 34" fill="none" aria-hidden="true">
+        <path d="M15 1 27 6v11c0 8-5.4 13-12 16C8.4 30 3 25 3 17V6z" fill="#1B4332" stroke="#D4A843" stroke-width="1.4"/>
+        <circle cx="15" cy="15" r="5.4" fill="none" stroke="#D4A843" stroke-width="1.3"/>
+        <circle cx="15" cy="15" r="2.2" fill="#D4A843"/>
+      </svg>
+      <b>Gëstu <span class="etp">ETP</span></b>
+    </div>
+    <span class="crumb">Admin <span class="sep">›</span> Organisation <span class="sep">›</span> <span class="cur">Terminologie</span></span>
+    <span class="spacer"></span>
+    <span class="orgchip"><span class="dot">DC</span> DCSSI · Sénégal</span>
+  </div>
+
+  <h1>Terminologie de l&rsquo;organisation</h1>
+  <p class="sub">Personnalisez les mots que cette organisation voit sur toute la plateforme — nav, portail, tableaux de bord, emails. Le vocabulaire <b>renomme</b> ; il ne change pas les modules disponibles (ça, ce sont les <b>capacités</b>).</p>
+
+  <div class="grid">
+    <!-- ============ EDITOR ============ -->
+    <section class="card">
+      <div class="toolrow">
+        <label for="tpl">Partir d&rsquo;un modèle</label>
+        <select id="tpl">
+          <option value="regul">Régulateur (DCSSI)</option>
+          <option value="cabinet">Cabinet (Comply)</option>
+          <option value="telecom">Régulateur télécom</option>
+          <option value="sante">Régulateur santé</option>
+        </select>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="resetBtn">Réinitialiser</button>
+        <button class="btn primary">Enregistrer</button>
+      </div>
+
+      <div class="editor-body">
+        <div class="group">
+          <div class="group-t">Entité <span class="badge">le terme central</span></div>
+          <div class="field">
+            <span class="k">entity_singular</span>
+            <input type="text" data-key="entity_singular" value="assujetti">
+            <span class="def">Défaut plateforme : <b>entité</b></span>
+          </div>
+          <div class="field">
+            <span class="k">entity_plural</span>
+            <input type="text" data-key="entity_plural" value="assujettis">
+          </div>
+          <div class="field">
+            <span class="k">entities_title</span>
+            <input type="text" data-key="entities_title" value="Assujettis">
+            <span class="def">Titre de section &amp; item de nav</span>
+          </div>
+          <div class="field">
+            <span class="k">entity_with_dem</span>
+            <input type="text" data-key="entity_with_dem" value="cet assujetti">
+            <span class="def">Forme démonstrative — « cet assujetti » / « cette société »</span>
+          </div>
+          <div class="field">
+            <span class="k">entity_gender <span class="new">nouveau</span></span>
+            <div class="genderline">
+              <div class="seg" role="group" aria-label="Genre grammatical">
+                <button type="button" data-gender="m" aria-pressed="true">Masculin</button>
+                <button type="button" data-gender="f" aria-pressed="false">Féminin</button>
+              </div>
+              <span class="hint">Pilote l&rsquo;accord français (un/une, rattaché·e). Remplace l&rsquo;ancienne heuristique qui devinait le genre sur la dernière lettre.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="group roles">
+          <div class="group-t">Rôles <span class="badge">angle mort comblé</span></div>
+          <div class="field">
+            <span class="k">provider_term <span class="new">nouveau</span></span>
+            <input type="text" data-key="provider_term" value="régulateur">
+            <span class="def">L&rsquo;émetteur. Défaut : <b>cabinet</b> — présent partout, surtout dans les emails</span>
+          </div>
+          <div class="field">
+            <span class="k">auditor_term <span class="new">nouveau</span></span>
+            <input type="text" data-key="auditor_term" value="contrôleur">
+            <span class="def">Défaut : <b>auditeur</b></span>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-t">Modules</div>
+          <div class="field">
+            <span class="k">mission_term</span>
+            <input type="text" data-key="mission_term" value="Contrôles">
+            <span class="def">« Missions » ↔ « Contrôles »</span>
+          </div>
+          <div class="field">
+            <span class="k">finding_term</span>
+            <input type="text" data-key="finding_term" value="constat">
+          </div>
+          <div class="field">
+            <span class="k">measure_term</span>
+            <input type="text" data-key="measure_term" value="mesure">
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-t">Portail &amp; présentation</div>
+          <div class="field">
+            <span class="k">portal_label</span>
+            <input type="text" data-key="portal_label" value="Portail Assujetti">
+          </div>
+          <div class="field">
+            <span class="k">context_banner</span>
+            <input type="text" data-key="context_banner" value="Console régulateur">
+            <span class="def">Vide = pas de bandeau (cas cabinet)</span>
+          </div>
+          <div class="field">
+            <span class="k">context_banner_sub <span class="new">nouveau</span></span>
+            <input type="text" data-key="context_banner_sub" value="Superviseur de conformité cyber">
+          </div>
+        </div>
+
+        <details class="locked">
+          <summary><svg class="lk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Verrouillé — non personnalisable (système)</summary>
+          <div class="locked-items">
+            <span class="lchip">recommandation</span><span class="lchip">mise_en_demeure</span>
+            <span class="lchip">injonction</span><span class="lchip">sanction</span>
+            <span class="lchip">statuts (enum)</span><span class="lchip">/assujettis (route)</span>
+            <span class="lchip">CAR (domaine)</span><span class="lchip">marque blanche</span>
+          </div>
+          <p>Ce sont des clés d&rsquo;énumération, des routes ou des workflows : les renommer casserait le mapping DB/RLS. Ce que la persona active (supervision, incidents…) relève des <b>capacités</b>, pas du vocabulaire.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ============ PREVIEW ============ -->
+    <section class="card">
+      <div class="pv-tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-surface="app">Application</button>
+        <button role="tab" aria-selected="false" data-surface="portal">Portail</button>
+        <button role="tab" aria-selected="false" data-surface="mail">Email</button>
+      </div>
+      <div class="pv-stage">
+
+        <!-- APP -->
+        <div class="surface on" data-s="app">
+          <div class="app">
+            <div class="app-side">
+              <div class="logo">
+                <svg viewBox="0 0 30 34" fill="none"><path d="M15 1 27 6v11c0 8-5.4 13-12 16C8.4 30 3 25 3 17V6z" fill="none" stroke="#D4A843" stroke-width="1.6"/><circle cx="15" cy="15" r="2.2" fill="#D4A843"/></svg>
+                Gëstu
+              </div>
+              <div class="nav"><span class="d">▦</span>Tableau de bord</div>
+              <div class="nav act"><span class="d">▣</span><span class="live" data-bind="entities_title">Assujettis</span></div>
+              <div class="nav"><span class="d">✓</span><span class="live" data-bind="mission_term">Contrôles</span></div>
+              <div class="nav"><span class="d">▲</span><span class="live" data-bind="measures_nav">Constats &amp; mesures</span></div>
+              <div class="nav"><span class="d">◎</span>Incidents</div>
+              <div class="nav"><span class="d">▤</span>Référentiels</div>
+            </div>
+            <div class="app-main">
+              <div class="banner" data-banner>
+                <span class="bt live" data-bind="context_banner">Console régulateur</span>
+                <span class="bs live" data-bind="context_banner_sub">Superviseur de conformité cyber</span>
+              </div>
+              <div class="app-content">
+                <div class="kpis">
+                  <div class="kpi"><div class="n">6</div><div class="l live" data-bind="entities_title">Assujettis</div></div>
+                  <div class="kpi"><div class="n">3</div><div class="l"><span class="live" data-bind="mission_term_low">contrôles</span> actifs</div></div>
+                  <div class="kpi"><div class="n">2</div><div class="l"><span class="live" data-bind="measure_plural">mesures</span> ouvertes</div></div>
+                </div>
+                <div class="empty-demo">
+                  <div class="em-t">Accord grammatical piloté par <code>entity_gender</code></div>
+                  <div style="margin-bottom:12px;color:var(--faint);font-size:12.5px"><span class="live" data-bind="empty_line">Aucun assujetti rattaché.</span></div>
+                  <span class="em-btn"><span data-bind="new_btn">Nouvel assujetti</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PORTAL -->
+        <div class="surface" data-s="portal">
+          <div class="portal">
+            <div class="portal-top">
+              <div>
+                <div class="chip live" data-bind="portal_label">Portail Assujetti</div>
+                <div class="who">Supervisé par le <span class="live" data-bind="provider_term">régulateur</span> · DCSSI</div>
+              </div>
+              <div class="dot" style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center;font-weight:700;font-size:11px">SO</div>
+            </div>
+            <div class="portal-body">
+              <h3>Mes <span class="live" data-bind="mission_term_low">contrôles</span></h3>
+              <p class="psub">Retrouvez tous vos <span class="live" data-bind="mission_term_low">contrôles</span> et les demandes du <span class="live" data-bind="provider_term">régulateur</span>.</p>
+              <div class="prow"><span class="pi"></span><span class="pt">Audit ISO 27001 — 2026</span><span class="pm">En cours</span></div>
+              <div class="prow"><span class="pi"></span><span class="pt">Revue des <span class="live" data-bind="measure_plural">mesures</span></span><span class="pm">2 ouvertes</span></div>
+              <div class="prow"><span class="pi"></span><span class="pt">Déclaration d&rsquo;incident</span><span class="pm">Disponible</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMAIL -->
+        <div class="surface" data-s="mail">
+          <div class="mail">
+            <div class="mail-h">
+              <div class="from">DCSSI · <span class="live" data-bind="portal_label">Portail Assujetti</span></div>
+              <div class="subj">Nouvelle demande concernant votre <span class="live" data-bind="mission_term_low">contrôle</span></div>
+            </div>
+            <div class="mail-b">
+              <p>Bonjour,</p>
+              <p>Le <span class="live" data-bind="provider_term">régulateur</span> vous a adressé une demande concernant <span class="live" data-bind="entity_with_dem">cet assujetti</span>, dans le cadre de votre <span class="live" data-bind="mission_term_low">contrôle</span> en cours.</p>
+              <p>Merci de déposer les pièces demandées avant l&rsquo;échéance.</p>
+              <span class="mail-cta">Accéder au <span data-bind="portal_label">Portail Assujetti</span></span>
+              <div class="mail-sign">
+                <b data-bind="auditor_term_cap">Contrôleur</b> · chef de mission<br>
+                <span data-bind="provider_term_cap">Régulateur</span> — DCSSI
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <div class="foot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+    <p><b>Le vocabulaire renomme, il ne restructure pas.</b> Ici on change des mots. Ce qui décide des écrans et modules présents (supervision, mesures graduées, incidents…) reste piloté par les <b>capacités</b> de l&rsquo;organisation, sur un autre écran. Édité par Gëstu au provisionnement, ajusté finement par l&rsquo;organisation.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PRESETS={
+    regul:{entity_singular:"assujetti",entity_plural:"assujettis",entities_title:"Assujettis",entity_with_dem:"cet assujetti",gender:"m",provider_term:"régulateur",auditor_term:"contrôleur",mission_term:"Contrôles",finding_term:"constat",measure_term:"mesure",portal_label:"Portail Assujetti",context_banner:"Console régulateur",context_banner_sub:"Superviseur de conformité cyber"},
+    cabinet:{entity_singular:"client",entity_plural:"clients",entities_title:"Clients",entity_with_dem:"ce client",gender:"m",provider_term:"cabinet",auditor_term:"auditeur",mission_term:"Missions",finding_term:"constat",measure_term:"recommandation",portal_label:"Portail Client",context_banner:"",context_banner_sub:""},
+    telecom:{entity_singular:"opérateur",entity_plural:"opérateurs",entities_title:"Opérateurs",entity_with_dem:"cet opérateur",gender:"m",provider_term:"autorité",auditor_term:"inspecteur",mission_term:"Contrôles",finding_term:"manquement",measure_term:"injonction",portal_label:"Portail Opérateur",context_banner:"Autorité télécom",context_banner_sub:"Régulation cyber du secteur"},
+    sante:{entity_singular:"établissement",entity_plural:"établissements",entities_title:"Établissements",entity_with_dem:"cet établissement",gender:"m",provider_term:"agence",auditor_term:"inspecteur",mission_term:"Inspections",finding_term:"écart",measure_term:"prescription",portal_label:"Portail Établissement",context_banner:"Agence de santé numérique",context_banner_sub:"Supervision cyber des établissements"}
+  };
+  var gender="m";
+  function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
+  function plural(s){if(!s)return s;return /s$/i.test(s)?s:s+"s";}
+  function val(k){var el=document.querySelector('[data-key="'+k+'"]');return el?el.value.trim():"";}
+
+  function computed(){
+    var sing=val("entity_singular")||"entité";
+    var fem=gender==="f";
+    return {
+      entities_title: val("entities_title"),
+      mission_term: val("mission_term"),
+      mission_term_low: (val("mission_term")||"").toLowerCase(),
+      finding_term: val("finding_term"),
+      measure_term: val("measure_term"),
+      measure_plural: plural(val("measure_term")),
+      measures_nav: cap(plural(val("finding_term")))+" & "+plural(val("measure_term")),
+      portal_label: val("portal_label"),
+      context_banner: val("context_banner"),
+      context_banner_sub: val("context_banner_sub"),
+      provider_term: val("provider_term"),
+      provider_term_cap: cap(val("provider_term")),
+      auditor_term: val("auditor_term"),
+      auditor_term_cap: cap(val("auditor_term")),
+      entity_with_dem: val("entity_with_dem"),
+      empty_line: "Aucun"+(fem?"e":"")+" "+sing+" rattaché"+(fem?"e":"")+".",
+      new_btn: (fem?"Nouvelle ":"Nouvel ")+sing
+    };
+  }
+  function render(){
+    var c=computed();
+    document.querySelectorAll("[data-bind]").forEach(function(el){
+      var k=el.getAttribute("data-bind");
+      if(c[k]!==undefined) el.textContent=c[k];
+    });
+    // banner empty state
+    var b=document.querySelector("[data-banner]");
+    if(!c.context_banner && !c.context_banner_sub){
+      b.classList.add("empty"); b.innerHTML="— aucun bandeau de contexte (cas cabinet) —";
+    } else if(b.classList.contains("empty")){
+      b.classList.remove("empty");
+      b.innerHTML='<span class="bt live" data-bind="context_banner"></span><span class="bs live" data-bind="context_banner_sub"></span>';
+      b.querySelector('[data-bind="context_banner"]').textContent=c.context_banner;
+      b.querySelector('[data-bind="context_banner_sub"]').textContent=c.context_banner_sub;
+    }
+  }
+  function applyPreset(p){
+    var d=PRESETS[p]; if(!d)return;
+    Object.keys(d).forEach(function(k){
+      if(k==="gender"){setGender(d[k]);return;}
+      var el=document.querySelector('[data-key="'+k+'"]'); if(el) el.value=d[k];
+    });
+    render();
+  }
+  function setGender(g){
+    gender=g;
+    document.querySelectorAll("[data-gender]").forEach(function(btn){
+      btn.setAttribute("aria-pressed", btn.getAttribute("data-gender")===g?"true":"false");
+    });
+  }
+
+  document.querySelectorAll("[data-key]").forEach(function(el){el.addEventListener("input",render);});
+  document.querySelectorAll("[data-gender]").forEach(function(btn){
+    btn.addEventListener("click",function(){setGender(btn.getAttribute("data-gender"));render();});
+  });
+  document.getElementById("tpl").addEventListener("change",function(e){applyPreset(e.target.value);});
+  document.getElementById("resetBtn").addEventListener("click",function(){applyPreset(document.getElementById("tpl").value);});
+
+  document.querySelectorAll(".pv-tabs button").forEach(function(tab){
+    tab.addEventListener("click",function(){
+      document.querySelectorAll(".pv-tabs button").forEach(function(t){t.setAttribute("aria-selected","false");});
+      tab.setAttribute("aria-selected","true");
+      var s=tab.getAttribute("data-surface");
+      document.querySelectorAll(".surface").forEach(function(el){el.classList.toggle("on",el.getAttribute("data-s")===s);});
+    });
+  });
+
+  // theme toggle
+  var tb=document.getElementById("themeBtn");
+  tb.addEventListener("click",function(){
+    var cur=document.documentElement.getAttribute("data-theme");
+    var next=cur==="dark"?"light":(cur==="light"?"dark":(matchMedia("(prefers-color-scheme:dark)").matches?"light":"dark"));
+    document.documentElement.setAttribute("data-theme",next);
+  });
+
+  render();
+})();
+</script>
