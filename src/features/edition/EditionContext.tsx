@@ -22,6 +22,8 @@ interface EditionState {
   edition: string | null
   capabilities: Set<Capability>
   hasCapability: (cap: Capability) => boolean
+  /** Overrides de vocabulaire de l'org (RFC 0002, P1) — vide si non personnalisé. */
+  vocab: Map<string, string>
 }
 
 const EditionContext = createContext<EditionState | null>(null)
@@ -30,6 +32,7 @@ export function EditionProvider({ children }: { children: ReactNode }): JSX.Elem
   const { profile } = useAuth()
   const [edition, setEdition] = useState<string | null>(null)
   const [capabilities, setCapabilities] = useState<Set<Capability>>(new Set())
+  const [vocab, setVocab] = useState<Map<string, string>>(new Map())
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -37,6 +40,7 @@ export function EditionProvider({ children }: { children: ReactNode }): JSX.Elem
     if (!orgId) {
       setEdition(null)
       setCapabilities(new Set())
+      setVocab(new Map())
       setLoading(false)
       return
     }
@@ -44,17 +48,21 @@ export function EditionProvider({ children }: { children: ReactNode }): JSX.Elem
     setLoading(true)
 
     void (async () => {
-      const [edRes, capRes] = await Promise.all([
+      const [edRes, capRes, vocRes] = await Promise.all([
         supabase.rpc('get_my_edition').abortSignal(ctrl.signal),
         supabase.rpc('my_capabilities').abortSignal(ctrl.signal),
+        supabase.rpc('my_vocab').abortSignal(ctrl.signal),
       ])
       if (ctrl.signal.aborted) return
       if (edRes.error) console.error('edition resolve:', edRes.error.message)
       if (capRes.error) console.error('capabilities resolve:', capRes.error.message)
+      if (vocRes.error) console.error('vocab resolve:', vocRes.error.message)
 
       setEdition(typeof edRes.data === 'string' ? edRes.data : null)
       const caps = Array.isArray(capRes.data) ? (capRes.data as Capability[]) : []
       setCapabilities(new Set(caps))
+      const vocRows = Array.isArray(vocRes.data) ? (vocRes.data as Array<{ key: string; value: string }>) : []
+      setVocab(new Map(vocRows.map((r) => [r.key, r.value])))
       setLoading(false)
     })()
 
@@ -64,7 +72,7 @@ export function EditionProvider({ children }: { children: ReactNode }): JSX.Elem
   const hasCapability = (cap: Capability): boolean => capabilities.has(cap)
 
   return (
-    <EditionContext.Provider value={{ loading, edition, capabilities, hasCapability }}>
+    <EditionContext.Provider value={{ loading, edition, capabilities, hasCapability, vocab }}>
       {children}
     </EditionContext.Provider>
   )
