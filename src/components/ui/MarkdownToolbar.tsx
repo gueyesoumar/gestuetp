@@ -23,7 +23,7 @@ const ACTIONS: Array<{ key: string; icon: typeof Bold; title: string; action: Ac
   { key: 'bold', icon: Bold, title: 'Gras (Ctrl+B)', action: { prefix: '**', suffix: '**', placeholder: 'gras' } },
   { key: 'italic', icon: Italic, title: 'Italique (Ctrl+I)', action: { prefix: '*', suffix: '*', placeholder: 'italique' } },
   { key: 'code', icon: Code, title: 'Code inline', action: { prefix: '`', suffix: '`', placeholder: 'code' } },
-  { key: 'list', icon: List, title: 'Liste &agrave; puces', action: { linePrefix: '- ' } },
+  { key: 'list', icon: List, title: 'Liste à puces', action: { linePrefix: '- ' } },
 ]
 
 function applyWrap(textarea: HTMLTextAreaElement, action: WrapAction): { value: string; selStart: number; selEnd: number } {
