@@ -7,9 +7,9 @@ import { TopBar } from './TopBar'
 
 export function AppLayout() {
   const { profile } = useAuth()
-  const { edition } = useEdition()
+  const { hasCapability } = useEdition()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const isRegul = edition === 'regul'
+  const isRegul = hasCapability('supervision')
 
   return (
     <div className="flex h-screen bg-page-bg">

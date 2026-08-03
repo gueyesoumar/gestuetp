@@ -40,11 +40,12 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   const data = useHubPerspectives()
   const selfDims = useSelfDimensionScores()
   const navigate = useNavigate()
-  const { edition } = useEdition()
-  // Le produit « primaire » = celui de l'édition résolue de l'org. C'est la seule
-  // tuile qui ouvre le workspace interne (navigate('/')). Plus de lien externe :
-  // un cabinet qui clique « Regul » voit le détail, sans quitter son dashboard.
-  const primaryProduct = edition === 'regul' ? 'Regul' : 'Comply'
+  const { hasCapability } = useEdition()
+  // Le produit « primaire » = déduit des capacités de l'org (persona régulateur =
+  // capacité supervision). C'est la seule tuile qui ouvre le workspace interne
+  // (navigate('/')). Plus de lien externe : un cabinet qui clique « Regul » voit
+  // le détail sans quitter son dashboard.
+  const primaryProduct = hasCapability('supervision') ? 'Regul' : 'Comply'
   const [current, setCurrent] = useState<HubPerspective>('self')
   const [selected, setSelected] = useState<Selection | null>(null)
 

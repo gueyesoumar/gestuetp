@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { preAuthEdition } from './lib/product'
 import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
 import { MfaGate } from './features/auth/mfa/MfaGate'
@@ -67,15 +66,15 @@ import { RegulReferentielsPage } from './regul/RegulReferentielsPage'
 import { RegulIncidentsPage } from './regul/incidents/RegulIncidentsPage'
 import { AssujettiIncidentsPage } from './regul/incidents/AssujettiIncidentsPage'
 
-// Arbre de routes UNIFIÉ du shell ETP (RFC 0001, Phase 2 — Hub-cockpit §5-6).
-// L'édition résolue AU RUNTIME choisit les routes-modules montées sous le même
+// Arbre de routes UNIFIÉ du shell ETP (RFC 0001 §5-6 ; RFC 0002 P2). Les CAPACITÉS
+// de l'org (résolues au runtime) choisissent les routes-modules montées sous le même
 // AppLayout : Comply (clients/missions/supervision) ou Regul (assujettis/contrôles/
-// constats/incidents). Plus de fork d'application séparée (RegulApp supprimé) ; le
-// chrome (Hub, compte, notifications, admin, portail) est partagé. Repli sur
-// `preAuthEdition()` (hostname / VITE_EDITION) tant que l'édition n'est pas résolue.
+// constats/incidents). Plus de fork d'application séparée (RegulApp supprimé) ni de
+// branchement sur l'édition ; le chrome (Hub, compte, notifications, admin, portail)
+// est partagé. Pré-auth : capacités vides → Comply (comme le déploiement principal).
 function AppRoutes(): JSX.Element {
-  const { edition } = useEdition()
-  const isRegul = (edition ?? preAuthEdition()) === 'regul'
+  const { hasCapability } = useEdition()
+  const isRegul = hasCapability('supervision')
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
