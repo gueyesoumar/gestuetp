@@ -102,7 +102,7 @@ export function EvidenceRequestSection({ missionId, domains }: EvidenceRequestSe
             S&eacute;lectionnez les preuves &agrave; demander au client. Cliquez sur un domaine pour le d&eacute;plier.
           </p>
         </div>
-        <Badge label={`${totalRequested}/${totalAvailable} demand&eacute;es`} variant={totalRequested === totalAvailable ? 'green' : 'blue'} />
+        <Badge label={`${totalRequested}/${totalAvailable} demandées`} variant={totalRequested === totalAvailable ? 'green' : 'blue'} />
       </div>
 
       <input
