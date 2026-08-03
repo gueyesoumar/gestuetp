@@ -135,7 +135,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       <div>
         <h3 className="text-base font-bold text-gray-900">Cl&ocirc;ture &amp; livraison</h3>
         <p className="text-[13px] text-gray-500 mt-0.5">
-          {isClosed ? 'Cette mission est cl&ocirc;tur&eacute;e.' : 'Cl&ocirc;turez la mission pour g&eacute;n&eacute;rer le scoring.'}
+          {isClosed ? 'Cette mission est clôturée.' : 'Clôturez la mission pour générer le scoring.'}
         </p>
       </div>
 
@@ -149,7 +149,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
           </div>
           <button onClick={handleClose} disabled={closing}
             className="bg-amber-600 text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-amber-700 disabled:opacity-50 transition-colors">
-            {closing ? 'Cl&ocirc;ture...' : 'Cl&ocirc;turer la mission'}
+            {closing ? 'Clôture...' : 'Clôturer la mission'}
           </button>
         </div>
       )}

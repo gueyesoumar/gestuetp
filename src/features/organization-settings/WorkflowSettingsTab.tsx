@@ -210,7 +210,7 @@ export function WorkflowSettingsTab(): JSX.Element {
               className="sr-only peer"
             />
             <div className="w-10 h-6 rounded-full bg-gray-300 peer-checked:bg-forest-700 transition-colors relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-4 peer-disabled:opacity-50"></div>
-            <span className="ml-2 text-[12px] font-semibold text-gray-700">{aiEnabled ? 'Activ&eacute;e' : 'D&eacute;sactiv&eacute;e'}</span>
+            <span className="ml-2 text-[12px] font-semibold text-gray-700">{aiEnabled ? 'Activée' : 'Désactivée'}</span>
           </label>
         </div>
       </div>

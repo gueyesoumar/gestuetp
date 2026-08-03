@@ -79,8 +79,8 @@ export function ValidationStep({ assessment, observations, findingsHook, onSubmi
       </h4>
       <p className="text-xs text-gray-300 leading-relaxed -mt-2">
         {alreadySubmitted
-          ? 'Suivi de la validation de ce contr&ocirc;le.'
-          : 'V&eacute;rifiez le r&eacute;sum&eacute; de vos travaux avant de soumettre au chef de mission.'}
+          ? 'Suivi de la validation de ce contrôle.'
+          : 'Vérifiez le résumé de vos travaux avant de soumettre au chef de mission.'}
       </p>
 
       <div className="rounded-xl border border-gray-200 bg-[#FAFAF8] divide-y divide-gray-100">

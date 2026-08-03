@@ -178,7 +178,7 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
                           <span className={`font-bold ${h.score >= 80 ? 'text-green-600' : h.score >= 60 ? 'text-forest-700' : h.score >= 40 ? 'text-gold-600' : 'text-red-500'}`}>{h.score}%</span>
                         ) : <span className="text-gray-300">&mdash;</span>}
                       </td>
-                      <td className="px-3 py-2.5 text-center text-gray-500">{h.findingsCount ?? '&mdash;'}</td>
+                      <td className="px-3 py-2.5 text-center text-gray-500">{h.findingsCount ?? '—'}</td>
                     </tr>
                   ))}
                 </tbody>

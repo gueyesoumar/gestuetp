@@ -126,7 +126,7 @@ export function DeclineEvidenceModal({
           </button>
           <button onClick={handleSubmit} disabled={!canSubmit}
             className="px-4 py-2 text-[12px] font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-            {submitting ? 'Envoi&hellip;' : 'Confirmer la déclaration'}
+            {submitting ? 'Envoi…' : 'Confirmer la déclaration'}
           </button>
         </div>
       </div>
