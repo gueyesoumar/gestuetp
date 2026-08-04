@@ -20,6 +20,8 @@ export const EDITABLE_VOCAB_KEYS: VocabKeyDef[] = [
   { key: 'mission_term', label: 'Terme « mission »', field: 'missionTerm', hint: 'ex. Missions, Contrôles' },
   { key: 'finding_term', label: 'Terme « constat »', field: 'findingTerm' },
   { key: 'measure_term', label: 'Terme « mesure »', field: 'measureTerm', hint: 'ex. recommandation, mesure, injonction' },
+  { key: 'provider_term', label: 'Rôle émetteur', field: 'providerTerm', hint: 'ex. cabinet, régulateur, autorité (emails)' },
+  { key: 'auditor_term', label: 'Rôle auditeur', field: 'auditorTerm', hint: 'ex. auditeur, contrôleur, inspecteur (emails)' },
   { key: 'portal_label', label: 'Libellé du portail', field: 'portalLabel' },
   { key: 'context_banner', label: 'Bandeau de contexte', field: 'contextBanner', hint: 'vide = pas de bandeau' },
   { key: 'context_banner_sub', label: 'Bandeau — sous-titre', field: 'contextBannerSub' },
