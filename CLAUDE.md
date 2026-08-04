@@ -67,8 +67,10 @@ Stack : React 18 + Vite + TypeScript strict + Tailwind CSS v4 + Supabase (Auth, 
 
 ## 5. Strings francais dans le JSX
 
-- Toujours utiliser les entites HTML (`&apos;`, `&laquo;`, `&raquo;`, `&agrave;`, `&eacute;`, `&euml;`) ou template literals
-- Jamais d'apostrophes ou guillemets francais bruts dans le JSX
+- **Accents (é, è, à, ô, ç…) : caractères UTF-8 RÉELS partout.** Ils fonctionnent dans le texte JSX, les attributs ET les strings JS. NE JAMAIS écrire `&eacute;` & co.
+- **Entités HTML : uniquement pour les caractères refusés par `react/no-unescaped-entities`** (`'` → `&apos;`/`&rsquo;`, `"`, `<`, `>`, `}`) et **seulement dans le TEXTE JSX** (`>…<`).
+- **Piège récurrent** : une entité ne se décode QUE dans le texte JSX et les attributs `attr="…"`. Dans une **string JS** — ternaire `{x ? 'a' : 'b'}`, template `` `…` ``, `.join('…')`, valeur d'objet, fichier `.ts` — elle s'affiche EN CLAIR. Y mettre un caractère réel (é, —, •, …).
+- **Garde-fou CI** : `scripts/check-html-entities.sh` (gate dur `ci.yml`) bloque toute entité en contexte string JS. Lancer en local : `npm run check:entities`.
 
 ## 6. Migrations SQL
 

@@ -84,7 +84,7 @@ export function TerminologyEditor({ orgId }: TerminologyEditorProps): JSX.Elemen
                       onClick={() => setValues((prev) => ({ ...prev, [k.key]: g }))}
                       className={`px-4 py-2 text-sm font-medium ${current === g ? 'bg-forest-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                     >
-                      {g === 'm' ? 'Masculin' : 'F&eacute;minin'}
+                      {g === 'm' ? 'Masculin' : 'Féminin'}
                     </button>
                   )
                 })}
