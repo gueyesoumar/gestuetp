@@ -1,5 +1,5 @@
 import { useEdition } from './EditionContext'
-import { preAuthEdition, vocabForEdition, type ProductVocab } from '../../lib/product'
+import { vocabForPersona, type ProductVocab } from '../../lib/product'
 
 // Vocabulaire résolu par l'ÉDITION au runtime (Phase 2 — incrément 2).
 //
@@ -7,8 +7,8 @@ import { preAuthEdition, vocabForEdition, type ProductVocab } from '../../lib/pr
 // (edition null : en cours de chargement, ou role=client neutralisé côté RLS avant
 // la résolution superviseur). Le produit n'est plus un fork de build.
 export function useVocab(): ProductVocab {
-  const { edition, vocab } = useEdition()
-  const base = vocabForEdition(edition ?? preAuthEdition())
+  const { hasCapability, vocab } = useEdition()
+  const base = vocabForPersona(hasCapability('supervision'))
   // Overrides par org (RFC 0002, P1) : seuls les LIBELLÉS sont personnalisables ;
   // entityRouteBase et logoTag restent structurels (issus de l'édition). Vide au
   // départ → base inchangée (iso-fonctionnel).
