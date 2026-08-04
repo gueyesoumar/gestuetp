@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { reminderHtml, reminderSubject, type Palier, type ReminderContext } from '../_shared/email-templates/reminder.ts'
 import { buildEmailFrom, loadCabinetEmailBranding, type CabinetEmailBranding } from '../_shared/email-branding.ts'
+import { resolveOrgVocab, type OrgVocab } from '../_shared/vocab.ts'
 
 /**
  * Edge Function : evidence-reminders
@@ -115,6 +116,15 @@ Deno.serve(async (req) => {
     return brandingCache.get(cabinetId) ?? null
   }
 
+  // Cache du vocab (persona) par cabinet — même logique que le branding.
+  const DEFAULT_VOCAB: OrgVocab = { providerTerm: 'cabinet', auditorTerm: 'auditeur', missionTerm: 'mission' }
+  const vocabCache = new Map<string, OrgVocab>()
+  const getVocab = async (cabinetId: string | null): Promise<OrgVocab> => {
+    if (!cabinetId) return DEFAULT_VOCAB
+    if (!vocabCache.has(cabinetId)) vocabCache.set(cabinetId, await resolveOrgVocab(admin, cabinetId))
+    return vocabCache.get(cabinetId) ?? DEFAULT_VOCAB
+  }
+
   for (const row of rows) {
     const reference = row.due_date ? new Date(row.due_date) : new Date(row.created_at)
     const ageDays = Math.floor((now.getTime() - reference.getTime()) / 86_400_000)
@@ -149,6 +159,9 @@ Deno.serve(async (req) => {
     const controlCode = await loadControlCode(admin, row.evidence_catalog?.control_id ?? null)
     const overdue = row.due_date ? Math.max(0, ageDays) : 0
 
+    const cabinetId = row.mission?.cabinet_id ?? null
+    const vocab = await getVocab(cabinetId)
+
     const ctx: ReminderContext = {
       recipientFirstName: recipient.first_name || 'bonjour',
       evidenceName: row.evidence_catalog?.name ?? 'Document demandé',
@@ -161,9 +174,10 @@ Deno.serve(async (req) => {
       uploadUrl: `${appBaseUrl}/client/missions/${row.mission_id}`,
       contactAuditorUrl: `${appBaseUrl}/client/missions/${row.mission_id}`,
       unsubscribeUrl: `${appBaseUrl}/unsubscribe?token=${encodeURIComponent(recipient.email_preferences.unsubscribe_token)}`,
+      auditorTerm: vocab.auditorTerm,
+      missionTerm: vocab.missionTerm,
     }
 
-    const cabinetId = row.mission?.cabinet_id ?? null
     const branding = cabinetId ? await getBranding(cabinetId) : null
 
     const subject = reminderSubject(palier, ctx)

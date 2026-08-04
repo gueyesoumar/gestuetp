@@ -40,6 +40,10 @@ export interface ProductVocab {
   /** Bandeau de contexte en haut de la coquille (vide = pas de bandeau). */
   contextBanner: string
   contextBannerSub: string
+  /** Rôle émetteur : « cabinet » / « régulateur » (surtout emails). */
+  providerTerm: string
+  /** Personne qui mène : « auditeur » / « contrôleur » (surtout emails). */
+  auditorTerm: string
 }
 
 const VOCAB: Record<ProductMode, ProductVocab> = {
@@ -57,6 +61,8 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     measureTerm: 'recommandation',
     contextBanner: '',
     contextBannerSub: '',
+    providerTerm: 'cabinet',
+    auditorTerm: 'auditeur',
   },
   regul: {
     entitySingular: 'assujetti',
@@ -72,6 +78,8 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     measureTerm: 'mesure',
     contextBanner: 'Console régulateur',
     contextBannerSub: 'Superviseur de conformité cyber',
+    providerTerm: 'régulateur',
+    auditorTerm: 'contrôleur',
   },
 }
 

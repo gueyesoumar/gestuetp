@@ -10,6 +10,7 @@ import {
   renderCARRejectedEmail,
   renderCARPrecisionEmail,
 } from '../_shared/email-templates/car.ts'
+import { resolveOrgVocab } from '../_shared/vocab.ts'
 
 type VerifyAction = 'accept' | 'reject' | 'request_precision'
 
@@ -215,6 +216,7 @@ Deno.serve(async (req) => {
 
       if (recipientEmail) {
         const portalUrl = Deno.env.get('CLIENT_PORTAL_URL') ?? 'https://app.gestugroup.com/portal'
+        const vocab = await resolveOrgVocab(admin, mission.cabinet_id)
         const ctx = {
           cabinetName,
           primaryColor: br?.primary_color ?? '#1B4332',
@@ -227,6 +229,7 @@ Deno.serve(async (req) => {
           description: car.description,
           deadline: formatDate(car.deadline),
           portalUrl,
+          auditorTerm: vocab.auditorTerm,
         }
 
         let rendered: { subject: string; html: string } | null = null

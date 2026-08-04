@@ -1,5 +1,6 @@
 // Templates email pour les actions correctives (CAR)
 // 4 templates : created (à génération), accepted, rejected, precision.
+import { leElision } from '../vocab.ts'
 
 function escapeHtml(s: string | null | undefined): string {
   if (!s) return ''
@@ -23,6 +24,14 @@ interface CarEmailContext {
   description: string
   deadline: string | null
   portalUrl: string
+  /** Terme « auditeur » résolu selon la persona de l'org émettrice (auditeur / contrôleur). */
+  auditorTerm: string
+}
+
+/** « l'auditeur » / « le contrôleur », avec majuscule optionnelle en début de phrase. */
+function auditorLe(ctx: CarEmailContext, capital = false): string {
+  const s = `${leElision(ctx.auditorTerm)}${escapeHtml(ctx.auditorTerm)}`
+  return capital ? s.charAt(0).toUpperCase() + s.slice(1) : s
 }
 
 const CLASS_LABEL: Record<string, string> = {
@@ -75,7 +84,7 @@ function infoBlock(ctx: CarEmailContext): string {
 export function renderCARCreatedEmail(ctx: CarEmailContext): { subject: string; html: string } {
   const body = `
     <h1 style="margin:0 0 8px; font-size:18px; color:${escapeHtml(ctx.primaryColor)};">Nouvelle action corrective ${escapeHtml(ctx.carCode)}</h1>
-    <p style="margin:0 0 12px;">Suite à l'audit <strong>${escapeHtml(ctx.missionName)}</strong>, une action corrective vous est adressée. Merci de renseigner la cause racine et le plan d'action proposé via le portail.</p>
+    <p style="margin:0 0 12px;">Une action corrective vous est adressée concernant <strong>${escapeHtml(ctx.missionName)}</strong>. Merci de renseigner la cause racine et le plan d'action proposé via le portail.</p>
     ${infoBlock(ctx)}`
   return {
     subject: `[${ctx.cabinetName}] Action corrective ${ctx.carCode} — ${ctx.missionName}`,
@@ -86,7 +95,7 @@ export function renderCARCreatedEmail(ctx: CarEmailContext): { subject: string; 
 export function renderCARAcceptedEmail(ctx: CarEmailContext): { subject: string; html: string } {
   const body = `
     <h1 style="margin:0 0 8px; font-size:18px; color:#15803D;">Action ${escapeHtml(ctx.carCode)} acceptée</h1>
-    <p style="margin:0 0 12px;">Votre réponse à l'action corrective <strong>${escapeHtml(ctx.carCode)}</strong> a été acceptée par l'auditeur. Aucune action complémentaire n'est requise de votre part.</p>
+    <p style="margin:0 0 12px;">Votre réponse à l'action corrective <strong>${escapeHtml(ctx.carCode)}</strong> a été acceptée par ${auditorLe(ctx)}. Aucune action complémentaire n'est requise de votre part.</p>
     ${infoBlock(ctx)}`
   return {
     subject: `[${ctx.cabinetName}] Action ${ctx.carCode} acceptée — ${ctx.missionName}`,
@@ -116,7 +125,7 @@ export function renderCARRejectedEmail(ctx: VerificationContext): { subject: str
 export function renderCARPrecisionEmail(ctx: VerificationContext): { subject: string; html: string } {
   const body = `
     <h1 style="margin:0 0 8px; font-size:18px; color:#B45309;">Précision demandée — ${escapeHtml(ctx.carCode)}</h1>
-    <p style="margin:0 0 12px;">L'auditeur a demandé une précision complémentaire sur votre réponse à l'action <strong>${escapeHtml(ctx.carCode)}</strong>.</p>
+    <p style="margin:0 0 12px;">${auditorLe(ctx, true)} a demandé une précision complémentaire sur votre réponse à l'action <strong>${escapeHtml(ctx.carCode)}</strong>.</p>
     <div style="background:#FFFBEB; border-left:4px solid #B45309; border-radius:4px; padding:12px 14px; margin:12px 0; color:#78350F; font-size:13px;">
       <strong style="display:block; margin-bottom:4px;">Précision attendue</strong>
       ${escapeHtml(ctx.verifierComment)}

@@ -3,6 +3,7 @@
 // sans passer par escapeHtml() pour empêcher l'XSS dans les clients mail.
 
 import { platformBrand } from '../brand.ts'
+import { leElision } from '../vocab.ts'
 
 export type Palier = 'j3' | 'j7' | 'j14'
 
@@ -18,11 +19,20 @@ export interface ReminderContext {
   uploadUrl: string
   contactAuditorUrl: string
   unsubscribeUrl: string
+  /** Vocab résolu selon la persona de l'org émettrice. */
+  auditorTerm: string
+  missionTerm: string
+}
+
+/** « l'auditeur » / « le contrôleur », avec majuscule optionnelle en début de phrase. */
+function auditorLe(ctx: ReminderContext, capital = false): string {
+  const s = `${leElision(ctx.auditorTerm)}${ctx.auditorTerm}`
+  return capital ? s.charAt(0).toUpperCase() + s.slice(1) : s
 }
 
 const PALIER_CONFIG: Record<Palier, {
   subjectPrefix: string
-  intro: (firstName: string, name: string) => string
+  intro: (firstName: string, name: string, ctx: ReminderContext) => string
   stripeLabel: string
   stripeText: (ctx: ReminderContext) => string
   stripeColor: { bg: string; text: string; border: string }
@@ -33,8 +43,8 @@ const PALIER_CONFIG: Record<Palier, {
 }> = {
   j3: {
     subjectPrefix: 'Rappel',
-    intro: (firstName, _name) =>
-      `Bonjour ${firstName}, nous nous permettons de revenir vers vous concernant un document attendu pour votre mission d'audit.`,
+    intro: (firstName, _name, ctx) =>
+      `Bonjour ${firstName}, nous nous permettons de revenir vers vous concernant un document attendu pour votre ${ctx.missionTerm}.`,
     stripeLabel: 'Information',
     stripeText: () => 'Ce rappel est automatique. Si le document est déjà en cours de préparation, vous pouvez ignorer cet email.',
     stripeColor: { bg: '#EFF6FF', text: '#1D4ED8', border: '#1D4ED8' },
@@ -44,10 +54,10 @@ const PALIER_CONFIG: Record<Palier, {
   },
   j7: {
     subjectPrefix: 'Action requise',
-    intro: (firstName, name) =>
-      `Bonjour ${firstName}, le document « ${name} » est attendu depuis 7 jours et bloque l'avancement de votre audit.`,
+    intro: (firstName, name, ctx) =>
+      `Bonjour ${firstName}, le document « ${name} » est attendu depuis 7 jours et bloque l'avancement de votre ${ctx.missionTerm}.`,
     stripeLabel: 'Action requise',
-    stripeText: () => 'Sans dépôt sous 7 jours, l\'auditeur devra clôturer le contrôle concerné en non-conformité par défaut de preuve.',
+    stripeText: (ctx) => `Sans dépôt sous 7 jours, ${auditorLe(ctx)} devra clôturer le contrôle concerné en non-conformité par défaut de preuve.`,
     stripeColor: { bg: '#FFFBEB', text: '#B45309', border: '#B45309' },
     ctaLabel: 'Déposer le document',
     showContactCta: true,
@@ -114,7 +124,7 @@ export function reminderHtml(palier: Palier, ctx: ReminderContext, options: Remi
     accentColor: escapeHtml(accentColor),
   }
 
-  const intro = escapeHtml(cfg.intro(safe.firstName, ctx.evidenceName))
+  const intro = escapeHtml(cfg.intro(safe.firstName, ctx.evidenceName, ctx))
   const stripeText = escapeHtml(cfg.stripeText(ctx))
   const stripeLabel = escapeHtml(cfg.stripeLabel)
 
@@ -127,7 +137,7 @@ export function reminderHtml(palier: Palier, ctx: ReminderContext, options: Remi
     : ''
 
   const contactCta = cfg.showContactCta
-    ? `<a href="${safe.contactAuditorUrl}" style="margin-left:10px; font-size:13px; color:${safe.primaryColor}; text-decoration:underline">Contacter l'auditeur</a>`
+    ? `<a href="${safe.contactAuditorUrl}" style="margin-left:10px; font-size:13px; color:${safe.primaryColor}; text-decoration:underline">Contacter ${auditorLe(ctx)}</a>`
     : ''
 
   // Header — branded ou défaut Gëstu
