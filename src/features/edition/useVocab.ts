@@ -27,5 +27,7 @@ export function useVocab(): ProductVocab {
     measureTerm: vocab.get('measure_term') ?? base.measureTerm,
     contextBanner: vocab.get('context_banner') ?? base.contextBanner,
     contextBannerSub: vocab.get('context_banner_sub') ?? base.contextBannerSub,
+    providerTerm: vocab.get('provider_term') ?? base.providerTerm,
+    auditorTerm: vocab.get('auditor_term') ?? base.auditorTerm,
   }
 }

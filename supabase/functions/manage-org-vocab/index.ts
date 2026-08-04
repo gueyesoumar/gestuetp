@@ -14,6 +14,7 @@ import { logAdminAction } from '../_shared/auth-platform-owner.ts'
 const EDITABLE_KEYS = [
   'entity_singular', 'entity_plural', 'entities_title', 'entity_with_dem', 'entity_gender',
   'portal_label', 'mission_term', 'finding_term', 'measure_term', 'context_banner', 'context_banner_sub',
+  'provider_term', 'auditor_term',
 ]
 
 Deno.serve(async (req) => {
