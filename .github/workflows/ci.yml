@@ -40,6 +40,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Gate dur #3 : aucune entité HTML dans une string JS (rendu littéral, ex.
+      # `{x ? 'Activ&eacute;e' : …}`). Les entités ne décodent que dans le texte/attribut JSX.
+      - name: Entités HTML (garde-fou i18n)
+        run: bash scripts/check-html-entities.sh
+
       # Informatif (non bloquant) : 243 erreurs pre-existantes, surtout dans
       # supabase/functions (Deno). A resorber progressivement avant d'en faire un gate.
       - name: Lint (informatif)

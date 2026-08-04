@@ -21,6 +21,8 @@ export interface ProductVocab {
   entitySingular: string
   entityPlural: string
   entitiesTitle: string
+  /** Genre grammatical de l'entité → pilote l'accord FR (un/une, rattaché·e). */
+  entityGender: 'm' | 'f'
   /** Base de route de la fiche entité (diffère selon le produit). */
   entityRouteBase: string
   /** Tag produit affiché dans le logo. */
@@ -29,6 +31,15 @@ export interface ProductVocab {
   portalLabel: string
   /** Entité précédée de son démonstratif (élision FR gérée) : « cette entité » / « cet assujetti ». */
   entityWithDem: string
+  /** Unité de travail : « Missions » / « Contrôles ». */
+  missionTerm: string
+  /** Résultat d'évaluation : « constat ». */
+  findingTerm: string
+  /** Acte émis : « recommandation » / « mesure ». */
+  measureTerm: string
+  /** Bandeau de contexte en haut de la coquille (vide = pas de bandeau). */
+  contextBanner: string
+  contextBannerSub: string
 }
 
 const VOCAB: Record<ProductMode, ProductVocab> = {
@@ -36,19 +47,31 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entitySingular: 'entité',
     entityPlural: 'entités',
     entitiesTitle: 'Entités',
+    entityGender: 'f',
     entityRouteBase: '/filiales',
     logoTag: 'comply',
     portalLabel: 'Portail Client',
     entityWithDem: 'cette entité',
+    missionTerm: 'Missions',
+    findingTerm: 'constat',
+    measureTerm: 'recommandation',
+    contextBanner: '',
+    contextBannerSub: '',
   },
   regul: {
     entitySingular: 'assujetti',
     entityPlural: 'assujettis',
     entitiesTitle: 'Assujettis',
+    entityGender: 'm',
     entityRouteBase: '/assujettis',
     logoTag: 'regul',
     portalLabel: 'Portail Assujetti',
     entityWithDem: 'cet assujetti',
+    missionTerm: 'Contrôles',
+    findingTerm: 'constat',
+    measureTerm: 'mesure',
+    contextBanner: 'Console régulateur',
+    contextBannerSub: 'Superviseur de conformité cyber',
   },
 }
 

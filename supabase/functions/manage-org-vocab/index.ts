@@ -9,9 +9,12 @@ import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { logAdminAction } from '../_shared/auth-platform-owner.ts'
 
-// P3a : uniquement les clés que useVocab applique déjà (câblage réel). Les autres
-// (provider_term, mission_term…) s'ajouteront quand P2 aura branché leurs surfaces.
-const EDITABLE_KEYS = ['entity_singular', 'entity_plural', 'entities_title', 'entity_with_dem', 'portal_label']
+// Clés que useVocab applique (RFC 0002 P2b). provider_term/auditor_term restent
+// hors périmètre tant que le vocab n'est pas résolu côté serveur (emails).
+const EDITABLE_KEYS = [
+  'entity_singular', 'entity_plural', 'entities_title', 'entity_with_dem', 'entity_gender',
+  'portal_label', 'mission_term', 'finding_term', 'measure_term', 'context_banner', 'context_banner_sub',
+]
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })

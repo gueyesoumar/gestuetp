@@ -34,7 +34,7 @@ export function useSidebarNavItems(
 
   if (isRegul) {
     mainItems.push({ to: '/assujettis', label: vocab.entitiesTitle, icon: <Building2 size={20} strokeWidth={1.5} /> })
-    mainItems.push({ to: '/controles', label: 'Missions de contrôle', icon: <ClipboardCheck size={20} strokeWidth={1.5} /> })
+    mainItems.push({ to: '/controles', label: vocab.missionTerm, icon: <ClipboardCheck size={20} strokeWidth={1.5} /> })
     if (hasCapability('measures')) {
       mainItems.push({ to: '/constats', label: 'Constats & mesures', icon: <AlertTriangle size={20} strokeWidth={1.5} /> })
     }
@@ -48,7 +48,7 @@ export function useSidebarNavItems(
     }
     mainItems.push({ to: '/clients', label: 'Clients', icon: <ClientsIcon /> })
     mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <FrameworksIcon /> })
-    mainItems.push({ to: '/missions', label: 'Missions', icon: <MissionsIcon /> })
+    mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <MissionsIcon /> })
   }
 
   const groupItems: NavItem[] = !isRegul && isGroup

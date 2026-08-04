@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useEdition } from '../../features/edition/EditionContext'
+import { useVocab } from '../../features/edition/useVocab'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
 export function AppLayout() {
   const { profile } = useAuth()
-  const { hasCapability } = useEdition()
+  const vocab = useVocab()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const isRegul = hasCapability('supervision')
 
   return (
     <div className="flex h-screen bg-page-bg">
@@ -24,10 +23,10 @@ export function AppLayout() {
           onMenuToggle={() => setSidebarOpen((prev) => !prev)}
         />
 
-        {isRegul && (
+        {vocab.contextBanner && (
           <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-6 py-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-forest-700">Console r&eacute;gulateur</span>
-            <span className="text-[12px] text-gray-400">Superviseur de conformit&eacute; cyber</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-forest-700">{vocab.contextBanner}</span>
+            {vocab.contextBannerSub && <span className="text-[12px] text-gray-400">{vocab.contextBannerSub}</span>}
           </div>
         )}
 
