@@ -8,6 +8,7 @@ import { MissionScopeStep } from '../features/missions/steps/MissionScopeStep'
 import { MissionTeamStep } from '../features/missions/steps/MissionTeamStep'
 import { MissionCalendarStep } from '../features/missions/steps/MissionCalendarStep'
 import { MissionConfirmStep } from '../features/missions/steps/MissionConfirmStep'
+import { QuickClientModal } from '../features/missions/QuickClientModal'
 import { FormWizard } from '../components/ui/FormWizard'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
@@ -18,6 +19,7 @@ export function MissionCreatePage() {
   const f = useMissionCreateForm()
   const [scopeTouched, setScopeTouched] = useState(false)
   const [teamTouched, setTeamTouched] = useState(false)
+  const [showClientModal, setShowClientModal] = useState(false)
 
   if (f.loading) return <LoadingSpinner />
 
@@ -75,7 +77,7 @@ export function MissionCreatePage() {
                   clients={f.clients}
                   selectedClientId={f.clientId}
                   onSelect={f.setClientId}
-                  onNewClient={() => navigate('/clients/nouveau')}
+                  onNewClient={() => setShowClientModal(true)}
                 />
               ),
             },
@@ -118,6 +120,7 @@ export function MissionCreatePage() {
                   onToggleMember={f.toggleMember}
                   associateError={teamTouched ? associateError : null}
                   leadError={teamTouched ? leadError : null}
+                  eligibleLeadIds={f.eligibleLeadIds}
                 />
               ),
             },
@@ -167,6 +170,16 @@ export function MissionCreatePage() {
           ]}
         />
       </div>
+
+      <QuickClientModal
+        open={showClientModal}
+        onClose={() => setShowClientModal(false)}
+        onCreated={(id) => {
+          f.refetchClients()
+          f.setClientId(id)
+          setShowClientModal(false)
+        }}
+      />
     </div>
   )
 }
