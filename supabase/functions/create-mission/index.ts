@@ -18,6 +18,9 @@ interface CreateMissionPayload {
   end_date: string
   member_ids: string[]
   kind?: MissionKind
+  /** Périmètre optionnel : domaines RETENUS. Le complément est persisté en
+   *  exclusions (mission_exclusions). Absent -> aucune exclusion (rétro-compatible). */
+  scope_domain_ids?: string[]
 }
 
 function quarterLabel(dateIso: string): string {
@@ -207,85 +210,93 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 7. Creer la mission
-    const { data: mission, error: missionError } = await supabaseAdmin
-      .from('missions')
-      .insert({
-        name,
-        description: description || null,
-        cabinet_id: callerProfile.organization_id,
-        client_id: clientOrgId,
-        framework_id,
-        kind,
-        lead_auditor_id,
-        associate_id,
-        start_date,
-        end_date,
-        status: 'initialization',
-      })
-      .select('id')
-      .single()
+    // 6.bis Périmètre optionnel (refonte création) : le front peut fournir les
+    //       domaines RETENUS. On persiste le complément en exclusions (modèle
+    //       cohérent avec le cadrage). Absent -> aucune exclusion (rétro-compatible
+    //       avec l'écran Regul et l'ancien front Comply).
+    let excludedControlIds: string[] = []
+    const scopeDomainIds = Array.isArray(body.scope_domain_ids) ? body.scope_domain_ids.filter(Boolean) : []
+    if (scopeDomainIds.length > 0) {
+      const { data: fwDomains, error: domErr } = await supabaseAdmin
+        .from('domains')
+        .select('id')
+        .eq('framework_id', framework_id)
+      if (domErr) {
+        console.error('create-mission domains:', domErr.message)
+        return new Response(
+          JSON.stringify({ error: 'Erreur lors de la résolution du périmètre' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      const validDomainIds = new Set((fwDomains ?? []).map((d: { id: string }) => d.id))
+      // IDOR : refuser tout domaine hors du référentiel de la mission
+      if (scopeDomainIds.some((id) => !validDomainIds.has(id))) {
+        return new Response(
+          JSON.stringify({ error: 'Périmètre invalide : un domaine n\'appartient pas au référentiel' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      const excludedDomainIds = [...validDomainIds].filter((id) => !scopeDomainIds.includes(id))
+      if (excludedDomainIds.length > 0) {
+        const { data: exCtrls, error: ctrlErr } = await supabaseAdmin
+          .from('controls')
+          .select('id')
+          .in('domain_id', excludedDomainIds)
+        if (ctrlErr) {
+          console.error('create-mission controls:', ctrlErr.message)
+          return new Response(
+            JSON.stringify({ error: 'Erreur lors de la résolution du périmètre' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        excludedControlIds = (exCtrls ?? []).map((c: { id: string }) => c.id)
+      }
+    }
 
-    if (missionError || !mission) {
-      console.error('create-mission insert:', missionError?.message)
+    // 6.ter En supervision continue, bornes du 1er cycle (trimestre courant / start_date).
+    let cycleLabel: string | null = null
+    let cycleStart: string | null = null
+    let cycleEnd: string | null = null
+    if (kind === 'continuous_supervision') {
+      const startD = new Date(start_date)
+      const quarterStartMonth = startD.getUTCMonth() - (startD.getUTCMonth() % 3)
+      cycleLabel = quarterLabel(start_date)
+      cycleStart = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth, 1)).toISOString().slice(0, 10)
+      cycleEnd = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth + 3, 0)).toISOString().slice(0, 10)
+    }
+
+    // 7. Créer la mission + cycle + membres + exclusions EN UNE TRANSACTION
+    //    (create_mission_tx, SECURITY DEFINER). Atomicité : plus d'état partiel
+    //    (mission sans équipe) comme avec les inserts séparés d'avant.
+    const { data: newMissionId, error: txError } = await supabaseAdmin.rpc('create_mission_tx', {
+      p_cabinet_id: callerProfile.organization_id,
+      p_client_id: clientOrgId,
+      p_framework_id: framework_id,
+      p_name: name,
+      p_description: description ?? '',
+      p_kind: kind,
+      p_lead_auditor_id: lead_auditor_id,
+      p_associate_id: associate_id,
+      p_start_date: start_date,
+      p_end_date: end_date,
+      p_member_ids: member_ids ?? [],
+      p_excluded_control_ids: excludedControlIds,
+      p_created_by: callerProfile.id,
+      p_cycle_label: cycleLabel,
+      p_cycle_start: cycleStart,
+      p_cycle_end: cycleEnd,
+    })
+
+    if (txError || !newMissionId) {
+      console.error('create-mission tx:', txError?.message)
       return new Response(
         JSON.stringify({ error: 'Erreur lors de la création de la mission' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // 7.bis En supervision continue, ouvrir automatiquement le 1er cycle (trimestre courant
-    //       basé sur start_date) pour que les évaluations soient rattachées dès la première
-    //       phase de travaux.
-    if (kind === 'continuous_supervision') {
-      const startD = new Date(start_date)
-      const startMonth = startD.getUTCMonth()
-      const quarterStartMonth = startMonth - (startMonth % 3)
-      const cycleStart = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth, 1))
-      const cycleEnd = new Date(Date.UTC(startD.getUTCFullYear(), quarterStartMonth + 3, 0))
-
-      const { error: cycleErr } = await supabaseAdmin
-        .from('supervision_cycles')
-        .insert({
-          mission_id: mission.id,
-          period_label: quarterLabel(start_date),
-          period_start: cycleStart.toISOString().slice(0, 10),
-          period_end: cycleEnd.toISOString().slice(0, 10),
-          status: 'in_progress',
-          lead_auditor_id,
-          created_by: callerProfile.id,
-        })
-      if (cycleErr) {
-        console.error('create-mission cycle insert:', cycleErr.message)
-        // Non bloquant : la mission est créée, le cycle peut être ajouté plus tard manuellement
-      }
-    }
-
-    // 8. Ajouter les membres de la mission
-    const memberEntries = (member_ids ?? []).map((userId: string) => {
-      let role: 'associate' | 'lead_auditor' | 'auditor' = 'auditor'
-      if (userId === associate_id) role = 'associate'
-      else if (userId === lead_auditor_id) role = 'lead_auditor'
-
-      return {
-        mission_id: mission.id,
-        user_id: userId,
-        role,
-      }
-    })
-
-    if (memberEntries.length > 0) {
-      const { error: membersError } = await supabaseAdmin
-        .from('mission_members')
-        .insert(memberEntries)
-
-      if (membersError) {
-        console.error('create-mission members:', membersError.message)
-      }
-    }
-
     return new Response(
-      JSON.stringify({ success: true, mission_id: mission.id }),
+      JSON.stringify({ success: true, mission_id: newMissionId }),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
