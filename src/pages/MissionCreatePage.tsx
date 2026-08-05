@@ -1,101 +1,37 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
-import { isGroupOrg } from '../lib/organization-utils'
-import { useFrameworks } from '../features/frameworks/useFrameworks'
-import { useCabinetClients } from '../features/clients/useCabinetClients'
-import { useMembers } from '../features/members/useMembers'
-import { useCreateMission } from '../features/missions/useCreateMission'
+import { useMissionCreateForm } from '../features/missions/useMissionCreateForm'
 import { MissionEngagementStep } from '../features/missions/steps/MissionEngagementStep'
 import { MissionTypeStep } from '../features/missions/steps/MissionTypeStep'
 import { MissionClientStep } from '../features/missions/steps/MissionClientStep'
+import { MissionScopeStep } from '../features/missions/steps/MissionScopeStep'
 import { MissionTeamStep } from '../features/missions/steps/MissionTeamStep'
 import { MissionCalendarStep } from '../features/missions/steps/MissionCalendarStep'
 import { MissionConfirmStep } from '../features/missions/steps/MissionConfirmStep'
 import { FormWizard } from '../components/ui/FormWizard'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
-import { useFieldValidation, required } from '../hooks/useFieldValidation'
-import type { MissionKind } from '../types/database.types'
 
 export function MissionCreatePage() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { profile } = useAuth()
-  const { frameworks, loading: fwLoading } = useFrameworks()
-  const { clients, loading: clientsLoading } = useCabinetClients()
-  const { members, loading: membersLoading } = useMembers()
-  const { createMission, creating } = useCreateMission()
+  const f = useMissionCreateForm()
+  const [scopeTouched, setScopeTouched] = useState(false)
+  const [teamTouched, setTeamTouched] = useState(false)
 
-  const [kind, setKind] = useState<MissionKind>('audit')
-  const [groupAvailable, setGroupAvailable] = useState(false)
-  const [frameworkId, setFrameworkId] = useState('')
-  const [clientId, setClientId] = useState('')
-  const [missionName, setMissionName] = useState('')
-  const [associateId, setAssociateId] = useState('')
-  const [leadAuditorId, setLeadAuditorId] = useState('')
-  const [memberIds, setMemberIds] = useState<string[]>([])
+  if (f.loading) return <LoadingSpinner />
 
-  useEffect(() => {
-    if (!profile?.organization_id) return
-    const ac = new AbortController()
-    supabase
-      .from('organizations')
-      .select('types')
-      .eq('id', profile.organization_id)
-      .abortSignal(ac.signal)
-      .single()
-      .then(({ data }) => {
-        if (ac.signal.aborted) return
-        if (data?.types && isGroupOrg({ types: data.types as string[] })) {
-          setGroupAvailable(true)
-        }
-      })
-    return () => ac.abort()
-  }, [profile?.organization_id])
-  const startDate = useFieldValidation('', required('Date de début requise.'))
-  const endDate = useFieldValidation('', (v) => {
-    if (!v) return 'Date de fin requise.'
-    if (startDate.value && v < startDate.value) return 'La date de fin doit être postérieure à la date de début.'
-    return null
-  })
-
-  const loading = fwLoading || clientsLoading || membersLoading
-  if (loading) return <LoadingSpinner />
-
-  const selectedFramework = frameworks.find((f) => f.id === frameworkId) ?? null
-  const selectedClient = clients.find((c) => c.id === clientId) ?? null
-  const allMemberIds = [...new Set([associateId, leadAuditorId, ...memberIds].filter(Boolean))]
-  const teamSize = allMemberIds.length
-
-  // Auto-generate mission name
-  if (selectedFramework && selectedClient && !missionName) {
-    setMissionName(`${selectedFramework.name} \u2014 ${selectedClient.client_name}`)
-  }
-
-  const handleToggleMember = (id: string) => {
-    setMemberIds((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
-    )
-  }
+  const scopeError = f.scopeDomainIds.size === 0
+    ? 'Sélectionnez au moins un domaine.'
+    : (!f.missionName.trim() ? 'Nommez la mission.' : null)
+  const associateError = !f.associateId ? 'Associé requis.' : null
+  const leadError = !f.leadAuditorId ? 'Chef de mission requis.' : null
 
   const handleSubmit = async () => {
-    const res = await createMission({
-      name: missionName,
-      description: '',
-      cabinet_client_id: clientId,
-      framework_id: frameworkId,
-      lead_auditor_id: leadAuditorId,
-      associate_id: associateId,
-      start_date: startDate.value,
-      end_date: endDate.value,
-      member_ids: allMemberIds,
-      kind,
-    })
+    const res = await f.submit()
     if (res.ok) {
       toast.success('Mission créée', {
-        description: missionName,
+        description: f.missionName,
         action: { label: 'Voir', onClick: () => navigate('/missions') },
       })
       navigate('/missions')
@@ -111,61 +47,77 @@ export function MissionCreatePage() {
       </Link>
 
       <h2 className="mt-4 text-xl font-semibold text-gray-900">Nouvelle mission</h2>
-      <p className="mt-1 text-[13px] text-gray-500">Cr&eacute;ez une mission en 6 &eacute;tapes guid&eacute;es.</p>
+      <p className="mt-1 text-[13px] text-gray-500">Créez une mission en 7 étapes guidées.</p>
 
       <div className="mt-6">
         <FormWizard
-          submitLabel="Cr&eacute;er la mission"
-          submitting={creating}
+          submitLabel="Créer la mission"
+          submitting={f.creating}
           onSubmit={handleSubmit}
           steps={[
             {
               key: 'engagement',
-              label: "Type d'engagement",
-              content: (
-                <MissionEngagementStep
-                  kind={kind}
-                  onChange={setKind}
-                  groupAvailable={groupAvailable}
-                />
-              ),
+              label: 'Engagement',
+              content: <MissionEngagementStep kind={f.kind} onChange={f.setKind} groupAvailable={f.groupAvailable} />,
             },
             {
               key: 'type',
               label: 'Référentiel',
-              content: (
-                <MissionTypeStep
-                  frameworks={frameworks}
-                  selectedFrameworkId={frameworkId}
-                  onSelect={setFrameworkId}
-                />
-              ),
+              validate: () => !!f.frameworkId,
+              content: <MissionTypeStep frameworks={f.frameworks} selectedFrameworkId={f.frameworkId} onSelect={f.setFrameworkId} />,
             },
             {
               key: 'client',
               label: 'Client',
+              validate: () => !!f.clientId,
               content: (
                 <MissionClientStep
-                  clients={clients}
-                  selectedClientId={clientId}
-                  onSelect={setClientId}
+                  clients={f.clients}
+                  selectedClientId={f.clientId}
+                  onSelect={f.setClientId}
                   onNewClient={() => navigate('/clients/nouveau')}
                 />
               ),
             },
             {
+              key: 'scope',
+              label: 'Périmètre',
+              validate: () => {
+                setScopeTouched(true)
+                return f.scopeDomainIds.size > 0 && f.missionName.trim().length > 0
+              },
+              content: (
+                <MissionScopeStep
+                  framework={f.selectedFramework}
+                  domains={f.domains}
+                  loading={f.domainsLoading}
+                  missionName={f.missionName}
+                  onMissionName={f.onMissionName}
+                  selectedDomainIds={f.scopeDomainIds}
+                  onToggleDomain={f.toggleDomain}
+                  error={scopeTouched ? scopeError : null}
+                />
+              ),
+            },
+            {
               key: 'team',
-              label: '\u00c9quipe',
+              label: 'Équipe',
+              validate: () => {
+                setTeamTouched(true)
+                return !!f.associateId && !!f.leadAuditorId
+              },
               content: (
                 <MissionTeamStep
-                  members={members}
-                  associateId={associateId}
-                  leadAuditorId={leadAuditorId}
-                  selectedMemberIds={memberIds}
-                  totalControls={0}
-                  onAssociateId={setAssociateId}
-                  onLeadAuditorId={setLeadAuditorId}
-                  onToggleMember={handleToggleMember}
+                  members={f.members}
+                  associateId={f.associateId}
+                  leadAuditorId={f.leadAuditorId}
+                  selectedMemberIds={f.memberIds}
+                  totalControls={f.totalControls}
+                  onAssociateId={f.setAssociateId}
+                  onLeadAuditorId={f.setLeadAuditorId}
+                  onToggleMember={f.toggleMember}
+                  associateError={teamTouched ? associateError : null}
+                  leadError={teamTouched ? leadError : null}
                 />
               ),
             },
@@ -173,22 +125,22 @@ export function MissionCreatePage() {
               key: 'calendar',
               label: 'Calendrier',
               validate: () => {
-                startDate.forceShow()
-                endDate.forceShow()
-                return startDate.isValid && endDate.isValid
+                f.startDate.forceShow()
+                f.endDate.forceShow()
+                return f.startDate.isValid && f.endDate.isValid
               },
               content: (
                 <MissionCalendarStep
-                  startDate={startDate.value}
-                  endDate={endDate.value}
-                  startDateError={startDate.error}
-                  endDateError={endDate.error}
-                  totalControls={0}
-                  teamSize={teamSize}
-                  onStartDate={startDate.onChange}
-                  onEndDate={endDate.onChange}
-                  onStartBlur={startDate.onBlur}
-                  onEndBlur={endDate.onBlur}
+                  startDate={f.startDate.value}
+                  endDate={f.endDate.value}
+                  startDateError={f.startDate.error}
+                  endDateError={f.endDate.error}
+                  totalControls={f.totalControls}
+                  teamSize={f.teamSize}
+                  onStartDate={f.startDate.onChange}
+                  onEndDate={f.endDate.onChange}
+                  onStartBlur={f.startDate.onBlur}
+                  onEndBlur={f.endDate.onBlur}
                 />
               ),
             },
@@ -197,15 +149,18 @@ export function MissionCreatePage() {
               label: 'Confirmation',
               content: (
                 <MissionConfirmStep
-                  missionName={missionName}
-                  framework={selectedFramework}
-                  client={selectedClient}
-                  associateId={associateId}
-                  leadAuditorId={leadAuditorId}
-                  teamSize={teamSize}
-                  startDate={startDate.value}
-                  endDate={endDate.value}
-                  members={members}
+                  missionName={f.missionName}
+                  framework={f.selectedFramework}
+                  client={f.selectedClient}
+                  associateId={f.associateId}
+                  leadAuditorId={f.leadAuditorId}
+                  teamSize={f.teamSize}
+                  startDate={f.startDate.value}
+                  endDate={f.endDate.value}
+                  members={f.members}
+                  totalControls={f.totalControls}
+                  selectedDomains={f.scopeDomainIds.size}
+                  totalDomains={f.domains.length}
                 />
               ),
             },

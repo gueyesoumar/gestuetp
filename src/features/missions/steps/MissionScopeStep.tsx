@@ -1,47 +1,19 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '../../../lib/supabase'
-import type { Framework, Control } from '../../../types/database.types'
+import type { Framework } from '../../../types/database.types'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 
 interface MissionScopeStepProps {
   framework: Framework | null
+  domains: DomainWithControls[]
+  loading: boolean
   missionName: string
   onMissionName: (name: string) => void
   selectedDomainIds: Set<string>
   onToggleDomain: (domainId: string) => void
+  error?: string | null
 }
 
-export function MissionScopeStep({ framework, missionName, onMissionName, selectedDomainIds, onToggleDomain }: MissionScopeStepProps) {
-  const [domains, setDomains] = useState<DomainWithControls[]>([])
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (!framework) return
-    const abortController = new AbortController()
-    setLoading(true)
-
-    supabase
-      .from('domains')
-      .select('*, controls(*)')
-      .eq('framework_id', framework.id)
-      .order('sort_order')
-      .abortSignal(abortController.signal)
-      .then(({ data }) => {
-        if (abortController.signal.aborted) return
-        type DomainRow = { id: string; framework_id: string; code: string; name: string; sort_order: number; description: string | null; controls: Control[] }
-        const rows = (data ?? []) as unknown as DomainRow[]
-        const mapped = rows.map((d) => ({
-          ...d,
-          controls: ((d.controls ?? []) as Control[]).sort((a, b) => a.sort_order - b.sort_order),
-        })) as DomainWithControls[]
-        setDomains(mapped)
-        setLoading(false)
-      })
-
-    return () => abortController.abort()
-  }, [framework])
-
-  const totalControls = domains.reduce((sum, d) => selectedDomainIds.has(d.id) ? sum + d.controls.length : sum, 0)
+export function MissionScopeStep({ framework, domains, loading, missionName, onMissionName, selectedDomainIds, onToggleDomain, error }: MissionScopeStepProps) {
+  const totalControls = domains.reduce((sum, d) => (selectedDomainIds.has(d.id) ? sum + d.controls.length : sum), 0)
   const selectedCount = domains.filter((d) => selectedDomainIds.has(d.id)).length
 
   return (
@@ -108,6 +80,12 @@ export function MissionScopeStep({ framework, missionName, onMissionName, select
         <span className="text-[12px] text-gold-600">Contrôles dans le périmètre</span>
         <span className="text-[14px] font-bold text-gold-600">{totalControls} contrôles</span>
       </div>
+
+      {error && (
+        <p className="mt-2 text-[12px] font-medium text-red-600 flex items-center gap-1">
+          <span aria-hidden="true">!</span> {error}
+        </p>
+      )}
     </div>
   )
 }
