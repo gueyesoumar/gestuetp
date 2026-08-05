@@ -12,11 +12,15 @@ interface MissionConfirmStepProps {
   startDate: string
   endDate: string
   members: MemberWithRoles[]
+  totalControls: number
+  selectedDomains: number
+  totalDomains: number
 }
 
 export function MissionConfirmStep({
   missionName, framework, client,
   associateId, leadAuditorId, teamSize, startDate, endDate, members,
+  totalControls, selectedDomains, totalDomains,
 }: MissionConfirmStepProps) {
   const associate = members.find((m) => m.id === associateId)
   const lead = members.find((m) => m.id === leadAuditorId)
@@ -25,6 +29,7 @@ export function MissionConfirmStep({
     { label: 'Mission', value: missionName || '\u2014' },
     { label: 'Client', value: client ? `${client.client_name}${client.client_sector ? ` \u00b7 ${client.client_sector}` : ''}` : '\u2014' },
     { label: 'R\u00e9f\u00e9rentiel', value: framework ? `${framework.name} ${framework.version ? `v${framework.version}` : ''}` : '\u2014' },
+    { label: 'P\u00e9rim\u00e8tre', value: `${selectedDomains}/${totalDomains} domaines \u00b7 ${totalControls} contr\u00f4les` },
     { label: 'P\u00e9riode', value: startDate && endDate ? `${formatDate(startDate)} \u2192 ${formatDate(endDate)}` : '\u2014' },
     { label: 'Associ\u00e9', value: associate ? `${associate.first_name} ${associate.last_name}` : '\u2014' },
     { label: 'Chef de mission', value: lead ? `${lead.first_name} ${lead.last_name}` : '\u2014' },
@@ -44,7 +49,7 @@ export function MissionConfirmStep({
 
       <div className="mt-3 rounded-lg border border-forest-200 bg-forest-50 px-4 py-2.5">
         <p className="text-xs text-forest-700">
-          <Target size={13} className="inline mr-1" />Le p&eacute;rim&egrave;tre d&eacute;taill&eacute; (domaines et contr&ocirc;les) sera d&eacute;fini lors de la phase de cadrage.
+          <Target size={13} className="inline mr-1" />P&eacute;rim&egrave;tre : {selectedDomains}/{totalDomains} domaines &middot; {totalControls} contr&ocirc;les. Affinable contr&ocirc;le par contr&ocirc;le lors du cadrage.
         </p>
       </div>
 

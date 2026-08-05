@@ -10,11 +10,13 @@ interface MissionTeamStepProps {
   onAssociateId: (id: string) => void
   onLeadAuditorId: (id: string) => void
   onToggleMember: (id: string) => void
+  associateError?: string | null
+  leadError?: string | null
 }
 
 export function MissionTeamStep({
   members, associateId, leadAuditorId, selectedMemberIds, totalControls,
-  onAssociateId, onLeadAuditorId, onToggleMember,
+  onAssociateId, onLeadAuditorId, onToggleMember, associateError, leadError,
 }: MissionTeamStepProps) {
   const { lead, associate } = useReviewLabels()
   const suggestedAuditors = totalControls > 60 ? '3 à 4' : totalControls > 30 ? '2 à 3' : '1 à 2'
@@ -39,6 +41,7 @@ export function MissionTeamStep({
             <option value="">Sélectionner</option>
             {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
           </select>
+          {associateError && <p className="mt-1 text-[11.5px] font-medium text-red-600">{associateError}</p>}
         </div>
         <div>
           <label className="block text-[12px] font-semibold text-gray-700 mb-1.5">
@@ -48,6 +51,7 @@ export function MissionTeamStep({
             <option value="">Sélectionner</option>
             {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
           </select>
+          {leadError && <p className="mt-1 text-[11.5px] font-medium text-red-600">{leadError}</p>}
         </div>
       </div>
 

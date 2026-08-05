@@ -39,8 +39,8 @@ export function MissionTypeStep({ frameworks, selectedFrameworkId, onSelect }: M
 
   return (
     <div>
-      <h3 className="text-lg font-bold text-gray-900">Quel type de mission souhaitez-vous créer ?</h3>
-      <p className="mt-1 text-[13px] text-gray-500">Sélectionnez le type qui déterminera le référentiel et l'approche</p>
+      <h3 className="text-lg font-bold text-gray-900">Quel référentiel ?</h3>
+      <p className="mt-1 text-[13px] text-gray-500">Sélectionnez le référentiel qui structurera l&apos;évaluation</p>
 
       <div className="mt-5 grid grid-cols-2 gap-3.5">
         {typeCards.map((card) => {
