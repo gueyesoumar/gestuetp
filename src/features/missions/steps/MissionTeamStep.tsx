@@ -12,15 +12,20 @@ interface MissionTeamStepProps {
   onToggleMember: (id: string) => void
   associateError?: string | null
   leadError?: string | null
+  /** Membres habilités chef de mission (can_be_lead). Le select chef y est restreint. */
+  eligibleLeadIds?: Set<string>
 }
 
 export function MissionTeamStep({
   members, associateId, leadAuditorId, selectedMemberIds, totalControls,
-  onAssociateId, onLeadAuditorId, onToggleMember, associateError, leadError,
+  onAssociateId, onLeadAuditorId, onToggleMember, associateError, leadError, eligibleLeadIds,
 }: MissionTeamStepProps) {
   const { lead, associate } = useReviewLabels()
   const suggestedAuditors = totalControls > 60 ? '3 à 4' : totalControls > 30 ? '2 à 3' : '1 à 2'
   const suggestedDays = totalControls > 60 ? '15 à 20' : totalControls > 30 ? '10 à 15' : '5 à 10'
+  // Restreindre le chef aux habilités ; repli sur tous si aucun (évite un select vide).
+  const leadFiltered = eligibleLeadIds && eligibleLeadIds.size > 0
+  const leadOptions = leadFiltered ? members.filter((m) => eligibleLeadIds!.has(m.id)) : members
 
   return (
     <div>
@@ -49,8 +54,9 @@ export function MissionTeamStep({
           </label>
           <select value={leadAuditorId} onChange={(e) => onLeadAuditorId(e.target.value)} className="w-full">
             <option value="">Sélectionner</option>
-            {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
+            {leadOptions.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
           </select>
+          {leadFiltered && <p className="mt-1 text-[11px] text-gray-400">Seuls les membres habilités chef de mission sont proposés.</p>}
           {leadError && <p className="mt-1 text-[11.5px] font-medium text-red-600">{leadError}</p>}
         </div>
       </div>

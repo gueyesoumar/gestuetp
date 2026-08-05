@@ -17,7 +17,7 @@ import type { MissionKind } from '../../types/database.types'
 export function useMissionCreateForm() {
   const { profile } = useAuth()
   const { frameworks, loading: fwLoading } = useFrameworks()
-  const { clients, loading: clientsLoading } = useCabinetClients()
+  const { clients, loading: clientsLoading, refetch: refetchClients } = useCabinetClients()
   const { members, loading: membersLoading } = useMembers()
   const { createMission, creating } = useCreateMission()
 
@@ -99,6 +99,11 @@ export function useMissionCreateForm() {
     () => domains.reduce((sum, d) => (scopeDomainIds.has(d.id) ? sum + d.controls.length : sum), 0),
     [domains, scopeDomainIds],
   )
+  // Membres habilités chef de mission (mirror du garde-fou serveur can_be_lead).
+  const eligibleLeadIds = useMemo(
+    () => new Set(members.filter((m) => (m.roles ?? []).some((r) => r.permissions?.can_be_lead)).map((m) => m.id)),
+    [members],
+  )
 
   const loading = fwLoading || clientsLoading || membersLoading
 
@@ -121,10 +126,10 @@ export function useMissionCreateForm() {
   )
 
   return {
-    frameworks, clients, members, domains, domainsLoading, loading, creating,
+    frameworks, clients, members, domains, domainsLoading, loading, creating, refetchClients,
     kind, setKind, groupAvailable, frameworkId, setFrameworkId, clientId, setClientId,
     missionName, onMissionName, associateId, setAssociateId, leadAuditorId, setLeadAuditorId,
     memberIds, toggleMember, scopeDomainIds, toggleDomain, startDate, endDate,
-    selectedFramework, selectedClient, allMemberIds, teamSize, totalControls, submit,
+    selectedFramework, selectedClient, allMemberIds, teamSize, totalControls, eligibleLeadIds, submit,
   }
 }
