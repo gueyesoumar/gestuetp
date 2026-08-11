@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'

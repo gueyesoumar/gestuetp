@@ -3,7 +3,7 @@
 // automatiquement le cycle trimestriel suivant.
 // Garde : seul le chef de mission ou l'associé peut déclencher.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 interface ClosePayload {
