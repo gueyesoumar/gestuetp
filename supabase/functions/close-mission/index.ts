@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Charger la mission
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, lead_auditor_id, associate_id, framework_id')
+      .select('id, lead_auditor_id, associate_id, framework_id, status')
       .eq('id', mission_id)
       .single()
 
@@ -84,6 +84,28 @@ Deno.serve(async (req) => {
     const approved = assessments?.filter((a) => a.status === 'approved').length ?? 0
     const rejected = assessments?.filter((a) => a.status === 'rejected').length ?? 0
     const pending = total - approved - rejected
+
+    // Préconditions de clôture (constat E4) : empêcher de fabriquer un rapport de
+    // conformité en sautant la revue. Pas de re-clôture, et 100 % des évaluations
+    // doivent être approuvées (aucune en attente ni rejetée).
+    if (mission.status === 'closure') {
+      return new Response(
+        JSON.stringify({ error: 'Mission déjà clôturée' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    if (total === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Aucune évaluation à clôturer' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    if (pending > 0 || rejected > 0) {
+      return new Response(
+        JSON.stringify({ error: `Clôture impossible : ${pending} évaluation(s) en attente et ${rejected} rejetée(s). Toutes les évaluations doivent être approuvées.` }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Compteurs de conformité (level), c'est ce qui est affiché en démo client
     const conformes = assessments?.filter((a) => a.conformity_level === 'c').length ?? 0
