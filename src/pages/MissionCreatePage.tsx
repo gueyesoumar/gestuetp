@@ -23,8 +23,8 @@ export function MissionCreatePage() {
 
   if (f.loading) return <LoadingSpinner />
 
-  const scopeError = f.scopeDomainIds.size === 0
-    ? 'Sélectionnez au moins un domaine.'
+  const scopeError = f.scopeControlIds.size === 0
+    ? 'Sélectionnez au moins un contrôle.'
     : (!f.missionName.trim() ? 'Nommez la mission.' : null)
   const associateError = !f.associateId ? 'Associé requis.' : null
   const leadError = !f.leadAuditorId ? 'Chef de mission requis.' : null
@@ -86,7 +86,7 @@ export function MissionCreatePage() {
               label: 'Périmètre',
               validate: () => {
                 setScopeTouched(true)
-                return f.scopeDomainIds.size > 0 && f.missionName.trim().length > 0
+                return f.scopeControlIds.size > 0 && f.missionName.trim().length > 0
               },
               content: (
                 <MissionScopeStep
@@ -95,7 +95,8 @@ export function MissionCreatePage() {
                   loading={f.domainsLoading}
                   missionName={f.missionName}
                   onMissionName={f.onMissionName}
-                  selectedDomainIds={f.scopeDomainIds}
+                  selectedControlIds={f.scopeControlIds}
+                  onToggleControl={f.toggleControl}
                   onToggleDomain={f.toggleDomain}
                   error={scopeTouched ? scopeError : null}
                 />
@@ -162,7 +163,7 @@ export function MissionCreatePage() {
                   endDate={f.endDate.value}
                   members={f.members}
                   totalControls={f.totalControls}
-                  selectedDomains={f.scopeDomainIds.size}
+                  selectedDomains={f.selectedDomains}
                   totalDomains={f.domains.length}
                 />
               ),

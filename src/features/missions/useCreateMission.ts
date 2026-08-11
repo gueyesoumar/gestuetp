@@ -16,8 +16,8 @@ export interface CreateMissionPayload {
   end_date: string
   member_ids: string[]
   kind?: MissionKind
-  /** Domaines retenus au périmètre (le complément est exclu côté serveur). */
-  scope_domain_ids?: string[]
+  /** Contrôles retenus au périmètre (le complément est exclu côté serveur). */
+  scope_control_ids?: string[]
 }
 
 interface UseCreateMissionResult {

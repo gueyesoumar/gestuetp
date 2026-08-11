@@ -18,9 +18,9 @@ interface CreateMissionPayload {
   end_date: string
   member_ids: string[]
   kind?: MissionKind
-  /** Périmètre optionnel : domaines RETENUS. Le complément est persisté en
+  /** Périmètre optionnel : CONTRÔLES retenus. Le complément est persisté en
    *  exclusions (mission_exclusions). Absent -> aucune exclusion (rétro-compatible). */
-  scope_domain_ids?: string[]
+  scope_control_ids?: string[]
 }
 
 function quarterLabel(dateIso: string): string {
@@ -210,13 +210,14 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 6.bis Périmètre optionnel (refonte création) : le front peut fournir les
-    //       domaines RETENUS. On persiste le complément en exclusions (modèle
-    //       cohérent avec le cadrage). Absent -> aucune exclusion (rétro-compatible
-    //       avec l'écran Regul et l'ancien front Comply).
+    // 6.bis Périmètre optionnel (refonte création) : le front fournit les CONTRÔLES
+    //       retenus (granularité la plus fine). On persiste le complément en
+    //       exclusions (modèle cohérent avec le cadrage). Absent -> aucune exclusion
+    //       (rétro-compatible avec l'écran Regul et l'ancien front Comply).
     let excludedControlIds: string[] = []
-    const scopeDomainIds = Array.isArray(body.scope_domain_ids) ? body.scope_domain_ids.filter(Boolean) : []
-    if (scopeDomainIds.length > 0) {
+    const scopeControlIds = Array.isArray(body.scope_control_ids) ? body.scope_control_ids.filter(Boolean) : []
+    if (scopeControlIds.length > 0) {
+      // Ensemble complet des contrôles du référentiel (via ses domaines).
       const { data: fwDomains, error: domErr } = await supabaseAdmin
         .from('domains')
         .select('id')
@@ -228,29 +229,28 @@ Deno.serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-      const validDomainIds = new Set((fwDomains ?? []).map((d: { id: string }) => d.id))
-      // IDOR : refuser tout domaine hors du référentiel de la mission
-      if (scopeDomainIds.some((id) => !validDomainIds.has(id))) {
+      const domainIds = (fwDomains ?? []).map((d: { id: string }) => d.id)
+      const { data: fwControls, error: ctrlErr } = await supabaseAdmin
+        .from('controls')
+        .select('id')
+        .in('domain_id', domainIds)
+      if (ctrlErr) {
+        console.error('create-mission controls:', ctrlErr.message)
         return new Response(
-          JSON.stringify({ error: 'Périmètre invalide : un domaine n\'appartient pas au référentiel' }),
+          JSON.stringify({ error: 'Erreur lors de la résolution du périmètre' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      const allControlIds = new Set((fwControls ?? []).map((c: { id: string }) => c.id))
+      // IDOR : refuser tout contrôle retenu hors du référentiel de la mission.
+      if (scopeControlIds.some((id) => !allControlIds.has(id))) {
+        return new Response(
+          JSON.stringify({ error: 'Périmètre invalide : un contrôle n\'appartient pas au référentiel' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-      const excludedDomainIds = [...validDomainIds].filter((id) => !scopeDomainIds.includes(id))
-      if (excludedDomainIds.length > 0) {
-        const { data: exCtrls, error: ctrlErr } = await supabaseAdmin
-          .from('controls')
-          .select('id')
-          .in('domain_id', excludedDomainIds)
-        if (ctrlErr) {
-          console.error('create-mission controls:', ctrlErr.message)
-          return new Response(
-            JSON.stringify({ error: 'Erreur lors de la résolution du périmètre' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-        excludedControlIds = (exCtrls ?? []).map((c: { id: string }) => c.id)
-      }
+      const retained = new Set(scopeControlIds)
+      excludedControlIds = [...allControlIds].filter((id) => !retained.has(id))
     }
 
     // 6.ter En supervision continue, bornes du 1er cycle (trimestre courant / start_date).
