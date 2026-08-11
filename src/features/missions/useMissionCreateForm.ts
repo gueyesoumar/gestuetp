@@ -5,6 +5,7 @@ import { isGroupOrg } from '../../lib/organization-utils'
 import { useFrameworks } from '../frameworks/useFrameworks'
 import { useCabinetClients } from '../clients/useCabinetClients'
 import { useMembers } from '../members/useMembers'
+import { useSubsidiaries } from '../group-module/useSubsidiaries'
 import { useFrameworkDomains } from './useFrameworkDomains'
 import { useCreateMission } from './useCreateMission'
 import { useFieldValidation, required } from '../../hooks/useFieldValidation'
@@ -19,18 +20,23 @@ export function useMissionCreateForm() {
   const { frameworks, loading: fwLoading } = useFrameworks()
   const { clients, loading: clientsLoading, refetch: refetchClients } = useCabinetClients()
   const { members, loading: membersLoading } = useMembers()
+  const { subsidiaries, loading: subsLoading } = useSubsidiaries()
   const { createMission, creating } = useCreateMission()
 
   const [kind, setKind] = useState<MissionKind>('audit')
   const [groupAvailable, setGroupAvailable] = useState(false)
+  const [groupResolved, setGroupResolved] = useState(false)
   const [frameworkId, setFrameworkId] = useState('')
   const [clientId, setClientId] = useState('')
+  const [subsidiaryId, setSubsidiaryId] = useState('')
   const [missionName, setMissionName] = useState('')
   const [nameDirty, setNameDirty] = useState(false)
   const [associateId, setAssociateId] = useState('')
   const [leadAuditorId, setLeadAuditorId] = useState('')
   const [memberIds, setMemberIds] = useState<string[]>([])
   const [scopeControlIds, setScopeControlIds] = useState<Set<string>>(new Set())
+
+  const isSupervision = kind === 'continuous_supervision'
 
   const startDate = useFieldValidation('', required('Date de début requise.'))
   const endDate = useFieldValidation('', (v) => {
@@ -41,17 +47,18 @@ export function useMissionCreateForm() {
 
   const { domains, loading: domainsLoading } = useFrameworkDomains(frameworkId || undefined)
 
-  // Spinner UNIQUEMENT au premier chargement : un refetch ultérieur (ex. après
-  // création d'un client inline) ne doit pas démonter le wizard (sinon retour étape 1).
+  // Spinner UNIQUEMENT au premier chargement + résolution du type d'org (groupe ?),
+  // pour éviter que le wizard démonte (refetch client) ou décale ses étapes
+  // (apparition tardive de l'étape Engagement).
   const [everLoaded, setEverLoaded] = useState(false)
   useEffect(() => {
     if (!fwLoading && !clientsLoading && !membersLoading) setEverLoaded(true)
   }, [fwLoading, clientsLoading, membersLoading])
-  const loading = !everLoaded
+  const loading = !everLoaded || !groupResolved
 
   // Org de type groupe -> autorise la supervision continue.
   useEffect(() => {
-    if (!profile?.organization_id) return
+    if (!profile?.organization_id) { setGroupResolved(true); return }
     const ac = new AbortController()
     supabase
       .from('organizations')
@@ -62,12 +69,17 @@ export function useMissionCreateForm() {
       .then(({ data }) => {
         if (ac.signal.aborted) return
         if (data?.types && isGroupOrg({ types: data.types as string[] })) setGroupAvailable(true)
+        setGroupResolved(true)
       })
     return () => ac.abort()
   }, [profile?.organization_id])
 
   const selectedFramework = useMemo(() => frameworks.find((f) => f.id === frameworkId) ?? null, [frameworks, frameworkId])
   const selectedClient = useMemo(() => clients.find((c) => c.id === clientId) ?? null, [clients, clientId])
+  const selectedSubsidiary = useMemo(() => subsidiaries.find((s) => s.id === subsidiaryId) ?? null, [subsidiaries, subsidiaryId])
+  // Cible de la mission : client (audit) ou filiale (supervision continue).
+  const targetName = isSupervision ? selectedSubsidiary?.name : selectedClient?.client_name
+  const targetSelected = isSupervision ? !!subsidiaryId : !!clientId
 
   const allControlIds = useMemo(() => domains.flatMap((d) => d.controls.map((c) => c.id)), [domains])
   const totalFrameworkControls = allControlIds.length
@@ -78,13 +90,13 @@ export function useMissionCreateForm() {
     setScopeControlIds(new Set(allControlIds))
   }, [allControlIds])
 
-  // Nom auto « Référentiel — Client », tant que l'utilisateur ne l'a pas édité.
+  // Nom auto « Référentiel — Cible », tant que l'utilisateur ne l'a pas édité.
   useEffect(() => {
     if (nameDirty) return
-    if (selectedFramework && selectedClient) {
-      setMissionName(`${selectedFramework.name} — ${selectedClient.client_name}`)
+    if (selectedFramework && targetName) {
+      setMissionName(`${selectedFramework.name} — ${targetName}`)
     }
-  }, [selectedFramework, selectedClient, nameDirty])
+  }, [selectedFramework, targetName, nameDirty])
 
   const onMissionName = useCallback((v: string) => { setNameDirty(true); setMissionName(v) }, [])
 
@@ -136,7 +148,7 @@ export function useMissionCreateForm() {
       createMission({
         name: missionName,
         description: '',
-        cabinet_client_id: clientId,
+        ...(isSupervision ? { assujetti_org_id: subsidiaryId } : { cabinet_client_id: clientId }),
         framework_id: frameworkId,
         lead_auditor_id: leadAuditorId,
         associate_id: associateId,
@@ -146,15 +158,16 @@ export function useMissionCreateForm() {
         kind,
         scope_control_ids: [...scopeControlIds],
       }),
-    [missionName, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, createMission],
+    [missionName, isSupervision, subsidiaryId, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, createMission],
   )
 
   return {
-    frameworks, clients, members, domains, domainsLoading, loading, creating, refetchClients,
-    kind, setKind, groupAvailable, frameworkId, setFrameworkId, clientId, setClientId,
+    frameworks, clients, members, subsidiaries, subsLoading, domains, domainsLoading, loading, creating, refetchClients,
+    kind, setKind, groupAvailable, isSupervision, frameworkId, setFrameworkId,
+    clientId, setClientId, subsidiaryId, setSubsidiaryId,
     missionName, onMissionName, associateId, setAssociateId, leadAuditorId, setLeadAuditorId,
     memberIds, toggleMember, scopeControlIds, toggleControl, toggleDomain, startDate, endDate,
-    selectedFramework, selectedClient, allMemberIds, teamSize, totalControls, totalFrameworkControls,
-    selectedDomains, eligibleLeadIds, submit,
+    selectedFramework, selectedClient, selectedSubsidiary, targetName, targetSelected,
+    allMemberIds, teamSize, totalControls, totalFrameworkControls, selectedDomains, eligibleLeadIds, submit,
   }
 }
