@@ -69,10 +69,10 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile } = await admin
       .from('users')
-      .select('id')
+      .select('id, is_active')
       .eq('auth_id', caller.id)
       .single()
-    if (!callerProfile) {
+    if (!callerProfile || !callerProfile.is_active) {
       return new Response(
         JSON.stringify({ error: 'Profil introuvable' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
