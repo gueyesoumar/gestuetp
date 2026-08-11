@@ -118,6 +118,37 @@ Deno.serve(async (req) => {
       )
     }
 
+    // 3.ter Séparation des devoirs + cloisonnement de l'équipe (constats E3/M1).
+    // - L'associé (validateur ultime) et le chef doivent être DEUX personnes
+    //   distinctes, sinon une seule personne peut produire ET valider un audit.
+    // - Chef, associé et membres doivent appartenir à l'organisation de l'appelant
+    //   (create_mission_tx tourne en service_role et ne le vérifie pas).
+    if (associate_id === lead_auditor_id) {
+      return new Response(
+        JSON.stringify({ error: 'L\'associé et le chef de mission doivent être deux personnes différentes' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const teamIds = [...new Set([lead_auditor_id, associate_id, ...(member_ids ?? [])].filter(Boolean))]
+    const { data: teamRows, error: teamErr } = await supabaseAdmin
+      .from('users')
+      .select('id, organization_id')
+      .in('id', teamIds)
+    if (teamErr) {
+      console.error('create-mission team check:', teamErr.message)
+      return new Response(
+        JSON.stringify({ error: 'Erreur lors de la vérification de l\'équipe' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    if ((teamRows?.length ?? 0) !== teamIds.length ||
+        (teamRows ?? []).some((u: { organization_id: string }) => u.organization_id !== callerProfile.organization_id)) {
+      return new Response(
+        JSON.stringify({ error: 'Un membre de l\'équipe n\'appartient pas à votre organisation' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // 4-5. Résoudre l'organisation cible (client audité).
     let clientOrgId: string | null = null
 

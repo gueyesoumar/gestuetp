@@ -109,9 +109,9 @@ Deno.serve(async (req) => {
       .eq('id', assessment_id)
       .single()
 
-    if (isLead && assessmentFull?.auditor_id === callerProfile.id && assessment.status === 'submitted') {
+    if (assessmentFull?.auditor_id === callerProfile.id) {
       return new Response(
-        JSON.stringify({ error: 'Vous ne pouvez pas valider un contr\u00f4le que vous avez vous-m\u00eame soumis. Ce constat doit \u00eatre valid\u00e9 par l\'associ\u00e9.' }),
+        JSON.stringify({ error: 'Vous ne pouvez pas valider une \u00e9valuation que vous avez vous-m\u00eame r\u00e9alis\u00e9e.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
