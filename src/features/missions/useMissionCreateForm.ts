@@ -17,7 +17,7 @@ import type { MissionKind } from '../../types/database.types'
 export function useMissionCreateForm() {
   const { profile } = useAuth()
   const { frameworks, loading: fwLoading } = useFrameworks()
-  const { clients, loading: clientsLoading } = useCabinetClients()
+  const { clients, loading: clientsLoading, refetch: refetchClients } = useCabinetClients()
   const { members, loading: membersLoading } = useMembers()
   const { createMission, creating } = useCreateMission()
 
@@ -30,7 +30,7 @@ export function useMissionCreateForm() {
   const [associateId, setAssociateId] = useState('')
   const [leadAuditorId, setLeadAuditorId] = useState('')
   const [memberIds, setMemberIds] = useState<string[]>([])
-  const [scopeDomainIds, setScopeDomainIds] = useState<Set<string>>(new Set())
+  const [scopeControlIds, setScopeControlIds] = useState<Set<string>>(new Set())
 
   const startDate = useFieldValidation('', required('Date de début requise.'))
   const endDate = useFieldValidation('', (v) => {
@@ -40,6 +40,14 @@ export function useMissionCreateForm() {
   })
 
   const { domains, loading: domainsLoading } = useFrameworkDomains(frameworkId || undefined)
+
+  // Spinner UNIQUEMENT au premier chargement : un refetch ultérieur (ex. après
+  // création d'un client inline) ne doit pas démonter le wizard (sinon retour étape 1).
+  const [everLoaded, setEverLoaded] = useState(false)
+  useEffect(() => {
+    if (!fwLoading && !clientsLoading && !membersLoading) setEverLoaded(true)
+  }, [fwLoading, clientsLoading, membersLoading])
+  const loading = !everLoaded
 
   // Org de type groupe -> autorise la supervision continue.
   useEffect(() => {
@@ -61,11 +69,14 @@ export function useMissionCreateForm() {
   const selectedFramework = useMemo(() => frameworks.find((f) => f.id === frameworkId) ?? null, [frameworks, frameworkId])
   const selectedClient = useMemo(() => clients.find((c) => c.id === clientId) ?? null, [clients, clientId])
 
-  // Par défaut, tout le référentiel est retenu (aucune exclusion) -> iso-comportement
-  // avec l'ancien flux tant que l'utilisateur ne désélectionne rien.
+  const allControlIds = useMemo(() => domains.flatMap((d) => d.controls.map((c) => c.id)), [domains])
+  const totalFrameworkControls = allControlIds.length
+
+  // Par défaut, tous les contrôles du référentiel sont retenus (aucune exclusion)
+  // -> iso-comportement tant que l'utilisateur ne désélectionne rien.
   useEffect(() => {
-    setScopeDomainIds(new Set(domains.map((d) => d.id)))
-  }, [domains])
+    setScopeControlIds(new Set(allControlIds))
+  }, [allControlIds])
 
   // Nom auto « Référentiel — Client », tant que l'utilisateur ne l'a pas édité.
   useEffect(() => {
@@ -77,14 +88,28 @@ export function useMissionCreateForm() {
 
   const onMissionName = useCallback((v: string) => { setNameDirty(true); setMissionName(v) }, [])
 
-  const toggleDomain = useCallback((domainId: string) => {
-    setScopeDomainIds((prev) => {
+  const toggleControl = useCallback((controlId: string) => {
+    setScopeControlIds((prev) => {
       const next = new Set(prev)
-      if (next.has(domainId)) next.delete(domainId)
-      else next.add(domainId)
+      if (next.has(controlId)) next.delete(controlId)
+      else next.add(controlId)
       return next
     })
   }, [])
+
+  // Coche/décoche tous les contrôles d'un domaine : si tous retenus -> tout retirer, sinon tout ajouter.
+  const toggleDomain = useCallback((domainId: string) => {
+    const domain = domains.find((d) => d.id === domainId)
+    if (!domain) return
+    const ids = domain.controls.map((c) => c.id)
+    setScopeControlIds((prev) => {
+      const next = new Set(prev)
+      const allIn = ids.every((id) => next.has(id))
+      if (allIn) ids.forEach((id) => next.delete(id))
+      else ids.forEach((id) => next.add(id))
+      return next
+    })
+  }, [domains])
 
   const toggleMember = useCallback((id: string) => {
     setMemberIds((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]))
@@ -95,12 +120,16 @@ export function useMissionCreateForm() {
     [associateId, leadAuditorId, memberIds],
   )
   const teamSize = allMemberIds.length
-  const totalControls = useMemo(
-    () => domains.reduce((sum, d) => (scopeDomainIds.has(d.id) ? sum + d.controls.length : sum), 0),
-    [domains, scopeDomainIds],
+  const totalControls = scopeControlIds.size
+  const selectedDomains = useMemo(
+    () => domains.filter((d) => d.controls.some((c) => scopeControlIds.has(c.id))).length,
+    [domains, scopeControlIds],
   )
-
-  const loading = fwLoading || clientsLoading || membersLoading
+  // Membres habilités chef de mission (mirror du garde-fou serveur can_be_lead).
+  const eligibleLeadIds = useMemo(
+    () => new Set(members.filter((m) => (m.roles ?? []).some((r) => r.permissions?.can_be_lead)).map((m) => m.id)),
+    [members],
+  )
 
   const submit = useCallback(
     () =>
@@ -115,16 +144,17 @@ export function useMissionCreateForm() {
         end_date: endDate.value,
         member_ids: allMemberIds,
         kind,
-        scope_domain_ids: [...scopeDomainIds],
+        scope_control_ids: [...scopeControlIds],
       }),
-    [missionName, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeDomainIds, createMission],
+    [missionName, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, createMission],
   )
 
   return {
-    frameworks, clients, members, domains, domainsLoading, loading, creating,
+    frameworks, clients, members, domains, domainsLoading, loading, creating, refetchClients,
     kind, setKind, groupAvailable, frameworkId, setFrameworkId, clientId, setClientId,
     missionName, onMissionName, associateId, setAssociateId, leadAuditorId, setLeadAuditorId,
-    memberIds, toggleMember, scopeDomainIds, toggleDomain, startDate, endDate,
-    selectedFramework, selectedClient, allMemberIds, teamSize, totalControls, submit,
+    memberIds, toggleMember, scopeControlIds, toggleControl, toggleDomain, startDate, endDate,
+    selectedFramework, selectedClient, allMemberIds, teamSize, totalControls, totalFrameworkControls,
+    selectedDomains, eligibleLeadIds, submit,
   }
 }

@@ -8,6 +8,7 @@ import { MissionScopeStep } from '../features/missions/steps/MissionScopeStep'
 import { MissionTeamStep } from '../features/missions/steps/MissionTeamStep'
 import { MissionCalendarStep } from '../features/missions/steps/MissionCalendarStep'
 import { MissionConfirmStep } from '../features/missions/steps/MissionConfirmStep'
+import { QuickClientModal } from '../features/missions/QuickClientModal'
 import { FormWizard } from '../components/ui/FormWizard'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
@@ -18,11 +19,12 @@ export function MissionCreatePage() {
   const f = useMissionCreateForm()
   const [scopeTouched, setScopeTouched] = useState(false)
   const [teamTouched, setTeamTouched] = useState(false)
+  const [showClientModal, setShowClientModal] = useState(false)
 
   if (f.loading) return <LoadingSpinner />
 
-  const scopeError = f.scopeDomainIds.size === 0
-    ? 'Sélectionnez au moins un domaine.'
+  const scopeError = f.scopeControlIds.size === 0
+    ? 'Sélectionnez au moins un contrôle.'
     : (!f.missionName.trim() ? 'Nommez la mission.' : null)
   const associateError = !f.associateId ? 'Associé requis.' : null
   const leadError = !f.leadAuditorId ? 'Chef de mission requis.' : null
@@ -75,7 +77,7 @@ export function MissionCreatePage() {
                   clients={f.clients}
                   selectedClientId={f.clientId}
                   onSelect={f.setClientId}
-                  onNewClient={() => navigate('/clients/nouveau')}
+                  onNewClient={() => setShowClientModal(true)}
                 />
               ),
             },
@@ -84,7 +86,7 @@ export function MissionCreatePage() {
               label: 'Périmètre',
               validate: () => {
                 setScopeTouched(true)
-                return f.scopeDomainIds.size > 0 && f.missionName.trim().length > 0
+                return f.scopeControlIds.size > 0 && f.missionName.trim().length > 0
               },
               content: (
                 <MissionScopeStep
@@ -93,7 +95,8 @@ export function MissionCreatePage() {
                   loading={f.domainsLoading}
                   missionName={f.missionName}
                   onMissionName={f.onMissionName}
-                  selectedDomainIds={f.scopeDomainIds}
+                  selectedControlIds={f.scopeControlIds}
+                  onToggleControl={f.toggleControl}
                   onToggleDomain={f.toggleDomain}
                   error={scopeTouched ? scopeError : null}
                 />
@@ -118,6 +121,7 @@ export function MissionCreatePage() {
                   onToggleMember={f.toggleMember}
                   associateError={teamTouched ? associateError : null}
                   leadError={teamTouched ? leadError : null}
+                  eligibleLeadIds={f.eligibleLeadIds}
                 />
               ),
             },
@@ -159,7 +163,7 @@ export function MissionCreatePage() {
                   endDate={f.endDate.value}
                   members={f.members}
                   totalControls={f.totalControls}
-                  selectedDomains={f.scopeDomainIds.size}
+                  selectedDomains={f.selectedDomains}
                   totalDomains={f.domains.length}
                 />
               ),
@@ -167,6 +171,16 @@ export function MissionCreatePage() {
           ]}
         />
       </div>
+
+      <QuickClientModal
+        open={showClientModal}
+        onClose={() => setShowClientModal(false)}
+        onCreated={(id) => {
+          f.refetchClients()
+          f.setClientId(id)
+          setShowClientModal(false)
+        }}
+      />
     </div>
   )
 }

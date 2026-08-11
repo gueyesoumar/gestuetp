@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { Info } from 'lucide-react'
+
 interface MissionCalendarStepProps {
   startDate: string
   endDate: string
@@ -12,6 +15,7 @@ interface MissionCalendarStepProps {
 }
 
 export function MissionCalendarStep({ startDate, endDate, startDateError, endDateError, totalControls, teamSize, onStartDate, onEndDate, onStartBlur, onEndBlur }: MissionCalendarStepProps) {
+  const [showInfo, setShowInfo] = useState(false)
   const auditors = Math.max(teamSize, 1)
   const scopingDays = Math.max(2, Math.ceil(totalControls / 30))
   const fieldworkDays = Math.max(3, Math.ceil(totalControls / (auditors * 5)))
@@ -80,9 +84,32 @@ export function MissionCalendarStep({ startDate, endDate, startDateError, endDat
       </div>
 
       <div className="mt-5 rounded-[10px] border border-gold-200 bg-gold-50 px-4 py-3.5">
-        <div className="text-[12px] font-semibold text-gold-600 mb-2.5">
-          Estimation automatique ({totalControls} contrôles, {auditors} auditeur{auditors > 1 ? 's' : ''})
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="text-[12px] font-semibold text-gold-600">
+            Estimation automatique ({totalControls} contrôles, {auditors} auditeur{auditors > 1 ? 's' : ''})
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowInfo((s) => !s)}
+            aria-expanded={showInfo}
+            aria-label="Méthode de calcul de l'estimation"
+            className="flex items-center gap-1 text-[11px] font-medium text-gold-600 hover:text-gold-700"
+          >
+            <Info size={13} /> Méthode
+          </button>
         </div>
+        {showInfo && (
+          <div className="mb-3 rounded-lg border border-gold-200 bg-white/70 px-3 py-2.5 text-[11.5px] leading-relaxed text-gray-600">
+            <p className="font-semibold text-gray-700 mb-1">Comment l&apos;estimation est calculée</p>
+            <ul className="space-y-1">
+              <li><b>Cadrage</b> : contrôles ÷ 30 (min. 2 j) — préparation et revue documentaire.</li>
+              <li><b>Travaux</b> : contrôles ÷ (auditeurs × 5) (min. 3 j) — base ~5 contrôles / jour / auditeur.</li>
+              <li><b>Revue</b> : 30 % des travaux (min. 2 j) — revue interne et consolidation.</li>
+              <li><b>Client</b> : 50 % de la revue (min. 2 j) — validation par le client.</li>
+            </ul>
+            <p className="mt-1.5 text-gray-400">Indicatif : n&apos;impose pas les dates saisies ci-dessus.</p>
+          </div>
+        )}
         <div className="grid grid-cols-4 gap-2 text-center">
           {phases.map((p) => (
             <div key={p.label}>
