@@ -4,7 +4,7 @@
 // 1 par assessment). Idempotence : skip si une CAR existe deja pour ce finding_id.
 // Garde : seul le chef de mission ou l'associe peut declencher.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
