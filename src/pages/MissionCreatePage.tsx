@@ -27,8 +27,13 @@ export function MissionCreatePage() {
   const scopeError = f.scopeControlIds.size === 0
     ? 'Sélectionnez au moins un contrôle.'
     : (!f.missionName.trim() ? 'Nommez la mission.' : null)
-  const associateError = !f.associateId ? 'Associé requis.' : null
-  const leadError = !f.leadAuditorId ? 'Chef de mission requis.' : null
+  // Séparation des devoirs : l'associé (validateur ultime) et le chef doivent être
+  // deux personnes distinctes (le serveur le refuse aussi — cf. create-mission).
+  const sameError = f.associateId && f.leadAuditorId && f.associateId === f.leadAuditorId
+    ? 'L’associé et le chef de mission doivent être deux personnes différentes.'
+    : null
+  const associateError = !f.associateId ? 'Associé requis.' : sameError
+  const leadError = !f.leadAuditorId ? 'Chef de mission requis.' : sameError
 
   const targetLabel = f.isSupervision ? 'Filiale' : 'Client'
   const targetValue = f.isSupervision
@@ -115,7 +120,7 @@ export function MissionCreatePage() {
     label: 'Équipe',
     validate: () => {
       setTeamTouched(true)
-      return !!f.associateId && !!f.leadAuditorId
+      return !!f.associateId && !!f.leadAuditorId && f.associateId !== f.leadAuditorId
     },
     content: (
       <MissionTeamStep
