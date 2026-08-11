@@ -6,7 +6,7 @@
 // Périmètre : les termes de RÔLE, naturellement singuliers et de forme identique
 // front/email (provider_term, auditor_term). Le mission_term reste le défaut par
 // édition (le mission_term du front est un libellé de nav pluriel, forme différente).
-import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 
 export interface OrgVocab {
   providerTerm: string // cabinet / régulateur

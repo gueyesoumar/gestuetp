@@ -3,7 +3,7 @@
 //   - platform owner  → n'importe quelle org
 //   - can_edit_organization → sa propre org uniquement
 // Toute écriture est journalisée dans admin_audit_log.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'

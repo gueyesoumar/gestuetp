@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { reminderHtml, reminderSubject, type Palier, type ReminderContext } from '../_shared/email-templates/reminder.ts'
