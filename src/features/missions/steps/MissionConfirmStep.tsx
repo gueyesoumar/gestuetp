@@ -1,11 +1,13 @@
 import { Target } from 'lucide-react'
-import type { Framework, CabinetClient } from '../../../types/database.types'
+import type { Framework } from '../../../types/database.types'
 import type { MemberWithRoles } from '../../members/types'
 
 interface MissionConfirmStepProps {
   missionName: string
   framework: Framework | null
-  client: CabinetClient | null
+  /** Libell\u00e9 + valeur de la cible : \u00ab Client \u00bb (audit) ou \u00ab Filiale \u00bb (supervision). */
+  targetLabel: string
+  targetValue: string
   associateId: string
   leadAuditorId: string
   teamSize: number
@@ -18,7 +20,7 @@ interface MissionConfirmStepProps {
 }
 
 export function MissionConfirmStep({
-  missionName, framework, client,
+  missionName, framework, targetLabel, targetValue,
   associateId, leadAuditorId, teamSize, startDate, endDate, members,
   totalControls, selectedDomains, totalDomains,
 }: MissionConfirmStepProps) {
@@ -27,7 +29,7 @@ export function MissionConfirmStep({
 
   const rows: { label: string; value: string }[] = [
     { label: 'Mission', value: missionName || '\u2014' },
-    { label: 'Client', value: client ? `${client.client_name}${client.client_sector ? ` \u00b7 ${client.client_sector}` : ''}` : '\u2014' },
+    { label: targetLabel, value: targetValue },
     { label: 'R\u00e9f\u00e9rentiel', value: framework ? `${framework.name} ${framework.version ? `v${framework.version}` : ''}` : '\u2014' },
     { label: 'P\u00e9rim\u00e8tre', value: `${selectedDomains}/${totalDomains} domaines \u00b7 ${totalControls} contr\u00f4les` },
     { label: 'P\u00e9riode', value: startDate && endDate ? `${formatDate(startDate)} \u2192 ${formatDate(endDate)}` : '\u2014' },
