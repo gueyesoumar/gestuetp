@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     // 3. Verifier que la mission existe
     const { data: mission, error: mErr } = await supabaseAdmin
       .from('missions')
-      .select('id, cabinet_id, framework_id')
+      .select('id, cabinet_id, framework_id, associate_id')
       .eq('id', mission_id)
       .single()
 
@@ -67,6 +67,12 @@ Deno.serve(async (req) => {
       .eq('organization_id', mission.cabinet_id)
     if ((validAuditors ?? []).length !== auditorIds.length) {
       return jsonError('Un auditeur ne fait pas partie du cabinet', 403)
+    }
+
+    // 4b-bis. L'associé est le validateur ultime : il ne peut PAS se voir affecter
+    //          de contrôle, sinon il validerait sa propre évaluation (SoD, constat M2).
+    if (mission.associate_id && auditorIds.includes(mission.associate_id)) {
+      return jsonError('L\'associé (validateur ultime) ne peut pas être affecté à des contrôles', 400)
     }
 
     // 4c. Valider que chaque contrôle appartient au référentiel de la mission
