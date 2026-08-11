@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
 
       if (insertError) {
         console.error('manage-team add:', insertError.message)
-        return new Response(JSON.stringify({ error: insertError.message }),
+        return new Response(JSON.stringify({ error: 'Ajout du membre impossible' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
 
       if (deleteError) {
         console.error('manage-team remove:', deleteError.message)
-        return new Response(JSON.stringify({ error: deleteError.message }),
+        return new Response(JSON.stringify({ error: 'Retrait du membre impossible' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 

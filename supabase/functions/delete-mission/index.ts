@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     // 4. Verifier que la mission existe et appartient au cabinet de l'appelant
     const { data: mission, error: missionError } = await supabaseAdmin
       .from('missions')
-      .select('id, cabinet_id, associate_id')
+      .select('id, cabinet_id, associate_id, status')
       .eq('id', mission_id)
       .single()
 
@@ -79,6 +79,16 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Permission can_delete_mission requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Intégrité de la piste probante (constat M5) : une mission CLÔTURÉE ne peut
+    // pas être supprimée en dur (le CASCADE effacerait évaluations, validations,
+    // preuves et rapport d'un dossier finalisé). Elle doit rester archivée.
+    if (mission.status === 'closure') {
+      return new Response(
+        JSON.stringify({ error: 'Une mission clôturée ne peut pas être supprimée (préservation de la piste d\'audit).' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
