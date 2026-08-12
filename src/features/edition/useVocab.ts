@@ -29,5 +29,10 @@ export function useVocab(): ProductVocab {
     contextBannerSub: vocab.get('context_banner_sub') ?? base.contextBannerSub,
     providerTerm: vocab.get('provider_term') ?? base.providerTerm,
     auditorTerm: vocab.get('auditor_term') ?? base.auditorTerm,
+    leadTerm: vocab.get('lead_term') ?? base.leadTerm,
+    associateTerm: vocab.get('associate_term') ?? base.associateTerm,
+    clientApproverTerm: vocab.get('client_approver_term') ?? base.clientApproverTerm,
+    clientContributorTerm: vocab.get('client_contributor_term') ?? base.clientContributorTerm,
+    clientViewerTerm: vocab.get('client_viewer_term') ?? base.clientViewerTerm,
   }
 }
