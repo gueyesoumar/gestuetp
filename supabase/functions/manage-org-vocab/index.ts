@@ -15,6 +15,8 @@ const EDITABLE_KEYS = [
   'entity_singular', 'entity_plural', 'entities_title', 'entity_with_dem', 'entity_gender',
   'portal_label', 'mission_term', 'finding_term', 'measure_term', 'context_banner', 'context_banner_sub',
   'provider_term', 'auditor_term',
+  'lead_term', 'associate_term',
+  'client_approver_term', 'client_contributor_term', 'client_viewer_term',
 ]
 
 Deno.serve(async (req) => {
