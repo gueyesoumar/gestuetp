@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { ENTITY_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS, CRITICALITY_OPTIONS, REG_STATUS_OPTIONS } from '../../lib/constants'
+import { ENTITY_TYPE_OPTIONS, REGUL_ENTITY_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS, CRITICALITY_OPTIONS, REG_STATUS_OPTIONS } from '../../lib/constants'
 import type { EntityType } from '../../lib/constants'
 import { useVocab } from '../edition/useVocab'
 import { useIsRegul } from '../edition/useIsRegul'
@@ -99,7 +99,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
               <label className="block text-[12px] font-medium text-gray-600 mb-1">Type *</label>
               <select value={entityType} onChange={(e) => setEntityType(e.target.value as EntityType)} className={field}>
                 <option value="">Sélectionner…</option>
-                {ENTITY_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                {(isRegul ? REGUL_ENTITY_TYPE_OPTIONS : ENTITY_TYPE_OPTIONS).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             <div>
