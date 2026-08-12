@@ -303,7 +303,7 @@ export function useCabinetHealth(cabinetId: string | undefined): CabinetHealth {
       } catch (err) {
         if (abort.signal.aborted) return
         console.error('useCabinetHealth:', err)
-        setError(err instanceof Error ? err.message : 'Erreur de chargement')
+        setError('Erreur de chargement')
         setLoading(false)
       }
     })()
