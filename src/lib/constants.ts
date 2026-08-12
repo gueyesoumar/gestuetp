@@ -104,7 +104,21 @@ export const ENTITY_TYPE_OPTIONS = [
   { value: 'business_unit', label: 'Business Unit' },
 ] as const
 
-export type EntityType = typeof ENTITY_TYPE_OPTIONS[number]['value']
+// Types d'assujetti pour Gëstu Regul (entités publiques sénégalaises). Distincts
+// des types Comply (filiale/site…). Valeurs = clés stables ; libellés éditables.
+export const REGUL_ENTITY_TYPE_OPTIONS = [
+  { value: 'ministere', label: 'Ministère' },
+  { value: 'direction_generale', label: 'Direction Générale' },
+  { value: 'agence', label: 'Agence' },
+  { value: 'societe_nationale', label: 'Société Nationale' },
+  { value: 'operateur', label: 'Opérateurs' },
+  { value: 'institution_financiere', label: 'Institution Financière' },
+  { value: 'autre', label: 'Autres' },
+] as const
+
+export type EntityType =
+  | typeof ENTITY_TYPE_OPTIONS[number]['value']
+  | typeof REGUL_ENTITY_TYPE_OPTIONS[number]['value']
 
 // Profil réglementaire d'un assujetti (Gëstu Regul / M1).
 // Criticité NEUTRE et configurable : ajuster ces libellés (et eux seuls) pour
@@ -149,6 +163,13 @@ export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   site: 'Site',
   direction: 'Direction',
   business_unit: 'Business Unit',
+  ministere: 'Ministère',
+  direction_generale: 'Direction Générale',
+  agence: 'Agence',
+  societe_nationale: 'Société Nationale',
+  operateur: 'Opérateurs',
+  institution_financiere: 'Institution Financière',
+  autre: 'Autres',
 }
 
 export const PERMISSION_LABELS: Record<string, string> = {
