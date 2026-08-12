@@ -1,9 +1,8 @@
 import type { RiskItem } from './usePilotage'
 
 const CRIT_ROWS: { key: string; label: string }[] = [
-  { key: 'eleve', label: 'Élevée' },
+  { key: 'eleve', label: 'IIC' },
   { key: 'standard', label: 'Standard' },
-  { key: 'indetermine', label: 'Indéterminée' },
 ]
 
 // Bandes de conformité, de la pire à la meilleure.

@@ -125,9 +125,8 @@ export type EntityType =
 // adopter la terminologie officielle retenue (ex. « Entité essentielle », ou le
 // terme sénégalais quand il sera arrêté). Les valeurs sont des clés stables.
 export const CRITICALITY_OPTIONS = [
-  { value: 'eleve', label: 'Criticité élevée' },
-  { value: 'standard', label: 'Criticité standard' },
-  { value: 'indetermine', label: 'Indéterminée' },
+  { value: 'eleve', label: 'IIC (Infrastructure d\'Information Critique)' },
+  { value: 'standard', label: 'Standard' },
 ] as const
 export type Criticality = typeof CRITICALITY_OPTIONS[number]['value']
 export const CRITICALITY_LABELS: Record<string, string> =
