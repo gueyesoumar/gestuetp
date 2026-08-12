@@ -113,7 +113,7 @@ export function ClientDetailPage() {
       )}
 
       <div className="mt-6">
-        <SplitForm onSubmit={handleSubmit} submitting={updating} onSave={() => handleSubmit()}>
+        <SplitForm onSubmit={handleSubmit} submitting={updating}>
           <SplitFormSection title="Identit&eacute;" description="Nom, coordonn&eacute;es et immatriculation du client">
             <ClientIdentitySection
               clientName={clientName} emailDomain={emailDomain} registrationNumber={registrationNumber}
