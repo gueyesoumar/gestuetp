@@ -45,7 +45,7 @@ export function usePilotage(): PilotageData {
 
     const riskItems: RiskItem[] = subsidiaries.map((s) => ({
       id: s.id, name: s.name,
-      criticality: s.regulatoryProfile?.criticality ?? 'indetermine',
+      criticality: s.regulatoryProfile?.criticality ?? 'standard',
       score: s.conformityScore,
     }))
 
@@ -54,7 +54,7 @@ export function usePilotage(): PilotageData {
     for (const s of subsidiaries) {
       const controlled = s.activeMissions + s.closedMissions > 0
       const isHigh = s.regulatoryProfile?.criticality === 'eleve'
-      if (isHigh && !controlled) priorities.push({ id: s.id, name: s.name, reason: 'Criticité élevée jamais contrôlée', severity: 'high' })
+      if (isHigh && !controlled) priorities.push({ id: s.id, name: s.name, reason: 'IIC jamais contrôlée', severity: 'high' })
       else if (s.conformityScore !== null && s.conformityScore < 40) priorities.push({ id: s.id, name: s.name, reason: `Conformité critique (${s.conformityScore}%)`, severity: 'high' })
       else if (s.overdueCount > 0) priorities.push({ id: s.id, name: s.name, reason: `${s.overdueCount} contrôle(s) en retard`, severity: 'medium' })
       else if (!controlled) priorities.push({ id: s.id, name: s.name, reason: 'Aucun contrôle planifié', severity: 'medium' })

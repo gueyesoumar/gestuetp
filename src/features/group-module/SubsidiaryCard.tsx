@@ -65,7 +65,7 @@ export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }:
                 <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-forest-50 text-forest-700">{ENTITY_TYPE_LABELS[entityType]}</span>
               )}
               {isRegul && subsidiary.regulatoryProfile?.criticality === 'eleve' && (
-                <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-50 text-red-700">Criticité élevée</span>
+                <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-50 text-red-700" title="Infrastructure d'Information Critique">IIC</span>
               )}
             </div>
             <p className="text-[11px] text-gray-500">{subsidiary.sector ?? 'Secteur non renseigné'}{subsidiary.city ? ` · ${subsidiary.city}` : ''}</p>

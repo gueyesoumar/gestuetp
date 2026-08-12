@@ -25,6 +25,8 @@ export interface ProductVocab {
   entityGender: 'm' | 'f'
   /** Base de route de la fiche entité (diffère selon le produit). */
   entityRouteBase: string
+  /** Base de route d'une unité de travail (« /missions » / « /controles »). Structurel. */
+  missionRouteBase: string
   /** Tag produit affiché dans le logo. */
   logoTag: 'comply' | 'regul'
   /** Sous-titre de la coquille du portail (côté partie auditée). */
@@ -60,6 +62,7 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entitiesTitle: 'Entités',
     entityGender: 'f',
     entityRouteBase: '/filiales',
+    missionRouteBase: '/missions',
     logoTag: 'comply',
     portalLabel: 'Portail Client',
     entityWithDem: 'cette entité',
@@ -82,6 +85,7 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entitiesTitle: 'Assujettis',
     entityGender: 'm',
     entityRouteBase: '/assujettis',
+    missionRouteBase: '/controles',
     logoTag: 'regul',
     portalLabel: 'Portail Assujetti',
     entityWithDem: 'cet assujetti',

@@ -44,7 +44,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
   const [city, setCity] = useState(initial?.city ?? '')
   const [country, setCountry] = useState(initial?.country ?? '')
   const rp = initial?.regulatoryProfile
-  const [criticality, setCriticality] = useState<'eleve' | 'standard' | 'indetermine'>(rp?.criticality ?? 'indetermine')
+  const [criticality, setCriticality] = useState<'eleve' | 'standard'>(rp?.criticality === 'eleve' ? 'eleve' : 'standard')
   const [regime, setRegime] = useState(rp?.obligation_regime ?? '')
   const [tier, setTier] = useState(rp?.tier ?? '')
   const [regStatus, setRegStatus] = useState<'active' | 'exited'>(rp?.status ?? 'active')
