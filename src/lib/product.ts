@@ -44,6 +44,13 @@ export interface ProductVocab {
   providerTerm: string
   /** Personne qui mène : « auditeur » / « contrôleur » (surtout emails). */
   auditorTerm: string
+  /** Acteurs de validation interne (niveaux de revue). */
+  leadTerm: string
+  associateTerm: string
+  /** Rôles côté partie auditée (portail). */
+  clientApproverTerm: string
+  clientContributorTerm: string
+  clientViewerTerm: string
 }
 
 const VOCAB: Record<ProductMode, ProductVocab> = {
@@ -63,6 +70,11 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     contextBannerSub: '',
     providerTerm: 'cabinet',
     auditorTerm: 'auditeur',
+    leadTerm: 'Chef de mission',
+    associateTerm: 'Associé',
+    clientApproverTerm: 'Approbateur',
+    clientContributorTerm: 'Contributeur',
+    clientViewerTerm: 'Lecteur',
   },
   regul: {
     entitySingular: 'assujetti',
@@ -80,6 +92,11 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     contextBannerSub: 'Superviseur de conformité cyber',
     providerTerm: 'régulateur',
     auditorTerm: 'contrôleur',
+    leadTerm: 'Chef de mission',
+    associateTerm: 'Associé',
+    clientApproverTerm: 'Approbateur',
+    clientContributorTerm: 'Contributeur',
+    clientViewerTerm: 'Lecteur',
   },
 }
 
