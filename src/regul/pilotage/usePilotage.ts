@@ -45,7 +45,7 @@ export function usePilotage(): PilotageData {
 
     const riskItems: RiskItem[] = subsidiaries.map((s) => ({
       id: s.id, name: s.name,
-      criticality: s.regulatoryProfile?.criticality ?? 'indetermine',
+      criticality: s.regulatoryProfile?.criticality ?? 'standard',
       score: s.conformityScore,
     }))
 
