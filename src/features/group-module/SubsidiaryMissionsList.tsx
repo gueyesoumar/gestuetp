@@ -50,7 +50,7 @@ export function SubsidiaryMissionsList({ missions }: SubsidiaryMissionsListProps
             return (
               <tr key={m.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
-                  <Link to={`/missions/${m.id}`} className="font-semibold text-forest-700 hover:underline">{m.name}</Link>
+                  <Link to={`${vocab.missionRouteBase}/${m.id}`} className="font-semibold text-forest-700 hover:underline">{m.name}</Link>
                   {m.leadAuditorName && (
                     <p className="text-[11px] text-gray-500 mt-0.5">Lead : {m.leadAuditorName}</p>
                   )}
