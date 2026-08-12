@@ -1,5 +1,6 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
+import { sanitizeSvg } from '../_shared/svg-sanitize.ts'
 
 /**
  * Edge Function : upload-cabinet-logo
@@ -155,68 +156,6 @@ Deno.serve(async (req) => {
   }
 })
 
-type SvgResult = { ok: true; svg: string } | { ok: false; reason: string }
-
-/**
- * Sanitization SVG minimaliste mais suffisante pour le cas d'usage logo :
- *  - balises interdites : script, foreignObject, iframe, object, embed, use[xlink:href=javascript:]
- *  - attrs interdits : on* (onload, onclick, ...), href|xlink:href avec javascript:
- *  - le résultat doit toujours commencer par un tag <svg
- *
- * Ne couvre pas les SVG ultra-exotiques — pour ça, refuser et demander un PNG.
- */
-function sanitizeSvg(source: string): SvgResult {
-  if (source.length > 200_000) {
-    return { ok: false, reason: 'Fichier trop volumineux pour parsing' }
-  }
-
-  let svg = source
-
-  // Drop BOM
-  if (svg.charCodeAt(0) === 0xFEFF) svg = svg.slice(1)
-  svg = svg.trim()
-
-  // Doit contenir <svg
-  if (!/<svg[\s>]/i.test(svg)) {
-    return { ok: false, reason: 'tag <svg> manquant' }
-  }
-
-  // Supprime DOCTYPE pour éviter XXE
-  svg = svg.replace(/<!DOCTYPE[\s\S]*?>/gi, '')
-  // Supprime entités externes
-  svg = svg.replace(/<!ENTITY[\s\S]*?>/gi, '')
-
-  // Supprime balises dangereuses (avec leur contenu pour script/style/foreignObject)
-  svg = svg.replace(/<script[\s\S]*?<\/script\s*>/gi, '')
-  svg = svg.replace(/<style[\s\S]*?<\/style\s*>/gi, '')
-  svg = svg.replace(/<foreignObject[\s\S]*?<\/foreignObject\s*>/gi, '')
-  svg = svg.replace(/<iframe[\s\S]*?<\/iframe\s*>/gi, '')
-  svg = svg.replace(/<object[\s\S]*?<\/object\s*>/gi, '')
-  svg = svg.replace(/<embed\b[^>]*\/?>/gi, '')
-  // Auto-fermantes
-  svg = svg.replace(/<script\b[^>]*\/>/gi, '')
-  svg = svg.replace(/<foreignObject\b[^>]*\/>/gi, '')
-
-  // Supprime tous les attributs on* (onload, onclick, onmouseover, ...)
-  svg = svg.replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, '')
-
-  // Supprime href / xlink:href contenant javascript: ou data:text/html
-  svg = svg.replace(/\s+(?:xlink:)?href\s*=\s*("\s*javascript:[^"]*"|'\s*javascript:[^']*'|javascript:[^\s>]+)/gi, '')
-  svg = svg.replace(/\s+(?:xlink:)?href\s*=\s*("\s*data:text\/html[^"]*"|'\s*data:text\/html[^']*')/gi, '')
-
-  // Supprime style="..." pour éviter url(javascript:...) ou expression()
-  svg = svg.replace(/\s+style\s*=\s*("[^"]*"|'[^']*')/gi, (match) => {
-    if (/javascript:|expression\(/i.test(match)) return ''
-    return match
-  })
-
-  if (!/<svg[\s>]/i.test(svg)) {
-    return { ok: false, reason: 'svg vidé après sanitization' }
-  }
-
-  return { ok: true, svg }
-}
-
 /**
  * Extrait le path Storage à partir de l'URL publique.
  * Format URL : .../storage/v1/object/public/cabinet-branding/<cabinet_id>/<file>
@@ -235,3 +174,4 @@ function jsonResponse(data: Record<string, unknown>, status = 200): Response {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 }
+

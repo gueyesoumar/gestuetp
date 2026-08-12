@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { useFrameworks } from '../features/frameworks/useFrameworks'
 import { useMembers } from '../features/members/useMembers'
 import { useSubsidiaries } from '../features/group-module/useSubsidiaries'
+import { EntityFormModal } from '../features/group-module/EntityFormModal'
 import { useCreateMission } from '../features/missions/useCreateMission'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
@@ -10,13 +12,17 @@ import { useToast } from '../hooks/useToast'
 /** Création d'une mission de contrôle sur un assujetti (Gëstu Regul / M3). */
 export function RegulMissionCreatePage(): JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const toast = useToast()
   const { frameworks, loading: fwLoading } = useFrameworks()
   const { members, loading: mLoading } = useMembers()
-  const { subsidiaries, loading: sLoading } = useSubsidiaries()
+  const { subsidiaries, loading: sLoading, refresh } = useSubsidiaries()
   const { createMission, creating } = useCreateMission()
 
-  const [assujettiId, setAssujettiId] = useState('')
+  // Pré-remplissage de l'assujetti quand on arrive depuis sa fiche (F2).
+  const prefillAssujetti = (location.state as { assujettiId?: string } | null)?.assujettiId ?? ''
+  const [assujettiId, setAssujettiId] = useState(prefillAssujetti)
+  const [showEntityModal, setShowEntityModal] = useState(false)
   const [frameworkId, setFrameworkId] = useState('')
   const [name, setName] = useState('')
   const [leadId, setLeadId] = useState('')
@@ -65,11 +71,16 @@ export function RegulMissionCreatePage(): JSX.Element {
       <form onSubmit={submit} className="mt-6 space-y-4 bg-white border border-gray-200 rounded-xl p-6">
         <div>
           <label className="block text-[12px] font-medium text-gray-600 mb-1">Assujetti *</label>
-          <select value={assujettiId} onChange={(e) => setAssujettiId(e.target.value)} className={field}>
-            <option value="">Sélectionner un assujetti…</option>
-            {subsidiaries.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-          {subsidiaries.length === 0 && <p className="mt-1 text-[11px] text-amber-600">Aucun assujetti recensé — créez-en un dans le registre.</p>}
+          <div className="flex items-center gap-2">
+            <select value={assujettiId} onChange={(e) => setAssujettiId(e.target.value)} className={field}>
+              <option value="">Sélectionner un assujetti…</option>
+              {subsidiaries.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <button type="button" onClick={() => setShowEntityModal(true)} className="inline-flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[13px] font-semibold text-forest-700 border border-forest-200 rounded-lg hover:bg-forest-50">
+              <Plus size={15} /> Nouvel assujetti
+            </button>
+          </div>
+          {subsidiaries.length === 0 && <p className="mt-1 text-[11px] text-amber-600">Aucun assujetti recensé — créez-en un avec le bouton ci-dessus.</p>}
         </div>
         <div>
           <label className="block text-[12px] font-medium text-gray-600 mb-1">Référentiel *</label>
@@ -115,6 +126,19 @@ export function RegulMissionCreatePage(): JSX.Element {
           </button>
         </div>
       </form>
+
+      {showEntityModal && (
+        <EntityFormModal
+          initial={null}
+          parentOptions={subsidiaries.map((s) => ({ id: s.id, name: s.name }))}
+          onClose={() => setShowEntityModal(false)}
+          onSaved={(createdId) => {
+            setShowEntityModal(false)
+            refresh()
+            if (createdId) setAssujettiId(createdId)
+          }}
+        />
+      )}
     </div>
   )
 }

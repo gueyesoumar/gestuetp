@@ -46,6 +46,11 @@ interface MutationResult {
   error?: string
 }
 
+/** Résultat de création : ajoute l'id de l'entité créée (pour auto-sélection). */
+interface CreateResult extends MutationResult {
+  id?: string
+}
+
 /**
  * Mutations sur les entités internes d'un groupe, via l'Edge Function
  * manage-entity (service_role côté backend — aucune écriture directe sur
@@ -68,7 +73,12 @@ export function useManageEntity() {
     return res.data.entities.filter((e) => !e.is_active)
   }, [])
 
-  const createEntity = useCallback((input: EntityInput) => run({ action: 'create', ...input }), [run])
+  const createEntity = useCallback(async (input: EntityInput): Promise<CreateResult> => {
+    setBusy(true)
+    const res = await invokeEdgeFunction<{ entity: { id: string } }>('manage-entity', { action: 'create', ...input })
+    setBusy(false)
+    return { ok: res.ok, error: res.error, id: res.data?.entity?.id }
+  }, [])
   const updateEntity = useCallback((entityId: string, patch: Partial<EntityInput>) => run({ action: 'update', entity_id: entityId, ...patch }), [run])
   const deactivateEntity = useCallback((entityId: string) => run({ action: 'deactivate', entity_id: entityId }), [run])
   const reactivateEntity = useCallback((entityId: string) => run({ action: 'reactivate', entity_id: entityId }), [run])

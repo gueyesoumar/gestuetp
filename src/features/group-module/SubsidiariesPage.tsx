@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Search, Plus } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Search, Plus, X } from 'lucide-react'
 import { useSubsidiaries, type SubsidiaryRow } from './useSubsidiaries'
 import { useManageEntity } from './useManageEntity'
 import { SubsidiaryCard } from './SubsidiaryCard'
@@ -24,6 +25,17 @@ export function SubsidiariesPage(): JSX.Element {
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState<{ initial: EntityFormValue | null } | null>(null)
   const groupId = profile?.organization_id ?? null
+
+  // Pré-filtres activés depuis les cartes du tableau de bord (Regul).
+  const [searchParams, setSearchParams] = useSearchParams()
+  const critFilter = searchParams.get('crit')          // 'eleve' → IIC
+  const overdueFilter = searchParams.get('retard') === '1'
+  const activeFilterLabel = critFilter === 'eleve' ? 'IIC' : overdueFilter ? 'Plans d’action en retard' : null
+  const clearFilter = (): void => {
+    const next = new URLSearchParams(searchParams)
+    next.delete('crit'); next.delete('retard')
+    setSearchParams(next, { replace: true })
+  }
 
   const nameById = useMemo(() => {
     const m = new Map<string, string>()
@@ -52,12 +64,15 @@ export function SubsidiariesPage(): JSX.Element {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return subsidiaries
-    return subsidiaries.filter((s) =>
-      s.name.toLowerCase().includes(q) ||
-      (s.sector ?? '').toLowerCase().includes(q) ||
-      (s.city ?? '').toLowerCase().includes(q))
-  }, [subsidiaries, search])
+    return subsidiaries.filter((s) => {
+      if (critFilter && s.regulatoryProfile?.criticality !== critFilter) return false
+      if (overdueFilter && s.overdueCount <= 0) return false
+      if (!q) return true
+      return s.name.toLowerCase().includes(q) ||
+        (s.sector ?? '').toLowerCase().includes(q) ||
+        (s.city ?? '').toLowerCase().includes(q)
+    })
+  }, [subsidiaries, search, critFilter, overdueFilter])
 
   const openCreate = (): void => setModal({ initial: null })
   const openEdit = (s: SubsidiaryRow): void => setModal({ initial: {
@@ -107,6 +122,16 @@ export function SubsidiariesPage(): JSX.Element {
           )}
         </div>
       </div>
+
+      {activeFilterLabel && (
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-1 text-[12px] font-semibold text-forest-700">
+            Filtre&nbsp;: {activeFilterLabel}
+            <button onClick={clearFilter} className="text-forest-500 hover:text-forest-900" aria-label="Effacer le filtre"><X size={13} /></button>
+          </span>
+          <span className="text-[12px] text-gray-400">{filtered.length} résultat{filtered.length !== 1 ? 's' : ''}</span>
+        </div>
+      )}
 
       {totalCount === 0 ? (
         <EmptyState title={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} n’est encore rattaché${vocab.entityGender === 'f' ? 'e' : ''}.`} />
