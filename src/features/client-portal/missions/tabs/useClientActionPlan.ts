@@ -219,7 +219,8 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
         } as never)
         .eq('id', carId)
       if (error) {
-        toast.error('Soumission impossible', error.message)
+        console.error('useClientActionPlan submit:', error.message)
+        toast.error('Soumission impossible')
         return false
       }
       toast.success('Réponse soumise. L’auditeur va la vérifier.')
