@@ -117,7 +117,7 @@ export function useAdminUserDetail(userId: string | undefined): Result {
       } catch (err) {
         if (abort.signal.aborted) return
         console.error('useAdminUserDetail:', err)
-        setError(err instanceof Error ? err.message : 'Erreur de chargement')
+        setError('Erreur de chargement')
         setLoading(false)
       }
     })()

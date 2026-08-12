@@ -41,7 +41,8 @@ export function UnsubscribePage() {
       })
       .catch((err) => {
         if (err.name === 'AbortError') return
-        setError(err.message ?? 'Erreur inconnue')
+        console.error('UnsubscribePage load:', err)
+        setError('Lien invalide ou expiré.')
       })
       .finally(() => setLoading(false))
 
@@ -63,7 +64,8 @@ export function UnsubscribePage() {
       setPrefs({ ...prefs, ...data })
       setConfirmed(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      console.error('UnsubscribePage update:', err)
+      setError('Une erreur est survenue. Réessayez plus tard.')
     } finally {
       setSaving(false)
     }

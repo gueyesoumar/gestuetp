@@ -97,7 +97,7 @@ export function useAdminPlans(): Result {
       } catch (err) {
         if (abort.signal.aborted) return
         console.error('useAdminPlans:', err)
-        setError(err instanceof Error ? err.message : 'Erreur de chargement')
+        setError('Erreur de chargement')
         setLoading(false)
       }
     })()
