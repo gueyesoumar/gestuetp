@@ -1,8 +1,10 @@
-import { useState } from 'react'
-import { Plus, ArrowUpCircle, ShieldAlert } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { Plus, ArrowUpCircle, ShieldAlert, X } from 'lucide-react'
 import { useSubsidiaries } from '../features/group-module/useSubsidiaries'
 import { useMeasures, useIssueMeasure, type Measure } from './useMeasures'
 import { MeasureFormModal } from './MeasureFormModal'
+import { ParkOpenMeasures } from './ParkOpenMeasures'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { EmptyState } from '../components/ui/EmptyState'
 import { useToast } from '../hooks/useToast'
@@ -27,6 +29,16 @@ export function RegulMeasuresPage(): JSX.Element {
   const { measures, loading, refresh } = useMeasures(entityId || null)
   const { setStatus } = useIssueMeasure()
   const [modal, setModal] = useState<{ source: Measure | null } | null>(null)
+
+  // Vue parc (mesures ouvertes de tout le périmètre) — cible de la carte dashboard.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const parcMode = searchParams.get('vue') === 'parc' && !entityId
+  const entityNameById = useMemo(() => new Map(subsidiaries.map((s) => [s.id, s.name])), [subsidiaries])
+  const exitParc = (): void => {
+    const next = new URLSearchParams(searchParams)
+    next.delete('vue')
+    setSearchParams(next, { replace: true })
+  }
 
   if (sLoading) return <LoadingSpinner />
 
@@ -55,7 +67,18 @@ export function RegulMeasuresPage(): JSX.Element {
         )}
       </div>
 
-      {!entityId ? (
+      {parcMode ? (
+        <>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-1 text-[12px] font-semibold text-forest-700">
+              Vue parc&nbsp;: mesures ouvertes
+              <button onClick={exitParc} className="text-forest-500 hover:text-forest-900" aria-label="Quitter la vue parc"><X size={13} /></button>
+            </span>
+            <span className="text-[12px] text-gray-400">Sélectionnez un assujetti ci-dessus pour agir sur ses mesures.</span>
+          </div>
+          <ParkOpenMeasures entityNameById={entityNameById} />
+        </>
+      ) : !entityId ? (
         <EmptyState title="Aucun assujetti sélectionné" description="Choisissez un assujetti pour consulter et émettre ses mesures." />
       ) : loading ? (
         <LoadingSpinner />
