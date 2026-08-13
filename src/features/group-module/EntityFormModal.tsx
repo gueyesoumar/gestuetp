@@ -27,7 +27,9 @@ interface Props {
   /** Entités pouvant servir de parent (racine du groupe = null). */
   parentOptions: ParentOption[]
   onClose: () => void
-  onSaved: () => void
+  /** Appelé après enregistrement. En création, reçoit l'id de la nouvelle entité
+   *  (permet l'auto-sélection depuis un formulaire appelant). Undefined en édition. */
+  onSaved: (createdId?: string) => void
 }
 
 /** Modale création / édition d'une entité interne de groupe. */
@@ -42,7 +44,9 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
   const [parentId, setParentId] = useState<string>(initial?.parent_org_id ?? '')
   const [sector, setSector] = useState(initial?.sector ?? '')
   const [city, setCity] = useState(initial?.city ?? '')
-  const [country, setCountry] = useState(initial?.country ?? '')
+  // Défaut Sénégal à la création côté Regul (parc régulé national). L'édition
+  // (Comply comme Regul) conserve la valeur existante ; Comply en création reste vide.
+  const [country, setCountry] = useState(initial?.country ?? (!initial?.id && isRegul ? 'Sénégal' : ''))
   const rp = initial?.regulatoryProfile
   const [criticality, setCriticality] = useState<'eleve' | 'standard'>(rp?.criticality === 'eleve' ? 'eleve' : 'standard')
   const [regime, setRegime] = useState(rp?.obligation_regime ?? '')
@@ -69,15 +73,17 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
         reg_status: regStatus,
       } : {}),
     }
-    const res = isEdit
-      ? await updateEntity(initial!.id!, payload)
-      : await createEntity(payload as EntityInput)
-    if (!res.ok) {
-      toast.error(res.error ?? "Enregistrement impossible")
+    if (isEdit) {
+      const res = await updateEntity(initial!.id!, payload)
+      if (!res.ok) { toast.error(res.error ?? "Enregistrement impossible"); return }
+      toast.success('Entité mise à jour')
+      onSaved()
       return
     }
-    toast.success(isEdit ? 'Entité mise à jour' : 'Entité créée')
-    onSaved()
+    const res = await createEntity(payload as EntityInput)
+    if (!res.ok) { toast.error(res.error ?? "Enregistrement impossible"); return }
+    toast.success('Entité créée')
+    onSaved(res.id)
   }
 
   const field = 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700'

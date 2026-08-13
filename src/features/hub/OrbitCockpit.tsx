@@ -77,6 +77,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       profile={profile}
       onSignOut={onSignOut}
       showAdmin={Boolean(profile?.is_platform_owner) && !isBranded}
+      isBranded={isBranded}
     />
   )
 

@@ -1,6 +1,7 @@
 import { useOrganization } from '../organization/useOrganization'
 import { useUpdateOrganization } from '../organization/useUpdateOrganization'
 import { OrganizationForm } from '../organization/OrganizationForm'
+import { OrganizationLogoField } from '../organization/OrganizationLogoField'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
@@ -24,6 +25,11 @@ export function OrganizationInfoTab(): JSX.Element {
           Vous consultez ces informations en lecture seule. La permission <strong>can_edit_organization</strong> est requise pour les modifier.
         </div>
       )}
+      <OrganizationLogoField
+        currentUrl={organization.logo_url}
+        canEdit={canEditOrganization}
+        onUploaded={refetch}
+      />
       <OrganizationForm
         organization={organization}
         onSubmit={(data) => updateOrganization(organization.id, data)}

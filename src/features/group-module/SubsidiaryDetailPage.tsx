@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { useSubsidiaryDetail } from './useSubsidiaryDetail'
 import { SubsidiaryHero } from './SubsidiaryHero'
 import { SubsidiaryKPIs } from './SubsidiaryKPIs'
@@ -12,6 +13,7 @@ import { AssujettiInviteModal } from '../../regul/AssujettiInviteModal'
 
 export function SubsidiaryDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const vocab = useVocab()
   const isRegul = useIsRegul()
   const { data, loading, error } = useSubsidiaryDetail(id)
@@ -52,7 +54,17 @@ export function SubsidiaryDetailPage(): JSX.Element {
       )}
 
       <section>
-        <h3 className="text-base font-bold text-gray-900 mb-3">Missions</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-bold text-gray-900">Missions</h3>
+          {isRegul && (
+            <button
+              onClick={() => navigate('/controles/nouvelle', { state: { assujettiId: data.id } })}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"
+            >
+              <Plus size={15} /> Nouveau contrôle
+            </button>
+          )}
+        </div>
         <SubsidiaryMissionsList missions={data.missions} />
       </section>
 
