@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         permissions: {
           can_create_mission: true, can_assign_team: true, can_be_lead: true, can_designate_lead: true,
           can_delete_mission: true, can_manage_members: true, can_manage_clients: true,
-          can_edit_organization: true, can_manage_roles: true,
+          can_edit_organization: true, can_manage_roles: true, can_view_audit_trail: true,
         },
       })
       .select('id')

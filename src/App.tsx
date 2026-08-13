@@ -7,6 +7,8 @@ import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
+import { OrgAdminRoute } from './components/OrgAdminRoute'
+import { AuditTrailPage } from './features/audit/AuditTrailPage'
 import { AppLayout } from './components/layout/AppLayout'
 import { ClientLayout } from './features/client-portal/layout/ClientLayout'
 import { LoginPage } from './pages/LoginPage'
@@ -100,6 +102,7 @@ function AppRoutes(): JSX.Element {
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="organisation" element={<OrganizationPage />} />
         <Route path="membres" element={<MembersPage />} />
+        <Route path="piste-audit" element={<OrgAdminRoute><AuditTrailPage /></OrgAdminRoute>} />
         <Route path="aide" element={<SupportCenterPage />} />
         {isRegul ? (
           <>

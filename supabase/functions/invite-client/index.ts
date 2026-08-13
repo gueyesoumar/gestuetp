@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
@@ -281,6 +282,13 @@ Deno.serve(async (req) => {
         console.log('[invite-client] email sent:', emailResult.id)
       }
     }
+
+    await logActivity(admin, {
+      organizationId: callerProfile.organization_id, actorUserId: callerProfile.id,
+      action: 'portal.client_invited', targetType: 'portal_contact', targetId: contactId,
+      targetLabel: contact_name,
+      summary: `Accès portail client accordé : ${contact_name}`,
+    })
 
     return new Response(
       JSON.stringify({

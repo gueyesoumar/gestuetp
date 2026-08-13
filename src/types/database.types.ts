@@ -269,6 +269,8 @@ export interface PlatformRolePermissions {
   can_manage_clients?: boolean
   can_edit_organization?: boolean
   can_manage_roles?: boolean
+  /** Accès à la piste d'audit (F6, migration 00179). */
+  can_view_audit_trail?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */

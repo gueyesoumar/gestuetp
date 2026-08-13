@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 type MissionKind = 'audit' | 'continuous_supervision'
@@ -325,6 +326,12 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    await logActivity(supabaseAdmin, {
+      organizationId: callerProfile.organization_id, actorUserId: callerProfile.id,
+      action: 'mission.created', targetType: 'mission', targetId: newMissionId, targetLabel: name,
+      summary: `Mission créée : ${name}`,
+    })
 
     return new Response(
       JSON.stringify({ success: true, mission_id: newMissionId }),

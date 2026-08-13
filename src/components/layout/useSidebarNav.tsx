@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren } from 'lucide-react'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText } from 'lucide-react'
 import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 
 export interface NavItem {
@@ -25,6 +26,7 @@ export function useSidebarNavItems(
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const { canViewSupervision } = useGroupPermissions()
+  const { canViewAuditTrail } = useCabinetPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
   const isRegul = hasCapability('supervision')
 
@@ -49,6 +51,11 @@ export function useSidebarNavItems(
     mainItems.push({ to: '/clients', label: 'Clients', icon: <ClientsIcon /> })
     mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <FrameworksIcon /> })
     mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <MissionsIcon /> })
+  }
+
+  // Piste d'audit — réservée aux admins d'organisation (F6).
+  if (canViewAuditTrail) {
+    mainItems.push({ to: '/piste-audit', label: "Piste d'audit", icon: <ScrollText size={20} strokeWidth={1.5} /> })
   }
 
   const groupItems: NavItem[] = !isRegul && isGroup

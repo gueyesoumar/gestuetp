@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { memberInviteTemplate } from '../_shared/email-templates/auth.ts'
@@ -120,6 +121,11 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: 'L\'email n\'a pas pu être envoyé' }, 500)
       }
 
+      await logActivity(supabaseAdmin, {
+        organizationId: organization_id, actorUserId: cp.id,
+        action: 'member.invitation_resent', targetType: 'member', targetLabel: cleanEmail,
+        summary: `Invitation renvoyée : ${cleanEmail}`,
+      })
       return jsonResponse({ success: true, resent: true })
     }
 
@@ -213,6 +219,13 @@ Deno.serve(async (req) => {
         invitationSent = true
       }
     }
+
+    await logActivity(supabaseAdmin, {
+      organizationId: organization_id, actorUserId: cp.id,
+      action: 'member.invited', targetType: 'member', targetId: newUserId,
+      targetLabel: `${cleanFirstName} ${cleanLastName}`.trim(),
+      summary: `Membre invité : ${cleanFirstName} ${cleanLastName}`.trim(),
+    })
 
     return jsonResponse({ success: true, user_id: newUserId, invitation_sent: invitationSent }, 201)
   } catch (err) {

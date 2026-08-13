@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 
 /**
  * manage-entity — gestion des entités internes d'un groupe (Axe 1).
@@ -213,6 +214,11 @@ Deno.serve(async (req) => {
           .insert({ organization_id: created.id, ...prof })
         if (perr) console.error('[manage-entity] create profile:', perr.message)
       }
+      await logActivity(admin, {
+        organizationId: groupId, actorUserId: caller.id,
+        action: 'entity.created', targetType: 'entity', targetId: created.id, targetLabel: created.name,
+        summary: `Entité créée : ${created.name}`,
+      })
       return json({ entity: created }, 201)
     }
 
@@ -274,6 +280,11 @@ Deno.serve(async (req) => {
         .select('id, name, entity_type, parent_org_id, sector, city, country, is_active')
         .eq('id', entityId)
         .single()
+      await logActivity(admin, {
+        organizationId: groupId, actorUserId: caller.id,
+        action: 'entity.updated', targetType: 'entity', targetId: entityId, targetLabel: updated?.name ?? null,
+        summary: `Entité mise à jour : ${updated?.name ?? entityId}`,
+      })
       return json({ entity: updated })
     }
 
@@ -311,6 +322,11 @@ Deno.serve(async (req) => {
         console.error('[manage-entity] deactivate:', error.message)
         return json({ error: "Impossible de désactiver l'entité" }, 500)
       }
+      await logActivity(admin, {
+        organizationId: groupId, actorUserId: caller.id,
+        action: 'entity.deactivated', targetType: 'entity', targetId: entityId,
+        summary: 'Entité désactivée',
+      })
       return json({ ok: true })
     }
 
@@ -321,6 +337,11 @@ Deno.serve(async (req) => {
         console.error('[manage-entity] reactivate:', error.message)
         return json({ error: "Impossible de réactiver l'entité" }, 500)
       }
+      await logActivity(admin, {
+        organizationId: groupId, actorUserId: caller.id,
+        action: 'entity.reactivated', targetType: 'entity', targetId: entityId,
+        summary: 'Entité réactivée',
+      })
       return json({ ok: true })
     }
 

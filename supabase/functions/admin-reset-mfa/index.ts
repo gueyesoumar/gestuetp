@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 
 // Réinitialisation MFA d'un compte (perte d'appareil). Réservé au super-admin,
 // qui doit lui-même être en AAL2 (si l'enforcement est actif), et journalisé.
@@ -40,9 +41,9 @@ Deno.serve(async (req) => {
     if (!reason) return json({ error: 'Motif obligatoire' }, 400)
 
     const { data: target } = await (admin.from('users') as any)
-      .select('id, auth_id').eq('email', email).single()
+      .select('id, auth_id, organization_id').eq('email', email).single()
     if (!target) return json({ error: 'Utilisateur introuvable' }, 404)
-    const t = target as { id: string; auth_id: string }
+    const t = target as { id: string; auth_id: string; organization_id: string }
 
     const { data: list, error: listErr } = await admin.auth.admin.mfa.listFactors({ userId: t.auth_id })
     if (listErr) { console.error('[admin-reset-mfa] list:', listErr.message); return json({ error: 'Réinitialisation impossible' }, 500) }
@@ -53,6 +54,13 @@ Deno.serve(async (req) => {
     }
 
     await logAdminAction(admin, owner.id, 'reset_mfa', 'user', t.id, reason, { email, factors_deleted: factors.length })
+    if (t.organization_id) {
+      await logActivity(admin, {
+        organizationId: t.organization_id, actorUserId: owner.id,
+        action: 'mfa.reset', targetType: 'member', targetId: t.id,
+        summary: `MFA réinitialisé pour ${email}`,
+      })
+    }
     return json({ success: true, factors_deleted: factors.length }, 200)
   } catch (e) {
     console.error('[admin-reset-mfa] unexpected:', e instanceof Error ? e.message : String(e))
