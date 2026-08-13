@@ -8,6 +8,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { logAdminAction } from '../_shared/auth-platform-owner.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 
 // Clés que useVocab applique (RFC 0002 P2b). provider_term/auditor_term restent
 // hors périmètre tant que le vocab n'est pas résolu côté serveur (emails).
@@ -75,6 +76,11 @@ Deno.serve(async (req) => {
       }
       await logAdminAction(admin, caller.id, 'org_vocab.set', 'organization', orgId,
         `Mise à jour de la terminologie (${scope})`, { keys: upserts.map((u) => u.key), cleared })
+      await logActivity(admin, {
+        organizationId: orgId, actorUserId: caller.id,
+        action: 'vocab.updated', targetType: 'organization', targetId: orgId,
+        summary: `Terminologie mise à jour (${scope})`,
+      })
       return json({ success: true })
     }
 
@@ -83,6 +89,11 @@ Deno.serve(async (req) => {
       await admin.from('organization_vocab').delete().eq('org_id', orgId)
       await logAdminAction(admin, caller.id, 'org_vocab.reset', 'organization', orgId,
         `Réinitialisation de la terminologie (${scope})`, {})
+      await logActivity(admin, {
+        organizationId: orgId, actorUserId: caller.id,
+        action: 'vocab.reset', targetType: 'organization', targetId: orgId,
+        summary: `Terminologie réinitialisée (${scope})`,
+      })
       return json({ success: true })
     }
 

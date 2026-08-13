@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
 /**
@@ -131,6 +132,14 @@ Deno.serve(async (req) => {
       target_user_id: target.id,
       performed_by: cp.id,
       action: newIsActive ? 'reactivated' : 'deactivated',
+    })
+
+    await logActivity(admin, {
+      organizationId: cp.organization_id, actorUserId: cp.id,
+      action: `member.${newIsActive ? 'reactivated' : 'deactivated'}`,
+      targetType: 'member', targetId: target.id,
+      targetLabel: `${target.first_name} ${target.last_name}`.trim(),
+      summary: `${newIsActive ? 'Membre réactivé' : 'Membre désactivé'} : ${target.first_name} ${target.last_name}`.trim(),
     })
 
     return jsonResponse({ success: true })
