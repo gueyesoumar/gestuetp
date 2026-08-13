@@ -10,6 +10,7 @@ export const FAMILY_META: Record<string, { label: string; badge: string }> = {
   finding: { label: 'Constat', badge: 'bg-purple-50 text-purple-700' },
   role: { label: 'Rôle', badge: 'bg-red-50 text-red-700' },
   member: { label: 'Membre', badge: 'bg-red-50 text-red-700' },
+  portal: { label: 'Portail', badge: 'bg-blue-50 text-blue-700' },
   client: { label: 'Client', badge: 'bg-blue-50 text-blue-700' },
   action_plan: { label: 'Plan d’action', badge: 'bg-amber-50 text-amber-700' },
   vocab: { label: 'Terminologie', badge: 'bg-gray-100 text-gray-600' },

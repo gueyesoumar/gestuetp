@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
@@ -235,6 +236,13 @@ Deno.serve(async (req) => {
       })
       if (emailResult.error) console.error('[invite-assujetti] email error:', emailResult.error)
     }
+
+    await logActivity(admin, {
+      organizationId: caller.organization_id, actorUserId: caller.id,
+      action: 'portal.assujetti_invited', targetType: 'portal_contact', targetId: contactId,
+      targetLabel: contact_name,
+      summary: `Accès portail assujetti accordé : ${contact_name}`,
+    })
 
     return json({ success: true, contact_id: contactId, user_id: userId, is_new_user: isNewUser, invite_link: inviteLink }, 201)
   } catch (err) {
