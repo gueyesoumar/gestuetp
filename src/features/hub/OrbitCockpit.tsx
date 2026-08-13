@@ -7,7 +7,6 @@ import { useEdition } from '../edition/EditionContext'
 import { useHubPerspectives } from './useHubPerspectives'
 import type { HubPerspective } from './useHubPerspectives'
 import { HubTopBar } from './HubTopBar'
-import { HubOrgIdentity } from './HubOrgIdentity'
 import { ModuleOrbit } from './ModuleOrbit'
 import { SegmentedDial } from './SegmentedDial'
 import { HubSidePanel } from './HubSidePanel'
@@ -78,6 +77,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       profile={profile}
       onSignOut={onSignOut}
       showAdmin={Boolean(profile?.is_platform_owner) && !isBranded}
+      isBranded={isBranded}
     />
   )
 
@@ -116,7 +116,6 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   return (
     <div className="flex h-full w-full flex-col px-6 py-3">
       {topBar}
-      <HubOrgIdentity />
 
       <div className="flex min-h-0 flex-1 flex-col gap-5 md:flex-row md:gap-6">
         <div className="flex min-h-0 flex-1 flex-col">
