@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -31,7 +32,7 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile } = await supabaseAdmin
       .from('users')
-      .select('id, is_active')
+      .select('id, is_active, organization_id')
       .eq('auth_id', caller.id)
       .single()
 
@@ -217,6 +218,12 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    await logActivity(supabaseAdmin, {
+      organizationId: callerProfile.organization_id, actorUserId: callerProfile.id,
+      action: 'mission.closed', targetType: 'mission', targetId: mission_id,
+      summary: 'Mission clôturée',
+    })
 
     return new Response(
       JSON.stringify({

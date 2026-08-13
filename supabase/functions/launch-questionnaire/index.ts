@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -302,6 +303,12 @@ Deno.serve(async (req) => {
       .from('missions')
       .update({ status: 'scoping' })
       .eq('id', mission_id)
+
+    await logActivity(supabaseAdmin, {
+      organizationId: cp.organization_id, actorUserId: cp.id,
+      action: 'questionnaire.launched', targetType: 'mission', targetId: mission_id,
+      summary: 'Questionnaire de cadrage lancé',
+    })
 
     return new Response(
       JSON.stringify({ success: true, instance_id: instance.id, prefilled_count: prefilledCount }),

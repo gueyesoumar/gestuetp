@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile } = await supabaseAdmin
       .from('users')
-      .select('id, is_active')
+      .select('id, is_active, organization_id')
       .eq('auth_id', caller.id)
       .single()
 
@@ -195,6 +196,12 @@ Deno.serve(async (req) => {
           .in('status', ['initialization', 'scoping', 'planning'])
       }
     }
+
+    await logActivity(supabaseAdmin, {
+      organizationId: callerProfile.organization_id, actorUserId: callerProfile.id,
+      action: `assessment.${decision}`, targetType: 'assessment', targetId: assessment_id,
+      summary: decision === 'approved' ? 'Évaluation approuvée' : 'Évaluation rejetée',
+    })
 
     return new Response(
       JSON.stringify({ success: true, new_status: newStatus }),
