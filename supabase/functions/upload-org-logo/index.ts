@@ -4,6 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { sanitizeSvg } from '../_shared/svg-sanitize.ts'
+import { logActivity } from '../_shared/audit-log.ts'
 
 /**
  * upload-org-logo — téléversement du logo d'identité de l'organisation
@@ -99,6 +100,11 @@ Deno.serve(async (req) => {
       if (previousPath) await admin.storage.from(BUCKET).remove([previousPath])
     }
 
+    await logActivity(admin, {
+      organizationId: orgId, actorUserId: caller.id,
+      action: 'org_logo.uploaded', targetType: 'organization', targetId: orgId,
+      summary: 'Logo de l’organisation mis à jour',
+    })
     return json({ success: true, url: publicUrl })
   } catch (e) {
     console.error('[upload-org-logo] unexpected:', e instanceof Error ? e.message : String(e))
