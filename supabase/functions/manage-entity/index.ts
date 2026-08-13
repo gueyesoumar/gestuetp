@@ -23,7 +23,13 @@ import { logActivity } from '../_shared/audit-log.ts'
  *    reactivate) doivent appartenir au sous-arbre du groupe de l'appelant.
  */
 
-const ENTITY_TYPES = ['filiale', 'site', 'direction', 'business_unit'] as const
+// Doit rester aligné sur la contrainte CHECK organizations_entity_type_check
+// (mig 00175) : types Comply (groupes) + types Regul (entités publiques).
+const ENTITY_TYPES = [
+  'filiale', 'site', 'direction', 'business_unit',
+  'ministere', 'direction_generale', 'agence', 'societe_nationale',
+  'operateur', 'institution_financiere', 'autre',
+] as const
 type EntityType = typeof ENTITY_TYPES[number]
 
 interface Payload {
