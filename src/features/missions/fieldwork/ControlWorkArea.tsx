@@ -243,6 +243,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           assessment={assessment}
           observations={observations}
           evidenceNotes={evidenceNotes}
+          conformityLevel={conformityLevel}
+          onConformityChange={setConformityLevel}
           findingsHook={findingsHook}
           onObservationsChange={setObservations}
           onEvidenceNotesChange={setEvidenceNotes}
