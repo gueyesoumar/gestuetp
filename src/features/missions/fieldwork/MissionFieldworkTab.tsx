@@ -63,7 +63,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     return merged
   }, [myAssessments, allSubmitted, isLeadOrAssociate])
 
-  const state = useFieldworkState(assessments, refetch)
+  const state = useFieldworkState(assessments, refetch, mission.workflow_version ?? 'audit')
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
   const [railOpen, setRailOpen] = useState<boolean>(readRailDefault)
   const toggleRail = useCallback(() => {
