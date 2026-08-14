@@ -1,8 +1,11 @@
-import { Paperclip } from 'lucide-react'
+import { useRef } from 'react'
+import { Paperclip, X } from 'lucide-react'
 import { CONFORMITY_LEVELS } from '../mission-constants'
 import { FindingsEditor } from './findings/FindingsEditor'
+import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { UseAssessmentFindingsReturn } from './findings/useAssessmentFindings'
+import type { Document } from '../../../types/database.types'
 
 interface FreeWorkFormProps {
   assessment: AssessmentWithControl
@@ -10,6 +13,11 @@ interface FreeWorkFormProps {
   evidenceNotes: string
   conformityLevel: string | null
   onConformityChange: (v: string) => void
+  documents: Document[]
+  uploading: boolean
+  uploadError: string | null
+  onUpload: (file: File, description: string) => Promise<boolean>
+  onDeleteDoc: (docId: string, filePath: string) => Promise<boolean>
   findingsHook: UseAssessmentFindingsReturn
   onObservationsChange: (v: string) => void
   onEvidenceNotesChange: (v: string) => void
@@ -18,6 +26,12 @@ interface FreeWorkFormProps {
 
 export function FreeWorkForm(props: FreeWorkFormProps){
   const { assessment, readOnly, findingsHook } = props
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleFile = async (file: File): Promise<void> => {
+    const ok = await props.onUpload(file, '')
+    if (ok && fileRef.current) fileRef.current.value = ''
+  }
 
   return (
     <div className="p-6 space-y-5">
@@ -59,9 +73,42 @@ export function FreeWorkForm(props: FreeWorkFormProps){
       <Field label="Notes sur les preuves" value={props.evidenceNotes} onChange={props.onEvidenceNotesChange} disabled={readOnly}
         placeholder="D&eacute;crivez les preuves collect&eacute;es..." rows={2} />
 
-      <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-forest-300 hover:bg-forest-50 transition-colors cursor-pointer">
-        <div className="flex justify-center text-gray-300 mb-1"><Paperclip size={18} /></div>
-        <p className="text-xs text-gray-500">Glissez-d&eacute;posez ou <span className="text-forest-700 font-medium underline">parcourir</span></p>
+      <div>
+        <p className="text-[13px] font-semibold text-gray-700 mb-1.5">Pi&egrave;ces jointes</p>
+        {props.uploadError && <div className="mb-2"><ErrorAlert message={props.uploadError} /></div>}
+        <input
+          ref={fileRef}
+          type="file"
+          className="hidden"
+          disabled={readOnly || props.uploading}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f) }}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={readOnly || props.uploading}
+          className="w-full border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-forest-300 hover:bg-forest-50 transition-colors disabled:opacity-50"
+        >
+          <div className="flex justify-center text-gray-300 mb-1"><Paperclip size={18} /></div>
+          <p className="text-xs text-gray-500">
+            {props.uploading ? 'Téléversement…' : <>Cliquez pour <span className="text-forest-700 font-medium underline">parcourir</span></>}
+          </p>
+        </button>
+        {props.documents.length > 0 && (
+          <ul className="mt-2 space-y-1">
+            {props.documents.map((doc) => (
+              <li key={doc.id} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 text-[12px]">
+                <Paperclip size={13} className="text-gray-400 shrink-0" />
+                <span className="flex-1 truncate text-gray-700">{doc.file_name}</span>
+                {!readOnly && (
+                  <button type="button" onClick={() => void props.onDeleteDoc(doc.id, doc.file_path)} className="text-gray-400 hover:text-red-600" aria-label="Supprimer">
+                    <X size={14} />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )
