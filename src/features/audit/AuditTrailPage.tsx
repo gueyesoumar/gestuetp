@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Download, Search } from 'lucide-react'
 import { useActivityLog, actorName, type ActivityFilters, type ActivityRow } from './useActivityLog'
+import { useProbativeEvents } from './useProbativeEvents'
 import { ActivityItem, FAMILY_META } from './ActivityItem'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -18,16 +19,23 @@ export function AuditTrailPage(): JSX.Element {
   const [filters, setFilters] = useState<ActivityFilters>({ family: '', from: '', to: '' })
   const [search, setSearch] = useState('')
   const { rows, loading, error, hasMore, loadMore } = useActivityLog(filters)
+  const { rows: probative } = useProbativeEvents(filters)
+
+  // Agrégation lecture seule des actes scellés (probative_log) dans la timeline.
+  const merged = useMemo(
+    () => [...rows, ...probative].sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : a.occurred_at > b.occurred_at ? -1 : 0)),
+    [rows, probative],
+  )
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return rows
-    return rows.filter((r) =>
+    if (!q) return merged
+    return merged.filter((r) =>
       (r.summary ?? '').toLowerCase().includes(q) ||
       (r.target_label ?? '').toLowerCase().includes(q) ||
       r.action.toLowerCase().includes(q) ||
       actorName(r).toLowerCase().includes(q))
-  }, [rows, search])
+  }, [merged, search])
 
   const exportCsv = (): void => {
     const blob = new Blob([`﻿${toCsv(visible)}`], { type: 'text/csv;charset=utf-8' })
@@ -45,7 +53,7 @@ export function AuditTrailPage(): JSX.Element {
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Piste d&apos;audit</h1>
-        <p className="mt-1 text-[13px] text-gray-500">Historique inaltérable des actions réalisées dans votre organisation. Chaînage cryptographique par organisation.</p>
+        <p className="mt-1 text-[13px] text-gray-500">Historique inaltérable des actions réalisées dans votre organisation (chaînage cryptographique par organisation), actes réglementaires scellés inclus.</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

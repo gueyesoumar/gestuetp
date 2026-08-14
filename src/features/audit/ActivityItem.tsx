@@ -1,3 +1,4 @@
+import { Lock } from 'lucide-react'
 import { actorName, type ActivityRow } from './useActivityLog'
 
 /** Famille (préfixe) → libellé + style de badge. */
@@ -11,6 +12,8 @@ export const FAMILY_META: Record<string, { label: string; badge: string }> = {
   role: { label: 'Rôle', badge: 'bg-red-50 text-red-700' },
   member: { label: 'Membre', badge: 'bg-red-50 text-red-700' },
   portal: { label: 'Portail', badge: 'bg-blue-50 text-blue-700' },
+  measure: { label: 'Mesure', badge: 'bg-amber-50 text-amber-700' },
+  incident: { label: 'Incident', badge: 'bg-red-50 text-red-700' },
   client: { label: 'Client', badge: 'bg-blue-50 text-blue-700' },
   action_plan: { label: 'Plan d’action', badge: 'bg-amber-50 text-amber-700' },
   vocab: { label: 'Terminologie', badge: 'bg-gray-100 text-gray-600' },
@@ -34,6 +37,11 @@ export function ActivityItem({ row }: { row: ActivityRow }): JSX.Element {
     <div className="flex items-start gap-3 border-t border-gray-100 py-3">
       <div className="w-36 shrink-0 text-[11px] text-gray-400 tabular-nums">{formatDateTime(row.occurred_at)}</div>
       <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${fam.badge}`}>{fam.label}</span>
+      {row.source === 'probative' && (
+        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-forest-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white" title="Acte scellé — registre à valeur probante (chaîné + horodaté)">
+          <Lock size={9} /> Scellé
+        </span>
+      )}
       <div className="min-w-0 flex-1">
         <p className="text-[13px] text-gray-900">
           {row.summary ?? row.action}
