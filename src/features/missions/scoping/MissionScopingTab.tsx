@@ -42,6 +42,9 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const { requests } = useMissionEvidenceRequests(mission.id)
   const { actors } = useMissionActors(mission.id)
   const [activeTab, setActiveTab] = useState<ScopingTab>('scope')
+  // Moteur Contrôle (RFC 0003) : Cadrage allégé — sous-onglet Risques retiré,
+  // Questionnaire optionnel (conservé mais hors checklist requise).
+  const isControle = mission.workflow_version === 'controle'
   const [actionLoading, setActionLoading] = useState(false)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
   const [showPortalModal, setShowPortalModal] = useState(false)
@@ -205,7 +208,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         <div className="flex items-center gap-3 px-4 py-2.5 bg-purple-50 border-b border-purple-200">
           <div className="w-7 h-7 rounded-lg bg-purple-500 text-white flex items-center justify-center shrink-0"><Star size={14} /></div>
           <p className="flex-1 text-xs text-purple-800"><strong>SmartScope</strong> peut analyser les documents et r&eacute;ponses pour identifier les risques cl&eacute;s.</p>
-          <button className="text-xs font-semibold text-white bg-purple-500 px-3 py-1.5 rounded-lg hover:bg-purple-600 shrink-0 flex items-center gap-1"><Star size={12} /> Analyser</button>
+          <button type="button" disabled title="Bientôt disponible" className="text-xs font-semibold text-purple-300 bg-purple-100 px-3 py-1.5 rounded-lg shrink-0 flex items-center gap-1 cursor-not-allowed"><Star size={12} /> Analyser <span className="text-[9px] font-normal">&middot; bient&ocirc;t</span></button>
         </div>
 
         {/* Tabs */}
@@ -213,7 +216,9 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           <TabBtn label="P&eacute;rim&egrave;tre" count={domains.length} active={activeTab === 'scope'} onClick={() => setActiveTab('scope')} />
           <TabBtn label="Questionnaire" count={`${answeredCount}/${totalCount}`} active={activeTab === 'questionnaire'} onClick={() => setActiveTab('questionnaire')} />
           <TabBtn label="Documents" count={docsExpected > 0 ? `${docsReceived}/${docsExpected}` : undefined} active={activeTab === 'documents'} onClick={() => setActiveTab('documents')} />
-          <TabBtn label="Risques" count={risks.length} active={activeTab === 'risks'} onClick={() => setActiveTab('risks')} />
+          {!isControle && (
+            <TabBtn label="Risques" count={risks.length} active={activeTab === 'risks'} onClick={() => setActiveTab('risks')} />
+          )}
           <TabBtn label="Acteurs" count={actors.length} active={activeTab === 'actors'} onClick={() => setActiveTab('actors')} />
         </div>
 
@@ -229,7 +234,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
             <ScopingDocumentsTab missionId={mission.id} domains={domains} exclusions={exclusions} />
           </div>
         )}
-        {activeTab === 'risks' && (
+        {!isControle && activeTab === 'risks' && (
           <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} saving={saving} error={saveError} />
         )}
         {activeTab === 'actors' && <ScopingActorsTab missionId={mission.id} />}
@@ -253,6 +258,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           onNavigate={(tab) => setActiveTab(tab)}
           actionLoading={actionLoading}
           actionSuccess={actionSuccess}
+          isControle={isControle}
         />
       </div>
 

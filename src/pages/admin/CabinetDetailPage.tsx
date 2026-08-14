@@ -15,6 +15,7 @@ import { CabinetBillingTab } from '../../features/admin/CabinetBillingTab'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
 import { CabinetOverviewTab } from '../../features/admin/health/CabinetOverviewTab'
+import { AdminOrgEngineCard } from '../../features/admin/AdminOrgEngineCard'
 import { TerminologyEditor } from '../../features/organization-settings/TerminologyEditor'
 import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
 import { labelOrganizationType } from '../../features/admin/cabinetLabels'
@@ -116,14 +117,17 @@ export function CabinetDetailPage() {
       </div>
 
       {activeTab === 'overview' && (
-        <CabinetOverviewTab
-          cabinet={cabinet}
-          onSuspend={() => setReasonModal('suspend')}
-          onReactivate={() => setReasonModal('reactivate')}
-          onExport={() => setReasonModal('export')}
-          onDelete={() => setDeleteOpen(true)}
-          onEditTypes={() => setTypesModalOpen(true)}
-        />
+        <>
+          <CabinetOverviewTab
+            cabinet={cabinet}
+            onSuspend={() => setReasonModal('suspend')}
+            onReactivate={() => setReasonModal('reactivate')}
+            onExport={() => setReasonModal('export')}
+            onDelete={() => setDeleteOpen(true)}
+            onEditTypes={() => setTypesModalOpen(true)}
+          />
+          <AdminOrgEngineCard cabinetId={cabinet.id} currentEngine={cabinet.workflow_version} onSaved={refetch} />
+        </>
       )}
 
       {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}

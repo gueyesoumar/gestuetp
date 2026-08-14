@@ -119,7 +119,7 @@ export function SmartConversation({ questions, instanceId, userId, readOnly, onA
     if (qType === 'boolean') {
       return (
         <>
-          <ResponseChip label="Oui" icon={<Check size={12} />} onClick={() => handleAnswer('Oui')} disabled={readOnly || saving} active />
+          <ResponseChip label="Oui" icon={<Check size={12} />} onClick={() => handleAnswer('Oui')} disabled={readOnly || saving} />
           <ResponseChip label="Non" icon={<X size={12} />} onClick={() => handleAnswer('Non')} disabled={readOnly || saving} />
         </>
       )

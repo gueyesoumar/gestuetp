@@ -20,34 +20,45 @@ interface ScopingProgressSidebarProps {
   onNavigate: (tab: 'scope' | 'questionnaire' | 'documents' | 'risks') => void
   actionLoading: boolean
   actionSuccess: string | null
+  /** Moteur Contr\u00f4le (RFC 0003) : Cadrage all\u00e9g\u00e9 \u2014 Questionnaire optionnel, Risques retir\u00e9. */
+  isControle?: boolean
 }
 
 type ChecklistTab = 'scope' | 'questionnaire' | 'documents' | 'risks'
 interface CheckItem { label: string; done: boolean; active: boolean; tab?: ChecklistTab }
 
-export function ScopingProgressSidebar({ mission, client, risks, questionnaireProgress, documentsReceived, documentsExpected, onRemindClient, onGenerateNote, onValidateScoping, onInvitePortal, onNavigate, actionLoading, actionSuccess }: ScopingProgressSidebarProps) {
+export function ScopingProgressSidebar({ mission, client, risks, questionnaireProgress, documentsReceived, documentsExpected, onRemindClient, onGenerateNote, onValidateScoping, onInvitePortal, onNavigate, actionLoading, actionSuccess, isControle = false }: ScopingProgressSidebarProps) {
   const checklist = useMemo((): CheckItem[] => {
     const hasScope = mission.status !== 'initialization'
     const questSent = mission.status !== 'initialization'
     const questDone = questionnaireProgress === 100
     const docsDone = documentsExpected > 0 && documentsReceived >= documentsExpected
     const risksValidated = risks.length > 0
-    return [
+    const items: CheckItem[] = [
       { label: 'P\u00e9rim\u00e8tre d\u00e9fini', done: hasScope, active: !hasScope, tab: 'scope' },
-      { label: 'Questionnaire envoy\u00e9', done: questSent, active: hasScope && !questSent, tab: 'questionnaire' },
-      { label: `Questionnaire compl\u00e9t\u00e9 (${questionnaireProgress}%)`, done: questDone, active: questSent && !questDone, tab: 'questionnaire' },
-      {
-        label: documentsExpected === 0
-          ? 'Documents demand\u00e9s au client'
-          : `Documents re\u00e7us (${documentsReceived}/${documentsExpected})`,
-        done: docsDone,
-        active: questSent && !docsDone,
-        tab: 'documents',
-      },
-      { label: 'Risques initiaux valid\u00e9s', done: risksValidated, active: !risksValidated, tab: 'risks' },
-      { label: 'Note de cadrage valid\u00e9e', done: false, active: false },
     ]
-  }, [mission, questionnaireProgress, documentsReceived, documentsExpected, risks])
+    // Moteur Contr\u00f4le : le questionnaire est optionnel (hors checklist requise).
+    if (!isControle) {
+      items.push(
+        { label: 'Questionnaire envoy\u00e9', done: questSent, active: hasScope && !questSent, tab: 'questionnaire' },
+        { label: `Questionnaire compl\u00e9t\u00e9 (${questionnaireProgress}%)`, done: questDone, active: questSent && !questDone, tab: 'questionnaire' },
+      )
+    }
+    items.push({
+      label: documentsExpected === 0
+        ? 'Documents demand\u00e9s au client'
+        : `Documents re\u00e7us (${documentsReceived}/${documentsExpected})`,
+      done: docsDone,
+      active: (isControle ? hasScope : questSent) && !docsDone,
+      tab: 'documents',
+    })
+    // Moteur Contr\u00f4le : pas d'\u00e9tape Risques.
+    if (!isControle) {
+      items.push({ label: 'Risques initiaux valid\u00e9s', done: risksValidated, active: !risksValidated, tab: 'risks' })
+    }
+    items.push({ label: 'Note de cadrage valid\u00e9e', done: false, active: false })
+    return items
+  }, [mission, questionnaireProgress, documentsReceived, documentsExpected, risks, isControle])
 
   const doneCount = checklist.filter((c) => c.done).length
   const pct = Math.round((doneCount / checklist.length) * 100)

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Send, XCircle, CheckCircle, AlertTriangle, Eye } from 'lucide-react'
+import { Send, XCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { InfoPopover } from '../../../components/ui/InfoPopover'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -8,6 +8,7 @@ import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
 import { useInternalReviewData } from './useInternalReviewData'
+import { ObservationsConsultationPanel } from '../observations/ObservationsConsultationPanel'
 import { ValidationTimeline } from './ValidationTimeline'
 import { ReviewQualityCallout } from './ReviewQualityCallout'
 import { ReviewDiscussionPanel } from './ReviewDiscussionPanel'
@@ -29,6 +30,9 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
   const isAssociate = profile?.id === mission.associate_user?.id
   const isLead = profile?.id === mission.lead_auditor_user?.id
   const canDecide = isAssociate || isLead
+  // Moteur Contrôle (RFC 0003) : l'assujetti ne valide pas → pas d'envoi au client,
+  // la Revue mène directement à la clôture (via le CTA « Clôturer le contrôle »).
+  const isControle = mission.workflow_version === 'controle'
   const allApproved = review.approvedControls === review.totalControls && review.totalControls > 0
 
   const handleSendToClient = useCallback(async () => {
@@ -100,7 +104,7 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
         </div>
         <div>
           <div className="text-[15px] font-bold text-gray-900">Tous les contr&ocirc;les sont valid&eacute;s individuellement</div>
-          <div className="text-[13px] text-gray-500">V&eacute;rifiez la coh&eacute;rence d&rsquo;ensemble avant d&rsquo;envoyer au client.</div>
+          <div className="text-[13px] text-gray-500">V&eacute;rifiez la coh&eacute;rence d&rsquo;ensemble avant {isControle ? 'de clôturer le contrôle.' : 'd’envoyer au client.'}</div>
         </div>
       </div>
 
@@ -152,19 +156,29 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           {canDecide && (
             <div className="rounded-xl border-2 border-forest-700 bg-forest-50 p-5">
               <h3 className="text-[14px] font-bold text-forest-900 mb-1">D&eacute;cision</h3>
-              <p className="text-[12px] text-gray-500 mb-4">Validez l&rsquo;ensemble de la mission avant envoi au client.</p>
+              <p className="text-[12px] text-gray-500 mb-4">
+                {isControle
+                  ? 'Validez la cohérence d’ensemble, puis clôturez le contrôle (aucune validation de l’assujetti).'
+                  : 'Validez l’ensemble de la mission avant envoi au client.'}
+              </p>
 
               {sendError && <ErrorAlert message={sendError} />}
 
               <div className="space-y-2">
-                <button
-                  onClick={handleSendToClient}
-                  disabled={sending}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-forest-700 px-4 py-3 text-[14px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50 transition-colors"
-                >
-                  <Send size={15} />
-                  {sending ? 'Envoi...' : 'Valider et envoyer au client'}
-                </button>
+                {isControle ? (
+                  <div className="rounded-lg border border-forest-200 bg-white px-4 py-3 text-[12.5px] text-gray-600">
+                    Ce contr&ocirc;le ne requiert pas de validation de l&rsquo;assujetti. Utilisez <span className="font-semibold text-forest-700">&laquo;&nbsp;Cl&ocirc;turer le contr&ocirc;le&nbsp;&raquo;</span> en haut de page pour finaliser.
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleSendToClient}
+                    disabled={sending}
+                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-forest-700 px-4 py-3 text-[14px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50 transition-colors"
+                  >
+                    <Send size={15} />
+                    {sending ? 'Envoi...' : 'Valider et envoyer au client'}
+                  </button>
+                )}
                 <button
                   onClick={handleReject}
                   disabled={sending || !comment.trim()}
@@ -178,6 +192,17 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           )}
         </div>
       </div>
+
+      {isControle && (
+        <div className="mt-6 border-t border-gray-100 pt-6">
+          <ObservationsConsultationPanel
+            missionId={mission.id}
+            heading="Consultation de l'assujetti"
+            subheading="Remarques non bloquantes de l'assujetti sur les contrôles. Répondez et décidez de modifier ou conserver le constat, puis clôturez. L'assujetti commente via son portail (accès contributeur)."
+            emptyLabel="L'assujetti n'a pas encore déposé de remarque. Invitez un contact assujetti en « contributeur » pour ouvrir la consultation."
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -270,11 +295,8 @@ function StatCard({ value, label, bg, color }: { value: number; label: string; b
 function ReportPreview({ mission, review }: { mission: MissionDetail; review: ReturnType<typeof useInternalReviewData> }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <h3 className="text-[14px] font-bold text-gray-900">Aper&ccedil;u du rapport</h3>
-        <button className="flex items-center gap-1.5 text-[12px] font-semibold text-forest-700 hover:text-forest-900">
-          <Eye size={14} /> Pr&eacute;visualiser
-        </button>
       </div>
       <div className="rounded-lg border border-gray-200 bg-page-bg p-5 text-[12px] text-gray-500 leading-relaxed space-y-1">
         <div className="text-[14px] font-bold text-gray-900 mb-2">
