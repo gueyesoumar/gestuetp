@@ -10,7 +10,7 @@ export interface ActivityRow {
   target_label: string | null
   summary: string | null
   metadata: Record<string, unknown>
-  source: 'trigger' | 'edge' | 'system'
+  source: 'trigger' | 'edge' | 'system' | 'probative'
   actor_user_id: string | null
   actor_label: string | null
   actor: { first_name: string; last_name: string } | null
