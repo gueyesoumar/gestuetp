@@ -15,9 +15,18 @@ export function PlanningActionsSection() {
 }
 
 function ActionButton({ icon, label }: { icon: ReactNode; label: string }) {
+  // Fonctionnalités non encore implémentées — désactivées honnêtement plutôt que
+  // décoratives (elles ne faisaient rien au clic).
   return (
-    <button className="flex items-center gap-2.5 px-3.5 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 transition-colors text-left">
-      <span className="w-6 text-center flex justify-center">{icon}</span> {label}
+    <button
+      type="button"
+      disabled
+      title="Bientôt disponible"
+      className="flex items-center gap-2.5 px-3.5 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-400 bg-gray-50 cursor-not-allowed text-left"
+    >
+      <span className="w-6 text-center flex justify-center">{icon}</span>
+      <span className="flex-1">{label}</span>
+      <span className="text-[9px] font-semibold uppercase tracking-wide text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Bient&ocirc;t</span>
     </button>
   )
 }
