@@ -8,6 +8,7 @@ import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
 import { useInternalReviewData } from './useInternalReviewData'
+import { ObservationsConsultationPanel } from '../observations/ObservationsConsultationPanel'
 import { ValidationTimeline } from './ValidationTimeline'
 import { ReviewQualityCallout } from './ReviewQualityCallout'
 import { ReviewDiscussionPanel } from './ReviewDiscussionPanel'
@@ -191,6 +192,17 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           )}
         </div>
       </div>
+
+      {isControle && (
+        <div className="mt-6 border-t border-gray-100 pt-6">
+          <ObservationsConsultationPanel
+            missionId={mission.id}
+            heading="Consultation de l'assujetti"
+            subheading="Remarques non bloquantes de l'assujetti sur les contrôles. Répondez et décidez de modifier ou conserver le constat, puis clôturez. L'assujetti commente via son portail (accès contributeur)."
+            emptyLabel="L'assujetti n'a pas encore déposé de remarque. Invitez un contact assujetti en « contributeur » pour ouvrir la consultation."
+          />
+        </div>
+      )}
     </div>
   )
 }
