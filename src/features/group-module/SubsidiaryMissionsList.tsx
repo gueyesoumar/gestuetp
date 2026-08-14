@@ -1,19 +1,21 @@
 import { Link } from 'react-router-dom'
 import { useVocab } from '../edition/useVocab'
+import { MISSION_STATUS_LABELS } from '../missions/mission-constants'
 import type { SubsidiaryMissionRow } from './useSubsidiaryDetail'
 
 interface SubsidiaryMissionsListProps {
   missions: SubsidiaryMissionRow[]
 }
 
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  initialization: { label: 'Initialisation', color: 'text-gray-600 bg-gray-100' },
-  scoping: { label: 'Cadrage', color: 'text-blue-700 bg-blue-50' },
-  planning: { label: 'Planification', color: 'text-blue-700 bg-blue-50' },
-  fieldwork: { label: 'Travaux', color: 'text-amber-700 bg-amber-50' },
-  internal_review: { label: 'Revue interne', color: 'text-amber-700 bg-amber-50' },
-  client_review: { label: 'Validation client', color: 'text-purple-700 bg-purple-50' },
-  closure: { label: 'Clôture', color: 'text-green-700 bg-green-50' },
+// Couleurs par statut ; les LIBELLÉS viennent de la source unique MISSION_STATUS_LABELS.
+const STATUS_COLOR: Record<string, string> = {
+  initialization: 'text-gray-600 bg-gray-100',
+  scoping: 'text-blue-700 bg-blue-50',
+  planning: 'text-blue-700 bg-blue-50',
+  fieldwork: 'text-amber-700 bg-amber-50',
+  internal_review: 'text-amber-700 bg-amber-50',
+  client_review: 'text-purple-700 bg-purple-50',
+  closure: 'text-green-700 bg-green-50',
 }
 
 function formatShortDate(d: string | null): string {
@@ -46,7 +48,8 @@ export function SubsidiaryMissionsList({ missions }: SubsidiaryMissionsListProps
         </thead>
         <tbody className="divide-y divide-gray-100 text-[13px]">
           {missions.map((m) => {
-            const st = STATUS_LABEL[m.status] ?? STATUS_LABEL.initialization
+            const color = STATUS_COLOR[m.status] ?? STATUS_COLOR.initialization
+            const label = MISSION_STATUS_LABELS[m.status as keyof typeof MISSION_STATUS_LABELS] ?? m.status
             return (
               <tr key={m.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
@@ -64,7 +67,7 @@ export function SubsidiaryMissionsList({ missions }: SubsidiaryMissionsListProps
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${color}`}>{label}</span>
                 </td>
                 <td className="px-4 py-3 font-semibold text-gray-900">
                   {m.conformityScore !== null ? `${m.conformityScore}%` : '—'}
