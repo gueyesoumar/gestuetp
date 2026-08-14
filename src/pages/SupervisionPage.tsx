@@ -83,7 +83,7 @@ export function SupervisionPage(): JSX.Element {
           <p className="mt-1 text-[13px] text-gray-500">{subtitle}</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition">
+          <button type="button" disabled title="Bientôt disponible" className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
             <Download size={14} />
             Exporter
           </button>

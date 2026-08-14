@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Send, XCircle, CheckCircle, AlertTriangle, Eye } from 'lucide-react'
+import { Send, XCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { InfoPopover } from '../../../components/ui/InfoPopover'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -283,11 +283,8 @@ function StatCard({ value, label, bg, color }: { value: number; label: string; b
 function ReportPreview({ mission, review }: { mission: MissionDetail; review: ReturnType<typeof useInternalReviewData> }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <h3 className="text-[14px] font-bold text-gray-900">Aper&ccedil;u du rapport</h3>
-        <button className="flex items-center gap-1.5 text-[12px] font-semibold text-forest-700 hover:text-forest-900">
-          <Eye size={14} /> Pr&eacute;visualiser
-        </button>
       </div>
       <div className="rounded-lg border border-gray-200 bg-page-bg p-5 text-[12px] text-gray-500 leading-relaxed space-y-1">
         <div className="text-[14px] font-bold text-gray-900 mb-2">
