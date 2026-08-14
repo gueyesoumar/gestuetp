@@ -48,10 +48,41 @@ export const CONTINUOUS_SUPERVISION_PHASES: MissionPhase[] = [
   { key: 'action_plan', label: "Plan d'action", index: 6 },
 ]
 
-export type MissionKindShort = 'audit' | 'continuous_supervision'
+/**
+ * Moteur « Contrôle » (RFC 0003) : 5 étapes, PAS de « Validation client »
+ * (l'assujetti ne valide pas mais peut laisser des remarques non bloquantes).
+ * « Revue interne » devient « Revue ».
+ */
+export const CONTROLE_PHASES: MissionPhase[] = [
+  { key: 'scoping', label: 'Cadrage', index: 0 },
+  { key: 'planning', label: 'Planification', index: 1 },
+  { key: 'fieldwork', label: 'Travaux', index: 2 },
+  { key: 'internal_review', label: 'Revue', index: 3 },
+  { key: 'closure', label: 'Clôture', index: 5 },
+  { key: 'action_plan', label: "Plan d'action", index: 6 },
+]
 
-export function getMissionPhases(kind: MissionKindShort | null | undefined): MissionPhase[] {
-  return kind === 'continuous_supervision' ? CONTINUOUS_SUPERVISION_PHASES : MISSION_PHASES
+export type MissionKindShort = 'audit' | 'continuous_supervision'
+type MissionEngineInput = { workflow_version?: 'audit' | 'controle' | null; kind?: MissionKindShort | null } | null | undefined
+
+/**
+ * Résout les phases selon le MOTEUR de la mission (workflow_version, RFC 0003)
+ * puis, pour le moteur audit, selon `kind` (audit vs supervision continue).
+ */
+export function getMissionPhases(mission: MissionEngineInput): MissionPhase[] {
+  if (mission?.workflow_version === 'controle') return CONTROLE_PHASES
+  return mission?.kind === 'continuous_supervision' ? CONTINUOUS_SUPERVISION_PHASES : MISSION_PHASES
+}
+
+/** Source UNIQUE des libellés de statut de mission (badge + listes). */
+export const MISSION_STATUS_LABELS: Record<MissionStatus, string> = {
+  initialization: 'Initialisation',
+  scoping: 'Cadrage',
+  planning: 'Planification',
+  fieldwork: 'Travaux',
+  internal_review: 'Revue interne',
+  client_review: 'Validation client',
+  closure: 'Clôture',
 }
 
 export const STATUS_TO_PHASE_INDEX: Record<MissionStatus, number> = {

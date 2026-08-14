@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { STATUS_TO_PHASE_INDEX, getMissionPhases, isAssessmentCompleted, isAssessmentApproved } from './mission-constants'
-import type { MissionKindShort } from './mission-constants'
 import type { MissionDetail } from './useMissionDetail'
 import type { AssessmentWithControl } from './useAuditorAssessments'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
@@ -90,11 +89,11 @@ export function useMissionProgress(
     }
 
     const draftCount = scopedAssessments.filter((a) => a.status === 'draft' || a.status === 'rejected').length
-    const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls)
+    const engine = mission.workflow_version ?? 'audit'
+    const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls, engine)
 
     const isClosure = mission.status === 'closure'
-    const missionKind = (mission as unknown as { kind?: MissionKindShort | null }).kind ?? 'audit'
-    const phases = getMissionPhases(missionKind)
+    const phases = getMissionPhases(mission)
       // Phase virtuelle "action_plan" visible uniquement pendant la cl\u00f4ture
       .filter((p) => p.key !== 'action_plan' || isClosure)
       .map((p) => {
@@ -127,7 +126,8 @@ function computeNextAction(
   draftCount: number,
   submittedCount: number,
   totalControls: number,
-  assessedCount: number
+  assessedCount: number,
+  engine: 'audit' | 'controle'
 ): MissionProgress['nextAction'] {
   if (status === 'initialization' || status === 'scoping') {
     return { label: 'Compl\u00e9tez le cadrage de la mission.', ctaLabel: 'D\u00e9marrer le cadrage', tab: 'scoping' }
@@ -140,6 +140,10 @@ function computeNextAction(
   }
   if (status === 'internal_review' && submittedCount > 0) {
     return { label: `${submittedCount} contr\u00f4les \u00e0 valider.`, ctaLabel: 'Revoir les travaux', tab: 'review' }
+  }
+  // Moteur Contr\u00f4le : pas de validation client \u2192 la Revue m\u00e8ne directement \u00e0 la cl\u00f4ture.
+  if (status === 'internal_review' && engine === 'controle') {
+    return { label: 'Revue termin\u00e9e \u2014 pr\u00eat \u00e0 cl\u00f4turer le contr\u00f4le.', ctaLabel: 'Cl\u00f4turer le contr\u00f4le', tab: 'closure' }
   }
   if (status === 'client_review') {
     return { label: 'En attente de validation client.', ctaLabel: 'Voir le suivi', tab: 'client_review' }

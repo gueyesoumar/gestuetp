@@ -2,16 +2,9 @@ import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, ClipboardCheck, X } from 'lucide-react'
 import { useMissions } from '../features/missions/useMissions'
+import { MISSION_STATUS_LABELS } from '../features/missions/mission-constants'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { EmptyState } from '../components/ui/EmptyState'
-
-const STATUS_LABELS: Record<string, string> = {
-  initialization: 'Initialisation',
-  planning: 'Planification',
-  fieldwork: 'Travaux',
-  review: 'Revue',
-  closure: 'Clôturée',
-}
 
 /** Liste des missions de contrôle (Gëstu Regul / M3). */
 export function RegulMissionsListPage(): JSX.Element {
@@ -77,7 +70,7 @@ export function RegulMissionsListPage(): JSX.Element {
                   </td>
                   <td className="px-4 py-3 text-gray-700">{m.client?.name ?? '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{m.framework?.name ?? '—'}</td>
-                  <td className="px-4 py-3"><span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{STATUS_LABELS[m.status] ?? m.status}</span></td>
+                  <td className="px-4 py-3"><span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{MISSION_STATUS_LABELS[m.status] ?? m.status}</span></td>
                   <td className="px-4 py-3 text-gray-700">{m.progressPct}%</td>
                 </tr>
               ))}
