@@ -120,6 +120,15 @@ export type EntityType =
   | typeof ENTITY_TYPE_OPTIONS[number]['value']
   | typeof REGUL_ENTITY_TYPE_OPTIONS[number]['value']
 
+// Moteurs de mission (RFC 0003). Le moteur d'une org est posé par le superadmin
+// (symétrique, aucune dérivation de l'édition) ; une mission fige (snapshot) le
+// moteur de son org à la création. Valeurs = clés stables.
+export const WORKFLOW_ENGINE_OPTIONS = [
+  { value: 'audit', label: 'Audit complet' },
+  { value: 'controle', label: 'Contrôle' },
+] as const
+export type WorkflowVersion = typeof WORKFLOW_ENGINE_OPTIONS[number]['value']
+
 // Profil réglementaire d'un assujetti (Gëstu Regul / M1).
 // Criticité NEUTRE et configurable : ajuster ces libellés (et eux seuls) pour
 // adopter la terminologie officielle retenue (ex. « Entité essentielle », ou le

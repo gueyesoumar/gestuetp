@@ -77,6 +77,8 @@ export interface Organization {
   entity_type?: 'filiale' | 'site' | 'direction' | 'business_unit' | null
   /** Kill switch IA cabinet (cf. migration 00088). */
   ai_analysis_enabled?: boolean
+  /** Moteur de mission par défaut de l'org (RFC 0003, migration 00181). */
+  workflow_version?: 'audit' | 'controle'
   created_at: string
   updated_at: string
 }
@@ -492,6 +494,8 @@ export interface Mission {
   description: string | null
   status: MissionStatus
   kind: MissionKind
+  /** Moteur figé à la création (RFC 0003, migration 00181). */
+  workflow_version?: 'audit' | 'controle'
   lead_auditor_id: string | null
   associate_id: string | null
   start_date: string | null
