@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import type { Policy, PolicyStatus, ScoreDimension } from '../../types/database.types'
+import type { Policy, PolicyStatus, PolicyProvenance, ScoreDimension } from '../../types/database.types'
 
 export interface NewPolicy {
   title: string
   summary: string | null
   dimension: ScoreDimension | null
+  provenance: PolicyProvenance
+  content: string | null
+  file_path: string | null
 }
 
 // Horodatage posé selon l'état atteint (péremption/approbation/publication/retrait).
@@ -53,11 +56,18 @@ export function usePolicyRegister(): {
 
   const createPolicy = useCallback(async (p: NewPolicy): Promise<boolean> => {
     if (!orgId) return false
-    const { error: err } = await supabase.from('policies').insert({
+    // 1. Politique (brouillon) ; 2. première version (contenu ou fichier) ; 3. lien current_version.
+    const { data: pol, error: err } = await supabase.from('policies').insert({
       organization_id: orgId, title: p.title, summary: p.summary, dimension: p.dimension,
-      provenance: 'native', status: 'draft', created_by: profile?.id ?? null,
-    } as never)
-    if (err) { console.error('[createPolicy]', err.message); return false }
+      provenance: p.provenance, status: 'draft', created_by: profile?.id ?? null,
+    } as never).select('id').single<{ id: string }>()
+    if (err || !pol) { console.error('[createPolicy]', err?.message); return false }
+    const { data: ver, error: vErr } = await supabase.from('policy_versions').insert({
+      policy_id: pol.id, organization_id: orgId, version_label: 'v1',
+      content: p.content, file_path: p.file_path, created_by: profile?.id ?? null,
+    } as never).select('id').single<{ id: string }>()
+    if (vErr) { console.error('[createPolicy version]', vErr.message) }
+    else if (ver) { await supabase.from('policies').update({ current_version_id: ver.id } as never).eq('id', pol.id) }
     refresh()
     return true
   }, [orgId, profile?.id, refresh])
