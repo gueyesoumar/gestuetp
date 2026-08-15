@@ -40,9 +40,11 @@ export function RiskPage(): JSX.Element {
         <Info size={15} className="text-[#B34A31] shrink-0" />
         {mastery ? (
           <p className="text-[13px] text-gray-700">
-            Maîtrise du risque&nbsp;: <b>{mastery.score}/100</b>. {score.riskImpactActive
-              ? <>Ce facteur <b>pèse</b> sur le score (−{mastery.penaltyPts} pts) → confiance <b>{score.composite ?? '—'}</b>.</>
-              : <>Mode <b>shadow</b>&nbsp;: −{mastery.penaltyPts} pts <i>si activé</i> (score actuel <b>{score.composite ?? '—'}</b>, inchangé).</>}
+            Maîtrise du risque&nbsp;: <b>{mastery.score}/100</b>. {score.composite === null
+              ? <>Le score composite n&eacute;cessite d&apos;abord une <b>posture Comply</b> (des audits) pour que le risque puisse s&apos;y appliquer.</>
+              : score.riskImpactActive
+                ? <>Ce facteur <b>p&egrave;se</b> sur le score (−{mastery.penaltyPts} pts) → confiance <b>{score.composite}</b>.</>
+                : <>Mode <b>shadow</b>&nbsp;: −{mastery.penaltyPts} pts <i>si activ&eacute;</i> (score actuel <b>{score.composite}</b>, inchang&eacute;).</>}
           </p>
         ) : (
           <p className="text-[13px] text-gray-600">Aucun scénario coté pour l&apos;instant — le score de confiance n&apos;est pas affecté.</p>
