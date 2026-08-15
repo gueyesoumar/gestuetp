@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { X, ArrowRight, Shield, Plus, Trash2, AlertTriangle } from 'lucide-react'
+import { X, ArrowRight, Shield, Plus, Trash2, AlertTriangle, FileText } from 'lucide-react'
 import { useScenarioControls, type ControlOption, type BarrierControl } from './useScenarioControls'
 import { useScenarioIncidents, type IncidentOption, type ScenarioIncident } from './useScenarioIncidents'
+import { useScenarioPolicies, type PolicyOption, type PolicyBarrier, type BarrierKind } from '../policy/useScenarioPolicies'
 import {
   SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_CONTROL_LINK_KINDS,
   barrierSide, splitBarrierEfficacies, riskResidualSplit, riskExposure,
@@ -18,14 +19,15 @@ const SEV_COLOR: Record<string, string> = { critique: '#C0392B', eleve: '#B8860B
 export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: ScenarioRow; catalog: RiskCatalogEntry[]; onClose: () => void }): JSX.Element {
   const { barriers, search, link, unlink } = useScenarioControls(scenario.id)
   const { incidents, bump, search: searchInc, link: linkInc, unlink: unlinkInc } = useScenarioIncidents(scenario.id, scenario.dimension)
+  const pol = useScenarioPolicies(scenario.id)
   const label = (id: string | null): string | null => id ? (catalog.find((c) => c.id === id)?.label ?? null) : null
   const dimColor = scenario.dimension ? SCORE_DIMENSION_COLORS[scenario.dimension] : '#94A3B8'
   // Vraisemblance effective = inhérente + aggravation incidents (plafond 4).
   const effL = Math.min(4, scenario.inherent_likelihood + bump)
   const inherentExp = riskExposure(effL, scenario.inherent_impact)
-  // Barrières : préventives ↓ vraisemblance, correctives ↓ impact.
-  const { effPrev, effCorr } = splitBarrierEfficacies(barriers)
-  const hasBarriers = barriers.length > 0
+  // Barrières : contrôles Comply + politiques ; préventives ↓ vraisemblance, correctives ↓ impact.
+  const { effPrev, effCorr } = splitBarrierEfficacies([...barriers, ...pol.barriers])
+  const hasBarriers = barriers.length + pol.barriers.length > 0
   const residual = hasBarriers ? riskResidualSplit(effL, scenario.inherent_impact, effPrev, effCorr) : inherentExp
   const prev = barriers.filter((b) => barrierSide(b.kind) === 'likelihood')
   const corr = barriers.filter((b) => barrierSide(b.kind) === 'impact')
@@ -86,6 +88,29 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
             )}
           <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel — c&apos;est ce lien qui fait vivre le score de confiance.</p>
           <ControlLinker existing={barriers} onSearch={search} onLink={link} />
+        </div>
+
+        {/* Politiques-barrières (Gëstu Policy) */}
+        <div className="px-5 pb-4 border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <FileText size={14} className="text-[#6D5AE6]" />
+            <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Politiques (barrières)</h4>
+          </div>
+          {pol.barriers.length === 0
+            ? <p className="text-[12px] text-gray-400 mb-3">Aucune politique-barrière. Une politique <b>appliquée</b> réduit ce risque.</p>
+            : (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {pol.barriers.map((b) => (
+                  <span key={b.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-[#6D5AE6]/30 bg-[#6D5AE6]/[0.07] px-2.5 py-1 text-[11px]">
+                    <span className="text-gray-700 max-w-[150px] truncate">{b.title}</span>
+                    <span className="text-gray-500">· {kindLabel(b.kind)}</span>
+                    <span className="font-semibold" style={{ color: expColor(100 - pct(b.effectiveness)) }}>{pct(b.effectiveness)}%</span>
+                    <button onClick={() => void pol.unlink(b.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
+                  </span>
+                ))}
+              </div>
+            )}
+          <PolicyBarrierLinker existing={pol.barriers} onSearch={pol.search} onLink={pol.link} />
         </div>
 
         {/* Incidents (Regul → aggravation vraisemblance) */}
@@ -180,6 +205,40 @@ function BowtieCard({ title, main, sub, tone }: { title: string; main: string; s
       <div className={`text-[10px] font-mono uppercase tracking-wide ${c.t}`}>{title}</div>
       <div className="text-[12.5px] font-semibold text-gray-800 mt-1">{main}</div>
       {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
+    </div>
+  )
+}
+
+function PolicyBarrierLinker({ existing, onSearch, onLink }: {
+  existing: PolicyBarrier[]
+  onSearch: (q: string) => Promise<PolicyOption[]>
+  onLink: (id: string, kind: BarrierKind) => Promise<void>
+}): JSX.Element {
+  const [q, setQ] = useState('')
+  const [results, setResults] = useState<PolicyOption[]>([])
+  const [kind, setKind] = useState<BarrierKind>('preventive')
+  const linkedIds = new Set(existing.map((b) => b.policy_id))
+  const run = async (v: string): Promise<void> => { setQ(v); setResults(await onSearch(v)) }
+  return (
+    <div className="rounded-lg border border-gray-200 p-3">
+      <div className="flex gap-2">
+        <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher une politique…" className="flex-1 px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-[#6D5AE6] focus:ring-1 focus:ring-[#6D5AE6]" />
+        <select value={kind} onChange={(e) => setKind(e.target.value as BarrierKind)} className="px-2 py-2 text-[12px] border border-gray-300 rounded-lg">
+          {RISK_CONTROL_LINK_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
+        </select>
+      </div>
+      {results.length > 0 && (
+        <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-gray-50">
+          {results.map((p) => (
+            <li key={p.id} className="flex items-center gap-2 py-1.5 text-[12px]">
+              <span className="flex-1 truncate text-gray-600">{p.title}</span>
+              {linkedIds.has(p.id)
+                ? <span className="text-[10px] text-gray-400">liée</span>
+                : <button onClick={() => { void onLink(p.id, kind); setQ(''); setResults([]) }} className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#6D5AE6] hover:brightness-110"><Plus size={12} /> Lier</button>}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
