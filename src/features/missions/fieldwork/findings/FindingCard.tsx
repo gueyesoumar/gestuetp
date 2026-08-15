@@ -183,8 +183,8 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
               {finding.promoted_at ? (
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-forest-700"><Check size={12} /> Promu au registre</span>
               ) : (
-                <button type="button" onClick={() => onPromote(finding)} disabled={readOnly}
-                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-forest-700 hover:text-forest-900 disabled:opacity-50">
+                <button type="button" onClick={() => onPromote(finding)}
+                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-forest-700 hover:text-forest-900">
                   <ArrowUpRight size={12} /> Promouvoir vers le registre
                 </button>
               )}
