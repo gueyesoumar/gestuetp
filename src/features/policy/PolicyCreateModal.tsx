@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { X, PenLine, Upload } from 'lucide-react'
+import { X, PenLine, Upload, Sparkles } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { readInvokeError } from '../../lib/edgeError'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { SCORE_DIMENSION_KEYS, SCORE_DIMENSION_KIND, SCORE_DIMENSION_LABELS, type ScoreDimensionKey } from '../../lib/constants'
@@ -8,7 +9,7 @@ import type { ScoreDimension } from '../../types/database.types'
 import type { NewPolicy } from './usePolicyRegister'
 
 const AXES = SCORE_DIMENSION_KEYS.filter((k) => SCORE_DIMENSION_KIND[k] === 'axis') as ScoreDimensionKey[]
-type Prov = 'native' | 'imported'
+type Prov = 'native' | 'ai' | 'imported'
 
 export function PolicyCreateModal({ onClose, onCreate }: { onClose: () => void; onCreate: (p: NewPolicy) => Promise<boolean> }): JSX.Element {
   const { profile } = useAuth()
@@ -20,6 +21,22 @@ export function PolicyCreateModal({ onClose, onCreate }: { onClose: () => void; 
   const [content, setContent] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
+  const [genBusy, setGenBusy] = useState(false)
+
+  const generate = async (): Promise<void> => {
+    if (!title.trim()) { toast.error('Renseignez l’intitulé d’abord'); return }
+    setGenBusy(true)
+    const { data, error } = await supabase.functions.invoke('ai-policy-draft', {
+      body: { title: title.trim(), dimension_label: dimension ? SCORE_DIMENSION_LABELS[dimension as ScoreDimensionKey] : undefined },
+    })
+    setGenBusy(false)
+    if (error || (data as { error?: string })?.error) {
+      toast.error('Génération impossible', await readInvokeError(error, data, 'Erreur IA'))
+      return
+    }
+    setContent((data as { content?: string })?.content ?? '')
+    toast.success('Brouillon généré — relisez et ajustez')
+  }
 
   const submit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
@@ -38,7 +55,7 @@ export function PolicyCreateModal({ onClose, onCreate }: { onClose: () => void; 
     }
     const ok = await onCreate({
       title: title.trim(), summary: summary.trim() || null, dimension: (dimension || null) as ScoreDimension | null,
-      provenance: prov, content: prov === 'native' ? (content.trim() || null) : null, file_path,
+      provenance: prov, content: prov === 'imported' ? null : (content.trim() || null), file_path,
     })
     setBusy(false)
     if (!ok) { toast.error('Création impossible'); return }
@@ -62,7 +79,7 @@ export function PolicyCreateModal({ onClose, onCreate }: { onClose: () => void; 
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
         <form onSubmit={submit} className="px-5 py-4 space-y-3">
-          <div className="flex gap-2">{tab('native', <PenLine size={14} />, 'Rédiger')}{tab('imported', <Upload size={14} />, 'Importer')}</div>
+          <div className="flex gap-2">{tab('native', <PenLine size={14} />, 'Rédiger')}{tab('ai', <Sparkles size={14} />, 'IA')}{tab('imported', <Upload size={14} />, 'Importer')}</div>
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Intitulé *</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} placeholder="ex. Politique de contrôle d'accès" autoFocus />
@@ -80,17 +97,26 @@ export function PolicyCreateModal({ onClose, onCreate }: { onClose: () => void; 
               <input value={summary} onChange={(e) => setSummary(e.target.value)} className={field} placeholder="Objet en une phrase" />
             </div>
           </div>
-          {prov === 'native' ? (
-            <div>
-              <label className="block text-[12px] font-medium text-gray-600 mb-1">Contenu</label>
-              <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={5} className={field} placeholder="Rédigez le corps de la politique…" />
-            </div>
-          ) : (
+          {prov === 'imported' ? (
             <div>
               <label className="block text-[12px] font-medium text-gray-600 mb-1">Document (.pdf, .docx, .txt)</label>
               <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 className="w-full text-[12px] text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#6D5AE6] file:px-3 file:py-2 file:text-white file:font-semibold" />
               <p className="text-[11px] text-gray-400 mt-1.5">Une politique rédigée hors solution rejoint le registre vivant, versionnée et connectable aux contrôles.</p>
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[12px] font-medium text-gray-600">{prov === 'ai' ? 'Brouillon IA' : 'Contenu'}</label>
+                {prov === 'ai' && (
+                  <button type="button" onClick={() => void generate()} disabled={genBusy}
+                    className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6D5AE6] hover:brightness-110 disabled:opacity-50">
+                    <Sparkles size={13} /> {genBusy ? 'Génération…' : 'Générer par IA'}
+                  </button>
+                )}
+              </div>
+              <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={6} className={field}
+                placeholder={prov === 'ai' ? 'Cliquez « Générer par IA », puis relisez et ajustez…' : 'Rédigez le corps de la politique…'} />
             </div>
           )}
           <div className="flex justify-end gap-2 pt-1">
