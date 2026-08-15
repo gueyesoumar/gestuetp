@@ -47,12 +47,15 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   // le détail sans quitter son dashboard.
   const primaryProduct = hasCapability('supervision') ? 'Regul' : 'Comply'
   const hasRisk = hasCapability('risk')
-  // Risk devient un module actif (ouvrable) dès que l'org a la capacité `risk`.
+  const hasPolicy = hasCapability('policy')
+  // Risk / Policy deviennent des modules actifs (ouvrables) dès que l'org a la capacité.
   const products = useMemo(
-    () => HUB_PRODUCTS.map((p) =>
-      p.name === 'Risk' ? { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge } : p,
-    ),
-    [hasRisk],
+    () => HUB_PRODUCTS.map((p) => {
+      if (p.name === 'Risk') return { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge }
+      if (p.name === 'Policy') return { ...p, active: hasPolicy, badge: hasPolicy ? 'Actif' : p.badge }
+      return p
+    }),
+    [hasRisk, hasPolicy],
   )
   const [current, setCurrent] = useState<HubPerspective>('self')
   const [selected, setSelected] = useState<Selection | null>(null)
@@ -72,6 +75,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
     setSelected(null)
     if (product.name === primaryProduct) navigate('/')
     else if (product.name === 'Risk') navigate('/risque')
+    else if (product.name === 'Policy') navigate('/politiques')
   }, [navigate, primaryProduct])
 
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
@@ -156,7 +160,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       </div>
 
       <PoweredByGestu className="mt-2 shrink-0" />
-      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} enterable={selected?.product.name === primaryProduct || (selected?.product.name === 'Risk' && hasRisk)} onClose={onClose} onOpen={onOpen} />
+      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} enterable={selected?.product.name === primaryProduct || (selected?.product.name === 'Risk' && hasRisk) || (selected?.product.name === 'Policy' && hasPolicy)} onClose={onClose} onOpen={onOpen} />
     </div>
   )
 }
