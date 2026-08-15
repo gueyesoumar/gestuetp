@@ -7,6 +7,7 @@ import {
   SCORE_FACTOR_WEIGHTS, SCORE_COEFFICIENT_FLOOR, ASSURANCE_FRESHNESS_MONTHS,
   SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
   RISK_MASTERY_WEIGHT, riskExposure, riskResidualSplit, splitBarrierEfficacies,
+  INCIDENT_WINDOW_MONTHS, incidentLikelihoodBump,
   type RiskControlLinkKind,
 } from '../../lib/constants'
 
@@ -170,6 +171,28 @@ export function useSelfDimensionScores(): SelfDimensionData {
           const arr = barriersByScenario.get(l.risk_scenario_id) ?? []
           arr.push({ control_id: l.control_id, kind: l.kind }); barriersByScenario.set(l.risk_scenario_id, arr)
         }
+        // Boucle Regul → Risk : incidents récents de l'org + liens explicites.
+        const cutoffInc = new Date()
+        cutoffInc.setMonth(cutoffInc.getMonth() - INCIDENT_WINDOW_MONTHS)
+        const { data: incRows } = await supabase
+          .from('incidents')
+          .select('id, category, severity')
+          .eq('entity_id', orgId).gte('declared_at', cutoffInc.toISOString())
+          .abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const { data: incLinks } = await supabase
+          .from('incident_risk_links')
+          .select('incident_id, risk_scenario_id')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const incidents = (incRows ?? []) as Array<{ id: string; category: string; severity: string }>
+        const incLinkRows = (incLinks ?? []) as Array<{ incident_id: string; risk_scenario_id: string }>
+        const linkedIncidentIds = new Set(incLinkRows.map((l) => l.incident_id))
+        const incidentsByScenario = new Map<string, Set<string>>()
+        for (const l of incLinkRows) {
+          const set = incidentsByScenario.get(l.risk_scenario_id) ?? new Set<string>()
+          set.add(l.incident_id); incidentsByScenario.set(l.risk_scenario_id, set)
+        }
         const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
         // Résiduel PAR SCÉNARIO, modèle nœud papillon : les barrières préventives
         // abaissent la vraisemblance, les correctives l'impact (efficacité = ratio
@@ -179,7 +202,10 @@ export function useSelfDimensionScores(): SelfDimensionData {
         const residualAgg = new Map<ScoreDimensionKey, number[]>()
         for (const s of (scenarios ?? []) as Array<{ id: string; dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
           if (!s.dimension) continue
-          const exposure = riskExposure(s.inherent_likelihood, s.inherent_impact)
+          // Vraisemblance aggravée par la sinistralité (incidents récents), plafonnée à 4.
+          const bump = incidentLikelihoodBump(s.dimension, incidentsByScenario.get(s.id) ?? new Set(), incidents, linkedIncidentIds)
+          const effL = Math.min(4, s.inherent_likelihood + bump)
+          const exposure = riskExposure(effL, s.inherent_impact)
           const barriers = barriersByScenario.get(s.id) ?? []
           let residual: number
           if (barriers.length === 0) {
@@ -189,7 +215,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
             const { effPrev, effCorr } = splitBarrierEfficacies(
               barriers.map((b) => ({ kind: b.kind, effectiveness: effByControl.get(b.control_id) ?? 0 })),
             )
-            residual = riskResidualSplit(s.inherent_likelihood, s.inherent_impact, effPrev, effCorr)
+            residual = riskResidualSplit(effL, s.inherent_impact, effPrev, effCorr)
           }
           const iArr = inherentAgg.get(s.dimension) ?? []; iArr.push(exposure); inherentAgg.set(s.dimension, iArr)
           const rArr = residualAgg.get(s.dimension) ?? []; rArr.push(residual); residualAgg.set(s.dimension, rArr)

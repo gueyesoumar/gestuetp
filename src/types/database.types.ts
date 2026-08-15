@@ -1979,3 +1979,34 @@ export interface RiskControlLink {
   kind: 'preventive' | 'detective' | 'corrective'
   created_at: string
 }
+
+export type IncidentCategory = 'intrusion' | 'ransomware' | 'fuite_donnees' | 'deni_service' | 'autre'
+export type IncidentSeverity = 'faible' | 'moyen' | 'eleve' | 'critique'
+
+export interface Incident {
+  id: string
+  entity_id: string
+  mission_id: string | null
+  declared_by: string | null
+  title: string
+  category: IncidentCategory
+  severity: IncidentSeverity
+  status: 'declared' | 'triage' | 'notified' | 'resolved' | 'closed'
+  description: string | null
+  impact: string | null
+  affected_systems: string | null
+  detected_at: string | null
+  occurred_at: string | null
+  declared_at: string
+  created_at: string
+  updated_at: string
+}
+
+/** Liaison explicite incident ↔ scénario de risque (mode hybride, override de l'auto). */
+export interface IncidentRiskLink {
+  id: string
+  organization_id: string
+  incident_id: string
+  risk_scenario_id: string
+  created_at: string
+}
