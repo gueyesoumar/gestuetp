@@ -143,6 +143,56 @@ export function useSelfDimensionScores(): SelfDimensionData {
     const ctrl = new AbortController()
 
     void (async () => {
+      // Finalise le calcul : charge le registre de risque, calcule résiduel +
+      // risk_mastery, plie dans le coefficient si le flag est actif, puis setData.
+      // Appelé par TOUS les chemins (y compris org sans mission Comply) → le risque
+      // est toujours pris en compte.
+      const finalize = async (
+        axes: DimScore[], factors: FactorScore[], compositePosture: number | null, measuredLen: number,
+      ): Promise<void> => {
+        const { data: scenarios } = await supabase
+          .from('risk_scenarios')
+          .select('dimension, inherent_likelihood, inherent_impact')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
+        const inherentAgg = new Map<ScoreDimensionKey, number[]>()
+        for (const s of (scenarios ?? []) as Array<{ dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
+          if (!s.dimension) continue
+          const arr = inherentAgg.get(s.dimension) ?? []
+          arr.push(riskExposure(s.inherent_likelihood, s.inherent_impact))
+          inherentAgg.set(s.dimension, arr)
+        }
+        const residualByDim: Partial<Record<ScoreDimensionKey, RiskDimScore>> = {}
+        const residuals: number[] = []
+        for (const [dim, exps] of inherentAgg) {
+          const inherent = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length)
+          const eff = postureByDim.get(dim) ?? null   // efficacité = posture Comply (0..100)
+          const residual = eff == null ? inherent : Math.round(inherent * (1 - eff / 100))
+          residualByDim[dim] = { inherent, residual }
+          residuals.push(residual)
+        }
+        const riskMasteryScore = residuals.length > 0
+          ? Math.max(0, 100 - Math.round(residuals.reduce((s, x) => s + x, 0) / residuals.length))
+          : null
+        const riskPenaltyFrac = riskMasteryScore === null ? 0 : RISK_MASTERY_WEIGHT * (1 - riskMasteryScore / 100)
+        let coefficient = factors.reduce((acc, f) => {
+          if (f.score === null) return acc
+          return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
+        }, 1)
+        if (riskImpact && riskMasteryScore !== null) coefficient *= (1 - riskPenaltyFrac)
+        coefficient = Math.max(SCORE_COEFFICIENT_FLOOR, coefficient)
+        const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
+        const riskPenaltyPts = compositePosture === null ? 0 : Math.round(compositePosture * riskPenaltyFrac)
+        setData({
+          loading: false, axes, factors, compositePosture, composite, coefficient,
+          measuredAxes: measuredLen, totalAxes: AXIS_KEYS.length,
+          residualByDim,
+          riskMastery: riskMasteryScore === null ? null : { score: riskMasteryScore, penaltyPts: riskPenaltyPts },
+          riskImpactActive: riskImpact,
+        })
+      }
+
       const { data: missions, error: mErr } = await supabase
         .from('missions').select('id').eq('cabinet_id', orgId).eq('is_active', true).abortSignal(ctrl.signal)
       if (ctrl.signal.aborted) return
@@ -156,7 +206,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
           (k) => toFactorScore(k, null, 0, 0, null),
         ),
       }
-      if (missionIds.length === 0) { setData(emptyMeasured); return }
+      if (missionIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0); return }
 
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
@@ -167,7 +217,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
 
       const rows = (assessments ?? []) as AssessmentRow[]
       const controlIds = [...new Set(rows.map((r) => r.control_id))]
-      if (controlIds.length === 0) { setData(emptyMeasured); return }
+      if (controlIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0); return }
 
       const { data: controls, error: cErr } = await supabase
         .from('controls').select('id, dimension').in('id', controlIds).abortSignal(ctrl.signal)
@@ -234,53 +284,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
         toFactorScore('assurance', assurance.score, assurance.total, assurance.covered, compositePosture),
       ]
 
-      // ---- Gëstu Risk (RFC 0004) : exposition inhérente + résiduel par dimension ----
-      const { data: scenarios } = await supabase
-        .from('risk_scenarios')
-        .select('dimension, inherent_likelihood, inherent_impact')
-        .eq('organization_id', orgId).abortSignal(ctrl.signal)
-      if (ctrl.signal.aborted) return
-
-      const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
-      const inherentAgg = new Map<ScoreDimensionKey, number[]>()
-      for (const s of (scenarios ?? []) as Array<{ dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
-        if (!s.dimension) continue
-        const arr = inherentAgg.get(s.dimension) ?? []
-        arr.push(riskExposure(s.inherent_likelihood, s.inherent_impact))
-        inherentAgg.set(s.dimension, arr)
-      }
-      const residualByDim: Partial<Record<ScoreDimensionKey, RiskDimScore>> = {}
-      const residuals: number[] = []
-      for (const [dim, exps] of inherentAgg) {
-        const inherent = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length)
-        const eff = postureByDim.get(dim) ?? null   // efficacité = posture Comply (0..100)
-        const residual = eff == null ? inherent : Math.round(inherent * (1 - eff / 100))
-        residualByDim[dim] = { inherent, residual }
-        residuals.push(residual)
-      }
-      const riskMasteryScore = residuals.length > 0
-        ? Math.max(0, 100 - Math.round(residuals.reduce((s, x) => s + x, 0) / residuals.length))
-        : null
-      const riskPenaltyFrac = riskMasteryScore === null ? 0 : RISK_MASTERY_WEIGHT * (1 - riskMasteryScore / 100)
-
-      // Coefficient : facteurs existants, PUIS pliage du risque seulement si le flag org est actif.
-      let coefficient = factors.reduce((acc, f) => {
-        if (f.score === null) return acc
-        return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
-      }, 1)
-      if (riskImpact && riskMasteryScore !== null) coefficient *= (1 - riskPenaltyFrac)
-      coefficient = Math.max(SCORE_COEFFICIENT_FLOOR, coefficient)
-
-      const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
-      const riskPenaltyPts = compositePosture === null ? 0 : Math.round(compositePosture * riskPenaltyFrac)
-
-      setData({
-        loading: false, axes, factors, compositePosture, composite, coefficient,
-        measuredAxes: measured.length, totalAxes: AXIS_KEYS.length,
-        residualByDim,
-        riskMastery: riskMasteryScore === null ? null : { score: riskMasteryScore, penaltyPts: riskPenaltyPts },
-        riskImpactActive: riskImpact,
-      })
+      await finalize(axes, factors, compositePosture, measured.length)
     })()
 
     return () => ctrl.abort()
