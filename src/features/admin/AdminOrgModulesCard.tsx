@@ -8,6 +8,7 @@ import type { Capability } from '../../types/database.types'
 // Modules Hub activables à la carte (RFC 0002). À étendre à mesure des livraisons.
 const MODULES: Array<{ value: Capability; label: string; desc: string }> = [
   { value: 'risk', label: 'Risk — Gestion des risques', desc: 'Registre EBIOS RM, nœud papillon, alimente le score de confiance.' },
+  { value: 'policy', label: 'Policy — Gouvernance des politiques', desc: 'Registre vivant, cycle de vie, preuve pour les contrôles, attestation.' },
 ]
 
 interface Props {

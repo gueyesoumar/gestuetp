@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, ShieldAlert, LayoutDashboard } from 'lucide-react'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, ShieldAlert, LayoutDashboard, FileText } from 'lucide-react'
 import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
@@ -46,6 +46,16 @@ export function useSidebarNavItems(
     }
   }
 
+  // Workspace dédié Gëstu Policy : sous /politiques, sous-nav du module.
+  if (pathname.startsWith('/politiques') && hasCapability('policy')) {
+    return {
+      mainItems: [
+        { to: '/politiques', label: 'Registre', icon: <FileText size={20} strokeWidth={1.5} />, end: true },
+      ],
+      groupItems: [],
+    }
+  }
+
   const mainItems: NavItem[] = [
     { to: '/', label: 'Tableau de bord', icon: <DashboardIcon /> },
   ]
@@ -73,6 +83,11 @@ export function useSidebarNavItems(
   // Gated par la capacité `risk` (module activable par client, RFC 0002).
   if (hasCapability('risk')) {
     mainItems.push({ to: '/risque', label: 'Risque', icon: <ShieldAlert size={20} strokeWidth={1.5} /> })
+  }
+
+  // Gëstu Policy (RFC 0005) — gouvernance documentaire. Gated par la capacité `policy`.
+  if (hasCapability('policy')) {
+    mainItems.push({ to: '/politiques', label: 'Politiques', icon: <FileText size={20} strokeWidth={1.5} /> })
   }
 
   // Piste d'audit — réservée aux admins d'organisation (F6).
