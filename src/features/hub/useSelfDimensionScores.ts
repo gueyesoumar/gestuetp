@@ -8,6 +8,7 @@ import {
   SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
   RISK_MASTERY_WEIGHT, riskExposure, riskResidualSplit, splitBarrierEfficacies,
   INCIDENT_WINDOW_MONTHS, incidentLikelihoodBump,
+  policyEvidenceStrength, POLICY_EVIDENCE_WEIGHT,
   type RiskControlLinkKind,
 } from '../../lib/constants'
 
@@ -193,6 +194,28 @@ export function useSelfDimensionScores(): SelfDimensionData {
           const set = incidentsByScenario.get(l.risk_scenario_id) ?? new Set<string>()
           set.add(l.incident_id); incidentsByScenario.set(l.risk_scenario_id, set)
         }
+        // Policy-as-Barrier : politiques liées aux scénarios (efficacité = force de preuve).
+        const { data: polLinks } = await supabase
+          .from('policy_risk_links')
+          .select('risk_scenario_id, policy_id, kind, policy:policies(status)')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const polRows = (polLinks ?? []) as unknown as Array<{ risk_scenario_id: string; policy_id: string; kind: RiskControlLinkKind; policy: { status: string } | null }>
+        const polIds = [...new Set(polRows.map((l) => l.policy_id))]
+        const appliedPolicies = new Set<string>()
+        if (polIds.length > 0) {
+          const { data: att } = await supabase.from('policy_effectiveness_attestations')
+            .select('policy_id').in('policy_id', polIds).eq('status', 'applied').abortSignal(ctrl.signal)
+          if (ctrl.signal.aborted) return
+          for (const a of (att ?? []) as Array<{ policy_id: string }>) appliedPolicies.add(a.policy_id)
+        }
+        const policyBarriersByScenario = new Map<string, Array<{ kind: RiskControlLinkKind; effectiveness: number }>>()
+        for (const l of polRows) {
+          const strength = policyEvidenceStrength(l.policy?.status ?? 'draft', appliedPolicies.has(l.policy_id))
+          const arr = policyBarriersByScenario.get(l.risk_scenario_id) ?? []
+          arr.push({ kind: l.kind, effectiveness: POLICY_EVIDENCE_WEIGHT[strength] })
+          policyBarriersByScenario.set(l.risk_scenario_id, arr)
+        }
         const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
         // Résiduel PAR SCÉNARIO, modèle nœud papillon : les barrières préventives
         // abaissent la vraisemblance, les correctives l'impact (efficacité = ratio
@@ -207,14 +230,16 @@ export function useSelfDimensionScores(): SelfDimensionData {
           const effL = Math.min(4, s.inherent_likelihood + bump)
           const exposure = riskExposure(effL, s.inherent_impact)
           const barriers = barriersByScenario.get(s.id) ?? []
+          const allBarriers = [
+            ...barriers.map((b) => ({ kind: b.kind, effectiveness: effByControl.get(b.control_id) ?? 0 })),
+            ...(policyBarriersByScenario.get(s.id) ?? []),
+          ]
           let residual: number
-          if (barriers.length === 0) {
+          if (allBarriers.length === 0) {
             const eff = postureByDim.get(s.dimension) ?? null
             residual = eff == null ? exposure : Math.round(exposure * (1 - eff / 100))
           } else {
-            const { effPrev, effCorr } = splitBarrierEfficacies(
-              barriers.map((b) => ({ kind: b.kind, effectiveness: effByControl.get(b.control_id) ?? 0 })),
-            )
+            const { effPrev, effCorr } = splitBarrierEfficacies(allBarriers)
             residual = riskResidualSplit(effL, s.inherent_impact, effPrev, effCorr)
           }
           const iArr = inherentAgg.get(s.dimension) ?? []; iArr.push(exposure); inherentAgg.set(s.dimension, iArr)
