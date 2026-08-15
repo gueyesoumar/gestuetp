@@ -4,6 +4,7 @@ import { useRiskRegister } from './useRiskRegister'
 import { useSelfDimensionScores } from '../hub/useSelfDimensionScores'
 import { RiskMatrix } from './RiskMatrix'
 import { RiskRadar } from './RiskRadar'
+import { RiskSimulator } from './RiskSimulator'
 import { ScenarioFormModal } from './ScenarioFormModal'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -72,6 +73,8 @@ export function RiskPage(): JSX.Element {
             : <RiskMatrix scenarios={reg.scenarios} />}
         </div>
       </div>
+
+      <RiskSimulator score={score} />
 
       {/* Registre */}
       {reg.scenarios.length === 0 ? (

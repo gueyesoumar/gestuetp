@@ -51,6 +51,8 @@ export interface SelfDimensionData {
   compositePosture: number | null
   composite: number | null
   coefficient: number
+  /** Coefficient des facteurs SANS le risque (pour le simulateur). */
+  coefficientBase: number
   measuredAxes: number
   totalAxes: number
   // Gëstu Risk (RFC 0004) : exposition + maîtrise du risque.
@@ -68,7 +70,7 @@ const MAPPED_FACTOR_KEYS = SCORE_DIMENSION_KEYS.filter(
 
 const EMPTY: SelfDimensionData = {
   loading: false, axes: [], factors: [], compositePosture: null, composite: null,
-  coefficient: 1, measuredAxes: 0, totalAxes: AXIS_KEYS.length,
+  coefficient: 1, coefficientBase: 1, measuredAxes: 0, totalAxes: AXIS_KEYS.length,
   residualByDim: {}, riskMastery: null, riskImpactActive: false,
 }
 
@@ -176,16 +178,17 @@ export function useSelfDimensionScores(): SelfDimensionData {
           ? Math.max(0, 100 - Math.round(residuals.reduce((s, x) => s + x, 0) / residuals.length))
           : null
         const riskPenaltyFrac = riskMasteryScore === null ? 0 : RISK_MASTERY_WEIGHT * (1 - riskMasteryScore / 100)
-        let coefficient = factors.reduce((acc, f) => {
+        const coefficientBase = factors.reduce((acc, f) => {
           if (f.score === null) return acc
           return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
         }, 1)
+        let coefficient = coefficientBase
         if (riskImpact && riskMasteryScore !== null) coefficient *= (1 - riskPenaltyFrac)
         coefficient = Math.max(SCORE_COEFFICIENT_FLOOR, coefficient)
         const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
         const riskPenaltyPts = compositePosture === null ? 0 : Math.round(compositePosture * riskPenaltyFrac)
         setData({
-          loading: false, axes, factors, compositePosture, composite, coefficient,
+          loading: false, axes, factors, compositePosture, composite, coefficient, coefficientBase,
           measuredAxes: measuredLen, totalAxes: AXIS_KEYS.length,
           residualByDim,
           riskMastery: riskMasteryScore === null ? null : { score: riskMasteryScore, penaltyPts: riskPenaltyPts },
