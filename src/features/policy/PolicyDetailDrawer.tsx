@@ -1,5 +1,7 @@
-import { X, FileText, ShieldCheck, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
+import { X, FileText, ShieldCheck, ExternalLink, Plus, Trash2, Link2 } from 'lucide-react'
 import { usePolicyDetail } from './usePolicyDetail'
+import { usePolicyControls, type ControlOption, type LinkedControl } from './usePolicyControls'
 import {
   POLICY_STATUS, POLICY_PROVENANCE, SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS,
 } from '../../lib/constants'
@@ -10,6 +12,7 @@ const fmt = (iso: string | null): string => iso ? new Date(iso).toLocaleDateStri
 
 export function PolicyDetailDrawer({ policy, onClose, onChanged }: { policy: Policy; onClose: () => void; onChanged: () => void }): JSX.Element {
   const { versions, loading, signedUrl, approveVersion } = usePolicyDetail(policy.id)
+  const links = usePolicyControls(policy.id)
   const current = versions.find((v) => v.id === policy.current_version_id) ?? versions[0] ?? null
   const dimColor = policy.dimension ? SCORE_DIMENSION_COLORS[policy.dimension] : '#94A3B8'
   const canApprove = current && !current.approved_at && (policy.status === 'draft' || policy.status === 'in_review' || policy.status === 'revision')
@@ -76,8 +79,58 @@ export function PolicyDetailDrawer({ policy, onClose, onChanged }: { policy: Pol
               ))}
             </ul>
           </div>
+
+          {/* Contrôles satisfaits (Policy-as-Evidence) */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-2"><Link2 size={13} className="text-[#6D5AE6]" />
+              <span className="text-[10px] font-mono uppercase tracking-wide text-gray-400">Contrôles satisfaits (preuve)</span></div>
+            {links.controls.length === 0
+              ? <p className="text-[12px] text-gray-400 mb-2">Aucun contrôle lié. Reliez les contrôles que cette politique prouve.</p>
+              : (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {links.controls.map((c) => (
+                    <span key={c.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-[11px]">
+                      <span className="font-mono font-semibold text-forest-800">{c.code}</span>
+                      <button onClick={() => void links.unlink(c.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            <ControlLinker existing={links.controls} onSearch={links.search} onLink={links.link} />
+            <p className="text-[10px] text-gray-400 mt-2 leading-snug">La politique apparaît comme <b>preuve candidate</b> sur ces contrôles (force graduée selon son statut). L&apos;auditeur reste maître de la conformité.</p>
+          </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ControlLinker({ existing, onSearch, onLink }: {
+  existing: LinkedControl[]
+  onSearch: (q: string) => Promise<ControlOption[]>
+  onLink: (id: string) => Promise<void>
+}): JSX.Element {
+  const [q, setQ] = useState('')
+  const [results, setResults] = useState<ControlOption[]>([])
+  const linked = new Set(existing.map((c) => c.control_id))
+  const run = async (v: string): Promise<void> => { setQ(v); setResults(await onSearch(v)) }
+  return (
+    <div className="rounded-lg border border-gray-200 p-2.5">
+      <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher un contrôle (code ou nom)…"
+        className="w-full px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-[#6D5AE6] focus:ring-1 focus:ring-[#6D5AE6]" />
+      {results.length > 0 && (
+        <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-gray-50">
+          {results.map((c) => (
+            <li key={c.id} className="flex items-center gap-2 py-1.5 text-[12px]">
+              <span className="font-mono font-semibold text-forest-800 min-w-[54px]">{c.code}</span>
+              <span className="flex-1 truncate text-gray-600">{c.name}</span>
+              {linked.has(c.id)
+                ? <span className="text-[10px] text-gray-400">lié</span>
+                : <button onClick={() => { void onLink(c.id); setQ(''); setResults([]) }} className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#6D5AE6] hover:brightness-110"><Plus size={12} /> Lier</button>}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

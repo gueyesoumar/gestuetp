@@ -3,6 +3,7 @@ import { ChevronRight, ChevronLeft, Check, MessageSquare, Info } from 'lucide-re
 import { ValidationTab } from './ValidationTab'
 import { DiscussionTab } from './DiscussionTab'
 import { MissionInfoTab } from './MissionInfoTab'
+import { PolicyEvidencePanel } from '../../../policy/PolicyEvidencePanel'
 import { useControlComments } from './useControlComments'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
 import type { MissionDetail } from '../../useMissionDetail'
@@ -74,6 +75,7 @@ export function RightRail({ mission, assessment, collapsed, onToggle }: RightRai
         {activeTab === 'validation' && (
           <div className="flex-1 overflow-y-auto">
             <ValidationTab assessment={assessment} missionEndDate={mission.end_date ?? null} />
+            <PolicyEvidencePanel controlId={assessment?.control_id ?? null} />
           </div>
         )}
         {activeTab === 'discussion' && (
