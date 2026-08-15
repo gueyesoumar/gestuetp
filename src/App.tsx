@@ -9,6 +9,7 @@ import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
 import { OrgAdminRoute } from './components/OrgAdminRoute'
 import { AuditTrailPage } from './features/audit/AuditTrailPage'
+import { RiskPage } from './features/risk/RiskPage'
 import { AppLayout } from './components/layout/AppLayout'
 import { ClientLayout } from './features/client-portal/layout/ClientLayout'
 import { LoginPage } from './pages/LoginPage'
@@ -103,6 +104,7 @@ function AppRoutes(): JSX.Element {
         <Route path="organisation" element={<OrganizationPage />} />
         <Route path="membres" element={<MembersPage />} />
         <Route path="piste-audit" element={<OrgAdminRoute><AuditTrailPage /></OrgAdminRoute>} />
+        <Route path="risque" element={<RiskPage />} />
         <Route path="aide" element={<SupportCenterPage />} />
         {isRegul ? (
           <>

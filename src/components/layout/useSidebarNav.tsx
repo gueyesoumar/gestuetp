@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText } from 'lucide-react'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, ShieldAlert } from 'lucide-react'
 import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
@@ -52,6 +52,9 @@ export function useSidebarNavItems(
     mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <FrameworksIcon /> })
     mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <MissionsIcon /> })
   }
+
+  // Gëstu Risk (RFC 0004) — registre de risques alimentant le score de confiance.
+  mainItems.push({ to: '/risque', label: 'Risque', icon: <ShieldAlert size={20} strokeWidth={1.5} /> })
 
   // Piste d'audit — réservée aux admins d'organisation (F6).
   if (canViewAuditTrail) {
