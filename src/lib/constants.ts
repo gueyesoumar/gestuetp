@@ -435,9 +435,40 @@ export type RiskAssetCategory = typeof RISK_ASSET_CATEGORIES[number]['value']
 export type RiskTreatment = typeof RISK_TREATMENTS[number]['value']
 export type RiskTreatmentStatus = typeof RISK_TREATMENT_STATUS[number]['value']
 
+export type RiskControlLinkKind = typeof RISK_CONTROL_LINK_KINDS[number]['value']
+
 // Exposition 0..100 dérivée de la cotation 4×4 (Vraisemblance × Impact).
 export function riskExposure(likelihood: number, impact: number): number {
   return Math.round(((likelihood * impact) / 16) * 100)
+}
+
+// Nœud papillon : préventive → côté vraisemblance (avant l'événement) ;
+// détective/corrective → côté impact (après l'événement, limite la conséquence).
+export function barrierSide(kind: RiskControlLinkKind): 'likelihood' | 'impact' {
+  return kind === 'preventive' ? 'likelihood' : 'impact'
+}
+
+// Efficacités moyennes par côté (préventif ↓ vraisemblance, correctif ↓ impact).
+// null = aucune barrière de ce côté → le facteur reste inchangé.
+export function splitBarrierEfficacies(
+  barriers: ReadonlyArray<{ kind: RiskControlLinkKind; effectiveness: number }>,
+): { effPrev: number | null; effCorr: number | null } {
+  const mean = (xs: number[]): number | null => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null)
+  return {
+    effPrev: mean(barriers.filter((b) => barrierSide(b.kind) === 'likelihood').map((b) => b.effectiveness)),
+    effCorr: mean(barriers.filter((b) => barrierSide(b.kind) === 'impact').map((b) => b.effectiveness)),
+  }
+}
+
+// Résiduel EBIOS par nœud papillon : la vraisemblance est abaissée par les
+// barrières préventives, l'impact par les correctives. effPrev/effCorr ∈ [0..1]
+// ou null (côté sans barrière). Retourne l'exposition résiduelle 0..100.
+export function riskResidualSplit(
+  likelihood: number, impact: number, effPrev: number | null, effCorr: number | null,
+): number {
+  const rL = effPrev == null ? likelihood : likelihood * (1 - effPrev)
+  const rI = effCorr == null ? impact : impact * (1 - effCorr)
+  return riskExposure(rL, rI)
 }
 
 // Poids du facteur risk_mastery dans le coefficient conservateur (= assurance).

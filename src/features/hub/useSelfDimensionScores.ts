@@ -6,7 +6,8 @@ import {
   SCORE_DIMENSION_KEYS, SCORE_DIMENSION_KIND, type ScoreDimensionKey,
   SCORE_FACTOR_WEIGHTS, SCORE_COEFFICIENT_FLOOR, ASSURANCE_FRESHNESS_MONTHS,
   SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
-  RISK_MASTERY_WEIGHT, riskExposure,
+  RISK_MASTERY_WEIGHT, riskExposure, riskResidualSplit, splitBarrierEfficacies,
+  type RiskControlLinkKind,
 } from '../../lib/constants'
 
 // Score de confiance par dimension pour l'organisation courante (Phase B).
@@ -161,29 +162,35 @@ export function useSelfDimensionScores(): SelfDimensionData {
         // Barrières (contrôles liés) par scénario → efficacité propre à chaque scénario.
         const { data: links } = await supabase
           .from('risk_control_links')
-          .select('risk_scenario_id, control_id')
+          .select('risk_scenario_id, control_id, kind')
           .eq('organization_id', orgId).abortSignal(ctrl.signal)
         if (ctrl.signal.aborted) return
-        const barriersByScenario = new Map<string, string[]>()
-        for (const l of (links ?? []) as Array<{ risk_scenario_id: string; control_id: string }>) {
+        const barriersByScenario = new Map<string, Array<{ control_id: string; kind: RiskControlLinkKind }>>()
+        for (const l of (links ?? []) as Array<{ risk_scenario_id: string; control_id: string; kind: RiskControlLinkKind }>) {
           const arr = barriersByScenario.get(l.risk_scenario_id) ?? []
-          arr.push(l.control_id); barriersByScenario.set(l.risk_scenario_id, arr)
+          arr.push({ control_id: l.control_id, kind: l.kind }); barriersByScenario.set(l.risk_scenario_id, arr)
         }
         const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
-        // Résiduel PAR SCÉNARIO : exposition × (1 − efficacité). L'efficacité vient des
-        // barrières liées (moyenne du ratio d'évaluations approuvées de chaque contrôle) ;
-        // sans barrière, repli sur la posture Comply de la dimension (rétrocompatible).
-        // Puis agrégé par dimension pour le radar et la maîtrise du risque.
+        // Résiduel PAR SCÉNARIO, modèle nœud papillon : les barrières préventives
+        // abaissent la vraisemblance, les correctives l'impact (efficacité = ratio
+        // d'évaluations approuvées de chaque contrôle). Sans barrière, repli sur la
+        // posture Comply de la dimension (rétrocompatible). Puis agrégé par dimension.
         const inherentAgg = new Map<ScoreDimensionKey, number[]>()
         const residualAgg = new Map<ScoreDimensionKey, number[]>()
         for (const s of (scenarios ?? []) as Array<{ id: string; dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
           if (!s.dimension) continue
           const exposure = riskExposure(s.inherent_likelihood, s.inherent_impact)
           const barriers = barriersByScenario.get(s.id) ?? []
-          const effPct: number | null = barriers.length > 0
-            ? Math.round((barriers.reduce((sum, cid) => sum + (effByControl.get(cid) ?? 0), 0) / barriers.length) * 100)
-            : (postureByDim.get(s.dimension) ?? null)
-          const residual = effPct == null ? exposure : Math.round(exposure * (1 - effPct / 100))
+          let residual: number
+          if (barriers.length === 0) {
+            const eff = postureByDim.get(s.dimension) ?? null
+            residual = eff == null ? exposure : Math.round(exposure * (1 - eff / 100))
+          } else {
+            const { effPrev, effCorr } = splitBarrierEfficacies(
+              barriers.map((b) => ({ kind: b.kind, effectiveness: effByControl.get(b.control_id) ?? 0 })),
+            )
+            residual = riskResidualSplit(s.inherent_likelihood, s.inherent_impact, effPrev, effCorr)
+          }
           const iArr = inherentAgg.get(s.dimension) ?? []; iArr.push(exposure); inherentAgg.set(s.dimension, iArr)
           const rArr = residualAgg.get(s.dimension) ?? []; rArr.push(residual); residualAgg.set(s.dimension, rArr)
         }
