@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Plus, Trash2, FileText } from 'lucide-react'
 import { usePolicyRegister } from './usePolicyRegister'
-import { NewPolicyModal } from './NewPolicyModal'
+import { PolicyCreateModal } from './PolicyCreateModal'
+import { PolicyDetailDrawer } from './PolicyDetailDrawer'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -15,6 +16,7 @@ const provLabel = (v: string): string => POLICY_PROVENANCE.find((p) => p.value =
 export function PolicyBoardPage(): JSX.Element {
   const reg = usePolicyRegister()
   const [modal, setModal] = useState(false)
+  const [detail, setDetail] = useState<Policy | null>(null)
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />
@@ -43,7 +45,7 @@ export function PolicyBoardPage(): JSX.Element {
                   {col.label}<span className="ml-auto bg-white border border-gray-200 rounded-full px-1.5 text-gray-500">{items.length}</span>
                 </h5>
                 <div className="space-y-2">
-                  {items.map((p) => <PolicyCard key={p.id} policy={p} onSetStatus={reg.setStatus} onDelete={reg.deletePolicy} />)}
+                  {items.map((p) => <PolicyCard key={p.id} policy={p} onOpen={setDetail} onSetStatus={reg.setStatus} onDelete={reg.deletePolicy} />)}
                 </div>
               </div>
             )
@@ -51,13 +53,15 @@ export function PolicyBoardPage(): JSX.Element {
         </div>
       )}
 
-      {modal && <NewPolicyModal onClose={() => setModal(false)} onCreate={reg.createPolicy} />}
+      {modal && <PolicyCreateModal onClose={() => setModal(false)} onCreate={reg.createPolicy} />}
+      {detail && <PolicyDetailDrawer policy={detail} onClose={() => setDetail(null)} onChanged={() => { reg.refresh(); setDetail(null) }} />}
     </div>
   )
 }
 
-function PolicyCard({ policy, onSetStatus, onDelete }: {
+function PolicyCard({ policy, onOpen, onSetStatus, onDelete }: {
   policy: Policy
+  onOpen: (p: Policy) => void
   onSetStatus: (id: string, status: PolicyStatus) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }): JSX.Element {
@@ -65,7 +69,7 @@ function PolicyCard({ policy, onSetStatus, onDelete }: {
   const sealed = policy.status === 'approved' || policy.status === 'published'
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-      <div className="text-[12.5px] font-semibold text-gray-900 leading-snug">{policy.title}</div>
+      <button onClick={() => onOpen(policy)} className="text-[12.5px] font-semibold text-gray-900 leading-snug text-left hover:text-[#6D5AE6]">{policy.title}</button>
       <div className="flex items-center gap-1.5 mt-2 flex-wrap">
         <span className="text-[9.5px] font-semibold uppercase tracking-wide text-gray-400 border border-gray-200 rounded px-1.5 py-0.5">{provLabel(policy.provenance)}</span>
         {policy.dimension && <span className="text-[9.5px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[policy.dimension]}</span>}
