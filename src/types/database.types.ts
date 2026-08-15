@@ -2010,3 +2010,83 @@ export interface IncidentRiskLink {
   risk_scenario_id: string
   created_at: string
 }
+
+// ---- Gëstu Policy (RFC 0005) ----
+export type PolicyProvenance = 'native' | 'ai' | 'imported'
+export type PolicyStatus = 'draft' | 'in_review' | 'approved' | 'published' | 'revision' | 'retired'
+export type PolicyEffectivenessStatus = 'applied' | 'partial' | 'not_verified'
+export type EvidenceKind = 'document' | 'policy' | 'record' | 'config'
+
+export interface Policy {
+  id: string
+  organization_id: string
+  title: string
+  summary: string | null
+  provenance: PolicyProvenance
+  status: PolicyStatus
+  dimension: ScoreDimension | null
+  owner_user_id: string | null
+  current_version_id: string | null
+  review_period_months: number
+  next_review_at: string | null
+  approved_at: string | null
+  published_at: string | null
+  retired_at: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PolicyVersion {
+  id: string
+  policy_id: string
+  organization_id: string
+  version_label: string
+  content: string | null
+  file_path: string | null
+  change_note: string | null
+  approved_by: string | null
+  approved_at: string | null
+  created_by: string | null
+  created_at: string
+}
+
+export interface PolicyControlLink {
+  id: string
+  organization_id: string
+  policy_id: string
+  control_id: string
+  evidence_catalog_id: string | null
+  created_at: string
+}
+
+export interface PolicyRiskLink {
+  id: string
+  organization_id: string
+  policy_id: string
+  risk_scenario_id: string
+  kind: 'preventive' | 'detective' | 'corrective'
+  created_at: string
+}
+
+export interface PolicyAcknowledgement {
+  id: string
+  organization_id: string
+  policy_id: string
+  policy_version_id: string
+  user_id: string
+  acknowledged_at: string
+}
+
+export interface PolicyEffectivenessAttestation {
+  id: string
+  organization_id: string
+  policy_id: string
+  policy_version_id: string | null
+  attested_by: string | null
+  status: PolicyEffectivenessStatus
+  evidence_note: string | null
+  evidence_path: string | null
+  attested_at: string
+  next_due: string | null
+}
