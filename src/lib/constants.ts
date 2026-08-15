@@ -510,3 +510,41 @@ export function incidentLikelihoodBump(
   }
   return bump
 }
+
+// ---- Gëstu Policy (RFC 0005) ----
+export const POLICY_STATUS = [
+  { value: 'draft', label: 'Brouillon' },
+  { value: 'in_review', label: 'En revue' },
+  { value: 'approved', label: 'Approuvée' },
+  { value: 'published', label: 'Publiée' },
+  { value: 'revision', label: 'Révision' },
+  { value: 'retired', label: 'Retirée' },
+] as const
+
+export const POLICY_PROVENANCE = [
+  { value: 'native', label: 'Rédigée' },
+  { value: 'ai', label: 'Générée par IA' },
+  { value: 'imported', label: 'Importée' },
+] as const
+
+export const POLICY_EFFECTIVENESS_STATUS = [
+  { value: 'applied', label: 'Appliquée' },
+  { value: 'partial', label: 'Partielle' },
+  { value: 'not_verified', label: 'Non vérifiée' },
+] as const
+
+export const EVIDENCE_KINDS = [
+  { value: 'document', label: 'Document' },
+  { value: 'policy', label: 'Politique' },
+  { value: 'record', label: 'Enregistrement' },
+  { value: 'config', label: 'Configuration' },
+] as const
+
+// Force de preuve d'une politique (Policy-as-Evidence graduée) : approuvée/publiée
+// + appliquée = forte ; approuvée/publiée seule = faible ; sinon nulle.
+export type PolicyEvidenceStrength = 'strong' | 'weak' | 'none'
+export function policyEvidenceStrength(status: string, applied: boolean): PolicyEvidenceStrength {
+  if (status !== 'approved' && status !== 'published') return 'none'
+  return applied ? 'strong' : 'weak'
+}
+export const POLICY_EVIDENCE_WEIGHT: Record<PolicyEvidenceStrength, number> = { strong: 1, weak: 0.5, none: 0 }
