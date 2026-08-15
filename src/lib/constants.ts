@@ -473,3 +473,40 @@ export function riskResidualSplit(
 
 // Poids du facteur risk_mastery dans le coefficient conservateur (= assurance).
 export const RISK_MASTERY_WEIGHT = 0.2
+
+// ---- Boucle Regul → Risk : un incident aggrave la vraisemblance ----
+// Mapping nature d'incident → dimension du score (ajustable). 'autre' = neutre.
+export const INCIDENT_CATEGORY_DIMENSION: Record<string, ScoreDimensionKey | null> = {
+  intrusion: 'security',
+  ransomware: 'resilience',
+  fuite_donnees: 'data_protection',
+  deni_service: 'resilience',
+  autre: null,
+}
+
+// Aggravation conservatrice de la vraisemblance selon la gravité de l'incident.
+export function incidentSeverityBump(severity: string): number {
+  return severity === 'critique' ? 2 : severity === 'eleve' ? 1 : 0
+}
+
+// Fenêtre de pertinence d'un incident sur la vraisemblance (mois).
+export const INCIDENT_WINDOW_MONTHS = 12
+
+// Aggravation de la vraisemblance d'un scénario par les incidents (mode hybride) :
+// un incident explicitement lié à CE scénario s'applique toujours ; sinon, un
+// incident SANS lien explicite s'applique automatiquement aux scénarios de sa
+// dimension. Retourne le bump (0..2) = gravité max des incidents applicables.
+export function incidentLikelihoodBump(
+  dimension: ScoreDimensionKey | null,
+  scenarioIncidentIds: ReadonlySet<string>,
+  incidents: ReadonlyArray<{ id: string; category: string; severity: string }>,
+  linkedIncidentIds: ReadonlySet<string>,
+): number {
+  let bump = 0
+  for (const inc of incidents) {
+    const applies = scenarioIncidentIds.has(inc.id)
+      || (!linkedIncidentIds.has(inc.id) && INCIDENT_CATEGORY_DIMENSION[inc.category] === dimension)
+    if (applies) bump = Math.max(bump, incidentSeverityBump(inc.severity))
+  }
+  return bump
+}
