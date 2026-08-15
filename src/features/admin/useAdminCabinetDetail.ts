@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import type { Capability } from '../../types/database.types'
 
 export interface CabinetDetail {
   id: string
@@ -11,6 +12,7 @@ export interface CabinetDetail {
   workflow_version: 'audit' | 'controle'
   plan_name: string | null
   plan_price: number | null
+  capabilities: Capability[]
   members: Array<{ id: string; email: string; first_name: string; last_name: string; job_title: string | null; is_active: boolean }>
   missions: Array<{ id: string; name: string; status: string; updated_at: string }>
 }
@@ -66,6 +68,13 @@ export function useAdminCabinetDetail(cabinetId: string | undefined): Result {
           .limit(20)
           .abortSignal(abort.signal)
 
+        const { data: caps } = await supabase
+          .from('organization_capabilities')
+          .select('capability')
+          .eq('org_id', cabinetId)
+          .eq('status', 'active')
+          .abortSignal(abort.signal)
+
         if (abort.signal.aborted) return
         setCabinet({
           id: o.id,
@@ -77,6 +86,7 @@ export function useAdminCabinetDetail(cabinetId: string | undefined): Result {
           workflow_version: o.workflow_version ?? 'audit',
           plan_name: o.plans?.name ?? null,
           plan_price: o.plans?.monthly_price_eur ?? null,
+          capabilities: ((caps ?? []) as Array<{ capability: Capability }>).map((c) => c.capability),
           members: (members ?? []) as CabinetDetail['members'],
           missions: (missions ?? []) as CabinetDetail['missions'],
         })
