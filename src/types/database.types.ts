@@ -1297,6 +1297,8 @@ export interface AssessmentFinding {
   ai_generated: boolean
   created_at: string
   updated_at: string
+  /** Horodatage de promotion vers le registre Gëstu Risk de l'org auditée (null = non promu). */
+  promoted_at: string | null
 }
 
 export interface AssessmentFindingInsert {
@@ -1773,6 +1775,18 @@ export interface Database {
           p_dimension: ScoreDimension
           p_likelihood: number
           p_impact: number
+          p_vulnerability?: string | null
+          p_threat_ref?: string | null
+          p_feared_event_ref?: string | null
+        }
+        Returns: string
+      }
+      promote_finding: {
+        Args: {
+          p_finding_id: string
+          p_dimension?: ScoreDimension | null
+          p_likelihood?: number | null
+          p_impact?: number | null
           p_vulnerability?: string | null
           p_threat_ref?: string | null
           p_feared_event_ref?: string | null
