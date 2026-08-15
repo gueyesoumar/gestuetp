@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, ShieldAlert } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, ShieldAlert, LayoutDashboard } from 'lucide-react'
 import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
@@ -11,6 +12,8 @@ export interface NavItem {
   to: string
   label: string
   icon: ReactNode
+  /** Force une correspondance exacte pour l'état actif (index d'un workspace). */
+  end?: boolean
 }
 
 /**
@@ -29,6 +32,19 @@ export function useSidebarNavItems(
   const { canViewAuditTrail } = useCabinetPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
   const isRegul = hasCapability('supervision')
+  const { pathname } = useLocation()
+
+  // Workspace dédié Gëstu Risk : sous /risque, la barre latérale bascule sur la
+  // sous-nav du module (le lien « Hub ETP » du shell assure le retour à l'écosystème).
+  if (pathname.startsWith('/risque') && hasCapability('risk')) {
+    return {
+      mainItems: [
+        { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
+        { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} /> },
+      ],
+      groupItems: [],
+    }
+  }
 
   const mainItems: NavItem[] = [
     { to: '/', label: 'Tableau de bord', icon: <DashboardIcon /> },
