@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useFeatureFlag } from '../../hooks/useFeatureFlag'
 import {
   SCORE_DIMENSION_KEYS, SCORE_DIMENSION_KIND, type ScoreDimensionKey,
   SCORE_FACTOR_WEIGHTS, SCORE_COEFFICIENT_FLOOR, ASSURANCE_FRESHNESS_MONTHS,
   SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
+  RISK_MASTERY_WEIGHT, riskExposure,
 } from '../../lib/constants'
 
 // Score de confiance par dimension pour l'organisation courante (Phase B).
@@ -36,6 +38,12 @@ export interface FactorScore {
   penaltyPts: number
 }
 
+/** Exposition inhérente / résiduelle par dimension (Gëstu Risk, RFC 0004). */
+export interface RiskDimScore {
+  inherent: number | null   // 0..100, agrégat des scénarios de la dimension
+  residual: number | null   // inherent × (1 − efficacité posture)
+}
+
 export interface SelfDimensionData {
   loading: boolean
   axes: DimScore[]
@@ -45,6 +53,12 @@ export interface SelfDimensionData {
   coefficient: number
   measuredAxes: number
   totalAxes: number
+  // Gëstu Risk (RFC 0004) : exposition + maîtrise du risque.
+  residualByDim: Partial<Record<ScoreDimensionKey, RiskDimScore>>
+  /** Facteur de maîtrise du risque (100 = tout traité). null = pas de scénario. */
+  riskMastery: { score: number | null; penaltyPts: number } | null
+  /** Le facteur pèse-t-il réellement sur le composite (flag org actif) ? */
+  riskImpactActive: boolean
 }
 
 const AXIS_KEYS = SCORE_DIMENSION_KEYS.filter((k) => SCORE_DIMENSION_KIND[k] === 'axis')
@@ -55,6 +69,7 @@ const MAPPED_FACTOR_KEYS = SCORE_DIMENSION_KEYS.filter(
 const EMPTY: SelfDimensionData = {
   loading: false, axes: [], factors: [], compositePosture: null, composite: null,
   coefficient: 1, measuredAxes: 0, totalAxes: AXIS_KEYS.length,
+  residualByDim: {}, riskMastery: null, riskImpactActive: false,
 }
 
 function toDimScore(key: ScoreDimensionKey, agg: { total: number; approved: number } | undefined): DimScore {
@@ -119,6 +134,7 @@ function toFactorScore(
 
 export function useSelfDimensionScores(): SelfDimensionData {
   const { profile } = useAuth()
+  const { enabled: riskImpact } = useFeatureFlag('risk_score_impact')
   const [data, setData] = useState<SelfDimensionData>({ ...EMPTY, loading: true })
 
   useEffect(() => {
@@ -218,23 +234,57 @@ export function useSelfDimensionScores(): SelfDimensionData {
         toFactorScore('assurance', assurance.score, assurance.total, assurance.covered, compositePosture),
       ]
 
-      const coefficient = Math.max(
-        SCORE_COEFFICIENT_FLOOR,
-        factors.reduce((acc, f) => {
-          if (f.score === null) return acc
-          return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
-        }, 1),
-      )
+      // ---- Gëstu Risk (RFC 0004) : exposition inhérente + résiduel par dimension ----
+      const { data: scenarios } = await supabase
+        .from('risk_scenarios')
+        .select('dimension, inherent_likelihood, inherent_impact')
+        .eq('organization_id', orgId).abortSignal(ctrl.signal)
+      if (ctrl.signal.aborted) return
+
+      const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
+      const inherentAgg = new Map<ScoreDimensionKey, number[]>()
+      for (const s of (scenarios ?? []) as Array<{ dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
+        if (!s.dimension) continue
+        const arr = inherentAgg.get(s.dimension) ?? []
+        arr.push(riskExposure(s.inherent_likelihood, s.inherent_impact))
+        inherentAgg.set(s.dimension, arr)
+      }
+      const residualByDim: Partial<Record<ScoreDimensionKey, RiskDimScore>> = {}
+      const residuals: number[] = []
+      for (const [dim, exps] of inherentAgg) {
+        const inherent = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length)
+        const eff = postureByDim.get(dim) ?? null   // efficacité = posture Comply (0..100)
+        const residual = eff == null ? inherent : Math.round(inherent * (1 - eff / 100))
+        residualByDim[dim] = { inherent, residual }
+        residuals.push(residual)
+      }
+      const riskMasteryScore = residuals.length > 0
+        ? Math.max(0, 100 - Math.round(residuals.reduce((s, x) => s + x, 0) / residuals.length))
+        : null
+      const riskPenaltyFrac = riskMasteryScore === null ? 0 : RISK_MASTERY_WEIGHT * (1 - riskMasteryScore / 100)
+
+      // Coefficient : facteurs existants, PUIS pliage du risque seulement si le flag org est actif.
+      let coefficient = factors.reduce((acc, f) => {
+        if (f.score === null) return acc
+        return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
+      }, 1)
+      if (riskImpact && riskMasteryScore !== null) coefficient *= (1 - riskPenaltyFrac)
+      coefficient = Math.max(SCORE_COEFFICIENT_FLOOR, coefficient)
+
       const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
+      const riskPenaltyPts = compositePosture === null ? 0 : Math.round(compositePosture * riskPenaltyFrac)
 
       setData({
         loading: false, axes, factors, compositePosture, composite, coefficient,
         measuredAxes: measured.length, totalAxes: AXIS_KEYS.length,
+        residualByDim,
+        riskMastery: riskMasteryScore === null ? null : { score: riskMasteryScore, penaltyPts: riskPenaltyPts },
+        riskImpactActive: riskImpact,
       })
     })()
 
     return () => ctrl.abort()
-  }, [profile?.organization_id])
+  }, [profile?.organization_id, riskImpact])
 
   return data
 }
