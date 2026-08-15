@@ -25,7 +25,7 @@ export function usePolicyRegister(): {
   policies: Policy[]
   loading: boolean
   error: string | null
-  createPolicy: (p: NewPolicy) => Promise<boolean>
+  createPolicy: (p: NewPolicy) => Promise<string | null>
   setStatus: (id: string, status: PolicyStatus) => Promise<void>
   deletePolicy: (id: string) => Promise<void>
   refresh: () => void
@@ -54,14 +54,14 @@ export function usePolicyRegister(): {
 
   const refresh = useCallback((): void => setKey((k) => k + 1), [])
 
-  const createPolicy = useCallback(async (p: NewPolicy): Promise<boolean> => {
-    if (!orgId) return false
+  const createPolicy = useCallback(async (p: NewPolicy): Promise<string | null> => {
+    if (!orgId) return null
     // 1. Politique (brouillon) ; 2. première version (contenu ou fichier) ; 3. lien current_version.
     const { data: pol, error: err } = await supabase.from('policies').insert({
       organization_id: orgId, title: p.title, summary: p.summary, dimension: p.dimension,
       provenance: p.provenance, status: 'draft', created_by: profile?.id ?? null,
     } as never).select('id').single<{ id: string }>()
-    if (err || !pol) { console.error('[createPolicy]', err?.message); return false }
+    if (err || !pol) { console.error('[createPolicy]', err?.message); return null }
     const { data: ver, error: vErr } = await supabase.from('policy_versions').insert({
       policy_id: pol.id, organization_id: orgId, version_label: 'v1',
       content: p.content, file_path: p.file_path, created_by: profile?.id ?? null,
@@ -69,7 +69,7 @@ export function usePolicyRegister(): {
     if (vErr) { console.error('[createPolicy version]', vErr.message) }
     else if (ver) { await supabase.from('policies').update({ current_version_id: ver.id } as never).eq('id', pol.id) }
     refresh()
-    return true
+    return pol.id
   }, [orgId, profile?.id, refresh])
 
   const setStatus = useCallback(async (id: string, status: PolicyStatus): Promise<void> => {
