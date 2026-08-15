@@ -51,6 +51,7 @@ export function useSidebarNavItems(
     return {
       mainItems: [
         { to: '/politiques', label: 'Registre', icon: <FileText size={20} strokeWidth={1.5} />, end: true },
+        { to: '/politiques/couverture', label: 'Couverture', icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
       ],
       groupItems: [],
     }

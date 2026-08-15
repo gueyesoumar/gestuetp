@@ -11,11 +11,16 @@ import type { NewPolicy } from './usePolicyRegister'
 const AXES = SCORE_DIMENSION_KEYS.filter((k) => SCORE_DIMENSION_KIND[k] === 'axis') as ScoreDimensionKey[]
 type Prov = 'native' | 'ai' | 'imported'
 
-export function PolicyCreateModal({ onClose, onCreate }: { onClose: () => void; onCreate: (p: NewPolicy) => Promise<boolean> }): JSX.Element {
+export function PolicyCreateModal({ onClose, onCreate, initialTitle, linkControlId }: {
+  onClose: () => void
+  onCreate: (p: NewPolicy) => Promise<string | null>
+  initialTitle?: string
+  linkControlId?: string | null
+}): JSX.Element {
   const { profile } = useAuth()
   const toast = useToast()
-  const [prov, setProv] = useState<Prov>('native')
-  const [title, setTitle] = useState('')
+  const [prov, setProv] = useState<Prov>(linkControlId ? 'ai' : 'native')
+  const [title, setTitle] = useState(initialTitle ?? '')
   const [summary, setSummary] = useState('')
   const [dimension, setDimension] = useState<ScoreDimension | ''>('governance')
   const [content, setContent] = useState('')
@@ -53,13 +58,19 @@ export function PolicyCreateModal({ onClose, onCreate }: { onClose: () => void; 
       if (upErr) { setBusy(false); console.error('[upload policy]', upErr.message); toast.error('Import du fichier impossible'); return }
       file_path = path
     }
-    const ok = await onCreate({
+    const id = await onCreate({
       title: title.trim(), summary: summary.trim() || null, dimension: (dimension || null) as ScoreDimension | null,
       provenance: prov, content: prov === 'imported' ? null : (content.trim() || null), file_path,
     })
+    if (id && linkControlId) {
+      const { error: linkErr } = await supabase.from('policy_control_links').insert({
+        organization_id: orgId, policy_id: id, control_id: linkControlId,
+      } as never)
+      if (linkErr) console.error('[gap link]', linkErr.message)
+    }
     setBusy(false)
-    if (!ok) { toast.error('Création impossible'); return }
-    toast.success('Politique créée (brouillon)')
+    if (!id) { toast.error('Création impossible'); return }
+    toast.success(linkControlId ? 'Politique créée et liée au contrôle' : 'Politique créée (brouillon)')
     onClose()
   }
 
