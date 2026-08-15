@@ -1059,6 +1059,8 @@ export interface MissionRisk {
   created_by: string
   created_at: string
   updated_at: string
+  /** Horodatage de promotion vers le registre Gëstu Risk de l'org auditée (null = non promu). */
+  promoted_at: string | null
 }
 
 export interface MissionRiskInsert {
@@ -1764,6 +1766,18 @@ export interface Database {
       my_vocab: {
         Args: Record<PropertyKey, never>
         Returns: { key: string; value: string }[]
+      }
+      promote_mission_risk: {
+        Args: {
+          p_mission_risk_id: string
+          p_dimension: ScoreDimension
+          p_likelihood: number
+          p_impact: number
+          p_vulnerability?: string | null
+          p_threat_ref?: string | null
+          p_feared_event_ref?: string | null
+        }
+        Returns: string
       }
     }
     Enums: {
