@@ -114,7 +114,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
+              end={item.end ?? item.to === '/'}
               onClick={onClose}
               title={collapsed ? item.label : undefined}
               className={({ isActive }) =>
