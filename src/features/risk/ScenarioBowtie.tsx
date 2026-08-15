@@ -12,6 +12,10 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
   const { barriers, search, link, unlink } = useScenarioControls(scenario.id)
   const label = (id: string | null): string | null => id ? (catalog.find((c) => c.id === id)?.label ?? null) : null
   const dimColor = scenario.dimension ? SCORE_DIMENSION_COLORS[scenario.dimension] : '#94A3B8'
+  // Efficacité des barrières = moyenne du ratio approuvé ; résiduel = exposition × (1 − efficacité).
+  const effPct = barriers.length > 0 ? Math.round((barriers.reduce((s, b) => s + b.effectiveness, 0) / barriers.length) * 100) : null
+  const residual = effPct == null ? scenario.exposure : Math.round(scenario.exposure * (1 - effPct / 100))
+  const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
@@ -33,7 +37,13 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
             <div className="text-[13px] font-bold text-gray-900 mt-1">{scenario.title}</div>
             {scenario.asset_name && <div className="text-[11px] text-gray-500 mt-0.5">Actif&nbsp;: {scenario.asset_name}</div>}
             {scenario.vulnerability && <div className="text-[11px] text-gray-400 mt-0.5 italic">« {scenario.vulnerability} »</div>}
-            <div className="mt-2 text-[10px] font-mono text-gray-400">V{scenario.inherent_likelihood}·I{scenario.inherent_impact} · exposition <b style={{ color: scenario.exposure >= 60 ? '#C0392B' : scenario.exposure >= 30 ? '#B8860B' : '#27AE60' }}>{scenario.exposure}</b></div>
+            <div className="mt-2 text-[10px] font-mono text-gray-400">V{scenario.inherent_likelihood}·I{scenario.inherent_impact}</div>
+            <div className="mt-1.5 flex items-center justify-center gap-1.5 text-[10px] font-mono">
+              <span className="text-gray-400">inhérent <b style={{ color: expColor(scenario.exposure) }}>{scenario.exposure}</b></span>
+              {effPct != null && <span className="text-gray-300">→</span>}
+              {effPct != null && <span className="text-gray-400">résiduel <b style={{ color: expColor(residual) }}>{residual}</b></span>}
+            </div>
+            {effPct != null && <div className="mt-1 text-[10px] text-forest-700">efficacité barrières <b>{effPct}%</b></div>}
           </div>
           <ArrowRight size={18} className="text-gray-300 mx-auto" />
           <BowtieCard title="Événement redouté" tone="amber" main={label(scenario.feared_event_ref) ?? 'Non précisé'} />
@@ -53,11 +63,15 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
                   <span key={b.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px]">
                     <span className="font-mono font-semibold text-forest-800">{b.code}</span>
                     <span className="text-gray-500">· {kindLabel(b.kind)}</span>
+                    {b.assessed
+                      ? <span className="font-semibold" style={{ color: expColor(100 - Math.round(b.effectiveness * 100)) }}>{Math.round(b.effectiveness * 100)}%</span>
+                      : <span className="text-amber-600" title="Contrôle non évalué en mission → efficacité nulle">non évaluée</span>}
                     <button onClick={() => void unlink(b.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
                   </span>
                 ))}
               </div>
             )}
+          <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel — c&apos;est ce lien qui fait vivre le score de confiance.</p>
           <ControlLinker existing={barriers} onSearch={search} onLink={link} />
         </div>
       </div>

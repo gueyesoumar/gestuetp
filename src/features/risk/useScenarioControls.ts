@@ -8,6 +8,10 @@ export interface BarrierControl {
   code: string
   name: string
   kind: 'preventive' | 'detective' | 'corrective'
+  /** Efficacité 0..1 = ratio d'évaluations approuvées du contrôle (même définition que le score). */
+  effectiveness: number
+  /** Le contrôle a-t-il au moins une évaluation ? (sinon efficacité = 0, non prouvée). */
+  assessed: boolean
 }
 export interface ControlOption { id: string; code: string; name: string }
 
@@ -27,18 +31,35 @@ export function useScenarioControls(scenarioId: string): {
   useEffect(() => {
     const ac = new AbortController()
     setLoading(true)
-    supabase.from('risk_control_links')
-      .select('id, control_id, kind, control:controls(code, name)')
-      .eq('risk_scenario_id', scenarioId).abortSignal(ac.signal)
-      .then(({ data, error }) => {
+    void (async () => {
+      const { data, error } = await supabase.from('risk_control_links')
+        .select('id, control_id, kind, control:controls(code, name)')
+        .eq('risk_scenario_id', scenarioId).abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      if (error) { console.error('[useScenarioControls]', error.message); setLoading(false); return }
+      const linkRows = (data ?? []) as unknown as Array<{ id: string; control_id: string; kind: BarrierControl['kind']; control: { code: string; name: string } | null }>
+      // Efficacité par contrôle = ratio d'évaluations approuvées (RLS = missions de l'org).
+      const ids = [...new Set(linkRows.map((r) => r.control_id))]
+      const eff = new Map<string, number>()
+      if (ids.length > 0) {
+        const { data: asmts } = await supabase.from('control_assessments')
+          .select('control_id, status').in('control_id', ids).abortSignal(ac.signal)
         if (ac.signal.aborted) return
-        if (error) { console.error('[useScenarioControls]', error.message); setLoading(false); return }
-        setBarriers(((data ?? []) as unknown as Array<{ id: string; control_id: string; kind: BarrierControl['kind']; control: { code: string; name: string } | null }>).map((r) => ({
-          linkId: r.id, control_id: r.control_id, kind: r.kind,
-          code: r.control?.code ?? '—', name: r.control?.name ?? '',
-        })))
-        setLoading(false)
-      })
+        const per = new Map<string, { a: number; t: number }>()
+        for (const a of (asmts ?? []) as Array<{ control_id: string; status: string }>) {
+          const c = per.get(a.control_id) ?? { a: 0, t: 0 }
+          c.t += 1; if (a.status === 'approved') c.a += 1
+          per.set(a.control_id, c)
+        }
+        for (const [cid, c] of per) eff.set(cid, c.t > 0 ? c.a / c.t : 0)
+      }
+      setBarriers(linkRows.map((r) => ({
+        linkId: r.id, control_id: r.control_id, kind: r.kind,
+        code: r.control?.code ?? '—', name: r.control?.name ?? '',
+        effectiveness: eff.get(r.control_id) ?? 0, assessed: eff.has(r.control_id),
+      })))
+      setLoading(false)
+    })()
     return () => ac.abort()
   }, [scenarioId, key])
 

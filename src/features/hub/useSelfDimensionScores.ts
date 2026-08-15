@@ -41,7 +41,7 @@ export interface FactorScore {
 /** Exposition inhérente / résiduelle par dimension (Gëstu Risk, RFC 0004). */
 export interface RiskDimScore {
   inherent: number | null   // 0..100, agrégat des scénarios de la dimension
-  residual: number | null   // inherent × (1 − efficacité posture)
+  residual: number | null   // agrégat des résiduels par scénario (exposition × (1 − efficacité barrières))
 }
 
 export interface SelfDimensionData {
@@ -150,27 +150,49 @@ export function useSelfDimensionScores(): SelfDimensionData {
       // Appelé par TOUS les chemins (y compris org sans mission Comply) → le risque
       // est toujours pris en compte.
       const finalize = async (
-        axes: DimScore[], factors: FactorScore[], compositePosture: number | null, measuredLen: number,
+        axes: DimScore[], factors: FactorScore[], compositePosture: number | null,
+        measuredLen: number, effByControl: Map<string, number>,
       ): Promise<void> => {
         const { data: scenarios } = await supabase
           .from('risk_scenarios')
-          .select('dimension, inherent_likelihood, inherent_impact')
+          .select('id, dimension, inherent_likelihood, inherent_impact')
           .eq('organization_id', orgId).abortSignal(ctrl.signal)
         if (ctrl.signal.aborted) return
+        // Barrières (contrôles liés) par scénario → efficacité propre à chaque scénario.
+        const { data: links } = await supabase
+          .from('risk_control_links')
+          .select('risk_scenario_id, control_id')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const barriersByScenario = new Map<string, string[]>()
+        for (const l of (links ?? []) as Array<{ risk_scenario_id: string; control_id: string }>) {
+          const arr = barriersByScenario.get(l.risk_scenario_id) ?? []
+          arr.push(l.control_id); barriersByScenario.set(l.risk_scenario_id, arr)
+        }
         const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
+        // Résiduel PAR SCÉNARIO : exposition × (1 − efficacité). L'efficacité vient des
+        // barrières liées (moyenne du ratio d'évaluations approuvées de chaque contrôle) ;
+        // sans barrière, repli sur la posture Comply de la dimension (rétrocompatible).
+        // Puis agrégé par dimension pour le radar et la maîtrise du risque.
         const inherentAgg = new Map<ScoreDimensionKey, number[]>()
-        for (const s of (scenarios ?? []) as Array<{ dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
+        const residualAgg = new Map<ScoreDimensionKey, number[]>()
+        for (const s of (scenarios ?? []) as Array<{ id: string; dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
           if (!s.dimension) continue
-          const arr = inherentAgg.get(s.dimension) ?? []
-          arr.push(riskExposure(s.inherent_likelihood, s.inherent_impact))
-          inherentAgg.set(s.dimension, arr)
+          const exposure = riskExposure(s.inherent_likelihood, s.inherent_impact)
+          const barriers = barriersByScenario.get(s.id) ?? []
+          const effPct: number | null = barriers.length > 0
+            ? Math.round((barriers.reduce((sum, cid) => sum + (effByControl.get(cid) ?? 0), 0) / barriers.length) * 100)
+            : (postureByDim.get(s.dimension) ?? null)
+          const residual = effPct == null ? exposure : Math.round(exposure * (1 - effPct / 100))
+          const iArr = inherentAgg.get(s.dimension) ?? []; iArr.push(exposure); inherentAgg.set(s.dimension, iArr)
+          const rArr = residualAgg.get(s.dimension) ?? []; rArr.push(residual); residualAgg.set(s.dimension, rArr)
         }
         const residualByDim: Partial<Record<ScoreDimensionKey, RiskDimScore>> = {}
         const residuals: number[] = []
         for (const [dim, exps] of inherentAgg) {
           const inherent = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length)
-          const eff = postureByDim.get(dim) ?? null   // efficacité = posture Comply (0..100)
-          const residual = eff == null ? inherent : Math.round(inherent * (1 - eff / 100))
+          const rArr = residualAgg.get(dim) ?? []
+          const residual = Math.round(rArr.reduce((s, x) => s + x, 0) / rArr.length)
           residualByDim[dim] = { inherent, residual }
           residuals.push(residual)
         }
@@ -209,7 +231,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
           (k) => toFactorScore(k, null, 0, 0, null),
         ),
       }
-      if (missionIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0); return }
+      if (missionIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0, new Map()); return }
 
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
@@ -220,7 +242,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
 
       const rows = (assessments ?? []) as AssessmentRow[]
       const controlIds = [...new Set(rows.map((r) => r.control_id))]
-      if (controlIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0); return }
+      if (controlIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0, new Map()); return }
 
       const { data: controls, error: cErr } = await supabase
         .from('controls').select('id, dimension').in('id', controlIds).abortSignal(ctrl.signal)
@@ -287,7 +309,19 @@ export function useSelfDimensionScores(): SelfDimensionData {
         toFactorScore('assurance', assurance.score, assurance.total, assurance.covered, compositePosture),
       ]
 
-      await finalize(axes, factors, compositePosture, measured.length)
+      // Efficacité par contrôle = ratio d'évaluations approuvées (0..1). Même
+      // définition que les barrières du nœud papillon → cohérence registre ↔ score.
+      const effByControl = new Map<string, number>()
+      {
+        const per = new Map<string, { a: number; t: number }>()
+        for (const r of rows) {
+          const c = per.get(r.control_id) ?? { a: 0, t: 0 }
+          c.t += 1; if (r.status === 'approved') c.a += 1
+          per.set(r.control_id, c)
+        }
+        for (const [cid, c] of per) effByControl.set(cid, c.t > 0 ? c.a / c.t : 0)
+      }
+      await finalize(axes, factors, compositePosture, measured.length, effByControl)
     })()
 
     return () => ctrl.abort()
