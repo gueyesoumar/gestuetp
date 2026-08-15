@@ -1,21 +1,28 @@
 import { useState } from 'react'
 import { X, ArrowRight, Shield, Plus, Trash2 } from 'lucide-react'
 import { useScenarioControls, type ControlOption, type BarrierControl } from './useScenarioControls'
-import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_CONTROL_LINK_KINDS } from '../../lib/constants'
+import {
+  SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_CONTROL_LINK_KINDS,
+  barrierSide, splitBarrierEfficacies, riskResidualSplit,
+} from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
 
 const kindLabel = (k: string): string => RISK_CONTROL_LINK_KINDS.find((x) => x.value === k)?.label ?? k
+const pct = (v: number): number => Math.round(v * 100)
+const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 
 /** Nœud papillon EBIOS : menace → [barrières] → scénario/actif → événement redouté. */
 export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: ScenarioRow; catalog: RiskCatalogEntry[]; onClose: () => void }): JSX.Element {
   const { barriers, search, link, unlink } = useScenarioControls(scenario.id)
   const label = (id: string | null): string | null => id ? (catalog.find((c) => c.id === id)?.label ?? null) : null
   const dimColor = scenario.dimension ? SCORE_DIMENSION_COLORS[scenario.dimension] : '#94A3B8'
-  // Efficacité des barrières = moyenne du ratio approuvé ; résiduel = exposition × (1 − efficacité).
-  const effPct = barriers.length > 0 ? Math.round((barriers.reduce((s, b) => s + b.effectiveness, 0) / barriers.length) * 100) : null
-  const residual = effPct == null ? scenario.exposure : Math.round(scenario.exposure * (1 - effPct / 100))
-  const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
+  // Modèle nœud papillon : préventives ↓ vraisemblance, correctives ↓ impact.
+  const { effPrev, effCorr } = splitBarrierEfficacies(barriers)
+  const hasBarriers = barriers.length > 0
+  const residual = hasBarriers ? riskResidualSplit(scenario.inherent_likelihood, scenario.inherent_impact, effPrev, effCorr) : scenario.exposure
+  const prev = barriers.filter((b) => barrierSide(b.kind) === 'likelihood')
+  const corr = barriers.filter((b) => barrierSide(b.kind) === 'impact')
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
@@ -40,10 +47,15 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
             <div className="mt-2 text-[10px] font-mono text-gray-400">V{scenario.inherent_likelihood}·I{scenario.inherent_impact}</div>
             <div className="mt-1.5 flex items-center justify-center gap-1.5 text-[10px] font-mono">
               <span className="text-gray-400">inhérent <b style={{ color: expColor(scenario.exposure) }}>{scenario.exposure}</b></span>
-              {effPct != null && <span className="text-gray-300">→</span>}
-              {effPct != null && <span className="text-gray-400">résiduel <b style={{ color: expColor(residual) }}>{residual}</b></span>}
+              {hasBarriers && <span className="text-gray-300">→</span>}
+              {hasBarriers && <span className="text-gray-400">résiduel <b style={{ color: expColor(residual) }}>{residual}</b></span>}
             </div>
-            {effPct != null && <div className="mt-1 text-[10px] text-forest-700">efficacité barrières <b>{effPct}%</b></div>}
+            {hasBarriers && (
+              <div className="mt-1 text-[9.5px] text-forest-700 space-y-0.5">
+                <div>préventif <b>{effPrev == null ? '—' : `${pct(effPrev)}%`}</b> · ↓ vraisemblance</div>
+                <div>correctif <b>{effCorr == null ? '—' : `${pct(effCorr)}%`}</b> · ↓ impact</div>
+              </div>
+            )}
           </div>
           <ArrowRight size={18} className="text-gray-300 mx-auto" />
           <BowtieCard title="Événement redouté" tone="amber" main={label(scenario.feared_event_ref) ?? 'Non précisé'} />
@@ -55,25 +67,38 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
             <Shield size={14} className="text-forest-700" />
             <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Barrières (contrôles Comply)</h4>
           </div>
-          {barriers.length === 0
+          {!hasBarriers
             ? <p className="text-[12px] text-gray-400 mb-3">Aucun contrôle-barrière lié. Reliez les contrôles qui maîtrisent ce risque.</p>
             : (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {barriers.map((b) => (
-                  <span key={b.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px]">
-                    <span className="font-mono font-semibold text-forest-800">{b.code}</span>
-                    <span className="text-gray-500">· {kindLabel(b.kind)}</span>
-                    {b.assessed
-                      ? <span className="font-semibold" style={{ color: expColor(100 - Math.round(b.effectiveness * 100)) }}>{Math.round(b.effectiveness * 100)}%</span>
-                      : <span className="text-amber-600" title="Contrôle non évalué en mission → efficacité nulle">non évaluée</span>}
-                    <button onClick={() => void unlink(b.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
-                  </span>
-                ))}
+              <div className="space-y-2 mb-3">
+                <BarrierGroup title="Préventives · ↓ vraisemblance" items={prev} onUnlink={unlink} />
+                <BarrierGroup title="Correctives / détectives · ↓ impact" items={corr} onUnlink={unlink} />
               </div>
             )}
           <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel — c&apos;est ce lien qui fait vivre le score de confiance.</p>
           <ControlLinker existing={barriers} onSearch={search} onLink={link} />
         </div>
+      </div>
+    </div>
+  )
+}
+
+function BarrierGroup({ title, items, onUnlink }: { title: string; items: BarrierControl[]; onUnlink: (id: string) => Promise<void> }): JSX.Element | null {
+  if (items.length === 0) return null
+  return (
+    <div>
+      <div className="text-[10px] font-mono uppercase tracking-wide text-gray-400 mb-1">{title}</div>
+      <div className="flex flex-wrap gap-2">
+        {items.map((b) => (
+          <span key={b.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px]">
+            <span className="font-mono font-semibold text-forest-800">{b.code}</span>
+            <span className="text-gray-500">· {kindLabel(b.kind)}</span>
+            {b.assessed
+              ? <span className="font-semibold" style={{ color: expColor(100 - pct(b.effectiveness)) }}>{pct(b.effectiveness)}%</span>
+              : <span className="text-amber-600" title="Contrôle non évalué en mission → efficacité nulle">non évaluée</span>}
+            <button onClick={() => void onUnlink(b.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
+          </span>
+        ))}
       </div>
     </div>
   )
