@@ -54,7 +54,10 @@ export function useSidebarNavItems(
   }
 
   // Gëstu Risk (RFC 0004) — registre de risques alimentant le score de confiance.
-  mainItems.push({ to: '/risque', label: 'Risque', icon: <ShieldAlert size={20} strokeWidth={1.5} /> })
+  // Gated par la capacité `risk` (module activable par client, RFC 0002).
+  if (hasCapability('risk')) {
+    mainItems.push({ to: '/risque', label: 'Risque', icon: <ShieldAlert size={20} strokeWidth={1.5} /> })
+  }
 
   // Piste d'audit — réservée aux admins d'organisation (F6).
   if (canViewAuditTrail) {

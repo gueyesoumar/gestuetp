@@ -46,6 +46,14 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   // (navigate('/')). Plus de lien externe : un cabinet qui clique « Regul » voit
   // le détail sans quitter son dashboard.
   const primaryProduct = hasCapability('supervision') ? 'Regul' : 'Comply'
+  const hasRisk = hasCapability('risk')
+  // Risk devient un module actif (ouvrable) dès que l'org a la capacité `risk`.
+  const products = useMemo(
+    () => HUB_PRODUCTS.map((p) =>
+      p.name === 'Risk' ? { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge } : p,
+    ),
+    [hasRisk],
+  )
   const [current, setCurrent] = useState<HubPerspective>('self')
   const [selected, setSelected] = useState<Selection | null>(null)
 
@@ -63,6 +71,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   const onOpen = useCallback((product: HubProduct) => {
     setSelected(null)
     if (product.name === primaryProduct) navigate('/')
+    else if (product.name === 'Risk') navigate('/risque')
   }, [navigate, primaryProduct])
 
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
@@ -120,7 +129,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       <div className="flex min-h-0 flex-1 flex-col gap-5 md:flex-row md:gap-6">
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
-            <ModuleOrbit products={HUB_PRODUCTS} onSelect={onSelect}>
+            <ModuleOrbit products={products} onSelect={onSelect}>
               <div className="flex flex-col items-center">
                 <div className="aspect-square w-[34cqmin] max-h-[220px] max-w-[220px]">
                   <SegmentedDial score={centre.score} />
@@ -147,7 +156,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
       </div>
 
       <PoweredByGestu className="mt-2 shrink-0" />
-      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} enterable={selected?.product.name === primaryProduct} onClose={onClose} onOpen={onOpen} />
+      <ModulePopover product={selected?.product ?? null} anchor={selected?.anchor ?? null} enterable={selected?.product.name === primaryProduct || (selected?.product.name === 'Risk' && hasRisk)} onClose={onClose} onOpen={onOpen} />
     </div>
   )
 }

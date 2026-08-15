@@ -104,7 +104,7 @@ function AppRoutes(): JSX.Element {
         <Route path="organisation" element={<OrganizationPage />} />
         <Route path="membres" element={<MembersPage />} />
         <Route path="piste-audit" element={<OrgAdminRoute><AuditTrailPage /></OrgAdminRoute>} />
-        <Route path="risque" element={<RiskPage />} />
+        <Route path="risque" element={hasCapability('risk') ? <RiskPage /> : <Navigate to="/" replace />} />
         <Route path="aide" element={<SupportCenterPage />} />
         {isRegul ? (
           <>
