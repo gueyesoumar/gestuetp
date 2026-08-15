@@ -1879,3 +1879,75 @@ export interface AuditCampaignUpdate {
   period_end?: string
   status?: CampaignStatus
 }
+
+// ===== Gëstu Risk (RFC 0004, migrations 00183-00184) =====
+// (dimension = type ScoreDimension déjà défini plus haut, cf. migration 00159.)
+export interface RiskCatalogEntry {
+  id: string
+  kind: 'source_de_risque' | 'evenement_redoute' | 'menace_type'
+  code: string
+  label: string
+  framework: 'ebios_rm' | 'iso_27005'
+  description: string | null
+  created_at: string
+}
+
+export interface BusinessValue {
+  id: string
+  organization_id: string
+  name: string
+  description: string | null
+  dimension: ScoreDimension | null
+  criticality: 'eleve' | 'standard'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface RiskAsset {
+  id: string
+  organization_id: string
+  name: string
+  category: 'application' | 'data' | 'infrastructure' | 'third_party' | 'process' | 'people' | 'site'
+  criticality: 'eleve' | 'standard'
+  business_value_id: string | null
+  entity_id: string | null
+  description: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface RiskScenario {
+  id: string
+  organization_id: string
+  title: string
+  description: string | null
+  dimension: ScoreDimension | null
+  business_value_id: string | null
+  asset_id: string | null
+  source_ref: string | null
+  feared_event_ref: string | null
+  threat_ref: string | null
+  vulnerability: string | null
+  inherent_likelihood: number
+  inherent_impact: number
+  treatment: 'accept' | 'reduce' | 'transfer' | 'avoid' | 'untreated'
+  treatment_status: 'open' | 'in_progress' | 'done'
+  owner_user_id: string | null
+  due_date: string | null
+  source_mission_id: string | null
+  source_risk_id: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface RiskControlLink {
+  id: string
+  organization_id: string
+  risk_scenario_id: string
+  control_id: string
+  kind: 'preventive' | 'detective' | 'corrective'
+  created_at: string
+}

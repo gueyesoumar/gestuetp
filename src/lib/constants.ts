@@ -390,3 +390,55 @@ export const SCORE_FACTOR_COLORS: Record<ScoreFactorKey, string> = {
   third_party: '#64748B',
   assurance: '#B8860B',
 }
+
+// ===== Gëstu Risk (RFC 0004) — cotation 4×4 + typologies =====
+export const RISK_LIKELIHOOD_LEVELS = [
+  { value: 1, label: 'Rare' },
+  { value: 2, label: 'Possible' },
+  { value: 3, label: 'Probable' },
+  { value: 4, label: 'Quasi-sûr' },
+] as const
+export const RISK_IMPACT_LEVELS = [
+  { value: 1, label: 'Mineur' },
+  { value: 2, label: 'Modéré' },
+  { value: 3, label: 'Majeur' },
+  { value: 4, label: 'Critique' },
+] as const
+export const RISK_ASSET_CATEGORIES = [
+  { value: 'application', label: 'Application' },
+  { value: 'data', label: 'Données' },
+  { value: 'infrastructure', label: 'Infrastructure' },
+  { value: 'third_party', label: 'Tiers' },
+  { value: 'process', label: 'Processus' },
+  { value: 'people', label: 'Personnes' },
+  { value: 'site', label: 'Site' },
+] as const
+export const RISK_TREATMENTS = [
+  { value: 'untreated', label: 'Non traité' },
+  { value: 'reduce', label: 'Réduire' },
+  { value: 'accept', label: 'Accepter' },
+  { value: 'transfer', label: 'Transférer' },
+  { value: 'avoid', label: 'Éviter' },
+] as const
+export const RISK_TREATMENT_STATUS = [
+  { value: 'open', label: 'Ouvert' },
+  { value: 'in_progress', label: 'En cours' },
+  { value: 'done', label: 'Terminé' },
+] as const
+export const RISK_CONTROL_LINK_KINDS = [
+  { value: 'preventive', label: 'Préventive' },
+  { value: 'detective', label: 'Détective' },
+  { value: 'corrective', label: 'Corrective' },
+] as const
+
+export type RiskAssetCategory = typeof RISK_ASSET_CATEGORIES[number]['value']
+export type RiskTreatment = typeof RISK_TREATMENTS[number]['value']
+export type RiskTreatmentStatus = typeof RISK_TREATMENT_STATUS[number]['value']
+
+// Exposition 0..100 dérivée de la cotation 4×4 (Vraisemblance × Impact).
+export function riskExposure(likelihood: number, impact: number): number {
+  return Math.round(((likelihood * impact) / 16) * 100)
+}
+
+// Poids du facteur risk_mastery dans le coefficient conservateur (= assurance).
+export const RISK_MASTERY_WEIGHT = 0.2
