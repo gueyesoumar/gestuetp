@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, FileText, ShieldCheck, ExternalLink, Plus, Trash2, Link2 } from 'lucide-react'
 import { usePolicyDetail } from './usePolicyDetail'
 import { usePolicyControls, type ControlOption, type LinkedControl } from './usePolicyControls'
+import { PolicyAttestations } from './PolicyAttestations'
 import {
   POLICY_STATUS, POLICY_PROVENANCE, SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS,
 } from '../../lib/constants'
@@ -79,6 +80,9 @@ export function PolicyDetailDrawer({ policy, onClose, onChanged }: { policy: Pol
               ))}
             </ul>
           </div>
+
+          {/* Double attestation : adoption + application effective */}
+          <PolicyAttestations policy={policy} versionId={current?.id ?? null} onChanged={() => { /* le hook rafraîchit ses compteurs */ }} />
 
           {/* Contrôles satisfaits (Policy-as-Evidence) */}
           <div>
