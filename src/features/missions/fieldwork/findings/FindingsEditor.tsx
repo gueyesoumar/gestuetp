@@ -85,7 +85,7 @@ export function FindingsEditor({ findingsHook, readOnly }: FindingsEditorProps) 
               onDelete={() => deleteFinding(f.id)}
               onMoveUp={() => moveFinding(f.id, 'up')}
               onMoveDown={() => moveFinding(f.id, 'down')}
-              onPromote={readOnly ? undefined : setPromoteTarget}
+              onPromote={setPromoteTarget}
             />
           ))}
         </div>
