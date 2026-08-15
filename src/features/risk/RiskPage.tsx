@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Plus, Trash2, ShieldAlert, Info } from 'lucide-react'
-import { useRiskRegister } from './useRiskRegister'
+import { useRiskRegister, type ScenarioRow } from './useRiskRegister'
 import { useSelfDimensionScores } from '../hub/useSelfDimensionScores'
 import { RiskMatrix } from './RiskMatrix'
 import { RiskRadar } from './RiskRadar'
 import { RiskSimulator } from './RiskSimulator'
 import { ScenarioFormModal } from './ScenarioFormModal'
+import { ScenarioBowtie } from './ScenarioBowtie'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -17,6 +18,7 @@ export function RiskPage(): JSX.Element {
   const reg = useRiskRegister()
   const score = useSelfDimensionScores()
   const [modal, setModal] = useState(false)
+  const [bowtie, setBowtie] = useState<ScenarioRow | null>(null)
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />
@@ -95,7 +97,10 @@ export function RiskPage(): JSX.Element {
             <tbody className="divide-y divide-gray-100">
               {reg.scenarios.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{s.title}{s.asset_name && <span className="text-gray-400 font-normal"> · {s.asset_name}</span>}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => setBowtie(s)} className="font-medium text-gray-900 hover:text-[#B34A31] text-left">{s.title}</button>
+                    {s.asset_name && <span className="text-gray-400"> · {s.asset_name}</span>}
+                  </td>
                   <td className="px-4 py-3">
                     {s.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${SCORE_DIMENSION_COLORS[s.dimension]}22`, color: SCORE_DIMENSION_COLORS[s.dimension] }}>{SCORE_DIMENSION_LABELS[s.dimension]}</span>}
                   </td>
@@ -113,6 +118,7 @@ export function RiskPage(): JSX.Element {
       )}
 
       {modal && <ScenarioFormModal catalog={reg.catalog} onClose={() => setModal(false)} onCreate={reg.createScenario} />}
+      {bowtie && <ScenarioBowtie scenario={bowtie} catalog={reg.catalog} onClose={() => setBowtie(null)} />}
     </div>
   )
 }
