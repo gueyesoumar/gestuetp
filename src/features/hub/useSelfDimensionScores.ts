@@ -8,7 +8,7 @@ import {
   SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
   RISK_MASTERY_WEIGHT, riskExposure, riskResidualSplit, splitBarrierEfficacies,
   INCIDENT_WINDOW_MONTHS, incidentLikelihoodBump,
-  policyEvidenceStrength, POLICY_EVIDENCE_WEIGHT,
+  policyEvidenceStrength, POLICY_EVIDENCE_WEIGHT, POLICY_MATURITY_WEIGHT,
   type RiskControlLinkKind,
 } from '../../lib/constants'
 
@@ -64,6 +64,9 @@ export interface SelfDimensionData {
   riskMastery: { score: number | null; penaltyPts: number } | null
   /** Le facteur pèse-t-il réellement sur le composite (flag org actif) ? */
   riskImpactActive: boolean
+  // Gëstu Policy (RFC 0005) : maturité de gouvernance documentaire (shadow derrière flag).
+  policyMaturity: { score: number; penaltyPts: number; governance: number | null; adoption: number | null; verifiability: number | null } | null
+  policyImpactActive: boolean
 }
 
 const AXIS_KEYS = SCORE_DIMENSION_KEYS.filter((k) => SCORE_DIMENSION_KIND[k] === 'axis')
@@ -75,6 +78,7 @@ const EMPTY: SelfDimensionData = {
   loading: false, axes: [], factors: [], compositePosture: null, composite: null,
   coefficient: 1, coefficientBase: 1, measuredAxes: 0, totalAxes: AXIS_KEYS.length,
   residualByDim: {}, riskMastery: null, riskImpactActive: false,
+  policyMaturity: null, policyImpactActive: false,
 }
 
 function toDimScore(key: ScoreDimensionKey, agg: { total: number; approved: number } | undefined): DimScore {
@@ -140,6 +144,7 @@ function toFactorScore(
 export function useSelfDimensionScores(): SelfDimensionData {
   const { profile } = useAuth()
   const { enabled: riskImpact } = useFeatureFlag('risk_score_impact')
+  const { enabled: policyImpact } = useFeatureFlag('policy_score_impact')
   const [data, setData] = useState<SelfDimensionData>({ ...EMPTY, loading: true })
 
   useEffect(() => {
@@ -258,12 +263,51 @@ export function useSelfDimensionScores(): SelfDimensionData {
           ? Math.max(0, 100 - Math.round(residuals.reduce((s, x) => s + x, 0) / residuals.length))
           : null
         const riskPenaltyFrac = riskMasteryScore === null ? 0 : RISK_MASTERY_WEIGHT * (1 - riskMasteryScore / 100)
+
+        // ---- Contribution Gëstu Policy (RFC 0005) : gouvernance + adoption + vérifiabilité ----
+        let policyMaturity: SelfDimensionData['policyMaturity'] = null
+        {
+          const { data: pols } = await supabase.from('policies')
+            .select('id, status, current_version_id').eq('organization_id', orgId).abortSignal(ctrl.signal)
+          if (ctrl.signal.aborted) return
+          const published = ((pols ?? []) as Array<{ id: string; status: string; current_version_id: string | null }>)
+            .filter((p) => p.status === 'approved' || p.status === 'published')
+          if (published.length > 0) {
+            const ids = published.map((p) => p.id)
+            const verIds = published.map((p) => p.current_version_id).filter((v): v is string => Boolean(v))
+            const [effRes, acksRes, eligRes] = await Promise.all([
+              supabase.from('policy_effectiveness_attestations').select('policy_id, status').in('policy_id', ids).abortSignal(ctrl.signal),
+              verIds.length ? supabase.from('policy_acknowledgements').select('policy_version_id').in('policy_version_id', verIds).abortSignal(ctrl.signal) : Promise.resolve({ data: [] as Array<{ policy_version_id: string }> }),
+              supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('is_active', true).neq('role', 'client').abortSignal(ctrl.signal),
+            ])
+            if (ctrl.signal.aborted) return
+            const appliedSet = new Set<string>(); const attestedSet = new Set<string>()
+            for (const a of ((effRes.data ?? []) as Array<{ policy_id: string; status: string }>)) { attestedSet.add(a.policy_id); if (a.status === 'applied') appliedSet.add(a.policy_id) }
+            const governance = Math.round(published.reduce((sum, p) => sum + (appliedSet.has(p.id) ? 100 : 50), 0) / published.length)
+            const verifiability = Math.round(published.filter((p) => attestedSet.has(p.id)).length / published.length * 100)
+            const eligible = (eligRes as { count: number | null }).count ?? 0
+            let adoption: number | null = null
+            if (eligible > 0 && verIds.length > 0) {
+              const ackByVer = new Map<string, number>()
+              for (const a of ((acksRes.data ?? []) as Array<{ policy_version_id: string }>)) ackByVer.set(a.policy_version_id, (ackByVer.get(a.policy_version_id) ?? 0) + 1)
+              const rates = published.filter((p) => p.current_version_id).map((p) => Math.min(1, (ackByVer.get(p.current_version_id as string) ?? 0) / eligible))
+              adoption = rates.length ? Math.round(rates.reduce((s, x) => s + x, 0) / rates.length * 100) : null
+            }
+            const signals = [governance, verifiability, adoption].filter((v): v is number => v !== null)
+            const pScore = signals.length ? Math.round(signals.reduce((s, x) => s + x, 0) / signals.length) : 0
+            const pFrac = POLICY_MATURITY_WEIGHT * (1 - pScore / 100)
+            policyMaturity = { score: pScore, penaltyPts: compositePosture === null ? 0 : Math.round(compositePosture * pFrac), governance, adoption, verifiability }
+          }
+        }
+        const policyPenaltyFrac = policyMaturity ? POLICY_MATURITY_WEIGHT * (1 - policyMaturity.score / 100) : 0
+
         const coefficientBase = factors.reduce((acc, f) => {
           if (f.score === null) return acc
           return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
         }, 1)
         let coefficient = coefficientBase
         if (riskImpact && riskMasteryScore !== null) coefficient *= (1 - riskPenaltyFrac)
+        if (policyImpact && policyMaturity) coefficient *= (1 - policyPenaltyFrac)
         coefficient = Math.max(SCORE_COEFFICIENT_FLOOR, coefficient)
         const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
         const riskPenaltyPts = compositePosture === null ? 0 : Math.round(compositePosture * riskPenaltyFrac)
@@ -273,6 +317,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
           residualByDim,
           riskMastery: riskMasteryScore === null ? null : { score: riskMasteryScore, penaltyPts: riskPenaltyPts },
           riskImpactActive: riskImpact,
+          policyMaturity, policyImpactActive: policyImpact,
         })
       }
 
@@ -383,7 +428,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
     })()
 
     return () => ctrl.abort()
-  }, [profile?.organization_id, riskImpact])
+  }, [profile?.organization_id, riskImpact, policyImpact])
 
   return data
 }
