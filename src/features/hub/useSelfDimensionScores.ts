@@ -8,7 +8,7 @@ import {
   SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
   RISK_MASTERY_WEIGHT, riskExposure, riskResidualSplit, splitBarrierEfficacies,
   INCIDENT_WINDOW_MONTHS, incidentLikelihoodBump,
-  policyEvidenceStrength, POLICY_EVIDENCE_WEIGHT, POLICY_MATURITY_WEIGHT,
+  policyEvidenceStrength, POLICY_EVIDENCE_WEIGHT,
   type RiskControlLinkKind,
 } from '../../lib/constants'
 
@@ -64,8 +64,9 @@ export interface SelfDimensionData {
   riskMastery: { score: number | null; penaltyPts: number } | null
   /** Le facteur pèse-t-il réellement sur le composite (flag org actif) ? */
   riskImpactActive: boolean
-  // Gëstu Policy (RFC 0005) : maturité de gouvernance documentaire (shadow derrière flag).
-  policyMaturity: { score: number; penaltyPts: number; governance: number | null; adoption: number | null; verifiability: number | null } | null
+  // Gëstu Policy (RFC 0005) : maturité de gouvernance, blend par-axe (shadow derrière flag).
+  // deltaPts = effet signé sur le composite si activé (Policy peut ajouter OU retirer).
+  policyMaturity: { score: number; deltaPts: number; governance: number | null; adoption: number | null; verifiability: number | null } | null
   policyImpactActive: boolean
 }
 
@@ -159,7 +160,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
       // est toujours pris en compte.
       const finalize = async (
         axes: DimScore[], factors: FactorScore[], compositePosture: number | null,
-        measuredLen: number, effByControl: Map<string, number>,
+        effByControl: Map<string, number>,
       ): Promise<void> => {
         const { data: scenarios } = await supabase
           .from('risk_scenarios')
@@ -295,25 +296,50 @@ export function useSelfDimensionScores(): SelfDimensionData {
             }
             const signals = [governance, verifiability, adoption].filter((v): v is number => v !== null)
             const pScore = signals.length ? Math.round(signals.reduce((s, x) => s + x, 0) / signals.length) : 0
-            const pFrac = POLICY_MATURITY_WEIGHT * (1 - pScore / 100)
-            policyMaturity = { score: pScore, penaltyPts: compositePosture === null ? 0 : Math.round(compositePosture * pFrac), governance, adoption, verifiability }
+            policyMaturity = { score: pScore, deltaPts: 0, governance, adoption, verifiability }
           }
         }
-        const policyPenaltyFrac = policyMaturity ? POLICY_MATURITY_WEIGHT * (1 - policyMaturity.score / 100) : 0
 
-        const coefficientBase = factors.reduce((acc, f) => {
-          if (f.score === null) return acc
-          return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
-        }, 1)
-        let coefficient = coefficientBase
-        if (riskImpact && riskMasteryScore !== null) coefficient *= (1 - riskPenaltyFrac)
-        if (policyImpact && policyMaturity) coefficient *= (1 - policyPenaltyFrac)
-        coefficient = Math.max(SCORE_COEFFICIENT_FLOOR, coefficient)
-        const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
-        const riskPenaltyPts = compositePosture === null ? 0 : Math.round(compositePosture * riskPenaltyFrac)
+        // Coefficient conservateur (facteurs + risque). Base (facteurs seuls) = pour le simulateur.
+        const coefOf = (fs: FactorScore[]): number => {
+          let c = fs.reduce((acc, f) => (f.score === null ? acc : acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))), 1)
+          if (riskImpact && riskMasteryScore !== null) c *= (1 - riskPenaltyFrac)
+          return Math.max(SCORE_COEFFICIENT_FLOOR, c)
+        }
+        const compositeFrom = (cp: number | null, fs: FactorScore[]): number | null => cp === null ? null : Math.round(cp * coefOf(fs))
+        const factorsBase = (fs: FactorScore[]): number => fs.reduce((acc, f) => (f.score === null ? acc : acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))), 1)
+
+        // Composite « contrôles seuls » (référence pour mesurer l'apport de Policy).
+        const baseComposite = compositeFrom(compositePosture, factors)
+
+        // Blend par-axe (RFC 0005) : Policy ALIMENTE les axes gouvernance/vérifiabilité
+        // et le facteur humain (moyenne avec le signal contrôles). Calculé toujours
+        // (pour l'effet shadow), appliqué au composite seulement si le flag est actif.
+        const blend = (a: number | null, b: number): number => a === null ? b : Math.round((a + b) / 2)
+        let effAxes = axes, effFactors = factors, effPosture = compositePosture, shadowComposite = baseComposite
+        if (policyMaturity) {
+          const pm = policyMaturity
+          effAxes = axes.map((a) =>
+            a.key === 'governance' && pm.governance !== null ? { ...a, score: blend(a.score, pm.governance) }
+              : a.key === 'verifiability' && pm.verifiability !== null ? { ...a, score: blend(a.score, pm.verifiability) }
+                : a)
+          const m = effAxes.filter((a) => a.score !== null)
+          effPosture = m.length > 0 ? Math.round(m.reduce((s, a) => s + (a.score ?? 0), 0) / m.length) : null
+          effFactors = factors.map((f) => f.key === 'human_factor' && pm.adoption !== null ? { ...f, score: blend(f.score, pm.adoption) } : f)
+          shadowComposite = compositeFrom(effPosture, effFactors)
+          pm.deltaPts = (shadowComposite !== null && baseComposite !== null) ? shadowComposite - baseComposite : 0
+        }
+
+        const apply = policyImpact && policyMaturity !== null
+        const outAxes = apply ? effAxes : axes
+        const outFactors = apply ? effFactors : factors
+        const outPosture = apply ? effPosture : compositePosture
+        const composite = apply ? shadowComposite : baseComposite
+        const riskPenaltyPts = outPosture === null ? 0 : Math.round(outPosture * riskPenaltyFrac)
         setData({
-          loading: false, axes, factors, compositePosture, composite, coefficient, coefficientBase,
-          measuredAxes: measuredLen, totalAxes: AXIS_KEYS.length,
+          loading: false, axes: outAxes, factors: outFactors, compositePosture: outPosture, composite,
+          coefficient: coefOf(outFactors), coefficientBase: factorsBase(outFactors),
+          measuredAxes: outAxes.filter((a) => a.score !== null).length, totalAxes: AXIS_KEYS.length,
           residualByDim,
           riskMastery: riskMasteryScore === null ? null : { score: riskMasteryScore, penaltyPts: riskPenaltyPts },
           riskImpactActive: riskImpact,
@@ -334,7 +360,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
           (k) => toFactorScore(k, null, 0, 0, null),
         ),
       }
-      if (missionIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0, new Map()); return }
+      if (missionIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, new Map()); return }
 
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
@@ -345,7 +371,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
 
       const rows = (assessments ?? []) as AssessmentRow[]
       const controlIds = [...new Set(rows.map((r) => r.control_id))]
-      if (controlIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0, new Map()); return }
+      if (controlIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, new Map()); return }
 
       const { data: controls, error: cErr } = await supabase
         .from('controls').select('id, dimension').in('id', controlIds).abortSignal(ctrl.signal)
@@ -424,7 +450,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
         }
         for (const [cid, c] of per) effByControl.set(cid, c.t > 0 ? c.a / c.t : 0)
       }
-      await finalize(axes, factors, compositePosture, measured.length, effByControl)
+      await finalize(axes, factors, compositePosture, effByControl)
     })()
 
     return () => ctrl.abort()

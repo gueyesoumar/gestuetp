@@ -42,10 +42,10 @@ export function PolicyBoardPage(): JSX.Element {
           <Info size={15} className="text-[#4B3BC4] shrink-0" />
           <p className="text-[13px] text-gray-700">
             Maturité de gouvernance&nbsp;: <b>{pm.score}/100</b> <span className="text-gray-500">(gouvernance {pm.governance ?? '—'} · adoption {pm.adoption ?? '—'} · vérifiabilité {pm.verifiability ?? '—'})</span>. {score.composite === null
-              ? <>Alimentera le score composite dès qu&apos;une <b>posture</b> existera.</>
+              ? <>Alimentera les axes <b>gouvernance / vérifiabilité</b> dès qu&apos;une <b>posture</b> existera.</>
               : score.policyImpactActive
-                ? <>Ce facteur <b>p&egrave;se</b> sur le score (−{pm.penaltyPts} pts) → confiance <b>{score.composite}</b>.</>
-                : <>Mode <b>shadow</b>&nbsp;: −{pm.penaltyPts} pts <i>si activ&eacute;</i> (score actuel <b>{score.composite}</b>, inchang&eacute;).</>}
+                ? <>Intégrée aux axes → confiance <b>{score.composite}</b> ({pm.deltaPts >= 0 ? '+' : ''}{pm.deltaPts} pts).</>
+                : <>Mode <b>shadow</b>&nbsp;: {pm.deltaPts >= 0 ? '+' : ''}{pm.deltaPts} pts <i>si activ&eacute;</i> (score actuel <b>{score.composite}</b>, inchang&eacute;).</>}
           </p>
         </div>
       )}
