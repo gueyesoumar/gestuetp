@@ -29,12 +29,18 @@ as $$
     and not public.is_client_role()
     and (
       pcl.organization_id = public.get_my_organization_id()
+      -- Orgs auditées : uniquement via une mission ACTIVE dont je suis membre et
+      -- dont mon org est le cabinet (m.is_active → coupe l'accès résiduel à la
+      -- clôture, moindre privilège). La visibilité est org-relationnelle par
+      -- design (une politique est un actif org-scoped) — pas de granularité par
+      -- contrôle/mission ici ; c'est intra-cabinet, sans fuite de tenant.
       or pcl.organization_id in (
         select m.client_id
         from public.missions m
         join public.mission_members mm on mm.mission_id = m.id
         where m.cabinet_id = public.get_my_organization_id()
           and mm.user_id = public.get_my_user_id()
+          and m.is_active = true
       )
     );
 $$;
