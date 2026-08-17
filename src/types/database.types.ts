@@ -1793,6 +1793,10 @@ export interface Database {
         }
         Returns: string
       }
+      get_control_policies: {
+        Args: { p_control_id: string }
+        Returns: { policy_id: string; title: string; status: string; applied: boolean }[]
+      }
     }
     Enums: {
       mission_status: MissionStatus
