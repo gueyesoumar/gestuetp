@@ -10,7 +10,10 @@ export interface EvidencePolicy {
   strength: PolicyEvidenceStrength
 }
 
-/** Politiques liées à un contrôle, avec leur force de preuve (Policy-as-Evidence, côté Comply). */
+/** Politiques liées à un contrôle avec leur force de preuve (Policy-as-Evidence).
+ *  Passe par la fonction SECURITY DEFINER get_control_policies : voit MON org
+ *  (auto-audit) OU l'org auditée quand je suis l'auditeur d'une mission (cross-tenant
+ *  confiné, secure by default). */
 export function useControlPolicies(controlId: string | null): { policies: EvidencePolicy[]; loading: boolean } {
   const [policies, setPolicies] = useState<EvidencePolicy[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,28 +22,17 @@ export function useControlPolicies(controlId: string | null): { policies: Eviden
     if (!controlId) { setPolicies([]); setLoading(false); return }
     const ac = new AbortController()
     setLoading(true)
-    void (async () => {
-      const { data: links, error } = await supabase.from('policy_control_links')
-        .select('policy_id, policy:policies(id, title, status)')
-        .eq('control_id', controlId).abortSignal(ac.signal)
-      if (ac.signal.aborted) return
-      if (error) { console.error('[useControlPolicies]', error.message); setLoading(false); return }
-      const rows = (links ?? []) as unknown as Array<{ policy_id: string; policy: { id: string; title: string; status: PolicyStatus } | null }>
-      const ids = rows.map((r) => r.policy_id)
-      // Une politique est « appliquée » si elle a une attestation d'application effective.
-      const applied = new Set<string>()
-      if (ids.length > 0) {
-        const { data: att } = await supabase.from('policy_effectiveness_attestations')
-          .select('policy_id').in('policy_id', ids).eq('status', 'applied').abortSignal(ac.signal)
+    supabase.rpc('get_control_policies', { p_control_id: controlId }).abortSignal(ac.signal)
+      .then(({ data, error }) => {
         if (ac.signal.aborted) return
-        for (const a of (att ?? []) as Array<{ policy_id: string }>) applied.add(a.policy_id)
-      }
-      setPolicies(rows.filter((r) => r.policy).map((r) => ({
-        id: r.policy!.id, title: r.policy!.title, status: r.policy!.status,
-        strength: policyEvidenceStrength(r.policy!.status, applied.has(r.policy_id)),
-      })))
-      setLoading(false)
-    })()
+        if (error) { console.error('[useControlPolicies]', error.message); setLoading(false); return }
+        const rows = (data ?? []) as Array<{ policy_id: string; title: string; status: string; applied: boolean }>
+        setPolicies(rows.map((r) => ({
+          id: r.policy_id, title: r.title, status: r.status as PolicyStatus,
+          strength: policyEvidenceStrength(r.status, r.applied),
+        })))
+        setLoading(false)
+      })
     return () => ac.abort()
   }, [controlId])
 
