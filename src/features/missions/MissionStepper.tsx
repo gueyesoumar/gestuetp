@@ -1,10 +1,12 @@
-import { Diamond, Check } from 'lucide-react'
+import { Diamond, Check, ShieldAlert } from 'lucide-react'
 import type { MissionProgress } from './useMissionProgress'
 
 interface MissionStepperProps {
   phases: MissionProgress['phases']
   activeTab: string
   onTabChange: (tab: string) => void
+  /** Affiche l'onglet contextuel « Risques assujetti » (audit externe, cabinet ≠ audité). */
+  showAuditedRisks?: boolean
 }
 
 const PHASE_TO_TAB: Record<string, string> = {
@@ -17,7 +19,7 @@ const PHASE_TO_TAB: Record<string, string> = {
   action_plan: 'action_plan',
 }
 
-export function MissionStepper({ phases, activeTab, onTabChange }: MissionStepperProps) {
+export function MissionStepper({ phases, activeTab, onTabChange, showAuditedRisks }: MissionStepperProps) {
   return (
     <div className="flex items-center px-7 bg-white border-b border-gray-200 overflow-x-auto">
       {/* Overview button — always accessible */}
@@ -31,6 +33,19 @@ export function MissionStepper({ phases, activeTab, onTabChange }: MissionSteppe
       >
         <Diamond size={12} /> Vue d&rsquo;ensemble
       </button>
+
+      {showAuditedRisks && (
+        <button
+          onClick={() => onTabChange('audited_risks')}
+          className={`flex items-center gap-2 py-4 px-3 mr-4 shrink-0 relative text-xs font-medium whitespace-nowrap transition-colors ${
+            activeTab === 'audited_risks'
+              ? 'text-forest-700 font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-forest-700 after:rounded-t'
+              : 'text-gray-500 hover:text-forest-700'
+          }`}
+        >
+          <ShieldAlert size={12} /> Risques assujetti
+        </button>
+      )}
 
       <div className="w-px h-6 bg-gray-200 mr-4 shrink-0" />
 

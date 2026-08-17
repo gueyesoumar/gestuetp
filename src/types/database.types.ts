@@ -1797,6 +1797,15 @@ export interface Database {
         Args: { p_control_id: string }
         Returns: { policy_id: string; title: string; status: string; applied: boolean }[]
       }
+      get_audited_org_risks: {
+        Args: { p_mission_id: string }
+        Returns: {
+          id: string; title: string; dimension: string | null
+          inherent_likelihood: number; inherent_impact: number
+          treatment: string; threat_ref: string | null; feared_event_ref: string | null
+          vulnerability: string | null; asset_name: string | null
+        }[]
+      }
     }
     Enums: {
       mission_status: MissionStatus

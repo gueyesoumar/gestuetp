@@ -12,6 +12,7 @@ import { MissionOverviewTab } from '../features/missions/overview/MissionOvervie
 import { MissionScopingTab } from '../features/missions/scoping/MissionScopingTab'
 import { MissionPlanningTab } from '../features/missions/planning/MissionPlanningTab'
 import { MissionFieldworkTab } from '../features/missions/fieldwork/MissionFieldworkTab'
+import { MissionAuditedRisksTab } from '../features/missions/MissionAuditedRisksTab'
 import { MissionReviewTab } from '../features/missions/review/MissionReviewTab'
 import { MissionInternalReviewTab } from '../features/missions/internal-review/MissionInternalReviewTab'
 import { MissionClientReviewTab } from '../features/missions/client-review/MissionClientReviewTab'
@@ -21,7 +22,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import type { CabinetClient } from '../types/database.types'
 
-type TabKey = 'overview' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure' | 'action_plan'
+type TabKey = 'overview' | 'audited_risks' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure' | 'action_plan'
 
 // Onglets interdits aux auditeurs (rôle non-lead, non-associate). Le RLS
 // (migration 00091) bloque déjà les fuites de données ; cette liste cache
@@ -92,11 +93,14 @@ export function MissionDetailPage(){
   return (
     <div className="-m-7">
       <MissionDetailHeader mission={mission} progress={progress} onCtaClick={handleCtaClick} />
-      <MissionStepper phases={visiblePhases} activeTab={activeTab} onTabChange={(t) => setActiveTab(t as TabKey)} />
+      <MissionStepper phases={visiblePhases} activeTab={activeTab} onTabChange={(t) => setActiveTab(t as TabKey)} showAuditedRisks={mission.cabinet_id !== mission.client_id} />
 
       <div className="p-7">
         {activeTab === 'overview' && (
           <MissionOverviewTab mission={mission} members={members} assessments={assessments} domains={domains} progress={progress} onRefetch={refetch} />
+        )}
+        {activeTab === 'audited_risks' && mission.cabinet_id !== mission.client_id && (
+          <MissionAuditedRisksTab missionId={mission.id} />
         )}
         {activeTab === 'scoping' && userRole.isPrivileged && (
           <MissionScopingTab mission={mission} members={members} domains={domains} client={cabinetClient} onRefetch={refetch} />
