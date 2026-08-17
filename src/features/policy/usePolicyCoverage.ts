@@ -43,34 +43,38 @@ export function usePolicyCoverage(): {
     return () => ac.abort()
   }, [orgId])
 
-  // Jeu requis + couverture pour le référentiel sélectionné.
+  // Jeu requis + couverture pour le référentiel sélectionné. Le filtrage par
+  // référentiel se fait côté serveur via jointure (évite un .in() sur des centaines
+  // de contrôles → URL trop longue). try/finally garantit la fin du chargement.
   useEffect(() => {
     if (!selected) { setRequired([]); setLoading(false); return }
     const ac = new AbortController()
     setLoading(true)
     void (async () => {
-      const { data: doms } = await supabase.from('domains').select('id').eq('framework_id', selected).abortSignal(ac.signal)
-      const domainIds = (doms ?? []).map((d: { id: string }) => d.id)
-      if (domainIds.length === 0) { if (!ac.signal.aborted) { setRequired([]); setLoading(false) } return }
-      const { data: ctrls } = await supabase.from('controls').select('id, code').in('domain_id', domainIds).abortSignal(ac.signal)
-      const controls = (ctrls ?? []) as Array<{ id: string; code: string }>
-      const controlIds = controls.map((c) => c.id)
-      const codeById = new Map(controls.map((c) => [c.id, c.code]))
-      if (controlIds.length === 0) { if (!ac.signal.aborted) { setRequired([]); setLoading(false) } return }
-      const [{ data: ev }, { data: links }] = await Promise.all([
-        supabase.from('evidence_catalog').select('id, name, control_id').in('control_id', controlIds).eq('kind', 'policy').abortSignal(ac.signal),
-        supabase.from('policy_control_links').select('control_id, policy:policies(status)').in('control_id', controlIds).abortSignal(ac.signal),
-      ])
-      if (ac.signal.aborted) return
-      const coveredCtrls = new Set<string>()
-      for (const l of (links ?? []) as unknown as Array<{ control_id: string; policy: { status: string } | null }>) {
-        if (l.policy && (l.policy.status === 'approved' || l.policy.status === 'published')) coveredCtrls.add(l.control_id)
+      try {
+        // Preuves attendues de type « politique » du référentiel (via controls→domains).
+        const { data: ev, error: eErr } = await supabase.from('evidence_catalog')
+          .select('id, name, control_id, control:controls!inner(code, domain:domains!inner(framework_id))')
+          .eq('control.domain.framework_id', selected).eq('kind', 'policy').abortSignal(ac.signal)
+        if (eErr) console.error('[coverage evidence]', eErr.message)
+        // Liens politique↔contrôle de l'org (peu nombreux → pas de .in).
+        const { data: links, error: lErr } = await supabase.from('policy_control_links')
+          .select('control_id, policy:policies(status)').abortSignal(ac.signal)
+        if (lErr) console.error('[coverage links]', lErr.message)
+        if (ac.signal.aborted) return
+        const coveredCtrls = new Set<string>()
+        for (const l of (links ?? []) as unknown as Array<{ control_id: string; policy: { status: string } | null }>) {
+          if (l.policy && (l.policy.status === 'approved' || l.policy.status === 'published')) coveredCtrls.add(l.control_id)
+        }
+        setRequired(((ev ?? []) as unknown as Array<{ id: string; name: string; control_id: string; control: { code: string } | null }>).map((e) => ({
+          evidenceId: e.id, name: e.name, controlId: e.control_id,
+          controlCode: e.control?.code ?? '—', covered: coveredCtrls.has(e.control_id),
+        })))
+      } catch (err) {
+        if (!ac.signal.aborted) console.error('[coverage]', err)
+      } finally {
+        if (!ac.signal.aborted) setLoading(false)
       }
-      setRequired(((ev ?? []) as Array<{ id: string; name: string; control_id: string }>).map((e) => ({
-        evidenceId: e.id, name: e.name, controlId: e.control_id,
-        controlCode: codeById.get(e.control_id) ?? '—', covered: coveredCtrls.has(e.control_id),
-      })))
-      setLoading(false)
     })()
     return () => ac.abort()
   }, [selected, key])
