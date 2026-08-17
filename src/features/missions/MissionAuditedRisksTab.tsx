@@ -1,16 +1,12 @@
-import { useEffect, useState, Fragment } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, riskExposure, type ScoreDimensionKey } from '../../lib/constants'
+import { AuditedScenarioBowtie, type AuditedScenario } from './AuditedScenarioBowtie'
 import type { RiskCatalogEntry } from '../../types/database.types'
 
-interface AuditedRisk {
-  id: string; title: string; dimension: string | null
-  inherent_likelihood: number; inherent_impact: number
-  treatment: string; threat_ref: string | null; feared_event_ref: string | null
-  vulnerability: string | null; asset_name: string | null
-}
+type AuditedRisk = AuditedScenario & { treatment: string }
 
 const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) => t.value === v)?.label ?? v
 const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
@@ -21,7 +17,7 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
   const [rows, setRows] = useState<AuditedRisk[]>([])
   const [catalog, setCatalog] = useState<RiskCatalogEntry[]>([])
   const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [selected, setSelected] = useState<AuditedRisk | null>(null)
 
   useEffect(() => {
     const ac = new AbortController()
@@ -39,8 +35,6 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
     })()
     return () => ac.abort()
   }, [missionId])
-
-  const label = (id: string | null): string => id ? (catalog.find((c) => c.id === id)?.label ?? '—') : '—'
 
   if (loading) return <LoadingSpinner />
 
@@ -69,39 +63,27 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
               {rows.map((r) => {
                 const exp = riskExposure(r.inherent_likelihood, r.inherent_impact)
                 const dimColor = r.dimension ? SCORE_DIMENSION_COLORS[r.dimension as ScoreDimensionKey] : '#94A3B8'
-                const open = expanded === r.id
                 return (
-                  <Fragment key={r.id}>
-                    <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => setExpanded(open ? null : r.id)}>
-                      <td className="px-4 py-3">
-                        <span className="font-medium text-gray-900">{r.title}</span>
-                        {r.asset_name && <span className="text-gray-400"> · {r.asset_name}</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        {r.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[r.dimension as ScoreDimensionKey]}</span>}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-gray-500">V{r.inherent_likelihood}·I{r.inherent_impact}</td>
-                      <td className="px-4 py-3 font-semibold" style={{ color: expColor(exp) }}>{exp}</td>
-                      <td className="px-4 py-3 text-gray-600">{treatmentLabel(r.treatment)}</td>
-                    </tr>
-                    {open && (
-                      <tr className="bg-gray-50/60">
-                        <td colSpan={5} className="px-4 py-3 text-[12px] text-gray-600">
-                          <div className="grid gap-1 sm:grid-cols-3">
-                            <div><span className="font-mono text-[10px] uppercase text-gray-400">Menace</span><br />{label(r.threat_ref)}</div>
-                            <div><span className="font-mono text-[10px] uppercase text-gray-400">Événement redouté</span><br />{label(r.feared_event_ref)}</div>
-                            <div><span className="font-mono text-[10px] uppercase text-gray-400">Vulnérabilité</span><br />{r.vulnerability || '—'}</div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
+                  <tr key={r.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(r)}>
+                    <td className="px-4 py-3">
+                      <span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span>
+                      {r.asset_name && <span className="text-gray-400"> · {r.asset_name}</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {r.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[r.dimension as ScoreDimensionKey]}</span>}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-gray-500">V{r.inherent_likelihood}·I{r.inherent_impact}</td>
+                    <td className="px-4 py-3 font-semibold" style={{ color: expColor(exp) }}>{exp}</td>
+                    <td className="px-4 py-3 text-gray-600">{treatmentLabel(r.treatment)}</td>
+                  </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
       )}
+
+      {selected && <AuditedScenarioBowtie scenario={selected} catalog={catalog} onClose={() => setSelected(null)} />}
     </div>
   )
 }
