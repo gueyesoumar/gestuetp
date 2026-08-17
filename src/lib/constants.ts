@@ -548,3 +548,6 @@ export function policyEvidenceStrength(status: string, applied: boolean): Policy
   return applied ? 'strong' : 'weak'
 }
 export const POLICY_EVIDENCE_WEIGHT: Record<PolicyEvidenceStrength, number> = { strong: 1, weak: 0.5, none: 0 }
+
+// Poids du facteur de maturité de gouvernance (Policy) dans le coefficient conservateur.
+export const POLICY_MATURITY_WEIGHT = 0.15

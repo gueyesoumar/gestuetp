@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Plus, Trash2, FileText } from 'lucide-react'
+import { Plus, Trash2, FileText, Info } from 'lucide-react'
 import { usePolicyRegister } from './usePolicyRegister'
+import { useSelfDimensionScores } from '../hub/useSelfDimensionScores'
 import { PolicyCreateModal } from './PolicyCreateModal'
 import { PolicyDetailDrawer } from './PolicyDetailDrawer'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -15,11 +16,14 @@ const provLabel = (v: string): string => POLICY_PROVENANCE.find((p) => p.value =
 
 export function PolicyBoardPage(): JSX.Element {
   const reg = usePolicyRegister()
+  const score = useSelfDimensionScores()
   const [modal, setModal] = useState(false)
   const [detail, setDetail] = useState<Policy | null>(null)
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />
+
+  const pm = score.policyMaturity
 
   return (
     <div className="space-y-5">
@@ -32,6 +36,19 @@ export function PolicyBoardPage(): JSX.Element {
           <Plus size={16} /> Nouvelle politique
         </button>
       </div>
+
+      {pm && (
+        <div className="rounded-xl border border-[#6D5AE6]/30 bg-[#6D5AE6]/[0.06] px-4 py-3 flex items-center gap-3 flex-wrap">
+          <Info size={15} className="text-[#4B3BC4] shrink-0" />
+          <p className="text-[13px] text-gray-700">
+            Maturité de gouvernance&nbsp;: <b>{pm.score}/100</b> <span className="text-gray-500">(gouvernance {pm.governance ?? '—'} · adoption {pm.adoption ?? '—'} · vérifiabilité {pm.verifiability ?? '—'})</span>. {score.composite === null
+              ? <>Alimentera le score composite dès qu&apos;une <b>posture</b> existera.</>
+              : score.policyImpactActive
+                ? <>Ce facteur <b>p&egrave;se</b> sur le score (−{pm.penaltyPts} pts) → confiance <b>{score.composite}</b>.</>
+                : <>Mode <b>shadow</b>&nbsp;: −{pm.penaltyPts} pts <i>si activ&eacute;</i> (score actuel <b>{score.composite}</b>, inchang&eacute;).</>}
+          </p>
+        </div>
+      )}
 
       {reg.policies.length === 0 ? (
         <EmptyState title="Aucune politique" description="Créez votre première politique avec le bouton ci-dessus." />
