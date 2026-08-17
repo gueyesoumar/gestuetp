@@ -1806,6 +1806,16 @@ export interface Database {
           vulnerability: string | null; asset_name: string | null
         }[]
       }
+      get_audited_scenario_bowtie: {
+        Args: { p_scenario_id: string }
+        Returns: {
+          barriers: { code: string; name: string; kind: string; effectiveness: number }[]
+          policyBarriers: { title: string; kind: string; effectiveness: number }[]
+          incidents: { id: string; category: string; severity: string }[]
+          linkedIncidentIds: string[]
+          scenarioIncidentIds: string[]
+        }
+      }
     }
     Enums: {
       mission_status: MissionStatus
