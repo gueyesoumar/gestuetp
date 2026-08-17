@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Plus, AlertCircle, ClipboardList, Info } from 'lucide-react'
 import { FindingCard } from './FindingCard'
-import type { UseAssessmentFindingsReturn } from './useAssessmentFindings'
+import { PromoteFindingModal } from '../../../risk/PromoteFindingModal'
+import type { AssessmentFinding, UseAssessmentFindingsReturn } from './useAssessmentFindings'
 
 interface FindingsEditorProps {
   findingsHook: UseAssessmentFindingsReturn
@@ -8,7 +10,8 @@ interface FindingsEditorProps {
 }
 
 export function FindingsEditor({ findingsHook, readOnly }: FindingsEditorProps) {
-  const { findings, loading, error, addFinding, updateFinding, deleteFinding, moveFinding } = findingsHook
+  const { findings, loading, error, addFinding, updateFinding, deleteFinding, moveFinding, refetch } = findingsHook
+  const [promoteTarget, setPromoteTarget] = useState<AssessmentFinding | null>(null)
 
   return (
     <div className="space-y-3">
@@ -82,9 +85,18 @@ export function FindingsEditor({ findingsHook, readOnly }: FindingsEditorProps) 
               onDelete={() => deleteFinding(f.id)}
               onMoveUp={() => moveFinding(f.id, 'up')}
               onMoveDown={() => moveFinding(f.id, 'down')}
+              onPromote={setPromoteTarget}
             />
           ))}
         </div>
+      )}
+
+      {promoteTarget && (
+        <PromoteFindingModal
+          finding={promoteTarget}
+          onClose={() => setPromoteTarget(null)}
+          onDone={() => void refetch()}
+        />
       )}
     </div>
   )

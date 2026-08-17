@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { ChevronUp, ChevronDown, Trash2, Sparkles, AlertTriangle } from 'lucide-react'
+import { ChevronUp, ChevronDown, Trash2, Sparkles, AlertTriangle, ArrowUpRight, Check } from 'lucide-react'
 import { MarkdownToolbar } from '../../../../components/ui/MarkdownToolbar'
 import { FindingClassificationPicker, FindingPriorityPicker, getClassificationConfig } from './FindingPickers'
 import type { AssessmentFinding, FindingPatch } from './useAssessmentFindings'
@@ -13,6 +13,8 @@ interface FindingCardProps {
   onDelete: () => Promise<boolean>
   onMoveUp: () => Promise<boolean>
   onMoveDown: () => Promise<boolean>
+  /** Fourni uniquement en contexte staff terrain → active « Promouvoir vers le registre ». */
+  onPromote?: (finding: AssessmentFinding) => void
 }
 
 function formatDeadline(iso: string | null): string {
@@ -20,7 +22,7 @@ function formatDeadline(iso: string | null): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-export function FindingCard({ finding, index, total, readOnly, onChange, onDelete, onMoveUp, onMoveDown }: FindingCardProps) {
+export function FindingCard({ finding, index, total, readOnly, onChange, onDelete, onMoveUp, onMoveDown, onPromote }: FindingCardProps) {
   const [description, setDescription] = useState(finding.description)
   const [risk, setRisk] = useState(finding.risk ?? '')
   const [recommendation, setRecommendation] = useState(finding.recommendation ?? '')
@@ -176,6 +178,18 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
               <span className="text-gray-700 font-medium">{formatDeadline(finding.proposed_deadline)}</span>
             )}
           </div>
+          {onPromote && (
+            <div className="ml-auto">
+              {finding.promoted_at ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-forest-700"><Check size={12} /> Promu au registre</span>
+              ) : (
+                <button type="button" onClick={() => onPromote(finding)}
+                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-forest-700 hover:text-forest-900">
+                  <ArrowUpRight size={12} /> Promouvoir vers le registre
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

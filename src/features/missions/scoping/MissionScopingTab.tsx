@@ -235,7 +235,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           </div>
         )}
         {!isControle && activeTab === 'risks' && (
-          <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} saving={saving} error={saveError} />
+          <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} onPromoted={refetchScoping} saving={saving} error={saveError} />
         )}
         {activeTab === 'actors' && <ScopingActorsTab missionId={mission.id} />}
       </div>

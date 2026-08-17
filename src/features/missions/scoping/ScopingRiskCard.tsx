@@ -1,20 +1,23 @@
+import { ArrowUpRight, Check } from 'lucide-react'
 import type { MissionRisk, RiskLevel } from '../../../types/database.types'
 
 interface ScopingRiskCardProps {
   risk: MissionRisk
   onRemove: (id: string) => void
+  onPromote: (risk: MissionRisk) => void
   saving: boolean
 }
 
 const RISK_STYLES: Record<RiskLevel, { label: string; cls: string }> = {
   critical: { label: 'Critique', cls: 'bg-red-50 text-red-600' },
-  high: { label: '\u00c9lev\u00e9', cls: 'bg-amber-50 text-amber-600' },
+  high: { label: 'Élevé', cls: 'bg-amber-50 text-amber-600' },
   medium: { label: 'Moyen', cls: 'bg-yellow-50 text-yellow-700' },
   low: { label: 'Faible', cls: 'bg-gray-100 text-gray-500' },
 }
 
-export function ScopingRiskCard({ risk, onRemove, saving }: ScopingRiskCardProps) {
+export function ScopingRiskCard({ risk, onRemove, onPromote, saving }: ScopingRiskCardProps) {
   const style = RISK_STYLES[risk.risk_level]
+  const promoted = risk.promoted_at != null
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -26,8 +29,17 @@ export function ScopingRiskCard({ risk, onRemove, saving }: ScopingRiskCardProps
       {risk.description && (
         <div className="px-4 py-3 text-xs text-gray-700 leading-relaxed">{risk.description}</div>
       )}
-      <div className="flex gap-1 flex-wrap px-4 pb-3">
+      <div className="flex items-center gap-1 flex-wrap px-4 pb-3">
         {risk.source && <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-500">Source: {risk.source}</span>}
+        <div className="flex-1" />
+        {promoted ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-forest-700"><Check size={13} /> Promu au registre</span>
+        ) : (
+          <button onClick={() => onPromote(risk)} disabled={saving}
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-forest-700 hover:text-forest-900 disabled:opacity-50">
+            <ArrowUpRight size={13} /> Promouvoir vers le registre
+          </button>
+        )}
       </div>
     </div>
   )

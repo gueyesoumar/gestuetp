@@ -390,3 +390,164 @@ export const SCORE_FACTOR_COLORS: Record<ScoreFactorKey, string> = {
   third_party: '#64748B',
   assurance: '#B8860B',
 }
+
+// ===== Gëstu Risk (RFC 0004) — cotation 4×4 + typologies =====
+export const RISK_LIKELIHOOD_LEVELS = [
+  { value: 1, label: 'Rare' },
+  { value: 2, label: 'Possible' },
+  { value: 3, label: 'Probable' },
+  { value: 4, label: 'Quasi-sûr' },
+] as const
+export const RISK_IMPACT_LEVELS = [
+  { value: 1, label: 'Mineur' },
+  { value: 2, label: 'Modéré' },
+  { value: 3, label: 'Majeur' },
+  { value: 4, label: 'Critique' },
+] as const
+export const RISK_ASSET_CATEGORIES = [
+  { value: 'application', label: 'Application' },
+  { value: 'data', label: 'Données' },
+  { value: 'infrastructure', label: 'Infrastructure' },
+  { value: 'third_party', label: 'Tiers' },
+  { value: 'process', label: 'Processus' },
+  { value: 'people', label: 'Personnes' },
+  { value: 'site', label: 'Site' },
+] as const
+export const RISK_TREATMENTS = [
+  { value: 'untreated', label: 'Non traité' },
+  { value: 'reduce', label: 'Réduire' },
+  { value: 'accept', label: 'Accepter' },
+  { value: 'transfer', label: 'Transférer' },
+  { value: 'avoid', label: 'Éviter' },
+] as const
+export const RISK_TREATMENT_STATUS = [
+  { value: 'open', label: 'Ouvert' },
+  { value: 'in_progress', label: 'En cours' },
+  { value: 'done', label: 'Terminé' },
+] as const
+export const RISK_CONTROL_LINK_KINDS = [
+  { value: 'preventive', label: 'Préventive' },
+  { value: 'detective', label: 'Détective' },
+  { value: 'corrective', label: 'Corrective' },
+] as const
+
+export type RiskAssetCategory = typeof RISK_ASSET_CATEGORIES[number]['value']
+export type RiskTreatment = typeof RISK_TREATMENTS[number]['value']
+export type RiskTreatmentStatus = typeof RISK_TREATMENT_STATUS[number]['value']
+
+export type RiskControlLinkKind = typeof RISK_CONTROL_LINK_KINDS[number]['value']
+
+// Exposition 0..100 dérivée de la cotation 4×4 (Vraisemblance × Impact).
+export function riskExposure(likelihood: number, impact: number): number {
+  return Math.round(((likelihood * impact) / 16) * 100)
+}
+
+// Nœud papillon : préventive → côté vraisemblance (avant l'événement) ;
+// détective/corrective → côté impact (après l'événement, limite la conséquence).
+export function barrierSide(kind: RiskControlLinkKind): 'likelihood' | 'impact' {
+  return kind === 'preventive' ? 'likelihood' : 'impact'
+}
+
+// Efficacités moyennes par côté (préventif ↓ vraisemblance, correctif ↓ impact).
+// null = aucune barrière de ce côté → le facteur reste inchangé.
+export function splitBarrierEfficacies(
+  barriers: ReadonlyArray<{ kind: RiskControlLinkKind; effectiveness: number }>,
+): { effPrev: number | null; effCorr: number | null } {
+  const mean = (xs: number[]): number | null => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null)
+  return {
+    effPrev: mean(barriers.filter((b) => barrierSide(b.kind) === 'likelihood').map((b) => b.effectiveness)),
+    effCorr: mean(barriers.filter((b) => barrierSide(b.kind) === 'impact').map((b) => b.effectiveness)),
+  }
+}
+
+// Résiduel EBIOS par nœud papillon : la vraisemblance est abaissée par les
+// barrières préventives, l'impact par les correctives. effPrev/effCorr ∈ [0..1]
+// ou null (côté sans barrière). Retourne l'exposition résiduelle 0..100.
+export function riskResidualSplit(
+  likelihood: number, impact: number, effPrev: number | null, effCorr: number | null,
+): number {
+  const rL = effPrev == null ? likelihood : likelihood * (1 - effPrev)
+  const rI = effCorr == null ? impact : impact * (1 - effCorr)
+  return riskExposure(rL, rI)
+}
+
+// Poids du facteur risk_mastery dans le coefficient conservateur (= assurance).
+export const RISK_MASTERY_WEIGHT = 0.2
+
+// ---- Boucle Regul → Risk : un incident aggrave la vraisemblance ----
+// Mapping nature d'incident → dimension du score (ajustable). 'autre' = neutre.
+export const INCIDENT_CATEGORY_DIMENSION: Record<string, ScoreDimensionKey | null> = {
+  intrusion: 'security',
+  ransomware: 'resilience',
+  fuite_donnees: 'data_protection',
+  deni_service: 'resilience',
+  autre: null,
+}
+
+// Aggravation conservatrice de la vraisemblance selon la gravité de l'incident.
+export function incidentSeverityBump(severity: string): number {
+  return severity === 'critique' ? 2 : severity === 'eleve' ? 1 : 0
+}
+
+// Fenêtre de pertinence d'un incident sur la vraisemblance (mois).
+export const INCIDENT_WINDOW_MONTHS = 12
+
+// Aggravation de la vraisemblance d'un scénario par les incidents (mode hybride) :
+// un incident explicitement lié à CE scénario s'applique toujours ; sinon, un
+// incident SANS lien explicite s'applique automatiquement aux scénarios de sa
+// dimension. Retourne le bump (0..2) = gravité max des incidents applicables.
+export function incidentLikelihoodBump(
+  dimension: ScoreDimensionKey | null,
+  scenarioIncidentIds: ReadonlySet<string>,
+  incidents: ReadonlyArray<{ id: string; category: string; severity: string }>,
+  linkedIncidentIds: ReadonlySet<string>,
+): number {
+  let bump = 0
+  for (const inc of incidents) {
+    const applies = scenarioIncidentIds.has(inc.id)
+      || (!linkedIncidentIds.has(inc.id) && INCIDENT_CATEGORY_DIMENSION[inc.category] === dimension)
+    if (applies) bump = Math.max(bump, incidentSeverityBump(inc.severity))
+  }
+  return bump
+}
+
+// ---- Gëstu Policy (RFC 0005) ----
+export const POLICY_STATUS = [
+  { value: 'draft', label: 'Brouillon' },
+  { value: 'in_review', label: 'En revue' },
+  { value: 'approved', label: 'Approuvée' },
+  { value: 'published', label: 'Publiée' },
+  { value: 'revision', label: 'Révision' },
+  { value: 'retired', label: 'Retirée' },
+] as const
+
+export const POLICY_PROVENANCE = [
+  { value: 'native', label: 'Rédigée' },
+  { value: 'ai', label: 'Générée par IA' },
+  { value: 'imported', label: 'Importée' },
+] as const
+
+export const POLICY_EFFECTIVENESS_STATUS = [
+  { value: 'applied', label: 'Appliquée' },
+  { value: 'partial', label: 'Partielle' },
+  { value: 'not_verified', label: 'Non vérifiée' },
+] as const
+
+export const EVIDENCE_KINDS = [
+  { value: 'document', label: 'Document' },
+  { value: 'policy', label: 'Politique' },
+  { value: 'record', label: 'Enregistrement' },
+  { value: 'config', label: 'Configuration' },
+] as const
+
+// Force de preuve d'une politique (Policy-as-Evidence graduée) : approuvée/publiée
+// + appliquée = forte ; approuvée/publiée seule = faible ; sinon nulle.
+export type PolicyEvidenceStrength = 'strong' | 'weak' | 'none'
+export function policyEvidenceStrength(status: string, applied: boolean): PolicyEvidenceStrength {
+  if (status !== 'approved' && status !== 'published') return 'none'
+  return applied ? 'strong' : 'weak'
+}
+export const POLICY_EVIDENCE_WEIGHT: Record<PolicyEvidenceStrength, number> = { strong: 1, weak: 0.5, none: 0 }
+
+// Poids du facteur de maturité de gouvernance (Policy) dans le coefficient conservateur.
+export const POLICY_MATURITY_WEIGHT = 0.15

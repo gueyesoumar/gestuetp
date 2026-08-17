@@ -1059,6 +1059,8 @@ export interface MissionRisk {
   created_by: string
   created_at: string
   updated_at: string
+  /** Horodatage de promotion vers le registre Gëstu Risk de l'org auditée (null = non promu). */
+  promoted_at: string | null
 }
 
 export interface MissionRiskInsert {
@@ -1295,6 +1297,8 @@ export interface AssessmentFinding {
   ai_generated: boolean
   created_at: string
   updated_at: string
+  /** Horodatage de promotion vers le registre Gëstu Risk de l'org auditée (null = non promu). */
+  promoted_at: string | null
 }
 
 export interface AssessmentFindingInsert {
@@ -1765,6 +1769,30 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: { key: string; value: string }[]
       }
+      promote_mission_risk: {
+        Args: {
+          p_mission_risk_id: string
+          p_dimension: ScoreDimension
+          p_likelihood: number
+          p_impact: number
+          p_vulnerability?: string | null
+          p_threat_ref?: string | null
+          p_feared_event_ref?: string | null
+        }
+        Returns: string
+      }
+      promote_finding: {
+        Args: {
+          p_finding_id: string
+          p_dimension?: ScoreDimension | null
+          p_likelihood?: number | null
+          p_impact?: number | null
+          p_vulnerability?: string | null
+          p_threat_ref?: string | null
+          p_feared_event_ref?: string | null
+        }
+        Returns: string
+      }
     }
     Enums: {
       mission_status: MissionStatus
@@ -1878,4 +1906,187 @@ export interface AuditCampaignUpdate {
   period_start?: string
   period_end?: string
   status?: CampaignStatus
+}
+
+// ===== Gëstu Risk (RFC 0004, migrations 00183-00184) =====
+// (dimension = type ScoreDimension déjà défini plus haut, cf. migration 00159.)
+export interface RiskCatalogEntry {
+  id: string
+  kind: 'source_de_risque' | 'evenement_redoute' | 'menace_type'
+  code: string
+  label: string
+  framework: 'ebios_rm' | 'iso_27005'
+  description: string | null
+  created_at: string
+}
+
+export interface BusinessValue {
+  id: string
+  organization_id: string
+  name: string
+  description: string | null
+  dimension: ScoreDimension | null
+  criticality: 'eleve' | 'standard'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface RiskAsset {
+  id: string
+  organization_id: string
+  name: string
+  category: 'application' | 'data' | 'infrastructure' | 'third_party' | 'process' | 'people' | 'site'
+  criticality: 'eleve' | 'standard'
+  business_value_id: string | null
+  entity_id: string | null
+  description: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface RiskScenario {
+  id: string
+  organization_id: string
+  title: string
+  description: string | null
+  dimension: ScoreDimension | null
+  business_value_id: string | null
+  asset_id: string | null
+  source_ref: string | null
+  feared_event_ref: string | null
+  threat_ref: string | null
+  vulnerability: string | null
+  inherent_likelihood: number
+  inherent_impact: number
+  treatment: 'accept' | 'reduce' | 'transfer' | 'avoid' | 'untreated'
+  treatment_status: 'open' | 'in_progress' | 'done'
+  owner_user_id: string | null
+  due_date: string | null
+  source_mission_id: string | null
+  source_risk_id: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface RiskControlLink {
+  id: string
+  organization_id: string
+  risk_scenario_id: string
+  control_id: string
+  kind: 'preventive' | 'detective' | 'corrective'
+  created_at: string
+}
+
+export type IncidentCategory = 'intrusion' | 'ransomware' | 'fuite_donnees' | 'deni_service' | 'autre'
+export type IncidentSeverity = 'faible' | 'moyen' | 'eleve' | 'critique'
+
+export interface Incident {
+  id: string
+  entity_id: string
+  mission_id: string | null
+  declared_by: string | null
+  title: string
+  category: IncidentCategory
+  severity: IncidentSeverity
+  status: 'declared' | 'triage' | 'notified' | 'resolved' | 'closed'
+  description: string | null
+  impact: string | null
+  affected_systems: string | null
+  detected_at: string | null
+  occurred_at: string | null
+  declared_at: string
+  created_at: string
+  updated_at: string
+}
+
+/** Liaison explicite incident ↔ scénario de risque (mode hybride, override de l'auto). */
+export interface IncidentRiskLink {
+  id: string
+  organization_id: string
+  incident_id: string
+  risk_scenario_id: string
+  created_at: string
+}
+
+// ---- Gëstu Policy (RFC 0005) ----
+export type PolicyProvenance = 'native' | 'ai' | 'imported'
+export type PolicyStatus = 'draft' | 'in_review' | 'approved' | 'published' | 'revision' | 'retired'
+export type PolicyEffectivenessStatus = 'applied' | 'partial' | 'not_verified'
+export type EvidenceKind = 'document' | 'policy' | 'record' | 'config'
+
+export interface Policy {
+  id: string
+  organization_id: string
+  title: string
+  summary: string | null
+  provenance: PolicyProvenance
+  status: PolicyStatus
+  dimension: ScoreDimension | null
+  owner_user_id: string | null
+  current_version_id: string | null
+  review_period_months: number
+  next_review_at: string | null
+  approved_at: string | null
+  published_at: string | null
+  retired_at: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PolicyVersion {
+  id: string
+  policy_id: string
+  organization_id: string
+  version_label: string
+  content: string | null
+  file_path: string | null
+  change_note: string | null
+  approved_by: string | null
+  approved_at: string | null
+  created_by: string | null
+  created_at: string
+}
+
+export interface PolicyControlLink {
+  id: string
+  organization_id: string
+  policy_id: string
+  control_id: string
+  evidence_catalog_id: string | null
+  created_at: string
+}
+
+export interface PolicyRiskLink {
+  id: string
+  organization_id: string
+  policy_id: string
+  risk_scenario_id: string
+  kind: 'preventive' | 'detective' | 'corrective'
+  created_at: string
+}
+
+export interface PolicyAcknowledgement {
+  id: string
+  organization_id: string
+  policy_id: string
+  policy_version_id: string
+  user_id: string
+  acknowledged_at: string
+}
+
+export interface PolicyEffectivenessAttestation {
+  id: string
+  organization_id: string
+  policy_id: string
+  policy_version_id: string | null
+  attested_by: string | null
+  status: PolicyEffectivenessStatus
+  evidence_note: string | null
+  evidence_path: string | null
+  attested_at: string
+  next_due: string | null
 }

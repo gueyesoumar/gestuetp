@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, ShieldAlert, LayoutDashboard, FileText } from 'lucide-react'
 import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
@@ -11,6 +12,8 @@ export interface NavItem {
   to: string
   label: string
   icon: ReactNode
+  /** Force une correspondance exacte pour l'état actif (index d'un workspace). */
+  end?: boolean
 }
 
 /**
@@ -29,6 +32,30 @@ export function useSidebarNavItems(
   const { canViewAuditTrail } = useCabinetPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
   const isRegul = hasCapability('supervision')
+  const { pathname } = useLocation()
+
+  // Workspace dédié Gëstu Risk : sous /risque, la barre latérale bascule sur la
+  // sous-nav du module (le lien « Hub ETP » du shell assure le retour à l'écosystème).
+  if (pathname.startsWith('/risque') && hasCapability('risk')) {
+    return {
+      mainItems: [
+        { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
+        { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} /> },
+      ],
+      groupItems: [],
+    }
+  }
+
+  // Workspace dédié Gëstu Policy : sous /politiques, sous-nav du module.
+  if (pathname.startsWith('/politiques') && hasCapability('policy')) {
+    return {
+      mainItems: [
+        { to: '/politiques', label: 'Registre', icon: <FileText size={20} strokeWidth={1.5} />, end: true },
+        { to: '/politiques/couverture', label: 'Couverture', icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
+      ],
+      groupItems: [],
+    }
+  }
 
   const mainItems: NavItem[] = [
     { to: '/', label: 'Tableau de bord', icon: <DashboardIcon /> },
@@ -51,6 +78,17 @@ export function useSidebarNavItems(
     mainItems.push({ to: '/clients', label: 'Clients', icon: <ClientsIcon /> })
     mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <FrameworksIcon /> })
     mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <MissionsIcon /> })
+  }
+
+  // Gëstu Risk (RFC 0004) — registre de risques alimentant le score de confiance.
+  // Gated par la capacité `risk` (module activable par client, RFC 0002).
+  if (hasCapability('risk')) {
+    mainItems.push({ to: '/risque', label: 'Risque', icon: <ShieldAlert size={20} strokeWidth={1.5} /> })
+  }
+
+  // Gëstu Policy (RFC 0005) — gouvernance documentaire. Gated par la capacité `policy`.
+  if (hasCapability('policy')) {
+    mainItems.push({ to: '/politiques', label: 'Politiques', icon: <FileText size={20} strokeWidth={1.5} /> })
   }
 
   // Piste d'audit — réservée aux admins d'organisation (F6).

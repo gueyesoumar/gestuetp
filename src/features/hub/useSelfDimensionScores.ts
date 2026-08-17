@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useFeatureFlag } from '../../hooks/useFeatureFlag'
 import {
   SCORE_DIMENSION_KEYS, SCORE_DIMENSION_KIND, type ScoreDimensionKey,
   SCORE_FACTOR_WEIGHTS, SCORE_COEFFICIENT_FLOOR, ASSURANCE_FRESHNESS_MONTHS,
   SEAL_STAGE_WEIGHTS, type ScoreFactorKey,
+  RISK_MASTERY_WEIGHT, riskExposure, riskResidualSplit, splitBarrierEfficacies,
+  INCIDENT_WINDOW_MONTHS, incidentLikelihoodBump,
+  policyEvidenceStrength, POLICY_EVIDENCE_WEIGHT, POLICY_MATURITY_WEIGHT,
+  type RiskControlLinkKind,
 } from '../../lib/constants'
 
 // Score de confiance par dimension pour l'organisation courante (Phase B).
@@ -36,6 +41,12 @@ export interface FactorScore {
   penaltyPts: number
 }
 
+/** Exposition inhérente / résiduelle par dimension (Gëstu Risk, RFC 0004). */
+export interface RiskDimScore {
+  inherent: number | null   // 0..100, agrégat des scénarios de la dimension
+  residual: number | null   // agrégat des résiduels par scénario (exposition × (1 − efficacité barrières))
+}
+
 export interface SelfDimensionData {
   loading: boolean
   axes: DimScore[]
@@ -43,8 +54,19 @@ export interface SelfDimensionData {
   compositePosture: number | null
   composite: number | null
   coefficient: number
+  /** Coefficient des facteurs SANS le risque (pour le simulateur). */
+  coefficientBase: number
   measuredAxes: number
   totalAxes: number
+  // Gëstu Risk (RFC 0004) : exposition + maîtrise du risque.
+  residualByDim: Partial<Record<ScoreDimensionKey, RiskDimScore>>
+  /** Facteur de maîtrise du risque (100 = tout traité). null = pas de scénario. */
+  riskMastery: { score: number | null; penaltyPts: number } | null
+  /** Le facteur pèse-t-il réellement sur le composite (flag org actif) ? */
+  riskImpactActive: boolean
+  // Gëstu Policy (RFC 0005) : maturité de gouvernance documentaire (shadow derrière flag).
+  policyMaturity: { score: number; penaltyPts: number; governance: number | null; adoption: number | null; verifiability: number | null } | null
+  policyImpactActive: boolean
 }
 
 const AXIS_KEYS = SCORE_DIMENSION_KEYS.filter((k) => SCORE_DIMENSION_KIND[k] === 'axis')
@@ -54,7 +76,9 @@ const MAPPED_FACTOR_KEYS = SCORE_DIMENSION_KEYS.filter(
 
 const EMPTY: SelfDimensionData = {
   loading: false, axes: [], factors: [], compositePosture: null, composite: null,
-  coefficient: 1, measuredAxes: 0, totalAxes: AXIS_KEYS.length,
+  coefficient: 1, coefficientBase: 1, measuredAxes: 0, totalAxes: AXIS_KEYS.length,
+  residualByDim: {}, riskMastery: null, riskImpactActive: false,
+  policyMaturity: null, policyImpactActive: false,
 }
 
 function toDimScore(key: ScoreDimensionKey, agg: { total: number; approved: number } | undefined): DimScore {
@@ -119,6 +143,8 @@ function toFactorScore(
 
 export function useSelfDimensionScores(): SelfDimensionData {
   const { profile } = useAuth()
+  const { enabled: riskImpact } = useFeatureFlag('risk_score_impact')
+  const { enabled: policyImpact } = useFeatureFlag('policy_score_impact')
   const [data, setData] = useState<SelfDimensionData>({ ...EMPTY, loading: true })
 
   useEffect(() => {
@@ -127,6 +153,174 @@ export function useSelfDimensionScores(): SelfDimensionData {
     const ctrl = new AbortController()
 
     void (async () => {
+      // Finalise le calcul : charge le registre de risque, calcule résiduel +
+      // risk_mastery, plie dans le coefficient si le flag est actif, puis setData.
+      // Appelé par TOUS les chemins (y compris org sans mission Comply) → le risque
+      // est toujours pris en compte.
+      const finalize = async (
+        axes: DimScore[], factors: FactorScore[], compositePosture: number | null,
+        measuredLen: number, effByControl: Map<string, number>,
+      ): Promise<void> => {
+        const { data: scenarios } = await supabase
+          .from('risk_scenarios')
+          .select('id, dimension, inherent_likelihood, inherent_impact')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        // Barrières (contrôles liés) par scénario → efficacité propre à chaque scénario.
+        const { data: links } = await supabase
+          .from('risk_control_links')
+          .select('risk_scenario_id, control_id, kind')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const barriersByScenario = new Map<string, Array<{ control_id: string; kind: RiskControlLinkKind }>>()
+        for (const l of (links ?? []) as Array<{ risk_scenario_id: string; control_id: string; kind: RiskControlLinkKind }>) {
+          const arr = barriersByScenario.get(l.risk_scenario_id) ?? []
+          arr.push({ control_id: l.control_id, kind: l.kind }); barriersByScenario.set(l.risk_scenario_id, arr)
+        }
+        // Boucle Regul → Risk : incidents récents de l'org + liens explicites.
+        const cutoffInc = new Date()
+        cutoffInc.setMonth(cutoffInc.getMonth() - INCIDENT_WINDOW_MONTHS)
+        const { data: incRows } = await supabase
+          .from('incidents')
+          .select('id, category, severity')
+          .eq('entity_id', orgId).gte('declared_at', cutoffInc.toISOString())
+          .abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const { data: incLinks } = await supabase
+          .from('incident_risk_links')
+          .select('incident_id, risk_scenario_id')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const incidents = (incRows ?? []) as Array<{ id: string; category: string; severity: string }>
+        const incLinkRows = (incLinks ?? []) as Array<{ incident_id: string; risk_scenario_id: string }>
+        const linkedIncidentIds = new Set(incLinkRows.map((l) => l.incident_id))
+        const incidentsByScenario = new Map<string, Set<string>>()
+        for (const l of incLinkRows) {
+          const set = incidentsByScenario.get(l.risk_scenario_id) ?? new Set<string>()
+          set.add(l.incident_id); incidentsByScenario.set(l.risk_scenario_id, set)
+        }
+        // Policy-as-Barrier : politiques liées aux scénarios (efficacité = force de preuve).
+        const { data: polLinks } = await supabase
+          .from('policy_risk_links')
+          .select('risk_scenario_id, policy_id, kind, policy:policies(status)')
+          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+        if (ctrl.signal.aborted) return
+        const polRows = (polLinks ?? []) as unknown as Array<{ risk_scenario_id: string; policy_id: string; kind: RiskControlLinkKind; policy: { status: string } | null }>
+        const polIds = [...new Set(polRows.map((l) => l.policy_id))]
+        const appliedPolicies = new Set<string>()
+        if (polIds.length > 0) {
+          const { data: att } = await supabase.from('policy_effectiveness_attestations')
+            .select('policy_id').in('policy_id', polIds).eq('status', 'applied').abortSignal(ctrl.signal)
+          if (ctrl.signal.aborted) return
+          for (const a of (att ?? []) as Array<{ policy_id: string }>) appliedPolicies.add(a.policy_id)
+        }
+        const policyBarriersByScenario = new Map<string, Array<{ kind: RiskControlLinkKind; effectiveness: number }>>()
+        for (const l of polRows) {
+          const strength = policyEvidenceStrength(l.policy?.status ?? 'draft', appliedPolicies.has(l.policy_id))
+          const arr = policyBarriersByScenario.get(l.risk_scenario_id) ?? []
+          arr.push({ kind: l.kind, effectiveness: POLICY_EVIDENCE_WEIGHT[strength] })
+          policyBarriersByScenario.set(l.risk_scenario_id, arr)
+        }
+        const postureByDim = new Map(axes.map((a) => [a.key, a.score]))
+        // Résiduel PAR SCÉNARIO, modèle nœud papillon : les barrières préventives
+        // abaissent la vraisemblance, les correctives l'impact (efficacité = ratio
+        // d'évaluations approuvées de chaque contrôle). Sans barrière, repli sur la
+        // posture Comply de la dimension (rétrocompatible). Puis agrégé par dimension.
+        const inherentAgg = new Map<ScoreDimensionKey, number[]>()
+        const residualAgg = new Map<ScoreDimensionKey, number[]>()
+        for (const s of (scenarios ?? []) as Array<{ id: string; dimension: ScoreDimensionKey | null; inherent_likelihood: number; inherent_impact: number }>) {
+          if (!s.dimension) continue
+          // Vraisemblance aggravée par la sinistralité (incidents récents), plafonnée à 4.
+          const bump = incidentLikelihoodBump(s.dimension, incidentsByScenario.get(s.id) ?? new Set(), incidents, linkedIncidentIds)
+          const effL = Math.min(4, s.inherent_likelihood + bump)
+          const exposure = riskExposure(effL, s.inherent_impact)
+          const barriers = barriersByScenario.get(s.id) ?? []
+          const allBarriers = [
+            ...barriers.map((b) => ({ kind: b.kind, effectiveness: effByControl.get(b.control_id) ?? 0 })),
+            ...(policyBarriersByScenario.get(s.id) ?? []),
+          ]
+          let residual: number
+          if (allBarriers.length === 0) {
+            const eff = postureByDim.get(s.dimension) ?? null
+            residual = eff == null ? exposure : Math.round(exposure * (1 - eff / 100))
+          } else {
+            const { effPrev, effCorr } = splitBarrierEfficacies(allBarriers)
+            residual = riskResidualSplit(effL, s.inherent_impact, effPrev, effCorr)
+          }
+          const iArr = inherentAgg.get(s.dimension) ?? []; iArr.push(exposure); inherentAgg.set(s.dimension, iArr)
+          const rArr = residualAgg.get(s.dimension) ?? []; rArr.push(residual); residualAgg.set(s.dimension, rArr)
+        }
+        const residualByDim: Partial<Record<ScoreDimensionKey, RiskDimScore>> = {}
+        const residuals: number[] = []
+        for (const [dim, exps] of inherentAgg) {
+          const inherent = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length)
+          const rArr = residualAgg.get(dim) ?? []
+          const residual = Math.round(rArr.reduce((s, x) => s + x, 0) / rArr.length)
+          residualByDim[dim] = { inherent, residual }
+          residuals.push(residual)
+        }
+        const riskMasteryScore = residuals.length > 0
+          ? Math.max(0, 100 - Math.round(residuals.reduce((s, x) => s + x, 0) / residuals.length))
+          : null
+        const riskPenaltyFrac = riskMasteryScore === null ? 0 : RISK_MASTERY_WEIGHT * (1 - riskMasteryScore / 100)
+
+        // ---- Contribution Gëstu Policy (RFC 0005) : gouvernance + adoption + vérifiabilité ----
+        let policyMaturity: SelfDimensionData['policyMaturity'] = null
+        {
+          const { data: pols } = await supabase.from('policies')
+            .select('id, status, current_version_id').eq('organization_id', orgId).abortSignal(ctrl.signal)
+          if (ctrl.signal.aborted) return
+          const published = ((pols ?? []) as Array<{ id: string; status: string; current_version_id: string | null }>)
+            .filter((p) => p.status === 'approved' || p.status === 'published')
+          if (published.length > 0) {
+            const ids = published.map((p) => p.id)
+            const verIds = published.map((p) => p.current_version_id).filter((v): v is string => Boolean(v))
+            const [effRes, acksRes, eligRes] = await Promise.all([
+              supabase.from('policy_effectiveness_attestations').select('policy_id, status').in('policy_id', ids).abortSignal(ctrl.signal),
+              verIds.length ? supabase.from('policy_acknowledgements').select('policy_version_id').in('policy_version_id', verIds).abortSignal(ctrl.signal) : Promise.resolve({ data: [] as Array<{ policy_version_id: string }> }),
+              supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('is_active', true).neq('role', 'client').abortSignal(ctrl.signal),
+            ])
+            if (ctrl.signal.aborted) return
+            const appliedSet = new Set<string>(); const attestedSet = new Set<string>()
+            for (const a of ((effRes.data ?? []) as Array<{ policy_id: string; status: string }>)) { attestedSet.add(a.policy_id); if (a.status === 'applied') appliedSet.add(a.policy_id) }
+            const governance = Math.round(published.reduce((sum, p) => sum + (appliedSet.has(p.id) ? 100 : 50), 0) / published.length)
+            const verifiability = Math.round(published.filter((p) => attestedSet.has(p.id)).length / published.length * 100)
+            const eligible = (eligRes as { count: number | null }).count ?? 0
+            let adoption: number | null = null
+            if (eligible > 0 && verIds.length > 0) {
+              const ackByVer = new Map<string, number>()
+              for (const a of ((acksRes.data ?? []) as Array<{ policy_version_id: string }>)) ackByVer.set(a.policy_version_id, (ackByVer.get(a.policy_version_id) ?? 0) + 1)
+              const rates = published.filter((p) => p.current_version_id).map((p) => Math.min(1, (ackByVer.get(p.current_version_id as string) ?? 0) / eligible))
+              adoption = rates.length ? Math.round(rates.reduce((s, x) => s + x, 0) / rates.length * 100) : null
+            }
+            const signals = [governance, verifiability, adoption].filter((v): v is number => v !== null)
+            const pScore = signals.length ? Math.round(signals.reduce((s, x) => s + x, 0) / signals.length) : 0
+            const pFrac = POLICY_MATURITY_WEIGHT * (1 - pScore / 100)
+            policyMaturity = { score: pScore, penaltyPts: compositePosture === null ? 0 : Math.round(compositePosture * pFrac), governance, adoption, verifiability }
+          }
+        }
+        const policyPenaltyFrac = policyMaturity ? POLICY_MATURITY_WEIGHT * (1 - policyMaturity.score / 100) : 0
+
+        const coefficientBase = factors.reduce((acc, f) => {
+          if (f.score === null) return acc
+          return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
+        }, 1)
+        let coefficient = coefficientBase
+        if (riskImpact && riskMasteryScore !== null) coefficient *= (1 - riskPenaltyFrac)
+        if (policyImpact && policyMaturity) coefficient *= (1 - policyPenaltyFrac)
+        coefficient = Math.max(SCORE_COEFFICIENT_FLOOR, coefficient)
+        const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
+        const riskPenaltyPts = compositePosture === null ? 0 : Math.round(compositePosture * riskPenaltyFrac)
+        setData({
+          loading: false, axes, factors, compositePosture, composite, coefficient, coefficientBase,
+          measuredAxes: measuredLen, totalAxes: AXIS_KEYS.length,
+          residualByDim,
+          riskMastery: riskMasteryScore === null ? null : { score: riskMasteryScore, penaltyPts: riskPenaltyPts },
+          riskImpactActive: riskImpact,
+          policyMaturity, policyImpactActive: policyImpact,
+        })
+      }
+
       const { data: missions, error: mErr } = await supabase
         .from('missions').select('id').eq('cabinet_id', orgId).eq('is_active', true).abortSignal(ctrl.signal)
       if (ctrl.signal.aborted) return
@@ -140,7 +334,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
           (k) => toFactorScore(k, null, 0, 0, null),
         ),
       }
-      if (missionIds.length === 0) { setData(emptyMeasured); return }
+      if (missionIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0, new Map()); return }
 
       const { data: assessments, error: aErr } = await supabase
         .from('control_assessments')
@@ -151,7 +345,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
 
       const rows = (assessments ?? []) as AssessmentRow[]
       const controlIds = [...new Set(rows.map((r) => r.control_id))]
-      if (controlIds.length === 0) { setData(emptyMeasured); return }
+      if (controlIds.length === 0) { await finalize(emptyMeasured.axes, emptyMeasured.factors, null, 0, new Map()); return }
 
       const { data: controls, error: cErr } = await supabase
         .from('controls').select('id, dimension').in('id', controlIds).abortSignal(ctrl.signal)
@@ -218,23 +412,23 @@ export function useSelfDimensionScores(): SelfDimensionData {
         toFactorScore('assurance', assurance.score, assurance.total, assurance.covered, compositePosture),
       ]
 
-      const coefficient = Math.max(
-        SCORE_COEFFICIENT_FLOOR,
-        factors.reduce((acc, f) => {
-          if (f.score === null) return acc
-          return acc * (1 - SCORE_FACTOR_WEIGHTS[f.key] * (1 - f.score / 100))
-        }, 1),
-      )
-      const composite = compositePosture === null ? null : Math.round(compositePosture * coefficient)
-
-      setData({
-        loading: false, axes, factors, compositePosture, composite, coefficient,
-        measuredAxes: measured.length, totalAxes: AXIS_KEYS.length,
-      })
+      // Efficacité par contrôle = ratio d'évaluations approuvées (0..1). Même
+      // définition que les barrières du nœud papillon → cohérence registre ↔ score.
+      const effByControl = new Map<string, number>()
+      {
+        const per = new Map<string, { a: number; t: number }>()
+        for (const r of rows) {
+          const c = per.get(r.control_id) ?? { a: 0, t: 0 }
+          c.t += 1; if (r.status === 'approved') c.a += 1
+          per.set(r.control_id, c)
+        }
+        for (const [cid, c] of per) effByControl.set(cid, c.t > 0 ? c.a / c.t : 0)
+      }
+      await finalize(axes, factors, compositePosture, measured.length, effByControl)
     })()
 
     return () => ctrl.abort()
-  }, [profile?.organization_id])
+  }, [profile?.organization_id, riskImpact, policyImpact])
 
   return data
 }

@@ -3,6 +3,7 @@ import { Sparkles, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { ScopingRiskCard } from './ScopingRiskCard'
+import { PromoteRiskModal } from '../../risk/PromoteRiskModal'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { MissionRisk, RiskLevel } from '../../../types/database.types'
@@ -13,12 +14,14 @@ interface ScopingRisksTabProps {
   userId: string
   onAddRisk: (data: { mission_id: string; title: string; risk_level: RiskLevel; description: string; source: string; created_by: string }) => Promise<boolean>
   onRemoveRisk: (id: string) => Promise<boolean>
+  onPromoted: () => void
   saving: boolean
   error: string | null
 }
 
-export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveRisk, saving, error }: ScopingRisksTabProps) {
+export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveRisk, onPromoted, saving, error }: ScopingRisksTabProps) {
   const [showForm, setShowForm] = useState(false)
+  const [promoteTarget, setPromoteTarget] = useState<MissionRisk | null>(null)
   const [title, setTitle] = useState('')
   const [level, setLevel] = useState<RiskLevel>('medium')
   const [description, setDescription] = useState('')
@@ -130,8 +133,12 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
       )}
 
       {risks.map((risk) => (
-        <ScopingRiskCard key={risk.id} risk={risk} onRemove={onRemoveRisk} saving={saving} />
+        <ScopingRiskCard key={risk.id} risk={risk} onRemove={onRemoveRisk} onPromote={setPromoteTarget} saving={saving} />
       ))}
+
+      {promoteTarget && (
+        <PromoteRiskModal risk={promoteTarget} onClose={() => setPromoteTarget(null)} onDone={onPromoted} />
+      )}
     </div>
   )
 }
