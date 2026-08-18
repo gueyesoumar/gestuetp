@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { MEASURE_TYPE_ORDER, MEASURE_TYPE_LABELS } from '../lib/constants'
-import type { MeasureType } from '../lib/constants'
+import { MEASURE_TYPE_ORDER, MEASURE_TYPE_LABELS } from '../../lib/constants'
+import type { MeasureType } from '../../lib/constants'
 import { useIssueMeasure, type Measure } from './useMeasures'
-import { useToast } from '../hooks/useToast'
+import { useToast } from '../../hooks/useToast'
 
 interface Props {
   /** Émission simple (entité) ou escalade (à partir d'une mesure source). */

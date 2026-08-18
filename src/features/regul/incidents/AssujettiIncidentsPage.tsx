@@ -3,10 +3,10 @@ import { Plus, AlertTriangle } from 'lucide-react'
 import { useIncidents, type Incident } from './useIncidents'
 import { IncidentDeclareModal } from './IncidentDeclareModal'
 import { IncidentDetailPanel } from './IncidentDetailPanel'
-import { useAuth } from '../../hooks/useAuth'
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
-import { EmptyState } from '../../components/ui/EmptyState'
-import { INCIDENT_CATEGORY_LABELS, INCIDENT_SEVERITY_LABELS, INCIDENT_STATUS_LABELS } from '../../lib/constants'
+import { useAuth } from '../../../hooks/useAuth'
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
+import { EmptyState } from '../../../components/ui/EmptyState'
+import { INCIDENT_CATEGORY_LABELS, INCIDENT_SEVERITY_LABELS, INCIDENT_STATUS_LABELS } from '../../../lib/constants'
 
 const SEV_TONE: Record<string, string> = {
   critique: 'bg-red-100 text-red-700', eleve: 'bg-orange-100 text-orange-700',

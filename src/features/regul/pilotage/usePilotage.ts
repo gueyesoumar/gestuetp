@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { useSubsidiaries } from '../../features/group-module/useSubsidiaries'
+import { useSubsidiaries } from '../../group-module/useSubsidiaries'
 import { useParkMeasures } from '../useParkMeasures'
-import { MEASURE_TYPE_ORDER, type MeasureType } from '../../lib/constants'
+import { MEASURE_TYPE_ORDER, type MeasureType } from '../../../lib/constants'
 
 const OPEN_MEASURE = (status: string): boolean => !['resolved', 'closed'].includes(status)
 const SOON_DAYS = 30

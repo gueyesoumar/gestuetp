@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { ShieldAlert } from 'lucide-react'
 import { useParkMeasures } from './useParkMeasures'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { EmptyState } from '../components/ui/EmptyState'
-import { MEASURE_TYPE_LABELS, MEASURE_STATUS_LABELS } from '../lib/constants'
-import type { MeasureType } from '../lib/constants'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { MEASURE_TYPE_LABELS, MEASURE_STATUS_LABELS } from '../../lib/constants'
+import type { MeasureType } from '../../lib/constants'
 
 const TYPE_STYLE: Record<MeasureType, string> = {
   recommandation: 'bg-blue-50 text-blue-700',

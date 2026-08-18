@@ -4,8 +4,8 @@ import { usePilotage } from './pilotage/usePilotage'
 import { PilotageRiskMap } from './pilotage/PilotageRiskMap'
 import { PilotagePriorityList } from './pilotage/PilotagePriorityList'
 import { PilotageMeasuresBreakdown } from './pilotage/PilotageMeasuresBreakdown'
-import { useAuth } from '../hooks/useAuth'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import { useAuth } from '../../hooks/useAuth'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import type { ReactNode } from 'react'
 
 function Kpi({ icon, value, label, tone, to }: { icon: ReactNode; value: string | number; label: string; tone?: string; to?: string }): JSX.Element {

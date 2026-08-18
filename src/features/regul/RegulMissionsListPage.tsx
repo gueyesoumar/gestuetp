@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, ClipboardCheck, X } from 'lucide-react'
-import { useMissions } from '../features/missions/useMissions'
-import { MISSION_STATUS_LABELS } from '../features/missions/mission-constants'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { EmptyState } from '../components/ui/EmptyState'
+import { useMissions } from '../missions/useMissions'
+import { MISSION_STATUS_LABELS } from '../missions/mission-constants'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { EmptyState } from '../../components/ui/EmptyState'
 
 /** Liste des missions de contrôle (Gëstu Regul / M3). */
 export function RegulMissionsListPage(): JSX.Element {

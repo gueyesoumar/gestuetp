@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { ChevronDown, ChevronRight, BookMarked } from 'lucide-react'
-import { useFrameworks } from '../features/frameworks/useFrameworks'
+import { useFrameworks } from '../frameworks/useFrameworks'
 import { useReferentielContent } from './useReferentielContent'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { EmptyState } from '../components/ui/EmptyState'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { EmptyState } from '../../components/ui/EmptyState'
 
 const RISK_STYLE: Record<string, string> = {
   low: 'bg-green-50 text-green-700',

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
-import { invokeEdgeFunction } from '../lib/invokeEdgeFunction'
-import type { MeasureType } from '../lib/constants'
+import { supabase } from '../../lib/supabase'
+import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
+import type { MeasureType } from '../../lib/constants'
 
 export interface Measure {
   id: string

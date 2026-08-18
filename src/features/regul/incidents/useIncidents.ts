@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../../lib/supabase'
-import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
+import { supabase } from '../../../lib/supabase'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 
 export interface Incident {
   id: string
