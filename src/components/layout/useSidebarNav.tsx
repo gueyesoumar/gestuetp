@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, ShieldAlert, LayoutDashboard, FileText } from 'lucide-react'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, LayoutDashboard, FileText } from 'lucide-react'
 import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
@@ -80,16 +80,11 @@ export function useSidebarNavItems(
     mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <MissionsIcon /> })
   }
 
-  // Gëstu Risk (RFC 0004) — registre de risques alimentant le score de confiance.
-  // Gated par la capacité `risk` (module activable par client, RFC 0002).
-  if (hasCapability('risk')) {
-    mainItems.push({ to: '/risque', label: 'Risque', icon: <ShieldAlert size={20} strokeWidth={1.5} /> })
-  }
-
-  // Gëstu Policy (RFC 0005) — gouvernance documentaire. Gated par la capacité `policy`.
-  if (hasCapability('policy')) {
-    mainItems.push({ to: '/politiques', label: 'Politiques', icon: <FileText size={20} strokeWidth={1.5} /> })
-  }
+  // Gëstu Risk (RFC 0004) et Policy (RFC 0005) sont des PRODUITS du Hub à part
+  // entière (comme Comply/Regul), avec leur propre interface (workspace dédié sous
+  // /risque et /politiques). On y accède UNIQUEMENT depuis le Hub (cockpit) après
+  // souscription (capacité `risk`/`policy`) — jamais comme un item de nav à
+  // l'intérieur d'un autre produit. Donc aucune entrée in-produit ici.
 
   // Piste d'audit — réservée aux admins d'organisation (F6).
   if (canViewAuditTrail) {
