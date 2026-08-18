@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useDeclareIncident } from './useIncidents'
-import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { INCIDENT_CATEGORY_OPTIONS, INCIDENT_SEVERITY_ORDER, INCIDENT_SEVERITY_LABELS } from '../../lib/constants'
+import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { INCIDENT_CATEGORY_OPTIONS, INCIDENT_SEVERITY_ORDER, INCIDENT_SEVERITY_LABELS } from '../../../lib/constants'
 
 interface Assujetti { id: string; name: string }
 interface Props {

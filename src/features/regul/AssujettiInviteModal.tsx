@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
-import { ErrorAlert } from '../components/ui/ErrorAlert'
-import { PERMISSION_LABELS } from '../features/client-portal/client-constants'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { PERMISSION_LABELS } from '../client-portal/client-constants'
 
 interface EntityContact { id: string; contact_name: string; email: string; job_title: string | null }
 interface MissionOption { id: string; name: string }

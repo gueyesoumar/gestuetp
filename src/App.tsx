@@ -64,13 +64,13 @@ import { SubsidiaryDetailPage } from './features/group-module/SubsidiaryDetailPa
 import { ContinuousReviewsPage } from './features/group-module/ContinuousReviewsPage'
 import { TransversalPlansPage } from './features/group-module/TransversalPlansPage'
 // Pages Regul — montées sous le shell unifié quand l'édition résolue est « regul ».
-import { RegulDashboard } from './regul/RegulDashboard'
-import { RegulMissionsListPage } from './regul/RegulMissionsListPage'
-import { RegulMissionCreatePage } from './regul/RegulMissionCreatePage'
-import { RegulMeasuresPage } from './regul/RegulMeasuresPage'
-import { RegulReferentielsPage } from './regul/RegulReferentielsPage'
-import { RegulIncidentsPage } from './regul/incidents/RegulIncidentsPage'
-import { AssujettiIncidentsPage } from './regul/incidents/AssujettiIncidentsPage'
+import { RegulDashboard } from './features/regul/RegulDashboard'
+import { RegulMissionsListPage } from './features/regul/RegulMissionsListPage'
+import { RegulMissionCreatePage } from './features/regul/RegulMissionCreatePage'
+import { RegulMeasuresPage } from './features/regul/RegulMeasuresPage'
+import { RegulReferentielsPage } from './features/regul/RegulReferentielsPage'
+import { RegulIncidentsPage } from './features/regul/incidents/RegulIncidentsPage'
+import { AssujettiIncidentsPage } from './features/regul/incidents/AssujettiIncidentsPage'
 
 // Arbre de routes UNIFIÉ du shell ETP (RFC 0001 §5-6 ; RFC 0002 P2). Les CAPACITÉS
 // de l'org (résolues au runtime) choisissent les routes-modules montées sous le même

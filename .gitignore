@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 supabase/.temp/
+
+# DB dumps (données sensibles — jamais dans le repo)
+*.dump
+
+# Secrets / variables d'environnement
+.env
+.env.*
+!.env.example

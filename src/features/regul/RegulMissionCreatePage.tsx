@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import { useFrameworks } from '../features/frameworks/useFrameworks'
-import { useMembers } from '../features/members/useMembers'
-import { useSubsidiaries } from '../features/group-module/useSubsidiaries'
-import { EntityFormModal } from '../features/group-module/EntityFormModal'
-import { useCreateMission } from '../features/missions/useCreateMission'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { useToast } from '../hooks/useToast'
+import { useFrameworks } from '../frameworks/useFrameworks'
+import { useMembers } from '../members/useMembers'
+import { useSubsidiaries } from '../group-module/useSubsidiaries'
+import { EntityFormModal } from '../group-module/EntityFormModal'
+import { useCreateMission } from '../missions/useCreateMission'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { useToast } from '../../hooks/useToast'
 
 /** Création d'une mission de contrôle sur un assujetti (Gëstu Regul / M3). */
 export function RegulMissionCreatePage(): JSX.Element {
