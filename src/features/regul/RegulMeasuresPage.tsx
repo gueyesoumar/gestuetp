@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, ArrowUpCircle, ShieldAlert, X } from 'lucide-react'
-import { useSubsidiaries } from '../features/group-module/useSubsidiaries'
+import { useSubsidiaries } from '../group-module/useSubsidiaries'
 import { useMeasures, useIssueMeasure, type Measure } from './useMeasures'
 import { MeasureFormModal } from './MeasureFormModal'
 import { ParkOpenMeasures } from './ParkOpenMeasures'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { EmptyState } from '../components/ui/EmptyState'
-import { useToast } from '../hooks/useToast'
-import { useVocab } from '../features/edition/useVocab'
-import { MEASURE_TYPE_LABELS, MEASURE_STATUS_LABELS, MEASURE_TYPE_ORDER } from '../lib/constants'
-import type { MeasureType } from '../lib/constants'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { useToast } from '../../hooks/useToast'
+import { useVocab } from '../edition/useVocab'
+import { MEASURE_TYPE_LABELS, MEASURE_STATUS_LABELS, MEASURE_TYPE_ORDER } from '../../lib/constants'
+import type { MeasureType } from '../../lib/constants'
 
 const TYPE_STYLE: Record<MeasureType, string> = {
   recommandation: 'bg-blue-50 text-blue-700',

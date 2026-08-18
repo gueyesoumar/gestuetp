@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDeclareIncident, type Incident } from './useIncidents'
-import { INCIDENT_CATEGORY_LABELS, INCIDENT_SEVERITY_LABELS, INCIDENT_STATUS_LABELS } from '../../lib/constants'
+import { INCIDENT_CATEGORY_LABELS, INCIDENT_SEVERITY_LABELS, INCIDENT_STATUS_LABELS } from '../../../lib/constants'
 
 interface Props { incident: Incident; entityName: string; onClose: () => void; onChanged: () => void; readOnly?: boolean }
 

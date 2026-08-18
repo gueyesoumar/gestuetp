@@ -1,4 +1,4 @@
-import { MEASURE_TYPE_LABELS } from '../../lib/constants'
+import { MEASURE_TYPE_LABELS } from '../../../lib/constants'
 import type { TypeStat } from './usePilotage'
 
 /** Répartition des mesures par niveau + échéances (M8). */
