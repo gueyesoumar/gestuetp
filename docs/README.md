@@ -26,6 +26,7 @@ Carte de la documentation du projet. Le code vit dans [`../src/`](../src/), les 
 | [0003](rfc/0003-moteurs-de-mission.md) | Moteurs de mission (audit / contrôle) |
 | [0004](rfc/0004-gestu-risk.md) | Gëstu Risk (registre EBIOS RM, score) |
 | [0005](rfc/0005-gestu-policy.md) | Gëstu Policy (gouvernance documentaire) |
+| [0006](rfc/0006-modele-abonnements.md) | Modèle d'abonnement (produits, fonctionnalités, plans, entitlement) |
 
 ## Notes transverses (racine de `docs/`)
 

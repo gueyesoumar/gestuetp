@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '../../types/database.types'
-import { HUB_PRODUCTS } from '../../lib/hubProducts'
 import type { HubProduct } from '../../lib/hubProducts'
+import { useHubProducts } from './useHubProducts'
 import { useEdition } from '../edition/EditionContext'
 import { useHubPerspectives } from './useHubPerspectives'
 import type { HubPerspective } from './useHubPerspectives'
@@ -38,6 +38,7 @@ function average(values: Array<number | null>): number | null {
 
 export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: OrbitCockpitProps): JSX.Element {
   const data = useHubPerspectives()
+  const catalog = useHubProducts()
   const selfDims = useSelfDimensionScores()
   const navigate = useNavigate()
   const { hasCapability } = useEdition()
@@ -50,12 +51,12 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
   const hasPolicy = hasCapability('policy')
   // Risk / Policy deviennent des modules actifs (ouvrables) dès que l'org a la capacité.
   const products = useMemo(
-    () => HUB_PRODUCTS.map((p) => {
+    () => catalog.products.map((p) => {
       if (p.name === 'Risk') return { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge }
       if (p.name === 'Policy') return { ...p, active: hasPolicy, badge: hasPolicy ? 'Actif' : p.badge }
       return p
     }),
-    [hasRisk, hasPolicy],
+    [catalog.products, hasRisk, hasPolicy],
   )
   const [current, setCurrent] = useState<HubPerspective>('self')
   const [selected, setSelected] = useState<Selection | null>(null)
@@ -94,7 +95,7 @@ export function OrbitCockpit({ selfScore, profile, onSignOut, isBranded }: Orbit
     />
   )
 
-  if (data.loading) {
+  if (data.loading || catalog.loading) {
     return (
       <div className="flex h-full w-full flex-col px-6 py-3">
         {topBar}
