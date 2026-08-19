@@ -76,14 +76,17 @@ Le logo SVG est dans `src/assets/logo-shield.svg` (bouclier seul) et utilisé co
 
 ## 3. Couleurs produits
 
-Chaque produit Gëstu a une couleur signature utilisée uniquement sur le sous-titre du logo et les accents dans l'interface du produit.
+Chaque produit Gëstu a une couleur signature utilisée uniquement sur le sous-titre du logo et les accents dans l'interface du produit. **Source unique de vérité : la table `products.accent_color`** (RFC 0006, migration 00198). L'**or** `#D4A843` reste réservé à l'accent du chrome (tréma, CTA premium) et sert de signature au produit **Regul**, pas à Comply.
 
 | Produit | Couleur | Hex | Signification |
 |---------|---------|-----|---------------|
-| **Comply** | Or | `#D4A843` | Confiance, certification |
+| **Comply** | Vert forêt | `#40916C` | Conformité, produit phare (couleur maison) |
+| **Regul** | Or | `#D4A843` | Autorité, supervision |
 | **Risk** | Terracotta | `#E07A5F` | Alerte, vigilance |
-| **Privacy** | Violet | `#7B68EE` | Discrétion, protection données |
-| **Policy** | Bleu | `#3B82F6` | Structure, gouvernance |
+| **Policy** | Violet | `#7B68EE` | Structure, gouvernance |
+| **Data Privacy** | Bleu | `#3B82F6` | Discrétion, protection des données |
+| **Awareness** | Orange | `#E67E22` | Sensibilisation, énergie |
+| **Quality** | Cyan | `#0891B2` | Amélioration continue |
 
 Le bouclier et le texte "Gëstu" restent identiques quel que soit le produit. Seul le sous-titre change de couleur.
 

@@ -1,8 +1,12 @@
 /**
- * Hub product definitions — centralized data for the HubPage product grid.
+ * Types partagés des produits du Hub (RFC 0006 — couche ① catalogue).
+ *
+ * Les DONNÉES vivent désormais dans la table `products` (migration 00198) et sont
+ * lues via useHubProducts() (src/features/hub/useHubProducts.ts). Ce fichier ne
+ * conserve que les types consommés par les composants de l'orbite.
  */
 
-interface ProductStat {
+export interface ProductStat {
   label: string
   value: string
 }
@@ -16,70 +20,3 @@ export interface HubProduct {
   badge: string
   stats: ProductStat[]
 }
-
-export const HUB_PRODUCTS: HubProduct[] = [
-  {
-    name: 'Comply',
-    title: 'Conformit\u00e9 & Audit SI',
-    description: 'Audits multi-r\u00e9f\u00e9rentiels, \u00e9valuations de contr\u00f4les, rapports automatis\u00e9s.',
-    color: '#40916C',
-    active: true,
-    badge: 'Actif',
-    // stats live calcul\u00e9es dans HubPage via useComplyHubStats \u2014 laiss\u00e9es vides ici
-    stats: [],
-  },
-  {
-    name: 'Regul',
-    title: 'Supervision & R\u00e9gulation',
-    description: "Pour les organes de r\u00e9gulation : parc d\u2019assujettis, missions de contr\u00f4le, mesures gradu\u00e9es, tra\u00e7abilit\u00e9 probante.",
-    color: '#D4A843',
-    active: true,
-    badge: 'Actif',
-    stats: [],
-  },
-  {
-    name: 'Risk',
-    title: 'Gestion des Risques',
-    description: 'Cartographie des risques SI, sc\u00e9narios de menaces, plans de traitement.',
-    color: '#E07A5F',
-    active: false,
-    badge: 'Bient\u00f4t',
-    stats: [],
-  },
-  {
-    name: 'Policy',
-    title: 'Politiques & Gouvernance',
-    description: 'R\u00e9daction, validation et diffusion des politiques de s\u00e9curit\u00e9.',
-    color: '#7B68EE',
-    active: false,
-    badge: 'Bient\u00f4t',
-    stats: [],
-  },
-  {
-    name: 'Awareness',
-    title: 'Sensibilisation',
-    description: 'Campagnes de sensibilisation, quiz, suivi de la maturit\u00e9 s\u00e9curit\u00e9.',
-    color: '#E67E22',
-    active: false,
-    badge: '2027',
-    stats: [],
-  },
-  {
-    name: 'Data Privacy',
-    title: 'Protection des Donn\u00e9es',
-    description: 'Registre des traitements, AIPD, conformit\u00e9 RGPD et loi s\u00e9n\u00e9galaise.',
-    color: '#3B82F6',
-    active: false,
-    badge: '2027',
-    stats: [],
-  },
-  {
-    name: 'Quality',
-    title: 'Qualit\u00e9 & Am\u00e9lioration',
-    description: 'Gestion des non-conformit\u00e9s, actions correctives, am\u00e9lioration continue.',
-    color: '#0891B2',
-    active: false,
-    badge: '2027',
-    stats: [],
-  },
-]

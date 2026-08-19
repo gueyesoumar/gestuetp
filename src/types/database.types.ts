@@ -1492,6 +1492,38 @@ export type Capability =
   | 'awareness' | 'incidents' | 'measures' | 'supervision'
 export type CapabilityStatus = 'active' | 'trial' | 'disabled'
 
+// Catalogue produits (RFC 0006, migration 00198). Lecture seule côté front
+// (écritures service_role) → Insert/Update = never dans Database.Tables.
+export interface Product {
+  key: string
+  name: string
+  title: string
+  description: string
+  accent_color: string
+  badge: string
+  is_home_eligible: boolean
+  is_published: boolean
+  active_default: boolean
+  monthly_price_eur: number
+  sort_order: number
+}
+
+export interface ProductFeature {
+  id: string
+  product_key: string
+  key: string
+  label: string
+  is_core: boolean
+  monthly_price_eur: number
+  capability: Capability | null
+  sort_order: number
+}
+
+export interface ProductCapability {
+  product_key: string
+  capability: Capability
+}
+
 export interface Database {
   __InternalSupabase: {
     PostgrestVersion: '12'
@@ -1502,6 +1534,24 @@ export interface Database {
         Row: Organization & Rec
         Insert: OrganizationInsert & Rec
         Update: OrganizationUpdate & Rec
+        Relationships: []
+      }
+      products: {
+        Row: Product & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      product_features: {
+        Row: ProductFeature & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      product_capability: {
+        Row: ProductCapability & Rec
+        Insert: never & Rec
+        Update: never & Rec
         Relationships: []
       }
       organization_relationships: {
