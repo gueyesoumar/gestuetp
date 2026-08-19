@@ -1565,6 +1565,18 @@ export interface OrgQuotaLimit {
   limit_value: number | null
 }
 
+// Plans-bundles (RFC 0006, migration 00201). Dormant jusqu'à la console P4.
+export interface PlanProduct {
+  plan_slug: string
+  product_key: string
+}
+
+export interface PlanBundleFeature {
+  plan_slug: string
+  product_key: string
+  feature_key: string
+}
+
 export interface Database {
   __InternalSupabase: {
     PostgrestVersion: '12'
@@ -1615,6 +1627,18 @@ export interface Database {
       }
       org_quota_limits: {
         Row: OrgQuotaLimit & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      plan_products: {
+        Row: PlanProduct & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      plan_bundle_features: {
+        Row: PlanBundleFeature & Rec
         Insert: never & Rec
         Update: never & Rec
         Relationships: []
