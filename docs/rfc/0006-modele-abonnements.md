@@ -114,13 +114,15 @@ Tout est **org-scoped** côté abonnement, **écritures `service_role` uniquemen
 
 ### 4.2 ② Abonnement
 
-**`plans`** (refonte de l'existant 00069/00121) — un plan est un **bundle** : un raccourci qui
-crée d'un coup les abonnements + features correspondants.
-- `slug` PK conservé, `name`, `description`
-- `home_product` text → products
-- `plan_products(plan_slug, product_key)` et `plan_features(plan_slug, product_key, feature_key)`
-  — remplacent l'ancien `plan_features(plan_id, flag_id)` (basé feature_flags)
-- le prix d'un plan est **calculé** depuis le catalogue (pas stocké en dur → plus de dérive)
+**`plans`** (00069/00121, **conservés tels quels**) — un plan devient un **bundle** : un raccourci
+qui crée d'un coup les abonnements + features correspondants.
+- colonne ajoutée : `home_product` text → products
+- `plan_products(plan_slug, product_key)` + `plan_bundle_features(plan_slug, product_key, feature_key)`
+  — tables **additives** décrivant ce qu'un bundle octroie.
+- ⚠️ **Ne PAS confondre avec `plan_features(plan_id, flag_id)`** (00122) : ce dernier reste le
+  système de **flags TECHNIQUES** (kill-switch, A/B via `useFeatureFlag`), orthogonal à
+  l'abonnement commercial (Annexe B). D'où le nom distinct `plan_bundle_features`.
+- le prix d'un plan est **calculé** depuis le catalogue (`monthly_price_eur` legacy conservé en repli).
 
 **`org_subscriptions`** — cœur : **une ligne par (org, produit) souscrit**.
 - `id`, `organization_id` → organizations, `product_key` → products
@@ -266,20 +268,27 @@ Les anciens écrans `/admin/plans` (catalogue de plans) et l'onglet « Modules H
 branché. Front : lire les couleurs/labels produits depuis `products` (retirer `hubProducts.ts`
 en dur). **Zéro changement de comportement.**
 
-**P2 — Abonnement (②), additif + backfill.** Créer `org_subscriptions`,
-`org_subscription_features`, enum `subscription_status`, colonnes `discount_pct`/`home_product`,
-refonte `plans` (bundles data-driven, dont « Regul Autorité »). **Backfill** depuis l'existant :
-`organization_capabilities` (active/trial/disabled) + `editions`/`organizations.edition` +
-`organizations.plan_id` → lignes d'abonnement (mapping §Annexe A). **Dépréciation des éditions
-(10.2)** : bascule de `get_my_edition()`, résolution portail (00161) et branding par édition sur
-`org_subscription_state`/`home_product`, puis retrait de `editions`/`organizations.edition` en fin
-de phase. **Quotas (10.4)** : créer `plan_quotas`/`org_quota_limits`, backfiller depuis
-`plans.max_*`, réécrire `check_user_quota`/`check_mission_quota` (00125) pour lire
-`org_quota_limits` (triggers inchangés). Gating non encore branché sur ② (c'est P3).
+**P2 — Abonnement (②) + quotas + bundles, additif/dormant.** *(FAIT — mig 00199/00200/00201)*
+- **A** : enum `subscription_status`, `org_subscriptions`, `org_subscription_features`, colonnes
+  `organizations.discount_pct`/`home_product` + **backfill** depuis `organization_capabilities` +
+  `editions`/`organizations.edition` + `organizations.plan_id` (Annexe A). Diff d'invariance ✓ (=0).
+- **B (quotas, 10.4)** : `plan_quotas`/`org_quota_limits`, backfill depuis `plans.max_*`,
+  `check_user_quota`/`check_mission_quota` (00125) réécrits pour lire `org_quota_limits` **avec
+  fallback `plans.max_*`** (comportement identique). Triggers inchangés.
+- **D (bundles)** : `plan_products` + `plan_bundle_features` + `plans.home_product` + seed. Additif ;
+  `plan_features(plan_id,flag_id)` technique **intact** ; UI `/admin/plans` inchangée.
+- **Rien ne LIT ② encore** → zéro changement runtime. Gating branché en P3.
 
-**P3 — Entitlement dérivé (③).** Brancher `refresh_org_capabilities()` + triggers : à partir
-de là, **② est la source de vérité** et `organization_capabilities` en est la projection. Vérifier
-par diff que la projection == l'état actuel (invariance stricte avant/après). Primitives MRR.
+**C+P3 — Dépréciation éditions + entitlement dérivé (③).** *(couplés : cf. 10.2/00164)*
+- **C (éditions)** : migrer les derniers lecteurs de `organizations.edition` vers la capacité
+  `supervision` — edges (`_shared/vocab.ts`, `manage-org-vocab`), `sync_org_parent_edge` (00164),
+  `TerminologyEditor` ; **réécrire le provisioning** `sync_org_capabilities` (00164) en provisioning
+  **par abonnement** ; puis DROP `get_my_edition()` + `organizations.edition` + table `editions`.
+- **P3 (flip)** : `refresh_org_capabilities()` + triggers sur `org_subscriptions` → **② devient la
+  source de vérité**, `organization_capabilities` en est la projection. Vérifier par diff que la
+  projection == l'état actuel (invariance stricte avant/après). Primitives MRR.
+- Couplés car sans éditions le provisioning d'une nouvelle org **doit** passer par un abonnement
+  (sinon, capacités dérivées ⇒ une org sans abonnement perd tout accès).
 
 **P4 — Console superadmin.** Edge Functions `admin-subscription-*` (service_role) + onglet
 « Abonnement » (maquette). Câbler l'historique sur `activity_log`. **Job d'expiration d'essai
@@ -287,9 +296,8 @@ par diff que la projection == l'état actuel (invariance stricte avant/après). 
 + journalisation + notification superadmin. Retirer `AdminOrgModulesCard` et fusionner `/admin/plans`.
 
 **P5 — Nettoyage (différé, non bloquant).** Éventuellement transformer
-`organization_capabilities` en vue ; retirer `plan_features(flag_id)` legacy si plus utilisé.
-(La dépréciation des `editions` a déjà eu lieu en P2 — cf. 10.2.) Chaque retrait derrière
-vérification qu'aucun appelant ne subsiste.
+`organization_capabilities` en vue. (La dépréciation des `editions` a lieu en C+P3.) Chaque retrait
+derrière vérification qu'aucun appelant ne subsiste.
 
 CI Deploy (`.github/workflows/deploy.yml`) applique migrations + Edge Functions automatiquement
 (staging = auto, main = gate approbation) — cf. [[project_migrations_deploy]]. Flux de branches :
@@ -320,12 +328,15 @@ Regul `#D4A843` (or), Risk `#E07A5F` (terracotta), Policy `#7B68EE` (violet), Pr
 « Couleurs produits » sur cette palette et la compléter (Regul/Awareness/Quality). Aucun
 recolorage du Hub (les tuiles restent celles que les utilisateurs reconnaissent).
 
-**10.2 Regul comme produit vs édition — TRANCHÉ : déprécier dès P2.** Regul devient un produit
-(§3) et le plan **« Regul Autorité »** remplace l'édition **dès P2** (pas en P5). Cela implique
-de refondre dans cette même phase les appelants de l'édition : `get_my_edition()`, la résolution
-d'édition du portail (mig 00161) et le branding par édition — chacun bascule sur l'état d'abonnement
-(`org_subscription_state`) / le `home_product`. `organizations.edition` et la table `editions`
-sont retirés en fin de P2 une fois ces appelants migrés (migration `_down` = ré-création du preset).
+**10.2 Regul comme produit vs édition — TRANCHÉ : déprécier ; DROP en C+P3.** Regul devient un
+produit (§3) et le plan **« Regul Autorité »** remplace l'édition. Le DROP de `organizations.edition`
++ table `editions` + `get_my_edition()` est **couplé à P3** : le trigger de provisioning
+`sync_org_capabilities` (00164) lit `editions` pour donner ses capacités à une nouvelle org — sans
+éditions, ce provisioning **doit** passer par un abonnement (= P3, sinon capacités dérivées ⇒ une org
+sans abonnement perd tout accès). Les autres lecteurs (`get_my_edition` — aucun appelant vivant ;
+edges `_shared/vocab.ts`/`manage-org-vocab` ; `sync_org_parent_edge` ; `TerminologyEditor`) se migrent
+proprement vers la capacité `supervision` dans la phase **C+P3**. Décision de séquencement actée après
+constat du couplage 00164.
 
 **10.3 Granularité de la remise — TRANCHÉ : org + par-produit dès v1, cumulables.** Deux
 niveaux : `org_subscriptions.discount_pct` (par produit) et `organizations.discount_pct`
@@ -359,7 +370,7 @@ n'accorde jamais l'accès, même avant le passage du job). Conforme à la réali
 | `organizations.edition = 'regul'` | abonnement `regul` (si pas déjà via capacités) | cohérence édition ↔ produit |
 | `organizations.plan_id` | `org_subscriptions.plan_slug` | traçabilité du plan d'origine |
 | `plans.monthly_price_eur` | prix **calculé** depuis catalogue | ne plus stocker en dur |
-| `plan_features(plan_id, flag_id)` | `plan_features(plan_slug, product_key, feature_key)` | migrer les flags mappables, garder les autres en `feature_flags` (kill-switch technique, hors abonnement) |
+| `plan_features(plan_id, flag_id)` | **conservé** (flags techniques) ; nouveau `plan_bundle_features(plan_slug, product_key, feature_key)` en parallèle | ne pas fusionner : commercial (bundle) vs technique (flag) restent séparés (Annexe B) |
 | `plans.max_users` / `plans.max_missions` | `org_quota_limits(org, quota_key, limit_value)` | par org : `users` ← max_users, `missions` ← max_missions ; NULL = illimité ; `platform` exempt |
 
 ## Annexe B — Catalogue produits/features (seed initial)

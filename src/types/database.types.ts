@@ -79,6 +79,10 @@ export interface Organization {
   ai_analysis_enabled?: boolean
   /** Moteur de mission par défaut de l'org (RFC 0003, migration 00181). */
   workflow_version?: 'audit' | 'controle'
+  /** Remise globale de l'org (RFC 0006, migration 00199). */
+  discount_pct?: number
+  /** Produit d'accueil (RFC 0006, migration 00199). */
+  home_product?: string | null
   created_at: string
   updated_at: string
 }
@@ -1524,6 +1528,55 @@ export interface ProductCapability {
   capability: Capability
 }
 
+// Abonnements (RFC 0006, migrations 00199-00200). Lecture own-org ; écritures service_role.
+export type SubscriptionStatus = 'active' | 'trial' | 'suspended'
+
+export interface OrgSubscription {
+  id: string
+  organization_id: string
+  product_key: string
+  status: SubscriptionStatus
+  trial_ends_at: string | null
+  unit_price_eur: number
+  discount_pct: number
+  plan_slug: string | null
+  started_at: string
+  suspended_at: string | null
+  created_by: string | null
+  updated_at: string
+}
+
+export interface OrgSubscriptionFeature {
+  id: string
+  subscription_id: string
+  feature_key: string
+  unit_price_eur: number
+}
+
+export interface PlanQuota {
+  plan_slug: string
+  quota_key: string
+  limit_value: number | null
+}
+
+export interface OrgQuotaLimit {
+  organization_id: string
+  quota_key: string
+  limit_value: number | null
+}
+
+// Plans-bundles (RFC 0006, migration 00201). Dormant jusqu'à la console P4.
+export interface PlanProduct {
+  plan_slug: string
+  product_key: string
+}
+
+export interface PlanBundleFeature {
+  plan_slug: string
+  product_key: string
+  feature_key: string
+}
+
 export interface Database {
   __InternalSupabase: {
     PostgrestVersion: '12'
@@ -1550,6 +1603,42 @@ export interface Database {
       }
       product_capability: {
         Row: ProductCapability & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      org_subscriptions: {
+        Row: OrgSubscription & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      org_subscription_features: {
+        Row: OrgSubscriptionFeature & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      plan_quotas: {
+        Row: PlanQuota & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      org_quota_limits: {
+        Row: OrgQuotaLimit & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      plan_products: {
+        Row: PlanProduct & Rec
+        Insert: never & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      plan_bundle_features: {
+        Row: PlanBundleFeature & Rec
         Insert: never & Rec
         Update: never & Rec
         Relationships: []
