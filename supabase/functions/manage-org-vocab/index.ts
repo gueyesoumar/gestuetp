@@ -49,11 +49,13 @@ Deno.serve(async (req) => {
 
     // --- GET ------------------------------------------------------------------
     if (action === 'get') {
-      const { data: org } = await admin.from('organizations').select('edition').eq('id', orgId).single()
+      // Persona depuis la capacité supervision (RFC 0006 C+P3) — plus d'édition.
+      const { data: cap } = await admin.from('organization_capabilities')
+        .select('capability').eq('org_id', orgId).eq('capability', 'supervision').eq('status', 'active').maybeSingle()
       const { data: rows } = await admin.from('organization_vocab').select('key, value').eq('org_id', orgId)
       const overrides: Record<string, string> = {}
       for (const r of (rows ?? []) as Array<{ key: string; value: string }>) overrides[r.key] = r.value
-      return json({ edition: (org as { edition?: string } | null)?.edition ?? 'comply', overrides })
+      return json({ persona: cap ? 'regul' : 'comply', overrides })
     }
 
     // --- SET ------------------------------------------------------------------
