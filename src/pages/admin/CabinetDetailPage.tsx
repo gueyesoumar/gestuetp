@@ -16,7 +16,6 @@ import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
 import { CabinetOverviewTab } from '../../features/admin/health/CabinetOverviewTab'
 import { AdminOrgEngineCard } from '../../features/admin/AdminOrgEngineCard'
-import { AdminOrgModulesCard } from '../../features/admin/AdminOrgModulesCard'
 import { TerminologyEditor } from '../../features/organization-settings/TerminologyEditor'
 import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
 import { labelOrganizationType } from '../../features/admin/cabinetLabels'
@@ -128,7 +127,6 @@ export function CabinetDetailPage() {
             onEditTypes={() => setTypesModalOpen(true)}
           />
           <AdminOrgEngineCard cabinetId={cabinet.id} currentEngine={cabinet.workflow_version} onSaved={refetch} />
-          <AdminOrgModulesCard cabinetId={cabinet.id} current={cabinet.capabilities} onSaved={refetch} />
         </>
       )}
 

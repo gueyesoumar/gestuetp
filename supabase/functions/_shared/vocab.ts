@@ -26,8 +26,10 @@ export function leElision(term: string): string {
 
 /** Résout le vocab de l'org (défauts par édition + overrides organization_vocab). */
 export async function resolveOrgVocab(admin: SupabaseClient, orgId: string): Promise<OrgVocab> {
-  const { data: org } = await admin.from('organizations').select('edition').eq('id', orgId).single()
-  const base = DEFAULTS[(org as { edition?: string } | null)?.edition === 'regul' ? 'regul' : 'comply']
+  // Persona depuis la capacité supervision (RFC 0006 C+P3) — plus d'édition.
+  const { data: cap } = await admin.from('organization_capabilities')
+    .select('capability').eq('org_id', orgId).eq('capability', 'supervision').eq('status', 'active').maybeSingle()
+  const base = DEFAULTS[cap ? 'regul' : 'comply']
   const { data: rows } = await admin.from('organization_vocab').select('key, value').eq('org_id', orgId)
   const ov: Record<string, string> = {}
   for (const r of (rows ?? []) as Array<{ key: string; value: string }>) ov[r.key] = r.value
