@@ -14,9 +14,10 @@ interface Props {
   isHome: boolean
   busy: boolean
   onAct: (a: SubscriptionAction) => void
+  format: (xof: number) => string
 }
 
-export function SubscriptionProductCard({ product, features, entry, isHome, busy, onAct }: Props): JSX.Element {
+export function SubscriptionProductCard({ product, features, entry, isHome, busy, onAct, format }: Props): JSX.Element {
   const p = product.key
   const abbr = product.name.slice(0, 2)
   const on = Boolean(entry)
@@ -82,7 +83,7 @@ export function SubscriptionProductCard({ product, features, entry, isHome, busy
                 <span className="flex-1 text-[12.5px] text-gray-700">{f.label}</span>
                 {f.is_core
                   ? <span className="text-[9.5px] font-mono uppercase text-gray-300">inclus</span>
-                  : <span className="text-[11px] font-mono text-gray-500">+{Number(f.monthly_price_eur).toLocaleString('fr-FR')} &euro;</span>}
+                  : <span className="text-[11px] font-mono text-gray-500">+ {format(f.monthly_price)}</span>}
               </label>
             )
           })}
