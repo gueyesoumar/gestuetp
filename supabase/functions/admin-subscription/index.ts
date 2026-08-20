@@ -56,18 +56,18 @@ Deno.serve(async (req) => {
     // Valide un product_key contre le catalogue (produits publiés).
     const requireProduct = async (key?: string) => {
       if (!key) return null
-      const { data } = await db.from('products').select('key, monthly_price_eur, is_home_eligible').eq('key', key).single()
-      return data as { key: string; monthly_price_eur: number; is_home_eligible: boolean } | null
+      const { data } = await db.from('products').select('key, monthly_price, is_home_eligible').eq('key', key).single()
+      return data as { key: string; monthly_price: number; is_home_eligible: boolean } | null
     }
     const ensureSub = async (productKey: string) => {
       const { data } = await db.from('org_subscriptions').select('id').eq('organization_id', org).eq('product_key', productKey).single()
       return (data as { id: string } | null)?.id ?? null
     }
     const addCoreFeatures = async (subId: string, productKey: string) => {
-      const { data: feats } = await db.from('product_features').select('key, monthly_price_eur').eq('product_key', productKey).eq('is_core', true)
-      for (const f of (feats ?? []) as Array<{ key: string; monthly_price_eur: number }>) {
+      const { data: feats } = await db.from('product_features').select('key, monthly_price').eq('product_key', productKey).eq('is_core', true)
+      for (const f of (feats ?? []) as Array<{ key: string; monthly_price: number }>) {
         await db.from('org_subscription_features').upsert(
-          { subscription_id: subId, feature_key: f.key, unit_price_eur: f.monthly_price_eur },
+          { subscription_id: subId, feature_key: f.key, unit_price: f.monthly_price },
           { onConflict: 'subscription_id,feature_key' },
         )
       }
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
       await db.from('org_subscriptions').upsert({
         organization_id: org, product_key: prod.key,
         status: isTrial ? 'trial' : 'active',
-        unit_price_eur: prod.monthly_price_eur, trial_ends_at: trialEnds,
+        unit_price: prod.monthly_price, trial_ends_at: trialEnds,
         suspended_at: null, created_by: owner.id, updated_at: new Date().toISOString(),
       }, { onConflict: 'organization_id,product_key' })
       const subId = await ensureSub(prod.key)
@@ -118,15 +118,15 @@ Deno.serve(async (req) => {
         if (!prod) continue
         await db.from('org_subscriptions').upsert({
           organization_id: org, product_key: prod.key, status: 'active',
-          unit_price_eur: prod.monthly_price_eur, plan_slug: slug,
+          unit_price: prod.monthly_price, plan_slug: slug,
           trial_ends_at: null, suspended_at: null, created_by: owner.id, updated_at: new Date().toISOString(),
         }, { onConflict: 'organization_id,product_key' })
         const subId = await ensureSub(prod.key)
         if (!subId) continue
         for (const f of (pbf ?? []).filter((x: any) => x.product_key === prod.key)) {
-          const { data: fp } = await db.from('product_features').select('monthly_price_eur').eq('product_key', prod.key).eq('key', (f as any).feature_key).single()
+          const { data: fp } = await db.from('product_features').select('monthly_price').eq('product_key', prod.key).eq('key', (f as any).feature_key).single()
           await db.from('org_subscription_features').upsert(
-            { subscription_id: subId, feature_key: (f as any).feature_key, unit_price_eur: (fp as any)?.monthly_price_eur ?? 0 },
+            { subscription_id: subId, feature_key: (f as any).feature_key, unit_price: (fp as any)?.monthly_price ?? 0 },
             { onConflict: 'subscription_id,feature_key' },
           )
         }
@@ -150,10 +150,10 @@ Deno.serve(async (req) => {
       const subId = await ensureSub(body.product_key)
       if (!subId) return json({ error: 'Abonnement produit inexistant' }, 400)
       if (body.enabled) {
-        const { data: fp } = await db.from('product_features').select('monthly_price_eur').eq('product_key', body.product_key).eq('key', body.feature_key).single()
+        const { data: fp } = await db.from('product_features').select('monthly_price').eq('product_key', body.product_key).eq('key', body.feature_key).single()
         if (!fp) return json({ error: 'Feature inconnue' }, 400)
         await db.from('org_subscription_features').upsert(
-          { subscription_id: subId, feature_key: body.feature_key, unit_price_eur: (fp as any).monthly_price_eur },
+          { subscription_id: subId, feature_key: body.feature_key, unit_price: (fp as any).monthly_price },
           { onConflict: 'subscription_id,feature_key' },
         )
       } else {

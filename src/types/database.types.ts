@@ -1508,7 +1508,7 @@ export interface Product {
   is_home_eligible: boolean
   is_published: boolean
   active_default: boolean
-  monthly_price_eur: number
+  monthly_price: number
   sort_order: number
 }
 
@@ -1518,7 +1518,7 @@ export interface ProductFeature {
   key: string
   label: string
   is_core: boolean
-  monthly_price_eur: number
+  monthly_price: number
   capability: Capability | null
   sort_order: number
 }
@@ -1537,7 +1537,7 @@ export interface OrgSubscription {
   product_key: string
   status: SubscriptionStatus
   trial_ends_at: string | null
-  unit_price_eur: number
+  unit_price: number
   discount_pct: number
   plan_slug: string | null
   started_at: string
@@ -1550,7 +1550,7 @@ export interface OrgSubscriptionFeature {
   id: string
   subscription_id: string
   feature_key: string
-  unit_price_eur: number
+  unit_price: number
 }
 
 export interface PlanQuota {
@@ -1582,7 +1582,7 @@ export interface OrgSubscriptionStateEntry {
   product_key: string
   status: SubscriptionStatus
   trial_ends_at: string | null
-  unit_price_eur: number
+  unit_price: number
   discount_pct: number
   plan_slug: string | null
   features: string[]
