@@ -1577,6 +1577,25 @@ export interface PlanBundleFeature {
   feature_key: string
 }
 
+// État d'abonnement résolu (retour jsonb de org_subscription_state, RFC 0006 P4).
+export interface OrgSubscriptionStateEntry {
+  product_key: string
+  status: SubscriptionStatus
+  trial_ends_at: string | null
+  unit_price_eur: number
+  discount_pct: number
+  plan_slug: string | null
+  features: string[]
+}
+
+export interface OrgSubscriptionState {
+  organization_id: string
+  discount_pct: number | null
+  home_product: string | null
+  mrr: number
+  subscriptions: OrgSubscriptionStateEntry[]
+}
+
 export interface Database {
   __InternalSupabase: {
     PostgrestVersion: '12'
@@ -1895,6 +1914,18 @@ export interface Database {
       get_subsidiary_ids: {
         Args: { parent_id: string }
         Returns: string[]
+      }
+      org_mrr: {
+        Args: { p_org: string }
+        Returns: number
+      }
+      platform_mrr: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      org_subscription_state: {
+        Args: { p_org: string }
+        Returns: OrgSubscriptionState
       }
       get_my_edition: {
         Args: Record<PropertyKey, never>
