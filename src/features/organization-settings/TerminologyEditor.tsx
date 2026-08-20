@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { readInvokeError } from '../../lib/edgeError'
-import { vocabForEdition } from '../../lib/product'
+import { vocabForPersona } from '../../lib/product'
 import { EDITABLE_VOCAB_KEYS, VOCAB_GROUPS, type VocabKeyDef, type VocabGroupId } from '../../lib/vocab-keys'
 import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -21,7 +21,7 @@ export function TerminologyEditor({ orgId }: TerminologyEditorProps): JSX.Elemen
   const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [edition, setEdition] = useState('comply')
+  const [persona, setPersona] = useState<'comply' | 'regul'>('comply')
   const [values, setValues] = useState<Record<string, string>>({})
   const [active, setActive] = useState<VocabGroupId>('entity')
   const [search, setSearch] = useState('')
@@ -33,13 +33,13 @@ export function TerminologyEditor({ orgId }: TerminologyEditorProps): JSX.Elemen
       const { data, error } = await supabase.functions.invoke('manage-org-vocab', { body: { action: 'get', org_id: orgId } })
       if (!on) return
       if (error) { toast.error(await readInvokeError(error, data, 'Chargement impossible')); setLoading(false); return }
-      const res = data as { edition?: string; overrides?: Record<string, string> }
-      setEdition(res.edition ?? 'comply'); setValues(res.overrides ?? {}); setLoading(false)
+      const res = data as { persona?: string; overrides?: Record<string, string> }
+      setPersona(res.persona === 'regul' ? 'regul' : 'comply'); setValues(res.overrides ?? {}); setLoading(false)
     })()
     return () => { on = false }
   }, [orgId])
 
-  const defaults = vocabForEdition(edition)
+  const defaults = vocabForPersona(persona === 'regul')
   const byKey = useMemo(() => new Map(EDITABLE_VOCAB_KEYS.map((k) => [k.key, k])), [])
   const get = (key: string): string => (values[key]?.trim() || String(defaults[byKey.get(key)!.field]))
   const customCount = (g: VocabGroupId) => EDITABLE_VOCAB_KEYS.filter((k) => k.group === g && (values[k.key] ?? '').trim() !== '').length
