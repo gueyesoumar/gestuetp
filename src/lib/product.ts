@@ -104,14 +104,8 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
   },
 }
 
-/** Défauts de vocab résolus par l'ÉDITION (encore utilisé par l'éditeur Terminologie
- *  qui reçoit l'édition de l'org cible via l'edge — P4b la remplacera). */
-export function vocabForEdition(edition: string): ProductVocab {
-  return edition === 'regul' ? VOCAB.regul : VOCAB.comply
-}
-
-/** Défauts de vocab résolus par la PERSONA (capacité supervision) — RFC 0002 P4a.
- *  Remplace vocabForEdition côté runtime : le front ne lit plus l'édition. */
+/** Défauts de vocab résolus par la PERSONA (capacité supervision) — RFC 0002/0006.
+ *  Le front ne lit plus l'édition (supprimée en C+P3). */
 export function vocabForPersona(hasSupervision: boolean): ProductVocab {
   return hasSupervision ? VOCAB.regul : VOCAB.comply
 }
