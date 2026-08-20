@@ -1927,10 +1927,6 @@ export interface Database {
         Args: { p_org: string }
         Returns: OrgSubscriptionState
       }
-      get_my_edition: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
       my_capabilities: {
         Args: Record<PropertyKey, never>
         Returns: string[]
