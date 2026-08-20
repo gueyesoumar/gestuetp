@@ -1508,7 +1508,7 @@ export interface Product {
   is_home_eligible: boolean
   is_published: boolean
   active_default: boolean
-  monthly_price_eur: number
+  monthly_price: number
   sort_order: number
 }
 
@@ -1518,7 +1518,7 @@ export interface ProductFeature {
   key: string
   label: string
   is_core: boolean
-  monthly_price_eur: number
+  monthly_price: number
   capability: Capability | null
   sort_order: number
 }
@@ -1537,7 +1537,7 @@ export interface OrgSubscription {
   product_key: string
   status: SubscriptionStatus
   trial_ends_at: string | null
-  unit_price_eur: number
+  unit_price: number
   discount_pct: number
   plan_slug: string | null
   started_at: string
@@ -1550,7 +1550,7 @@ export interface OrgSubscriptionFeature {
   id: string
   subscription_id: string
   feature_key: string
-  unit_price_eur: number
+  unit_price: number
 }
 
 export interface PlanQuota {
@@ -1575,6 +1575,25 @@ export interface PlanBundleFeature {
   plan_slug: string
   product_key: string
   feature_key: string
+}
+
+// État d'abonnement résolu (retour jsonb de org_subscription_state, RFC 0006 P4).
+export interface OrgSubscriptionStateEntry {
+  product_key: string
+  status: SubscriptionStatus
+  trial_ends_at: string | null
+  unit_price: number
+  discount_pct: number
+  plan_slug: string | null
+  features: string[]
+}
+
+export interface OrgSubscriptionState {
+  organization_id: string
+  discount_pct: number | null
+  home_product: string | null
+  mrr: number
+  subscriptions: OrgSubscriptionStateEntry[]
 }
 
 export interface Database {
@@ -1895,6 +1914,18 @@ export interface Database {
       get_subsidiary_ids: {
         Args: { parent_id: string }
         Returns: string[]
+      }
+      org_mrr: {
+        Args: { p_org: string }
+        Returns: number
+      }
+      platform_mrr: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      org_subscription_state: {
+        Args: { p_org: string }
+        Returns: OrgSubscriptionState
       }
       get_my_edition: {
         Args: Record<PropertyKey, never>

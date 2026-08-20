@@ -279,7 +279,11 @@ en dur). **Zéro changement de comportement.**
   `plan_features(plan_id,flag_id)` technique **intact** ; UI `/admin/plans` inchangée.
 - **Rien ne LIT ② encore** → zéro changement runtime. Gating branché en P3.
 
-**C+P3 — Dépréciation éditions + entitlement dérivé (③).** *(couplés : cf. 10.2/00164)*
+> **Séquencement retenu (décision) : P4 (console) AVANT C+P3.** On livre d'abord le *write-path*
+> (console → abonnements), puis on bascule le *read-path* (capacités dérivées). La gestion se faisant
+> déjà par abonnements, l'edge `admin-set-org-capability` n'a pas besoin d'adaptateur intermédiaire.
+
+**C+P3 — Dépréciation éditions + entitlement dérivé (③).** *(couplés : cf. 10.2/00164 ; APRÈS P4)*
 - **C (éditions)** : migrer les derniers lecteurs de `organizations.edition` vers la capacité
   `supervision` — edges (`_shared/vocab.ts`, `manage-org-vocab`), `sync_org_parent_edge` (00164),
   `TerminologyEditor` ; **réécrire le provisioning** `sync_org_capabilities` (00164) en provisioning
