@@ -10,8 +10,8 @@ interface Props {
 /**
  * Fulfillment 1-clic depuis un ticket (cote platform owner).
  * - feature_activation : active un flag pour le cabinet du ticket (setOverride).
- * - plan_change : pas d'auto-application (la capacite « changer de plan » est
- *   volontairement non implementee, cf. CabinetBillingTab) -> note manuelle.
+ * - plan_change : pas d'auto-application depuis le ticket (le changement de plan
+ *   se gere dans la console Abonnement, onglet Abonnement) -> note manuelle.
  */
 export function SupportFulfillmentPanel({ request, onResolved }: Props): JSX.Element | null {
   if (request.subtype === 'feature_activation') {
