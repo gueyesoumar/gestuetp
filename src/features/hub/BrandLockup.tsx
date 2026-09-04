@@ -28,12 +28,11 @@ export function BrandLockup(): JSX.Element {
   return (
     <div className="flex items-center gap-3">
       <MorphingShield size={34} showLabel={false} />
-      <div className="h-9 w-px bg-white/15" />
       <div>
-        <div className="text-[20px] font-extrabold leading-tight text-white">
-          G&euml;stu <span className="text-[#D4A843]">ETP</span>
+        <div className="text-[19px] font-extrabold leading-none text-white">
+          Gëstu <span className="text-[#D4A843]">ETP</span>
         </div>
-        <div className="mt-0.5 text-[11px] font-medium text-white/60">
+        <div className="mt-1 text-[10px] font-medium text-white/55">
           <span className="font-bold text-[#D4A843]">E</span>nterprise{' '}
           <span className="font-bold text-[#D4A843]">T</span>rust{' '}
           <span className="font-bold text-[#D4A843]">P</span>latform
