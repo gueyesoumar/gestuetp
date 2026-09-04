@@ -27,7 +27,7 @@ export function AdminSupportPage(): JSX.Element {
 
   if (selected) {
     return (
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-3xl p-6">
         <SupportRequestDetail
           request={selected}
           onBack={() => setSelectedId(null)}
@@ -43,7 +43,7 @@ export function AdminSupportPage(): JSX.Element {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="p-6">
       <h1 className="text-xl font-bold text-gray-900 mb-1">Support</h1>
       <p className="text-sm text-gray-500 mb-5">File unifi&eacute;e des bugs, demandes et suggestions.</p>
 
