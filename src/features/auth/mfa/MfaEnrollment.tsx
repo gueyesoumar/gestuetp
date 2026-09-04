@@ -5,6 +5,7 @@ import { useMfa } from './useMfa'
 import type { TotpEnrollment } from './useMfa'
 import { useAuth } from '../../../hooks/useAuth'
 import { MfaShell } from './MfaShell'
+import { OtpInput } from '../../../components/ui/OtpInput'
 
 // Enrôlement TOTP forcé : affiché quand la MFA est obligatoire et qu'aucun
 // facteur vérifié n'existe. Bloque l'accès tant que le facteur n'est pas confirmé.
@@ -18,7 +19,9 @@ export function MfaEnrollment(): JSX.Element {
   const [qrPng, setQrPng] = useState<string | null>(null)
   const [loadErr, setLoadErr] = useState(false)
   const [code, setCode] = useState('')
+  const [attempt, setAttempt] = useState(0)
   const started = useRef(false)
+  const verifyingRef = useRef(false)
 
   useEffect(() => {
     if (started.current) return
@@ -33,12 +36,16 @@ export function MfaEnrollment(): JSX.Element {
       .catch((err: unknown) => console.error('QR:', err instanceof Error ? err.message : String(err)))
   }, [enroll])
 
-  const onSubmit = async (ev: FormEvent): Promise<void> => {
-    ev.preventDefault()
-    if (!enroll || code.trim().length < 6) return
-    const ok = await verifyCode(enroll.factorId, code.trim())
+  const submit = async (theCode: string): Promise<void> => {
+    if (verifyingRef.current || !enroll || theCode.length < 6) return
+    verifyingRef.current = true
+    const ok = await verifyCode(enroll.factorId, theCode)
+    verifyingRef.current = false
     if (ok) await refreshMfa()
+    else { setCode(''); setAttempt((a) => a + 1) }
   }
+
+  const onSubmit = (ev: FormEvent): void => { ev.preventDefault(); void submit(code) }
 
   return (
     <MfaShell title="Sécurisez votre compte" subtitle="Authentification à deux facteurs requise">
@@ -72,13 +79,8 @@ export function MfaEnrollment(): JSX.Element {
             <code className="block mt-2 text-xs bg-gray-50 border border-gray-200 rounded p-2 break-all">{enroll.secret}</code>
           </details>
           <form onSubmit={onSubmit} className="space-y-3">
-            <input
-              inputMode="numeric" autoComplete="one-time-code" maxLength={6}
-              value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              placeholder="000000" aria-label="Code à 6 chiffres"
-              className="w-full text-center tracking-[0.4em] text-lg font-mono border border-gray-300 rounded-lg py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
-            />
-            {error ? <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p> : null}
+            <OtpInput key={attempt} value={code} onChange={setCode} onComplete={submit} disabled={busy} invalid={!!error} />
+            {error ? <p className="text-center text-sm" style={{ color: 'var(--color-error)' }}>{error}</p> : null}
             <button
               type="submit" disabled={busy || code.length < 6}
               className="w-full text-white font-semibold rounded-lg py-3 disabled:opacity-50"
