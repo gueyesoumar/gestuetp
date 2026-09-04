@@ -30,14 +30,14 @@ export function CabinetSupportPage(): JSX.Element {
       )
       : undefined
     return (
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-3xl">
         <SupportRequestDetail request={selected} onBack={() => setSelectedId(null)} onStatus={onStatus} fulfillment={note} />
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div>
       <h1 className="text-xl font-bold text-gray-900 mb-1">Demandes de l&apos;&eacute;quipe</h1>
       <p className="text-sm text-gray-500 mb-5">Les demandes rout&eacute;es vers votre cabinet (acc&egrave;s, fonctionnalit&eacute;s&hellip;).</p>
 
