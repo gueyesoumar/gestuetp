@@ -25,7 +25,7 @@ export function CabinetSupportPage(): JSX.Element {
     const note = selected.subtype === 'access_member'
       ? (
         <div className="mx-4 mb-3 border border-amber-200 bg-amber-50 rounded-xl p-3 text-[12px] text-amber-800">
-          Gestion d&apos;acc&egrave;s&nbsp;: &agrave; traiter dans <Link to="/membres" className="underline font-semibold">Membres</Link>, puis marquer r&eacute;solu.
+          Gestion d&apos;acc&egrave;s&nbsp;: &agrave; traiter dans <Link to="/organisation?tab=membres" className="underline font-semibold">Membres</Link>, puis marquer r&eacute;solu.
         </div>
       )
       : undefined
