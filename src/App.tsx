@@ -87,9 +87,6 @@ function AppRoutes(): JSX.Element {
       {/* Hub — entrée unique pour tout le staff (RFC §5-6) */}
       <Route path="/hub" element={<ProtectedRoute><HubPage /></ProtectedRoute>} />
 
-      {/* Compte — page profil dédiée, partagée (hors chrome) */}
-      <Route path="/compte" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-
       {/* Routes-modules sous le shell unifié — l'édition résolue choisit le jeu monté */}
       <Route
         element={
@@ -99,6 +96,7 @@ function AppRoutes(): JSX.Element {
         }
       >
         <Route index element={isRegul ? <RegulDashboard /> : <DashboardPage />} />
+        <Route path="compte" element={<AccountPage />} />
         <Route path="profil" element={<Navigate to="/compte" replace />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="organisation" element={<OrganizationPage />} />

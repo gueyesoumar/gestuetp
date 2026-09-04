@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 const routeLabels: Record<string, string> = {
   '': 'Tableau de bord',
   'profil': 'Mon profil',
+  'compte': 'Mon compte',
   'notifications': 'Notifications',
   'organisation': 'Organisation',
   'membres': 'Membres',
