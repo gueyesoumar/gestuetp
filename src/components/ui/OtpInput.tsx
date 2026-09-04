@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import type { KeyboardEvent, ClipboardEvent, FocusEvent } from 'react'
+import type { KeyboardEvent, ClipboardEvent } from 'react'
 
 interface OtpInputProps {
   value: string
@@ -18,6 +18,11 @@ interface OtpInputProps {
  */
 export function OtpInput({ value, onChange, onComplete, length = 6, disabled = false, autoFocus = false, invalid = false }: OtpInputProps): JSX.Element {
   const refs = useRef<(HTMLInputElement | null)[]>([])
+  // Miroir de la valeur courante : lu par les handlers pour éviter la closure
+  // périmée (le setState du parent n'est pas encore appliqué quand on enchaîne
+  // deux chiffres avant un re-render).
+  const valueRef = useRef(value)
+  valueRef.current = value
 
   useEffect(() => {
     if (autoFocus) refs.current[0]?.focus()
@@ -25,6 +30,7 @@ export function OtpInput({ value, onChange, onComplete, length = 6, disabled = f
 
   const commit = (next: string): string => {
     const clean = next.replace(/\D/g, '').slice(0, length)
+    valueRef.current = clean
     onChange(clean)
     return clean
   }
@@ -32,7 +38,7 @@ export function OtpInput({ value, onChange, onComplete, length = 6, disabled = f
   const handleChange = (i: number, raw: string): void => {
     const digit = raw.replace(/\D/g, '').slice(-1)
     if (!digit) return
-    const clean = commit(value.slice(0, i) + digit)
+    const clean = commit(valueRef.current.slice(0, i) + digit)
     refs.current[Math.min(clean.length, length - 1)]?.focus()
     if (clean.length === length) onComplete?.(clean)
   }
@@ -40,8 +46,9 @@ export function OtpInput({ value, onChange, onComplete, length = 6, disabled = f
   const handleKeyDown = (i: number, e: KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Backspace') {
       e.preventDefault()
-      const cut = value[i] ? i : Math.max(0, i - 1)
-      commit(value.slice(0, cut))
+      const cur = valueRef.current
+      const cut = cur[i] ? i : Math.max(0, i - 1)
+      commit(cur.slice(0, cut))
       refs.current[cut]?.focus()
     } else if (e.key === 'ArrowLeft' && i > 0) {
       refs.current[i - 1]?.focus()
@@ -57,12 +64,6 @@ export function OtpInput({ value, onChange, onComplete, length = 6, disabled = f
     if (clean.length === length) onComplete?.(clean)
   }
 
-  // Saisie séquentielle : empêche de cibler une case au-delà du front rempli.
-  const handleFocus = (i: number, e: FocusEvent<HTMLInputElement>): void => {
-    if (i > value.length) refs.current[value.length]?.focus()
-    else e.target.select()
-  }
-
   return (
     <div className="flex justify-center gap-2" role="group" aria-label={`Code à ${length} chiffres`}>
       {Array.from({ length }).map((_, i) => (
@@ -74,7 +75,7 @@ export function OtpInput({ value, onChange, onComplete, length = 6, disabled = f
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          onFocus={(e) => handleFocus(i, e)}
+          onFocus={(e) => e.target.select()}
           aria-label={`Chiffre ${i + 1}`}
           className={`h-14 w-11 rounded-xl border text-center text-xl font-mono text-gray-900 outline-none transition-colors focus:ring-2 ${
             invalid ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-gray-300 focus:border-forest-500 focus:ring-forest-100'
