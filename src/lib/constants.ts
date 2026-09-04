@@ -185,6 +185,16 @@ export const PERMISSION_LABELS: Record<string, string> = {
   can_assign_team: 'Assigner des équipes',
   can_be_lead: 'Être auditeur principal',
   can_designate_lead: 'Désigner un auditeur principal',
+  can_delete_mission: 'Supprimer des missions',
+  can_manage_members: 'Gérer les membres',
+  can_manage_clients: 'Gérer les clients',
+  can_edit_organization: "Modifier l'organisation",
+  can_manage_roles: 'Gérer les rôles',
+  can_view_audit_trail: "Voir la piste d'audit",
+  can_view_supervision: 'Voir la supervision',
+  can_create_campaign: 'Créer des campagnes',
+  can_manage_subsidiaries: 'Gérer les filiales',
+  can_view_entity_detail: "Voir le détail d'une entité",
 } as const
 
 export const DASHBOARD_VIEW_LABELS: Record<string, string> = {
