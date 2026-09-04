@@ -7,8 +7,6 @@ import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
-import { OrgAdminRoute } from './components/OrgAdminRoute'
-import { AuditTrailPage } from './features/audit/AuditTrailPage'
 import { RiskPage } from './features/risk/RiskPage'
 import { RiskRegisterPage } from './features/risk/RiskRegisterPage'
 import { PolicyBoardPage } from './features/policy/PolicyBoardPage'
@@ -19,7 +17,6 @@ import { LoginPage } from './pages/LoginPage'
 import { HubPage } from './pages/HubPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { OrganizationPage } from './pages/OrganizationPage'
-import { MembersPage } from './pages/MembersPage'
 import { FrameworksPage } from './pages/FrameworksPage'
 import { FrameworkDetailPage } from './pages/FrameworkDetailPage'
 import { FrameworkComparisonPage } from './pages/FrameworkComparisonPage'
@@ -105,8 +102,8 @@ function AppRoutes(): JSX.Element {
         <Route path="profil" element={<Navigate to="/compte" replace />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="organisation" element={<OrganizationPage />} />
-        <Route path="membres" element={<MembersPage />} />
-        <Route path="piste-audit" element={<OrgAdminRoute><AuditTrailPage /></OrgAdminRoute>} />
+        <Route path="membres" element={<Navigate to="/organisation?tab=membres" replace />} />
+        <Route path="piste-audit" element={<Navigate to="/organisation?tab=piste-audit" replace />} />
         <Route path="risque" element={hasCapability('risk') ? <RiskPage /> : <Navigate to="/" replace />} />
         <Route path="risque/registre" element={hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
         <Route path="politiques" element={hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />

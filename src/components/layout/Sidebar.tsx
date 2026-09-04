@@ -5,7 +5,7 @@ import shieldSvg from '../../assets/logo-shield.svg'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
 import { LayoutGrid, LifeBuoy, Inbox, UserCircle } from 'lucide-react'
 import {
-  OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
+  OrganizationIcon, LogoutIcon, BellIcon,
   CollapseIcon, ExpandIcon, ChevronUpIcon,
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
@@ -39,7 +39,6 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
     ] },
     ...(hasOrgAccess ? [{ label: 'Organisation', items: [
       { to: '/organisation', label: 'Organisation', icon: <OrganizationIcon /> },
-      { to: '/membres', label: 'Membres', icon: <MembersIcon /> },
     ] }] : []),
     { label: 'Aide', items: [
       { to: '/aide', label: "Centre d'aide", icon: <LifeBuoy size={20} strokeWidth={1.5} /> },
