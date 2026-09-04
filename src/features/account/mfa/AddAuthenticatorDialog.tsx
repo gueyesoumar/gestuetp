@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import QRCode from 'qrcode'
 import { Modal } from '../../../components/ui/Modal'
+import { OtpInput } from '../../../components/ui/OtpInput'
 import { useMfa } from '../../auth/mfa/useMfa'
 import type { TotpEnrollment } from '../../auth/mfa/useMfa'
 
@@ -22,6 +23,8 @@ export function AddAuthenticatorDialog({ open, onClose, onAdded }: Props): JSX.E
   const [enroll, setEnroll] = useState<TotpEnrollment | null>(null)
   const [qrPng, setQrPng] = useState<string | null>(null)
   const [code, setCode] = useState('')
+  const [attempt, setAttempt] = useState(0)
+  const verifyingRef = useRef(false)
 
   useEffect(() => {
     if (open) { setName(''); setEnroll(null); setQrPng(null); setCode('') }
@@ -41,12 +44,16 @@ export function AddAuthenticatorDialog({ open, onClose, onAdded }: Props): JSX.E
     if (res) setEnroll(res)
   }
 
-  const confirm = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!enroll || code.trim().length < 6) return
-    const ok = await verifyCode(enroll.factorId, code.trim())
+  const confirm = async (theCode: string) => {
+    if (verifyingRef.current || !enroll || theCode.length < 6) return
+    verifyingRef.current = true
+    const ok = await verifyCode(enroll.factorId, theCode)
+    verifyingRef.current = false
     if (ok) { onAdded(); onClose() }
+    else { setCode(''); setAttempt((a) => a + 1) }
   }
+
+  const onConfirmSubmit = (e: FormEvent) => { e.preventDefault(); void confirm(code) }
 
   return (
     <Modal open={open} onClose={onClose} title="Ajouter un authentificateur">
@@ -67,7 +74,7 @@ export function AddAuthenticatorDialog({ open, onClose, onAdded }: Props): JSX.E
           </div>
         </form>
       ) : (
-        <form onSubmit={confirm} className="space-y-4">
+        <form onSubmit={onConfirmSubmit} className="space-y-4">
           <ol className="text-[13px] text-gray-600 space-y-1 list-decimal list-inside">
             <li>Scannez ce QR code dans votre application d&apos;authentification.</li>
             <li>Saisissez le code à 6 chiffres généré.</li>
@@ -83,13 +90,8 @@ export function AddAuthenticatorDialog({ open, onClose, onAdded }: Props): JSX.E
             <summary className="text-xs text-gray-500 cursor-pointer">Impossible de scanner&nbsp;? Saisie manuelle</summary>
             <code className="block mt-2 text-xs bg-gray-50 border border-gray-200 rounded p-2 break-all">{enroll.secret}</code>
           </details>
-          <input
-            inputMode="numeric" autoComplete="one-time-code" maxLength={6}
-            value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-            placeholder="000000" aria-label="Code à 6 chiffres"
-            className="w-full text-center tracking-[0.4em] text-lg font-mono border border-gray-300 rounded-lg py-3 focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
-          />
-          {error && <p className="text-[13px]" style={{ color: 'var(--color-error)' }}>{error}</p>}
+          <OtpInput key={attempt} value={code} onChange={setCode} onComplete={confirm} disabled={busy} autoFocus invalid={!!error} />
+          {error && <p className="text-center text-[13px]" style={{ color: 'var(--color-error)' }}>{error}</p>}
           <div className="flex justify-end gap-3">
             <button type="button" onClick={onClose} className="rounded-lg border border-gray-200 px-5 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-forest-50">Annuler</button>
             <button type="submit" disabled={busy || code.length < 6} className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50">
