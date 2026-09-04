@@ -6,6 +6,7 @@ import { SplitFormSection } from '../../components/ui/SplitFormSection'
 import { FormField } from '../../components/ui/FormField'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useFieldValidation, minLength } from '../../hooks/useFieldValidation'
+import { TwoFactorSection } from './mfa/TwoFactorSection'
 
 /**
  * Onglet Sécurité : gestion du mot de passe. La gestion self-service du 2FA
@@ -50,6 +51,8 @@ export function SecurityTab(): JSX.Element {
           </div>
         </SplitFormSection>
       </SplitForm>
+
+      <TwoFactorSection />
     </div>
   )
 }
