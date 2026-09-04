@@ -16,19 +16,40 @@ export interface TotpEnrollment {
   secret: string
 }
 
+export interface TotpFactor {
+  id: string
+  friendlyName: string
+  createdAt: string
+}
+
 export interface UseMfa {
   busy: boolean
   error: string | null
-  enrollTotp: () => Promise<TotpEnrollment | null>
+  enrollTotp: (friendlyName?: string) => Promise<TotpEnrollment | null>
   verifyCode: (factorId: string, code: string) => Promise<boolean>
   getVerifiedTotpId: () => Promise<string | null>
+  listTotpFactors: () => Promise<TotpFactor[]>
+  removeFactor: (factorId: string, code: string) => Promise<boolean>
+}
+
+// Prouve la possession d'un facteur conservé en vérifiant un code TOTP frais
+// contre l'un d'eux (step-up avant retrait). Seul le facteur dont le secret
+// génère ce code réussit ; les autres échouent silencieusement.
+async function proveControl(factors: TotpFactor[], code: string): Promise<boolean> {
+  for (const f of factors) {
+    const { data: ch, error: e1 } = await supabase.auth.mfa.challenge({ factorId: f.id })
+    if (e1 || !ch) continue
+    const { error: e2 } = await supabase.auth.mfa.verify({ factorId: f.id, challengeId: ch.id, code })
+    if (!e2) return true
+  }
+  return false
 }
 
 export function useMfa(): UseMfa {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const enrollTotp = useCallback(async (): Promise<TotpEnrollment | null> => {
+  const enrollTotp = useCallback(async (friendlyName = 'Authenticator'): Promise<TotpEnrollment | null> => {
     setError(null); setBusy(true)
     try {
       // Purge d'un éventuel facteur TOTP non vérifié (sinon collision de nom).
@@ -36,10 +57,12 @@ export function useMfa(): UseMfa {
       const stale = (list?.all ?? []).filter((f) => f.factor_type === 'totp' && f.status === 'unverified')
       for (const f of stale) await supabase.auth.mfa.unenroll({ factorId: f.id })
 
-      const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Authenticator', issuer: MFA_ISSUER })
+      const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName, issuer: MFA_ISSUER })
       if (err || !data) {
         console.error('MFA enroll:', err?.message ?? 'inconnu')
-        setError('Impossible de démarrer la configuration. Réessayez.')
+        // Nom déjà pris (gotrue impose l'unicité) → message dédié.
+        const dup = /already exists|friendly.?name/i.test(err?.message ?? '')
+        setError(dup ? 'Ce nom est déjà utilisé. Choisissez-en un autre.' : 'Impossible de démarrer la configuration. Réessayez.')
         return null
       }
       return { factorId: data.id, uri: data.totp.uri, secret: data.totp.secret }
@@ -74,5 +97,49 @@ export function useMfa(): UseMfa {
     return (data?.totp ?? [])[0]?.id ?? null
   }, [])
 
-  return { busy, error, enrollTotp, verifyCode, getVerifiedTotpId }
+  const listTotpFactors = useCallback(async (): Promise<TotpFactor[]> => {
+    const { data, error: err } = await supabase.auth.mfa.listFactors()
+    if (err || !data) {
+      console.error('MFA list:', err?.message ?? 'inconnu')
+      return []
+    }
+    return (data.totp ?? []).map((f) => ({
+      id: f.id,
+      friendlyName: f.friendly_name ?? 'Authentificateur',
+      createdAt: f.created_at,
+    }))
+  }, [])
+
+  const removeFactor = useCallback(async (factorId: string, code: string): Promise<boolean> => {
+    setError(null); setBusy(true)
+    try {
+      const { data: list } = await supabase.auth.mfa.listFactors()
+      const verified: TotpFactor[] = (list?.totp ?? []).map((f) => ({
+        id: f.id, friendlyName: f.friendly_name ?? 'Authentificateur', createdAt: f.created_at,
+      }))
+      // Invariant « MFA obligatoire » : jamais retirer le dernier facteur vérifié.
+      if (verified.length <= 1) {
+        setError('Vous devez conserver au moins un authentificateur. Ajoutez-en un autre avant de retirer celui-ci.')
+        return false
+      }
+      // Step-up : prouver la possession d'un facteur CONSERVÉ (jamais celui retiré).
+      const kept = verified.filter((f) => f.id !== factorId)
+      const proven = await proveControl(kept, code)
+      if (!proven) { setError('Code invalide ou expiré.'); return false }
+
+      const { error: err } = await supabase.auth.mfa.unenroll({ factorId })
+      if (err) {
+        console.error('MFA unenroll:', err.message)
+        setError('Impossible de retirer cet authentificateur. Réessayez.')
+        return false
+      }
+      return true
+    } catch (e) {
+      console.error('MFA remove:', e instanceof Error ? e.message : String(e))
+      setError('Une erreur est survenue. Réessayez.')
+      return false
+    } finally { setBusy(false) }
+  }, [])
+
+  return { busy, error, enrollTotp, verifyCode, getVerifiedTotpId, listTotpFactors, removeFactor }
 }
