@@ -9,17 +9,6 @@ export function BellIcon() {
   )
 }
 
-export function DashboardIcon() {
-  return (
-    <svg {...iconProps}>
-      <rect x="3" y="3" width="6" height="6" rx="1.5" />
-      <rect x="11" y="3" width="6" height="6" rx="1.5" />
-      <rect x="3" y="11" width="6" height="6" rx="1.5" />
-      <rect x="11" y="11" width="6" height="6" rx="1.5" />
-    </svg>
-  )
-}
-
 export function OrganizationIcon() {
   return (
     <svg {...iconProps}>
@@ -43,31 +32,6 @@ export function MembersIcon() {
     <svg {...iconProps}>
       <circle cx="10" cy="7" r="3" />
       <path d="M4 17C4 13.7 6.7 11 10 11C13.3 11 16 13.7 16 17" />
-    </svg>
-  )
-}
-
-export function ClientsIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M3 10C3 6.1 6.1 3 10 3C13.9 3 17 6.1 17 10C17 13.9 13.9 17 10 17C6.1 17 3 13.9 3 10Z" />
-      <path d="M10 7V10L12.5 12.5" />
-    </svg>
-  )
-}
-
-export function FrameworksIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M4 5H16M4 10H16M4 15H10" />
-    </svg>
-  )
-}
-
-export function MissionsIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M10 3L17 7V13L10 17L3 13V7L10 3Z" />
     </svg>
   )
 }

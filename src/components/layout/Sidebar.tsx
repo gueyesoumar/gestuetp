@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
 import shieldSvg from '../../assets/logo-shield.svg'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
-import { LayoutGrid, LifeBuoy, Inbox, UserCircle } from 'lucide-react'
+import { LayoutGrid, LifeBuoy, Inbox, UserCircle, ChevronLeft } from 'lucide-react'
 import {
   OrganizationIcon, MembersIcon, LogoutIcon, BellIcon,
   CollapseIcon, ExpandIcon, ChevronUpIcon,
@@ -97,19 +97,29 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
           <NavLink
             to="/hub"
             onClick={onClose}
-            title={collapsed ? 'Hub ETP' : undefined}
+            title={collapsed ? 'Retour au Hub ETP' : undefined}
             className={collapsed
               ? 'flex items-center justify-center w-11 h-11 mx-auto rounded-xl text-white/30 hover:bg-white/8 hover:text-white/60 transition-colors'
-              : 'flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white/30 hover:bg-white/8 hover:text-white/60 transition-colors'
+              : 'flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white/35 hover:bg-white/8 hover:text-white/70 transition-colors'
             }
           >
-            <LayoutGrid size={16} />
-            {!collapsed && <span>Hub ETP</span>}
+            {collapsed ? (
+              <LayoutGrid size={16} />
+            ) : (
+              <>
+                <ChevronLeft size={15} />
+                <LayoutGrid size={15} />
+                <span>Retour au Hub ETP</span>
+              </>
+            )}
           </NavLink>
         </div>
 
         {/* Navigation principale */}
         <nav className={`flex-1 py-3 ${collapsed ? 'px-2' : 'px-3'}`}>
+          {!collapsed && (
+            <p className="mb-2 px-3.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/30">Espace de travail</p>
+          )}
           {mainItems.map((item) => (
             <NavLink
               key={item.to}
