@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, LayoutDashboard, FileText } from 'lucide-react'
-import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, LayoutDashboard, FileText, Users, BookMarked } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
@@ -58,7 +57,7 @@ export function useSidebarNavItems(
   }
 
   const mainItems: NavItem[] = [
-    { to: '/', label: 'Tableau de bord', icon: <DashboardIcon /> },
+    { to: '/', label: 'Tableau de bord', icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
   ]
 
   if (isRegul) {
@@ -70,14 +69,14 @@ export function useSidebarNavItems(
     if (hasCapability('incidents')) {
       mainItems.push({ to: '/incidents', label: 'Incidents', icon: <Siren size={20} strokeWidth={1.5} /> })
     }
-    mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <FrameworksIcon /> })
+    mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={20} strokeWidth={1.5} /> })
   } else {
     if (canViewSupervision) {
       mainItems.push({ to: '/supervision', label: 'Supervision', icon: <ShieldCheck size={20} strokeWidth={1.5} /> })
     }
-    mainItems.push({ to: '/clients', label: 'Clients', icon: <ClientsIcon /> })
-    mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <FrameworksIcon /> })
-    mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <MissionsIcon /> })
+    mainItems.push({ to: '/clients', label: 'Clients', icon: <Users size={20} strokeWidth={1.5} /> })
+    mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={20} strokeWidth={1.5} /> })
+    mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <ClipboardCheck size={20} strokeWidth={1.5} /> })
   }
 
   // Gëstu Risk (RFC 0004) et Policy (RFC 0005) sont des PRODUITS du Hub à part
