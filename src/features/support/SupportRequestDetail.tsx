@@ -24,6 +24,30 @@ const ACTIONS: { status: SupportStatus; label: string; prim?: boolean }[] = [
   { status: 'closed', label: 'Fermer' },
 ]
 
+function formatContextItem(item: unknown): string {
+  if (item && typeof item === 'object') {
+    const o = item as Record<string, unknown>
+    const text = o.detail ?? o.label
+    if (typeof text === 'string') {
+      return typeof o.kind === 'string' ? `[${o.kind}] ${text}` : text
+    }
+    return JSON.stringify(item)
+  }
+  return String(item)
+}
+
+function renderContextValue(v: unknown): ReactNode {
+  if (Array.isArray(v)) {
+    return (
+      <ol className="mt-1 ml-3 list-decimal space-y-0.5">
+        {v.map((item, i) => <li key={i}>{formatContextItem(item)}</li>)}
+      </ol>
+    )
+  }
+  if (v && typeof v === 'object') return JSON.stringify(v)
+  return String(v)
+}
+
 export function SupportRequestDetail({ request, onBack, onStatus, fulfillment, readOnly, backLabel = 'File' }: Props): JSX.Element {
   const context = Object.entries(request.context ?? {}).filter(([, v]) => v != null && v !== '')
 
@@ -52,7 +76,11 @@ export function SupportRequestDetail({ request, onBack, onStatus, fulfillment, r
           {request.role_at_submit && <p><span className="text-gray-400">Origine&nbsp;:</span> {request.role_at_submit}</p>}
           {context.length > 0 && (
             <div className="font-mono text-[11px] text-gray-500 bg-gray-50 rounded-lg p-2.5">
-              {context.map(([k, v]) => <div key={k}>{k}: {String(v)}</div>)}
+              {context.map(([k, v]) => (
+                <div key={k} className="mb-1 last:mb-0">
+                  <span className="text-gray-400">{k}:</span> {renderContextValue(v)}
+                </div>
+              ))}
             </div>
           )}
         </div>

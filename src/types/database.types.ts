@@ -1459,6 +1459,7 @@ export interface SupportMessage {
   id: string
   request_id: string
   author_user_id: string
+  author_name: string | null
   body: string
   created_at: string
 }
