@@ -50,6 +50,7 @@ import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
 import { AdminPlansPage } from './pages/admin/AdminPlansPage'
 import { MonitoringPage } from './pages/admin/MonitoringPage'
 import { AdminSupportPage } from './pages/admin/AdminSupportPage'
+import { AdminHelpPage } from './pages/admin/AdminHelpPage'
 import { FrameworksAdminListPage } from './pages/admin/FrameworksAdminListPage'
 import { AdminFrameworkCreatePage } from './pages/admin/AdminFrameworkCreatePage'
 import { AdminFrameworkDetailPage } from './pages/admin/AdminFrameworkDetailPage'
@@ -160,6 +161,7 @@ function AppRoutes(): JSX.Element {
         <Route path="plans" element={<AdminPlansPage />} />
         <Route path="monitoring" element={<MonitoringPage />} />
         <Route path="support" element={<AdminSupportPage />} />
+        <Route path="aide" element={<AdminHelpPage />} />
         <Route path="frameworks" element={<FrameworksAdminListPage />} />
         <Route path="frameworks/nouveau" element={<AdminFrameworkCreatePage />} />
         <Route path="frameworks/:slug" element={<AdminFrameworkDetailPage />} />
