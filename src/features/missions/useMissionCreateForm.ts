@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useOrgRoles } from '../../hooks/useOrgRoles'
 import { isGroupOrg } from '../../lib/organization-utils'
 import { useFrameworks } from '../frameworks/useFrameworks'
 import { useCabinetClients } from '../clients/useCabinetClients'
@@ -55,6 +56,10 @@ export function useMissionCreateForm() {
     if (!fwLoading && !clientsLoading && !membersLoading) setEverLoaded(true)
   }, [fwLoading, clientsLoading, membersLoading])
   const loading = !everLoaded || !groupResolved
+
+  // P0.1 (RFC 0007) : rôle « groupe » dérivé du graphe, en OR avec le legacy.
+  const { graphIsGroup } = useOrgRoles(profile?.organization_id)
+  useEffect(() => { if (graphIsGroup) setGroupAvailable(true) }, [graphIsGroup])
 
   // Org de type groupe -> autorise la supervision continue.
   useEffect(() => {
