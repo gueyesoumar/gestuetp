@@ -38,8 +38,8 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
-  // P0.1 (RFC 0007) : le rôle « groupe » est dérivé du graphe, avec repli legacy.
-  const { graphIsGroup } = useOrgRoles(orgId)
+  // P0 (RFC 0007) : les rôles sont dérivés du graphe, avec repli legacy (OR).
+  const { graphIsGroup, graphIsCabinet, graphIsClient, graphIsSubsidiary } = useOrgRoles(orgId)
 
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
 
@@ -122,9 +122,9 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
   return {
     organization,
     isGroup: graphIsGroup || (organization ? isGroupOrg(organization) : false),
-    isCabinet: organization ? isCabinetOrg(organization) : false,
-    isClient: organization ? isClientOrg(organization) : false,
-    isSubsidiary: organization ? isSubsidiaryOrg(organization) : false,
+    isCabinet: graphIsCabinet || (organization ? isCabinetOrg(organization) : false),
+    isClient: graphIsClient || (organization ? isClientOrg(organization) : false),
+    isSubsidiary: graphIsSubsidiary || (organization ? isSubsidiaryOrg(organization) : false),
     parentOrg,
     subsidiaries,
     loading,
