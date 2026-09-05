@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, ScrollText, LayoutDashboard, FileText } from 'lucide-react'
+import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, LayoutDashboard, FileText } from 'lucide-react'
 import { DashboardIcon, ClientsIcon, FrameworksIcon, MissionsIcon } from '../icons/NavIcons'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
-import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 
 export interface NavItem {
@@ -29,7 +28,6 @@ export function useSidebarNavItems(
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const { canViewSupervision } = useGroupPermissions()
-  const { canViewAuditTrail } = useCabinetPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
   const isRegul = hasCapability('supervision')
   const { pathname } = useLocation()
@@ -86,10 +84,8 @@ export function useSidebarNavItems(
   // souscription (capacité `risk`/`policy`) — jamais comme un item de nav à
   // l'intérieur d'un autre produit. Donc aucune entrée in-produit ici.
 
-  // Piste d'audit — réservée aux admins d'organisation (F6).
-  if (canViewAuditTrail) {
-    mainItems.push({ to: '/piste-audit', label: "Piste d'audit", icon: <ScrollText size={20} strokeWidth={1.5} /> })
-  }
+  // Piste d'audit : plus d'entrée dédiée ici — elle vit dans le hub Organisation
+  // (onglet Piste d'audit). /piste-audit redirige vers cet onglet.
 
   const groupItems: NavItem[] = !isRegul && isGroup
     ? [
