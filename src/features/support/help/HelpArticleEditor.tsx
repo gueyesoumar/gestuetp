@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { SafeMarkdown } from '../../../components/ui/SafeMarkdown'
+import { ImagePlus } from 'lucide-react'
+import { supabase } from '../../../lib/supabase'
+import { ArticleMarkdown } from '../../../components/ui/ArticleMarkdown'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { HelpArticle, HelpArticleInsert, HelpAudience } from '../../../types/database.types'
 
@@ -35,10 +37,44 @@ export function HelpArticleEditor({ article, saving, error, onSave, onCancel }: 
   const [isPublished, setIsPublished] = useState(article?.is_published ?? true)
   const [sortOrder, setSortOrder] = useState(article?.sort_order ?? 0)
   const [slugTouched, setSlugTouched] = useState(Boolean(article))
+  const [uploading, setUploading] = useState(false)
+  const [uploadErr, setUploadErr] = useState<string | null>(null)
+  const bodyRef = useRef<HTMLTextAreaElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const onTitle = (v: string): void => {
     setTitle(v)
     if (!slugTouched) setSlug(slugify(v))
+  }
+
+  const insertAtCursor = (text: string): void => {
+    const ta = bodyRef.current
+    const start = ta?.selectionStart ?? body.length
+    const end = ta?.selectionEnd ?? body.length
+    const next = body.slice(0, start) + text + body.slice(end)
+    setBody(next)
+    requestAnimationFrame(() => {
+      if (!ta) return
+      ta.focus()
+      const pos = start + text.length
+      ta.setSelectionRange(pos, pos)
+    })
+  }
+
+  const onPickImage = async (file: File): Promise<void> => {
+    setUploadErr(null); setUploading(true)
+    const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')
+    const path = `articles/${Date.now()}_${safe}`
+    const { error } = await supabase.storage.from('help-media').upload(path, file)
+    if (error) {
+      console.error('help image upload:', error.message)
+      setUploadErr('Téléversement impossible.')
+      setUploading(false)
+      return
+    }
+    const { data } = supabase.storage.from('help-media').getPublicUrl(path)
+    setUploading(false)
+    if (data?.publicUrl) insertAtCursor(`\n\n![${file.name.replace(/\.[^.]+$/, '')}](${data.publicUrl})\n\n`)
   }
 
   const submit = (e: FormEvent): void => {
@@ -69,12 +105,27 @@ export function HelpArticleEditor({ article, saving, error, onSave, onCancel }: 
         <input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className={field} />
       </div>
       <div>
-        <label className={label}>Contenu (markdown)</label>
-        <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={8} className={`${field} resize-y font-mono`} />
+        <div className="mb-1 flex items-center gap-2">
+          <label className={label}>Contenu (markdown)</label>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="ml-auto flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1 text-[12px] text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+          >
+            <ImagePlus size={14} /> {uploading ? 'Téléversement…' : 'Insérer une image'}
+          </button>
+          <input
+            ref={fileRef} type="file" accept="image/*" hidden
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPickImage(f); e.target.value = '' }}
+          />
+        </div>
+        <textarea ref={bodyRef} value={body} onChange={(e) => setBody(e.target.value)} rows={10} className={`${field} resize-y font-mono`} />
+        {uploadErr && <p className="mt-1 text-[12px]" style={{ color: 'var(--color-error)' }}>{uploadErr}</p>}
         {body.trim() && (
           <div className="mt-2 rounded-lg border border-gray-200 bg-page-bg p-3 text-[13px] text-gray-700">
             <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">Aperçu</p>
-            <SafeMarkdown>{body}</SafeMarkdown>
+            <ArticleMarkdown>{body}</ArticleMarkdown>
           </div>
         )}
       </div>

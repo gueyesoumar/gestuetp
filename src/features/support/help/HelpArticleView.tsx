@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
-import { SafeMarkdown } from '../../../components/ui/SafeMarkdown'
+import { ArticleMarkdown } from '../../../components/ui/ArticleMarkdown'
 import type { HelpArticle } from '../../../types/database.types'
 
 /** Vue d'un article de la base de connaissances (corps markdown rendu en toute sécurité). */
@@ -14,7 +14,7 @@ export function HelpArticleView({ article, onBack }: { article: HelpArticle; onB
       </span>
       <h2 className="mt-2 text-lg font-bold text-gray-900">{article.title}</h2>
       <div className="mt-3 max-w-2xl text-[13px] text-gray-700">
-        <SafeMarkdown>{article.body}</SafeMarkdown>
+        <ArticleMarkdown>{article.body}</ArticleMarkdown>
       </div>
     </div>
   )
