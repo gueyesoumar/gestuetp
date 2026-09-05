@@ -995,7 +995,7 @@ export interface RegulatoryCatalogItem {
   updated_at: string
 }
 
-export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation'
+export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation' | 'support'
 
 export interface Notification {
   id: string
@@ -1455,6 +1455,20 @@ export interface SupportRequestUpdate {
   context?: Record<string, unknown>
 }
 
+export interface SupportMessage {
+  id: string
+  request_id: string
+  author_user_id: string
+  body: string
+  created_at: string
+}
+
+export interface SupportMessageInsert {
+  request_id: string
+  author_user_id: string
+  body: string
+}
+
 /**
  * Helper qui rend nos interfaces compatibles avec GenericTable de supabase-js v2.
  * supabase-js requiert Row/Insert/Update extends Record<string, unknown> ; les
@@ -1738,6 +1752,12 @@ export interface Database {
         Row: SupportRequest & Rec
         Insert: SupportRequestInsert & Rec
         Update: SupportRequestUpdate & Rec
+        Relationships: []
+      }
+      support_messages: {
+        Row: SupportMessage & Rec
+        Insert: SupportMessageInsert & Rec
+        Update: never & Rec
         Relationships: []
       }
       evidence_catalog: {

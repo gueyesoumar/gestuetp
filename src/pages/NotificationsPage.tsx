@@ -13,6 +13,7 @@ const typeConfig: Record<NotificationType, { label: string; variant: 'forest' | 
   client_response: { label: 'R\u00e9ponse client', variant: 'gold', dotColor: 'bg-gold-500' },
   mission_closure: { label: 'Cl\u00f4ture', variant: 'green', dotColor: 'bg-success' },
   invitation: { label: 'Invitation', variant: 'forest', dotColor: 'bg-forest-500' },
+  support: { label: 'Support', variant: 'gold', dotColor: 'bg-gold-500' },
 }
 
 function timeAgo(dateStr: string): string {

@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { SUPPORT_NATURE_LABELS, SUPPORT_STATUS_LABELS } from '../../lib/constants'
+import { SupportConversation } from './SupportConversation'
 import type { SupportRequest, SupportStatus } from '../../types/database.types'
 
 interface Props {
@@ -57,6 +58,8 @@ export function SupportRequestDetail({ request, onBack, onStatus, fulfillment, r
         </div>
 
         {fulfillment}
+
+        <SupportConversation requestId={request.id} requesterId={request.requester_user_id} />
 
         {!readOnly && onStatus && (
           <div className="flex flex-wrap gap-2 p-4 border-t border-gray-100">
