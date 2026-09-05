@@ -1455,6 +1455,47 @@ export interface SupportRequestUpdate {
   context?: Record<string, unknown>
 }
 
+export type HelpAudience = 'all' | 'staff' | 'client'
+
+export interface HelpArticle {
+  id: string
+  slug: string
+  category: string
+  title: string
+  excerpt: string
+  body: string
+  keywords: string[]
+  audience: HelpAudience
+  is_published: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface HelpArticleInsert {
+  slug: string
+  category: string
+  title: string
+  excerpt?: string
+  body?: string
+  keywords?: string[]
+  audience?: HelpAudience
+  is_published?: boolean
+  sort_order?: number
+}
+
+export interface HelpArticleUpdate {
+  slug?: string
+  category?: string
+  title?: string
+  excerpt?: string
+  body?: string
+  keywords?: string[]
+  audience?: HelpAudience
+  is_published?: boolean
+  sort_order?: number
+}
+
 /**
  * Helper qui rend nos interfaces compatibles avec GenericTable de supabase-js v2.
  * supabase-js requiert Row/Insert/Update extends Record<string, unknown> ; les
@@ -1738,6 +1779,12 @@ export interface Database {
         Row: SupportRequest & Rec
         Insert: SupportRequestInsert & Rec
         Update: SupportRequestUpdate & Rec
+        Relationships: []
+      }
+      help_articles: {
+        Row: HelpArticle & Rec
+        Insert: HelpArticleInsert & Rec
+        Update: HelpArticleUpdate & Rec
         Relationships: []
       }
       evidence_catalog: {
