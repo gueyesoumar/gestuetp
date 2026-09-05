@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { isGroupOrg, isCabinetOrg, isClientOrg, isSubsidiaryOrg } from '../lib/organization-utils'
+import { useOrgRoles } from './useOrgRoles'
 import type { Organization } from '../types/database.types'
 
 interface SubsidiaryInfo {
@@ -37,6 +38,8 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  // P0.1 (RFC 0007) : le rôle « groupe » est dérivé du graphe, avec repli legacy.
+  const { graphIsGroup } = useOrgRoles(orgId)
 
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
 
@@ -118,7 +121,7 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
 
   return {
     organization,
-    isGroup: organization ? isGroupOrg(organization) : false,
+    isGroup: graphIsGroup || (organization ? isGroupOrg(organization) : false),
     isCabinet: organization ? isCabinetOrg(organization) : false,
     isClient: organization ? isClientOrg(organization) : false,
     isSubsidiary: organization ? isSubsidiaryOrg(organization) : false,

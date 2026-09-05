@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useFeatureFlag } from '../hooks/useFeatureFlag'
+import { useOrgRoles } from '../hooks/useOrgRoles'
 import { isGroupOrg } from '../lib/organization-utils'
 import { CabinetDashboard } from '../features/dashboard/CabinetDashboard'
 import { GroupeDashboard } from '../features/dashboard/GroupeDashboard'
@@ -12,6 +13,9 @@ export function DashboardPage() {
   const { profile } = useAuth()
   const [view, setView] = useState<DashboardView>('cabinet')
   const [hasGroupRole, setHasGroupRole] = useState(false)
+  // P0.1 (RFC 0007) : rôle « groupe » dérivé du graphe, en OR avec le legacy ci-dessous.
+  const { graphIsGroup } = useOrgRoles(profile?.organization_id)
+  useEffect(() => { if (graphIsGroup) setHasGroupRole(true) }, [graphIsGroup])
   const groupModeFlag = useFeatureFlag('supervision_group_mode')
   const groupVisible = hasGroupRole && !groupModeFlag.loading && groupModeFlag.enabled
   const effectiveView = groupVisible ? view : 'cabinet'
