@@ -65,7 +65,7 @@ Une organisation réelle = **un** enregistrement `organizations`, avec l'identit
 Fait, **orthogonal**, qu'un nœud **utilise** la plateforme : il a un workspace, des utilisateurs, un abonnement (capacités [[RFC 0002]] / [[RFC 0006]]). Un nœud peut n'être **que** l'objet d'un audit (pas de tenancy). « Devenir client puis locataire » = **attacher une tenancy au même nœud**.
 
 ### 3.3 Arêtes typées (`organization_relationships`)
-Chaque arête a une **nature** et un **statut** (`proposed | confirmed | revoked`) :
+Chaque arête relie un **`actor_org_id`** à un **`target_org_id`**, avec une **nature** et un **statut**. *Schéma réel (mig 00156)* : `status ∈ {active, ended, suspended}` (défaut `active`) — c'est `active` qui fait foi (cf. `useHubPerspectives`). Le handshake « proposé → confirmé » (§4.2) **n'existe pas encore** : il exigera d'étendre ce statut (à cadrer avant le consentement).
 - `audit_engagement` : auditeur → audité, **liée à une mission**, **datée** (`missions.engagement_id`, 00156).
 - `group_ownership` : parent → filiale.
 - `regulatory_supervision` : régulateur → assujetti.
@@ -103,7 +103,7 @@ Une arête sensible naît `proposed` et devient `confirmed` après acceptation :
 - **Supervision réglementaire** : le rapprochement crée `regulatory_supervision` sans donner accès aux autres rôles de l'entité.
 
 ### 4.3 Matrice de confidentialité (RLS)
-La RLS combine : (1) l'utilisateur appartient à une org reliée par une arête `confirmed` d'un type donné ; (2) la donnée visée appartient à ce type d'arête (ou est publique au nœud). Les helpers `SECURITY DEFINER` (`get_my_organization_id`, `visible_target_ids` — 00158) sont étendus par type d'arête. **Aucune récursion** (les policies d'une table ne s'auto-interrogent pas ; cf. règle projet).
+La RLS combine : (1) l'utilisateur appartient à une org reliée par une arête `confirmed` d'un type donné ; (2) la donnée visée appartient à ce type d'arête (ou est publique au nœud). Les helpers `SECURITY DEFINER` (`get_my_organization_id` ; `my_related_org_ids` — 00158 ; `visible_target_ids` — 00162, l'équivalent graphe de `get_subsidiary_ids`, **non encore branché en RLS**) sont étendus par type d'arête. **Aucune récursion** (les policies d'une table ne s'auto-interrogent pas ; cf. règle projet).
 
 ---
 
@@ -146,6 +146,11 @@ Notation : `A —engage(M)→ X` (audit), `G —owns→ F`, `R —supervise→ E
 
 Chaque phase est livrable seule et réversible. La **réconciliation d'identité (§4.1)** est un prérequis de P1–P3 : à cadrer en tête.
 
+> **État P0 (2026-09-05)**
+> - **P0.1 — LIVRÉ** : `isGroup` dérivé du graphe (arête `group_ownership` active) avec repli `types[]`, via le hook `useOrgRoles`. Bascule de `useOrganizationHierarchy`, `useSidebarNav`/`useGroupPermissions`/`SupervisionPage`/`RoleManagementModal` (transparente), `DashboardPage`, `useMissionCreateForm`. Aucune régression (OR avec le legacy).
+> - **P0.2 — prérequis découverts** : le graphe **n'est pas pleinement maintenu**. Il manque (1) un trigger `audit_engagement` sur `missions`/`cabinet_clients` (les clients post-backfill n'ont pas d'arête → `isCabinet`/`isClient` non dérivables), (2) un trigger de **re-parentage** (`AFTER UPDATE OF parent_org_id`, le sync actuel est INSERT-only). À poser avant d'élargir la dérivation au-delà de `isGroup`.
+> - **Hors P0** : lecteurs couplés RLS (`get_subsidiary_ids` → attendent la bascule des policies vers `visible_target_ids`) ; `platform`/quotas, `entity_type`, admin, écrivains `types[]` → P4.
+
 ---
 
 ## 8. Décisions actées (2026-09-05)
@@ -181,5 +186,5 @@ Clé de déduplication = `registration_number`. Preuves acceptées : e-mail au d
 - [[RFC 0001]] — Modèle relationnel des organisations (graphe) — **accepté, à appliquer**.
 - [[RFC 0002]] — Éditions & capacités v2 (modules à la carte).
 - [[RFC 0006]] — Modèle d'abonnements (branche les capacités/tenancy).
-- Migrations socle : `00156` (graphe), `00157` (backfill), `00158` (traversée), `00164` (sync).
+- Migrations socle : `00156` (graphe : `actor_org_id`/`target_org_id`, `status active|ended|suspended`), `00157` (backfill), `00158` (`my_related_org_ids`), `00162` (`visible_target_ids`), `00164`/`00206` (sync `sync_org_parent_edge`).
 - Artifacts : [analyse critique](https://claude.ai/code/artifact/900c4be3-74e3-49d0-825d-366aab937cdd) · [maquettes des scénarios](https://claude.ai/code/artifact/f1989112-c0f8-4ced-bc74-f9b81b606e6a).
