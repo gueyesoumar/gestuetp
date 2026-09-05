@@ -30,7 +30,7 @@ export function useSupportMessages(requestId: string): UseSupportMessages {
     setError(null)
     const { data, error: e } = await supabase
       .from('support_messages')
-      .select('id, author_user_id, body, created_at')
+      .select('id, author_user_id, author_name, body, created_at')
       .eq('request_id', requestId)
       .order('created_at', { ascending: true })
       .abortSignal(signal ?? new AbortController().signal)
@@ -41,18 +41,10 @@ export function useSupportMessages(requestId: string): UseSupportMessages {
       setLoading(false)
       return
     }
-    const rows = data ?? []
-    const ids = [...new Set(rows.map((r) => r.author_user_id))]
-    const names = new Map<string, string>()
-    if (ids.length > 0) {
-      const { data: users } = await supabase.from('users').select('id, first_name, last_name').in('id', ids)
-      if (signal?.aborted) return
-      for (const u of users ?? []) names.set(u.id, `${u.first_name} ${u.last_name}`.trim())
-    }
-    setMessages(rows.map((r) => ({
+    setMessages((data ?? []).map((r) => ({
       id: r.id,
       authorId: r.author_user_id,
-      authorName: names.get(r.author_user_id) ?? 'Utilisateur',
+      authorName: r.author_name ?? 'Utilisateur',
       body: r.body,
       createdAt: r.created_at,
     })))
