@@ -1,6 +1,6 @@
 # RFC 0007 — Nature des clients : consolidation du modèle, scénarios & trajectoire
 
-> **Statut** : **Proposé** · **Portée** : cœur de domaine (organisations, relations, identité, RLS, UX) · **Fondé sur** : [[RFC 0001]] (graphe de relations) mené à son terme.
+> **Statut** : **Accepté — décisions actées le 2026-09-05** · **Portée** : cœur de domaine (organisations, relations, identité, RLS, UX) · **Fondé sur** : [[RFC 0001]] (graphe de relations) mené à son terme.
 > **Suite** : bascule des lecteurs sur le graphe (P0), unification de la « partie auditée » (P1), dé-polymorphisation (P2), surface UX unique (P3), retrait des strates mortes (P4).
 
 ---
@@ -77,6 +77,8 @@ La RLS se clé sur **appartenance à l'arête × propriété de la donnée**, ja
 | Domaine de donnée | Propriétaire | Qui d'autre y accède |
 |---|---|---|
 | Identité (nom, n°) | le nœud | tous ceux qui ont une arête vers lui |
+| Profil d'organisation (structure, effectifs, IT, parties prenantes) | le nœud (l'org une fois revendiquée) | un auditeur/superviseur via son arête (consentement) |
+| Contexte d'engagement (référentiel, périmètre, constats) | l'engagement | l'audité (livrables) |
 | Dossier d'audit (workpapers) | l'engagement (le cabinet) | personne d'autre |
 | Livrable (rapport PDF) | l'engagement | l'audité ; un tiers **sur accord de l'audité** |
 | Soumissions réglementaires | la relation de supervision | le régulateur |
@@ -146,12 +148,22 @@ Chaque phase est livrable seule et réversible. La **réconciliation d'identité
 
 ---
 
-## 8. Décisions à trancher (avant de coder)
+## 8. Décisions actées (2026-09-05)
 
-1. **Champs métier riches d'un client** (parties intéressées, exigences réglementaires actuellement dans `cabinet_clients`) : logent-ils sur le **nœud** (attributs de l'org) ou sur l'**arête d'engagement** (spécifiques à un audit) ? *Recommandation : sur l'arête d'engagement — ce sont des données de mission, pas d'identité.*
-2. **Attribut de forme** : garde-t-on un champ explicite `shape` (`simple | group`) façon Record Type, ou le dérive-t-on de la présence d'arêtes `group_ownership` ? *Recommandation : attribut explicite léger (déclaré à la création), la présence d'arêtes le confirmant.*
-3. **Séquence de dépréciation de `types[]`** : combien de lecteurs restent après P0, et lesquels bloquent le retrait (P4) ? *Action : inventaire exhaustif des lectures `types[]` / `parent_org_id` / `entity_type` avant P0.*
-4. **Force de la réconciliation d'identité** : le `registration_number` est-il fiable/obligatoire sur toutes les instances (Sénégal, etc.) ? Quelle procédure de vérification minimale (§4.1) ? *Action : définir les preuves acceptées et le workflow de revue.*
+### 8.1 Champs métier riches — **split nœud / arête, avec snapshot probant**
+- **Profil d'organisation (durable) → sur le nœud** : effectifs, chiffre d'affaires, nombre de sites, structure hiérarchique, environnement & systèmes IT, parties intéressées structurelles. Saisi une fois, affiné dans le temps ; **propriété de l'organisation** dès qu'elle a revendiqué son nœud (provisoire, saisi par le cabinet, avant revendication).
+- **Contexte d'engagement (par mission) → sur l'arête `audit_engagement`** : référentiel(s) et exigences retenus, périmètre, notes et constats de la mission.
+- **Snapshot point-in-time** : à l'ouverture d'une mission, les champs de profil pertinents sont **copiés en lecture seule sur l'engagement** (valeur probante — l'audit atteste de l'état à sa date) ; le profil vivant continue d'évoluer sur le nœud.
+- *Justification par les cas limites* : (a) **client récurrent** (plusieurs missions/an) → le profil durable est réutilisé d'une mission à l'autre, chaque mission n'ajoutant que son scope + son snapshot ; (b) **client déjà locataire** → l'organisation possède son profil, le cabinet le **lit** (via l'engagement, avec consentement) et capture son propre contexte sur l'arête — sans duplication ni écrasement.
+
+### 8.2 Forme — **attribut explicite léger**
+`organizations.shape ∈ {simple, group}` déclaré à la création (façon Record Type). La présence d'arêtes `group_ownership` le **confirme** (une forme `simple` qui reçoit une filiale bascule en `group`). Une seule dimension de nature assumée.
+
+### 8.3 Dépréciation de `types[]` — **action préalable à P0**
+Inventaire exhaustif des lectures `types[]` / `parent_org_id` / `entity_type` dans le code avant P0. Le retrait (P4) est **conditionné à zéro lecteur restant**.
+
+### 8.4 Réconciliation d'identité — **action de cadrage en tête de P1**
+Clé de déduplication = `registration_number`. Preuves acceptées : e-mail au domaine (obligatoire) · justificatif d'immatriculation (revue manuelle) · contre-signature du cabinet auditeur (optionnelle). Le workflow de revendication (états, qui valide) est spécifié avant P1.
 
 ---
 
