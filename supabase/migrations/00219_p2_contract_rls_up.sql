@@ -38,7 +38,17 @@ alter table public.users
   add constraint users_client_org_id_fkey
   foreign key (client_org_id) references public.organizations(id) on delete set null;
 
--- ── Part B : cpc.client_org_id NOT NULL (backfill P2.1 déjà complet) ─────────────
+-- ── Part B : cpc.client_org_id NOT NULL ─────────────────────────────────────────
+-- Filet idempotent : re-backfill des lignes éventuellement créées entre P2.1 et ici
+-- (chaque cpc a cabinet_client_id OU entity_org_id → toutes se remplissent).
+update public.client_portal_contacts cpc
+set client_org_id = cc.client_org_id
+from public.cabinet_clients cc
+where cpc.cabinet_client_id = cc.id and cpc.client_org_id is null and cc.client_org_id is not null;
+update public.client_portal_contacts
+set client_org_id = entity_org_id
+where entity_org_id is not null and client_org_id is null;
+
 alter table public.client_portal_contacts alter column client_org_id set not null;
 
 -- ── Part C : réécriture des policies sur client_org_id ──────────────────────────
