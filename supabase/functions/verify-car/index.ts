@@ -204,8 +204,8 @@ Deno.serve(async (req) => {
         const [{ data: clientOrg }, { data: contacts }] = await Promise.all([
           admin.from('organizations').select('name').eq('id', mission.client_id).single(),
           admin.from('client_portal_contacts')
-            .select('email, cabinet_client_id, cabinet_clients!inner(client_org_id)')
-            .eq('cabinet_clients.client_org_id', mission.client_id)
+            .select('email')
+            .eq('client_org_id', mission.client_id) // RFC 0007 P2 : org auditée unifiée
             .order('created_at', { ascending: true })
             .limit(1),
         ])

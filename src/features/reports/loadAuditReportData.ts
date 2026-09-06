@@ -108,7 +108,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     const { data: contactRows, error: contactsErr } = await supabase
       .from('client_portal_contacts')
       .select('id, contact_name, email, job_title, portal_status')
-      .eq('cabinet_client_id', cabinetClientId)
+      .eq('client_org_id', mission.client_id) // RFC 0007 P2 : org auditée unifiée
       .order('created_at')
     if (contactsErr) console.error('[loadAuditReportData] contacts:', contactsErr.message)
     clientContacts = ((contactRows ?? []) as unknown as ClientContact[])

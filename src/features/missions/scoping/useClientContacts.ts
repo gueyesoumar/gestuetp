@@ -9,7 +9,7 @@ export interface ClientContact {
   job_title: string | null
 }
 
-// Resolves cabinet_client_id from clientOrgId (mission.client_id) and fetches contacts.
+// Fetches portal contacts for the audited org (RFC 0007 P2 : cpc.client_org_id unifié).
 export function useClientContacts(clientOrgId: string | null | undefined) {
   const [contacts, setContacts] = useState<ClientContact[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,22 +19,10 @@ export function useClientContacts(clientOrgId: string | null | undefined) {
     const ac = new AbortController()
     setLoading(true)
     void (async () => {
-      const { data: cc } = await supabase
-        .from('cabinet_clients')
-        .select('id')
-        .eq('client_org_id', clientOrgId)
-        .abortSignal(ac.signal)
-      if (ac.signal.aborted) return
-      const cabinetClientIds = (cc ?? []).map((c) => (c as { id: string }).id)
-      if (cabinetClientIds.length === 0) {
-        setContacts([])
-        setLoading(false)
-        return
-      }
       const { data, error } = await supabase
         .from('client_portal_contacts')
         .select('id, user_id, name, email, job_title')
-        .in('cabinet_client_id', cabinetClientIds)
+        .eq('client_org_id', clientOrgId)
         .order('name')
         .abortSignal(ac.signal)
       if (ac.signal.aborted) return

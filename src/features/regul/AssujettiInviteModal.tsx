@@ -35,7 +35,7 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, onClos
     const { data: cData } = await supabase
       .from('client_portal_contacts')
       .select('id, contact_name, email, job_title')
-      .eq('entity_org_id', entityOrgId)
+      .eq('client_org_id', entityOrgId) // RFC 0007 P2 : org auditée unifiée
       .order('created_at')
       .abortSignal(signal ?? new AbortController().signal)
     const missionIds = missions.map((m) => m.id)

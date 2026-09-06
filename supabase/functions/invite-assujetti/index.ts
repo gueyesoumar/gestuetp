@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
     const { data: existingContacts } = await admin
       .from('client_portal_contacts')
       .select('id, user_id')
-      .eq('entity_org_id', assujetti_org_id)
+      .eq('client_org_id', assujetti_org_id)
       .eq('email', email)
       .limit(1)
 
@@ -117,8 +117,7 @@ Deno.serve(async (req) => {
       const { data: newContact, error: contactError } = await admin
         .from('client_portal_contacts')
         .insert({
-          entity_org_id: assujetti_org_id,
-          client_org_id: assujetti_org_id, // P2.1 dual-write (l'assujetti EST l'org auditée)
+          client_org_id: assujetti_org_id, // RFC 0007 P2 : l'assujetti EST l'org auditée
           contact_name,
           email,
           phone: phone ?? null,
