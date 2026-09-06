@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // Vérifier que le cabinet_client appartient à l'organisation de l'appelant
     const { data: cabinetClient } = await admin
       .from('cabinet_clients')
-      .select('id, cabinet_id')
+      .select('id, cabinet_id, client_org_id')
       .eq('id', cabinet_client_id)
       .single()
 
@@ -111,6 +111,7 @@ Deno.serve(async (req) => {
         .from('client_portal_contacts')
         .insert({
           cabinet_client_id,
+          client_org_id: cabinetClient.client_org_id, // P2.1 dual-write (org auditée unifiée)
           contact_name,
           email,
           phone: phone ?? null,

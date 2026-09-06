@@ -118,6 +118,7 @@ Deno.serve(async (req) => {
         .from('client_portal_contacts')
         .insert({
           entity_org_id: assujetti_org_id,
+          client_org_id: assujetti_org_id, // P2.1 dual-write (l'assujetti EST l'org auditée)
           contact_name,
           email,
           phone: phone ?? null,
