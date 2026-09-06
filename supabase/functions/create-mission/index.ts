@@ -327,6 +327,30 @@ Deno.serve(async (req) => {
       )
     }
 
+    // 7.bis Snapshot probant (P1b, RFC 0007 §8.1) — fige le contexte d'engagement
+    //       à l'ouverture de la mission, pour que le rapport reflète l'état au
+    //       moment de l'audit (le profil vivant, lui, peut évoluer ensuite).
+    //       Non bloquant : le trigger 00213 a posé engagement_id AVANT insert.
+    try {
+      const { data: mrow } = await supabaseAdmin
+        .from('missions').select('engagement_id').eq('id', newMissionId).maybeSingle()
+      if (mrow?.engagement_id) {
+        const { data: prof } = await supabaseAdmin
+          .from('engagement_profiles')
+          .select('effectifs, chiffre_affaires, nombre_sites, activites_principales, structure_hierarchique, parties_interessees, exigences_reglementaires, audit_objectives, audit_criteria, scoping_notes, it_environment, it_systems, notes')
+          .eq('engagement_id', mrow.engagement_id)
+          .maybeSingle()
+        if (prof) {
+          await supabaseAdmin
+            .from('missions')
+            .update({ engagement_snapshot: { ...prof, captured_at: new Date().toISOString() } })
+            .eq('id', newMissionId)
+        }
+      }
+    } catch (snapErr) {
+      console.error('create-mission snapshot:', snapErr instanceof Error ? snapErr.message : snapErr)
+    }
+
     await logActivity(supabaseAdmin, {
       organizationId: callerProfile.organization_id, actorUserId: callerProfile.id,
       action: 'mission.created', targetType: 'mission', targetId: newMissionId, targetLabel: name,

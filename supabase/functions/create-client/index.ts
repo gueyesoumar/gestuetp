@@ -190,6 +190,7 @@ Deno.serve(async (req) => {
     //    l'index unique uq_org_rel_active empêche les doublons ; une 23505 =
     //    l'arête existe déjà (ex. missions antérieures), on l'ignore. Le trigger
     //    sync_mission_engagement_edge (00213) réutilisera la même arête.
+    let engagementId: string | null = null
     if (cabinetId !== clientOrgId) {
       const { error: edgeError } = await supabaseAdmin
         .from('organization_relationships')
@@ -197,6 +198,38 @@ Deno.serve(async (req) => {
       if (edgeError && edgeError.code !== '23505') {
         // Non bloquant pour la création du client : on journalise et on continue.
         console.error('create-client edge:', edgeError.message)
+      }
+      const { data: edge } = await supabaseAdmin
+        .from('organization_relationships')
+        .select('id')
+        .eq('actor_org_id', cabinetId)
+        .eq('target_org_id', clientOrgId)
+        .eq('nature', 'audit_engagement')
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle()
+      engagementId = edge?.id ?? null
+    }
+
+    // 6.bis Profil d'engagement (P1b) — contexte de mission porté par l'arête.
+    //       Double-écriture : cabinet_clients reste le miroir lu jusqu'à P1c.
+    //       Non bloquant pour la création du client.
+    if (engagementId) {
+      const { error: profileError } = await supabaseAdmin
+        .from('engagement_profiles')
+        .insert({
+          engagement_id: engagementId,
+          effectifs: body.effectifs ?? null,
+          chiffre_affaires: body.chiffre_affaires ?? null,
+          nombre_sites: body.nombre_sites ?? null,
+          activites_principales: body.activites_principales ?? null,
+          structure_hierarchique: body.structure_hierarchique ?? null,
+          parties_interessees: body.parties_interessees ?? [],
+          exigences_reglementaires: body.exigences_reglementaires ?? [],
+          notes: body.notes ?? null,
+        })
+      if (profileError && profileError.code !== '23505') {
+        console.error('create-client engagement_profile:', profileError.message)
       }
     }
 
