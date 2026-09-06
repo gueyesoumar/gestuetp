@@ -14,8 +14,7 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 const CONTEXT_FIELDS = [
   'effectifs', 'chiffre_affaires', 'nombre_sites', 'activites_principales',
   'structure_hierarchique', 'parties_interessees', 'exigences_reglementaires',
-  'audit_objectives', 'audit_criteria', 'scoping_notes', 'it_environment',
-  'it_systems', 'notes',
+  'it_environment', 'it_systems', 'notes',
 ] as const
 
 // Colonnes réellement modifiables de la fiche (liste blanche : jamais id/cabinet_id/

@@ -17,9 +17,6 @@ create table if not exists public.engagement_profiles (
   structure_hierarchique text,
   parties_interessees jsonb not null default '[]',
   exigences_reglementaires jsonb not null default '[]',
-  audit_objectives text,
-  audit_criteria text,
-  scoping_notes text,
   it_environment text,
   it_systems text[] not null default '{}',
   notes text,
@@ -63,15 +60,14 @@ create policy "engagement_profiles_select_actor" on public.engagement_profiles
 insert into public.engagement_profiles (
   engagement_id, effectifs, chiffre_affaires, nombre_sites, activites_principales,
   structure_hierarchique, parties_interessees, exigences_reglementaires,
-  audit_objectives, audit_criteria, scoping_notes, it_environment, it_systems, notes
+  it_environment, it_systems, notes
 )
 select distinct on (r.id)
   r.id,
   cc.effectifs, cc.chiffre_affaires, cc.nombre_sites, cc.activites_principales,
   cc.structure_hierarchique, coalesce(cc.parties_interessees, '[]'::jsonb),
   coalesce(cc.exigences_reglementaires, '[]'::jsonb),
-  cc.audit_objectives, cc.audit_criteria, cc.scoping_notes, cc.it_environment,
-  coalesce(cc.it_systems, '{}'::text[]), cc.notes
+  cc.it_environment, coalesce(cc.it_systems, '{}'::text[]), cc.notes
 from public.organization_relationships r
 join public.cabinet_clients cc
   on cc.cabinet_id = r.actor_org_id and cc.client_org_id = r.target_org_id

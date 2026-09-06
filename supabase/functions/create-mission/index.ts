@@ -337,7 +337,7 @@ Deno.serve(async (req) => {
       if (mrow?.engagement_id) {
         const { data: prof } = await supabaseAdmin
           .from('engagement_profiles')
-          .select('effectifs, chiffre_affaires, nombre_sites, activites_principales, structure_hierarchique, parties_interessees, exigences_reglementaires, audit_objectives, audit_criteria, scoping_notes, it_environment, it_systems, notes')
+          .select('effectifs, chiffre_affaires, nombre_sites, activites_principales, structure_hierarchique, parties_interessees, exigences_reglementaires, it_environment, it_systems, notes')
           .eq('engagement_id', mrow.engagement_id)
           .maybeSingle()
         if (prof) {
