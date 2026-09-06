@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { getEngagementContext } from '../_shared/engagement-profile.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 
 Deno.serve(async (req) => {
@@ -242,12 +243,14 @@ Deno.serve(async (req) => {
     // On derive cabinet_client_id depuis cabinet_clients.client_org_id = mission.client_id
     let prefilledCount = 0
     {
-      const { data: client } = await supabaseAdmin
+      let { data: client } = await supabaseAdmin
         .from('cabinet_clients')
         .select('id, effectifs, nombre_sites, client_sector, client_country, activites_principales, it_environment, it_systems')
         .eq('client_org_id', mission.client_id)
         .eq('cabinet_id', mission.cabinet_id)
         .maybeSingle()
+      // Contexte de mission (RFC 0007 P1b) : source = engagement_profiles, repli cabinet_clients.
+      if (client) { const ectx = await getEngagementContext(supabaseAdmin, mission.cabinet_id, mission.client_id); if (ectx) client = { ...client, ...ectx } }
 
       if (client) {
         const PREFILL_GETTERS: Record<string, () => unknown> = {

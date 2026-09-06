@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { getEngagementContext } from '../_shared/engagement-profile.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
@@ -111,7 +112,8 @@ Deno.serve(async (req) => {
         const { data: ccs } = await admin.from('cabinet_clients')
           .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems, it_environment')
           .eq('client_org_id', m.client_id).limit(1)
-        const cc = ccs?.[0]
+        let cc = ccs?.[0]
+        if (cc) { const ectx = await getEngagementContext(admin, (m as { cabinet_id?: string }).cabinet_id, m.client_id); if (ectx) cc = { ...cc, ...ectx } }
         if (cc) {
           const regs = (cc.exigences_reglementaires ?? []).map((r: { nom: string }) => r.nom).join(', ')
           clientContext = `Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}, IT: ${(cc.it_systems ?? []).join(', ')}, Reglementations: ${regs || 'aucune'}, Ref: ${m.framework?.name ?? '?'}`

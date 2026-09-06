@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { logAiCall } from '../_shared/log-ai-call.ts'
+import { getEngagementContext } from '../_shared/engagement-profile.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
@@ -309,13 +310,15 @@ Deno.serve(async (req) => {
       .eq('client_org_id', mission.client_id)
       .limit(1)
 
-    const cc = clients?.[0] as {
+    let cc = clients?.[0] as {
       client_name: string
       client_sector: string | null
       effectifs: string | null
       exigences_reglementaires: { nom: string }[] | null
       it_systems: string[] | null
     } | undefined
+    // Contexte de mission (RFC 0007 P1b) : source = engagement_profiles, repli cabinet_clients.
+    if (cc) { const ectx = await getEngagementContext(admin, mission.cabinet_id, mission.client_id); if (ectx) cc = { ...cc, ...ectx } as typeof cc }
 
     let clientContext = ''
     if (cc) {
