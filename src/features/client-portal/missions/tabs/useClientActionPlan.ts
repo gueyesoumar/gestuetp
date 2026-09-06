@@ -127,19 +127,12 @@ export function useClientActionPlan(mission: ClientMissionDetail): UseClientActi
 
     // 5. Contacts du portail client (pour le select responsable + display)
     if (mission.client_id) {
-      const { data: cabClient } = await supabase
-        .from('cabinet_clients')
-        .select('id')
-        .eq('client_org_id', mission.client_id)
-        .eq('cabinet_id', mission.cabinet_id)
-        .maybeSingle()
-      if (signal?.aborted) return
-      const cab = cabClient as { id: string } | null
-      if (cab) {
+      {
+        // RFC 0007 P2 : contacts via l'org auditée unifiée (cpc.client_org_id).
         const { data: contactRows } = await supabase
           .from('client_portal_contacts')
           .select('id, contact_name, email')
-          .eq('cabinet_client_id', cab.id)
+          .eq('client_org_id', mission.client_id)
         if (signal?.aborted) return
         const list = (contactRows ?? []) as unknown as ClientContact[]
         setContacts(list)

@@ -222,9 +222,8 @@ export type ActionStatus = 'open' | 'in_progress' | 'done'
 
 export interface ClientPortalContact {
   id: string
-  // Polymorphe (mig 00141) : cabinet_client_id (Comply) XOR entity_org_id (Regul).
-  cabinet_client_id: string | null
-  entity_org_id: string | null
+  // RFC 0007 P2 (mig 00218-00220) : org auditée unifiée (remplace cabinet_client_id XOR entity_org_id).
+  client_org_id: string
   user_id: string | null
   contact_name: string
   email: string
