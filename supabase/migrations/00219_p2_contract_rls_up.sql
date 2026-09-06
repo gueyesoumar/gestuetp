@@ -6,21 +6,8 @@
 -- au harness après déploiement.
 
 -- ── Part A : users.client_org_id → organizations.id ─────────────────────────────
--- 1) Comply : la valeur est un cabinet_clients.id → la remplacer par son org.
-update public.users u
-set client_org_id = cc.client_org_id
-from public.cabinet_clients cc
-where u.role = 'client' and u.client_org_id = cc.id and cc.client_org_id is not null;
-
--- 2) Regul / restants (client_org_id NULL) : via le contact portail (déjà unifié P2.1).
-update public.users u
-set client_org_id = (
-  select cpc.client_org_id from public.client_portal_contacts cpc
-  where cpc.user_id = u.id and cpc.client_org_id is not null limit 1
-)
-where u.role = 'client' and u.client_org_id is null;
-
--- 3) Bascule de la FK cabinet_clients → organizations (nom de contrainte robuste).
+-- 1) D'ABORD retirer l'ancienne FK (→ cabinet_clients) : le backfill va écrire des
+--    org ids, incompatibles avec elle.
 do $$
 declare cname text;
 begin
@@ -31,6 +18,22 @@ begin
       where attrelid = 'public.users'::regclass and attname = 'client_org_id')];
   if cname is not null then execute format('alter table public.users drop constraint %I', cname); end if;
 end $$;
+
+-- 2) Comply : la valeur est un cabinet_clients.id → la remplacer par son org.
+update public.users u
+set client_org_id = cc.client_org_id
+from public.cabinet_clients cc
+where u.role = 'client' and u.client_org_id = cc.id and cc.client_org_id is not null;
+
+-- 3) Regul / restants (client_org_id NULL) : via le contact portail (déjà unifié P2.1).
+update public.users u
+set client_org_id = (
+  select cpc.client_org_id from public.client_portal_contacts cpc
+  where cpc.user_id = u.id and cpc.client_org_id is not null limit 1
+)
+where u.role = 'client' and u.client_org_id is null;
+
+-- 4) Ajouter la nouvelle FK → organizations.
 alter table public.users
   add constraint users_client_org_id_fkey
   foreign key (client_org_id) references public.organizations(id) on delete set null;
