@@ -64,7 +64,8 @@ end $$;
 
 -- 2) Arête audit_engagement pour TOUTES les fiches (idempotent).
 insert into public.organization_relationships (actor_org_id, target_org_id, nature, status)
-select distinct cc.cabinet_id, cc.client_org_id, 'audit_engagement', 'active'
+select distinct cc.cabinet_id, cc.client_org_id,
+  'audit_engagement'::public.relationship_nature, 'active'::public.relationship_status
 from public.cabinet_clients cc
 where cc.client_org_id is not null
   and cc.cabinet_id <> cc.client_org_id

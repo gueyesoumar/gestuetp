@@ -64,7 +64,8 @@ create trigger trg_sync_mission_engagement_edge
 
 -- 3) Backfill idempotent : missions existantes sans arete audit_engagement.
 insert into public.organization_relationships (actor_org_id, target_org_id, nature, status)
-select distinct m.cabinet_id, m.client_id, 'audit_engagement', 'active'
+select distinct m.cabinet_id, m.client_id,
+  'audit_engagement'::public.relationship_nature, 'active'::public.relationship_status
 from public.missions m
 where m.cabinet_id is not null and m.client_id is not null and m.cabinet_id <> m.client_id
   and not exists (
