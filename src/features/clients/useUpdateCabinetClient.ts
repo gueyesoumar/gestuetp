@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { supabase } from '../../lib/supabase'
+import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
 import type { CabinetClientUpdate } from '../../types/database.types'
 
 interface UseUpdateCabinetClientResult {
@@ -8,6 +8,12 @@ interface UseUpdateCabinetClientResult {
   error: string | null
 }
 
+/**
+ * P1b (RFC 0007) — la mise à jour d'un client passe par l'Edge Function
+ * `update-client` (service_role) : elle écrit la fiche `cabinet_clients` (miroir)
+ * ET le profil d'engagement (`engagement_profiles`, source de vérité du contexte).
+ * Remplace le PATCH REST direct.
+ */
 export function useUpdateCabinetClient(onSuccess?: () => void): UseUpdateCabinetClientResult {
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -16,29 +22,11 @@ export function useUpdateCabinetClient(onSuccess?: () => void): UseUpdateCabinet
     setUpdating(true)
     setError(null)
 
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-    if (!token) {
-      setError('Non authentifi\u00e9')
-      setUpdating(false)
-      return false
-    }
-
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/cabinet_clients?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify(data),
-    })
+    const res = await invokeEdgeFunction('update-client', { id, ...(data as Record<string, unknown>) })
 
     if (!res.ok) {
-      const text = await res.text()
-      console.error('useUpdateCabinetClient:', res.status, text)
-      setError('Impossible de mettre \u00e0 jour le client.')
+      console.error('useUpdateCabinetClient:', res.error)
+      setError(res.error ?? 'Impossible de mettre à jour le client.')
       setUpdating(false)
       return false
     }
