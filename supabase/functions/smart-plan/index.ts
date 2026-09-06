@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       .from('domains').select('code, name, controls(id, code, name)').eq('framework_id', mission.framework_id).order('sort_order')
 
     const { data: ccArr } = await supabaseAdmin
-      .from('cabinet_clients').select('client_sector, effectifs, exigences_reglementaires, it_systems').eq('client_org_id', mission.client_id).limit(1)
+      .from('cabinet_clients').select('client_sector').eq('client_org_id', mission.client_id).limit(1)
     // Contexte de mission (RFC 0007 P1b) : source = engagement_profiles, repli cabinet_clients.
     let cc = ccArr?.[0] ?? null
     if (cc) { const ectx = await getEngagementContext(supabaseAdmin, mission.cabinet_id, mission.client_id); if (ectx) cc = { ...cc, ...ectx } }

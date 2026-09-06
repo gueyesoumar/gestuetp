@@ -166,14 +166,8 @@ Deno.serve(async (req) => {
         client_country: body.client_country ?? null,
         client_website: body.client_website ?? null,
         client_phone: body.client_phone ?? null,
-        effectifs: body.effectifs ?? null,
-        chiffre_affaires: body.chiffre_affaires ?? null,
-        nombre_sites: body.nombre_sites ?? null,
-        activites_principales: body.activites_principales ?? null,
-        structure_hierarchique: body.structure_hierarchique ?? null,
-        parties_interessees: body.parties_interessees ?? [],
-        exigences_reglementaires: body.exigences_reglementaires ?? [],
-        notes: body.notes ?? null,
+        // P1c.1 : le CONTEXTE de mission n'est plus écrit sur cabinet_clients
+        // (colonnes retirées en 00217) — il vit sur engagement_profiles (ci-dessous).
       })
       .select('id')
       .single()

@@ -18,12 +18,13 @@ const CONTEXT_FIELDS = [
 ] as const
 
 // Colonnes réellement modifiables de la fiche (liste blanche : jamais id/cabinet_id/
-// client_org_id/timestamps, pour empêcher un déplacement de tenant).
+// client_org_id/timestamps, pour empêcher un déplacement de tenant). P1c.1 : le
+// CONTEXTE n'est plus sur cabinet_clients (colonnes retirées en 00217) — il est
+// écrit sur engagement_profiles (upsert plus bas), pas ici.
 const FICHE_FIELDS = [
   'client_name', 'client_email_domain', 'client_registration_number', 'client_sector',
   'client_address', 'client_city', 'client_country', 'client_website', 'client_phone',
   'logo_url', 'brand_primary_color', 'brand_secondary_color', 'brand_accent_color', 'brand_font',
-  ...CONTEXT_FIELDS,
 ] as const
 
 Deno.serve(async (req) => {

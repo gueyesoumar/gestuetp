@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       cabinetIdForLog = (m as { cabinet_id?: string }).cabinet_id ?? null
       if (m) {
         const { data: ccs } = await admin.from('cabinet_clients')
-          .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems, it_environment')
+          .select('client_name, client_sector')
           .eq('client_org_id', m.client_id).limit(1)
         let cc = ccs?.[0]
         if (cc) { const ectx = await getEngagementContext(admin, (m as { cabinet_id?: string }).cabinet_id, m.client_id); if (ectx) cc = { ...cc, ...ectx } }

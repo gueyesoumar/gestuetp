@@ -517,7 +517,7 @@ async function buildMissionContext(
 
   const { data: ccs } = await admin
     .from('cabinet_clients')
-    .select('client_name, client_sector, effectifs')
+    .select('client_name, client_sector')
     .eq('client_org_id', m.client_id)
     .limit(1)
 

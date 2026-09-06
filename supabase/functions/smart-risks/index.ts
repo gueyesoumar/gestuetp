@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: ccArr } = await admin.from('cabinet_clients')
-      .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems')
+      .select('client_name, client_sector')
       .eq('client_org_id', mission.client_id).limit(1)
     // Contexte de mission (RFC 0007 P1b) : source = engagement_profiles, repli cabinet_clients.
     let cc = ccArr?.[0]

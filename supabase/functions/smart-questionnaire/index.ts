@@ -305,7 +305,7 @@ Deno.serve(async (req) => {
     // 4. Contexte client
     const { data: clients } = await admin
       .from('cabinet_clients')
-      .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems')
+      .select('client_name, client_sector')
       .eq('cabinet_id', mission.cabinet_id)
       .eq('client_org_id', mission.client_id)
       .limit(1)

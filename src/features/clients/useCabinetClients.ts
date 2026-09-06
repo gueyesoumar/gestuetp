@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { fetchEngagementContextMap } from './engagementContext'
 import type { CabinetClient } from '../../types/database.types'
 
 interface UseCabinetClientsResult {
@@ -29,22 +30,27 @@ export function useCabinetClients(): UseCabinetClientsResult {
     setLoading(true)
     setError(null)
 
-    supabase
-      .from('cabinet_clients')
-      .select('*')
-      .eq('cabinet_id', profile.organization_id)
-      .order('client_name')
-      .abortSignal(abortController.signal)
-      .then(({ data, error: queryError }) => {
-        if (abortController.signal.aborted) return
-        if (queryError) {
-          console.error('useCabinetClients:', queryError.message)
-          setError('Impossible de charger les clients.')
-        } else {
-          setClients(data ?? [])
-        }
+    const cabinetId = profile.organization_id
+    void (async () => {
+      const { data, error: queryError } = await supabase
+        .from('cabinet_clients')
+        .select('*')
+        .eq('cabinet_id', cabinetId)
+        .order('client_name')
+        .abortSignal(abortController.signal)
+      if (abortController.signal.aborted) return
+      if (queryError || !data) {
+        console.error('useCabinetClients:', queryError?.message)
+        setError('Impossible de charger les clients.')
         setLoading(false)
-      })
+        return
+      }
+      // Contexte de mission (RFC 0007 P1b) fusionné depuis engagement_profiles.
+      const ctxMap = await fetchEngagementContextMap(cabinetId, data.map((c) => c.client_org_id), abortController.signal)
+      if (abortController.signal.aborted) return
+      setClients(data.map((c) => ({ ...c, ...(c.client_org_id ? ctxMap.get(c.client_org_id) : undefined) })))
+      setLoading(false)
+    })()
 
     return () => abortController.abort()
   }, [profile?.organization_id, refreshKey])

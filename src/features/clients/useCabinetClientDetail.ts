@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { fetchEngagementContext } from './engagementContext'
 import type { CabinetClient } from '../../types/database.types'
 
 interface UseCabinetClientDetailResult {
@@ -27,22 +28,26 @@ export function useCabinetClientDetail(clientId: string | undefined): UseCabinet
     setLoading(true)
     setError(null)
 
-    supabase
-      .from('cabinet_clients')
-      .select('*')
-      .eq('id', clientId)
-      .abortSignal(abortController.signal)
-      .single()
-      .then(({ data, error: queryError }) => {
-        if (abortController.signal.aborted) return
-        if (queryError) {
-          console.error('useCabinetClientDetail:', queryError.message)
-          setError('Client introuvable.')
-        } else {
-          setClient(data)
-        }
+    void (async () => {
+      const { data, error: queryError } = await supabase
+        .from('cabinet_clients')
+        .select('*')
+        .eq('id', clientId)
+        .abortSignal(abortController.signal)
+        .single()
+      if (abortController.signal.aborted) return
+      if (queryError || !data) {
+        console.error('useCabinetClientDetail:', queryError?.message)
+        setError('Client introuvable.')
         setLoading(false)
-      })
+        return
+      }
+      // Contexte de mission (RFC 0007 P1b) fusionné depuis engagement_profiles.
+      const ctx = await fetchEngagementContext(data.cabinet_id, data.client_org_id, abortController.signal)
+      if (abortController.signal.aborted) return
+      setClient({ ...data, ...(ctx ?? {}) })
+      setLoading(false)
+    })()
 
     return () => abortController.abort()
   }, [clientId, refreshKey])

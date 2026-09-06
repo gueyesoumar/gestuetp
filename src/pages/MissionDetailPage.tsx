@@ -20,6 +20,7 @@ import { MissionClosureTab } from '../features/missions/closure/MissionClosureTa
 import { MissionActionPlanTab } from '../features/missions/action-plan/MissionActionPlanTab'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
+import { fetchEngagementContext } from '../features/clients/engagementContext'
 import type { CabinetClient } from '../types/database.types'
 
 type TabKey = 'overview' | 'audited_risks' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure' | 'action_plan'
@@ -64,18 +65,20 @@ export function MissionDetailPage(){
     if (!mission?.client_id || !mission?.cabinet_id) return
     const ac = new AbortController()
 
-    supabase
-      .from('cabinet_clients')
-      .select('*')
-      .eq('cabinet_id', mission.cabinet_id)
-      .eq('client_org_id', mission.client_id)
-      .limit(1)
-      .abortSignal(ac.signal)
-      .then(({ data }) => {
-        if (!ac.signal.aborted && data && data.length > 0) {
-          setCabinetClient(data[0] as unknown as CabinetClient)
-        }
-      })
+    void (async () => {
+      const { data } = await supabase
+        .from('cabinet_clients')
+        .select('*')
+        .eq('cabinet_id', mission.cabinet_id)
+        .eq('client_org_id', mission.client_id)
+        .limit(1)
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted || !data || data.length === 0) return
+      // Contexte de mission (RFC 0007 P1b) fusionné depuis engagement_profiles.
+      const ctx = await fetchEngagementContext(mission.cabinet_id, mission.client_id, ac.signal)
+      if (ac.signal.aborted) return
+      setCabinetClient({ ...data[0], ...(ctx ?? {}) } as unknown as CabinetClient)
+    })()
 
     return () => ac.abort()
   }, [mission?.client_id, mission?.cabinet_id])

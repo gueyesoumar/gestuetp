@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
     {
       let { data: client } = await supabaseAdmin
         .from('cabinet_clients')
-        .select('id, effectifs, nombre_sites, client_sector, client_country, activites_principales, it_environment, it_systems')
+        .select('id, client_sector, client_country')
         .eq('client_org_id', mission.client_id)
         .eq('cabinet_id', mission.cabinet_id)
         .maybeSingle()
