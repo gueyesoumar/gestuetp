@@ -265,8 +265,8 @@ Deno.serve(async (req) => {
           supabaseAdmin.from('organization_branding').select('primary_color').eq('organization_id', mission.cabinet_id).maybeSingle(),
           supabaseAdmin
             .from('client_portal_contacts')
-            .select('email, cabinet_clients!inner(client_organization_id)')
-            .eq('cabinet_clients.client_organization_id', mission.client_id)
+            .select('email, cabinet_clients!inner(client_org_id)')
+            .eq('cabinet_clients.client_org_id', mission.client_id)
             .order('created_at', { ascending: true })
             .limit(1),
         ])

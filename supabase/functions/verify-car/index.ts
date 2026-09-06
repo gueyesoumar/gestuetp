@@ -204,8 +204,8 @@ Deno.serve(async (req) => {
         const [{ data: clientOrg }, { data: contacts }] = await Promise.all([
           admin.from('organizations').select('name').eq('id', mission.client_id).single(),
           admin.from('client_portal_contacts')
-            .select('email, cabinet_client_id, cabinet_clients!inner(client_organization_id)')
-            .eq('cabinet_clients.client_organization_id', mission.client_id)
+            .select('email, cabinet_client_id, cabinet_clients!inner(client_org_id)')
+            .eq('cabinet_clients.client_org_id', mission.client_id)
             .order('created_at', { ascending: true })
             .limit(1),
         ])
