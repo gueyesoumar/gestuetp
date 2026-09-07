@@ -62,7 +62,7 @@ export interface Organization {
   name: string
   slug: string
   types: string[]
-  parent_org_id: string | null
+  // parent_org_id retiré (RFC 0007 P4b) : hiérarchie via le graphe organization_relationships.
   logo_url: string | null
   website: string | null
   phone: string | null
@@ -92,7 +92,6 @@ export interface OrganizationInsert {
   name: string
   slug: string
   types?: string[]
-  parent_org_id?: string | null
   logo_url?: string | null
   website?: string | null
   phone?: string | null
@@ -111,7 +110,6 @@ export interface OrganizationUpdate {
   name?: string
   slug?: string
   types?: string[]
-  parent_org_id?: string | null
   logo_url?: string | null
   website?: string | null
   phone?: string | null

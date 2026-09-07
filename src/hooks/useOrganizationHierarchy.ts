@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { isGroupOrg, isCabinetOrg, isClientOrg, isSubsidiaryOrg } from '../lib/organization-utils'
+import { isGroupOrg, isCabinetOrg, isClientOrg } from '../lib/organization-utils'
+import { fetchParentOrgId } from '../features/group-module/hierarchyGraph'
 import { useOrgRoles } from './useOrgRoles'
 import type { Organization } from '../types/database.types'
 
@@ -68,12 +69,14 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
       const typedOrg = org as Organization
       setOrganization(typedOrg)
 
-      // 2. If subsidiary, fetch parent
-      if (isSubsidiaryOrg(typedOrg) && typedOrg.parent_org_id) {
+      // 2. Parent via le graphe (RFC 0007 P4b : plus de parent_org_id).
+      const parentId = await fetchParentOrgId(orgId, controller.signal)
+      if (controller.signal.aborted) return
+      if (parentId) {
         const { data: parent } = await supabase
           .from('organizations')
           .select('id, name')
-          .eq('id', typedOrg.parent_org_id)
+          .eq('id', parentId)
           .abortSignal(controller.signal)
           .single()
 
@@ -124,7 +127,7 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
     isGroup: graphIsGroup || (organization ? isGroupOrg(organization) : false),
     isCabinet: graphIsCabinet || (organization ? isCabinetOrg(organization) : false),
     isClient: graphIsClient || (organization ? isClientOrg(organization) : false),
-    isSubsidiary: graphIsSubsidiary || (organization ? isSubsidiaryOrg(organization) : false),
+    isSubsidiary: graphIsSubsidiary,
     parentOrg,
     subsidiaries,
     loading,
