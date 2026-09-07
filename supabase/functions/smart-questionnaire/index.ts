@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { logAiCall } from '../_shared/log-ai-call.ts'
-import { getEngagementContext } from '../_shared/engagement-profile.ts'
+import { getClientContext } from '../_shared/client-context.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
@@ -303,22 +303,14 @@ Deno.serve(async (req) => {
     }
 
     // 4. Contexte client
-    const { data: clients } = await admin
-      .from('cabinet_clients')
-      .select('client_name, client_sector')
-      .eq('cabinet_id', mission.cabinet_id)
-      .eq('client_org_id', mission.client_id)
-      .limit(1)
-
-    let cc = clients?.[0] as {
+    // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
+    const cc = (await getClientContext(admin, mission.cabinet_id, mission.client_id)) as {
       client_name: string
       client_sector: string | null
       effectifs: string | null
       exigences_reglementaires: { nom: string }[] | null
       it_systems: string[] | null
-    } | undefined
-    // Contexte de mission (RFC 0007 P1b) : source = engagement_profiles, repli cabinet_clients.
-    if (cc) { const ectx = await getEngagementContext(admin, mission.cabinet_id, mission.client_id); if (ectx) cc = { ...cc, ...ectx } as typeof cc }
+    } | null
 
     let clientContext = ''
     if (cc) {

@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { getEngagementContext } from '../_shared/engagement-profile.ts'
+import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
@@ -77,11 +77,8 @@ Deno.serve(async (req) => {
     const { data: domains } = await supabaseAdmin
       .from('domains').select('code, name, controls(id, code, name)').eq('framework_id', mission.framework_id).order('sort_order')
 
-    const { data: ccArr } = await supabaseAdmin
-      .from('cabinet_clients').select('client_sector').eq('client_org_id', mission.client_id).limit(1)
-    // Contexte de mission (RFC 0007 P1b) : source = engagement_profiles, repli cabinet_clients.
-    let cc = ccArr?.[0] ?? null
-    if (cc) { const ectx = await getEngagementContext(supabaseAdmin, mission.cabinet_id, mission.client_id); if (ectx) cc = { ...cc, ...ectx } }
+    // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
+    const cc = await getClientContext(supabaseAdmin, mission.cabinet_id, mission.client_id)
 
     // Fetch questionnaire responses with question text for context
     const { data: instances } = await supabaseAdmin

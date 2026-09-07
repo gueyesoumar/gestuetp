@@ -21,6 +21,7 @@ import { MissionActionPlanTab } from '../features/missions/action-plan/MissionAc
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import { fetchEngagementContext, EMPTY_ENGAGEMENT_CONTEXT } from '../features/clients/engagementContext'
+import { fetchClientIdentity } from '../features/clients/clientNodeIdentity'
 import type { CabinetClient } from '../types/database.types'
 
 type TabKey = 'overview' | 'audited_risks' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure' | 'action_plan'
@@ -74,10 +75,13 @@ export function MissionDetailPage(){
         .limit(1)
         .abortSignal(ac.signal)
       if (ac.signal.aborted || !data || data.length === 0) return
-      // Contexte de mission (RFC 0007 P1b) fusionné depuis engagement_profiles.
-      const ctx = await fetchEngagementContext(mission.cabinet_id, mission.client_id, ac.signal)
+      // Identité (P1c.2, nœud) + contexte (P1b, engagement_profiles).
+      const [ident, ctx] = await Promise.all([
+        fetchClientIdentity(mission.client_id, ac.signal),
+        fetchEngagementContext(mission.cabinet_id, mission.client_id, ac.signal),
+      ])
       if (ac.signal.aborted) return
-      setCabinetClient({ ...EMPTY_ENGAGEMENT_CONTEXT, ...data[0], ...(ctx ?? {}) } as unknown as CabinetClient)
+      setCabinetClient({ ...EMPTY_ENGAGEMENT_CONTEXT, ...data[0], ...(ident ?? {}), ...(ctx ?? {}) } as unknown as CabinetClient)
     })()
 
     return () => ac.abort()
