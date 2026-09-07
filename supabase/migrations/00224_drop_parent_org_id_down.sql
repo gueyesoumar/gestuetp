@@ -11,6 +11,14 @@ from public.organization_relationships r
 where r.target_org_id = o.id and r.status = 'active'
   and r.nature in ('group_ownership', 'regulatory_supervision');
 
+-- Restaure la policy audit_campaigns filiale (lecture directe parent_org_id).
+drop policy if exists "campaigns_select_subsidiary" on public.audit_campaigns;
+create policy "campaigns_select_subsidiary" on public.audit_campaigns for select to authenticated
+  using (organization_id in (
+    select parent_org_id from public.organizations
+    where id = public.get_my_organization_id() and parent_org_id is not null
+  ));
+
 -- get_entity_descendants → parent_org_id (00136).
 create or replace function public.get_entity_descendants(parent_id uuid)
 returns setof uuid language sql stable security definer set search_path = public as $$
