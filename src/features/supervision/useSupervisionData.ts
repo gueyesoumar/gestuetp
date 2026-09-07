@@ -148,29 +148,14 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         return
       }
 
-      // 4. Fetch client info (entity names)
+      // 4. Fetch client info (entity names) — RFC 0007 P1c.2 : identité sur le nœud organizations.
       const clientOrgIds = [...new Set(missionData.map((m) => m.client_id))]
-      const clientQuery = supabase
-        .from('cabinet_clients')
-        .select('id, client_org_id, client_name, client_sector')
-        .in('client_org_id', clientOrgIds)
-      const { data: clientData } = await (signal ? clientQuery.abortSignal(signal) : clientQuery)
-      if (signal?.aborted) return
-
       const clientMap = new Map<string, { nom: string; secteur: string }>()
-      for (const c of clientData ?? []) {
-        if (c.client_org_id) {
-          clientMap.set(c.client_org_id, { nom: c.client_name, secteur: c.client_sector ?? '' })
-        }
-      }
-
-      // Fallback: fetch from organizations for entities not in cabinet_clients
-      const missingOrgIds = clientOrgIds.filter((id) => !clientMap.has(id))
-      if (missingOrgIds.length > 0) {
+      if (clientOrgIds.length > 0) {
         const orgQuery = supabase
           .from('organizations')
           .select('id, name, sector')
-          .in('id', missingOrgIds)
+          .in('id', clientOrgIds)
         const { data: orgData } = await (signal ? orgQuery.abortSignal(signal) : orgQuery)
         if (signal?.aborted) return
         for (const o of orgData ?? []) {

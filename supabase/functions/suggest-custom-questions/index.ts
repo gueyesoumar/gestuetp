@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { getEngagementContext } from '../_shared/engagement-profile.ts'
+import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
@@ -78,14 +78,8 @@ Deno.serve(async (req) => {
         if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
           return jsonResponse({ error: ACCESS_DENIED }, 403)
         }
-        let { data: client } = await admin
-          .from('cabinet_clients')
-          .select('client_sector, client_country')
-          .eq('client_org_id', mission.client_id)
-          .eq('cabinet_id', mission.cabinet_id)
-          .maybeSingle()
-        // Contexte de mission (RFC 0007 P1b) : source = engagement_profiles, repli cabinet_clients.
-        if (client) { const ectx = await getEngagementContext(admin, mission.cabinet_id, mission.client_id); if (ectx) client = { ...client, ...ectx } }
+        // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
+        const client = await getClientContext(admin, mission.cabinet_id, mission.client_id)
         if (client) {
           const parts: string[] = []
           if (client.client_sector) parts.push(`Secteur : ${client.client_sector}`)

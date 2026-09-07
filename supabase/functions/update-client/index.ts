@@ -17,14 +17,19 @@ const CONTEXT_FIELDS = [
   'it_environment', 'it_systems', 'notes',
 ] as const
 
-// Colonnes réellement modifiables de la fiche (liste blanche : jamais id/cabinet_id/
-// client_org_id/timestamps, pour empêcher un déplacement de tenant). P1c.1 : le
-// CONTEXTE n'est plus sur cabinet_clients (colonnes retirées en 00217) — il est
-// écrit sur engagement_profiles (upsert plus bas), pas ici.
+// IDENTITÉ → nœud organizations (RFC 0007 P1c.2, source de vérité). Remap
+// des noms historiques client_* vers les colonnes du nœud.
+const NODE_IDENTITY_MAP: Record<string, string> = {
+  client_name: 'name', client_registration_number: 'registration_number', client_sector: 'sector',
+  client_address: 'address', client_city: 'city', client_country: 'country',
+  client_website: 'website', client_phone: 'phone', logo_url: 'logo_url',
+}
+
+// Ne restent modifiables sur la fiche squelette que l'email de domaine et le branding
+// (CONTEXTE → engagement_profiles ; IDENTITÉ → nœud). Jamais id/cabinet_id/client_org_id.
 const FICHE_FIELDS = [
-  'client_name', 'client_email_domain', 'client_registration_number', 'client_sector',
-  'client_address', 'client_city', 'client_country', 'client_website', 'client_phone',
-  'logo_url', 'brand_primary_color', 'brand_secondary_color', 'brand_accent_color', 'brand_font',
+  'client_email_domain',
+  'brand_primary_color', 'brand_secondary_color', 'brand_accent_color', 'brand_font',
 ] as const
 
 Deno.serve(async (req) => {
@@ -95,6 +100,23 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Accès interdit à ce client' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
+    }
+
+    // 0. Identité → nœud organizations (RFC 0007 P1c.2).
+    const orgUpdate: Record<string, unknown> = {}
+    for (const [k, col] of Object.entries(NODE_IDENTITY_MAP)) {
+      if (k in body) orgUpdate[col] = body[k]
+    }
+    if (Object.keys(orgUpdate).length > 0 && fiche.client_org_id) {
+      const { error: orgErr } = await supabaseAdmin
+        .from('organizations').update(orgUpdate).eq('id', fiche.client_org_id)
+      if (orgErr) {
+        console.error('update-client org:', orgErr.message)
+        return new Response(
+          JSON.stringify({ error: 'Impossible de mettre à jour le client.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
     }
 
     // 1. Mise à jour de la fiche (liste blanche des colonnes présentes au payload).

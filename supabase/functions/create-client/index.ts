@@ -157,17 +157,10 @@ Deno.serve(async (req) => {
       .insert({
         cabinet_id: cabinetId,
         client_org_id: clientOrgId,
-        client_name: clientName,
         client_email_domain: body.client_email_domain ?? null,
-        client_registration_number: regNumber || null,
-        client_sector: body.client_sector ?? null,
-        client_address: body.client_address ?? null,
-        client_city: body.client_city ?? null,
-        client_country: body.client_country ?? null,
-        client_website: body.client_website ?? null,
-        client_phone: body.client_phone ?? null,
-        // P1c.1 : le CONTEXTE de mission n'est plus écrit sur cabinet_clients
-        // (colonnes retirées en 00217) — il vit sur engagement_profiles (ci-dessous).
+        // RFC 0007 : l'IDENTITÉ vit sur le nœud organizations (créé/réconcilié plus haut,
+        // P1c.2, colonnes retirées en 00222) ; le CONTEXTE sur engagement_profiles (P1b).
+        // Ne restent sur la fiche que le squelette + email_domain + branding.
       })
       .select('id')
       .single()
