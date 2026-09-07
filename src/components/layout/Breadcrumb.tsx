@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 const routeLabels: Record<string, string> = {
   '': 'Tableau de bord',
   'profil': 'Mon profil',
+  'compte': 'Mon compte',
   'notifications': 'Notifications',
   'organisation': 'Organisation',
   'membres': 'Membres',
@@ -54,13 +55,22 @@ export function Breadcrumb() {
             .single()
           if (data) labels[id] = data.name
         } else if (parent === 'clients') {
-          const { data } = await supabase
+          // RFC 0007 P1c.2 : le nom vit sur le nœud organizations (via client_org_id).
+          const { data: fiche } = await supabase
             .from('cabinet_clients')
-            .select('client_name')
+            .select('client_org_id')
             .eq('id', id)
             .abortSignal(abortController.signal)
             .single()
-          if (data) labels[id] = data.client_name
+          if (fiche?.client_org_id) {
+            const { data: org } = await supabase
+              .from('organizations')
+              .select('name')
+              .eq('id', fiche.client_org_id)
+              .abortSignal(abortController.signal)
+              .single()
+            if (org) labels[id] = org.name
+          }
         } else if (parent === 'referentiels') {
           const { data } = await supabase
             .from('frameworks')

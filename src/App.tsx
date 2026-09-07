@@ -7,8 +7,6 @@ import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
-import { OrgAdminRoute } from './components/OrgAdminRoute'
-import { AuditTrailPage } from './features/audit/AuditTrailPage'
 import { RiskPage } from './features/risk/RiskPage'
 import { RiskRegisterPage } from './features/risk/RiskRegisterPage'
 import { PolicyBoardPage } from './features/policy/PolicyBoardPage'
@@ -19,7 +17,6 @@ import { LoginPage } from './pages/LoginPage'
 import { HubPage } from './pages/HubPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { OrganizationPage } from './pages/OrganizationPage'
-import { MembersPage } from './pages/MembersPage'
 import { FrameworksPage } from './pages/FrameworksPage'
 import { FrameworkDetailPage } from './pages/FrameworkDetailPage'
 import { FrameworkComparisonPage } from './pages/FrameworkComparisonPage'
@@ -53,6 +50,7 @@ import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
 import { AdminPlansPage } from './pages/admin/AdminPlansPage'
 import { MonitoringPage } from './pages/admin/MonitoringPage'
 import { AdminSupportPage } from './pages/admin/AdminSupportPage'
+import { AdminHelpPage } from './pages/admin/AdminHelpPage'
 import { FrameworksAdminListPage } from './pages/admin/FrameworksAdminListPage'
 import { AdminFrameworkCreatePage } from './pages/admin/AdminFrameworkCreatePage'
 import { AdminFrameworkDetailPage } from './pages/admin/AdminFrameworkDetailPage'
@@ -90,9 +88,6 @@ function AppRoutes(): JSX.Element {
       {/* Hub — entrée unique pour tout le staff (RFC §5-6) */}
       <Route path="/hub" element={<ProtectedRoute><HubPage /></ProtectedRoute>} />
 
-      {/* Compte — page profil dédiée, partagée (hors chrome) */}
-      <Route path="/compte" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-
       {/* Routes-modules sous le shell unifié — l'édition résolue choisit le jeu monté */}
       <Route
         element={
@@ -102,11 +97,12 @@ function AppRoutes(): JSX.Element {
         }
       >
         <Route index element={isRegul ? <RegulDashboard /> : <DashboardPage />} />
+        <Route path="compte" element={<AccountPage />} />
         <Route path="profil" element={<Navigate to="/compte" replace />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="organisation" element={<OrganizationPage />} />
-        <Route path="membres" element={<MembersPage />} />
-        <Route path="piste-audit" element={<OrgAdminRoute><AuditTrailPage /></OrgAdminRoute>} />
+        <Route path="membres" element={<Navigate to="/organisation?tab=membres" replace />} />
+        <Route path="piste-audit" element={<Navigate to="/organisation?tab=piste-audit" replace />} />
         <Route path="risque" element={hasCapability('risk') ? <RiskPage /> : <Navigate to="/" replace />} />
         <Route path="risque/registre" element={hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
         <Route path="politiques" element={hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />
@@ -165,6 +161,7 @@ function AppRoutes(): JSX.Element {
         <Route path="plans" element={<AdminPlansPage />} />
         <Route path="monitoring" element={<MonitoringPage />} />
         <Route path="support" element={<AdminSupportPage />} />
+        <Route path="aide" element={<AdminHelpPage />} />
         <Route path="frameworks" element={<FrameworksAdminListPage />} />
         <Route path="frameworks/nouveau" element={<AdminFrameworkCreatePage />} />
         <Route path="frameworks/:slug" element={<AdminFrameworkDetailPage />} />

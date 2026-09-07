@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { isGroupOrg, isCabinetOrg, isClientOrg, isSubsidiaryOrg } from '../lib/organization-utils'
+import { isGroupOrg, isCabinetOrg, isClientOrg } from '../lib/organization-utils'
+import { fetchParentOrgId } from '../features/group-module/hierarchyGraph'
+import { useOrgRoles } from './useOrgRoles'
 import type { Organization } from '../types/database.types'
 
 interface SubsidiaryInfo {
@@ -37,6 +39,8 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  // P0 (RFC 0007) : les rôles sont dérivés du graphe, avec repli legacy (OR).
+  const { graphIsGroup, graphIsCabinet, graphIsClient, graphIsSubsidiary } = useOrgRoles(orgId)
 
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
 
@@ -65,12 +69,14 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
       const typedOrg = org as Organization
       setOrganization(typedOrg)
 
-      // 2. If subsidiary, fetch parent
-      if (isSubsidiaryOrg(typedOrg) && typedOrg.parent_org_id) {
+      // 2. Parent via le graphe (RFC 0007 P4b : plus de parent_org_id).
+      const parentId = await fetchParentOrgId(orgId, controller.signal)
+      if (controller.signal.aborted) return
+      if (parentId) {
         const { data: parent } = await supabase
           .from('organizations')
           .select('id, name')
-          .eq('id', typedOrg.parent_org_id)
+          .eq('id', parentId)
           .abortSignal(controller.signal)
           .single()
 
@@ -118,10 +124,10 @@ export function useOrganizationHierarchy(orgId: string | undefined): Organizatio
 
   return {
     organization,
-    isGroup: organization ? isGroupOrg(organization) : false,
-    isCabinet: organization ? isCabinetOrg(organization) : false,
-    isClient: organization ? isClientOrg(organization) : false,
-    isSubsidiary: organization ? isSubsidiaryOrg(organization) : false,
+    isGroup: graphIsGroup || (organization ? isGroupOrg(organization) : false),
+    isCabinet: graphIsCabinet || (organization ? isCabinetOrg(organization) : false),
+    isClient: graphIsClient || (organization ? isClientOrg(organization) : false),
+    isSubsidiary: graphIsSubsidiary,
     parentOrg,
     subsidiaries,
     loading,

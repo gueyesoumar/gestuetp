@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { fetchEngagementContextMap, EMPTY_ENGAGEMENT_CONTEXT } from './engagementContext'
+import { fetchClientIdentityMap } from './clientNodeIdentity'
 import type { CabinetClient } from '../../types/database.types'
 
 interface UseCabinetClientsResult {
@@ -29,22 +31,36 @@ export function useCabinetClients(): UseCabinetClientsResult {
     setLoading(true)
     setError(null)
 
-    supabase
-      .from('cabinet_clients')
-      .select('*')
-      .eq('cabinet_id', profile.organization_id)
-      .order('client_name')
-      .abortSignal(abortController.signal)
-      .then(({ data, error: queryError }) => {
-        if (abortController.signal.aborted) return
-        if (queryError) {
-          console.error('useCabinetClients:', queryError.message)
-          setError('Impossible de charger les clients.')
-        } else {
-          setClients(data ?? [])
-        }
+    const cabinetId = profile.organization_id
+    void (async () => {
+      const { data, error: queryError } = await supabase
+        .from('cabinet_clients')
+        .select('*')
+        .eq('cabinet_id', cabinetId)
+        .abortSignal(abortController.signal)
+      if (abortController.signal.aborted) return
+      if (queryError || !data) {
+        console.error('useCabinetClients:', queryError?.message)
+        setError('Impossible de charger les clients.')
         setLoading(false)
-      })
+        return
+      }
+      // Identité (RFC 0007 P1c.2, nœud organizations) + contexte (P1b, engagement_profiles).
+      const orgIds = data.map((c) => c.client_org_id)
+      const [idMap, ctxMap] = await Promise.all([
+        fetchClientIdentityMap(orgIds, abortController.signal),
+        fetchEngagementContextMap(cabinetId, orgIds, abortController.signal),
+      ])
+      if (abortController.signal.aborted) return
+      const merged = data.map((c) => ({
+        ...EMPTY_ENGAGEMENT_CONTEXT, ...c,
+        ...(c.client_org_id ? idMap.get(c.client_org_id) : undefined),
+        ...(c.client_org_id ? ctxMap.get(c.client_org_id) : undefined),
+      }))
+      merged.sort((a, b) => (a.client_name ?? '').localeCompare(b.client_name ?? ''))
+      setClients(merged)
+      setLoading(false)
+    })()
 
     return () => abortController.abort()
   }, [profile?.organization_id, refreshKey])

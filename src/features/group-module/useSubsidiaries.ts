@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { fetchParentMap } from './hierarchyGraph'
 import type { RegulatoryProfile } from './useManageEntity'
 
 export interface SubsidiaryRow {
@@ -93,7 +94,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
       }
       const { data: subs, error: subsErr } = await supabase
         .from('organizations')
-        .select('id, name, sector, city, entity_type, parent_org_id')
+        .select('id, name, sector, city, entity_type')
         .in('id', subIds)
         .order('name')
         .abortSignal(ac.signal)
@@ -104,7 +105,10 @@ export function useSubsidiaries(): UseSubsidiariesResult {
         setLoading(false)
         return
       }
-      const subList = (subs ?? []) as Array<{ id: string; name: string; sector: string | null; city: string | null; entity_type: SubsidiaryRow['entityType']; parent_org_id: string | null }>
+      const subList = (subs ?? []) as Array<{ id: string; name: string; sector: string | null; city: string | null; entity_type: SubsidiaryRow['entityType'] }>
+      // Parent de chaque filiale via le graphe (RFC 0007 P4b).
+      const parentMap = await fetchParentMap(subIds, ac.signal)
+      if (ac.signal.aborted) return
 
       // Profils réglementaires (Regul) — table vide côté Comply, donc no-op.
       const profileMap = new Map<string, RegulatoryProfile>()
@@ -232,7 +236,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
           sector: sub.sector,
           city: sub.city,
           entityType: sub.entity_type,
-          parentOrgId: sub.parent_org_id,
+          parentOrgId: parentMap.get(sub.id) ?? null,
           regulatoryProfile: profileMap.get(sub.id) ?? null,
           conformityScore,
           activeMissions,

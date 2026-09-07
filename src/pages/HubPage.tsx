@@ -1,16 +1,14 @@
 /**
- * HubPage — app-shell du Hub : barre du haut (marque Gëstu ETP morphing ou
- * marque cabinet), cockpit orbital des produits, décomposition en pied. Verrouillé
- * à la hauteur d'écran (desktop) ; scroll interne autorisé sur mobile.
+ * HubPage — app-shell du Hub : barre du haut (marque + onglets de vue + user),
+ * lanceur de produits (vue par défaut), vues posture / portefeuille. Fond vault
+ * sombre, sans animation permanente (RFC Hub UX, direction D3).
  */
 
 import { useAuth } from '../hooks/useAuth'
 import { useBranding } from '../features/branding/useBranding'
 import { useComplyHubStats } from '../features/dashboard/useComplyHubStats'
 import { VaultBackground } from '../components/vault/VaultBackground'
-import { ParticleCanvas } from '../components/vault/ParticleCanvas'
-import { FloatingOrbs } from '../components/vault/FloatingOrbs'
-import { OrbitCockpit } from '../features/hub/OrbitCockpit'
+import { HubCockpit } from '../features/hub/HubCockpit'
 
 export function HubPage(): JSX.Element {
   const { profile, signOut } = useAuth()
@@ -21,11 +19,8 @@ export function HubPage(): JSX.Element {
 
   return (
     <VaultBackground>
-      <ParticleCanvas />
-      <FloatingOrbs />
-
       <div className="relative z-10 flex min-h-[100dvh] flex-col overflow-y-auto md:h-[100dvh] md:overflow-hidden">
-        <OrbitCockpit
+        <HubCockpit
           selfScore={complyStats.conformityScore}
           profile={profile}
           onSignOut={signOut}

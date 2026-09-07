@@ -33,13 +33,18 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
   const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     setLoading(true)
 
-    // Fetch existing portal contacts for this cabinet client
-    const { data: contactsData } = await supabase
-      .from('client_portal_contacts')
-      .select('*')
-      .eq('cabinet_client_id', cabinetClientId)
-      .order('created_at')
-      .abortSignal(signal ?? new AbortController().signal)
+    // Fetch existing portal contacts for the audited org (RFC 0007 P2 : cpc.client_org_id).
+    const { data: fiche } = await supabase
+      .from('cabinet_clients').select('client_org_id').eq('id', cabinetClientId).maybeSingle()
+    const clientOrgId = (fiche as { client_org_id: string | null } | null)?.client_org_id ?? null
+    const { data: contactsData } = clientOrgId
+      ? await supabase
+          .from('client_portal_contacts')
+          .select('*')
+          .eq('client_org_id', clientOrgId)
+          .order('created_at')
+          .abortSignal(signal ?? new AbortController().signal)
+      : { data: [] }
 
     // Fetch existing access for this mission
     const { data: accessData } = await supabase

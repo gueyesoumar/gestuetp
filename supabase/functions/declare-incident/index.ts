@@ -55,10 +55,10 @@ Deno.serve(async (req) => {
     if (isClient) {
       const { data: cpc } = await admin
         .from('client_portal_contacts')
-        .select('entity_org_id')
+        .select('client_org_id') // RFC 0007 P2 : org auditée unifiée (ex-entity_org_id)
         .eq('user_id', caller.id)
-        .not('entity_org_id', 'is', null)
-      allowed = new Set(((cpc ?? []) as Array<{ entity_org_id: string }>).map((r) => r.entity_org_id))
+        .not('client_org_id', 'is', null)
+      allowed = new Set(((cpc ?? []) as Array<{ client_org_id: string }>).map((r) => r.client_org_id))
     } else {
       const { data: rows } = await admin.rpc('get_subsidiary_ids', { parent_id: caller.organization_id })
       allowed = new Set(

@@ -170,10 +170,13 @@ Deno.serve(async (req) => {
       }
       clientOrgId = body.assujetti_org_id
     } else {
-      // Chemin Comply : via la fiche client du cabinet.
+      // Chemin Comply : via la fiche client du cabinet. Depuis P1a (RFC 0007),
+      // l'organisation cliente est créée DÈS la création du client (create-client) ;
+      // create-mission ne matérialise plus paresseusement. Garde-fou : une fiche
+      // sans client_org_id ne devrait plus exister.
       const { data: cabinetClient, error: ccError } = await supabaseAdmin
         .from('cabinet_clients')
-        .select('id, cabinet_id, client_org_id, client_name, client_registration_number, client_email_domain')
+        .select('id, cabinet_id, client_org_id')
         .eq('id', cabinet_client_id)
         .single()
 
@@ -189,43 +192,13 @@ Deno.serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-
-      clientOrgId = cabinetClient.client_org_id
-      if (!clientOrgId) {
-        if (cabinetClient.client_registration_number) {
-          const { data: existing } = await supabaseAdmin
-            .from('organizations')
-            .select('id')
-            .contains('types', ['client'])
-            .eq('registration_number', cabinetClient.client_registration_number)
-            .limit(1)
-          if (existing && existing.length > 0) clientOrgId = existing[0].id
-        }
-        if (!clientOrgId) {
-          const slug = cabinetClient.client_name
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '')
-            + '-' + Date.now().toString(36)
-          const { data: newOrg, error: orgError } = await supabaseAdmin
-            .from('organizations')
-            .insert({ name: cabinetClient.client_name, slug, types: ['client'] })
-            .select('id')
-            .single()
-          if (orgError || !newOrg) {
-            console.error('create-mission create org:', orgError?.message)
-            return new Response(
-              JSON.stringify({ error: 'Erreur lors de la création de l\'organisation client' }),
-              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            )
-          }
-          clientOrgId = newOrg.id
-        }
-        await supabaseAdmin
-          .from('cabinet_clients')
-          .update({ client_org_id: clientOrgId })
-          .eq('id', cabinet_client_id)
+      if (!cabinetClient.client_org_id) {
+        return new Response(
+          JSON.stringify({ error: 'Client non initialisé (organisation manquante). Recréez le client.' }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
       }
+      clientOrgId = cabinetClient.client_org_id
     }
 
     // 6. Verifier que le referentiel existe
@@ -325,6 +298,30 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Erreur lors de la création de la mission' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // 7.bis Snapshot probant (P1b, RFC 0007 §8.1) — fige le contexte d'engagement
+    //       à l'ouverture de la mission, pour que le rapport reflète l'état au
+    //       moment de l'audit (le profil vivant, lui, peut évoluer ensuite).
+    //       Non bloquant : le trigger 00213 a posé engagement_id AVANT insert.
+    try {
+      const { data: mrow } = await supabaseAdmin
+        .from('missions').select('engagement_id').eq('id', newMissionId).maybeSingle()
+      if (mrow?.engagement_id) {
+        const { data: prof } = await supabaseAdmin
+          .from('engagement_profiles')
+          .select('effectifs, chiffre_affaires, nombre_sites, activites_principales, structure_hierarchique, parties_interessees, exigences_reglementaires, it_environment, it_systems, notes')
+          .eq('engagement_id', mrow.engagement_id)
+          .maybeSingle()
+        if (prof) {
+          await supabaseAdmin
+            .from('missions')
+            .update({ engagement_snapshot: { ...prof, captured_at: new Date().toISOString() } })
+            .eq('id', newMissionId)
+        }
+      }
+    } catch (snapErr) {
+      console.error('create-mission snapshot:', snapErr instanceof Error ? snapErr.message : snapErr)
     }
 
     await logActivity(supabaseAdmin, {

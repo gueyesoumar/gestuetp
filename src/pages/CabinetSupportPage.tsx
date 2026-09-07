@@ -25,19 +25,19 @@ export function CabinetSupportPage(): JSX.Element {
     const note = selected.subtype === 'access_member'
       ? (
         <div className="mx-4 mb-3 border border-amber-200 bg-amber-50 rounded-xl p-3 text-[12px] text-amber-800">
-          Gestion d&apos;acc&egrave;s&nbsp;: &agrave; traiter dans <Link to="/membres" className="underline font-semibold">Membres</Link>, puis marquer r&eacute;solu.
+          Gestion d&apos;acc&egrave;s&nbsp;: &agrave; traiter dans <Link to="/organisation?tab=membres" className="underline font-semibold">Membres</Link>, puis marquer r&eacute;solu.
         </div>
       )
       : undefined
     return (
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-3xl">
         <SupportRequestDetail request={selected} onBack={() => setSelectedId(null)} onStatus={onStatus} fulfillment={note} />
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div>
       <h1 className="text-xl font-bold text-gray-900 mb-1">Demandes de l&apos;&eacute;quipe</h1>
       <p className="text-sm text-gray-500 mb-5">Les demandes rout&eacute;es vers votre cabinet (acc&egrave;s, fonctionnalit&eacute;s&hellip;).</p>
 

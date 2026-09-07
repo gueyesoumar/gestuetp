@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 
@@ -43,10 +44,8 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const { data: ccArr } = await admin.from('cabinet_clients')
-      .select('client_name, client_sector, effectifs, exigences_reglementaires, it_systems')
-      .eq('client_org_id', mission.client_id).limit(1)
-    const cc = ccArr?.[0]
+    // Client (RFC 0007 P1c.2) : identité (nœud organizations) + contexte (engagement_profiles).
+    const cc = await getClientContext(admin, (mission as { cabinet_id?: string }).cabinet_id, mission.client_id)
 
     // Fetch questionnaire responses
     const { data: instances } = await admin.from('questionnaire_instances').select('id, snapshot').eq('mission_id', mission_id).limit(1)

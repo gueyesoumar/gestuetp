@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED, type CallerProfile } from '../_shared/auth.ts'
@@ -508,19 +509,14 @@ async function buildMissionContext(
 ): Promise<string | null> {
   const { data: m } = await admin
     .from('missions')
-    .select('client_id, framework:frameworks(name)')
+    .select('client_id, cabinet_id, framework:frameworks(name)')
     .eq('id', missionId)
     .single()
 
   if (!m) return null
 
-  const { data: ccs } = await admin
-    .from('cabinet_clients')
-    .select('client_name, client_sector, effectifs')
-    .eq('client_org_id', m.client_id)
-    .limit(1)
-
-  const cc = ccs?.[0]
+  // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
+  const cc = await getClientContext(admin, (m as { cabinet_id?: string }).cabinet_id, m.client_id)
   const parts: string[] = []
 
   if (cc) parts.push(`Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}`)

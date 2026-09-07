@@ -1,4 +1,6 @@
 import { supabase } from '../../lib/supabase'
+import { EMPTY_ENGAGEMENT_CONTEXT } from '../clients/engagementContext'
+import { fetchClientIdentity } from '../clients/clientNodeIdentity'
 import type { MissionDetail, MissionMemberRow } from '../missions/useMissionDetail'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
 import type { AssessmentFinding, CabinetClient } from '../../types/database.types'
@@ -94,7 +96,13 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
       .eq('cabinet_id', mission.cabinet_id)
       .maybeSingle()
     if (clientErr) console.error('[loadAuditReportData] client:', clientErr.message)
-    client = (clientRow as CabinetClient | null) ?? null
+    // Contexte PROBANT (RFC 0007 §8.1 / P1b) : figé à l'ouverture de la mission
+    // (missions.engagement_snapshot), pas le profil vivant — le rapport reflète
+    // l'état au moment de l'audit. Repli : fiche telle quelle si pas de snapshot.
+    const snapshot = (mission as { engagement_snapshot?: Record<string, unknown> | null }).engagement_snapshot
+    // Identité (P1c.2) depuis le nœud ; contexte probant depuis le snapshot (§8.1).
+    const ident = await fetchClientIdentity(mission.client_id)
+    client = clientRow ? ({ ...EMPTY_ENGAGEMENT_CONTEXT, ...clientRow, ...(ident ?? {}), ...(snapshot ?? {}) } as CabinetClient) : null
     cabinetClientId = client?.id ?? null
   }
 
@@ -104,7 +112,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     const { data: contactRows, error: contactsErr } = await supabase
       .from('client_portal_contacts')
       .select('id, contact_name, email, job_title, portal_status')
-      .eq('cabinet_client_id', cabinetClientId)
+      .eq('client_org_id', mission.client_id) // RFC 0007 P2 : org auditée unifiée
       .order('created_at')
     if (contactsErr) console.error('[loadAuditReportData] contacts:', contactsErr.message)
     clientContacts = ((contactRows ?? []) as unknown as ClientContact[])

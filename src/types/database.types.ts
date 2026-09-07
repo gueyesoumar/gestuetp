@@ -62,7 +62,7 @@ export interface Organization {
   name: string
   slug: string
   types: string[]
-  parent_org_id: string | null
+  // parent_org_id retiré (RFC 0007 P4b) : hiérarchie via le graphe organization_relationships.
   logo_url: string | null
   website: string | null
   phone: string | null
@@ -92,7 +92,6 @@ export interface OrganizationInsert {
   name: string
   slug: string
   types?: string[]
-  parent_org_id?: string | null
   logo_url?: string | null
   website?: string | null
   phone?: string | null
@@ -111,7 +110,6 @@ export interface OrganizationUpdate {
   name?: string
   slug?: string
   types?: string[]
-  parent_org_id?: string | null
   logo_url?: string | null
   website?: string | null
   phone?: string | null
@@ -222,9 +220,8 @@ export type ActionStatus = 'open' | 'in_progress' | 'done'
 
 export interface ClientPortalContact {
   id: string
-  // Polymorphe (mig 00141) : cabinet_client_id (Comply) XOR entity_org_id (Regul).
-  cabinet_client_id: string | null
-  entity_org_id: string | null
+  // RFC 0007 P2 (mig 00218-00220) : org auditée unifiée (remplace cabinet_client_id XOR entity_org_id).
+  client_org_id: string
   user_id: string | null
   contact_name: string
   email: string
@@ -995,7 +992,7 @@ export interface RegulatoryCatalogItem {
   updated_at: string
 }
 
-export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation'
+export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation' | 'support'
 
 export interface Notification {
   id: string
@@ -1455,6 +1452,62 @@ export interface SupportRequestUpdate {
   context?: Record<string, unknown>
 }
 
+export interface SupportMessage {
+  id: string
+  request_id: string
+  author_user_id: string
+  author_name: string | null
+  body: string
+  created_at: string
+}
+
+export interface SupportMessageInsert {
+  request_id: string
+  author_user_id: string
+  body: string
+}
+
+export type HelpAudience = 'all' | 'staff' | 'client'
+
+export interface HelpArticle {
+  id: string
+  slug: string
+  category: string
+  title: string
+  excerpt: string
+  body: string
+  keywords: string[]
+  audience: HelpAudience
+  is_published: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface HelpArticleInsert {
+  slug: string
+  category: string
+  title: string
+  excerpt?: string
+  body?: string
+  keywords?: string[]
+  audience?: HelpAudience
+  is_published?: boolean
+  sort_order?: number
+}
+
+export interface HelpArticleUpdate {
+  slug?: string
+  category?: string
+  title?: string
+  excerpt?: string
+  body?: string
+  keywords?: string[]
+  audience?: HelpAudience
+  is_published?: boolean
+  sort_order?: number
+}
+
 /**
  * Helper qui rend nos interfaces compatibles avec GenericTable de supabase-js v2.
  * supabase-js requiert Row/Insert/Update extends Record<string, unknown> ; les
@@ -1738,6 +1791,18 @@ export interface Database {
         Row: SupportRequest & Rec
         Insert: SupportRequestInsert & Rec
         Update: SupportRequestUpdate & Rec
+        Relationships: []
+      }
+      support_messages: {
+        Row: SupportMessage & Rec
+        Insert: SupportMessageInsert & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      help_articles: {
+        Row: HelpArticle & Rec
+        Insert: HelpArticleInsert & Rec
+        Update: HelpArticleUpdate & Rec
         Relationships: []
       }
       evidence_catalog: {

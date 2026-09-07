@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // Vérifier que le cabinet_client appartient à l'organisation de l'appelant
     const { data: cabinetClient } = await admin
       .from('cabinet_clients')
-      .select('id, cabinet_id')
+      .select('id, cabinet_id, client_org_id')
       .eq('id', cabinet_client_id)
       .single()
 
@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
     const { data: existingContacts } = await admin
       .from('client_portal_contacts')
       .select('id, user_id, portal_status')
-      .eq('cabinet_client_id', cabinet_client_id)
+      .eq('client_org_id', cabinetClient.client_org_id) // RFC 0007 P2 : org auditée unifiée
       .eq('email', email)
       .limit(1)
 
@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       const { data: newContact, error: contactError } = await admin
         .from('client_portal_contacts')
         .insert({
-          cabinet_client_id,
+          client_org_id: cabinetClient.client_org_id, // RFC 0007 P2 : org auditée unifiée
           contact_name,
           email,
           phone: phone ?? null,

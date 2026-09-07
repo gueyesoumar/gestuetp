@@ -30,10 +30,9 @@ export function isClientOrg(org: Pick<Organization, 'types'>): boolean {
   return org.types.includes('client')
 }
 
-/** Organisation qui est une filiale (rattachée à un groupe) */
-export function isSubsidiaryOrg(org: Pick<Organization, 'parent_org_id'>): boolean {
-  return org.parent_org_id !== null
-}
+// isSubsidiaryOrg retiré (RFC 0007 P4b) : la qualité de filiale se dérive du GRAPHE
+// (arête group_ownership entrante), plus de la colonne parent_org_id supprimée.
+// Voir useOrgRoles.graphIsSubsidiary / hierarchyGraph.fetchParentOrgId.
 
 /** Organisation qui cumule groupe + cabinet (ex: DCSSI qui audite ET supervise) */
 export function isGroupCabinetOrg(org: Pick<Organization, 'types'>): boolean {
@@ -41,12 +40,11 @@ export function isGroupCabinetOrg(org: Pick<Organization, 'types'>): boolean {
 }
 
 /** Label lisible du type d'organisation */
-export function getOrgTypeLabel(org: Pick<Organization, 'types' | 'parent_org_id'>): string {
+export function getOrgTypeLabel(org: Pick<Organization, 'types'>): string {
   if (isPlatformOrg(org)) return 'Plateforme'
   if (isGroupOrg(org) && isCabinetOrg(org)) return 'Groupe & Cabinet'
   if (isGroupOrg(org)) return 'Groupe'
   if (isCabinetOrg(org)) return 'Cabinet'
-  if (isSubsidiaryOrg(org)) return 'Entit\u00e9 supervis\u00e9e'
   if (isClientOrg(org)) return 'Client'
   return 'Organisation'
 }

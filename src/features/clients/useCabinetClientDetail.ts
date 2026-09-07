@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { fetchEngagementContext, EMPTY_ENGAGEMENT_CONTEXT } from './engagementContext'
+import { fetchClientIdentity } from './clientNodeIdentity'
 import type { CabinetClient } from '../../types/database.types'
 
 interface UseCabinetClientDetailResult {
@@ -27,22 +29,29 @@ export function useCabinetClientDetail(clientId: string | undefined): UseCabinet
     setLoading(true)
     setError(null)
 
-    supabase
-      .from('cabinet_clients')
-      .select('*')
-      .eq('id', clientId)
-      .abortSignal(abortController.signal)
-      .single()
-      .then(({ data, error: queryError }) => {
-        if (abortController.signal.aborted) return
-        if (queryError) {
-          console.error('useCabinetClientDetail:', queryError.message)
-          setError('Client introuvable.')
-        } else {
-          setClient(data)
-        }
+    void (async () => {
+      const { data, error: queryError } = await supabase
+        .from('cabinet_clients')
+        .select('*')
+        .eq('id', clientId)
+        .abortSignal(abortController.signal)
+        .single()
+      if (abortController.signal.aborted) return
+      if (queryError || !data) {
+        console.error('useCabinetClientDetail:', queryError?.message)
+        setError('Client introuvable.')
         setLoading(false)
-      })
+        return
+      }
+      // Identité (P1c.2, nœud) + contexte (P1b, engagement_profiles).
+      const [ident, ctx] = await Promise.all([
+        fetchClientIdentity(data.client_org_id, abortController.signal),
+        fetchEngagementContext(data.cabinet_id, data.client_org_id, abortController.signal),
+      ])
+      if (abortController.signal.aborted) return
+      setClient({ ...EMPTY_ENGAGEMENT_CONTEXT, ...data, ...(ident ?? {}), ...(ctx ?? {}) })
+      setLoading(false)
+    })()
 
     return () => abortController.abort()
   }, [clientId, refreshKey])

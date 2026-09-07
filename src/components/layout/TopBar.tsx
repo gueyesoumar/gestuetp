@@ -18,6 +18,7 @@ const typeConfig: Record<NotificationType, { label: string; variant: 'forest' | 
   client_response: { label: 'Client', variant: 'gold' },
   mission_closure: { label: 'Cl\u00f4ture', variant: 'green' },
   invitation: { label: 'Invitation', variant: 'forest' },
+  support: { label: 'Support', variant: 'gold' },
 }
 
 function timeAgo(dateStr: string): string {

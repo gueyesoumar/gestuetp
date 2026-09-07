@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Settings, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { readInvokeError } from '../lib/edgeError'
 import { useMembers } from '../features/members/useMembers'
@@ -13,7 +13,6 @@ import { MemberTable } from '../features/members/MemberTable'
 import { MemberSearchBar } from '../features/members/MemberSearchBar'
 import { InviteMemberModal } from '../features/members/InviteMemberModal'
 import { RoleAssignmentModal } from '../features/members/RoleAssignmentModal'
-import { RoleManagementModal } from '../features/members/RoleManagementModal'
 import { MemberProfileDrawer } from '../features/members/MemberProfileDrawer'
 import { ResetPasswordModal } from '../features/members/ResetPasswordModal'
 import { ConfirmDialog } from '../features/members/ConfirmDialog'
@@ -34,7 +33,6 @@ export function MembersPage() {
 
   // Modals
   const [inviteOpen, setInviteOpen] = useState(false)
-  const [roleManagementOpen, setRoleManagementOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState<MemberWithRoles | null>(null)
   const [profileMember, setProfileMember] = useState<MemberWithRoles | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<MemberWithRoles | null>(null)
@@ -137,15 +135,6 @@ export function MembersPage() {
               onCritical="Quota presque atteint"
             />
           )}
-          {canManageRoles && (
-            <button
-              className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              onClick={() => setRoleManagementOpen(true)}
-            >
-              <Settings size={16} />
-              R&ocirc;les
-            </button>
-          )}
           {canManageMembers && (
             <button
               className={`rounded-md px-4 py-2 text-sm font-medium shadow-sm ${userQuotaReached
@@ -214,11 +203,6 @@ export function MembersPage() {
           onSuccess={refetch}
         />
       )}
-
-      <RoleManagementModal
-        open={roleManagementOpen}
-        onClose={() => setRoleManagementOpen(false)}
-      />
 
       {profileMember && (
         <MemberProfileDrawer
