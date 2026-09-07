@@ -17,6 +17,19 @@ export type EngagementContext = Partial<Pick<CabinetClient,
 const CONTEXT_COLS =
   'effectifs, chiffre_affaires, nombre_sites, activites_principales, structure_hierarchique, parties_interessees, exigences_reglementaires, it_environment, it_systems, notes'
 
+/**
+ * Défauts sûrs du contexte — à fusionner EN BASE (avant la fiche et avant le profil)
+ * pour garantir que les champs jsonb/array ne soient jamais `undefined` quand aucun
+ * engagement_profile n'existe (ex. fiche créée hors create-client). Évite les crashs
+ * `.length` côté consommateurs (ScopingProgressSidebar, ClientsListPage…).
+ */
+export const EMPTY_ENGAGEMENT_CONTEXT: EngagementContext = {
+  effectifs: null, chiffre_affaires: null, nombre_sites: null,
+  activites_principales: null, structure_hierarchique: null,
+  parties_interessees: [], exigences_reglementaires: [],
+  it_environment: null, it_systems: [], notes: null,
+}
+
 /** Contexte par organisation cliente, pour un cabinet donné (1 requête arêtes + 1 requête profils). */
 export async function fetchEngagementContextMap(
   cabinetId: string | null | undefined,

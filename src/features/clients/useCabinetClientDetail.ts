@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import { fetchEngagementContext } from './engagementContext'
+import { fetchEngagementContext, EMPTY_ENGAGEMENT_CONTEXT } from './engagementContext'
 import type { CabinetClient } from '../../types/database.types'
 
 interface UseCabinetClientDetailResult {
@@ -45,7 +45,7 @@ export function useCabinetClientDetail(clientId: string | undefined): UseCabinet
       // Contexte de mission (RFC 0007 P1b) fusionné depuis engagement_profiles.
       const ctx = await fetchEngagementContext(data.cabinet_id, data.client_org_id, abortController.signal)
       if (abortController.signal.aborted) return
-      setClient({ ...data, ...(ctx ?? {}) })
+      setClient({ ...EMPTY_ENGAGEMENT_CONTEXT, ...data, ...(ctx ?? {}) })
       setLoading(false)
     })()
 

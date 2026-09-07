@@ -20,7 +20,7 @@ import { MissionClosureTab } from '../features/missions/closure/MissionClosureTa
 import { MissionActionPlanTab } from '../features/missions/action-plan/MissionActionPlanTab'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
-import { fetchEngagementContext } from '../features/clients/engagementContext'
+import { fetchEngagementContext, EMPTY_ENGAGEMENT_CONTEXT } from '../features/clients/engagementContext'
 import type { CabinetClient } from '../types/database.types'
 
 type TabKey = 'overview' | 'audited_risks' | 'scoping' | 'planning' | 'fieldwork' | 'review' | 'internal_review' | 'client_review' | 'closure' | 'action_plan'
@@ -77,7 +77,7 @@ export function MissionDetailPage(){
       // Contexte de mission (RFC 0007 P1b) fusionné depuis engagement_profiles.
       const ctx = await fetchEngagementContext(mission.cabinet_id, mission.client_id, ac.signal)
       if (ac.signal.aborted) return
-      setCabinetClient({ ...data[0], ...(ctx ?? {}) } as unknown as CabinetClient)
+      setCabinetClient({ ...EMPTY_ENGAGEMENT_CONTEXT, ...data[0], ...(ctx ?? {}) } as unknown as CabinetClient)
     })()
 
     return () => ac.abort()

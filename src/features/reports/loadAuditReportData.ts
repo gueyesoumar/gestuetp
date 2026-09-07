@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { EMPTY_ENGAGEMENT_CONTEXT } from '../clients/engagementContext'
 import type { MissionDetail, MissionMemberRow } from '../missions/useMissionDetail'
 import type { DomainWithControls } from '../frameworks/useFrameworkDetail'
 import type { AssessmentFinding, CabinetClient } from '../../types/database.types'
@@ -98,7 +99,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     // (missions.engagement_snapshot), pas le profil vivant — le rapport reflète
     // l'état au moment de l'audit. Repli : fiche telle quelle si pas de snapshot.
     const snapshot = (mission as { engagement_snapshot?: Record<string, unknown> | null }).engagement_snapshot
-    client = clientRow ? ({ ...clientRow, ...(snapshot ?? {}) } as CabinetClient) : null
+    client = clientRow ? ({ ...EMPTY_ENGAGEMENT_CONTEXT, ...clientRow, ...(snapshot ?? {}) } as CabinetClient) : null
     cabinetClientId = client?.id ?? null
   }
 
