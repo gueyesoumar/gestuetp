@@ -26,6 +26,12 @@ $$;
 drop trigger if exists trg_sync_org_parent_edge on public.organizations;
 drop function if exists public.sync_org_parent_edge();
 
--- 3) Retrait de la colonne + son index.
+-- 3) Policy audit_campaigns (filiale) : lisait parent_org_id DIRECTEMENT dans son
+--    USING → dépendance dure. Repointée sur get_my_parent_org_id() (graphe, 00223).
+drop policy if exists "campaigns_select_subsidiary" on public.audit_campaigns;
+create policy "campaigns_select_subsidiary" on public.audit_campaigns for select to authenticated
+  using (organization_id = public.get_my_parent_org_id());
+
+-- 4) Retrait de la colonne + son index.
 drop index if exists public.idx_organizations_parent;
 alter table public.organizations drop column if exists parent_org_id;
