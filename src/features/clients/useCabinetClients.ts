@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { fetchEngagementContextMap } from './engagementContext'
+import { fetchEngagementContextMap, EMPTY_ENGAGEMENT_CONTEXT } from './engagementContext'
 import type { CabinetClient } from '../../types/database.types'
 
 interface UseCabinetClientsResult {
@@ -48,7 +48,7 @@ export function useCabinetClients(): UseCabinetClientsResult {
       // Contexte de mission (RFC 0007 P1b) fusionné depuis engagement_profiles.
       const ctxMap = await fetchEngagementContextMap(cabinetId, data.map((c) => c.client_org_id), abortController.signal)
       if (abortController.signal.aborted) return
-      setClients(data.map((c) => ({ ...c, ...(c.client_org_id ? ctxMap.get(c.client_org_id) : undefined) })))
+      setClients(data.map((c) => ({ ...EMPTY_ENGAGEMENT_CONTEXT, ...c, ...(c.client_org_id ? ctxMap.get(c.client_org_id) : undefined) })))
       setLoading(false)
     })()
 
