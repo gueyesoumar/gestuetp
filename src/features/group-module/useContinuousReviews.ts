@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { fetchDirectChildOrgIds } from './hierarchyGraph'
 import { useAuth } from '../../hooks/useAuth'
 import type { SupervisionCycle } from '../../types/database.types'
 
@@ -32,11 +33,12 @@ export function useContinuousReviews(): UseContinuousReviewsResult {
       return
     }
 
-    // 1. Filiales du groupe
-    const { data: subs, error: subsErr } = await supabase
-      .from('organizations')
-      .select('id, name')
-      .eq('parent_org_id', profile.organization_id)
+    // 1. Filiales du groupe (RFC 0007 P4b : enfants directs via le graphe).
+    const childIds = await fetchDirectChildOrgIds(profile.organization_id, signal)
+    if (signal?.aborted) return
+    const { data: subs, error: subsErr } = childIds.length > 0
+      ? await supabase.from('organizations').select('id, name').in('id', childIds)
+      : { data: [], error: null }
     if (signal?.aborted) return
     if (subsErr) {
       console.error('[useContinuousReviews] organizations:', subsErr.message)

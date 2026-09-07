@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { fetchDirectChildOrgIds } from './hierarchyGraph'
 import { useAuth } from '../../hooks/useAuth'
 import type { CorrectiveActionRequest } from '../../types/database.types'
 
@@ -30,12 +31,12 @@ export function useTransversalPlans(): UseTransversalPlansResult {
     setLoading(true)
 
     const load = async (): Promise<void> => {
-      // 1. Filiales
-      const { data: subs, error: subsErr } = await supabase
-        .from('organizations')
-        .select('id, name')
-        .eq('parent_org_id', profile.organization_id)
-        .abortSignal(ac.signal)
+      // 1. Filiales (RFC 0007 P4b : enfants directs via le graphe).
+      const childIds = await fetchDirectChildOrgIds(profile.organization_id, ac.signal)
+      if (ac.signal.aborted) return
+      const { data: subs, error: subsErr } = childIds.length > 0
+        ? await supabase.from('organizations').select('id, name').in('id', childIds).abortSignal(ac.signal)
+        : { data: [], error: null }
       if (ac.signal.aborted) return
       if (subsErr) {
         console.error('[useTransversalPlans] organizations:', subsErr.message)

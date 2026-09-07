@@ -92,6 +92,34 @@ function slugify(name: string): string {
   return `${base || 'entite'}-${suffix}`
 }
 
+/** Nature de l'arête de hiérarchie selon la capacité du parent (RFC 0007 P4b) :
+ *  regulatory_supervision si le parent a la capacité 'supervision', sinon group_ownership.
+ *  (Réplique la logique de l'ex-trigger sync_org_parent_edge.) */
+async function hierNature(admin: any, parentId: string): Promise<'group_ownership' | 'regulatory_supervision'> {
+  const { data } = await admin
+    .from('organization_capabilities')
+    .select('capability')
+    .eq('org_id', parentId).eq('capability', 'supervision').eq('status', 'active')
+    .maybeSingle()
+  return data ? 'regulatory_supervision' : 'group_ownership'
+}
+
+/** Rattache childId sous parentId dans le graphe : clôt l'arête de hiérarchie active
+ *  existante de l'enfant (re-parentage) puis insère la nouvelle. */
+async function setParentEdge(admin: any, parentId: string, childId: string): Promise<void> {
+  if (parentId === childId) return
+  await admin
+    .from('organization_relationships')
+    .update({ status: 'ended', ended_at: new Date().toISOString() })
+    .eq('target_org_id', childId).eq('status', 'active')
+    .in('nature', ['group_ownership', 'regulatory_supervision'])
+  const nature = await hierNature(admin, parentId)
+  const { error } = await admin
+    .from('organization_relationships')
+    .insert({ actor_org_id: parentId, target_org_id: childId, nature, status: 'active' })
+  if (error && error.code !== '23505') console.error('[manage-entity] setParentEdge:', error.message)
+}
+
 /** Réplique la logique de useGroupPermissions : owner OU perm explicite OU
  *  aucune permission groupe configurée (premier setup). Fail-closed sinon. */
 async function canManageEntities(admin: any, userId: string): Promise<boolean> {
@@ -147,7 +175,7 @@ Deno.serve(async (req) => {
       if (ids.length === 0) return json({ entities: [] })
       const { data: orgs, error } = await admin
         .from('organizations')
-        .select('id, name, entity_type, parent_org_id, sector, city, country, is_active')
+        .select('id, name, entity_type, sector, city, country, is_active')
         .in('id', ids)
         .order('name')
       if (error) {
@@ -194,18 +222,19 @@ Deno.serve(async (req) => {
           slug: slugify(name),
           types: [],
           entity_type: body.entity_type,
-          parent_org_id: parentId,
           sector: body.sector ?? null,
           city: body.city ?? null,
           country: body.country ?? null,
           is_active: true,
         })
-        .select('id, name, entity_type, parent_org_id, sector, city, country, is_active')
+        .select('id, name, entity_type, sector, city, country, is_active')
         .single()
       if (error) {
         console.error('[manage-entity] create:', error.message)
         return json({ error: "Impossible de créer l'entité" }, 500)
       }
+      // RFC 0007 P4b : le rattachement est une ARÊTE du graphe (plus de parent_org_id).
+      await setParentEdge(admin, parentId, created.id)
       // Profil réglementaire (Regul) — best-effort, non bloquant pour la création.
       const prof = profilePatch(body)
       if (prof) {
@@ -244,11 +273,13 @@ Deno.serve(async (req) => {
       if (body.sector !== undefined) patch.sector = body.sector
       if (body.city !== undefined) patch.city = body.city
       if (body.country !== undefined) patch.country = body.country
+      // Re-parentage (RFC 0007 P4b) : bascule l'arête de hiérarchie, pas une colonne.
+      let reparentTo: string | null = null
       if (body.parent_org_id !== undefined) {
         const p = body.parent_org_id
         if (p === entityId) return json({ error: "Une entité ne peut pas être son propre parent" }, 400)
         if (p !== groupId && !descendantIds.has(p)) return json({ error: 'Parent hors de votre périmètre' }, 403)
-        patch.parent_org_id = p
+        reparentTo = p
       }
       if (body.criticality !== undefined && !CRITICALITY.includes(body.criticality)) {
         return json({ error: 'Criticité invalide' }, 400)
@@ -257,7 +288,7 @@ Deno.serve(async (req) => {
         return json({ error: 'Statut invalide' }, 400)
       }
       const prof = profilePatch(body)
-      if (Object.keys(patch).length === 0 && !prof) return json({ error: 'Aucune modification' }, 400)
+      if (Object.keys(patch).length === 0 && !prof && reparentTo === null) return json({ error: 'Aucune modification' }, 400)
 
       if (Object.keys(patch).length > 0) {
         const { error } = await admin.from('organizations').update(patch).eq('id', entityId)
@@ -265,6 +296,9 @@ Deno.serve(async (req) => {
           console.error('[manage-entity] update:', error.message)
           return json({ error: "Impossible de modifier l'entité" }, 500)
         }
+      }
+      if (reparentTo !== null) {
+        await setParentEdge(admin, reparentTo, entityId)
       }
       if (prof) {
         const { error: perr } = await admin
@@ -277,7 +311,7 @@ Deno.serve(async (req) => {
       }
       const { data: updated } = await admin
         .from('organizations')
-        .select('id, name, entity_type, parent_org_id, sector, city, country, is_active')
+        .select('id, name, entity_type, sector, city, country, is_active')
         .eq('id', entityId)
         .single()
       await logActivity(admin, {
