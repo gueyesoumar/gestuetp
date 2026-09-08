@@ -12,6 +12,7 @@
 import { Mail, Lock } from 'lucide-react'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
 import type { BrandingDraft } from './BrandingFormSection'
+import { generatePalette, readableTextOn } from '../../branding/colorUtils'
 
 interface Props {
   cabinetName: string
@@ -23,8 +24,11 @@ const DEFAULT_PRIMARY = '#1B4332'
 const DEFAULT_ACCENT = '#D4A843'
 
 export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.Element {
-  const primary = isHex(draft.primary) ? draft.primary : DEFAULT_PRIMARY
+  const rawPrimary = isHex(draft.primary) ? draft.primary : DEFAULT_PRIMARY
   const accent = isHex(draft.accent) ? draft.accent : DEFAULT_ACCENT
+  // Surface de marque = shade 700 dérivé (même échelle que l'app réelle) → texte
+  // blanc lisible quelle que soit la couleur : l'aperçu reflète le rendu réel.
+  const primary = generatePalette(rawPrimary)?.['700'] ?? rawPrimary
   const supportEmail = draft.supportEmail || null
   const fromName = draft.emailFromName || `${cabinetName} via Gëstu`
   const footer = draft.footerText || null
@@ -89,7 +93,7 @@ function PreviewEmail({ cabinetName, primary, accent, fromName, supportEmail, fo
               <img src={logoLight} alt={cabinetName} style={{ height: 18, maxWidth: 60, width: 'auto' }} />
             </span>
           ) : (
-            <span style={{ background: accent, color: primary, borderRadius: 4, width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11 }}>{cabinetName.charAt(0)}</span>
+            <span style={{ background: accent, color: readableTextOn(accent), borderRadius: 4, width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11 }}>{cabinetName.charAt(0)}</span>
           )}
           <span style={{ color: 'white', fontWeight: 800, fontSize: 11 }}>{cabinetName}</span>
         </div>
