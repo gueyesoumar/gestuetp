@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useToast } from '../../../hooks/useToast'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
-import type { ExtractedColors } from '../../branding/extractColorsFromImage'
+import type { ExtractedColors, DarkLogoTreatment } from '../../branding/extractColorsFromImage'
 
 export interface BrandingDraft {
   primary: string
@@ -12,7 +12,14 @@ export interface BrandingDraft {
   supportEmail: string
   emailFromName: string
   footerText: string
+  darkLogoTreatment: DarkLogoTreatment
 }
+
+const TREATMENT_OPTIONS: { value: DarkLogoTreatment; label: string; hint: string }[] = [
+  { value: 'chip', label: 'Pastille', hint: 'Logo sur pastille claire (logos colorés)' },
+  { value: 'whiten', label: 'Blanchi', hint: 'Silhouette blanche (logos monochromes)' },
+  { value: 'direct', label: 'Direct', hint: 'Posé tel quel (logos clairs/transparents)' },
+]
 
 interface Props {
   cabinetId: string
@@ -32,6 +39,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
   const [supportEmail, setSupportEmail] = useState(branding?.support_email ?? '')
   const [emailFromName, setEmailFromName] = useState(branding?.email_from_name ?? '')
   const [footerText, setFooterText] = useState(branding?.footer_text ?? '')
+  const [darkLogoTreatment, setDarkLogoTreatment] = useState<DarkLogoTreatment>(branding?.dark_logo_treatment ?? 'chip')
   const [showReason, setShowReason] = useState(false)
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -44,12 +52,15 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
     setSupportEmail(branding?.support_email ?? '')
     setEmailFromName(branding?.email_from_name ?? '')
     setFooterText(branding?.footer_text ?? '')
+    setDarkLogoTreatment(branding?.dark_logo_treatment ?? 'chip')
     setAppliedSuggestion(false)
   }, [branding])
 
-  // Auto-applique les couleurs déduites du logo si les deux champs sont vides
+  // Auto-applique l'univers déduit du logo (couleurs + traitement) si vide
   useEffect(() => {
     if (!suggestedColors) return
+    // Le traitement conseillé s'applique dès l'analyse (n'écrase pas un choix manuel une fois posé).
+    setDarkLogoTreatment(suggestedColors.treatment)
     if (primary || accent) return
     setPrimary(suggestedColors.primary)
     setAccent(suggestedColors.accent)
@@ -58,13 +69,14 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
 
   // Live emission du draft pour la prévisualisation
   useEffect(() => {
-    onDraftChange?.({ primary, accent, supportEmail, emailFromName, footerText })
-  }, [primary, accent, supportEmail, emailFromName, footerText, onDraftChange])
+    onDraftChange?.({ primary, accent, supportEmail, emailFromName, footerText, darkLogoTreatment })
+  }, [primary, accent, supportEmail, emailFromName, footerText, darkLogoTreatment, onDraftChange])
 
   const applySuggestionExplicit = () => {
     if (!suggestedColors) return
     setPrimary(suggestedColors.primary)
     setAccent(suggestedColors.accent)
+    setDarkLogoTreatment(suggestedColors.treatment)
     setAppliedSuggestion(true)
   }
 
@@ -94,6 +106,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
         support_email: supportEmail.trim() || null,
         email_from_name: emailFromName.trim() || null,
         footer_text: footerText.trim() || null,
+        dark_logo_treatment: darkLogoTreatment,
       },
     })
     setSubmitting(false)
@@ -145,6 +158,18 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
       <div className="px-4 py-4 grid grid-cols-2 gap-4">
         <ColorField label="Couleur primaire" value={primary} onChange={(v) => { setPrimary(v); setAppliedSuggestion(false) }} placeholder="#1B4332" />
         <ColorField label="Couleur accent" value={accent} onChange={(v) => { setAccent(v); setAppliedSuggestion(false) }} placeholder="#D4A843" />
+        <div className="col-span-2">
+          <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Logo sur fond sombre</label>
+          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+            {TREATMENT_OPTIONS.map((o) => (
+              <button key={o.value} type="button" onClick={() => setDarkLogoTreatment(o.value)}
+                className={`px-3 py-1.5 text-[12px] font-semibold ${darkLogoTreatment === o.value ? 'bg-forest-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-gray-400 mt-1">{TREATMENT_OPTIONS.find((o) => o.value === darkLogoTreatment)?.hint} — proposé automatiquement à l&apos;upload du logo, ajustable.</p>
+        </div>
         <FieldText label="Email de support" value={supportEmail} onChange={setSupportEmail} placeholder="support@auditco.sn" />
         <FieldText label="Nom expéditeur (emails)" value={emailFromName} onChange={setEmailFromName} placeholder="Audit&Co Sénégal via Gëstu" maxLength={80} />
         <div className="col-span-2">

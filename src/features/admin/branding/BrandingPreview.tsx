@@ -13,6 +13,7 @@ import { Mail, Lock } from 'lucide-react'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
 import type { BrandingDraft } from './BrandingFormSection'
 import { generatePalette, readableTextOn } from '../../branding/colorUtils'
+import type { DarkLogoTreatment } from '../../branding/extractColorsFromImage'
 
 interface Props {
   cabinetName: string
@@ -34,6 +35,7 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
   const footer = draft.footerText || null
   const logoLight = branding?.logo_light_url ?? null
   const logoDark = branding?.logo_dark_url ?? null
+  const treatment = draft.darkLogoTreatment
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl">
@@ -42,15 +44,15 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
         <span className="text-[10.5px] text-gray-400">Mise à jour en temps réel pendant l&apos;édition</span>
       </header>
       <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PreviewLogin cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} />
+        <PreviewLogin cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} treatment={treatment} />
         <PreviewEmail cabinetName={cabinetName} primary={primary} accent={accent} fromName={fromName} supportEmail={supportEmail} footer={footer} logoLight={logoLight} />
-        <PreviewSidebar cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} />
+        <PreviewSidebar cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} treatment={treatment} />
       </div>
     </div>
   )
 }
 
-function PreviewLogin({ cabinetName, primary, logoDark, logoLight }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null }) {
+function PreviewLogin({ cabinetName, primary, logoDark, logoLight, treatment }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null; treatment: DarkLogoTreatment }) {
   return (
     <Frame label="Page de connexion">
       <div
@@ -64,7 +66,7 @@ function PreviewLogin({ cabinetName, primary, logoDark, logoLight }: { cabinetNa
           justifyContent: 'center',
         }}
       >
-        <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={32} />
+        <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={32} treatment={treatment} />
         <div style={{ color: 'white', fontWeight: 800, fontSize: 13, marginTop: 8, textAlign: 'center' }}>{cabinetName}</div>
         <div style={{ width: '85%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Pill icon="mail" />
@@ -112,13 +114,13 @@ function PreviewEmail({ cabinetName, primary, accent, fromName, supportEmail, fo
   )
 }
 
-function PreviewSidebar({ cabinetName, primary, logoDark, logoLight }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null }) {
+function PreviewSidebar({ cabinetName, primary, logoDark, logoLight, treatment }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null; treatment: DarkLogoTreatment }) {
   return (
     <Frame label="Sidebar portail">
       <div style={{ display: 'flex', minHeight: 240 }}>
         <div style={{ background: primary, width: 110, padding: '10px 8px', display: 'flex', flexDirection: 'column', color: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-            <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={20} compact />
+            <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={20} compact treatment={treatment} />
             <div style={{ fontWeight: 800, fontSize: 9.5, lineHeight: 1.1 }}>{cabinetName.length > 12 ? `${cabinetName.slice(0, 11)}…` : cabinetName}</div>
           </div>
           <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
@@ -144,11 +146,18 @@ function PreviewSidebar({ cabinetName, primary, logoDark, logoLight }: { cabinet
   )
 }
 
-function DualLogoPreview({ cabinetName, logoDark, logoLight, height, compact }: { cabinetName: string; logoDark: string | null; logoLight: string | null; height: number; compact?: boolean }) {
+function DualLogoPreview({ cabinetName, logoDark, logoLight, height, compact, treatment }: { cabinetName: string; logoDark: string | null; logoLight: string | null; height: number; compact?: boolean; treatment: DarkLogoTreatment }) {
   if (logoDark) {
     return <img src={logoDark} alt={cabinetName} style={{ height, maxWidth: compact ? 30 : 120, width: 'auto' }} />
   }
   if (logoLight) {
+    const maxW = compact ? 30 : 120
+    if (treatment === 'direct') {
+      return <img src={logoLight} alt={cabinetName} style={{ height, maxWidth: maxW, width: 'auto' }} />
+    }
+    if (treatment === 'whiten') {
+      return <img src={logoLight} alt={cabinetName} style={{ height, maxWidth: maxW, width: 'auto', filter: 'brightness(0) invert(1)' }} />
+    }
     const pad = Math.round(height * 0.18)
     return (
       <span style={{ background: 'white', borderRadius: Math.round(height * 0.22), padding: `${pad}px ${pad * 1.4}px`, display: 'inline-flex' }}>

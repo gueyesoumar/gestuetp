@@ -49,8 +49,28 @@ export function Logo({ variant, height = 40, className }: LogoProps): JSX.Elemen
     )
   }
 
-  // Fallback : pastille blanche autour du logo light (Option D)
+  // Pas de variante fond sombre : appliquer le traitement conseillé (analyse du logo).
   if (lightUrl) {
+    const treatment = branding.dark_logo_treatment ?? 'chip'
+
+    // 'direct' : logo posé tel quel (traits clairs / transparent → se fond).
+    if (treatment === 'direct') {
+      return (
+        <img src={lightUrl} alt={branding.cabinet_name}
+          style={{ height, width: 'auto', maxWidth: 240, display: 'block' }} className={className} />
+      )
+    }
+
+    // 'whiten' : silhouette blanche (logo monochrome foncé) — sans pastille.
+    if (treatment === 'whiten') {
+      return (
+        <img src={lightUrl} alt={branding.cabinet_name}
+          style={{ height, width: 'auto', maxWidth: 240, display: 'block', filter: 'brightness(0) invert(1)' }}
+          className={className} />
+      )
+    }
+
+    // 'chip' (défaut) : pastille blanche de repli.
     const padding = Math.round(height * 0.18)
     return (
       <span
