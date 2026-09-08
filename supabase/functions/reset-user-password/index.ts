@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
+import { validatePassword, hashPassword, isPasswordReused, type PasswordPolicy } from '../_shared/password-policy.ts'
 
 interface ResetPasswordPayload {
   user_id: string
@@ -49,11 +50,31 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (new_password.length < 8) {
-      return new Response(
-        JSON.stringify({ error: 'Le mot de passe doit contenir au moins 8 caractères.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // Valider contre la politique plateforme (longueur, complexité, interdits, HIBP).
+    const { data: policy } = await supabaseAdmin
+      .from('platform_password_policy').select('*').eq('id', 1).single()
+    if (policy) {
+      const pol = policy as unknown as PasswordPolicy
+      const rules = await validatePassword(new_password, pol)
+      if (rules.length > 0) {
+        return new Response(
+          JSON.stringify({ error: 'Le mot de passe ne respecte pas la politique de sécurité', rules }),
+          { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      if (pol.history_count > 0) {
+        const { data: hist } = await supabaseAdmin.from('password_history')
+          .select('password_hash').eq('user_id', user_id)
+          .order('created_at', { ascending: false }).limit(pol.history_count)
+        const hashes = (hist ?? []).map((h) => (h as { password_hash: string }).password_hash)
+        if (await isPasswordReused(new_password, hashes)) {
+          return new Response(
+            JSON.stringify({ error: 'Le mot de passe ne respecte pas la politique de sécurité',
+              rules: [`Déjà utilisé parmi les ${pol.history_count} derniers mots de passe`] }),
+            { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+      }
     }
 
     // 5. Vérifier que la cible est dans la même organisation
@@ -101,6 +122,23 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Impossible de réinitialiser le mot de passe.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // Traçabilité pour la rotation.
+    await supabaseAdmin.from('users')
+      .update({ password_changed_at: new Date().toISOString() })
+      .eq('id', user_id)
+
+    // Historique : enregistrer le hash + élaguer aux N derniers.
+    const histN = policy ? (policy as unknown as PasswordPolicy).history_count : 0
+    if (histN > 0) {
+      await supabaseAdmin.from('password_history')
+        .insert({ user_id, password_hash: await hashPassword(new_password) })
+      const { data: extra } = await supabaseAdmin.from('password_history')
+        .select('id').eq('user_id', user_id)
+        .order('created_at', { ascending: false }).range(histN, 1000)
+      const ids = (extra ?? []).map((e) => (e as { id: string }).id)
+      if (ids.length > 0) await supabaseAdmin.from('password_history').delete().in('id', ids)
     }
 
     return new Response(

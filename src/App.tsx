@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
 import { MfaGate } from './features/auth/mfa/MfaGate'
+import { PasswordExpiryGate } from './features/auth/PasswordExpiryGate'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
@@ -54,6 +55,7 @@ import { AdminHelpPage } from './pages/admin/AdminHelpPage'
 import { FrameworksAdminListPage } from './pages/admin/FrameworksAdminListPage'
 import { AdminFrameworkCreatePage } from './pages/admin/AdminFrameworkCreatePage'
 import { AdminFrameworkDetailPage } from './pages/admin/AdminFrameworkDetailPage'
+import { AdminPasswordPolicyPage } from './pages/admin/AdminPasswordPolicyPage'
 import { SupervisionPage } from './pages/SupervisionPage'
 import { EntityDetailPage } from './pages/EntityDetailPage'
 import { CampaignDetailPage } from './pages/CampaignDetailPage'
@@ -166,6 +168,7 @@ function AppRoutes(): JSX.Element {
         <Route path="frameworks/nouveau" element={<AdminFrameworkCreatePage />} />
         <Route path="frameworks/:slug" element={<AdminFrameworkDetailPage />} />
         <Route path="audit-log" element={<AdminAuditLogPage />} />
+        <Route path="securite" element={<AdminPasswordPolicyPage />} />
       </Route>
 
       {/* Portail client / assujetti — cloisonné (RLS cp_*) */}
@@ -213,7 +216,9 @@ function App() {
         <EditionProvider>
         <RecorderProvider>
         <MfaGate>
+        <PasswordExpiryGate>
         <AppRoutes />
+        </PasswordExpiryGate>
         </MfaGate>
         </RecorderProvider>
         </EditionProvider>

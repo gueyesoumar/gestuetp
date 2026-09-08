@@ -174,6 +174,7 @@ export interface User {
   role: UserRole
   client_org_id: string | null
   is_platform_owner: boolean
+  password_changed_at: string | null
   created_at: string
   updated_at: string
 }
@@ -1612,6 +1613,23 @@ export interface PlanQuota {
   limit_value: number | null
 }
 
+export interface PlatformPasswordPolicy {
+  id: number
+  min_length: number
+  require_upper: boolean
+  require_lower: boolean
+  require_digit: boolean
+  require_symbol: boolean
+  min_unique: number
+  forbid_common: boolean
+  check_hibp: boolean
+  rotation_days: number | null
+  history_count: number
+  updated_at: string
+  updated_by: string | null
+}
+export type PlatformPasswordPolicyUpdate = Partial<Omit<PlatformPasswordPolicy, 'id'>>
+
 export interface OrgQuotaLimit {
   organization_id: string
   quota_key: string
@@ -1695,6 +1713,12 @@ export interface Database {
         Row: PlanQuota & Rec
         Insert: never & Rec
         Update: never & Rec
+        Relationships: []
+      }
+      platform_password_policy: {
+        Row: PlatformPasswordPolicy & Rec
+        Insert: never & Rec
+        Update: PlatformPasswordPolicyUpdate & Rec
         Relationships: []
       }
       org_quota_limits: {
