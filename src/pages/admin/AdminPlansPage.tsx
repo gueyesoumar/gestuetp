@@ -9,6 +9,8 @@ import { PlansMatrixView } from '../../features/admin/plans/PlansMatrixView'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
+import { useCurrencyDisplay } from '../../features/admin/subscription/useCurrencyDisplay'
+import { CURRENCIES, CURRENCY_LABEL } from '../../lib/money'
 
 type ViewMode = 'cards' | 'matrix'
 
@@ -19,6 +21,7 @@ export function AdminPlansPage(): JSX.Element {
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<AdminPlan | null>(null)
   const [view, setView] = useState<ViewMode>('cards')
+  const { currency, setCurrency, format } = useCurrencyDisplay()
   const toast = useToast()
 
   useEffect(() => {
@@ -35,7 +38,7 @@ export function AdminPlansPage(): JSX.Element {
 
   const stats = useMemo(() => {
     const totalCabinets = plans.reduce((s, p) => s + p.cabinets_count, 0)
-    const mrr = plans.reduce((s, p) => s + (p.cabinets_count * p.monthly_price_eur), 0)
+    const mrr = plans.reduce((s, p) => s + (p.cabinets_count * p.monthly_price), 0)
     const defaultPlan = plans.find((p) => p.is_default)
     return { totalCabinets, mrr, defaultPlan }
   }, [plans])
@@ -101,12 +104,25 @@ export function AdminPlansPage(): JSX.Element {
         <KpiCard label="Plans actifs" value={String(plans.length)} accent="border-forest-700" />
         <KpiCard label="Plan par défaut" value={stats.defaultPlan?.name ?? '—'} accent="border-gold-500" textClass="text-gold-900" small />
         <KpiCard label="Cabinets total" value={String(stats.totalCabinets)} accent="border-gray-200" hint="répartis sur les plans" />
-        <KpiCard label="MRR estimé" value={`${stats.mrr.toLocaleString('fr-FR')} €`} accent="border-gray-200" textClass="text-emerald-700" mono hint="paiement non intégré" />
+        <KpiCard label="MRR estimé" value={format(stats.mrr)} accent="border-gray-200" textClass="text-emerald-700" mono hint="paiement non intégré" />
       </div>
 
-      <div className="flex gap-1 mb-4">
-        <ViewBtn active={view === 'cards'} onClick={() => setView('cards')} icon={<LayoutGrid size={13} />}>Plans (cartes)</ViewBtn>
-        <ViewBtn active={view === 'matrix'} onClick={() => setView('matrix')} icon={<Table2 size={13} />}>Matrice fonctionnalités</ViewBtn>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex gap-1">
+          <ViewBtn active={view === 'cards'} onClick={() => setView('cards')} icon={<LayoutGrid size={13} />}>Plans (cartes)</ViewBtn>
+          <ViewBtn active={view === 'matrix'} onClick={() => setView('matrix')} icon={<Table2 size={13} />}>Matrice fonctionnalités</ViewBtn>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11.5px] text-gray-500">Montants en <b className="text-gray-700">FCFA</b> — affichage&nbsp;:</span>
+          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+            {CURRENCIES.map((c) => (
+              <button key={c} type="button" onClick={() => setCurrency(c)}
+                className={`px-3 py-1.5 text-[12px] font-semibold ${currency === c ? 'bg-forest-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                {CURRENCY_LABEL[c]}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {plans.length === 0 ? (
@@ -120,6 +136,7 @@ export function AdminPlansPage(): JSX.Element {
               key={plan.id}
               plan={plan}
               totalFeatures={totalFeatures}
+              format={format}
               onEdit={() => { setEditing(plan); setCreating(false) }}
               onDuplicate={() => handleDuplicate(plan)}
               onDelete={() => setDeleting(plan)}
@@ -127,7 +144,7 @@ export function AdminPlansPage(): JSX.Element {
           ))}
         </div>
       ) : (
-        <PlansMatrixView plans={plans} featuresByPlan={featuresByPlan} onSetFeatures={setPlanFeatures} />
+        <PlansMatrixView plans={plans} featuresByPlan={featuresByPlan} format={format} onSetFeatures={setPlanFeatures} />
       )}
 
       {(creating || (editing && !creating)) && (

@@ -13,10 +13,11 @@ import { createFeatureFlag, updateFeatureFlag, deleteFeatureFlag, type FeatureCr
 interface PlansMatrixViewProps {
   plans: AdminPlan[]
   featuresByPlan: Map<string, Set<string>>
+  format: (xof: number) => string
   onSetFeatures: (planId: string, flagIds: string[], reason: string) => Promise<{ ok: boolean; error?: string }>
 }
 
-export function PlansMatrixView({ plans, featuresByPlan, onSetFeatures }: PlansMatrixViewProps): JSX.Element {
+export function PlansMatrixView({ plans, featuresByPlan, format, onSetFeatures }: PlansMatrixViewProps): JSX.Element {
   const { groups, loading, refetch: refetchCatalog } = useFeatureCatalog()
   const [reason, setReason] = useState('')
   const [savingPlans, setSavingPlans] = useState<Set<string>>(new Set())
@@ -106,7 +107,7 @@ export function PlansMatrixView({ plans, featuresByPlan, onSetFeatures }: PlansM
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="text-left text-[11px] uppercase tracking-wider font-bold text-gray-500 px-5 py-3">Fonctionnalité</th>
-              {plans.map((p) => <PlanHeaderCell key={p.id} plan={p} saving={savingPlans.has(p.id)} />)}
+              {plans.map((p) => <PlanHeaderCell key={p.id} plan={p} saving={savingPlans.has(p.id)} format={format} />)}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-[12.5px]">
@@ -194,13 +195,13 @@ function ReasonBar({ reason, setReason }: { reason: string; setReason: (v: strin
   )
 }
 
-function PlanHeaderCell({ plan, saving }: { plan: AdminPlan; saving: boolean }): JSX.Element {
+function PlanHeaderCell({ plan, saving, format }: { plan: AdminPlan; saving: boolean; format: (xof: number) => string }): JSX.Element {
   return (
     <th className={`text-center text-[11px] uppercase tracking-wider font-bold text-gray-500 px-3 py-3 w-32 ${plan.is_default ? 'bg-gold-50' : ''}`}>
       <div className="flex flex-col items-center gap-0.5">
         <span className={plan.is_default ? 'text-gold-900' : ''}>{plan.name}</span>
         <span className="text-[10px] font-mono text-gray-400 normal-case tracking-normal">
-          {plan.monthly_price_eur === 0 ? '0 €' : `${plan.monthly_price_eur.toLocaleString('fr-FR')} €`}
+          {format(plan.monthly_price)}
         </span>
         {saving && <span className="text-[9.5px] text-gold-700 normal-case">enregistrement…</span>}
       </div>

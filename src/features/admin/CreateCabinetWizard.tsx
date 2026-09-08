@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { readInvokeError } from '../../lib/edgeError'
 import { useToast } from '../../hooks/useToast'
 
-interface Plan { id: string; slug: string; name: string; monthly_price_eur: number }
+interface Plan { id: string; slug: string; name: string; monthly_price: number }
 
 interface Props {
   onClose: () => void
@@ -26,7 +26,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
   const toast = useToast()
 
   useEffect(() => {
-    void supabase.from('plans').select('id, slug, name, monthly_price_eur').order('monthly_price_eur').then(({ data }) => {
+    void supabase.from('plans').select('id, slug, name, monthly_price').order('monthly_price').then(({ data }) => {
       setPlans((data ?? []) as Plan[])
     })
   }, [])
@@ -97,7 +97,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
             <Field label="Plan *">
               <select value={planSlug} onChange={(e) => setPlanSlug(e.target.value)} disabled={submitting}>
                 {plans.map((p) => (
-                  <option key={p.slug} value={p.slug}>{p.name} {p.monthly_price_eur > 0 ? `· ${p.monthly_price_eur} €/mois` : ''}</option>
+                  <option key={p.slug} value={p.slug}>{p.name} {p.monthly_price > 0 ? `· ${p.monthly_price.toLocaleString('fr-FR')} FCFA/mois` : ''}</option>
                 ))}
               </select>
             </Field>

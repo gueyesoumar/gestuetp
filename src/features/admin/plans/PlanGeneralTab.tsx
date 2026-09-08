@@ -63,9 +63,9 @@ export function PlanGeneralTab(props: PlanGeneralTabProps): JSX.Element {
         </select>
       </Field>
 
-      <Field label="Prix mensuel (€) *">
+      <Field label="Prix mensuel (FCFA) *">
         <input
-          type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)}
+          type="number" min="0" step="1" value={price} onChange={(e) => setPrice(e.target.value)}
           disabled={disabled}
           className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
         />
