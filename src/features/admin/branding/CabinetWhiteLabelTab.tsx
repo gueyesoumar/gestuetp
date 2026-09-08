@@ -21,6 +21,7 @@ const EMPTY_DRAFT: BrandingDraft = {
   supportEmail: '',
   emailFromName: '',
   footerText: '',
+  darkLogoTreatment: 'chip',
 }
 
 /**
