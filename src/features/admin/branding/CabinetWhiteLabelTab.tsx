@@ -6,6 +6,7 @@ import { LogoUploadField } from './LogoUploadField'
 import { BrandingFormSection, type BrandingDraft } from './BrandingFormSection'
 import { DomainsSection } from './DomainsSection'
 import { BrandingPreview } from './BrandingPreview'
+import { BrandingReadiness } from './BrandingReadiness'
 import { Info } from 'lucide-react'
 import type { ExtractedColors } from '../../branding/extractColorsFromImage'
 
@@ -56,6 +57,8 @@ export function CabinetWhiteLabelTab({ cabinetId, cabinetName }: Props): JSX.Ele
           Feature flags &mdash; couper le flag désactive instantanément la marque blanche sans perdre la config.
         </div>
       </div>
+
+      <BrandingReadiness branding={branding} domains={domains} />
 
       <section>
         <h3 className="text-[13px] font-bold text-gray-900 mb-2 flex items-baseline gap-2">
