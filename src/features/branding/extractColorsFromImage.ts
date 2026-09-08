@@ -11,6 +11,7 @@
  */
 
 export type DarkLogoTreatment = 'direct' | 'whiten' | 'chip'
+export type BrandSurfaceMode = 'light' | 'dark'
 
 export interface ExtractedColors {
   primary: string
@@ -19,6 +20,8 @@ export interface ExtractedColors {
   treatment: DarkLogoTreatment
   /** Le logo a-t-il un fond transparent (marques détourées) ? */
   hasTransparency: boolean
+  /** Polarité conseillée des surfaces brandées pour poser le logo tel quel. */
+  surfaceMode: BrandSurfaceMode
 }
 
 export function extractColorsFromImage(file: File): Promise<ExtractedColors | null> {
@@ -112,7 +115,11 @@ function analyze(data: Uint8ClampedArray): ExtractedColors | null {
   else if (distinctColors >= 2) treatment = 'chip' // multicolore → pastille (préserve les couleurs)
   else treatment = 'whiten'                         // monochrome foncé → silhouette blanche
 
-  return { primary, accent, treatment, hasTransparency }
+  // Polarité de surface : marques claires → fond sombre ; marques foncées → fond clair.
+  // Ainsi le logo est posé tel quel (transparent, couleurs d'origine), sans pastille.
+  const surfaceMode: BrandSurfaceMode = markLum > 0.6 ? 'dark' : 'light'
+
+  return { primary, accent, treatment, hasTransparency, surfaceMode }
 }
 
 function bucketToHex(b: Bucket): string {

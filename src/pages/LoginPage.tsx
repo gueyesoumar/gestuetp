@@ -93,6 +93,22 @@ export function LoginPage(): JSX.Element {
   )
 
   if (isBranded) {
+    // Surface claire : page claire (le logo à traits foncés s'y pose tel quel,
+    // transparent, sans pastille) + carte de formulaire sombre (LoginForm inchangé).
+    if (branding?.brand_surface_mode === 'light') {
+      return (
+        <div
+          className="flex min-h-screen flex-col items-center justify-center px-4 py-12"
+          style={{ background: 'linear-gradient(160deg, #FFFFFF 0%, color-mix(in srgb, var(--brand-primary) 8%, #FFFFFF) 100%)' }}
+        >
+          <div className="mb-10"><BrandedAuthHeader layout="login" /></div>
+          <div className="w-full max-w-sm rounded-2xl p-6 shadow-[0_24px_64px_-28px_rgba(0,0,0,0.45)]" style={{ background: 'var(--color-forest-900, #10201b)' }}>
+            {formArea}
+          </div>
+          <PoweredByGestu className="mt-10" />
+        </div>
+      )
+    }
     return (
       <VaultBackground>
         <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">

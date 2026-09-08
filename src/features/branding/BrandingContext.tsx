@@ -2,7 +2,7 @@ import { createContext, useEffect, useLayoutEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '../../lib/supabase'
 import { generatePalette } from './colorUtils'
-import type { DarkLogoTreatment } from './extractColorsFromImage'
+import type { DarkLogoTreatment, BrandSurfaceMode } from './extractColorsFromImage'
 
 /**
  * BrandingProvider — résolution du tenant par hostname AVANT auth.
@@ -30,6 +30,7 @@ export interface CabinetBranding {
   email_from_name: string | null
   footer_text: string | null
   dark_logo_treatment: DarkLogoTreatment | null
+  brand_surface_mode: BrandSurfaceMode | null
 }
 
 export interface BrandingState {

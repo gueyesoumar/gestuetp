@@ -22,6 +22,7 @@ const EMPTY_DRAFT: BrandingDraft = {
   emailFromName: '',
   footerText: '',
   darkLogoTreatment: 'chip',
+  surfaceMode: 'dark',
 }
 
 /**
