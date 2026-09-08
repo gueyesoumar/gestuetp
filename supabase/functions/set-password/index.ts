@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { validatePassword, type PasswordPolicy } from '../_shared/password-policy.ts'
+import { validatePassword, hashPassword, isPasswordReused, type PasswordPolicy } from '../_shared/password-policy.ts'
 
 /**
  * Edge Function : set-password
@@ -51,9 +51,26 @@ Deno.serve(async (req) => {
       return json({ error: 'Configuration indisponible' }, 500)
     }
 
-    const rules = await validatePassword(password, policy as unknown as PasswordPolicy)
+    const pol = policy as unknown as PasswordPolicy
+    const rules = await validatePassword(password, pol)
     if (rules.length > 0) {
       return json({ error: 'Le mot de passe ne respecte pas la politique de sécurité', rules }, 422)
+    }
+
+    // Profil applicatif (pour l'historique, clé public.users.id).
+    const { data: profile } = await admin.from('users').select('id').eq('auth_id', user.id).single()
+    const profileId = (profile as { id: string } | null)?.id ?? null
+
+    // Historique de non-réutilisation (si activé).
+    if (pol.history_count > 0 && profileId) {
+      const { data: hist } = await admin.from('password_history')
+        .select('password_hash').eq('user_id', profileId)
+        .order('created_at', { ascending: false }).limit(pol.history_count)
+      const hashes = (hist ?? []).map((h) => (h as { password_hash: string }).password_hash)
+      if (await isPasswordReused(password, hashes)) {
+        return json({ error: 'Le mot de passe ne respecte pas la politique de sécurité',
+          rules: [`Déjà utilisé parmi vos ${pol.history_count} derniers mots de passe`] }, 422)
+      }
     }
 
     const { error: updateError } = await admin.auth.admin.updateUserById(user.id, { password })
@@ -64,8 +81,18 @@ Deno.serve(async (req) => {
       return json({ error: 'Impossible de définir le mot de passe. Réessayez avec un autre mot de passe.' }, 400)
     }
 
-    // Traçabilité pour la rotation (Phase 2).
+    // Traçabilité pour la rotation.
     await admin.from('users').update({ password_changed_at: new Date().toISOString() }).eq('auth_id', user.id)
+
+    // Historique : enregistrer le hash + élaguer aux N derniers.
+    if (pol.history_count > 0 && profileId) {
+      await admin.from('password_history').insert({ user_id: profileId, password_hash: await hashPassword(password) })
+      const { data: extra } = await admin.from('password_history')
+        .select('id').eq('user_id', profileId)
+        .order('created_at', { ascending: false }).range(pol.history_count, 1000)
+      const ids = (extra ?? []).map((e) => (e as { id: string }).id)
+      if (ids.length > 0) await admin.from('password_history').delete().in('id', ids)
+    }
 
     return json({ ok: true }, 200)
   } catch (err) {
