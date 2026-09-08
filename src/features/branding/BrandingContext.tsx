@@ -47,6 +47,11 @@ const NEUTRAL_HOSTNAMES = new Set([
 const DEFAULT_PRIMARY = '#1B4332'
 const DEFAULT_ACCENT = '#D4A843'
 
+// Valeurs d'onglet par défaut (Gëstu), capturées au premier rendu pour pouvoir
+// les restaurer si aucun branding cabinet n'est résolu.
+let defaultTitle: string | null = null
+let defaultFavicon: string | null = null
+
 export const BrandingContext = createContext<BrandingState>({
   branding: null,
   isCustomDomain: false,
@@ -123,6 +128,19 @@ export function BrandingProvider({ children }: BrandingProviderProps): JSX.Eleme
         root.style.removeProperty(`--color-forest-${s}`)
         root.style.removeProperty(`--color-gold-${s}`)
       }
+    }
+
+    // Onglet navigateur : favicon + titre au nom du cabinet (marque blanche).
+    const iconEl = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
+    if (defaultTitle === null) defaultTitle = document.title
+    if (defaultFavicon === null && iconEl) defaultFavicon = iconEl.getAttribute('href')
+
+    if (state.branding) {
+      if (state.branding.cabinet_name) document.title = state.branding.cabinet_name
+      if (iconEl && state.branding.logo_light_url) iconEl.setAttribute('href', state.branding.logo_light_url)
+    } else {
+      if (defaultTitle !== null) document.title = defaultTitle
+      if (iconEl && defaultFavicon !== null) iconEl.setAttribute('href', defaultFavicon)
     }
   }, [state.branding])
 

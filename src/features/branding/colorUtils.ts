@@ -59,28 +59,46 @@ function hslToHex({ h, s, l }: HSL): string {
 
 /**
  * Retourne la palette {50, 100, 300, 500, 700, 900} à partir d'une couleur
- * de référence (traitée comme shade 700). Les autres shades sont calculés
- * par décalage de luminosité.
+ * de référence. Chaque shade a une LUMINOSITÉ CIBLE FIXE (échelle type Tailwind) ;
+ * seules la teinte et la saturation du cabinet sont préservées. Ainsi n'importe
+ * quelle couleur (même claire) produit une échelle lisible : les shades foncés
+ * (700/900, fonds de boutons/sidebar avec texte blanc) restent toujours assez
+ * sombres pour un contraste correct. La couleur brute reste disponible via
+ * --brand-primary / --brand-accent pour un usage direct.
  */
+const TARGET_LIGHTNESS: Record<'50' | '100' | '300' | '500' | '700' | '900', number> = {
+  '50': 96,
+  '100': 89,
+  '300': 70,
+  '500': 48,
+  '700': 28,
+  '900': 16,
+}
+
 export function generatePalette(baseHex: string): Record<'50' | '100' | '300' | '500' | '700' | '900', string> | null {
   const hsl = hexToHsl(baseHex)
   if (!hsl) return null
 
-  // Décalages relatifs depuis la base (700)
-  // Inspirés de la palette Tailwind / charte Gestu existante
-  const shifts: Record<'50' | '100' | '300' | '500' | '700' | '900', number> = {
-    '50': +50,
-    '100': +40,
-    '300': +20,
-    '500': +10,
-    '700': 0,
-    '900': -10,
-  }
-
   const out: Record<string, string> = {}
-  for (const [shade, delta] of Object.entries(shifts)) {
-    const newL = hsl.l + delta
-    out[shade] = hslToHex({ h: hsl.h, s: hsl.s, l: newL })
+  for (const [shade, l] of Object.entries(TARGET_LIGHTNESS)) {
+    out[shade] = hslToHex({ h: hsl.h, s: hsl.s, l })
   }
   return out as Record<'50' | '100' | '300' | '500' | '700' | '900', string>
+}
+
+/**
+ * Couleur de texte lisible (blanc ou encre foncée) sur un fond donné, selon la
+ * luminance relative (WCAG). Utile pour les surfaces peintes avec une couleur
+ * de marque arbitraire.
+ */
+export function readableTextOn(hex: string): '#FFFFFF' | '#111827' {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return '#FFFFFF'
+  const chan = (i: number): number => {
+    const c = parseInt(m[1].slice(i, i + 2), 16) / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  }
+  const lum = 0.2126 * chan(0) + 0.7152 * chan(2) + 0.0722 * chan(4)
+  // Seuil ~0.4 : au-dessus le fond est clair → texte foncé.
+  return lum > 0.4 ? '#111827' : '#FFFFFF'
 }
