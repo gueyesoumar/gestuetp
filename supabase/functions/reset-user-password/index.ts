@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
+import { validatePassword, type PasswordPolicy } from '../_shared/password-policy.ts'
 
 interface ResetPasswordPayload {
   user_id: string
@@ -49,11 +50,17 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (new_password.length < 8) {
-      return new Response(
-        JSON.stringify({ error: 'Le mot de passe doit contenir au moins 8 caractères.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // Valider contre la politique plateforme (longueur, complexité, interdits, HIBP).
+    const { data: policy } = await supabaseAdmin
+      .from('platform_password_policy').select('*').eq('id', 1).single()
+    if (policy) {
+      const rules = await validatePassword(new_password, policy as unknown as PasswordPolicy)
+      if (rules.length > 0) {
+        return new Response(
+          JSON.stringify({ error: 'Le mot de passe ne respecte pas la politique de sécurité', rules }),
+          { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     // 5. Vérifier que la cible est dans la même organisation
@@ -102,6 +109,11 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // Traçabilité pour la rotation (Phase 2).
+    await supabaseAdmin.from('users')
+      .update({ password_changed_at: new Date().toISOString() })
+      .eq('id', user_id)
 
     return new Response(
       JSON.stringify({ success: true }),

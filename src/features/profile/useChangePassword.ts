@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { supabase } from '../../lib/supabase'
+import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
 
 interface UseChangePasswordResult {
   changePassword: (newPassword: string) => Promise<boolean>
@@ -15,19 +15,11 @@ export function useChangePassword(): UseChangePasswordResult {
     setChanging(true)
     setError(null)
 
-    if (newPassword.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caract\u00e8res.')
-      setChanging(false)
-      return false
-    }
-
-    const { error: authError } = await supabase.auth.updateUser({
-      password: newPassword,
-    })
-
-    if (authError) {
-      console.error('useChangePassword:', authError.message)
-      setError('Impossible de changer le mot de passe.')
+    // L'edge `set-password` valide contre la politique plateforme (longueur,
+    // complexité, interdits, HIBP) puis pose le mot de passe via service_role.
+    const res = await invokeEdgeFunction('set-password', { password: newPassword })
+    if (!res.ok) {
+      setError(res.error ?? 'Impossible de changer le mot de passe.')
       setChanging(false)
       return false
     }

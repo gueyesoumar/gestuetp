@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { invokeEdgeFunction } from '../lib/invokeEdgeFunction'
 import { useAuth } from '../hooks/useAuth'
+import { usePasswordPolicy } from '../hooks/usePasswordPolicy'
+import { checkPasswordRules } from '../lib/passwordPolicy'
 import { Check } from 'lucide-react'
 import { VaultBackground } from '../components/vault/VaultBackground'
 import { MorphingShield } from '../components/vault/MorphingShield'
@@ -12,6 +15,7 @@ import { SetPasswordForm } from '../components/vault/SetPasswordForm'
 export function SetPasswordPage(): JSX.Element {
   const navigate = useNavigate()
   const { profile } = useAuth()
+  const { policy } = usePasswordPolicy()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -35,8 +39,9 @@ export function SetPasswordPage(): JSX.Element {
     e.preventDefault()
     setError(null)
 
-    if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caract\u00e8res.')
+    const ruleErrors = checkPasswordRules(password, policy)
+    if (ruleErrors.length > 0) {
+      setError(ruleErrors.join(' \u00b7 '))
       return
     }
     if (password !== confirm) {
@@ -45,11 +50,12 @@ export function SetPasswordPage(): JSX.Element {
     }
 
     setSubmitting(true)
-    const { error: updateError } = await supabase.auth.updateUser({ password })
+    // Passe par l'edge `set-password` : validation politique c\u00f4t\u00e9 serveur + HIBP.
+    const res = await invokeEdgeFunction('set-password', { password })
 
-    if (updateError) {
-      console.error('SetPasswordPage:', updateError.message)
-      setError('Erreur lors de la mise \u00e0 jour. Le lien a peut-\u00eatre expir\u00e9.')
+    if (!res.ok) {
+      console.error('SetPasswordPage:', res.error)
+      setError(res.error ?? 'Erreur lors de la mise \u00e0 jour. Le lien a peut-\u00eatre expir\u00e9.')
       setSubmitting(false)
       return
     }
