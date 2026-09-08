@@ -38,13 +38,13 @@ export function useAdminCabinets(): Result {
         // Charge TOUTES les organisations (cabinets, clients, groupes, plateforme...)
         const { data: orgs, error: orgError } = await supabase
           .from('organizations')
-          .select('id, name, slug, types, is_active, created_at, plans(name, monthly_price_eur)')
+          .select('id, name, slug, types, is_active, created_at, plans(name, monthly_price)')
           .order('created_at', { ascending: false })
           .abortSignal(abort.signal)
 
         if (orgError) throw orgError
         const allOrgs = (orgs ?? []) as Array<{
-          id: string; name: string; slug: string; types: string[]; is_active: boolean; created_at: string; plans: { name: string; monthly_price_eur: number } | null
+          id: string; name: string; slug: string; types: string[]; is_active: boolean; created_at: string; plans: { name: string; monthly_price: number } | null
         }>
 
         const ids = allOrgs.map((o) => o.id)
@@ -83,7 +83,7 @@ export function useAdminCabinets(): Result {
           is_active: o.is_active,
           created_at: o.created_at,
           plan_name: o.plans?.name ?? null,
-          plan_price: o.plans?.monthly_price_eur ?? null,
+          plan_price: o.plans?.monthly_price ?? null,
           members_count: memberCounts[o.id] ?? 0,
           missions_count: missionCounts[o.id] ?? 0,
           last_activity_at: lastActivity[o.id] ?? null,

@@ -4,6 +4,7 @@ import type { AdminPlan, PlanTier } from './useAdminPlans'
 interface PlanCardProps {
   plan: AdminPlan
   totalFeatures: number
+  format: (xof: number) => string
   onEdit: () => void
   onDuplicate: () => void
   onDelete: () => void
@@ -23,18 +24,13 @@ const TIER_COLORS: Record<PlanTier, { bg: string; text: string }> = {
   custom: { bg: 'bg-gold-100', text: 'text-gold-700' },
 }
 
-function formatPrice(price: number): { value: string; suffix: string } {
-  if (price === 0) return { value: '0 €', suffix: '/mois' }
-  return { value: `${price.toLocaleString('fr-FR')} €`, suffix: '/mois' }
-}
-
 function formatLimit(value: number | null): string {
   return value === null ? '∞' : String(value)
 }
 
-export function PlanCard({ plan, totalFeatures, onEdit, onDuplicate, onDelete }: PlanCardProps): JSX.Element {
+export function PlanCard({ plan, totalFeatures, format, onEdit, onDuplicate, onDelete }: PlanCardProps): JSX.Element {
   const tierColor = TIER_COLORS[plan.tier]
-  const price = formatPrice(plan.monthly_price_eur)
+  const price = { value: format(plan.monthly_price), suffix: '/mois' }
   const canDelete = plan.cabinets_count === 0
   const ringClass = plan.is_default ? 'ring-2 ring-gold-300' : ''
 

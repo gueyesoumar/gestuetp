@@ -20,7 +20,7 @@ interface CreateBody {
   reason: string
   name: string
   description: string | null
-  monthly_price_eur: number
+  monthly_price: number
   tier: 'free' | 'standard' | 'enterprise' | 'custom'
   max_users: number | null
   max_missions: number | null
@@ -33,7 +33,7 @@ interface UpdateBody {
   plan_id: string
   name?: string
   description?: string | null
-  monthly_price_eur?: number
+  monthly_price?: number
   tier?: 'free' | 'standard' | 'enterprise' | 'custom'
   max_users?: number | null
   max_missions?: number | null
@@ -88,8 +88,8 @@ Deno.serve(async (req) => {
 // deno-lint-ignore no-explicit-any
 async function handleCreate(admin: any, actorId: string, body: CreateBody): Promise<Response> {
   if (!body.name?.trim()) return jsonResponse({ error: 'name requis' }, 400)
-  if (typeof body.monthly_price_eur !== 'number' || body.monthly_price_eur < 0) {
-    return jsonResponse({ error: 'monthly_price_eur invalide' }, 400)
+  if (typeof body.monthly_price !== 'number' || body.monthly_price < 0) {
+    return jsonResponse({ error: 'monthly_price invalide' }, 400)
   }
   if (!ALLOWED_TIERS.includes(body.tier)) return jsonResponse({ error: 'tier invalide' }, 400)
 
@@ -105,7 +105,7 @@ async function handleCreate(admin: any, actorId: string, body: CreateBody): Prom
     slug,
     name: body.name.trim(),
     description: body.description?.trim() || null,
-    monthly_price_eur: body.monthly_price_eur,
+    monthly_price: body.monthly_price,
     tier: body.tier,
     max_users: body.max_users,
     max_missions: body.max_missions,
@@ -119,7 +119,7 @@ async function handleCreate(admin: any, actorId: string, body: CreateBody): Prom
 
   const planId = (data as { id: string }).id
   await logAdminAction(admin, actorId, 'create_plan', 'plan', planId, body.reason, {
-    slug, name: body.name, tier: body.tier, monthly_price_eur: body.monthly_price_eur,
+    slug, name: body.name, tier: body.tier, monthly_price: body.monthly_price,
   })
   return jsonResponse({ success: true, plan_id: planId })
 }
@@ -137,9 +137,9 @@ async function handleUpdate(admin: any, actorId: string, body: UpdateBody): Prom
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (body.name !== undefined) update.name = body.name.trim()
   if (body.description !== undefined) update.description = body.description?.trim() || null
-  if (body.monthly_price_eur !== undefined) {
-    if (body.monthly_price_eur < 0) return jsonResponse({ error: 'monthly_price_eur invalide' }, 400)
-    update.monthly_price_eur = body.monthly_price_eur
+  if (body.monthly_price !== undefined) {
+    if (body.monthly_price < 0) return jsonResponse({ error: 'monthly_price invalide' }, 400)
+    update.monthly_price = body.monthly_price
   }
   if (body.tier !== undefined) {
     if (!ALLOWED_TIERS.includes(body.tier)) return jsonResponse({ error: 'tier invalide' }, 400)
