@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
-import type { DarkLogoTreatment } from '../../branding/extractColorsFromImage'
+import type { DarkLogoTreatment, BrandSurfaceMode } from '../../branding/extractColorsFromImage'
 
 export interface CabinetBrandingRow {
   organization_id: string
@@ -13,6 +13,7 @@ export interface CabinetBrandingRow {
   email_from_name: string | null
   footer_text: string | null
   dark_logo_treatment: DarkLogoTreatment | null
+  brand_surface_mode: BrandSurfaceMode | null
   updated_at: string
 }
 
