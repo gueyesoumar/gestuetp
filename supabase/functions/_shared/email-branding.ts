@@ -23,6 +23,7 @@ export interface CabinetEmailBranding {
   supportEmail: string | null
   emailFromName: string | null
   footerText: string | null
+  surfaceMode: 'light' | 'dark'
 }
 
 const GESTU_DEFAULTS = {
@@ -34,6 +35,7 @@ const GESTU_DEFAULTS = {
   supportEmail: null as string | null,
   emailFromName: null as string | null,
   footerText: null as string | null,
+  surfaceMode: 'dark' as 'light' | 'dark',
 }
 
 export function defaultBranding(): CabinetEmailBranding {
@@ -73,7 +75,7 @@ export async function loadCabinetEmailBranding(
   const [{ data: branding }, { data: org }] = await Promise.all([
     admin
       .from('organization_branding')
-      .select('logo_light_url, primary_color, accent_color, support_email, email_from_name, footer_text')
+      .select('logo_light_url, primary_color, accent_color, support_email, email_from_name, footer_text, brand_surface_mode')
       .eq('organization_id', cabinetId)
       .maybeSingle(),
     admin
@@ -93,6 +95,7 @@ export async function loadCabinetEmailBranding(
     support_email: string | null
     email_from_name: string | null
     footer_text: string | null
+    brand_surface_mode: string | null
   } | null
 
   return {
@@ -103,6 +106,7 @@ export async function loadCabinetEmailBranding(
     supportEmail: b?.support_email ?? null,
     emailFromName: b?.email_from_name ?? null,
     footerText: b?.footer_text ?? null,
+    surfaceMode: b?.brand_surface_mode === 'light' ? 'light' : 'dark',
   }
 }
 
@@ -124,10 +128,39 @@ export function buildEmailFrom(branding: CabinetEmailBranding | null): string | 
  * un header textuel simple à la place de l'image — pas de carré blanc, pas
  * de fallback hasardeux.
  */
+function lightTint(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return '#F5F6F5'
+  const mix = (i: number) => Math.round(parseInt(m[1].slice(i, i + 2), 16) * 0.08 + 255 * 0.92)
+  const toHex = (n: number) => n.toString(16).padStart(2, '0')
+  return `#${toHex(mix(0))}${toHex(mix(2))}${toHex(mix(4))}`
+}
+
 export function renderEmailHeader(branding: CabinetEmailBranding): string {
   const safeName = escapeHtml(branding.cabinetName)
   const safePrimary = escapeHtml(branding.primaryColor)
   const safeAccent = escapeHtml(branding.accentColor)
+
+  // Mode clair : en-tête clair (teinte de marque) + logo posé tel quel + texte
+  // foncé. Le logo_light_url (traits foncés) se lit directement, sans carré blanc.
+  if (branding.surfaceMode === 'light' && branding.logoLightUrl) {
+    const safeLogo = escapeHtml(branding.logoLightUrl)
+    return `
+      <tr>
+        <td style="background:${lightTint(branding.primaryColor)}; border-bottom:2px solid ${safePrimary}; padding:22px 28px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="vertical-align:middle;">
+                <img src="${safeLogo}" alt="${safeName}" style="display:block; height:30px; max-width:180px; width:auto;" />
+              </td>
+              <td style="padding-left:14px; vertical-align:middle;">
+                <div style="color:${safePrimary}; font-weight:800; font-size:15px; letter-spacing:0.3px;">${safeName}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`
+  }
 
   if (branding.logoLightUrl) {
     const safeLogo = escapeHtml(branding.logoLightUrl)
