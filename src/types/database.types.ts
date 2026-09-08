@@ -174,6 +174,7 @@ export interface User {
   role: UserRole
   client_org_id: string | null
   is_platform_owner: boolean
+  password_changed_at: string | null
   created_at: string
   updated_at: string
 }

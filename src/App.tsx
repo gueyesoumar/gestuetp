@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
 import { MfaGate } from './features/auth/mfa/MfaGate'
+import { PasswordExpiryGate } from './features/auth/PasswordExpiryGate'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
@@ -215,7 +216,9 @@ function App() {
         <EditionProvider>
         <RecorderProvider>
         <MfaGate>
+        <PasswordExpiryGate>
         <AppRoutes />
+        </PasswordExpiryGate>
         </MfaGate>
         </RecorderProvider>
         </EditionProvider>

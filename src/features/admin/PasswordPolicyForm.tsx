@@ -35,6 +35,8 @@ export function PasswordPolicyForm({ policy, saving, status, onSave }: Props): J
       require_symbol: form.require_symbol,
       forbid_common: form.forbid_common,
       check_hibp: form.check_hibp,
+      rotation_days: form.rotation_days && form.rotation_days > 0 ? form.rotation_days : null,
+      history_count: form.history_count,
     })
   }
 
@@ -61,12 +63,16 @@ export function PasswordPolicyForm({ policy, saving, status, onSave }: Props): J
         ))}
       </section>
 
-      <section className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Phase 2 — bientôt</p>
-        <p className="mt-1 text-[12px] text-gray-500">
-          Rotation (expiration) et historique de non-réutilisation seront activables ici. Désactivés pour l&apos;instant.
-        </p>
+      <section className="grid grid-cols-2 gap-4">
+        <NumberField label="Expiration (jours, 0 = désactivée)" value={form.rotation_days ?? 0} min={0} max={3650}
+          onChange={(v) => setForm((f) => ({ ...f, rotation_days: v > 0 ? v : null }))} />
+        <NumberField label="Historique non-réutilisation (0 = désactivé)" value={form.history_count} min={0} max={24}
+          onChange={(v) => setForm((f) => ({ ...f, history_count: v }))} />
       </section>
+      <p className="-mt-3 text-[11px] text-gray-400">
+        Rotation et historique sont déconseillés par NIST — à activer si un référentiel l’impose. L’activation de
+        la rotation démarre le compteur pour tous les comptes (aucun verrouillage immédiat).
+      </p>
 
       <div className="flex items-center gap-4">
         <button type="button" onClick={submit} disabled={saving}

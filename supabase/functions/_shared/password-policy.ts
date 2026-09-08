@@ -1,6 +1,8 @@
 // Politique de mot de passe — validation serveur (fait autorité).
 // Miroir des règles synchrones de src/lib/passwordPolicy.ts + vérification HIBP
-// (Have I Been Pwned) par k-anonymity. Utilisé par l'edge `set-password`.
+// (Have I Been Pwned) par k-anonymity + historique de non-réutilisation (bcrypt).
+// Utilisé par les edges `set-password` et `reset-user-password`.
+import bcrypt from 'npm:bcryptjs@2.4.3'
 
 export interface PasswordPolicy {
   min_length: number
@@ -87,4 +89,19 @@ export async function validatePassword(password: string, policy: PasswordPolicy)
     errors.push('Ce mot de passe figure dans une fuite de données connue')
   }
   return errors
+}
+
+// --- Historique de non-réutilisation (bcrypt) ---
+
+/** Hash bcrypt (coût 10) du mot de passe, pour stockage en historique. */
+export async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 10)
+}
+
+/** True si le mot de passe correspond à l'un des hashes d'historique fournis. */
+export async function isPasswordReused(password: string, hashes: string[]): Promise<boolean> {
+  for (const h of hashes) {
+    if (await bcrypt.compare(password, h)) return true
+  }
+  return false
 }
