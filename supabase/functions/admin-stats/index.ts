@@ -8,7 +8,7 @@ import { requirePlatformOwner } from '../_shared/auth-platform-owner.ts'
  * super-admin. Utilise le service-role pour bypasser les RLS standard.
  *
  * Le MRR est un placeholder calculé naïvement comme
- *   Σ (cabinets actifs × monthly_price_eur du plan)
+ *   Σ (cabinets actifs × monthly_price du plan)
  * Pas d'intégration paiement — Stripe en Phase 2.
  */
 
@@ -36,13 +36,13 @@ Deno.serve(async (req) => {
     // Toutes les organisations (cabinets, clients, groupes, plateforme)
     const { data: orgs } = await admin
       .from('organizations')
-      .select('id, is_active, types, plan_id, plans(monthly_price_eur)')
+      .select('id, is_active, types, plan_id, plans(monthly_price)')
 
-    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[]; plans: { monthly_price_eur: number } | null }>
+    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[]; plans: { monthly_price: number } | null }>
     const active = allOrgs.filter((o) => o.is_active)
 
     // MRR : Σ (orgs actives × tarif du plan, si plan)
-    const mrr = active.reduce((sum, o) => sum + Number(o.plans?.monthly_price_eur ?? 0), 0)
+    const mrr = active.reduce((sum, o) => sum + Number(o.plans?.monthly_price ?? 0), 0)
 
     // Utilisateurs actifs sur 30 jours (last_sign_in_at)
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString()

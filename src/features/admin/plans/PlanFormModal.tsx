@@ -24,7 +24,7 @@ export function PlanFormModal(props: PlanFormModalProps): JSX.Element {
   const [name, setName] = useState(plan?.name ?? '')
   const [description, setDescription] = useState(plan?.description ?? '')
   const [tier, setTier] = useState<PlanTier>(plan?.tier ?? 'standard')
-  const [price, setPrice] = useState(String(plan?.monthly_price_eur ?? 0))
+  const [price, setPrice] = useState(String(plan?.monthly_price ?? 0))
   const [maxUsers, setMaxUsers] = useState(plan?.max_users != null ? String(plan.max_users) : '')
   const [maxMissions, setMaxMissions] = useState(plan?.max_missions != null ? String(plan.max_missions) : '')
   const [isDefault, setIsDefault] = useState(plan?.is_default ?? false)
@@ -49,7 +49,7 @@ export function PlanFormModal(props: PlanFormModalProps): JSX.Element {
     const input: PlanInput = {
       name: name.trim(),
       description: description.trim() || null,
-      monthly_price_eur: numPrice,
+      monthly_price: numPrice,
       tier,
       max_users: maxUsers === '' ? null : Number(maxUsers),
       max_missions: maxMissions === '' ? null : Number(maxMissions),

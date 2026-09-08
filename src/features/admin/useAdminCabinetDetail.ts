@@ -44,13 +44,13 @@ export function useAdminCabinetDetail(cabinetId: string | undefined): Result {
       try {
         const { data: org, error: orgError } = await supabase
           .from('organizations')
-          .select('id, name, slug, types, is_active, created_at, workflow_version, plans(name, monthly_price_eur)')
+          .select('id, name, slug, types, is_active, created_at, workflow_version, plans(name, monthly_price)')
           .eq('id', cabinetId)
           .abortSignal(abort.signal)
           .single()
 
         if (orgError || !org) throw orgError ?? new Error('Organisation introuvable')
-        const o = org as { id: string; name: string; slug: string; types: string[]; is_active: boolean; created_at: string; workflow_version: 'audit' | 'controle' | null; plans: { name: string; monthly_price_eur: number } | null }
+        const o = org as { id: string; name: string; slug: string; types: string[]; is_active: boolean; created_at: string; workflow_version: 'audit' | 'controle' | null; plans: { name: string; monthly_price: number } | null }
 
         const { data: members } = await supabase
           .from('users')
@@ -85,7 +85,7 @@ export function useAdminCabinetDetail(cabinetId: string | undefined): Result {
           created_at: o.created_at,
           workflow_version: o.workflow_version ?? 'audit',
           plan_name: o.plans?.name ?? null,
-          plan_price: o.plans?.monthly_price_eur ?? null,
+          plan_price: o.plans?.monthly_price ?? null,
           capabilities: ((caps ?? []) as Array<{ capability: Capability }>).map((c) => c.capability),
           members: (members ?? []) as CabinetDetail['members'],
           missions: (missions ?? []) as CabinetDetail['missions'],

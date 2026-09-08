@@ -9,7 +9,7 @@ export interface AdminPlan {
   slug: string
   name: string
   description: string | null
-  monthly_price_eur: number
+  monthly_price: number
   tier: PlanTier
   max_users: number | null
   max_missions: number | null
@@ -22,7 +22,7 @@ export interface AdminPlan {
 export interface PlanInput {
   name: string
   description: string | null
-  monthly_price_eur: number
+  monthly_price: number
   tier: PlanTier
   max_users: number | null
   max_missions: number | null
@@ -58,8 +58,8 @@ export function useAdminPlans(): Result {
         const [{ data: plansData, error: plansErr }, { data: orgPlanCounts }, { data: pfRows }] = await Promise.all([
           supabase
             .from('plans')
-            .select('id, slug, name, description, monthly_price_eur, tier, max_users, max_missions, is_default, created_at')
-            .order('monthly_price_eur', { ascending: true })
+            .select('id, slug, name, description, monthly_price, tier, max_users, max_missions, is_default, created_at')
+            .order('monthly_price', { ascending: true })
             .abortSignal(abort.signal),
           supabase
             .from('organizations')

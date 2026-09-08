@@ -69,7 +69,7 @@ export function CabinetOverviewTab(props: CabinetOverviewTabProps): JSX.Element 
 
 function IdentityCard({ cabinet, onEditTypes }: { cabinet: OverviewCabinet; onEditTypes: () => void }): JSX.Element {
   const planLabel = cabinet.plan_name
-    ? `${cabinet.plan_name}${cabinet.plan_price && cabinet.plan_price > 0 ? ` · ${cabinet.plan_price} €/mois` : ''}`
+    ? `${cabinet.plan_name}${cabinet.plan_price && cabinet.plan_price > 0 ? ` · ${cabinet.plan_price.toLocaleString('fr-FR')} FCFA/mois` : ''}`
     : '—'
   const onboarded = new Date(cabinet.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 
