@@ -82,7 +82,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
     return (
       <div className="flex h-full w-full flex-col px-6 py-3">
         {topBar}
-        <div className="mx-auto my-auto h-[60%] w-full max-w-[620px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
+        <div className="mx-auto my-auto h-[60%] w-full max-w-[620px] animate-pulse rounded-3xl border border-[rgb(var(--hub-fg)/0.1)] bg-[rgb(var(--hub-fg)/0.03)]" />
       </div>
     )
   }
@@ -131,7 +131,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
       <div className="flex min-h-0 flex-1 flex-col items-center gap-6 py-4 md:flex-row md:items-center md:justify-center md:gap-12 md:px-6">
         <div className="flex flex-col items-center gap-3">
           <div className="h-[240px] w-[240px]"><SegmentedDial score={centre.score} /></div>
-          <span className="max-w-[280px] text-center text-[12px] text-white/55">{centre.subtitle}</span>
+          <span className="max-w-[280px] text-center text-[12px] text-[rgb(var(--hub-fg)/0.55)]">{centre.subtitle}</span>
         </div>
         {view === 'self'
           ? <HubSidePanel mode="self" title={panelTitle} axes={selfDims.axes} factors={selfDims.factors} />
