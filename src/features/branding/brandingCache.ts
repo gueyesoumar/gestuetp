@@ -16,6 +16,11 @@
 const KEY_PREFIX = 'gestu:branding:'
 
 export interface BrandingCacheEntry {
+  // Payload branding complet (CabinetBranding), pour réhydrater le state React
+  // de façon synchrone au boot et éviter le flash structurel (vault sombre →
+  // surface claire). Typé `unknown` ici : la validation de forme est faite côté
+  // consommateur (BrandingContext.isCabinetBranding).
+  branding: unknown
   vars: Record<string, string>
   title: string | null
   favicon: string | null
@@ -63,6 +68,12 @@ export function writeBrandingCache(hostname: string, entry: BrandingCacheEntry):
   } catch {
     // quota atteint / navigation privée : le cache est optionnel, on ignore
   }
+}
+
+// Payload branding en cache pour ce hostname (non validé — le consommateur
+// doit vérifier la forme avant usage). null si absent.
+export function readCachedBranding(hostname: string): unknown {
+  return readBrandingCache(hostname)?.branding ?? null
 }
 
 export function clearBrandingCache(hostname: string): void {
