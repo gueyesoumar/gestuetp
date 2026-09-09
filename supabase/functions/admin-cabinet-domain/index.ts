@@ -1,6 +1,6 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
-import { getVercelConfig, vercelAddDomain, vercelRemoveDomain } from '../_shared/vercel.ts'
+import { getVercelConfig, vercelAddDomain, vercelClearRedirect, vercelRemoveDomain } from '../_shared/vercel.ts'
 import { getOvhConfig, ovhCreateRecord, ovhListRecordIds, ovhDeleteRecord, ovhRefreshZone } from '../_shared/ovh.ts'
 
 /**
@@ -220,7 +220,10 @@ async function provisionDomain(hostname: string, token: string): Promise<Provisi
   let dnsProvisioned = false
 
   try {
-    await vercelAddDomain(getVercelConfig(), hostname)
+    const vcfg = getVercelConfig()
+    await vercelAddDomain(vcfg, hostname)
+    // Le domaine doit SERVIR le déploiement, pas rediriger vers le domaine canonique.
+    await vercelClearRedirect(vcfg, hostname)
     vercelRegistered = true
   } catch (err) {
     errors.push(errMsg(err))
