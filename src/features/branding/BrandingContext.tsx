@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { supabase } from '../../lib/supabase'
 import { generatePalette } from './colorUtils'
 import type { DarkLogoTreatment, BrandSurfaceMode } from './extractColorsFromImage'
+import { applyBrandingVars, writeBrandingCache, clearBrandingCache, getNeutralDefaults } from './brandingCache'
 
 /**
  * BrandingProvider — résolution du tenant par hostname AVANT auth.
@@ -50,11 +51,6 @@ const NEUTRAL_HOSTNAMES = new Set([
 const DEFAULT_PRIMARY = '#1B4332'
 const DEFAULT_ACCENT = '#D4A843'
 
-// Valeurs d'onglet par défaut (Gëstu), capturées au premier rendu pour pouvoir
-// les restaurer si aucun branding cabinet n'est résolu.
-let defaultTitle: string | null = null
-let defaultFavicon: string | null = null
-
 export const BrandingContext = createContext<BrandingState>({
   branding: null,
   isCustomDomain: false,
@@ -100,52 +96,52 @@ export function BrandingProvider({ children }: BrandingProviderProps): JSX.Eleme
   }, [])
 
   useLayoutEffect(() => {
+    // Tant que la résolution est en cours, ne rien toucher : on préserve les
+    // variables déjà appliquées au boot depuis le cache (anti-FOUC). On applique
+    // (ou on nettoie) seulement une fois la résolution terminée.
+    if (state.loading) return
+
     const root = document.documentElement
-    const primary = state.branding?.primary_color ?? DEFAULT_PRIMARY
-    const accent = state.branding?.accent_color ?? DEFAULT_ACCENT
+    const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
+    const neutral = getNeutralDefaults()
+    const iconEl = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
 
-    // Variables sémantiques (consommées par composants explicites)
-    root.style.setProperty('--brand-primary', primary)
-    root.style.setProperty('--brand-accent', accent)
-
-    // Override des CSS vars Tailwind theme — propagation automatique sur toutes
-    // les classes `forest-*` et `gold-*` de l'app. Les shades sont dérivées
-    // par décalage de luminosité depuis la couleur cabinet.
     if (state.branding) {
+      const primary = state.branding.primary_color ?? DEFAULT_PRIMARY
+      const accent = state.branding.accent_color ?? DEFAULT_ACCENT
+
+      // Variables sémantiques + override des CSS vars Tailwind theme (forest-*
+      // et gold-*), dérivées par décalage de luminosité depuis la couleur cabinet.
+      const vars: Record<string, string> = { '--brand-primary': primary, '--brand-accent': accent }
       const forestPalette = generatePalette(primary)
       const goldPalette = generatePalette(accent)
-      if (forestPalette) {
-        for (const [shade, hex] of Object.entries(forestPalette)) {
-          root.style.setProperty(`--color-forest-${shade}`, hex)
-        }
-      }
-      if (goldPalette) {
-        for (const [shade, hex] of Object.entries(goldPalette)) {
-          root.style.setProperty(`--color-gold-${shade}`, hex)
-        }
-      }
+      if (forestPalette) for (const [shade, hex] of Object.entries(forestPalette)) vars[`--color-forest-${shade}`] = hex
+      if (goldPalette) for (const [shade, hex] of Object.entries(goldPalette)) vars[`--color-gold-${shade}`] = hex
+      applyBrandingVars(vars)
+
+      // Onglet navigateur : favicon + titre au nom du cabinet (marque blanche).
+      const title = state.branding.cabinet_name || null
+      const favicon = state.branding.logo_light_url || null
+      if (title) document.title = title
+      if (iconEl && favicon) iconEl.setAttribute('href', favicon)
+
+      // Mémorise le thème calculé pour un boot synchrone au prochain chargement.
+      writeBrandingCache(hostname, { vars, title, favicon })
     } else {
-      // Pas de branding : retire les overrides pour retomber sur les valeurs par défaut du @theme
+      // Pas de branding : sémantiques par défaut + retrait des overrides pour
+      // retomber sur les valeurs du @theme, restauration de l'onglet, purge cache.
+      root.style.setProperty('--brand-primary', DEFAULT_PRIMARY)
+      root.style.setProperty('--brand-accent', DEFAULT_ACCENT)
       const shades: Array<'50' | '100' | '300' | '500' | '700' | '900'> = ['50', '100', '300', '500', '700', '900']
       for (const s of shades) {
         root.style.removeProperty(`--color-forest-${s}`)
         root.style.removeProperty(`--color-gold-${s}`)
       }
+      if (neutral.title !== null) document.title = neutral.title
+      if (iconEl && neutral.favicon !== null) iconEl.setAttribute('href', neutral.favicon)
+      clearBrandingCache(hostname)
     }
-
-    // Onglet navigateur : favicon + titre au nom du cabinet (marque blanche).
-    const iconEl = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
-    if (defaultTitle === null) defaultTitle = document.title
-    if (defaultFavicon === null && iconEl) defaultFavicon = iconEl.getAttribute('href')
-
-    if (state.branding) {
-      if (state.branding.cabinet_name) document.title = state.branding.cabinet_name
-      if (iconEl && state.branding.logo_light_url) iconEl.setAttribute('href', state.branding.logo_light_url)
-    } else {
-      if (defaultTitle !== null) document.title = defaultTitle
-      if (iconEl && defaultFavicon !== null) iconEl.setAttribute('href', defaultFavicon)
-    }
-  }, [state.branding])
+  }, [state.branding, state.loading])
 
   return <BrandingContext.Provider value={state}>{children}</BrandingContext.Provider>
 }
