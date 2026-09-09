@@ -7,7 +7,7 @@ import { preAuthEdition } from '../lib/product'
 import { useBranding } from '../features/branding/useBranding'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 import { BrandedBrandPanel } from '../features/branding/BrandedBrandPanel'
-import { VaultBackground } from '../components/vault/VaultBackground'
+import { FullscreenLoader } from '../components/FullscreenLoader'
 import { LoginForm } from '../components/vault/LoginForm'
 import { ResetForm } from '../components/vault/ResetForm'
 import { VaultBrandPanel, ShieldMark } from '../components/vault/VaultBrandPanel'
@@ -24,14 +24,11 @@ export function LoginPage(): JSX.Element {
   const [resetSubmitting, setResetSubmitting] = useState(false)
   const [resetSent, setResetSent] = useState(false)
 
-  if (loading || brandingLoading) {
-    return (
-      <VaultBackground>
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-white/30">Chargement&hellip;</p>
-        </div>
-      </VaultBackground>
-    )
+  // On bloque sur l'auth (session à résoudre) et sur le branding UNIQUEMENT s'il
+  // est encore inconnu : quand il vient du cache, on rend le split brandé
+  // immédiatement (revalidation en arrière-plan), sans flash de loader sombre.
+  if (loading || (brandingLoading && !branding)) {
+    return <FullscreenLoader />
   }
 
   if (session) {
