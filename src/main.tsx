@@ -6,8 +6,11 @@ import './index.css'
 import App from './App.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { installErrorBuffer } from './lib/errorBuffer'
+import { applyCachedBrandingAtBoot } from './features/branding/brandingCache'
 
 installErrorBuffer()
+// Applique le branding cabinet en cache AVANT le premier rendu (anti-FOUC).
+applyCachedBrandingAtBoot()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

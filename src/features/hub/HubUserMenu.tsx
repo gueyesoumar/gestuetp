@@ -41,25 +41,25 @@ export function HubUserMenu({ profile, onSignOut, showAdmin }: HubUserMenuProps)
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Menu utilisateur"
-        className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-white/5"
+        className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-[rgb(var(--hub-fg)/0.05)]"
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D4A843]/[0.14] text-[13px] font-bold text-[#E2C26B] ring-1 ring-[#D4A843]/35">
           {initials}
         </span>
-        <ChevronDown size={14} className={`text-white/50 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`text-[rgb(var(--hub-fg)/0.5)] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[220px] rounded-2xl border border-white/15 bg-[#0d2a1e] p-1.5 shadow-2xl">
+        <div className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[220px] rounded-2xl border border-[rgb(var(--hub-fg)/0.15)] bg-[rgb(var(--hub-surface))] p-1.5 shadow-2xl">
           <div className="px-3 py-2.5">
-            <p className="text-[13px] font-semibold text-white">{profile.first_name} {profile.last_name}</p>
-            <p className="text-[11px] text-white/40">{roleName}</p>
+            <p className="text-[13px] font-semibold text-[rgb(var(--hub-fg))]">{profile.first_name} {profile.last_name}</p>
+            <p className="text-[11px] text-[rgb(var(--hub-fg)/0.4)]">{roleName}</p>
           </div>
-          <div className="my-1 h-px bg-white/10" />
+          <div className="my-1 h-px bg-[rgb(var(--hub-fg)/0.1)]" />
           {showAdmin && (
             <button
               type="button"
               onClick={() => { setOpen(false); navigate('/admin') }}
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold text-[#E2C26B] hover:bg-white/5"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold text-[#E2C26B] hover:bg-[rgb(var(--hub-fg)/0.05)]"
             >
               <ShieldCheck size={15} strokeWidth={1.8} />
               Console super-admin
@@ -68,10 +68,10 @@ export function HubUserMenu({ profile, onSignOut, showAdmin }: HubUserMenuProps)
           <button
             type="button"
             onClick={onSignOut}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold text-white/70 hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold text-[rgb(var(--hub-fg)/0.7)] hover:bg-[rgb(var(--hub-fg)/0.05)] hover:text-[rgb(var(--hub-fg))]"
           >
             <LogOut size={15} strokeWidth={1.8} />
-            D&eacute;connexion
+            Déconnexion
           </button>
         </div>
       )}

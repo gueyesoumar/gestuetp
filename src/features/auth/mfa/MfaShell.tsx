@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { VaultBackground } from '../../../components/vault/VaultBackground'
+import { FullscreenLoader } from '../../../components/FullscreenLoader'
 
 // Coquille plein écran pour les étapes MFA (enrôlement, challenge, chargement).
 // Posée sur le fond « vault » branché, en continuité avec la page de connexion.
@@ -32,12 +33,7 @@ export function MfaShell({ title, subtitle, children }: {
   )
 }
 
+// Loader plein écran adaptatif (surface claire/sombre selon le branding cabinet).
 export function MfaLoader(): JSX.Element {
-  return (
-    <VaultBackground>
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="w-6 h-6 rounded-full border-2 border-white/40 border-t-transparent animate-spin" aria-label="Chargement" role="status" />
-      </div>
-    </VaultBackground>
-  )
+  return <FullscreenLoader />
 }
