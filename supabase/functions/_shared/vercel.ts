@@ -55,6 +55,19 @@ export async function vercelAddDomain(cfg: VercelConfig, hostname: string): Prom
   throw new Error(`Vercel add-domain: ${await errorMessage(res)}`)
 }
 
+// Force le domaine à SERVIR le déploiement (pas de redirect). Sans ça, Vercel
+// rattache un domaine de production secondaire en redirect vers le domaine
+// canonique (app.gestugroup.com) → le domaine cabinet ne s'afficherait pas.
+// Idempotent : re-poser redirect=null n'a pas d'effet si déjà à null.
+export async function vercelClearRedirect(cfg: VercelConfig, hostname: string): Promise<void> {
+  const res = await fetch(`${API}/v9/projects/${cfg.projectId}/domains/${encodeURIComponent(hostname)}?teamId=${cfg.teamId}`, {
+    method: 'PATCH',
+    headers: authHeaders(cfg),
+    body: JSON.stringify({ redirect: null }),
+  })
+  if (!res.ok) throw new Error(`Vercel clear-redirect: ${await errorMessage(res)}`)
+}
+
 // Détache le hostname du projet Vercel. 404 (absent) = idempotent.
 export async function vercelRemoveDomain(cfg: VercelConfig, hostname: string): Promise<true> {
   const res = await fetch(`${API}/v9/projects/${cfg.projectId}/domains/${encodeURIComponent(hostname)}?teamId=${cfg.teamId}`, {
