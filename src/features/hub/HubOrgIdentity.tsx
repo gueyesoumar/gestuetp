@@ -29,13 +29,13 @@ export function HubOrgIdentity(): JSX.Element | null {
         {organization.logo_url ? (
           <img src={organization.logo_url} alt="" className="h-[30px] w-[30px] rounded-[9px] object-contain" />
         ) : (
-          <div className="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] border border-white/[0.12] bg-white/[0.08] text-[11px] font-bold text-white/85">
+          <div className="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] border border-[rgb(var(--hub-fg)/0.12)] bg-[rgb(var(--hub-fg)/0.08)] text-[11px] font-bold text-[rgb(var(--hub-fg)/0.85)]">
             {initialsOf(organization.name)}
           </div>
         )}
         <div className="flex min-w-0 flex-col gap-px">
-          <div className="text-[8px] font-bold uppercase tracking-[0.12em] text-white/35">Organisation</div>
-          <div className="truncate text-[14px] font-semibold leading-tight text-white/90">{organization.name}</div>
+          <div className="text-[8px] font-bold uppercase tracking-[0.12em] text-[rgb(var(--hub-fg)/0.35)]">Organisation</div>
+          <div className="truncate text-[14px] font-semibold leading-tight text-[rgb(var(--hub-fg)/0.9)]">{organization.name}</div>
         </div>
       </div>
     </div>

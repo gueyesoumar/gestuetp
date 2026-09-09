@@ -11,13 +11,14 @@ export function BrandLockup(): JSX.Element {
   const { branding } = useBranding()
 
   if (branding) {
+    const isLight = branding.brand_surface_mode === 'light'
     return (
       <div className="flex items-center gap-3">
-        <Logo variant="dark" height={30} />
-        <div className="h-9 w-px bg-white/15" />
+        <Logo variant={isLight ? 'light' : 'dark'} height={30} />
+        <div className="h-9 w-px bg-[rgb(var(--hub-fg)/0.15)]" />
         <div>
-          <div className="text-[18px] font-extrabold leading-tight text-white">{branding.cabinet_name}</div>
-          <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/50">
+          <div className="text-[18px] font-extrabold leading-tight text-[rgb(var(--hub-fg))]">{branding.cabinet_name}</div>
+          <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgb(var(--hub-fg)/0.5)]">
             Plateforme d&apos;audit
           </div>
         </div>
@@ -29,10 +30,10 @@ export function BrandLockup(): JSX.Element {
     <div className="flex items-center gap-3">
       <MorphingShield size={34} showLabel={false} />
       <div>
-        <div className="text-[19px] font-extrabold leading-none text-white">
+        <div className="text-[19px] font-extrabold leading-none text-[rgb(var(--hub-fg))]">
           Gëstu <span className="text-[#D4A843]">ETP</span>
         </div>
-        <div className="mt-1 text-[10px] font-medium text-white/55">
+        <div className="mt-1 text-[10px] font-medium text-[rgb(var(--hub-fg)/0.55)]">
           <span className="font-bold text-[#D4A843]">E</span>nterprise{' '}
           <span className="font-bold text-[#D4A843]">T</span>rust{' '}
           <span className="font-bold text-[#D4A843]">P</span>latform

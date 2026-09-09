@@ -56,10 +56,10 @@ export function SegmentedDial({ score, segments }: SegmentedDialProps): JSX.Elem
         {arcs}
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[clamp(28px,7.4cqmin,46px)] font-extrabold leading-none tabular-nums text-white">
+        <span className="text-[clamp(28px,7.4cqmin,46px)] font-extrabold leading-none tabular-nums text-[rgb(var(--hub-fg))]">
           {score === null ? '—' : score}
         </span>
-        <span className="mt-0.5 text-[clamp(8px,1.9cqmin,12px)] text-white/40">/ 100</span>
+        <span className="mt-0.5 text-[clamp(8px,1.9cqmin,12px)] text-[rgb(var(--hub-fg)/0.4)]">/ 100</span>
         <span className="mt-1.5 text-[clamp(10px,2.1cqmin,13px)] font-bold" style={{ color }}>{bandLabel(score)}</span>
       </div>
     </div>
