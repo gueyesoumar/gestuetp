@@ -31,6 +31,7 @@ export function HubPage(): JSX.Element {
         className="relative min-h-[100dvh] md:h-[100dvh]"
         style={{
           '--hub-fg': '17 24 39',
+          '--hub-surface': '255 255 255',
           background: 'linear-gradient(160deg, #FFFFFF 0%, color-mix(in srgb, var(--brand-primary) 6%, #FFFFFF) 100%)',
         } as CSSProperties}
       >
@@ -45,7 +46,7 @@ export function HubPage(): JSX.Element {
     <VaultBackground>
       <div
         className="relative z-10 flex min-h-[100dvh] flex-col overflow-y-auto md:h-[100dvh] md:overflow-hidden"
-        style={{ '--hub-fg': '255 255 255' } as CSSProperties}
+        style={{ '--hub-fg': '255 255 255', '--hub-surface': '13 42 30' } as CSSProperties}
       >
         {cockpit}
       </div>
