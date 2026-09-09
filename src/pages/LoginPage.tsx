@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import { preAuthEdition } from '../lib/product'
 import { useBranding } from '../features/branding/useBranding'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
+import { BrandedBrandPanel } from '../features/branding/BrandedBrandPanel'
 import { VaultBackground } from '../components/vault/VaultBackground'
 import { LoginForm } from '../components/vault/LoginForm'
 import { ResetForm } from '../components/vault/ResetForm'
@@ -93,30 +94,29 @@ export function LoginPage(): JSX.Element {
   )
 
   if (isBranded) {
-    // Surface claire : page claire (le logo à traits foncés s'y pose tel quel,
-    // transparent, sans pastille) + carte de formulaire sombre (LoginForm inchangé).
-    if (branding?.brand_surface_mode === 'light') {
-      return (
-        <div
-          className="flex min-h-screen flex-col items-center justify-center px-4 py-12"
-          style={{ background: 'linear-gradient(160deg, #FFFFFF 0%, color-mix(in srgb, var(--brand-primary) 8%, #FFFFFF) 100%)' }}
-        >
-          <div className="mb-10"><BrandedAuthHeader layout="login" /></div>
-          <div className="w-full max-w-sm rounded-2xl p-6 shadow-[0_24px_64px_-28px_rgba(0,0,0,0.45)]" style={{ background: 'var(--color-forest-900, #10201b)' }}>
-            {formArea}
-          </div>
-          <PoweredByGestu className="mt-10" />
-        </div>
-      )
-    }
+    // Split brandé : panneau récit cabinet (adaptatif light/dark, logo posé tel
+    // quel) à gauche + formulaire sur panneau sombre à droite (LoginForm inchangé).
     return (
-      <VaultBackground>
-        <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-          <div className="mb-10"><BrandedAuthHeader layout="login" /></div>
-          {formArea}
-          <PoweredByGestu className="mt-12" />
+      <div className="flex min-h-screen flex-col lg:flex-row">
+        <BrandedBrandPanel />
+        <div
+          className="flex flex-1 items-center justify-center px-6 py-12 lg:border-l lg:border-white/10"
+          style={{ background: 'var(--color-forest-900, #0f2820)' }}
+        >
+          <div className="w-full max-w-sm">
+            <div className="mb-9 flex justify-center lg:hidden"><BrandedAuthHeader layout="login" /></div>
+            <h3 className="mb-1.5 text-[24px] font-semibold tracking-[-0.3px] text-white">
+              {mode === 'reset' ? 'Mot de passe oublié' : 'Connexion'}
+            </h3>
+            {mode === 'login' && (
+              <p className="mb-8 text-[13.5px] text-white/55">Accédez à votre espace.</p>
+            )}
+            {mode === 'reset' && <div className="mb-6" />}
+            {formArea}
+            <PoweredByGestu className="mt-9" />
+          </div>
         </div>
-      </VaultBackground>
+      </div>
     )
   }
 
