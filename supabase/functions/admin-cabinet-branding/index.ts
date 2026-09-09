@@ -29,6 +29,8 @@ interface UpsertBody {
   support_email?: string | null
   email_from_name?: string | null
   footer_text?: string | null
+  dark_logo_treatment?: string | null
+  brand_surface_mode?: string | null
 }
 interface ClearBody { action: 'clear'; cabinet_id: string; reason: string }
 type Body = GetBody | UpsertBody | ClearBody
@@ -62,7 +64,7 @@ Deno.serve(async (req) => {
     if (body.action === 'get') {
       const { data, error } = await admin
         .from('organization_branding')
-        .select('organization_id, logo_light_url, logo_dark_url, primary_color, accent_color, support_email, email_from_name, footer_text, updated_at, updated_by')
+        .select('organization_id, logo_light_url, logo_dark_url, primary_color, accent_color, support_email, email_from_name, footer_text, dark_logo_treatment, brand_surface_mode, updated_at, updated_by')
         .eq('organization_id', c.id)
         .maybeSingle()
       if (error) {
@@ -87,6 +89,8 @@ Deno.serve(async (req) => {
         support_email: body.support_email?.trim() ?? null,
         email_from_name: body.email_from_name?.trim() ?? null,
         footer_text: body.footer_text?.trim() ?? null,
+        dark_logo_treatment: body.dark_logo_treatment ?? 'chip',
+        brand_surface_mode: body.brand_surface_mode ?? 'dark',
         updated_by: owner.id,
         updated_at: new Date().toISOString(),
       }
@@ -173,6 +177,12 @@ function validateUpsertPayload(body: UpsertBody): string | null {
     if (trimmed.length === 0 || trimmed.length > 80) {
       return 'email_from_name doit faire entre 1 et 80 caractères'
     }
+  }
+  if (body.dark_logo_treatment != null && !['direct', 'whiten', 'chip'].includes(body.dark_logo_treatment)) {
+    return 'dark_logo_treatment invalide'
+  }
+  if (body.brand_surface_mode != null && !['light', 'dark'].includes(body.brand_surface_mode)) {
+    return 'brand_surface_mode invalide'
   }
   if (body.footer_text != null && body.footer_text.length > 280) {
     return 'footer_text limité à 280 caractères'

@@ -12,6 +12,8 @@
 import { Mail, Lock } from 'lucide-react'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
 import type { BrandingDraft } from './BrandingFormSection'
+import { generatePalette, readableTextOn } from '../../branding/colorUtils'
+import type { DarkLogoTreatment, BrandSurfaceMode } from '../../branding/extractColorsFromImage'
 
 interface Props {
   cabinetName: string
@@ -23,13 +25,20 @@ const DEFAULT_PRIMARY = '#1B4332'
 const DEFAULT_ACCENT = '#D4A843'
 
 export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.Element {
-  const primary = isHex(draft.primary) ? draft.primary : DEFAULT_PRIMARY
+  const rawPrimary = isHex(draft.primary) ? draft.primary : DEFAULT_PRIMARY
   const accent = isHex(draft.accent) ? draft.accent : DEFAULT_ACCENT
+  // Surface de marque = shade 700 dérivé (même échelle que l'app réelle) → texte
+  // blanc lisible quelle que soit la couleur : l'aperçu reflète le rendu réel.
+  const primary = generatePalette(rawPrimary)?.['700'] ?? rawPrimary
   const supportEmail = draft.supportEmail || null
   const fromName = draft.emailFromName || `${cabinetName} via Gëstu`
   const footer = draft.footerText || null
   const logoLight = branding?.logo_light_url ?? null
   const logoDark = branding?.logo_dark_url ?? null
+  const treatment = draft.darkLogoTreatment
+  const surfaceMode = draft.surfaceMode
+  // Surface claire = nuance très claire de la marque (shade 50).
+  const lightSurface = generatePalette(rawPrimary)?.['50'] ?? '#F5F5F4'
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl">
@@ -38,36 +47,35 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
         <span className="text-[10.5px] text-gray-400">Mise à jour en temps réel pendant l&apos;édition</span>
       </header>
       <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PreviewLogin cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} />
+        <PreviewLogin cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} treatment={treatment} surfaceMode={surfaceMode} lightSurface={lightSurface} />
         <PreviewEmail cabinetName={cabinetName} primary={primary} accent={accent} fromName={fromName} supportEmail={supportEmail} footer={footer} logoLight={logoLight} />
-        <PreviewSidebar cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} />
+        <PreviewSidebar cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} treatment={treatment} />
       </div>
     </div>
   )
 }
 
-function PreviewLogin({ cabinetName, primary, logoDark, logoLight }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null }) {
+function PreviewLogin({ cabinetName, primary, logoDark, logoLight, treatment, surfaceMode, lightSurface }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null; treatment: DarkLogoTreatment; surfaceMode: BrandSurfaceMode; lightSurface: string }) {
+  const isLight = surfaceMode === 'light'
+  const bg = isLight
+    ? `linear-gradient(160deg, #FFFFFF 0%, ${lightSurface} 100%)`
+    : `linear-gradient(160deg, ${mix(primary, 'black', 0.4)} 0%, ${primary} 60%, ${mix(primary, 'black', 0.2)} 100%)`
+  const ink = isLight ? '#1A1F1D' : 'white'
+  const faint = isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)'
+  const fieldBg = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.12)'
   return (
     <Frame label="Page de connexion">
-      <div
-        style={{
-          background: `linear-gradient(160deg, ${mix(primary, 'black', 0.4)} 0%, ${primary} 60%, ${mix(primary, 'black', 0.2)} 100%)`,
-          padding: 16,
-          minHeight: 240,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={32} />
-        <div style={{ color: 'white', fontWeight: 800, fontSize: 13, marginTop: 8, textAlign: 'center' }}>{cabinetName}</div>
+      <div style={{ background: bg, padding: 16, minHeight: 240, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        {isLight && logoLight
+          ? <img src={logoLight} alt={cabinetName} style={{ height: 32, maxWidth: 120, width: 'auto' }} />
+          : <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={32} treatment={treatment} />}
+        <div style={{ color: ink, fontWeight: 800, fontSize: 13, marginTop: 8, textAlign: 'center' }}>{cabinetName}</div>
         <div style={{ width: '85%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <Pill icon="mail" />
-          <Pill icon="lock" />
-          <div style={{ background: 'white', color: primary, textAlign: 'center', padding: '6px 0', borderRadius: 5, fontSize: 10.5, fontWeight: 700, marginTop: 2 }}>Se connecter</div>
+          <Pill icon="mail" tint={fieldBg} ink={faint} />
+          <Pill icon="lock" tint={fieldBg} ink={faint} />
+          <div style={{ background: primary, color: 'white', textAlign: 'center', padding: '6px 0', borderRadius: 5, fontSize: 10.5, fontWeight: 700, marginTop: 2 }}>Se connecter</div>
         </div>
-        <div style={{ marginTop: 10, fontSize: 8.5, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.4 }}>
+        <div style={{ marginTop: 10, fontSize: 8.5, color: faint, letterSpacing: 0.4 }}>
           Powered by <span style={{ fontWeight: 600 }}>Gëstu</span>
         </div>
       </div>
@@ -89,7 +97,7 @@ function PreviewEmail({ cabinetName, primary, accent, fromName, supportEmail, fo
               <img src={logoLight} alt={cabinetName} style={{ height: 18, maxWidth: 60, width: 'auto' }} />
             </span>
           ) : (
-            <span style={{ background: accent, color: primary, borderRadius: 4, width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11 }}>{cabinetName.charAt(0)}</span>
+            <span style={{ background: accent, color: readableTextOn(accent), borderRadius: 4, width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11 }}>{cabinetName.charAt(0)}</span>
           )}
           <span style={{ color: 'white', fontWeight: 800, fontSize: 11 }}>{cabinetName}</span>
         </div>
@@ -108,13 +116,13 @@ function PreviewEmail({ cabinetName, primary, accent, fromName, supportEmail, fo
   )
 }
 
-function PreviewSidebar({ cabinetName, primary, logoDark, logoLight }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null }) {
+function PreviewSidebar({ cabinetName, primary, logoDark, logoLight, treatment }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null; treatment: DarkLogoTreatment }) {
   return (
     <Frame label="Sidebar portail">
       <div style={{ display: 'flex', minHeight: 240 }}>
         <div style={{ background: primary, width: 110, padding: '10px 8px', display: 'flex', flexDirection: 'column', color: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-            <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={20} compact />
+            <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={20} compact treatment={treatment} />
             <div style={{ fontWeight: 800, fontSize: 9.5, lineHeight: 1.1 }}>{cabinetName.length > 12 ? `${cabinetName.slice(0, 11)}…` : cabinetName}</div>
           </div>
           <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
@@ -140,11 +148,18 @@ function PreviewSidebar({ cabinetName, primary, logoDark, logoLight }: { cabinet
   )
 }
 
-function DualLogoPreview({ cabinetName, logoDark, logoLight, height, compact }: { cabinetName: string; logoDark: string | null; logoLight: string | null; height: number; compact?: boolean }) {
+function DualLogoPreview({ cabinetName, logoDark, logoLight, height, compact, treatment }: { cabinetName: string; logoDark: string | null; logoLight: string | null; height: number; compact?: boolean; treatment: DarkLogoTreatment }) {
   if (logoDark) {
     return <img src={logoDark} alt={cabinetName} style={{ height, maxWidth: compact ? 30 : 120, width: 'auto' }} />
   }
   if (logoLight) {
+    const maxW = compact ? 30 : 120
+    if (treatment === 'direct') {
+      return <img src={logoLight} alt={cabinetName} style={{ height, maxWidth: maxW, width: 'auto' }} />
+    }
+    if (treatment === 'whiten') {
+      return <img src={logoLight} alt={cabinetName} style={{ height, maxWidth: maxW, width: 'auto', filter: 'brightness(0) invert(1)' }} />
+    }
     const pad = Math.round(height * 0.18)
     return (
       <span style={{ background: 'white', borderRadius: Math.round(height * 0.22), padding: `${pad}px ${pad * 1.4}px`, display: 'inline-flex' }}>
@@ -168,11 +183,11 @@ function Frame({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Pill({ icon }: { icon: 'mail' | 'lock' }) {
+function Pill({ icon, tint, ink }: { icon: 'mail' | 'lock'; tint: string; ink: string }) {
   return (
-    <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 4, padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: 'rgba(255,255,255,0.85)' }}>
+    <div style={{ background: tint, borderRadius: 4, padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: ink }}>
       {icon === 'mail' ? <Mail size={9} /> : <Lock size={9} />}
-      <span style={{ height: 4, background: 'rgba(255,255,255,0.5)', borderRadius: 1, flex: 1 }} />
+      <span style={{ height: 4, background: ink, borderRadius: 1, flex: 1, opacity: 0.6 }} />
     </div>
   )
 }

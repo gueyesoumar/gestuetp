@@ -32,6 +32,8 @@ interface BrandingPayload {
   support_email: string | null
   email_from_name: string | null
   footer_text: string | null
+  dark_logo_treatment: string | null
+  brand_surface_mode: string | null
 }
 
 Deno.serve(async (req) => {
@@ -84,7 +86,7 @@ Deno.serve(async (req) => {
     const [{ data: branding }, { data: org }] = await Promise.all([
       admin
         .from('organization_branding')
-        .select('logo_light_url, logo_dark_url, primary_color, accent_color, support_email, email_from_name, footer_text')
+        .select('logo_light_url, logo_dark_url, primary_color, accent_color, support_email, email_from_name, footer_text, dark_logo_treatment, brand_surface_mode')
         .eq('organization_id', d.cabinet_id)
         .maybeSingle(),
       admin
@@ -111,6 +113,8 @@ Deno.serve(async (req) => {
       support_email: b?.support_email ?? null,
       email_from_name: b?.email_from_name ?? null,
       footer_text: b?.footer_text ?? null,
+      dark_logo_treatment: b?.dark_logo_treatment ?? null,
+      brand_surface_mode: b?.brand_surface_mode ?? null,
     }
 
     return jsonResponse({ branding: payload }, 200, 60)

@@ -10,9 +10,18 @@
  * 100 % monochrome noir sur transparent — dans ce cas pas de suggestion).
  */
 
+export type DarkLogoTreatment = 'direct' | 'whiten' | 'chip'
+export type BrandSurfaceMode = 'light' | 'dark'
+
 export interface ExtractedColors {
   primary: string
   accent: string
+  /** Rendu conseillé du logo sur fond sombre (déduit de l'analyse). */
+  treatment: DarkLogoTreatment
+  /** Le logo a-t-il un fond transparent (marques détourées) ? */
+  hasTransparency: boolean
+  /** Polarité conseillée des surfaces brandées pour poser le logo tel quel. */
+  surfaceMode: BrandSurfaceMode
 }
 
 export function extractColorsFromImage(file: File): Promise<ExtractedColors | null> {
@@ -52,48 +61,65 @@ interface Bucket { rSum: number; gSum: number; bSum: number; count: number }
 
 function analyze(data: Uint8ClampedArray): ExtractedColors | null {
   const buckets = new Map<string, Bucket>()
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i]
-    const g = data[i + 1]
-    const b = data[i + 2]
-    const a = data[i + 3]
-    if (a < 200) continue
-    // Filtre les fonds blancs et les pixels gris/neutres
-    if (r > 240 && g > 240 && b > 240) continue
-    if (r < 20 && g < 20 && b < 20) continue
-    const max = Math.max(r, g, b)
-    const min = Math.min(r, g, b)
-    if (max - min < 20) continue
+  // Stats des « marques » (pixels opaques non quasi-blancs = le logo lui-même).
+  let markLumSum = 0, markCount = 0, markR = 0, markG = 0, markB = 0
+  let hasTransparency = false
 
-    const qr = Math.round(r / 16) * 16
-    const qg = Math.round(g / 16) * 16
-    const qb = Math.round(b / 16) * 16
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3]
+    if (a < 200) { hasTransparency = true; continue }
+    const nearWhite = r > 240 && g > 240 && b > 240
+    if (!nearWhite) {
+      markLumSum += (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+      markR += r; markG += g; markB += b; markCount++
+    }
+    // Buckets de couleurs saturées → primary/accent
+    if (nearWhite) continue
+    if (r < 20 && g < 20 && b < 20) continue
+    const max = Math.max(r, g, b), min = Math.min(r, g, b)
+    if (max - min < 20) continue
+    const qr = Math.round(r / 16) * 16, qg = Math.round(g / 16) * 16, qb = Math.round(b / 16) * 16
     const key = `${qr}-${qg}-${qb}`
     const existing = buckets.get(key)
-    if (existing) {
-      existing.rSum += r
-      existing.gSum += g
-      existing.bSum += b
-      existing.count++
-    } else {
-      buckets.set(key, { rSum: r, gSum: g, bSum: b, count: 1 })
-    }
+    if (existing) { existing.rSum += r; existing.gSum += g; existing.bSum += b; existing.count++ }
+    else buckets.set(key, { rSum: r, gSum: g, bSum: b, count: 1 })
   }
 
-  if (buckets.size === 0) return null
+  if (markCount === 0) return null // image vide / entièrement transparente
+
+  const markLum = markLumSum / markCount // 0 (foncé) → 1 (clair)
 
   const sorted = Array.from(buckets.values())
     .filter((bk) => bk.count >= 3)
     .sort((a, b) => b.count - a.count)
 
-  if (sorted.length === 0) return null
+  let primary: string, accent: string
+  if (sorted.length > 0) {
+    primary = bucketToHex(sorted[0])
+    const candidate = sorted.find((bk, idx) => idx > 0 && colorDistance(bk, sorted[0]) > 60)
+    accent = candidate ? bucketToHex(candidate) : shiftLightness(primary, 22)
+  } else {
+    // Logo sans couleur saturée (mono gris/noir) : repli sur la couleur moyenne des marques.
+    primary = rgbToHex(Math.round(markR / markCount), Math.round(markG / markCount), Math.round(markB / markCount))
+    accent = shiftLightness(primary, 25)
+  }
 
-  const primary = bucketToHex(sorted[0])
-  // Accent : on prend la 2e couleur si elle est suffisamment distante du primary,
-  // sinon une variante plus claire/foncée du primary
-  const candidate = sorted.find((bk, idx) => idx > 0 && colorDistance(bk, sorted[0]) > 60)
-  const accent = candidate ? bucketToHex(candidate) : shiftLightness(primary, 22)
-  return { primary, accent }
+  // Nombre de couleurs saturées distinctes (multicolore ?)
+  const distinctColors = sorted.length === 0
+    ? 0
+    : 1 + sorted.filter((bk, i) => i > 0 && colorDistance(bk, sorted[0]) > 60).length
+
+  // Traitement conseillé sur fond sombre
+  let treatment: DarkLogoTreatment
+  if (markLum > 0.6) treatment = 'direct'          // marques claires → se fondent
+  else if (distinctColors >= 2) treatment = 'chip' // multicolore → pastille (préserve les couleurs)
+  else treatment = 'whiten'                         // monochrome foncé → silhouette blanche
+
+  // Polarité de surface : marques claires → fond sombre ; marques foncées → fond clair.
+  // Ainsi le logo est posé tel quel (transparent, couleurs d'origine), sans pastille.
+  const surfaceMode: BrandSurfaceMode = markLum > 0.6 ? 'dark' : 'light'
+
+  return { primary, accent, treatment, hasTransparency, surfaceMode }
 }
 
 function bucketToHex(b: Bucket): string {

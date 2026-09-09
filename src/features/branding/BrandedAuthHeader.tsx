@@ -23,15 +23,17 @@ export function BrandedAuthHeader({ layout = 'login' }: BrandedAuthHeaderProps):
   const logoHeight = layout === 'hub' ? 64 : 52
   const titleSize = layout === 'hub' ? 'text-[26px]' : 'text-[20px]'
   const subtitleSize = layout === 'hub' ? 'text-[12px]' : 'text-[11px]'
+  // Surface claire → logo posé tel quel (variante fond clair) + texte foncé.
+  const isLight = branding.brand_surface_mode === 'light'
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <Logo variant="dark" height={logoHeight} />
+      <Logo variant={isLight ? 'light' : 'dark'} height={logoHeight} />
       <div className="text-center">
-        <h1 className={`${titleSize} font-extrabold tracking-[0.2px] text-white leading-tight`}>
+        <h1 className={`${titleSize} font-extrabold tracking-[0.2px] leading-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
           {branding.cabinet_name}
         </h1>
-        <p className={`mt-1 ${subtitleSize} font-semibold uppercase tracking-[2px] text-white/55`}>
+        <p className={`mt-1 ${subtitleSize} font-semibold uppercase tracking-[2px] ${isLight ? 'text-gray-500' : 'text-white/55'}`}>
           Plateforme d&apos;audit
         </p>
       </div>
@@ -46,9 +48,10 @@ export function BrandedAuthHeader({ layout = 'login' }: BrandedAuthHeaderProps):
 export function PoweredByGestu({ className = '' }: { className?: string }): JSX.Element | null {
   const { branding } = useBranding()
   if (!branding) return null
+  const isLight = branding.brand_surface_mode === 'light'
   return (
-    <div className={`text-center text-[10px] tracking-[0.4px] text-white/35 ${className}`}>
-      Powered by <span className="text-white/55 font-semibold">G&euml;stu</span>
+    <div className={`text-center text-[10px] tracking-[0.4px] ${isLight ? 'text-gray-400' : 'text-white/35'} ${className}`}>
+      Powered by <span className={`font-semibold ${isLight ? 'text-gray-600' : 'text-white/55'}`}>G&euml;stu</span>
     </div>
   )
 }
