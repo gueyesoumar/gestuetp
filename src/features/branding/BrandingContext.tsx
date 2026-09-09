@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { supabase } from '../../lib/supabase'
 import { generatePalette } from './colorUtils'
 import type { DarkLogoTreatment, BrandSurfaceMode } from './extractColorsFromImage'
-import { applyBrandingVars, writeBrandingCache, clearBrandingCache, getNeutralDefaults } from './brandingCache'
+import { applyBrandingVars, writeBrandingCache, clearBrandingCache, getNeutralDefaults, readCachedBranding } from './brandingCache'
 
 /**
  * BrandingProvider — résolution du tenant par hostname AVANT auth.
@@ -51,6 +51,27 @@ const NEUTRAL_HOSTNAMES = new Set([
 const DEFAULT_PRIMARY = '#1B4332'
 const DEFAULT_ACCENT = '#D4A843'
 
+function computeHostContext(): { hostname: string; isCustomDomain: boolean } {
+  const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
+  const isCustomDomain = hostname.length > 0 && !NEUTRAL_HOSTNAMES.has(hostname) && !hostname.endsWith('.vercel.app')
+  return { hostname, isCustomDomain }
+}
+
+// Garde de forme minimale sur le payload en cache (que nous avons nous-mêmes
+// sérialisé) — évite un cast non vérifié.
+function isCabinetBranding(x: unknown): x is CabinetBranding {
+  return typeof x === 'object' && x !== null && typeof (x as { cabinet_id?: unknown }).cabinet_id === 'string'
+}
+
+// État initial réhydraté depuis le cache : sur un domaine cabinet déjà visité,
+// le branding est disponible dès le 1er rendu (loading reste true → on
+// revalide en arrière-plan). Supprime le flash structurel vault → surface claire.
+function initialBrandingState(): BrandingState {
+  const { hostname, isCustomDomain } = computeHostContext()
+  const cached = isCustomDomain ? readCachedBranding(hostname) : null
+  return { branding: isCabinetBranding(cached) ? cached : null, isCustomDomain, loading: true }
+}
+
 export const BrandingContext = createContext<BrandingState>({
   branding: null,
   isCustomDomain: false,
@@ -62,11 +83,10 @@ interface BrandingProviderProps {
 }
 
 export function BrandingProvider({ children }: BrandingProviderProps): JSX.Element {
-  const [state, setState] = useState<BrandingState>({ branding: null, isCustomDomain: false, loading: true })
+  const [state, setState] = useState<BrandingState>(initialBrandingState)
 
   useEffect(() => {
-    const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
-    const isCustomDomain = hostname.length > 0 && !NEUTRAL_HOSTNAMES.has(hostname) && !hostname.endsWith('.vercel.app')
+    const { hostname, isCustomDomain } = computeHostContext()
 
     if (!isCustomDomain) {
       setState({ branding: null, isCustomDomain: false, loading: false })
@@ -125,8 +145,9 @@ export function BrandingProvider({ children }: BrandingProviderProps): JSX.Eleme
       if (title) document.title = title
       if (iconEl && favicon) iconEl.setAttribute('href', favicon)
 
-      // Mémorise le thème calculé pour un boot synchrone au prochain chargement.
-      writeBrandingCache(hostname, { vars, title, favicon })
+      // Mémorise le thème calculé + le payload pour un boot synchrone au prochain
+      // chargement (variables au boot + réhydratation du state React).
+      writeBrandingCache(hostname, { branding: state.branding, vars, title, favicon })
     } else {
       // Pas de branding : sémantiques par défaut + retrait des overrides pour
       // retomber sur les valeurs du @theme, restauration de l'onglet, purge cache.

@@ -1,16 +1,13 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import type { ReactNode } from 'react'
+import { FullscreenLoader } from './FullscreenLoader'
 
 export function ProtectedRoute({ children }: { children: ReactNode }): JSX.Element {
   const { session, profile, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Chargement...</p>
-      </div>
-    )
+    return <FullscreenLoader />
   }
 
   if (!session) {
