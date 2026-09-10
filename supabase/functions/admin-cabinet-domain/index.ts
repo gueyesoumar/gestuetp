@@ -4,21 +4,23 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
 /**
  * Edge Function : admin-cabinet-domain
  *
- * Gère les domaines custom (CNAME) d'un cabinet pour la marque blanche niveau 3.
+ * Gère les domaines custom d'un cabinet pour la marque blanche niveau 3.
  *
- * Actions :
- *   - list   : liste les domaines du cabinet
- *   - add    : ajoute un nouveau hostname (génère un verification_token)
- *   - remove : supprime le domaine (et donc l'entrée de routing tenant)
+ * Architecture : un domaine wildcard *.gestugroup.com (SSL via délégation
+ * _acme-challenge, email OVH préservé) sert TOUS les sous-domaines, et le
+ * middleware edge filtre par cabinet_domains vérifié. Il n'y a donc AUCUN
+ * provisionnement DNS/Vercel par domaine : ajouter un sous-domaine = insérer
+ * une ligne vérifiée, que resolve-tenant-by-hostname / le middleware exposent.
  *
- * La vérification DNS effective est faite par dns-verify-tenant (séparé pour
- * permettre les retries automatiques sans repasser par cette function).
+ * Portée : sous-domaines de gestugroup.com (couverts par le wildcard).
  *
+ * Actions : list | add | remove.
  * Sécurité : platform_owner uniquement, motif obligatoire, audit log,
- * validation regex stricte du hostname côté serveur.
+ * validation regex + suffixe du hostname côté serveur.
  */
 
 const HOSTNAME_RE = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/
+const ZONE = Deno.env.get('OVH_ZONE') ?? 'gestugroup.com'
 
 interface ListBody { action: 'list'; cabinet_id: string }
 interface AddBody { action: 'add'; cabinet_id: string; hostname: string; reason: string }
@@ -67,28 +69,37 @@ Deno.serve(async (req) => {
       if (!hostname || hostname.length < 4 || hostname.length > 253 || !HOSTNAME_RE.test(hostname)) {
         return jsonResponse({ error: 'hostname invalide' }, 400)
       }
+      if (!hostname.endsWith(`.${ZONE}`) || hostname === ZONE) {
+        return jsonResponse({ error: `Seuls les sous-domaines de ${ZONE} sont acceptés` }, 400)
+      }
 
       // Anti-collision : un hostname ne peut appartenir qu'à un seul cabinet
       const { data: existing } = await admin
         .from('cabinet_domains')
-        .select('id, cabinet_id')
+        .select('id')
         .eq('hostname', hostname)
         .maybeSingle()
       if (existing) {
         return jsonResponse({ error: 'Ce hostname est déjà utilisé' }, 409)
       }
 
-      const verificationToken = generateToken()
-
+      // Le wildcard *.gestugroup.com couvre déjà DNS + SSL : le domaine est actif
+      // immédiatement (is_verified=true, ssl issued). verification_token est requis
+      // par le schéma (CHECK longueur) même s'il n'est plus utilisé pour la vérif DNS.
+      const now = new Date().toISOString()
       // deno-lint-ignore no-explicit-any
       const { data: inserted, error: insertError } = await (admin.from('cabinet_domains') as any)
         .insert({
           cabinet_id: c.id,
           hostname,
-          verification_token: verificationToken,
+          verification_token: generateToken(),
+          is_verified: true,
+          ssl_status: 'issued',
+          verified_at: now,
+          last_checked_at: now,
           created_by: owner.id,
         })
-        .select('id, hostname, verification_token')
+        .select('id, hostname, is_verified, ssl_status, verified_at, created_at')
         .single()
 
       if (insertError) {

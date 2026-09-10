@@ -10,9 +10,12 @@
     "packageJson": {
       "dependencies": [
         "npm:@eslint/js@^9.39.4",
+        "npm:@fontsource-variable/inter@^5.3.0",
+        "npm:@fontsource-variable/jetbrains-mono@^5.3.0",
         "npm:@supabase/supabase-js@^2.103.0",
         "npm:@tailwindcss/vite@^4.2.2",
         "npm:@types/node@^24.12.2",
+        "npm:@types/qrcode@^1.5.6",
         "npm:@types/react-dom@^19.2.3",
         "npm:@types/react@^19.2.14",
         "npm:@vitejs/plugin-react@^6.0.1",
@@ -26,6 +29,7 @@
         "npm:jspdf@^4.2.1",
         "npm:lucide-react@^1.8.0",
         "npm:postcss@^8.5.9",
+        "npm:qrcode@^1.5.4",
         "npm:react-dom@^19.2.4",
         "npm:react-markdown@^10.1.0",
         "npm:react-router-dom@^7.14.0",

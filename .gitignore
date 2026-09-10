@@ -31,3 +31,7 @@ supabase/.temp/
 .env
 .env.*
 !.env.example
+
+# Scripts opérationnels avec données réelles (UID/email) — jamais dans le repo
+scripts/bootstrap-admin.sql
+scripts/seed-referentiels.sh
