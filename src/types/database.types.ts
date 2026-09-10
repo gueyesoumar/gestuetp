@@ -2004,6 +2004,10 @@ export interface Database {
         Args: { parent_id: string }
         Returns: string[]
       }
+      user_belongs_to_cabinet: {
+        Args: { p_cabinet_id: string }
+        Returns: boolean
+      }
       org_mrr: {
         Args: { p_org: string }
         Returns: number
