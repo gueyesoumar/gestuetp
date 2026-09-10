@@ -3,6 +3,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
 import { sendEmail } from '../_shared/resend.ts'
 import { passwordResetTemplate } from '../_shared/email-templates/auth.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
+import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
 
 /**
  * Edge Function : admin-user
@@ -52,7 +53,7 @@ Deno.serve(async (req) => {
     const u = target as { id: string; auth_id: string; email: string; first_name: string; last_name: string; is_active: boolean; organization_id: string; is_platform_owner: boolean }
 
     if (body.action === 'reset_password') {
-      const siteUrl = Deno.env.get('SITE_URL') ?? 'https://app.gestugroup.com'
+      const siteUrl = await resolveCabinetSiteUrl(admin, u.organization_id)
       // deno-lint-ignore no-explicit-any
       const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
         type: 'recovery',
