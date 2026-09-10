@@ -26,9 +26,6 @@ export interface CabinetDomainRow {
   verified_at: string | null
   last_checked_at: string | null
   last_error: string | null
-  vercel_registered: boolean
-  dns_provisioned: boolean
-  provision_error: string | null
   created_at: string
 }
 

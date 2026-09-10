@@ -1,45 +1,31 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
-import { getVercelConfig, vercelAddDomain, vercelClearRedirect, vercelRemoveDomain } from '../_shared/vercel.ts'
-import { getOvhConfig, ovhCreateRecord, ovhListRecordIds, ovhDeleteRecord, ovhRefreshZone } from '../_shared/ovh.ts'
 
 /**
  * Edge Function : admin-cabinet-domain
  *
- * Gère les domaines custom (CNAME) d'un cabinet pour la marque blanche niveau 3,
- * avec provisionnement automatique Vercel (rattachement projet + SSL) et OVH
- * (création CNAME + TXT dans la zone gestugroup.com).
+ * Gère les domaines custom d'un cabinet pour la marque blanche niveau 3.
  *
- * Actions :
- *   - list       : liste les domaines du cabinet
- *   - add        : ajoute un hostname (INSERT + token) puis provisionne Vercel+OVH
- *   - reprovision: retente le provisionnement d'un domaine existant (idempotent)
- *   - remove     : deprovisionne (OVH ciblé + Vercel) puis supprime la ligne
+ * Architecture : un domaine wildcard *.gestugroup.com (SSL via délégation
+ * _acme-challenge, email OVH préservé) sert TOUS les sous-domaines, et le
+ * middleware edge filtre par cabinet_domains vérifié. Il n'y a donc AUCUN
+ * provisionnement DNS/Vercel par domaine : ajouter un sous-domaine = insérer
+ * une ligne vérifiée, que resolve-tenant-by-hostname / le middleware exposent.
  *
- * La vérification DNS effective reste faite par dns-verify-tenant (séparé).
+ * Portée : sous-domaines de gestugroup.com (couverts par le wildcard).
  *
- * Portée : sous-domaines de gestugroup.com uniquement (OVH_ZONE). Un domaine
- * client externe n'est pas accepté pour l'instant.
- *
+ * Actions : list | add | remove.
  * Sécurité : platform_owner uniquement, motif obligatoire, audit log,
- * validation regex stricte du hostname, garde-fous DNS dans _shared/ovh.ts.
+ * validation regex + suffixe du hostname côté serveur.
  */
 
 const HOSTNAME_RE = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/
 const ZONE = Deno.env.get('OVH_ZONE') ?? 'gestugroup.com'
-const CNAME_TARGET = Deno.env.get('TENANT_CNAME_TARGET') ?? 'tenants.gestugroup.com'
 
 interface ListBody { action: 'list'; cabinet_id: string }
 interface AddBody { action: 'add'; cabinet_id: string; hostname: string; reason: string }
-interface ReprovisionBody { action: 'reprovision'; cabinet_id: string; domain_id: string; reason: string }
 interface RemoveBody { action: 'remove'; cabinet_id: string; domain_id: string; reason: string }
-type Body = ListBody | AddBody | ReprovisionBody | RemoveBody
-
-interface ProvisionState {
-  vercel_registered: boolean
-  dns_provisioned: boolean
-  provision_error: string | null
-}
+type Body = ListBody | AddBody | RemoveBody
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -67,7 +53,7 @@ Deno.serve(async (req) => {
     if (body.action === 'list') {
       const { data, error } = await admin
         .from('cabinet_domains')
-        .select('id, hostname, is_verified, ssl_status, verification_token, verified_at, last_checked_at, last_error, vercel_registered, dns_provisioned, provision_error, created_at')
+        .select('id, hostname, is_verified, ssl_status, verification_token, verified_at, last_checked_at, last_error, created_at')
         .eq('cabinet_id', c.id)
         .order('created_at', { ascending: false })
       if (error) {
@@ -90,74 +76,43 @@ Deno.serve(async (req) => {
       // Anti-collision : un hostname ne peut appartenir qu'à un seul cabinet
       const { data: existing } = await admin
         .from('cabinet_domains')
-        .select('id, cabinet_id')
+        .select('id')
         .eq('hostname', hostname)
         .maybeSingle()
       if (existing) {
         return jsonResponse({ error: 'Ce hostname est déjà utilisé' }, 409)
       }
 
-      const verificationToken = generateToken()
-
+      // Le wildcard *.gestugroup.com couvre déjà DNS + SSL : le domaine est actif
+      // immédiatement (is_verified=true, ssl issued). verification_token est requis
+      // par le schéma (CHECK longueur) même s'il n'est plus utilisé pour la vérif DNS.
+      const now = new Date().toISOString()
       // deno-lint-ignore no-explicit-any
       const { data: inserted, error: insertError } = await (admin.from('cabinet_domains') as any)
         .insert({
           cabinet_id: c.id,
           hostname,
-          verification_token: verificationToken,
+          verification_token: generateToken(),
+          is_verified: true,
+          ssl_status: 'issued',
+          verified_at: now,
+          last_checked_at: now,
           created_by: owner.id,
         })
-        .select('id, hostname, verification_token')
+        .select('id, hostname, is_verified, ssl_status, verified_at, created_at')
         .single()
 
       if (insertError) {
         console.error('[admin-cabinet-domain] insert error:', insertError.message)
         return jsonResponse({ error: 'Création impossible' }, 500)
       }
-      const ins = inserted as { id: string; hostname: string; verification_token: string }
-
-      // Provisionnement best-effort (Vercel + OVH). La ligne DB reste la source de
-      // vérité ; un échec n'annule pas l'ajout (état + erreur exposés, reprovision possible).
-      const prov = await provisionDomain(ins.hostname, ins.verification_token)
-      // deno-lint-ignore no-explicit-any
-      await (admin.from('cabinet_domains') as any).update(prov).eq('id', ins.id)
 
       await logAdminAction(admin, owner.id, 'add_cabinet_domain', 'organization', c.id, body.reason, {
         cabinet_name: c.name,
         hostname,
-        vercel_registered: prov.vercel_registered,
-        dns_provisioned: prov.dns_provisioned,
-        provision_error: prov.provision_error,
       })
 
-      return jsonResponse({ success: true, domain: { ...ins, ...prov } })
-    }
-
-    if (body.action === 'reprovision') {
-      if (!body.reason?.trim()) return jsonResponse({ error: 'reason requis' }, 400)
-      if (!body.domain_id) return jsonResponse({ error: 'domain_id requis' }, 400)
-
-      const { data: dom } = await admin
-        .from('cabinet_domains')
-        .select('id, hostname, verification_token, cabinet_id')
-        .eq('id', body.domain_id)
-        .eq('cabinet_id', c.id)
-        .maybeSingle()
-      const d = dom as { id: string; hostname: string; verification_token: string; cabinet_id: string } | null
-      if (!d) return jsonResponse({ error: 'Domaine introuvable' }, 404)
-
-      const prov = await provisionDomain(d.hostname, d.verification_token)
-      // deno-lint-ignore no-explicit-any
-      await (admin.from('cabinet_domains') as any).update(prov).eq('id', d.id)
-
-      await logAdminAction(admin, owner.id, 'reprovision_cabinet_domain', 'organization', c.id, body.reason, {
-        hostname: d.hostname,
-        vercel_registered: prov.vercel_registered,
-        dns_provisioned: prov.dns_provisioned,
-        provision_error: prov.provision_error,
-      })
-
-      return jsonResponse({ success: true, provision: prov })
+      return jsonResponse({ success: true, domain: inserted })
     }
 
     if (body.action === 'remove') {
@@ -172,15 +127,6 @@ Deno.serve(async (req) => {
         .maybeSingle()
       const d = dom as { id: string; hostname: string; cabinet_id: string } | null
       if (!d) return jsonResponse({ error: 'Domaine introuvable' }, 404)
-
-      // Deprovision AVANT suppression : évite d'orpheliner des records DNS / Vercel
-      // sans trace en base. En cas d'échec, on garde la ligne pour permettre un retry.
-      try {
-        await deprovisionDomain(d.hostname)
-      } catch (err) {
-        console.error('[admin-cabinet-domain] deprovision error:', err instanceof Error ? err.message : err)
-        return jsonResponse({ error: `Deprovisionnement impossible : ${errMsg(err)}` }, 502)
-      }
 
       // deno-lint-ignore no-explicit-any
       const { error: deleteError } = await (admin.from('cabinet_domains') as any)
@@ -206,85 +152,6 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Erreur interne' }, 500)
   }
 })
-
-// --- Provisionnement -------------------------------------------------------
-
-function subDomainOf(hostname: string): string {
-  return hostname.slice(0, hostname.length - (`.${ZONE}`).length)
-}
-
-async function provisionDomain(hostname: string, token: string): Promise<ProvisionState> {
-  const sub = subDomainOf(hostname)
-  const errors: string[] = []
-  let vercelRegistered = false
-  let dnsProvisioned = false
-
-  try {
-    const vcfg = getVercelConfig()
-    await vercelAddDomain(vcfg, hostname)
-    // Le domaine doit SERVIR le déploiement, pas rediriger vers le domaine canonique.
-    await vercelClearRedirect(vcfg, hostname)
-    vercelRegistered = true
-  } catch (err) {
-    errors.push(errMsg(err))
-  }
-
-  try {
-    const ocfg = getOvhConfig()
-    await ensureRecord(ocfg, 'CNAME', sub, `${CNAME_TARGET}.`)
-    await ensureRecord(ocfg, 'TXT', `_gestu-verify.${sub}`, token)
-    await ovhRefreshZone(ocfg)
-    dnsProvisioned = true
-  } catch (err) {
-    errors.push(errMsg(err))
-  }
-
-  return {
-    vercel_registered: vercelRegistered,
-    dns_provisioned: dnsProvisioned,
-    provision_error: errors.length ? errors.join(' · ') : null,
-  }
-}
-
-async function deprovisionDomain(hostname: string): Promise<void> {
-  const sub = subDomainOf(hostname)
-  const errors: string[] = []
-
-  try {
-    const ocfg = getOvhConfig()
-    for (const [type, sd] of [['CNAME', sub], ['TXT', `_gestu-verify.${sub}`]] as Array<['CNAME' | 'TXT', string]>) {
-      const ids = await ovhListRecordIds(ocfg, type, sd)
-      for (const id of ids) await ovhDeleteRecord(ocfg, id)
-    }
-    await ovhRefreshZone(ocfg)
-  } catch (err) {
-    errors.push(errMsg(err))
-  }
-
-  try {
-    await vercelRemoveDomain(getVercelConfig(), hostname)
-  } catch (err) {
-    errors.push(errMsg(err))
-  }
-
-  if (errors.length) throw new Error(errors.join(' · '))
-}
-
-// Crée l'enregistrement seulement s'il n'existe pas déjà (idempotent).
-async function ensureRecord(
-  cfg: ReturnType<typeof getOvhConfig>,
-  fieldType: 'CNAME' | 'TXT',
-  subDomain: string,
-  target: string,
-): Promise<void> {
-  const existing = await ovhListRecordIds(cfg, fieldType, subDomain)
-  if (existing.length > 0) return
-  await ovhCreateRecord(cfg, { fieldType, subDomain, target })
-}
-
-function errMsg(err: unknown): string {
-  return err instanceof Error ? err.message : 'Erreur inconnue'
-}
 
 function generateToken(): string {
   const bytes = new Uint8Array(24)
