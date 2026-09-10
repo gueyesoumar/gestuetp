@@ -8,6 +8,7 @@ import { useBranding } from '../features/branding/useBranding'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 import { BrandedBrandPanel } from '../features/branding/BrandedBrandPanel'
 import { FullscreenLoader } from '../components/FullscreenLoader'
+import { consumeTenantDeniedFlag } from '../lib/tenantAccess'
 import { LoginForm } from '../components/vault/LoginForm'
 import { ResetForm } from '../components/vault/ResetForm'
 import { VaultBrandPanel, ShieldMark } from '../components/vault/VaultBrandPanel'
@@ -23,6 +24,7 @@ export function LoginPage(): JSX.Element {
   const [resetEmail, setResetEmail] = useState('')
   const [resetSubmitting, setResetSubmitting] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  const [tenantDenied] = useState(() => consumeTenantDeniedFlag())
 
   // On bloque sur l'auth (session à résoudre) et sur le branding UNIQUEMENT s'il
   // est encore inconnu : quand il vient du cache, on rend le split brandé
@@ -68,6 +70,12 @@ export function LoginPage(): JSX.Element {
 
   const isBranded = Boolean(branding)
 
+  const deniedBanner = tenantDenied ? (
+    <div className="mb-5 rounded-lg border border-amber-400/40 bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] text-amber-200">
+      Ce compte n&apos;appartient pas à ce portail. Utilisez le portail de votre organisation.
+    </div>
+  ) : null
+
   const formArea = mode === 'reset' ? (
     <ResetForm
       email={resetEmail}
@@ -109,6 +117,7 @@ export function LoginPage(): JSX.Element {
               <p className="mb-8 text-[13.5px] text-white/55">Accédez à votre espace.</p>
             )}
             {mode === 'reset' && <div className="mb-6" />}
+            {deniedBanner}
             {formArea}
             <PoweredByGestu className="mt-9" />
           </div>
@@ -134,6 +143,7 @@ export function LoginPage(): JSX.Element {
             <p className="mb-8 text-[13.5px] text-white/55">Accédez à votre espace de supervision.</p>
           )}
           {mode === 'reset' && <div className="mb-6" />}
+          {deniedBanner}
           {formArea}
           <p className="mt-9 text-center text-[11px] text-white/30">
             Plateforme Gëstu ETP — accès réservé aux comptes autorisés.
