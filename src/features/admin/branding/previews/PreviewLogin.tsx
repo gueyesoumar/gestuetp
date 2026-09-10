@@ -13,7 +13,7 @@ export function PreviewLogin(p: PreviewCtx): JSX.Element {
   const muted = isLight ? 'rgba(17,24,39,0.58)' : 'rgba(255,255,255,0.62)'
 
   return (
-    <div style={{ display: 'flex', minHeight: 300 }}>
+    <div style={{ display: 'flex', minHeight: 380 }}>
       {/* panneau récit (adaptatif) */}
       <div style={{ flex: '0 0 56%', background: leftBg, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <LogoPreview ctx={p} variant={isLight ? 'light' : 'dark'} height={28} maxWidth={140} />

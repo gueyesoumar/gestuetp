@@ -16,7 +16,7 @@ export function PreviewHub(p: PreviewCtx): JSX.Element {
   const cardBg = `rgba(${fg},0.05)`
 
   return (
-    <div style={{ background: bg, minHeight: 300, padding: 16, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: bg, minHeight: 360, padding: 16, display: 'flex', flexDirection: 'column' }}>
       {/* top bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

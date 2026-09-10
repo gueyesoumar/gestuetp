@@ -13,6 +13,7 @@ import { PreviewLogin } from './previews/PreviewLogin'
 import { PreviewHub } from './previews/PreviewHub'
 import { PreviewEmail } from './previews/PreviewEmail'
 import { PreviewPortal } from './previews/PreviewPortal'
+import { PreviewComponents } from './previews/PreviewComponents'
 
 interface Props {
   cabinetName: string
@@ -22,10 +23,11 @@ interface Props {
 
 const DEFAULT_PRIMARY = '#1B4332'
 const DEFAULT_ACCENT = '#D4A843'
-type Tab = 'login' | 'hub' | 'email' | 'portail'
+type Tab = 'login' | 'hub' | 'email' | 'portail' | 'composants'
 const TABS: Array<{ key: Tab; label: string }> = [
   { key: 'login', label: 'Connexion' },
   { key: 'hub', label: 'Hub' },
+  { key: 'composants', label: 'Éléments' },
   { key: 'email', label: 'E-mail' },
   { key: 'portail', label: 'Portail' },
 ]
@@ -66,9 +68,10 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
         </div>
       </header>
       <div className="p-4">
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="mx-auto max-w-[760px] border border-gray-200 rounded-lg overflow-hidden shadow-sm">
           {tab === 'login' && <PreviewLogin {...ctx} />}
           {tab === 'hub' && <PreviewHub {...ctx} />}
+          {tab === 'composants' && <PreviewComponents {...ctx} />}
           {tab === 'email' && (
             <PreviewEmail
               {...ctx}
@@ -79,7 +82,7 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
           )}
           {tab === 'portail' && <PreviewPortal {...ctx} />}
         </div>
-        <p className="mt-2 text-[10.5px] text-gray-400">
+        <p className="mx-auto max-w-[760px] mt-2 text-[10.5px] text-gray-400">
           Aperçu du brouillon en cours — <span className="font-semibold text-gray-500">Enregistrer</span> pour appliquer au domaine live.
         </p>
       </div>
