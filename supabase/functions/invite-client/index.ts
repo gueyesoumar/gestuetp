@@ -4,6 +4,7 @@ import { logActivity } from '../_shared/audit-log.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
+import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
@@ -68,6 +69,9 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // URL d'onboarding : domaine marque blanche du cabinet si actif, sinon générique.
+    const siteUrl = await resolveCabinetSiteUrl(admin, cabinetClient.cabinet_id)
 
     // Vérifier que la mission appartient au cabinet
     const { data: mission } = await admin
@@ -206,7 +210,7 @@ Deno.serve(async (req) => {
           type: 'recovery',
           email,
           options: {
-            redirectTo: `${Deno.env.get('SITE_URL') ?? 'http://localhost:5173'}/set-password`,
+            redirectTo: `${siteUrl}/set-password`,
           },
         })
         inviteLink = linkData?.properties?.action_link ?? null
@@ -248,7 +252,7 @@ Deno.serve(async (req) => {
         type: 'recovery',
         email,
         options: {
-          redirectTo: `${Deno.env.get('SITE_URL') ?? 'http://localhost:5173'}/set-password`,
+          redirectTo: `${siteUrl}/set-password`,
         },
       })
       inviteLink = linkData?.properties?.action_link ?? null

@@ -11,10 +11,14 @@ import { VaultBackground } from '../components/vault/VaultBackground'
 import { MorphingShield } from '../components/vault/MorphingShield'
 import { VaultBranding } from '../components/vault/VaultBranding'
 import { SetPasswordForm } from '../components/vault/SetPasswordForm'
+import { useBranding } from '../features/branding/useBranding'
+import { BrandedBrandPanel } from '../features/branding/BrandedBrandPanel'
+import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 
 export function SetPasswordPage(): JSX.Element {
   const navigate = useNavigate()
   const { profile } = useAuth()
+  const { branding } = useBranding()
   const { policy } = usePasswordPolicy()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -69,6 +73,43 @@ export function SetPasswordPage(): JSX.Element {
     }, 2000)
   }
 
+  const content = !sessionReady ? (
+    <SetPasswordWaiting />
+  ) : success ? (
+    <SetPasswordSuccess />
+  ) : (
+    <SetPasswordForm
+      password={password}
+      confirm={confirm}
+      error={error}
+      submitting={submitting}
+      onPasswordChange={setPassword}
+      onConfirmChange={setConfirm}
+      onSubmit={handleSubmit}
+    />
+  )
+
+  // Domaine cabinet : split brandé (comme le login). Sinon vault Gëstu.
+  if (branding) {
+    return (
+      <div className="flex min-h-screen flex-col lg:flex-row">
+        <BrandedBrandPanel />
+        <div
+          className="flex flex-1 items-center justify-center px-6 py-12 lg:border-l lg:border-white/10"
+          style={{ background: 'var(--color-forest-900, #0f2820)' }}
+        >
+          <div className="w-full max-w-sm">
+            <div className="mb-9 flex justify-center lg:hidden"><BrandedAuthHeader layout="login" /></div>
+            <h3 className="mb-1.5 text-[24px] font-semibold tracking-[-0.3px] text-white">Définir votre mot de passe</h3>
+            <p className="mb-8 text-[13.5px] text-white/55">Choisissez un mot de passe sécurisé pour accéder à votre espace.</p>
+            {content}
+            <PoweredByGestu className="mt-9" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <VaultBackground>
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
@@ -78,22 +119,7 @@ export function SetPasswordPage(): JSX.Element {
         <div className="mb-10">
           <VaultBranding />
         </div>
-
-        {!sessionReady ? (
-          <SetPasswordWaiting />
-        ) : success ? (
-          <SetPasswordSuccess />
-        ) : (
-          <SetPasswordForm
-            password={password}
-            confirm={confirm}
-            error={error}
-            submitting={submitting}
-            onPasswordChange={setPassword}
-            onConfirmChange={setConfirm}
-            onSubmit={handleSubmit}
-          />
-        )}
+        {content}
       </div>
     </VaultBackground>
   )

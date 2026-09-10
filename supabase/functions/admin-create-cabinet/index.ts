@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { cabinetOwnerInviteTemplate } from '../_shared/email-templates/auth.ts'
+import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
 
 /**
  * Edge Function : admin-create-cabinet
@@ -165,7 +166,7 @@ Deno.serve(async (req) => {
     })
 
     // 8. Générer le lien de définition de mot de passe et l'envoyer via Resend
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://app.gestugroup.com'
+    const siteUrl = await resolveCabinetSiteUrl(admin, orgId)
     let invitationSent = false
     // deno-lint-ignore no-explicit-any
     const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({

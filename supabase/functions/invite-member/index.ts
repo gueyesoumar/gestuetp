@@ -4,6 +4,7 @@ import { logActivity } from '../_shared/audit-log.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { memberInviteTemplate } from '../_shared/email-templates/auth.ts'
+import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
@@ -98,7 +99,7 @@ Deno.serve(async (req) => {
     // Branche A : RENVOI d'invitation (user existant)
     // ===========================================================
     if (resend === true) {
-      const linkResult = await generateRecoveryLink(supabaseAdmin, cleanEmail)
+      const linkResult = await generateRecoveryLink(supabaseAdmin, cleanEmail, organization_id)
       if (!linkResult.link) {
         console.error('[invite-member] resend generateLink failed:', linkResult.error)
         return jsonResponse({ error: 'Impossible de générer le lien d\'invitation' }, 500)
@@ -198,7 +199,7 @@ Deno.serve(async (req) => {
 
     // Générer le lien et envoyer l'email d'invitation
     let invitationSent = false
-    const linkResult = await generateRecoveryLink(supabaseAdmin, cleanEmail)
+    const linkResult = await generateRecoveryLink(supabaseAdmin, cleanEmail, organization_id)
     if (!linkResult.link) {
       console.warn('[invite-member] generateLink warning:', linkResult.error)
     } else {
@@ -235,8 +236,8 @@ Deno.serve(async (req) => {
 })
 
 // deno-lint-ignore no-explicit-any
-async function generateRecoveryLink(admin: any, email: string): Promise<{ link: string | null; error: string | null }> {
-  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://app.gestugroup.com'
+async function generateRecoveryLink(admin: any, email: string, organizationId: string): Promise<{ link: string | null; error: string | null }> {
+  const siteUrl = await resolveCabinetSiteUrl(admin, organizationId)
   // deno-lint-ignore no-explicit-any
   const { data, error } = await (admin.auth.admin.generateLink as any)({
     type: 'recovery',
