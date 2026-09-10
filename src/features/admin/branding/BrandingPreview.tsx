@@ -14,6 +14,7 @@ import { PreviewHub } from './previews/PreviewHub'
 import { PreviewEmail } from './previews/PreviewEmail'
 import { PreviewPortal } from './previews/PreviewPortal'
 import { PreviewComponents } from './previews/PreviewComponents'
+import { resolveOverride } from '../../branding/surface'
 
 interface Props {
   cabinetName: string
@@ -69,8 +70,8 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
       </header>
       <div className="p-4">
         <div className="mx-auto max-w-[760px] border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-          {tab === 'login' && <PreviewLogin {...ctx} />}
-          {tab === 'hub' && <PreviewHub {...ctx} />}
+          {tab === 'login' && <PreviewLogin {...ctx} surfaceMode={resolveOverride(draft.loginSurface, ctx.surfaceMode)} />}
+          {tab === 'hub' && <PreviewHub {...ctx} surfaceMode={resolveOverride(draft.hubSurface, ctx.surfaceMode)} />}
           {tab === 'composants' && <PreviewComponents {...ctx} />}
           {tab === 'email' && (
             <PreviewEmail
@@ -80,7 +81,7 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
               footer={draft.footerText || null}
             />
           )}
-          {tab === 'portail' && <PreviewPortal {...ctx} />}
+          {tab === 'portail' && <PreviewPortal {...ctx} surfaceMode={resolveOverride(draft.portalSurface, ctx.surfaceMode)} />}
         </div>
         <p className="mx-auto max-w-[760px] mt-2 text-[10.5px] text-gray-400">
           Aperçu du brouillon en cours — <span className="font-semibold text-gray-500">Enregistrer</span> pour appliquer au domaine live.

@@ -1,5 +1,6 @@
 import { Logo } from './Logo'
 import { useBranding } from './useBranding'
+import { effectiveSurface } from './surface'
 
 /**
  * En-tête utilisé sur login + hub quand on est sur un domaine cabinet
@@ -24,7 +25,7 @@ export function BrandedAuthHeader({ layout = 'login' }: BrandedAuthHeaderProps):
   const titleSize = layout === 'hub' ? 'text-[26px]' : 'text-[20px]'
   const subtitleSize = layout === 'hub' ? 'text-[12px]' : 'text-[11px]'
   // Surface claire → logo posé tel quel (variante fond clair) + texte foncé.
-  const isLight = branding.brand_surface_mode === 'light'
+  const isLight = effectiveSurface(branding, 'login') === 'light'
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -48,7 +49,7 @@ export function BrandedAuthHeader({ layout = 'login' }: BrandedAuthHeaderProps):
 export function PoweredByGestu({ className = '' }: { className?: string }): JSX.Element | null {
   const { branding } = useBranding()
   if (!branding) return null
-  const isLight = branding.brand_surface_mode === 'light'
+  const isLight = effectiveSurface(branding, 'login') === 'light'
   return (
     <div className={`text-center text-[10px] tracking-[0.4px] ${isLight ? 'text-gray-400' : 'text-white/35'} ${className}`}>
       Powered by <span className={`font-semibold ${isLight ? 'text-gray-600' : 'text-white/55'}`}>G&euml;stu</span>

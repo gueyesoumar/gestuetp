@@ -32,6 +32,9 @@ export interface CabinetBranding {
   footer_text: string | null
   dark_logo_treatment: DarkLogoTreatment | null
   brand_surface_mode: BrandSurfaceMode | null
+  login_surface_mode: BrandSurfaceMode | null
+  hub_surface_mode: BrandSurfaceMode | null
+  portal_surface_mode: BrandSurfaceMode | null
 }
 
 export interface BrandingState {
