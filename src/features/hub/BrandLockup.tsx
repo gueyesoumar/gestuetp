@@ -1,5 +1,6 @@
 import { MorphingShield } from '../../components/vault/MorphingShield'
 import { useBranding } from '../branding/useBranding'
+import { effectiveSurface } from '../branding/surface'
 import { Logo } from '../branding/Logo'
 
 // Lockup de marque du header (coin haut-gauche). Sur le domaine Gëstu : bouclier
@@ -11,7 +12,7 @@ export function BrandLockup(): JSX.Element {
   const { branding } = useBranding()
 
   if (branding) {
-    const isLight = branding.brand_surface_mode === 'light'
+    const isLight = effectiveSurface(branding, 'hub') === 'light'
     return (
       <div className="flex items-center gap-3">
         <Logo variant={isLight ? 'light' : 'dark'} height={30} />

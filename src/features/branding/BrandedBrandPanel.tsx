@@ -2,6 +2,7 @@ import { ShieldCheck, Lock, KeyRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useBranding } from './useBranding'
 import { Logo } from './Logo'
+import { effectiveSurface } from './surface'
 
 /**
  * BrandedBrandPanel — équivalent white-label de VaultBrandPanel : colonne gauche
@@ -23,7 +24,7 @@ export function BrandedBrandPanel(): JSX.Element | null {
   const { branding } = useBranding()
   if (!branding) return null
 
-  const isLight = branding.brand_surface_mode === 'light'
+  const isLight = effectiveSurface(branding, 'login') === 'light'
   const panelBg = isLight
     ? 'linear-gradient(160deg, #FFFFFF 0%, color-mix(in srgb, var(--brand-primary) 10%, #FFFFFF) 100%)'
     : 'linear-gradient(160deg, color-mix(in srgb, var(--brand-primary) 82%, #000) 0%, var(--brand-primary) 55%, color-mix(in srgb, var(--brand-primary) 68%, #000) 100%)'

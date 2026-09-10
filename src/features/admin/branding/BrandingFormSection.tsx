@@ -5,6 +5,8 @@ import { readInvokeError } from '../../../lib/edgeError'
 import { useToast } from '../../../hooks/useToast'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
 import type { ExtractedColors, DarkLogoTreatment, BrandSurfaceMode } from '../../branding/extractColorsFromImage'
+import { PerScreenSurface } from './PerScreenSurface'
+import type { SurfaceOverride } from '../../branding/surface'
 
 export interface BrandingDraft {
   primary: string
@@ -14,6 +16,9 @@ export interface BrandingDraft {
   footerText: string
   darkLogoTreatment: DarkLogoTreatment
   surfaceMode: BrandSurfaceMode
+  loginSurface: SurfaceOverride
+  hubSurface: SurfaceOverride
+  portalSurface: SurfaceOverride
 }
 
 const TREATMENT_OPTIONS: { value: DarkLogoTreatment; label: string; hint: string }[] = [
@@ -47,6 +52,9 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
   const [footerText, setFooterText] = useState(branding?.footer_text ?? '')
   const [darkLogoTreatment, setDarkLogoTreatment] = useState<DarkLogoTreatment>(branding?.dark_logo_treatment ?? 'chip')
   const [surfaceMode, setSurfaceMode] = useState<BrandSurfaceMode>(branding?.brand_surface_mode ?? 'dark')
+  const [loginSurface, setLoginSurface] = useState<SurfaceOverride>(branding?.login_surface_mode ?? 'auto')
+  const [hubSurface, setHubSurface] = useState<SurfaceOverride>(branding?.hub_surface_mode ?? 'auto')
+  const [portalSurface, setPortalSurface] = useState<SurfaceOverride>(branding?.portal_surface_mode ?? 'auto')
   const [showReason, setShowReason] = useState(false)
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -61,6 +69,9 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
     setFooterText(branding?.footer_text ?? '')
     setDarkLogoTreatment(branding?.dark_logo_treatment ?? 'chip')
     setSurfaceMode(branding?.brand_surface_mode ?? 'dark')
+    setLoginSurface(branding?.login_surface_mode ?? 'auto')
+    setHubSurface(branding?.hub_surface_mode ?? 'auto')
+    setPortalSurface(branding?.portal_surface_mode ?? 'auto')
     setAppliedSuggestion(false)
   }, [branding])
 
@@ -78,8 +89,8 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
 
   // Live emission du draft pour la prévisualisation
   useEffect(() => {
-    onDraftChange?.({ primary, accent, supportEmail, emailFromName, footerText, darkLogoTreatment, surfaceMode })
-  }, [primary, accent, supportEmail, emailFromName, footerText, darkLogoTreatment, surfaceMode, onDraftChange])
+    onDraftChange?.({ primary, accent, supportEmail, emailFromName, footerText, darkLogoTreatment, surfaceMode, loginSurface, hubSurface, portalSurface })
+  }, [primary, accent, supportEmail, emailFromName, footerText, darkLogoTreatment, surfaceMode, loginSurface, hubSurface, portalSurface, onDraftChange])
 
   const applySuggestionExplicit = () => {
     if (!suggestedColors) return
@@ -118,6 +129,9 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
         footer_text: footerText.trim() || null,
         dark_logo_treatment: darkLogoTreatment,
         brand_surface_mode: surfaceMode,
+        login_surface_mode: loginSurface === 'auto' ? null : loginSurface,
+        hub_surface_mode: hubSurface === 'auto' ? null : hubSurface,
+        portal_surface_mode: portalSurface === 'auto' ? null : portalSurface,
       },
     })
     setSubmitting(false)
@@ -193,6 +207,16 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
           </div>
           <p className="text-[11px] text-gray-400 mt-1">{TREATMENT_OPTIONS.find((o) => o.value === darkLogoTreatment)?.hint} — proposé automatiquement à l&apos;upload du logo, ajustable.</p>
         </div>
+        <PerScreenSurface
+          login={loginSurface}
+          hub={hubSurface}
+          portal={portalSurface}
+          onChange={(screen, v) => {
+            if (screen === 'login') setLoginSurface(v)
+            else if (screen === 'hub') setHubSurface(v)
+            else setPortalSurface(v)
+          }}
+        />
         <FieldText label="Email de support" value={supportEmail} onChange={setSupportEmail} placeholder="support@auditco.sn" />
         <FieldText label="Nom expéditeur (emails)" value={emailFromName} onChange={setEmailFromName} placeholder="Audit&Co Sénégal via Gëstu" maxLength={80} />
         <div className="col-span-2">

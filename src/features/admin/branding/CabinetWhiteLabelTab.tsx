@@ -23,6 +23,9 @@ const EMPTY_DRAFT: BrandingDraft = {
   footerText: '',
   darkLogoTreatment: 'chip',
   surfaceMode: 'dark',
+  loginSurface: 'auto',
+  hubSurface: 'auto',
+  portalSurface: 'auto',
 }
 
 /**
