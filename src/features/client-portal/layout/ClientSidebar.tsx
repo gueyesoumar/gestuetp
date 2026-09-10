@@ -5,6 +5,7 @@ import { useVocab } from '../../edition/useVocab'
 import { useIsRegul } from '../../edition/useIsRegul'
 import { useCapability } from '../../edition/EditionContext'
 import { useBranding } from '../../branding/useBranding'
+import { effectiveSurface } from '../../branding/surface'
 import { GestuLogo } from '../../../components/GestuLogo'
 import { Logo } from '../../branding/Logo'
 import type { ReactNode } from 'react'
@@ -21,7 +22,7 @@ export function ClientSidebar(): JSX.Element {
   // Polarité de la surface brandée (marque blanche). Sur un cabinet en mode clair,
   // la sidebar passe en clair pour que le logo (à traits foncés) s'y pose tel quel.
   const isBranded = Boolean(branding)
-  const isLight = branding?.brand_surface_mode === 'light'
+  const isLight = branding != null && effectiveSurface(branding, 'portal') === 'light'
 
   const ink = isLight ? 'text-gray-800' : 'text-white'
   const inkFaint = isLight ? 'text-gray-400' : 'text-white/40'

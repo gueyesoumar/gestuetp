@@ -10,6 +10,7 @@ import { useBranding } from '../features/branding/useBranding'
 import { useComplyHubStats } from '../features/dashboard/useComplyHubStats'
 import { VaultBackground } from '../components/vault/VaultBackground'
 import { HubCockpit } from '../features/hub/HubCockpit'
+import { effectiveSurface } from '../features/branding/surface'
 
 export function HubPage(): JSX.Element {
   const { profile, signOut } = useAuth()
@@ -17,9 +18,9 @@ export function HubPage(): JSX.Element {
   const { stats: complyStats } = useComplyHubStats()
 
   const isBranded = Boolean(branding)
-  // Polarité du chrome hub : clair pour un cabinet à logo foncé (surface light),
-  // sombre sinon. --hub-fg pilote tout le premier plan des sous-composants.
-  const isLight = isBranded && branding?.brand_surface_mode === 'light'
+  // Polarité du chrome hub : surcharge par écran (hub) si définie, sinon globale.
+  // --hub-fg pilote tout le premier plan des sous-composants.
+  const isLight = isBranded && branding != null && effectiveSurface(branding, 'hub') === 'light'
 
   const cockpit = (
     <HubCockpit selfScore={complyStats.conformityScore} profile={profile} onSignOut={signOut} isBranded={isBranded} />
