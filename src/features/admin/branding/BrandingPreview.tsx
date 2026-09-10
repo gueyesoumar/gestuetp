@@ -1,19 +1,18 @@
 /**
- * BrandingPreview — trois mini-aperçus statiques pour montrer comment
- * la marque blanche rend une fois activée :
- *   - Page de connexion (logo dark sur gradient cabinet)
- *   - Email de relance (header logo light + couleur primaire)
- *   - Sidebar portail client (logo dark + couleur primaire)
- *
- * Lit le draft du formulaire pour rester live, et tombe sur les valeurs
- * sauvegardées (branding) pour les champs non éditables (logos).
+ * BrandingPreview — aperçu WYSIWYG multi-pages de la marque blanche. Un
+ * sélecteur d'onglets montre chaque page (login split, hub, e-mail, portail)
+ * telle qu'elle rend RÉELLEMENT, à partir du draft du formulaire (live) et des
+ * logos sauvegardés. Objectif : ce que tu vois ici = ce qui est en ligne.
  */
-
-import { Mail, Lock } from 'lucide-react'
+import { useState } from 'react'
+import { generatePalette } from '../../branding/colorUtils'
 import type { CabinetBrandingRow } from './useCabinetBrandingAdmin'
 import type { BrandingDraft } from './BrandingFormSection'
-import { generatePalette, readableTextOn } from '../../branding/colorUtils'
-import type { DarkLogoTreatment, BrandSurfaceMode } from '../../branding/extractColorsFromImage'
+import { type PreviewCtx, isHex } from './previews/previewKit'
+import { PreviewLogin } from './previews/PreviewLogin'
+import { PreviewHub } from './previews/PreviewHub'
+import { PreviewEmail } from './previews/PreviewEmail'
+import { PreviewPortal } from './previews/PreviewPortal'
 
 interface Props {
   cabinetName: string
@@ -23,188 +22,67 @@ interface Props {
 
 const DEFAULT_PRIMARY = '#1B4332'
 const DEFAULT_ACCENT = '#D4A843'
+type Tab = 'login' | 'hub' | 'email' | 'portail'
+const TABS: Array<{ key: Tab; label: string }> = [
+  { key: 'login', label: 'Connexion' },
+  { key: 'hub', label: 'Hub' },
+  { key: 'email', label: 'E-mail' },
+  { key: 'portail', label: 'Portail' },
+]
 
 export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.Element {
+  const [tab, setTab] = useState<Tab>('login')
   const rawPrimary = isHex(draft.primary) ? draft.primary : DEFAULT_PRIMARY
   const accent = isHex(draft.accent) ? draft.accent : DEFAULT_ACCENT
-  // Surface de marque = shade 700 dérivé (même échelle que l'app réelle) → texte
-  // blanc lisible quelle que soit la couleur : l'aperçu reflète le rendu réel.
-  const primary = generatePalette(rawPrimary)?.['700'] ?? rawPrimary
-  const supportEmail = draft.supportEmail || null
-  const fromName = draft.emailFromName || `${cabinetName} via Gëstu`
-  const footer = draft.footerText || null
-  const logoLight = branding?.logo_light_url ?? null
-  const logoDark = branding?.logo_dark_url ?? null
-  const treatment = draft.darkLogoTreatment
-  const surfaceMode = draft.surfaceMode
-  // Surface claire = nuance très claire de la marque (shade 50).
-  const lightSurface = generatePalette(rawPrimary)?.['50'] ?? '#F5F5F4'
+  const palette = generatePalette(rawPrimary)
+
+  const ctx: PreviewCtx = {
+    cabinetName,
+    primary: palette?.['700'] ?? rawPrimary,
+    primaryDeep: palette?.['900'] ?? rawPrimary,
+    lightSurface: palette?.['50'] ?? '#F5F5F4',
+    accent,
+    surfaceMode: draft.surfaceMode,
+    treatment: draft.darkLogoTreatment,
+    logoLight: branding?.logo_light_url ?? null,
+    logoDark: branding?.logo_dark_url ?? null,
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl">
-      <header className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+      <header className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
         <span className="text-[13px] font-bold text-gray-900">Aperçu</span>
-        <span className="text-[10.5px] text-gray-400">Mise à jour en temps réel pendant l&apos;édition</span>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${tab === t.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </header>
-      <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PreviewLogin cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} treatment={treatment} surfaceMode={surfaceMode} lightSurface={lightSurface} />
-        <PreviewEmail cabinetName={cabinetName} primary={primary} accent={accent} fromName={fromName} supportEmail={supportEmail} footer={footer} logoLight={logoLight} />
-        <PreviewSidebar cabinetName={cabinetName} primary={primary} logoDark={logoDark} logoLight={logoLight} treatment={treatment} />
-      </div>
-    </div>
-  )
-}
-
-function PreviewLogin({ cabinetName, primary, logoDark, logoLight, treatment, surfaceMode, lightSurface }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null; treatment: DarkLogoTreatment; surfaceMode: BrandSurfaceMode; lightSurface: string }) {
-  const isLight = surfaceMode === 'light'
-  const bg = isLight
-    ? `linear-gradient(160deg, #FFFFFF 0%, ${lightSurface} 100%)`
-    : `linear-gradient(160deg, ${mix(primary, 'black', 0.4)} 0%, ${primary} 60%, ${mix(primary, 'black', 0.2)} 100%)`
-  const ink = isLight ? '#1A1F1D' : 'white'
-  const faint = isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)'
-  const fieldBg = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.12)'
-  return (
-    <Frame label="Page de connexion">
-      <div style={{ background: bg, padding: 16, minHeight: 240, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        {isLight && logoLight
-          ? <img src={logoLight} alt={cabinetName} style={{ height: 32, maxWidth: 120, width: 'auto' }} />
-          : <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={32} treatment={treatment} />}
-        <div style={{ color: ink, fontWeight: 800, fontSize: 13, marginTop: 8, textAlign: 'center' }}>{cabinetName}</div>
-        <div style={{ width: '85%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <Pill icon="mail" tint={fieldBg} ink={faint} />
-          <Pill icon="lock" tint={fieldBg} ink={faint} />
-          <div style={{ background: primary, color: 'white', textAlign: 'center', padding: '6px 0', borderRadius: 5, fontSize: 10.5, fontWeight: 700, marginTop: 2 }}>Se connecter</div>
-        </div>
-        <div style={{ marginTop: 10, fontSize: 8.5, color: faint, letterSpacing: 0.4 }}>
-          Powered by <span style={{ fontWeight: 600 }}>Gëstu</span>
-        </div>
-      </div>
-    </Frame>
-  )
-}
-
-function PreviewEmail({ cabinetName, primary, accent, fromName, supportEmail, footer, logoLight }: { cabinetName: string; primary: string; accent: string; fromName: string; supportEmail: string | null; footer: string | null; logoLight: string | null }) {
-  return (
-    <Frame label="Email">
-      <div style={{ background: 'white', minHeight: 240, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ background: '#FAFAF8', padding: '6px 10px', fontSize: 9, color: '#6B7280', borderBottom: '1px solid #E5E7EB' }}>
-          <div style={{ fontWeight: 700, color: '#1A1A1A', fontSize: 9.5 }}>{fromName}</div>
-          <div>noreply@gestugroup.com</div>
-        </div>
-        <div style={{ background: primary, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          {logoLight ? (
-            <span style={{ background: 'white', borderRadius: 4, padding: '3px 5px', display: 'inline-flex' }}>
-              <img src={logoLight} alt={cabinetName} style={{ height: 18, maxWidth: 60, width: 'auto' }} />
-            </span>
-          ) : (
-            <span style={{ background: accent, color: readableTextOn(accent), borderRadius: 4, width: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11 }}>{cabinetName.charAt(0)}</span>
+      <div className="p-4">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          {tab === 'login' && <PreviewLogin {...ctx} />}
+          {tab === 'hub' && <PreviewHub {...ctx} />}
+          {tab === 'email' && (
+            <PreviewEmail
+              {...ctx}
+              fromName={draft.emailFromName || `${cabinetName} via Gëstu`}
+              supportEmail={draft.supportEmail || null}
+              footer={draft.footerText || null}
+            />
           )}
-          <span style={{ color: 'white', fontWeight: 800, fontSize: 11 }}>{cabinetName}</span>
+          {tab === 'portail' && <PreviewPortal {...ctx} />}
         </div>
-        <div style={{ padding: 12, fontSize: 10, color: '#374151', flex: 1, lineHeight: 1.5 }}>
-          <div style={{ fontWeight: 700, color: '#1A1A1A', fontSize: 11, marginBottom: 6 }}>Bonjour Marie,</div>
-          <div>Votre auditeur attend un document pour la mission d&apos;audit ISO 27001.</div>
-          <div style={{ background: primary, color: 'white', display: 'inline-block', padding: '5px 10px', borderRadius: 4, fontSize: 9.5, fontWeight: 700, marginTop: 8 }}>Déposer le document</div>
-        </div>
-        <div style={{ background: '#FAFAF8', padding: '8px 12px', borderTop: '1px solid #E5E7EB', fontSize: 8.5, color: '#6B7280', lineHeight: 1.5 }}>
-          {supportEmail && <div>Support : <span style={{ color: primary }}>{supportEmail}</span></div>}
-          {footer && <div style={{ marginTop: 2 }}>{footer.length > 60 ? `${footer.slice(0, 60)}…` : footer}</div>}
-          <div style={{ marginTop: 2, color: '#9CA3AF' }}>{cabinetName} · Powered by Gëstu</div>
-        </div>
+        <p className="mt-2 text-[10.5px] text-gray-400">
+          Aperçu du brouillon en cours — <span className="font-semibold text-gray-500">Enregistrer</span> pour appliquer au domaine live.
+        </p>
       </div>
-    </Frame>
-  )
-}
-
-function PreviewSidebar({ cabinetName, primary, logoDark, logoLight, treatment }: { cabinetName: string; primary: string; logoDark: string | null; logoLight: string | null; treatment: DarkLogoTreatment }) {
-  return (
-    <Frame label="Sidebar portail">
-      <div style={{ display: 'flex', minHeight: 240 }}>
-        <div style={{ background: primary, width: 110, padding: '10px 8px', display: 'flex', flexDirection: 'column', color: 'white' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-            <DualLogoPreview cabinetName={cabinetName} logoDark={logoDark} logoLight={logoLight} height={20} compact treatment={treatment} />
-            <div style={{ fontWeight: 800, fontSize: 9.5, lineHeight: 1.1 }}>{cabinetName.length > 12 ? `${cabinetName.slice(0, 11)}…` : cabinetName}</div>
-          </div>
-          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-            {['Tableau de bord', 'Mes audits', 'Documents', 'Notifications'].map((label, i) => (
-              <div key={label} style={{ padding: '4px 6px', borderRadius: 4, fontSize: 8.5, color: i === 0 ? 'white' : 'rgba(255,255,255,0.55)', background: i === 0 ? 'rgba(255,255,255,0.12)' : 'transparent' }}>{label}</div>
-            ))}
-          </div>
-          <div style={{ paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.15)', fontSize: 8, color: 'rgba(255,255,255,0.45)' }}>
-            Powered by <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Gëstu</span>
-          </div>
-        </div>
-        <div style={{ flex: 1, background: '#FAFAF8', padding: 10, fontSize: 9, color: '#6B7280' }}>
-          <div style={{ fontWeight: 700, color: '#1A1A1A', fontSize: 10, marginBottom: 6 }}>Mes audits</div>
-          <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 5, padding: 6, marginBottom: 4 }}>
-            <div style={{ fontWeight: 600, fontSize: 9, color: '#1A1A1A' }}>ISO 27001 · 2026</div>
-            <div style={{ height: 3, background: '#F3F4F6', borderRadius: 2, marginTop: 4 }}>
-              <div style={{ height: '100%', background: primary, width: '73%', borderRadius: 2 }} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </Frame>
-  )
-}
-
-function DualLogoPreview({ cabinetName, logoDark, logoLight, height, compact, treatment }: { cabinetName: string; logoDark: string | null; logoLight: string | null; height: number; compact?: boolean; treatment: DarkLogoTreatment }) {
-  if (logoDark) {
-    return <img src={logoDark} alt={cabinetName} style={{ height, maxWidth: compact ? 30 : 120, width: 'auto' }} />
-  }
-  if (logoLight) {
-    const maxW = compact ? 30 : 120
-    if (treatment === 'direct') {
-      return <img src={logoLight} alt={cabinetName} style={{ height, maxWidth: maxW, width: 'auto' }} />
-    }
-    if (treatment === 'whiten') {
-      return <img src={logoLight} alt={cabinetName} style={{ height, maxWidth: maxW, width: 'auto', filter: 'brightness(0) invert(1)' }} />
-    }
-    const pad = Math.round(height * 0.18)
-    return (
-      <span style={{ background: 'white', borderRadius: Math.round(height * 0.22), padding: `${pad}px ${pad * 1.4}px`, display: 'inline-flex' }}>
-        <img src={logoLight} alt={cabinetName} style={{ height: height - pad * 2, maxWidth: compact ? 26 : 100, width: 'auto' }} />
-      </span>
-    )
-  }
-  return (
-    <span style={{ color: 'white', fontFamily: 'Manrope,sans-serif', fontWeight: 800, fontSize: Math.round(height * 0.7), letterSpacing: -0.5 }}>
-      {cabinetName.split(/\s+/).slice(0, 2).map((s) => s.charAt(0).toUpperCase()).join('')}
-    </span>
-  )
-}
-
-function Frame({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-      <div className="px-2.5 py-1.5 bg-gray-100 border-b border-gray-200 text-[10px] font-bold uppercase tracking-wider text-gray-600">{label}</div>
-      <div>{children}</div>
     </div>
   )
-}
-
-function Pill({ icon, tint, ink }: { icon: 'mail' | 'lock'; tint: string; ink: string }) {
-  return (
-    <div style={{ background: tint, borderRadius: 4, padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: ink }}>
-      {icon === 'mail' ? <Mail size={9} /> : <Lock size={9} />}
-      <span style={{ height: 4, background: ink, borderRadius: 1, flex: 1, opacity: 0.6 }} />
-    </div>
-  )
-}
-
-function isHex(value: string): boolean {
-  return /^#[0-9A-Fa-f]{6}$/.test(value)
-}
-
-/** Mélange deux couleurs hex (mixCol) ratio in [0,1] de la couleur secondaire */
-function mix(hex: string, target: 'black' | 'white', ratio: number): string {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  const t = target === 'black' ? 0 : 255
-  const mr = Math.round(r * (1 - ratio) + t * ratio)
-  const mg = Math.round(g * (1 - ratio) + t * ratio)
-  const mb = Math.round(b * (1 - ratio) + t * ratio)
-  const toHex = (n: number) => n.toString(16).padStart(2, '0')
-  return `#${toHex(mr)}${toHex(mg)}${toHex(mb)}`
 }
