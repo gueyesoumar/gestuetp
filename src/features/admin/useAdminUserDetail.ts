@@ -51,15 +51,29 @@ export function useAdminUserDetail(userId: string | undefined): Result {
 
     void (async () => {
       try {
+        // Utilisateur SANS embed organizations (évite tout souci de relation
+        // PostgREST à l'origine de l'écran « Erreur de chargement »).
         const { data: u, error: uError } = await supabase
           .from('users')
-          .select('id, auth_id, email, first_name, last_name, phone, job_title, is_active, is_platform_owner, role, last_sign_in_at, created_at, organizations(id, name, slug, types, is_active)')
+          .select('id, auth_id, email, first_name, last_name, phone, job_title, is_active, is_platform_owner, role, last_sign_in_at, created_at, organization_id')
           .eq('id', userId)
           .abortSignal(abort.signal)
-          .single()
-        if (uError || !u) throw uError ?? new Error('Utilisateur introuvable')
+          .maybeSingle()
+        if (uError) throw uError
+        if (!u) throw new Error('Utilisateur introuvable')
 
-        const row = u as unknown as Record<string, unknown> & { organizations: { id: string; name: string; slug: string; types: string[]; is_active: boolean } }
+        const row = u as unknown as Record<string, unknown> & { organization_id: string }
+
+        // Organisation chargée séparément (best-effort) — fallback si non lisible.
+        const { data: orgRow } = await supabase
+          .from('organizations')
+          .select('id, name, slug, types, is_active')
+          .eq('id', row.organization_id)
+          .abortSignal(abort.signal)
+          .maybeSingle()
+        const organization = (orgRow as { id: string; name: string; slug: string; types: string[]; is_active: boolean } | null) ?? {
+          id: row.organization_id, name: '—', slug: '', types: [] as string[], is_active: false,
+        }
 
         const { data: roles } = await supabase
           .from('user_platform_roles')
@@ -108,7 +122,7 @@ export function useAdminUserDetail(userId: string | undefined): Result {
           role: row.role as 'auditor' | 'client',
           last_sign_in_at: row.last_sign_in_at as string | null,
           created_at: row.created_at as string,
-          organization: row.organizations,
+          organization,
           platform_roles: platformRoles,
           missions_assigned: ((missionsLead ?? []) as Array<{ id: string; name: string; status: string; cabinet_id: string }>),
           recent_admin_views: recent,
