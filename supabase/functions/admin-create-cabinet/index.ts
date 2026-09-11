@@ -3,6 +3,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
 import { sendEmail } from '../_shared/resend.ts'
 import { cabinetOwnerInviteTemplate } from '../_shared/email-templates/auth.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
 import { loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
@@ -175,7 +176,9 @@ Deno.serve(async (req) => {
       email: body.owner_email.trim().toLowerCase(),
       options: { redirectTo: `${siteUrl}/set-password` },
     })
-    const link = (linkData as { properties?: { action_link?: string } } | null)?.properties?.action_link ?? null
+    // Lien brandé via token_hash (pas le action_link brut → pas de host supabase.co).
+    const hashedToken = extractHashedToken(linkData)
+    const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
     if (linkError || !link) {
       console.warn('[admin-create-cabinet] generateLink warning:', linkError?.message ?? 'no link returned')
     } else {

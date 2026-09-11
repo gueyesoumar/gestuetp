@@ -4,6 +4,7 @@ import { sendEmail } from '../_shared/resend.ts'
 import { passwordResetTemplate } from '../_shared/email-templates/auth.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
 
 /**
  * Edge Function : admin-user
@@ -60,7 +61,9 @@ Deno.serve(async (req) => {
         email: u.email,
         options: { redirectTo: `${siteUrl}/set-password` },
       })
-      const link = (linkData as { properties?: { action_link?: string } } | null)?.properties?.action_link ?? null
+      // Lien brandé via token_hash (pas le action_link brut → pas de host supabase.co).
+      const hashedToken = extractHashedToken(linkData)
+      const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
       if (linkError || !link) {
         console.error('[admin-user] reset_password generateLink error:', linkError?.message ?? 'no link returned')
         return jsonResponse({ error: 'Génération du lien de réinitialisation impossible' }, 500)

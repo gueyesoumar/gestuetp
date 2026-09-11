@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
+import type { EmailOtpType } from '@supabase/supabase-js'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { invokeEdgeFunction } from '../lib/invokeEdgeFunction'
@@ -26,6 +27,7 @@ export function SetPasswordPage(): JSX.Element {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
+  const [linkExpired, setLinkExpired] = useState(false)
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -33,9 +35,31 @@ export function SetPasswordPage(): JSX.Element {
         setSessionReady(true)
       }
     })
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
-    })
+
+    // Flux brandé : le lien de l'email est `${domaine}/set-password?token_hash=…&type=recovery`.
+    // On échange le token_hash contre une session via verifyOtp (équivalent du
+    // endpoint /auth/v1/verify, mais sans exposer le host supabase.co).
+    const params = new URLSearchParams(window.location.search)
+    const tokenHash = params.get('token_hash')
+    const type = params.get('type')
+
+    if (tokenHash && type) {
+      void supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType }).then(({ error }) => {
+        if (error) {
+          console.error('SetPasswordPage verifyOtp:', error.message)
+          setLinkExpired(true)
+          return
+        }
+        setSessionReady(true)
+        // Retire le token de la barre d'adresse / de l'historique.
+        window.history.replaceState(null, '', window.location.pathname)
+      })
+    } else {
+      // Compat : anciens liens (hash access_token) → PASSWORD_RECOVERY / session existante.
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setSessionReady(true)
+      })
+    }
     return () => subscription.unsubscribe()
   }, [])
 
@@ -73,7 +97,9 @@ export function SetPasswordPage(): JSX.Element {
     }, 2000)
   }
 
-  const content = !sessionReady ? (
+  const content = linkExpired ? (
+    <SetPasswordExpired />
+  ) : !sessionReady ? (
     <SetPasswordWaiting />
   ) : success ? (
     <SetPasswordSuccess />
@@ -140,6 +166,23 @@ function SetPasswordWaiting(): JSX.Element {
         className="mt-4 inline-block text-[12px] text-[#D4A843]/60 hover:text-[#D4A843]"
       >
         Retour {'\u00e0'} la connexion
+      </a>
+    </div>
+  )
+}
+
+function SetPasswordExpired(): JSX.Element {
+  return (
+    <div className="text-center">
+      <p className="text-[14px] font-semibold text-white/80">Lien invalide ou expiré</p>
+      <p className="mt-2 text-[12px] text-white/40">
+        Ce lien a peut-être déjà été utilisé ou a expiré. Demandez-en un nouveau depuis la page de connexion.
+      </p>
+      <a
+        href="/login"
+        className="mt-4 inline-block text-[12px] text-[#D4A843]/80 hover:text-[#D4A843]"
+      >
+        Retour à la connexion
       </a>
     </div>
   )

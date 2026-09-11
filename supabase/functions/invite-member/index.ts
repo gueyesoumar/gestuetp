@@ -5,6 +5,7 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { memberInviteTemplate } from '../_shared/email-templates/auth.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
@@ -246,7 +247,10 @@ async function generateRecoveryLink(admin: any, email: string, organizationId: s
     email,
     options: { redirectTo: `${siteUrl}/set-password` },
   })
-  const link = (data as { properties?: { action_link?: string } } | null)?.properties?.action_link ?? null
+  // Lien brandé sur le domaine cabinet via token_hash (pas le action_link brut,
+  // qui exposerait <projet>.supabase.co).
+  const hashedToken = extractHashedToken(data)
+  const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
   return { link, error: error?.message ?? null }
 }
 
