@@ -57,6 +57,10 @@ export function MfaEnrollment(): JSX.Element {
         <p className="text-sm text-gray-500">Préparation en cours&hellip;</p>
       ) : (
         <>
+          <p className="text-[13px] text-gray-500 leading-relaxed mb-4">
+            Une dernière étape, en 30 secondes. La double authentification protège votre compte :
+            même si votre mot de passe était compromis, personne ne pourrait se connecter sans ce second facteur.
+          </p>
           <ol className="text-sm text-gray-600 space-y-1 mb-4 list-decimal list-inside">
             <li>Ouvrez votre application d&apos;authentification (Google Authenticator, Microsoft Authenticator, Authy&hellip;).</li>
             <li>Scannez ce QR code, puis saisissez le code à 6 chiffres généré.</li>
