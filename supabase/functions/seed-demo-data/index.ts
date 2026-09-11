@@ -147,6 +147,16 @@ Deno.serve(async (req) => {
       }
     }
 
+    // L'insertion de mission (variante B) crée une arête d'engagement via trigger.
+    // On la retire : le bac à sable ne doit pas apparaître dans le graphe des
+    // perspectives du Hub (tuiles clients). No-op en variante A (pas d'arête).
+    await admin
+      .from('organization_relationships')
+      .delete()
+      .eq('actor_org_id', cabinetId)
+      .eq('target_org_id', clientOrgId)
+      .eq('nature', 'audit_engagement')
+
     await logActivity(admin, {
       organizationId: cabinetId,
       actorUserId: ownerId,

@@ -37,6 +37,8 @@ export function useCabinetClients(): UseCabinetClientsResult {
         .from('cabinet_clients')
         .select('*')
         .eq('cabinet_id', cabinetId)
+        // Démo par utilisateur : réel OU fiche de démo qui m'appartient.
+        .or(`is_demo.eq.false,demo_owner_id.eq.${profile.id}`)
         .abortSignal(abortController.signal)
       if (abortController.signal.aborted) return
       if (queryError || !data) {
@@ -63,7 +65,7 @@ export function useCabinetClients(): UseCabinetClientsResult {
     })()
 
     return () => abortController.abort()
-  }, [profile?.organization_id, refreshKey])
+  }, [profile?.organization_id, profile?.id, refreshKey])
 
   return { clients, loading, error, refetch }
 }

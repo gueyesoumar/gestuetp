@@ -348,7 +348,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
       }
 
       const { data: missions, error: mErr } = await supabase
-        .from('missions').select('id').eq('cabinet_id', orgId).eq('is_active', true).abortSignal(ctrl.signal)
+        .from('missions').select('id').eq('cabinet_id', orgId).eq('is_active', true).eq('is_demo', false).abortSignal(ctrl.signal)
       if (ctrl.signal.aborted) return
       if (mErr) { console.error('dimension scores missions:', mErr.message); setData(EMPTY); return }
 
