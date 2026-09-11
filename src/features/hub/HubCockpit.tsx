@@ -14,6 +14,8 @@ import { HubSidePanel } from './HubSidePanel'
 import { PoweredByGestu } from '../branding/BrandedAuthHeader'
 import { useSelfDimensionScores } from './useSelfDimensionScores'
 import { bandLabel } from './trustBand'
+import { DemoInvite } from '../demo/DemoInvite'
+import { useDemoSandbox } from '../demo/useDemoSandbox'
 
 // App-shell du Hub (RFC Hub UX, direction D3 « Lanceur épuré »). Vue par défaut =
 // lanceur (grille produits, entrée directe). Deux vues secondaires réutilisées :
@@ -38,6 +40,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
   const data = useHubPerspectives()
   const catalog = useHubProducts()
   const selfDims = useSelfDimensionScores()
+  const demo = useDemoSandbox()
   const navigate = useNavigate()
   const { hasCapability } = useEdition()
 
@@ -105,6 +108,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
           products={products} isEnterable={isEnterable} onOpen={onOpen}
           composite={composite} bandLabel={bandLabel(composite)} onPosture={() => setView('self')} portfolio={portfolio}
         />
+        {!portfolio && !demo.loading && !demo.hasDemo && <DemoInvite />}
         <PoweredByGestu className="mt-2 shrink-0" />
       </div>
     )

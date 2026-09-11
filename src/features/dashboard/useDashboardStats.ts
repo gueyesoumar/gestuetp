@@ -105,6 +105,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         .select('id, name, status, start_date, end_date, updated_at, client:organizations!missions_client_id_fkey(name, sector)')
         .eq('cabinet_id', profile.organization_id)
         .eq('is_active', true)
+        .eq('is_demo', false) // exclut le bac à sable des indicateurs
         .order('created_at', { ascending: false })
         .abortSignal(abortController.signal)
 
@@ -128,6 +129,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         .from('cabinet_clients')
         .select('id')
         .eq('cabinet_id', profile.organization_id)
+        .eq('is_demo', false) // exclut la fiche client de démonstration
         .abortSignal(abortController.signal)
 
       if (abortController.signal.aborted) return

@@ -10,6 +10,7 @@ import type { ViewMode } from '../components/ui/ViewSwitch'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import { EmptyState } from '../components/ui/EmptyState'
+import { DemoModeBanner } from '../features/demo/DemoModeBanner'
 
 type FilterKey = 'all' | 'active' | 'closed'
 
@@ -34,6 +35,7 @@ export function MissionsListPage() {
 
   return (
     <div>
+      <DemoModeBanner />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
