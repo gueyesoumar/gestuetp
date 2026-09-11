@@ -4,6 +4,7 @@ import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
 import { MfaGate } from './features/auth/mfa/MfaGate'
 import { PasswordExpiryGate } from './features/auth/PasswordExpiryGate'
+import { OnboardingWelcome } from './features/onboarding/OnboardingWelcome'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { TenantAccessGuard } from './components/TenantAccessGuard'
@@ -220,6 +221,7 @@ function App() {
         <MfaGate>
         <PasswordExpiryGate>
         <AppRoutes />
+        <OnboardingWelcome />
         </PasswordExpiryGate>
         </MfaGate>
         </RecorderProvider>
