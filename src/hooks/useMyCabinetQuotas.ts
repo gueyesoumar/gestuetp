@@ -62,6 +62,7 @@ export function useMyCabinetQuotas(): Result {
             .select('id', { count: 'exact', head: true })
             .eq('cabinet_id', orgId)
             .eq('is_active', true)
+            .eq('is_demo', false) // la démo ne consomme pas le quota du plan
             .abortSignal(abort.signal),
         ])
         if (abort.signal.aborted) return

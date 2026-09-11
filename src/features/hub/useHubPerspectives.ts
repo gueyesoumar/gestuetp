@@ -41,7 +41,7 @@ async function fetchNames(ids: string[], signal: AbortSignal): Promise<Map<strin
 }
 
 async function fetchConformity(ids: string[], signal: AbortSignal): Promise<Map<string, number>> {
-  const { data: missions } = await supabase.from('missions').select('id, client_id').in('client_id', ids).abortSignal(signal)
+  const { data: missions } = await supabase.from('missions').select('id, client_id').in('client_id', ids).eq('is_demo', false).abortSignal(signal)
   const missionClient = new Map<string, string>()
   for (const m of (missions ?? []) as Array<{ id: string; client_id: string | null }>) {
     if (m.client_id) missionClient.set(m.id, m.client_id)

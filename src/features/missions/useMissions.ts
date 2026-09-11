@@ -49,6 +49,8 @@ export function useMissions(): UseMissionsResult {
         lead_auditor:users!missions_lead_auditor_id_fkey(first_name, last_name)
       `)
       .eq('cabinet_id', profile.organization_id)
+      // Démo par utilisateur : réel (is_demo=false) OU bac à sable qui m'appartient.
+      .or(`is_demo.eq.false,demo_owner_id.eq.${profile.id}`)
       .order('created_at', { ascending: false })
       .abortSignal(abortController.signal)
       .then(async ({ data, error: queryError }) => {
@@ -105,7 +107,7 @@ export function useMissions(): UseMissionsResult {
       })
 
     return () => abortController.abort()
-  }, [profile?.organization_id, refreshKey])
+  }, [profile?.organization_id, profile?.id, refreshKey])
 
   return { missions, loading, error, refetch }
 }

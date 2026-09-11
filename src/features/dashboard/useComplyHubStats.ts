@@ -45,6 +45,7 @@ export function useComplyHubStats(): UseComplyHubStatsResult {
         .select('id, status')
         .eq('cabinet_id', profile.organization_id)
         .eq('is_active', true)
+        .eq('is_demo', false) // exclut le bac à sable du score
         .abortSignal(ctrl.signal)
 
       if (ctrl.signal.aborted) return

@@ -507,6 +507,9 @@ export interface Mission {
   audit_criteria: string | null
   scoping_notes: string | null
   campaign_id: string | null
+  /** Bac à sable de démonstration (E4, migration 00235) — exclu des indicateurs. */
+  is_demo: boolean
+  demo_owner_id: string | null
   created_at: string
   updated_at: string
 }
@@ -526,6 +529,8 @@ export interface MissionInsert {
   end_date?: string | null
   is_active?: boolean
   campaign_id?: string | null
+  is_demo?: boolean
+  demo_owner_id?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -816,6 +821,9 @@ export interface CabinetClient {
   it_environment: string | null
   it_systems: string[]
   notes: string | null
+  /** Fiche client de démonstration (E4, migration 00235). */
+  is_demo: boolean
+  demo_owner_id: string | null
   created_at: string
   updated_at: string
 }
@@ -841,6 +849,8 @@ export interface CabinetClientInsert {
   parties_interessees?: PartieInteressee[]
   exigences_reglementaires?: ExigenceReglementaire[]
   notes?: string | null
+  is_demo?: boolean
+  demo_owner_id?: string | null
 }
 
 export interface CabinetClientUpdate {
@@ -1630,6 +1640,14 @@ export interface PlatformPasswordPolicy {
 }
 export type PlatformPasswordPolicyUpdate = Partial<Omit<PlatformPasswordPolicy, 'id'>>
 
+// Astuces d'onboarding fermées par un utilisateur (E5, migration 00234).
+export interface UserDismissedTip {
+  user_id: string
+  tip_key: string
+  dismissed_at: string
+}
+export type UserDismissedTipInsert = Pick<UserDismissedTip, 'user_id' | 'tip_key'>
+
 export interface OrgQuotaLimit {
   organization_id: string
   quota_key: string
@@ -1719,6 +1737,12 @@ export interface Database {
         Row: PlatformPasswordPolicy & Rec
         Insert: never & Rec
         Update: PlatformPasswordPolicyUpdate & Rec
+        Relationships: []
+      }
+      user_dismissed_tips: {
+        Row: UserDismissedTip & Rec
+        Insert: UserDismissedTipInsert & Rec
+        Update: never & Rec
         Relationships: []
       }
       org_quota_limits: {

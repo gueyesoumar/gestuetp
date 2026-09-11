@@ -112,6 +112,7 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         .from('missions')
         .select('id, name, status, client_id, cabinet_id, end_date, framework_id')
         .eq('framework_id', frameworkId)
+        .eq('is_demo', false) // exclut le bac à sable de la supervision
 
       if (mode === 'cabinet') {
         // Cabinet mode: missions where this org is the auditing cabinet
