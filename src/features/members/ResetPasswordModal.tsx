@@ -2,6 +2,9 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Modal } from '../../components/ui/Modal'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { PasswordCriteria } from '../../components/ui/PasswordCriteria'
+import { usePasswordPolicy } from '../../hooks/usePasswordPolicy'
+import { passwordMeetsPolicy } from '../../lib/passwordPolicy'
 import { useResetPassword } from './useResetPassword'
 import type { MemberWithRoles } from './types'
 
@@ -16,10 +19,15 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
   const [confirmPassword, setConfirmPassword] = useState('')
   const [mismatch, setMismatch] = useState(false)
   const [success, setSuccess] = useState(false)
+  const { policy } = usePasswordPolicy()
 
   const { resetPassword, resetting, error } = useResetPassword(() => {
     setSuccess(true)
   })
+
+  const meetsPolicy = passwordMeetsPolicy(newPassword, policy)
+  const confirmMatches = confirmPassword.length > 0 && newPassword === confirmPassword
+  const canSubmit = meetsPolicy && confirmMatches && !resetting
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
@@ -30,6 +38,7 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
       setMismatch(true)
       return
     }
+    if (!meetsPolicy) return
 
     await resetPassword(member.id, newPassword)
   }
@@ -66,8 +75,9 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
             onChange={(e) => setNewPassword(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100"
             disabled={resetting}
-            placeholder="8 caract&egrave;res minimum"
+            placeholder="Nouveau mot de passe"
           />
+          <PasswordCriteria password={newPassword} policy={policy} tone="light" className="mt-3" />
         </div>
 
         <div>
@@ -97,8 +107,8 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
           </button>
           <button
             type="submit"
-            disabled={resetting || !newPassword || !confirmPassword}
-            className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900 disabled:opacity-50"
+            disabled={!canSubmit}
+            className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {resetting ? 'Modification...' : 'Modifier le mot de passe'}
           </button>

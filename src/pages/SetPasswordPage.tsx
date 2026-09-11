@@ -83,6 +83,7 @@ export function SetPasswordPage(): JSX.Element {
       confirm={confirm}
       error={error}
       submitting={submitting}
+      policy={policy}
       onPasswordChange={setPassword}
       onConfirmChange={setConfirm}
       onSubmit={handleSubmit}
