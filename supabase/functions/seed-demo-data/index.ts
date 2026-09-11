@@ -33,6 +33,62 @@ function demoSlug(): string {
   return `client-demo-${Date.now().toString(36)}`
 }
 
+/**
+ * Enrichit une mission de démo (variante pré-remplie) : quelques contrôles déjà
+ * évalués (status 'approved') + un constat, pour que l'auditeur explore un vrai
+ * terrain immédiatement. Best-effort : n'échoue jamais le seed. Insère
+ * directement en table l'état terminal (pas via submit-assessment, qui met à
+ * jour des lignes existantes) — cohérent avec les contraintes de 00015/00099.
+ */
+// deno-lint-ignore no-explicit-any
+async function enrichDemoMission(admin: any, missionId: string, frameworkId: string, ownerId: string): Promise<void> {
+  try {
+    const { data: domains } = await admin.from('domains').select('id').eq('framework_id', frameworkId)
+    const domainIds = (domains ?? []).map((d: { id: string }) => d.id)
+    if (domainIds.length === 0) return
+
+    const { data: controls } = await admin.from('controls').select('id').in('domain_id', domainIds).limit(6)
+    const controlIds = (controls ?? []).map((c: { id: string }) => c.id)
+    if (controlIds.length === 0) return
+
+    // Le dernier contrôle porte une non-conformité mineure ; les autres sont conformes.
+    const ncControlId = controlIds[controlIds.length - 1]
+    const conformIds = controlIds.slice(0, -1)
+
+    if (conformIds.length > 0) {
+      await admin.from('control_assessments').insert(
+        conformIds.map((cid: string) => ({
+          mission_id: missionId, control_id: cid, auditor_id: ownerId,
+          status: 'approved', conformity_level: 'c',
+        })),
+      )
+    }
+
+    const { data: ncAssessment } = await admin
+      .from('control_assessments')
+      .insert({ mission_id: missionId, control_id: ncControlId, auditor_id: ownerId, status: 'approved', conformity_level: 'pc' })
+      .select('id')
+      .single()
+
+    if (ncAssessment?.id) {
+      await admin.from('assessment_findings').insert({
+        assessment_id: ncAssessment.id,
+        ord: 0,
+        classification: 'minor_nc',
+        description: "La politique de contrôle d'accès n'a pas été revue depuis plus de 12 mois.",
+        risk: 'Des accès obsolètes peuvent subsister sans revue périodique.',
+        recommendation: 'Planifier une revue trimestrielle des habilitations et tracer les validations.',
+        priority: 'medium',
+      })
+    }
+
+    // Mission « en cours de terrain » pour un rendu réaliste.
+    await admin.from('missions').update({ status: 'fieldwork' }).eq('id', missionId).eq('is_demo', true)
+  } catch (err) {
+    console.warn('[seed-demo-data] enrich:', err instanceof Error ? err.message : err)
+  }
+}
+
 function isoDate(daysFromNow: number): string {
   const d = new Date()
   d.setDate(d.getDate() + daysFromNow)
@@ -143,6 +199,8 @@ Deno.serve(async (req) => {
             .update({ is_demo: true, demo_owner_id: ownerId })
             .eq('id', missionId)
           if (markError) console.warn('[seed-demo-data] mark mission:', markError.message)
+          // Contenu de démo : contrôles évalués + un constat.
+          await enrichDemoMission(admin, missionId, framework.id, ownerId)
         }
       }
     }
