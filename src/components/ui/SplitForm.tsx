@@ -5,10 +5,11 @@ interface SplitFormProps {
   onSubmit: (e: FormEvent) => void
   submitLabel?: string
   submitting?: boolean
+  submitDisabled?: boolean
   onCancel?: () => void
 }
 
-export function SplitForm({ children, onSubmit, submitLabel = 'Enregistrer', submitting = false, onCancel }: SplitFormProps) {
+export function SplitForm({ children, onSubmit, submitLabel = 'Enregistrer', submitting = false, submitDisabled = false, onCancel }: SplitFormProps) {
   return (
     <form onSubmit={onSubmit} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
       {children}
@@ -24,8 +25,8 @@ export function SplitForm({ children, onSubmit, submitLabel = 'Enregistrer', sub
         )}
         <button
           type="submit"
-          disabled={submitting}
-          className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors disabled:opacity-50"
+          disabled={submitting || submitDisabled}
+          className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-forest-700"
         >
           {submitting ? 'Enregistrement...' : submitLabel}
         </button>

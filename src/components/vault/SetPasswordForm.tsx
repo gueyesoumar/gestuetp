@@ -4,12 +4,15 @@
 
 import type { FormEvent } from 'react'
 import { Lock } from 'lucide-react'
+import { PasswordCriteria } from '../ui/PasswordCriteria'
+import { passwordMeetsPolicy, type PasswordPolicy } from '../../lib/passwordPolicy'
 
 interface SetPasswordFormProps {
   password: string
   confirm: string
   error: string | null
   submitting: boolean
+  policy: PasswordPolicy
   onPasswordChange: (value: string) => void
   onConfirmChange: (value: string) => void
   onSubmit: (e: FormEvent) => void
@@ -20,10 +23,14 @@ export function SetPasswordForm({
   confirm,
   error,
   submitting,
+  policy,
   onPasswordChange,
   onConfirmChange,
   onSubmit,
 }: SetPasswordFormProps): JSX.Element {
+  const meetsPolicy = passwordMeetsPolicy(password, policy)
+  const confirmMatches = confirm.length > 0 && password === confirm
+  const canSubmit = meetsPolicy && confirmMatches && !submitting
   return (
     <div className="w-full max-w-sm">
       <p className="mb-1 text-center text-[14px] font-semibold text-white/80">
@@ -63,6 +70,7 @@ export function SetPasswordForm({
               className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-[13px] text-white placeholder-white/20 outline-none transition-all focus:border-[#D4A843]/50 focus:shadow-[0_0_0_3px_rgba(212,168,67,0.15)] disabled:opacity-50"
             />
           </div>
+          <PasswordCriteria password={password} policy={policy} tone="dark" className="mt-3" />
         </div>
 
         <div>
@@ -88,12 +96,15 @@ export function SetPasswordForm({
               className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-[13px] text-white placeholder-white/20 outline-none transition-all focus:border-[#D4A843]/50 focus:shadow-[0_0_0_3px_rgba(212,168,67,0.15)] disabled:opacity-50"
             />
           </div>
+          {confirm.length > 0 && !confirmMatches && (
+            <p className="mt-2 text-[12px] text-red-300/80">Les mots de passe ne correspondent pas.</p>
+          )}
         </div>
 
         <button
           type="submit"
-          disabled={submitting}
-          className="w-full rounded-xl py-3 text-[14px] font-semibold text-[#1B4332] transition-all disabled:opacity-50"
+          disabled={!canSubmit}
+          className="w-full rounded-xl py-3 text-[14px] font-semibold text-[#1B4332] transition-all disabled:cursor-not-allowed disabled:opacity-40"
           style={{
             background: 'linear-gradient(135deg, #D4A843 0%, #E2C26B 100%)',
           }}

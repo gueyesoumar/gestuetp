@@ -2,7 +2,8 @@ import { useState, type ReactNode, type FormEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { usePasswordPolicy } from '../../hooks/usePasswordPolicy'
-import { checkPasswordRules, describePasswordPolicy } from '../../lib/passwordPolicy'
+import { checkPasswordRules, passwordMeetsPolicy } from '../../lib/passwordPolicy'
+import { PasswordCriteria } from '../../components/ui/PasswordCriteria'
 import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
 
 // Barrière de rotation : montée sous MfaGate. Si la rotation est active et le mot
@@ -52,6 +53,9 @@ function ForcedPasswordChange(): JSX.Element {
     window.location.reload()
   }
 
+  const confirmMatches = confirm.length > 0 && password === confirm
+  const canSubmit = passwordMeetsPolicy(password, policy) && confirmMatches && !submitting
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#1B4332] px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
@@ -65,10 +69,13 @@ function ForcedPasswordChange(): JSX.Element {
         <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)}
           placeholder="Confirmer" autoComplete="new-password" required
           className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px]" />
-        <p className="mt-2 text-[11px] text-gray-400">Requis : {describePasswordPolicy(policy).join(', ')}.</p>
+        {confirm.length > 0 && !confirmMatches && (
+          <p className="mt-2 text-[12px] text-red-500">Les mots de passe ne correspondent pas.</p>
+        )}
+        <PasswordCriteria password={password} policy={policy} tone="light" className="mt-3" />
         {error && <p className="mt-3 text-[12px] text-red-500">{error}</p>}
-        <button type="submit" disabled={submitting}
-          className="mt-5 w-full rounded-lg bg-[#1B4332] py-2.5 text-[13px] font-semibold text-white disabled:opacity-50">
+        <button type="submit" disabled={!canSubmit}
+          className="mt-5 w-full rounded-lg bg-[#1B4332] py-2.5 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
           {submitting ? 'Mise à jour…' : 'Définir le nouveau mot de passe'}
         </button>
       </form>

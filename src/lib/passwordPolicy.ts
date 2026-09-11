@@ -74,6 +74,41 @@ export function checkPasswordRules(password: string, policy: PasswordPolicy): st
   return errors
 }
 
+/** Un critère de la politique, avec son état pour l'utilisateur courant. */
+export interface PasswordCriterion {
+  key: string
+  label: string
+  met: boolean
+}
+
+/**
+ * Évalue chaque critère synchrone de la politique pour un mot de passe donné.
+ * Sert à afficher une checklist en temps réel (✓ quand rempli). Le check HIBP
+ * est volontairement absent : il est serveur-only (edge `set-password`).
+ */
+export function evaluatePasswordCriteria(password: string, policy: PasswordPolicy): PasswordCriterion[] {
+  const pw = password ?? ''
+  const criteria: PasswordCriterion[] = [
+    { key: 'length', label: `Au moins ${policy.min_length} caractères`, met: pw.length >= policy.min_length },
+  ]
+  if (policy.require_upper) criteria.push({ key: 'upper', label: 'Au moins une majuscule', met: /[A-Z]/.test(pw) })
+  if (policy.require_lower) criteria.push({ key: 'lower', label: 'Au moins une minuscule', met: /[a-z]/.test(pw) })
+  if (policy.require_digit) criteria.push({ key: 'digit', label: 'Au moins un chiffre', met: /[0-9]/.test(pw) })
+  if (policy.require_symbol) criteria.push({ key: 'symbol', label: 'Au moins un symbole', met: SYMBOL_RE.test(pw) })
+  if (policy.min_unique > 1) {
+    criteria.push({ key: 'unique', label: `Au moins ${policy.min_unique} caractères différents`, met: new Set(pw).size >= policy.min_unique })
+  }
+  if (policy.forbid_common) {
+    criteria.push({ key: 'common', label: 'Pas un mot de passe trop courant', met: pw.length > 0 && !COMMON_PASSWORDS.has(pw.toLowerCase()) })
+  }
+  return criteria
+}
+
+/** Vrai si le mot de passe (non vide) satisfait toutes les règles synchrones. */
+export function passwordMeetsPolicy(password: string, policy: PasswordPolicy): boolean {
+  return (password ?? '').length > 0 && checkPasswordRules(password, policy).length === 0
+}
+
 /** Description lisible des exigences (pour afficher sous le champ). */
 export function describePasswordPolicy(policy: PasswordPolicy): string[] {
   const rules = [`${policy.min_length} caractères minimum`]
