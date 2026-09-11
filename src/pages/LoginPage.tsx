@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../lib/supabase'
+import { invokeEdgeFunction } from '../lib/invokeEdgeFunction'
 import { preAuthEdition } from '../lib/product'
 import { useBranding } from '../features/branding/useBranding'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
@@ -56,11 +56,10 @@ export function LoginPage(): JSX.Element {
   const handleReset = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
     setResetSubmitting(true)
-    // Message neutre quel que soit le résultat (anti-énumération de comptes).
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/set-password`,
-    })
-    if (resetError) console.error('resetPasswordForEmail:', resetError.message)
+    // Envoi via l'edge Resend (lien brandé token_hash), comme les autres flux —
+    // et non le SMTP natif Supabase. Réponse toujours neutre (anti-énumération).
+    const res = await invokeEdgeFunction('request-password-reset', { email: resetEmail.trim().toLowerCase() })
+    if (!res.ok) console.error('request-password-reset:', res.error)
     setResetSubmitting(false)
     setResetSent(true)
   }
