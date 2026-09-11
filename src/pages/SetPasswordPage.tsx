@@ -16,6 +16,14 @@ import { useBranding } from '../features/branding/useBranding'
 import { BrandedBrandPanel } from '../features/branding/BrandedBrandPanel'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 
+/** Lit le token_hash/type de l'URL (lien d'invitation brandé). null si absent. */
+function readUrlToken(): { tokenHash: string; type: EmailOtpType } | null {
+  const params = new URLSearchParams(window.location.search)
+  const tokenHash = params.get('token_hash')
+  const type = params.get('type')
+  return tokenHash && type ? { tokenHash, type: type as EmailOtpType } : null
+}
+
 export function SetPasswordPage(): JSX.Element {
   const navigate = useNavigate()
   const { profile } = useAuth()
@@ -26,8 +34,15 @@ export function SetPasswordPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [sessionReady, setSessionReady] = useState(false)
-  const [linkExpired, setLinkExpired] = useState(false)
+  // Flux brandé : le lien de l'email est `${domaine}/set-password?token_hash=…&type=recovery`.
+  // IMPORTANT : on NE consomme PAS le token au chargement. Le jeton de récupération
+  // est à usage unique, et les scanners de messagerie d'entreprise (Microsoft
+  // Defender / Safe Links…) pré-visitent le lien — un verifyOtp au chargement
+  // l'invaliderait avant le clic humain (« lien invalide ou expiré »). On lit le
+  // token ici (init) pour afficher le formulaire, et on l'échange seulement à la
+  // SOUMISSION (geste humain délibéré) — voir handleSubmit.
+  const [pendingToken, setPendingToken] = useState<{ tokenHash: string; type: EmailOtpType } | null>(readUrlToken)
+  const [sessionReady, setSessionReady] = useState<boolean>(() => readUrlToken() !== null)
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -35,27 +50,8 @@ export function SetPasswordPage(): JSX.Element {
         setSessionReady(true)
       }
     })
-
-    // Flux brandé : le lien de l'email est `${domaine}/set-password?token_hash=…&type=recovery`.
-    // On échange le token_hash contre une session via verifyOtp (équivalent du
-    // endpoint /auth/v1/verify, mais sans exposer le host supabase.co).
-    const params = new URLSearchParams(window.location.search)
-    const tokenHash = params.get('token_hash')
-    const type = params.get('type')
-
-    if (tokenHash && type) {
-      void supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType }).then(({ error }) => {
-        if (error) {
-          console.error('SetPasswordPage verifyOtp:', error.message)
-          setLinkExpired(true)
-          return
-        }
-        setSessionReady(true)
-        // Retire le token de la barre d'adresse / de l'historique.
-        window.history.replaceState(null, '', window.location.pathname)
-      })
-    } else {
-      // Compat : anciens liens (hash access_token) → PASSWORD_RECOVERY / session existante.
+    // Compat : anciens liens (hash access_token) → PASSWORD_RECOVERY / session existante.
+    if (readUrlToken() === null) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) setSessionReady(true)
       })
@@ -78,6 +74,25 @@ export function SetPasswordPage(): JSX.Element {
     }
 
     setSubmitting(true)
+
+    // \u00c9change du token SEULEMENT maintenant (geste humain) : ouvre la session de
+    // r\u00e9cup\u00e9ration juste avant de poser le mot de passe. R\u00e9silient aux scanners.
+    if (pendingToken) {
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        token_hash: pendingToken.tokenHash,
+        type: pendingToken.type,
+      })
+      if (otpError) {
+        console.error('SetPasswordPage verifyOtp:', otpError.message)
+        setError('Ce lien est invalide ou a expir\u00e9. Demandez un nouveau lien \u00e0 votre administrateur.')
+        setSubmitting(false)
+        return
+      }
+      setPendingToken(null)
+      // Retire le token de la barre d'adresse / de l'historique.
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+
     // Passe par l'edge `set-password` : validation politique c\u00f4t\u00e9 serveur + HIBP.
     const res = await invokeEdgeFunction('set-password', { password })
 
@@ -97,9 +112,7 @@ export function SetPasswordPage(): JSX.Element {
     }, 2000)
   }
 
-  const content = linkExpired ? (
-    <SetPasswordExpired />
-  ) : !sessionReady ? (
+  const content = !sessionReady ? (
     <SetPasswordWaiting />
   ) : success ? (
     <SetPasswordSuccess />
@@ -166,23 +179,6 @@ function SetPasswordWaiting(): JSX.Element {
         className="mt-4 inline-block text-[12px] text-[#D4A843]/60 hover:text-[#D4A843]"
       >
         Retour {'\u00e0'} la connexion
-      </a>
-    </div>
-  )
-}
-
-function SetPasswordExpired(): JSX.Element {
-  return (
-    <div className="text-center">
-      <p className="text-[14px] font-semibold text-white/80">Lien invalide ou expiré</p>
-      <p className="mt-2 text-[12px] text-white/40">
-        Ce lien a peut-être déjà été utilisé ou a expiré. Demandez-en un nouveau depuis la page de connexion.
-      </p>
-      <a
-        href="/login"
-        className="mt-4 inline-block text-[12px] text-[#D4A843]/80 hover:text-[#D4A843]"
-      >
-        Retour à la connexion
       </a>
     </div>
   )
