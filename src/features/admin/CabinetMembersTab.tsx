@@ -1,17 +1,20 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Search } from 'lucide-react'
+import { Search, UserPlus } from 'lucide-react'
 import { useCabinetMembersAll, type CabinetMember } from './useCabinetMembersAll'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { AddMemberModal } from './AddMemberModal'
 
 interface Props {
   cabinetId: string
+  cabinetName: string
 }
 
-export function CabinetMembersTab({ cabinetId }: Props) {
-  const { members, loading, error } = useCabinetMembersAll(cabinetId)
+export function CabinetMembersTab({ cabinetId, cabinetName }: Props) {
+  const { members, loading, error, refetch } = useCabinetMembersAll(cabinetId)
   const [search, setSearch] = useState('')
+  const [addOpen, setAddOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -44,6 +47,13 @@ export function CabinetMembersTab({ cabinetId }: Props) {
         </div>
         <span className="text-[11px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold">{activeCount} actifs</span>
         {inactiveCount > 0 && <span className="text-[11px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-semibold">{inactiveCount} inactifs</span>}
+        <button
+          type="button"
+          onClick={() => setAddOpen(true)}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-forest-700 px-3.5 py-2 text-[12.5px] font-semibold text-white hover:bg-forest-900 transition-colors"
+        >
+          <UserPlus size={14} /> Ajouter un membre
+        </button>
       </div>
 
       {filtered.length === 0 ? (
@@ -68,6 +78,14 @@ export function CabinetMembersTab({ cabinetId }: Props) {
           </table>
         </div>
       )}
+
+      <AddMemberModal
+        organizationId={cabinetId}
+        organizationName={cabinetName}
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onAdded={refetch}
+      />
     </div>
   )
 }
