@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { Search } from 'lucide-react'
@@ -10,7 +10,18 @@ import { useToast } from '../../hooks/useToast'
 
 export function UsersSearchPage() {
   const [query, setQuery] = useState('')
-  const { users, loading } = useAdminUsers(query)
+  const { users, loading } = useAdminUsers()
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return users
+    return users.filter((u) =>
+      u.email.toLowerCase().includes(q) ||
+      u.first_name.toLowerCase().includes(q) ||
+      u.last_name.toLowerCase().includes(q) ||
+      (u.organization_name ?? '').toLowerCase().includes(q),
+    )
+  }, [users, query])
   const [actionUser, setActionUser] = useState<AdminUserRow | null>(null)
   const [actionType, setActionType] = useState<'reset_password' | 'toggle_active' | null>(null)
   const [reason, setReason] = useState('')
@@ -47,30 +58,31 @@ export function UsersSearchPage() {
       <div className="flex items-baseline gap-3 mb-1">
         <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> &rsaquo; Utilisateurs</span>
       </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Recherche utilisateur</h1>
-      <p className="text-[12.5px] text-gray-500 mb-5">Recherche cross-cabinet par email, prénom ou nom. Actions safes : réinitialiser le mot de passe, désactiver le compte.</p>
+      <h1 className="text-xl font-bold text-gray-900 mb-1">Utilisateurs</h1>
+      <p className="text-[12.5px] text-gray-500 mb-5">Tous les utilisateurs, cross-cabinet. Filtrez par email, prénom, nom ou organisation. Actions safes : réinitialiser le mot de passe, désactiver le compte.</p>
 
-      <div className="relative max-w-lg mb-6">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Email, nom, prénom (min. 2 caractères)…"
-          className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-full bg-page-bg"
-          autoFocus
-        />
+      <div className="flex items-center gap-3 mb-6">
+        <div className="relative max-w-lg flex-1">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filtrer par email, nom, prénom, organisation…"
+            className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-full bg-page-bg"
+            autoFocus
+          />
+        </div>
+        {!loading && (
+          <span className="text-[11.5px] text-gray-400 whitespace-nowrap">{filtered.length} utilisateur{filtered.length > 1 ? 's' : ''}</span>
+        )}
       </div>
 
       {loading ? (
         <LoadingSpinner />
-      ) : query.trim().length < 2 ? (
+      ) : filtered.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl px-6 py-12 text-center text-[12.5px] text-gray-300">
-          Saisissez au moins 2 caractères pour lancer la recherche.
-        </div>
-      ) : users.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl px-6 py-12 text-center text-[12.5px] text-gray-300">
-          Aucun utilisateur ne correspond.
+          {query.trim() ? 'Aucun utilisateur ne correspond.' : 'Aucun utilisateur.'}
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -86,7 +98,7 @@ export function UsersSearchPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {filtered.map((u) => (
                 <tr key={u.id} className="hover:bg-page-bg">
                   <td className="px-4 py-3 border-b border-gray-100">
                     <div className="flex items-center gap-2.5">
