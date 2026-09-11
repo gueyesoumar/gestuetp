@@ -22,38 +22,29 @@ interface Result {
   refetch: () => void
 }
 
-export function useAdminUsers(query: string): Result {
+export function useAdminUsers(): Result {
   const [users, setUsers] = useState<AdminUserRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
-    const trimmed = query.trim()
-    if (trimmed.length < 2) {
-      setUsers([])
-      setLoading(false)
-      return
-    }
-
     const abort = new AbortController()
-    setLoading(true)
-    setError(null)
 
-    const like = `%${trimmed}%`
+    // Charge tous les utilisateurs (cross-cabinet) ; le filtrage se fait côté page.
     void supabase
       .from('users')
       .select('id, auth_id, email, first_name, last_name, role, is_active, is_platform_owner, last_sign_in_at, organization_id, organizations(name)')
-      .or(`email.ilike.${like},first_name.ilike.${like},last_name.ilike.${like}`)
       .order('last_sign_in_at', { ascending: false, nullsFirst: false })
-      .limit(50)
+      .limit(500)
       .abortSignal(abort.signal)
       .then(({ data, error: queryError }) => {
         if (abort.signal.aborted) return
         if (queryError) {
           console.error('useAdminUsers:', queryError.message)
-          setError('Recherche impossible')
+          setError('Chargement impossible')
         } else {
+          setError(null)
           const rows = (data ?? []) as unknown as Array<Record<string, unknown> & { organizations: { name: string } | null }>
           setUsers(rows.map((r) => ({
             id: r.id as string,
@@ -73,7 +64,7 @@ export function useAdminUsers(query: string): Result {
       })
 
     return () => abort.abort()
-  }, [query, tick])
+  }, [tick])
 
   return { users, loading, error, refetch: useCallback(() => setTick((t) => t + 1), []) }
 }
