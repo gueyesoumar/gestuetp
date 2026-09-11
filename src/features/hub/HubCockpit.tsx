@@ -16,6 +16,7 @@ import { useSelfDimensionScores } from './useSelfDimensionScores'
 import { bandLabel } from './trustBand'
 import { DemoInvite } from '../demo/DemoInvite'
 import { useDemoSandbox } from '../demo/useDemoSandbox'
+import { OnboardingChecklist } from '../onboarding/OnboardingChecklist'
 
 // App-shell du Hub (RFC Hub UX, direction D3 « Lanceur épuré »). Vue par défaut =
 // lanceur (grille produits, entrée directe). Deux vues secondaires réutilisées :
@@ -108,6 +109,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
           products={products} isEnterable={isEnterable} onOpen={onOpen}
           composite={composite} bandLabel={bandLabel(composite)} onPosture={() => setView('self')} portfolio={portfolio}
         />
+        <OnboardingChecklist tone="dark" className="mt-4" />
         {!portfolio && !demo.loading && !demo.hasDemo && <DemoInvite />}
         <PoweredByGestu className="mt-2 shrink-0" />
       </div>
