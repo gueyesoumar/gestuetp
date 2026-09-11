@@ -130,7 +130,7 @@ export function CabinetDetailPage() {
         </>
       )}
 
-      {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} />}
+      {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} cabinetName={cabinet.name} />}
       {activeTab === 'missions' && <CabinetMissionsTab cabinetId={cabinet.id} />}
       {activeTab === 'subscription' && <CabinetSubscriptionTab cabinetId={cabinet.id} />}
       {activeTab === 'whitelabel' && <CabinetWhiteLabelTab cabinetId={cabinet.id} cabinetName={cabinet.name} />}
