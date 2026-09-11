@@ -1,16 +1,17 @@
 // Marque plateforme, resolue PAR INSTANCE via variable d'environnement.
 //
-// Defaut = 'Gëstu Comply' -> Comply ne change RIEN si l'env n'est pas posee.
-// L'instance Regul pose le secret PLATFORM_BRAND_NAME='Gëstu Regul'
+// Defaut = 'Gëstu ETP' (Enterprise Trust Platform) -> la PLATEFORME. Comply,
+// Regul, Risk, Policy... sont des PRODUITS/editions, pas le nom de la plateforme.
+// L'instance/edition Regul peut poser le secret PLATFORM_BRAND_NAME='Gëstu Regul'
 // (et, optionnel, PLATFORM_TAGLINE / RESEND_FROM_EMAIL).
 //
 // IMPORTANT : cette valeur sert A LA FOIS de nom affiche ET de reference du
 // sentinel marque-blanche (isWhiteLabel = cabinetName !== platformBrand()).
 // Toute comparaison marque-blanche doit donc utiliser platformBrand(), jamais
-// une chaine 'Gëstu Comply' en dur.
+// une chaine litterale en dur.
 
 export function platformBrand(): string {
-  return Deno.env.get('PLATFORM_BRAND_NAME') ?? 'Gëstu Comply'
+  return Deno.env.get('PLATFORM_BRAND_NAME') ?? 'Gëstu ETP'
 }
 
 // Sous-titre court (le mot apres "Gëstu") pour l'en-tete du logo email.

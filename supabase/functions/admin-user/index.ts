@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       const result = await sendEmail({
         to: u.email,
         subject: `Réinitialisation de votre mot de passe — ${branding?.cabinetName ?? 'Gëstu Comply'}`,
-        html: passwordResetTemplate({ firstName: u.first_name || u.email, link }),
+        html: passwordResetTemplate({ firstName: u.first_name || u.email, link, branding }),
         from: buildEmailFrom(branding),
         replyTo: branding?.supportEmail ?? undefined,
       })

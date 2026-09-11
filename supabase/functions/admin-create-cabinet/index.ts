@@ -3,6 +3,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
 import { sendEmail } from '../_shared/resend.ts'
 import { cabinetOwnerInviteTemplate } from '../_shared/email-templates/auth.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
  * Edge Function : admin-create-cabinet
@@ -185,6 +186,7 @@ Deno.serve(async (req) => {
           firstName: body.owner_first_name.trim(),
           cabinetName: body.name,
           link,
+          branding: await loadCabinetEmailBranding(admin, orgId),
         }),
       })
       if (sendResult.error) {
