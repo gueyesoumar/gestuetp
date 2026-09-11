@@ -2,6 +2,9 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { cabinetOwnerInviteTemplate } from '../_shared/email-templates/auth.ts'
+import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
+import { loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
  * Edge Function : admin-create-cabinet
@@ -165,7 +168,7 @@ Deno.serve(async (req) => {
     })
 
     // 8. Générer le lien de définition de mot de passe et l'envoyer via Resend
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://app.gestugroup.com'
+    const siteUrl = await resolveCabinetSiteUrl(admin, orgId)
     let invitationSent = false
     // deno-lint-ignore no-explicit-any
     const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
@@ -173,7 +176,9 @@ Deno.serve(async (req) => {
       email: body.owner_email.trim().toLowerCase(),
       options: { redirectTo: `${siteUrl}/set-password` },
     })
-    const link = (linkData as { properties?: { action_link?: string } } | null)?.properties?.action_link ?? null
+    // Lien brandé via token_hash (pas le action_link brut → pas de host supabase.co).
+    const hashedToken = extractHashedToken(linkData)
+    const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
     if (linkError || !link) {
       console.warn('[admin-create-cabinet] generateLink warning:', linkError?.message ?? 'no link returned')
     } else {
@@ -184,6 +189,7 @@ Deno.serve(async (req) => {
           firstName: body.owner_first_name.trim(),
           cabinetName: body.name,
           link,
+          branding: await loadCabinetEmailBranding(admin, orgId),
         }),
       })
       if (sendResult.error) {

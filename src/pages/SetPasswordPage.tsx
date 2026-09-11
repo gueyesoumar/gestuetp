@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
+import type { EmailOtpType } from '@supabase/supabase-js'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { invokeEdgeFunction } from '../lib/invokeEdgeFunction'
@@ -11,10 +12,14 @@ import { VaultBackground } from '../components/vault/VaultBackground'
 import { MorphingShield } from '../components/vault/MorphingShield'
 import { VaultBranding } from '../components/vault/VaultBranding'
 import { SetPasswordForm } from '../components/vault/SetPasswordForm'
+import { useBranding } from '../features/branding/useBranding'
+import { BrandedBrandPanel } from '../features/branding/BrandedBrandPanel'
+import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 
 export function SetPasswordPage(): JSX.Element {
   const navigate = useNavigate()
   const { profile } = useAuth()
+  const { branding } = useBranding()
   const { policy } = usePasswordPolicy()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -22,6 +27,7 @@ export function SetPasswordPage(): JSX.Element {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
+  const [linkExpired, setLinkExpired] = useState(false)
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -29,9 +35,31 @@ export function SetPasswordPage(): JSX.Element {
         setSessionReady(true)
       }
     })
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
-    })
+
+    // Flux brandé : le lien de l'email est `${domaine}/set-password?token_hash=…&type=recovery`.
+    // On échange le token_hash contre une session via verifyOtp (équivalent du
+    // endpoint /auth/v1/verify, mais sans exposer le host supabase.co).
+    const params = new URLSearchParams(window.location.search)
+    const tokenHash = params.get('token_hash')
+    const type = params.get('type')
+
+    if (tokenHash && type) {
+      void supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType }).then(({ error }) => {
+        if (error) {
+          console.error('SetPasswordPage verifyOtp:', error.message)
+          setLinkExpired(true)
+          return
+        }
+        setSessionReady(true)
+        // Retire le token de la barre d'adresse / de l'historique.
+        window.history.replaceState(null, '', window.location.pathname)
+      })
+    } else {
+      // Compat : anciens liens (hash access_token) → PASSWORD_RECOVERY / session existante.
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setSessionReady(true)
+      })
+    }
     return () => subscription.unsubscribe()
   }, [])
 
@@ -69,6 +97,46 @@ export function SetPasswordPage(): JSX.Element {
     }, 2000)
   }
 
+  const content = linkExpired ? (
+    <SetPasswordExpired />
+  ) : !sessionReady ? (
+    <SetPasswordWaiting />
+  ) : success ? (
+    <SetPasswordSuccess />
+  ) : (
+    <SetPasswordForm
+      password={password}
+      confirm={confirm}
+      error={error}
+      submitting={submitting}
+      policy={policy}
+      onPasswordChange={setPassword}
+      onConfirmChange={setConfirm}
+      onSubmit={handleSubmit}
+    />
+  )
+
+  // Domaine cabinet : split brandé (comme le login). Sinon vault Gëstu.
+  if (branding) {
+    return (
+      <div className="flex min-h-screen flex-col lg:flex-row">
+        <BrandedBrandPanel />
+        <div
+          className="flex flex-1 items-center justify-center px-6 py-12 lg:border-l lg:border-white/10"
+          style={{ background: 'var(--color-forest-900, #0f2820)' }}
+        >
+          <div className="w-full max-w-sm">
+            <div className="mb-9 flex justify-center lg:hidden"><BrandedAuthHeader layout="login" /></div>
+            <h3 className="mb-1.5 text-[24px] font-semibold tracking-[-0.3px] text-white">Définir votre mot de passe</h3>
+            <p className="mb-8 text-[13.5px] text-white/55">Choisissez un mot de passe sécurisé pour accéder à votre espace.</p>
+            {content}
+            <PoweredByGestu className="mt-9" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <VaultBackground>
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
@@ -78,22 +146,7 @@ export function SetPasswordPage(): JSX.Element {
         <div className="mb-10">
           <VaultBranding />
         </div>
-
-        {!sessionReady ? (
-          <SetPasswordWaiting />
-        ) : success ? (
-          <SetPasswordSuccess />
-        ) : (
-          <SetPasswordForm
-            password={password}
-            confirm={confirm}
-            error={error}
-            submitting={submitting}
-            onPasswordChange={setPassword}
-            onConfirmChange={setConfirm}
-            onSubmit={handleSubmit}
-          />
-        )}
+        {content}
       </div>
     </VaultBackground>
   )
@@ -113,6 +166,23 @@ function SetPasswordWaiting(): JSX.Element {
         className="mt-4 inline-block text-[12px] text-[#D4A843]/60 hover:text-[#D4A843]"
       >
         Retour {'\u00e0'} la connexion
+      </a>
+    </div>
+  )
+}
+
+function SetPasswordExpired(): JSX.Element {
+  return (
+    <div className="text-center">
+      <p className="text-[14px] font-semibold text-white/80">Lien invalide ou expiré</p>
+      <p className="mt-2 text-[12px] text-white/40">
+        Ce lien a peut-être déjà été utilisé ou a expiré. Demandez-en un nouveau depuis la page de connexion.
+      </p>
+      <a
+        href="/login"
+        className="mt-4 inline-block text-[12px] text-[#D4A843]/80 hover:text-[#D4A843]"
+      >
+        Retour à la connexion
       </a>
     </div>
   )
