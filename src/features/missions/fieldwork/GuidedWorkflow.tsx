@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+import { Coachmark } from '../../../components/ui/Coachmark'
 import { GUIDED_STEPS } from '../mission-constants'
 import { ObserverStep } from './steps/ObserverStep'
 import { DocumenterStep } from './steps/DocumenterStep'
@@ -47,6 +48,9 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
   return (
     <div className="flex flex-col">
       <div className="px-6 pt-4">
+        <Coachmark tipKey="fieldwork.steps" title="Un terrain en 4 étapes" step="Astuce 2/3" className="mb-3">
+          Observer → Documenter → Analyser → Valider. Vous pouvez revenir en arrière à tout moment ; rien n&apos;est soumis avant la dernière étape.
+        </Coachmark>
         <div className="grid grid-cols-4 gap-2 p-3 bg-[#FAFAF8] border border-gray-200 rounded-xl">
           {GUIDED_STEPS.map((step, i) => {
             const isDone = i < currentStep

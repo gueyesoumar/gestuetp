@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FileText, Presentation, FileSpreadsheet } from 'lucide-react'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { Coachmark } from '../../../components/ui/Coachmark'
 
 const FORMATS = [
   { key: 'pdf', label: 'PDF', icon: FileText, premium: false },
@@ -63,6 +64,10 @@ export function ReportGenerator({ missionId, missionName }: Props): JSX.Element 
   return (
     <div>
       <h4 className="text-sm font-bold text-gray-900 mb-3">G&eacute;n&eacute;ration de rapport</h4>
+
+      <Coachmark tipKey="report.generate" title="Rapport automatique" step="Astuce 3/3" className="mb-4">
+        Gëstu compile vos constats, le score et les recommandations. Choisissez le format et le contenu, rien à rédiger à la main.
+      </Coachmark>
 
       {/* Format selector */}
       <div className="mb-4">

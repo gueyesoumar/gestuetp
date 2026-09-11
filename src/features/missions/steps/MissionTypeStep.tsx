@@ -1,4 +1,5 @@
 import type { Framework } from '../../../types/database.types'
+import { Coachmark } from '../../../components/ui/Coachmark'
 
 interface MissionTypeStepProps {
   frameworks: Framework[]
@@ -13,6 +14,10 @@ export function MissionTypeStep({ frameworks, selectedFrameworkId, onSelect }: M
     <div>
       <h3 className="text-lg font-bold text-gray-900">Quel référentiel ?</h3>
       <p className="mt-1 text-[13px] text-gray-500">Sélectionnez le référentiel qui structurera l&apos;évaluation</p>
+
+      <Coachmark tipKey="mission.framework" title="Choisissez le référentiel" step="Astuce 1/3" className="mt-4">
+        Il pilote les contrôles à évaluer (ISO 27001, RGPD, PCI-DSS…). Vous pourrez ajuster le périmètre à l&apos;étape suivante.
+      </Coachmark>
 
       <div className="mt-5 grid grid-cols-2 gap-3.5">
         {active.map((fw) => (
