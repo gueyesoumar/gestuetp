@@ -16,7 +16,7 @@ import { useSelfDimensionScores } from './useSelfDimensionScores'
 import { bandLabel } from './trustBand'
 import { DemoInvite } from '../demo/DemoInvite'
 import { useDemoSandbox } from '../demo/useDemoSandbox'
-import { OnboardingChecklist } from '../onboarding/OnboardingChecklist'
+import { OnboardingProgress } from '../onboarding/OnboardingProgress'
 
 // App-shell du Hub (RFC Hub UX, direction D3 « Lanceur épuré »). Vue par défaut =
 // lanceur (grille produits, entrée directe). Deux vues secondaires réutilisées :
@@ -105,17 +105,17 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
     return (
       <div className="flex h-full w-full flex-col px-6 py-3">
         {topBar}
-        {/* Conteneur défilant : centré verticalement quand le contenu tient dans
-            l'écran (min-h-full + justify-center), qui défile proprement quand la
-            checklist d'onboarding + la démo le rendent plus haut que la fenêtre —
-            évite tout chevauchement du lanceur avec la carte « Prise en main ». */}
+        {/* Onboarding — placement P2 : barre fine épinglée sous la top-bar, qui
+            n'empiète pas sur le lanceur (le centre reste au produit). */}
+        <OnboardingProgress tone="dark" className="mt-1 shrink-0" />
+        {/* Conteneur défilant : le lanceur est centré quand il tient dans l'écran
+            (min-h-full + justify-center), et défile proprement sinon. */}
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="flex min-h-full flex-col justify-center py-2">
             <ProductLauncher
               products={products} isEnterable={isEnterable} onOpen={onOpen}
               composite={composite} bandLabel={bandLabel(composite)} onPosture={() => setView('self')} portfolio={portfolio}
             />
-            <OnboardingChecklist tone="dark" className="mt-4" />
             {!portfolio && !demo.loading && !demo.hasDemo && <DemoInvite />}
           </div>
         </div>
