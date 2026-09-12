@@ -5,7 +5,7 @@ import { useClientMissions } from '../useClientMissions'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { ClientMissionCard } from '../missions/ClientMissionCard'
-import { OnboardingChecklist } from '../../onboarding/OnboardingChecklist'
+import { OnboardingProgress } from '../../onboarding/OnboardingProgress'
 
 interface DashboardKpis {
   activeMissions: number
@@ -89,7 +89,7 @@ export function ClientDashboardPage(): JSX.Element {
         {cabinets.length > 1 ? ` avec ${cabinets.length} cabinets` : ''}
       </p>
 
-      <OnboardingChecklist tone="light" className="mb-6" />
+      <OnboardingProgress tone="light" className="mb-6" />
 
       <div className="grid grid-cols-4 gap-3 mb-6">
         <KpiCard label="Missions actives" value={kpis.activeMissions} color="text-forest-700" />
