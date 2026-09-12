@@ -1,7 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { hashSetupToken } from '../_shared/setup-token.ts'
-import { setUserPassword } from '../_shared/set-user-password.ts'
+import { validateUserPassword, applyUserPassword } from '../_shared/set-user-password.ts'
 
 /**
  * Edge Function PUBLIQUE : set-password-with-token
@@ -48,27 +48,40 @@ Deno.serve(async (req) => {
     // 1. Peek (sans consommer) : jeton non utilisé et non expiré.
     const { data: tok } = await admin
       .from('password_setup_tokens')
-      .select('id, user_id')
+      .select('user_id')
       .eq('token_hash', hash)
       .is('used_at', null)
       .gt('expires_at', nowIso)
       .maybeSingle()
     if (!tok) return json({ error: INVALID }, 400)
-    const tokenId = (tok as { id: string }).id
     const userId = (tok as { user_id: string }).user_id
 
-    // 2. Charger le compte cible.
-    const { data: u } = await admin.from('users').select('auth_id, email').eq('id', userId).single()
-    if (!u) return json({ error: INVALID }, 400)
-    const user = u as { auth_id: string; email: string }
+    // 2. Charger le compte cible (refuser si désactivé — F3).
+    const { data: u } = await admin.from('users').select('auth_id, email, is_active').eq('id', userId).single()
+    const user = u as { auth_id: string; email: string; is_active: boolean } | null
+    if (!user || !user.is_active) return json({ error: INVALID }, 400)
 
-    // 3. Valider + poser le mot de passe (le jeton n'est PAS encore consommé :
-    //    un mdp refusé n'invalide pas le lien).
-    const res = await setUserPassword(admin, user.auth_id, userId, password)
-    if (!res.ok) return json({ error: res.error ?? 'Mot de passe refusé', rules: res.rules ?? [] }, res.status ?? 400)
+    // 3. Valider AVANT de consommer (un mdp refusé ne « brûle » pas le lien).
+    const v = await validateUserPassword(admin, userId, password)
+    if (!v.ok || !v.policy) return json({ error: v.error ?? 'Mot de passe refusé', rules: v.rules ?? [] }, v.status ?? 400)
 
-    // 4. Succès → consommation atomique (anti-rejeu).
-    await admin.from('password_setup_tokens').update({ used_at: nowIso }).eq('id', tokenId).is('used_at', null)
+    // 4. Consommation ATOMIQUE anti-rejeu : on ne pose le mdp que si CE process
+    //    remporte le jeton (used_at passe de NULL → maintenant). Une soumission
+    //    concurrente / un rejeu obtient 0 ligne → INVALID.
+    const { data: claimed, error: claimErr } = await admin
+      .from('password_setup_tokens')
+      .update({ used_at: nowIso })
+      .eq('token_hash', hash)
+      .is('used_at', null)
+      .gt('expires_at', nowIso)
+      .select('user_id')
+      .maybeSingle()
+    if (claimErr) { console.error('[set-password-with-token] claim:', claimErr.message); return json({ error: 'Erreur interne' }, 500) }
+    if (!claimed) return json({ error: INVALID }, 400)
+
+    // 5. Appliquer le mot de passe (déjà validé).
+    const applied = await applyUserPassword(admin, user.auth_id, userId, password, v.policy)
+    if (!applied.ok) return json({ error: applied.error ?? 'Mot de passe refusé' }, applied.status ?? 400)
 
     return json({ ok: true, email: user.email }, 200)
   } catch (err) {

@@ -24,9 +24,9 @@ function readUrlToken(): { tokenHash: string; type: EmailOtpType } | null {
   return tokenHash && type ? { tokenHash, type: type as EmailOtpType } : null
 }
 
-/** Lit le jeton d'invitation maison (setup_token). null si absent. */
+/** Lit le jeton d'invitation maison depuis le FRAGMENT (#setup_token=…). null si absent. */
 function readSetupToken(): string | null {
-  return new URLSearchParams(window.location.search).get('setup_token')
+  return new URLSearchParams(window.location.hash.replace(/^#/, '')).get('setup_token')
 }
 
 export function SetPasswordPage(): JSX.Element {
