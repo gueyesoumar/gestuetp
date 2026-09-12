@@ -88,6 +88,21 @@ Deno.serve(async (req) => {
       .eq('demo_owner_id', ownerId)
     if (ficheErr) console.warn('[delete-demo-data] fiches:', ficheErr.message)
 
+    // 2b. Utilisateurs client de démo (auteurs des observations). Rattachés à l'org
+    //     de démo → supprimés AVANT l'org (users.organization_id la référence). La
+    //     suppression du compte Auth cascade le profil public.users. Les observations
+    //     (observation_by RESTRICT) ont déjà disparu avec les missions (étape 1).
+    for (const orgId of orgIds) {
+      const { data: clientUsers } = await admin
+        .from('users').select('auth_id').eq('organization_id', orgId).eq('role', 'client')
+      for (const u of ((clientUsers ?? []) as Array<{ auth_id: string | null }>)) {
+        if (u.auth_id) {
+          const { error } = await admin.auth.admin.deleteUser(u.auth_id)
+          if (error) console.warn('[delete-demo-data] client user', u.auth_id, error.message)
+        }
+      }
+    }
+
     // 3. Nœuds organisation de démo (best-effort) : arête d'engagement puis nœud.
     //    Si un nœud reste référencé (ne devrait pas hors démo), on ignore l'échec.
     for (const orgId of orgIds) {

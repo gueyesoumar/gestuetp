@@ -274,6 +274,56 @@ async function seedInterview(admin: any, missionId: string, ownerId: string, com
   }
 }
 
+/** Discussion sur un contrôle (onglet Discussion) — commentaire auditeur. */
+// deno-lint-ignore no-explicit-any
+async function seedDiscussion(admin: any, missionId: string, controlId: string, ownerId: string): Promise<void> {
+  try {
+    await admin.from('control_comments').insert([
+      { mission_id: missionId, control_id: controlId, author_id: ownerId, text: 'Preuve reçue et cohérente avec la procédure. Reste à confirmer la fréquence de revue.' },
+      { mission_id: missionId, control_id: controlId, author_id: ownerId, text: 'Point clarifié en entretien : revue trimestrielle effective. Contrôle validé.' },
+    ])
+  } catch (err) {
+    console.warn('[seed-demo-data] seedDiscussion:', err instanceof Error ? err.message : err)
+  }
+}
+
+/**
+ * Observations « du client » sur des évaluations approuvées (onglet Observations
+ * du client). `mode` : 'responded' (2 traitées, pour une mission close cohérente)
+ * ou 'pending' (1 en attente, pour une mission en cours).
+ */
+// deno-lint-ignore no-explicit-any
+async function seedObservations(admin: any, missionId: string, clientUserId: string, ownerId: string, mode: 'responded' | 'pending'): Promise<void> {
+  try {
+    const { data: aps } = await admin
+      .from('control_assessments').select('id').eq('mission_id', missionId).eq('status', 'approved').limit(2)
+    const ids = ((aps ?? []) as Array<{ id: string }>).map((a) => a.id)
+    if (ids.length === 0) return
+    const nowIso = new Date().toISOString()
+    if (mode === 'pending') {
+      await admin.from('assessment_observations').insert({
+        assessment_id: ids[0], observation_by: clientUserId,
+        observation_text: 'Cette exigence relève en partie de notre infogéreur ; pouvez-vous préciser le périmètre attendu ?',
+      })
+    } else {
+      const rows = ids.slice(0, 2).map((aid, i) => ({
+        assessment_id: aid, observation_by: clientUserId,
+        observation_text: i === 0
+          ? 'La preuve fournie couvre la période auditée ; nous confirmons le constat.'
+          : 'Nous proposons de nuancer la formulation du constat pour refléter le plan en cours.',
+        response_text: i === 0
+          ? 'Merci pour la confirmation, le constat est maintenu.'
+          : 'Formulation ajustée pour tenir compte du plan de remédiation.',
+        response_action: i === 0 ? 'kept' : 'modified',
+        response_by: ownerId, response_at: nowIso,
+      }))
+      await admin.from('assessment_observations').insert(rows)
+    }
+  } catch (err) {
+    console.warn('[seed-demo-data] seedObservations:', err instanceof Error ? err.message : err)
+  }
+}
+
 /**
  * Registre de risques de démo (Gëstu Risk) : 2 scénarios rattachés au cabinet,
  * marqués is_demo + demo_owner_id (migration 00239) — exclus du registre/score
@@ -391,6 +441,26 @@ Deno.serve(async (req) => {
     }
     const ficheId = (fiche as { id: string }).id
 
+    // 4b. Utilisateur client de démo (auteur des « observations du client »).
+    //     Email unique NON délivrable, mot de passe aléatoire, aucun email envoyé.
+    //     Supprimé au teardown (delete-demo-data). Variante riche uniquement.
+    let clientUserId: string | null = null
+    if (variant === 'prefilled') {
+      const clientEmail = `demo-client-${crypto.randomUUID()}@teranga-finances.sn`
+      const { data: cu } = await admin.auth.admin.createUser({
+        email: clientEmail, password: crypto.randomUUID(), email_confirm: true,
+        user_metadata: { full_name: 'Awa Diallo', is_client: true },
+      })
+      if (cu?.user) {
+        const { data: cp } = await admin.from('users').insert({
+          auth_id: cu.user.id, organization_id: clientOrgId, email: clientEmail,
+          first_name: 'Awa', last_name: 'Diallo', role: 'client',
+        }).select('id').single()
+        clientUserId = (cp as { id: string } | null)?.id ?? null
+        if (!clientUserId) await admin.auth.admin.deleteUser(cu.user.id)
+      }
+    }
+
     // 5. Missions de démo. Variante 'guided' : une seule mission de cadrage (à
     //    construire, accompagné par le tour). Variante 'prefilled' : les 3 stades.
     const specs = variant === 'prefilled' ? MISSION_SPECS : [MISSION_SPECS[2]]
@@ -452,6 +522,15 @@ Deno.serve(async (req) => {
         // Entretien de démo (terrain + clôture).
         if (spec.status === 'fieldwork' || spec.status === 'closure') {
           await seedInterview(admin, missionId, ownerId, spec.status === 'closure')
+        }
+        // Discussion sur un contrôle (terrain).
+        if (spec.status === 'fieldwork' && picked.length > 0) {
+          await seedDiscussion(admin, missionId, picked[0].id, ownerId)
+        }
+        // Observations « du client » : traitées en clôture, une en attente en terrain.
+        if (clientUserId) {
+          if (spec.status === 'closure') await seedObservations(admin, missionId, clientUserId, ownerId, 'responded')
+          else if (spec.status === 'fieldwork') await seedObservations(admin, missionId, clientUserId, ownerId, 'pending')
         }
         // Rapport généré (clôture) — file_path null : le PDF est régénéré côté client.
         if (spec.status === 'closure') {
