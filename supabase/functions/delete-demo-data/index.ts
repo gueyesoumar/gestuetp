@@ -60,6 +60,17 @@ Deno.serve(async (req) => {
       if (error) console.warn('[delete-demo-data] mission', mid, error.message)
     }
 
+    // 1b. Registre de risques de démo (migration 00239). Les barrières
+    //     (risk_control_links) cascadent avec le scénario. Org-scoped → non couvert
+    //     par la cascade des missions (source_mission_id est SET NULL).
+    const { error: riskErr } = await admin
+      .from('risk_scenarios')
+      .delete()
+      .eq('organization_id', cabinetId)
+      .eq('is_demo', true)
+      .eq('demo_owner_id', ownerId)
+    if (riskErr) console.warn('[delete-demo-data] risk_scenarios:', riskErr.message)
+
     // 2. Fiches de démo de l'appelant.
     const { data: fiches } = await admin
       .from('cabinet_clients')

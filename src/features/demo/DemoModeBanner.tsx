@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GraduationCap, Eye, EyeOff } from 'lucide-react'
+import { GraduationCap, Eye, EyeOff, RefreshCw } from 'lucide-react'
 import { useDemoSandbox } from './useDemoSandbox'
 import { useDemoLens } from './DemoLensContext'
 
@@ -14,11 +14,19 @@ import { useDemoLens } from './DemoLensContext'
  */
 export function DemoModeBanner({ tone = 'light' }: { tone?: 'light' | 'dark' }): JSX.Element | null {
   const navigate = useNavigate()
-  const { hasDemo, loading, teardown, deleting } = useDemoSandbox()
+  const { hasDemo, loading, teardown, deleting, seed, seeding } = useDemoSandbox()
   const { lensOn, setLensOn } = useDemoLens()
   const [exiting, setExiting] = useState(false)
 
   if (loading || !hasDemo) return null
+
+  const regenerate = async (): Promise<void> => {
+    const cleared = await teardown()
+    if (!cleared) return
+    const ok = await seed('prefilled')
+    if (ok) setLensOn(true)
+  }
+  const busy = deleting || seeding
 
   const dark = tone === 'dark'
   const shell = dark
@@ -80,13 +88,25 @@ export function DemoModeBanner({ tone = 'light' }: { tone?: 'light' | 'dark' }):
             </button>
           </>
         ) : (
-          <button
-            type="button"
-            onClick={() => setExiting(true)}
-            className={`rounded-lg border px-3 py-1 text-[11px] font-bold ${dark ? 'border-[rgb(var(--hub-fg)/0.3)] text-[rgb(var(--hub-fg)/0.85)]' : 'border-[#e6bfb2] bg-white text-[#a4472b]'}`}
-          >
-            Quitter la démo
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => void regenerate()}
+              disabled={busy}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold disabled:opacity-50 ${btnGhost}`}
+              title="Supprimer et recréer un espace de démonstration neuf"
+            >
+              <RefreshCw size={12} className={seeding ? 'animate-spin' : ''} />
+              {busy ? 'Régénération…' : 'Régénérer'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setExiting(true)}
+              className={`rounded-lg border px-3 py-1 text-[11px] font-bold ${dark ? 'border-[rgb(var(--hub-fg)/0.3)] text-[rgb(var(--hub-fg)/0.85)]' : 'border-[#e6bfb2] bg-white text-[#a4472b]'}`}
+            >
+              Quitter la démo
+            </button>
+          </>
         )}
       </div>
     </div>

@@ -165,10 +165,11 @@ export function useSelfDimensionScores(): SelfDimensionData {
         axes: DimScore[], factors: FactorScore[], compositePosture: number | null,
         effByControl: Map<string, number>,
       ): Promise<void> => {
+        // Lentille : inclut MES scénarios de démo (migration 00239) quand active.
         const { data: scenarios } = await supabase
           .from('risk_scenarios')
           .select('id, dimension, inherent_likelihood, inherent_impact')
-          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+          .eq('organization_id', orgId).or(demoLensFilter(lensOn, uid)).abortSignal(ctrl.signal)
         if (ctrl.signal.aborted) return
         // Barrières (contrôles liés) par scénario → efficacité propre à chaque scénario.
         const { data: links } = await supabase
