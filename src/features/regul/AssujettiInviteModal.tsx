@@ -23,7 +23,6 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, onClos
   const [inviting, setInviting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [jobTitle, setJobTitle] = useState('')
@@ -67,9 +66,10 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, onClos
       const body = await res.json().catch(() => ({ error: 'Erreur inconnue' }))
       setError((body as { error: string }).error); setInviting(false); return
     }
-    const result = await res.json() as { invite_link?: string }
-    if (result.invite_link) setInviteLink(result.invite_link)
-    setSuccess(`${name.trim()} invité(e). Un email a été envoyé.`)
+    const result = await res.json() as { email_sent?: boolean }
+    setSuccess(result.email_sent
+      ? `${name.trim()} invité(e). Un email de définition de mot de passe a été envoyé.`
+      : `${name.trim()} invité(e). L'email n'a pas pu être envoyé — le contact peut utiliser « Mot de passe oublié » depuis la page de connexion.`)
     setName(''); setEmail(''); setJobTitle('')
     setInviting(false); void fetchData(); onSuccess()
   }
@@ -87,16 +87,6 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, onClos
         <div className="p-5">
           {error && <div className="mb-3"><ErrorAlert message={error} /></div>}
           {success && <div className="mb-3 p-2.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700">&#10003; {success}</div>}
-          {inviteLink && (
-            <div className="mb-3 p-3 bg-gold-50 border border-gold-200 rounded-lg">
-              <p className="text-[10px] font-semibold text-gold-600 mb-1">Lien d&apos;invitation (secours si l&apos;email échoue)</p>
-              <div className="flex gap-2 items-center">
-                <input readOnly value={inviteLink} className="flex-1 text-[10px] text-gray-500 bg-white border border-gray-200 rounded px-2 py-1 outline-none" />
-                <button onClick={() => navigator.clipboard.writeText(inviteLink)} className="text-[10px] font-medium text-forest-700 bg-forest-50 px-2.5 py-1 rounded shrink-0">Copier</button>
-              </div>
-            </div>
-          )}
-
           {loading ? <p className="text-xs text-gray-400 text-center py-6">Chargement...</p> : (
             <>
               {contacts.length > 0 && (
