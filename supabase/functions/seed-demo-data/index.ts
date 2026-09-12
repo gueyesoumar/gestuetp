@@ -460,6 +460,21 @@ Deno.serve(async (req) => {
             file_path: null, generated_by: ownerId,
           })
         }
+
+        // Activité récente (piste d'audit) rattachée à la mission → panneau « Activité récente ».
+        const missionName = `${spec.namePrefix} ${fw.name} — Démo`
+        await logActivity(admin, {
+          organizationId: cabinetId, actorUserId: ownerId,
+          action: 'mission.created', targetType: 'mission', targetId: missionId,
+          targetLabel: missionName, summary: `Mission créée : ${missionName}`,
+        })
+        if (spec.status === 'closure') {
+          await logActivity(admin, {
+            organizationId: cabinetId, actorUserId: ownerId,
+            action: 'mission.closed', targetType: 'mission', targetId: missionId,
+            targetLabel: missionName, summary: 'Mission clôturée et rapport généré.',
+          })
+        }
       }
     }
 

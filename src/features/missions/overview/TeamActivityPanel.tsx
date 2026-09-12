@@ -4,6 +4,7 @@ import { ROLE_LABELS } from '../mission-constants'
 import { useReviewLabels } from '../../organization-settings/useReviewLabels'
 import { useCabinetPermissions } from '../../../hooks/useCabinetPermissions'
 import { TeamManagementModal } from './TeamManagementModal'
+import { useMissionActivity, missionActorName, timeAgo } from './useMissionActivity'
 import type { MissionMemberRow } from '../useMissionDetail'
 
 interface TeamActivityPanelProps {
@@ -16,6 +17,7 @@ export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivit
   const [showManage, setShowManage] = useState(false)
   const { lead, associate } = useReviewLabels()
   const { canAssignTeam } = useCabinetPermissions()
+  const { rows: activity, loading: activityLoading } = useMissionActivity(missionId)
   const roleLabel = (role: string) => role === 'lead_auditor' ? lead : role === 'associate' ? associate : (ROLE_LABELS[role] ?? role)
 
   return (
@@ -43,14 +45,28 @@ export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivit
         </div>
       </div>
 
-      {/* Activity placeholder */}
+      {/* Activit\u00e9 r\u00e9cente \u2014 piste d'audit de la mission (activity_log) */}
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="px-4 py-3 border-b border-gray-200">
-          <span className="text-[13px] font-semibold text-gray-900">Activit{'\u00e9'} r{'\u00e9'}cente</span>
+          <span className="text-[13px] font-semibold text-gray-900">Activit\u00e9 r\u00e9cente</span>
         </div>
-        <div className="px-4 py-6 text-center text-xs text-gray-300">
-          L{'\u2019'}historique d{'\u2019'}activit{'\u00e9'} sera disponible prochainement.
-        </div>
+        {activityLoading ? (
+          <div className="px-4 py-6 text-center text-xs text-gray-300">Chargement\u2026</div>
+        ) : activity.length === 0 ? (
+          <div className="px-4 py-6 text-center text-xs text-gray-300">Aucune activit\u00e9 r\u00e9cente.</div>
+        ) : (
+          <ul>
+            {activity.map((a) => (
+              <li key={a.id} className="flex gap-2.5 px-4 py-2.5 border-b border-gray-50 last:border-b-0">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-forest-500" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] text-gray-700 leading-snug">{a.summary ?? a.action}</p>
+                  <p className="mt-0.5 text-[11px] text-gray-400">{missionActorName(a)} \u00b7 {timeAgo(a.occurred_at)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Team management modal */}
