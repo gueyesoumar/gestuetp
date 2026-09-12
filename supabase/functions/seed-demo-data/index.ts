@@ -55,8 +55,10 @@ interface FindingSpec {
 interface MissionSpec {
   namePrefix: string
   status: 'scoping' | 'fieldwork' | 'internal_review' | 'closure'
-  maxControls: number
-  approvedRatio: number
+  // Fraction des contrôles ÉVALUÉS (0 = cadrage vide, 0.6 = terrain, 1 = clôture 100 %).
+  coverage: number
+  // Clôture : toutes les évaluations sont approuvées (prérequis de close-mission).
+  allApproved: boolean
   startOffset: number
   endOffset: number
   findings: FindingSpec[]
@@ -67,7 +69,7 @@ interface MissionSpec {
 // Trois missions à des stades différents → étendue réaliste + radar renseigné.
 const MISSION_SPECS: MissionSpec[] = [
   {
-    namePrefix: 'Audit', status: 'closure', maxControls: 12, approvedRatio: 0.85,
+    namePrefix: 'Audit', status: 'closure', coverage: 1, allApproved: true,
     startOffset: -90, endOffset: -5,
     findings: [
       { classification: 'strength', priority: null,
@@ -81,7 +83,7 @@ const MISSION_SPECS: MissionSpec[] = [
     carStatusPool: ['verified', 'closed'],
   },
   {
-    namePrefix: 'Contrôle', status: 'fieldwork', maxControls: 9, approvedRatio: 0.55,
+    namePrefix: 'Contrôle', status: 'fieldwork', coverage: 0.6, allApproved: false,
     startOffset: -20, endOffset: 25,
     findings: [
       { classification: 'major_nc', priority: 'high',
@@ -96,7 +98,7 @@ const MISSION_SPECS: MissionSpec[] = [
     carStatusPool: ['open', 'client_responded'],
   },
   {
-    namePrefix: 'Audit', status: 'scoping', maxControls: 0, approvedRatio: 0,
+    namePrefix: 'Audit', status: 'scoping', coverage: 0, allApproved: false,
     startOffset: 5, endOffset: 60, findings: [], carStatusPool: [],
   },
 ]
@@ -108,57 +110,87 @@ const EVIDENCE_NOTES = [
   'Registre à jour ; échantillon de tickets contrôlé.',
 ]
 
+const RISK_POOL = ['high', 'medium', 'medium', 'low', 'critical', 'medium', 'low', 'high']
+const HOURS_POOL = [2, 4, 6, 8, 3, 5]
+
 /**
- * Peuple une mission : évaluations réparties sur les dimensions des contrôles,
- * un mélange approuvé / en revue (pour un radar < 100), preuves datées (assurance),
- * puis quelques constats. Best-effort — ne fait jamais échouer le seed.
+ * Peuple une mission de façon COHÉRENTE avec son stade :
+ *  - affectations (mission_control_assignments) sur TOUS les contrôles ;
+ *  - planning (control_planning) avec un niveau de risque varié (colonne RISQUE) ;
+ *  - évaluations : 100 % approuvées en clôture, mélange réaliste en terrain ;
+ *  - chaîne de validations (assessment_validations) pour chaque évaluation approuvée ;
+ *  - constats + plans d'action (CAR).
+ * Best-effort — ne fait jamais échouer le seed. Renvoie les contrôles évalués
+ * (id + dimension) pour le registre de risques.
  */
-// Renvoie les contrôles évalués (id + dimension) pour permettre au registre de
-// risques de s'appuyer sur des contrôles réellement travaillés (barrières).
 // deno-lint-ignore no-explicit-any
 async function seedMission(admin: any, missionId: string, frameworkId: string, ownerId: string, spec: MissionSpec): Promise<Array<{ id: string; dimension: string | null }>> {
   try {
-    if (spec.maxControls === 0) return []
+    if (spec.coverage <= 0) return [] // cadrage : rien à peupler (état initial)
 
     const { data: domains } = await admin.from('domains').select('id').eq('framework_id', frameworkId)
     const domainIds = ((domains ?? []) as Array<{ id: string }>).map((d) => d.id)
     if (domainIds.length === 0) return []
 
-    // Contrôles + dimension → on étale la couverture sur un maximum de dimensions.
+    // TOUS les contrôles du référentiel (pas de limite) : le programme de travail
+    // complet est affecté + planifié dès que la mission a démarré.
     const { data: ctrls } = await admin
-      .from('controls').select('id, dimension').in('domain_id', domainIds).limit(40)
-    const controls = ((ctrls ?? []) as Array<{ id: string; dimension: string | null }>)
+      .from('controls').select('id, dimension, domain_id').in('domain_id', domainIds)
+    const controls = ((ctrls ?? []) as Array<{ id: string; dimension: string | null; domain_id: string }>)
     if (controls.length === 0) return []
     const dimById = new Map(controls.map((c) => [c.id, c.dimension]))
+    const allIds = controls.map((c) => c.id)
 
-    // Regrouper par dimension puis prendre en round-robin pour couvrir large.
-    const byDim = new Map<string, string[]>()
-    for (const c of controls) {
-      const k = c.dimension ?? '_'
-      const arr = byDim.get(k) ?? []
-      arr.push(c.id); byDim.set(k, arr)
-    }
-    const picked: string[] = []
-    const buckets = [...byDim.values()]
-    let i = 0
-    while (picked.length < spec.maxControls && buckets.some((b) => b.length > 0)) {
-      const b = buckets[i % buckets.length]
+    // Affectations : tout le programme est affecté au chef de mission.
+    await admin.from('mission_control_assignments').upsert(
+      allIds.map((cid) => ({ mission_id: missionId, control_id: cid, auditor_id: ownerId })),
+      { onConflict: 'mission_id,control_id' },
+    )
+
+    // Planning : niveau de risque varié (sinon la colonne RISQUE affiche « Moyen »
+    // par défaut) + charge estimée.
+    await admin.from('control_planning').upsert(
+      allIds.map((cid, idx) => ({
+        mission_id: missionId, control_id: cid,
+        risk_level: RISK_POOL[idx % RISK_POOL.length],
+        estimated_hours: HOURS_POOL[idx % HOURS_POOL.length],
+      })),
+      { onConflict: 'mission_id,control_id' },
+    )
+
+    // Couverture des ÉVALUATIONS : round-robin par domaine pour étaler la progression.
+    const byDomain = new Map<string, string[]>()
+    for (const c of controls) { const a = byDomain.get(c.domain_id) ?? []; a.push(c.id); byDomain.set(c.domain_id, a) }
+    const targetCount = Math.max(1, Math.round(controls.length * spec.coverage))
+    const covered: string[] = []
+    const buckets = [...byDomain.values()]
+    let bi = 0
+    while (covered.length < targetCount && buckets.some((b) => b.length > 0)) {
+      const b = buckets[bi % buckets.length]
       const id = b.shift()
-      if (id) picked.push(id)
-      i++
+      if (id) covered.push(id)
+      bi++
     }
-    if (picked.length === 0) return []
 
-    const approvedCount = Math.max(1, Math.round(picked.length * spec.approvedRatio))
-    const rows = picked.map((cid, idx) => {
-      const approved = idx < approvedCount
+    // Statut + conformité par évaluation. Clôture : tout approuvé. Terrain : mélange
+    // réaliste (approuvé / en revue / soumis / brouillon-en-cours).
+    const rows = covered.map((cid, idx) => {
+      let status: string, conformity: string, withEvidence: boolean
+      if (spec.allApproved) {
+        status = 'approved'
+        conformity = idx % 6 === 0 ? 'pc' : idx % 3 === 0 ? 'lc' : 'c'
+        withEvidence = true
+      } else {
+        const m = idx % 20
+        if (m < 9) { status = 'approved'; conformity = idx % 3 === 0 ? 'lc' : 'c'; withEvidence = true }
+        else if (m < 14) { status = 'in_review'; conformity = 'pc'; withEvidence = true }
+        else if (m < 17) { status = 'submitted'; conformity = 'lc'; withEvidence = true }
+        else { status = 'draft'; conformity = 'pc'; withEvidence = true } // draft + notes → « En cours »
+      }
       return {
-        mission_id: missionId,
-        control_id: cid,
-        auditor_id: ownerId,
-        status: approved ? 'approved' : 'in_review',
-        conformity_level: approved ? (idx % 4 === 0 ? 'lc' : 'c') : 'pc',
-        evidence_notes: approved ? EVIDENCE_NOTES[idx % EVIDENCE_NOTES.length] : null,
+        mission_id: missionId, control_id: cid, auditor_id: ownerId,
+        status, conformity_level: conformity,
+        evidence_notes: withEvidence ? EVIDENCE_NOTES[idx % EVIDENCE_NOTES.length] : null,
       }
     })
 
@@ -166,8 +198,18 @@ async function seedMission(admin: any, missionId: string, frameworkId: string, o
       .from('control_assessments')
       .upsert(rows, { onConflict: 'mission_id,control_id' })
       .select('id, status')
-    const approvedIds = ((inserted ?? []) as Array<{ id: string; status: string }>)
-      .filter((a) => a.status === 'approved').map((a) => a.id)
+    const insertedRows = (inserted ?? []) as Array<{ id: string; status: string }>
+    const approvedIds = insertedRows.filter((a) => a.status === 'approved').map((a) => a.id)
+
+    // Chaîne de validations pour chaque évaluation approuvée (onglet Validation).
+    if (approvedIds.length > 0) {
+      const stages: string[] = ['auditor_submitted', 'lead_review', 'associate_review']
+      if (spec.status === 'closure') stages.push('client_review')
+      const valRows = approvedIds.flatMap((aid) =>
+        stages.map((stage) => ({ assessment_id: aid, stage, decision: 'approved', validated_by: ownerId })),
+      )
+      await admin.from('assessment_validations').insert(valRows)
+    }
 
     // Constats sur les premières évaluations approuvées.
     if (approvedIds.length > 0 && spec.findings.length > 0) {
@@ -201,10 +243,34 @@ async function seedMission(admin: any, missionId: string, frameworkId: string, o
       }
     }
 
-    return picked.map((id) => ({ id, dimension: dimById.get(id) ?? null }))
+    return covered.map((id) => ({ id, dimension: dimById.get(id) ?? null }))
   } catch (err) {
     console.warn('[seed-demo-data] seedMission:', err instanceof Error ? err.message : err)
     return []
+  }
+}
+
+/**
+ * Contact client + entretien de démo pour une mission (onglet Entretiens + partie
+ * planification). Rattachés à la mission → nettoyés en cascade.
+ */
+// deno-lint-ignore no-explicit-any
+async function seedInterview(admin: any, missionId: string, ownerId: string, completed: boolean): Promise<void> {
+  try {
+    const { data: contact } = await admin.from('client_contacts').insert({
+      mission_id: missionId, name: 'Awa Diallo', job_title: 'RSSI', department: 'Sécurité des SI',
+      email: 'awa.diallo@teranga-finances.sn', is_primary: true,
+    }).select('id').single()
+    const contactId = (contact as { id: string } | null)?.id
+    if (!contactId) return
+    await admin.from('interview_schedules').insert({
+      mission_id: missionId, contact_id: contactId, auditor_id: ownerId,
+      title: 'Entretien de cadrage — RSSI', scheduled_date: isoDate(completed ? -30 : 3),
+      duration_minutes: 60, location: 'Visioconférence',
+      status: completed ? 'completed' : 'scheduled',
+    })
+  } catch (err) {
+    console.warn('[seed-demo-data] seedInterview:', err instanceof Error ? err.message : err)
   }
 }
 
@@ -332,9 +398,22 @@ Deno.serve(async (req) => {
     let riskControls: Array<{ id: string; dimension: string | null }> = []
     let riskMissionId: string | null = null
 
-    const { data: fws } = await admin
-      .from('frameworks').select('id, name').eq('is_active', true).order('name').limit(3)
-    const frameworks = ((fws ?? []) as Array<{ id: string; name: string }>)
+    // Référentiels actifs triés par TAILLE croissante : la mission clôturée (spec 0)
+    // prend le plus COURT pour être évaluée à 100 % sans volumétrie démesurée.
+    const { data: fwsRaw } = await admin.from('frameworks').select('id, name').eq('is_active', true)
+    const withCounts: Array<{ id: string; name: string; count: number }> = []
+    for (const fw of ((fwsRaw ?? []) as Array<{ id: string; name: string }>)) {
+      const { data: doms } = await admin.from('domains').select('id').eq('framework_id', fw.id)
+      const dIds = ((doms ?? []) as Array<{ id: string }>).map((d) => d.id)
+      let count = 0
+      if (dIds.length > 0) {
+        const { count: c } = await admin.from('controls').select('id', { count: 'exact', head: true }).in('domain_id', dIds)
+        count = c ?? 0
+      }
+      if (count > 0) withCounts.push({ ...fw, count })
+    }
+    withCounts.sort((a, b) => a.count - b.count)
+    const frameworks = withCounts
 
     if (frameworks.length > 0) {
       for (let idx = 0; idx < specs.length; idx++) {
@@ -369,6 +448,18 @@ Deno.serve(async (req) => {
         const picked = await seedMission(admin, missionId, fw.id, ownerId, spec)
         // Le registre de risques s'appuie sur la 1re mission peuplée (contrôles évalués).
         if (picked.length > 0 && riskControls.length === 0) { riskControls = picked; riskMissionId = missionId }
+
+        // Entretien de démo (terrain + clôture).
+        if (spec.status === 'fieldwork' || spec.status === 'closure') {
+          await seedInterview(admin, missionId, ownerId, spec.status === 'closure')
+        }
+        // Rapport généré (clôture) — file_path null : le PDF est régénéré côté client.
+        if (spec.status === 'closure') {
+          await admin.from('reports').insert({
+            mission_id: missionId, format: 'pdf', status: 'ready', version: 1,
+            file_path: null, generated_by: ownerId,
+          })
+        }
       }
     }
 
