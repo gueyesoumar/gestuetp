@@ -3,7 +3,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
 import { sendEmail } from '../_shared/resend.ts'
 import { cabinetOwnerInviteTemplate } from '../_shared/email-templates/auth.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
-import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
@@ -167,24 +167,17 @@ Deno.serve(async (req) => {
       assigned_by: owner.id,
     })
 
-    // 8. Générer le lien de définition de mot de passe et l'envoyer via Resend
+    // 8. Générer le lien de définition de mot de passe (jeton maison, 24 h) + Resend
     const siteUrl = await resolveCabinetSiteUrl(admin, orgId)
     let invitationSent = false
-    // deno-lint-ignore no-explicit-any
-    const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
-      type: 'recovery',
-      email: body.owner_email.trim().toLowerCase(),
-      options: { redirectTo: `${siteUrl}/set-password` },
-    })
-    // Lien brandé via token_hash (pas le action_link brut → pas de host supabase.co).
-    const hashedToken = extractHashedToken(linkData)
-    const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
-    if (linkError || !link) {
-      console.warn('[admin-create-cabinet] generateLink warning:', linkError?.message ?? 'no link returned')
+    const tokenRes = await createSetupToken(admin, { userId: ownerProfileId, purpose: 'invite', ttlHours: 24, createdBy: owner.id })
+    const link = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
+    if (!link) {
+      console.warn('[admin-create-cabinet] token warning:', 'error' in tokenRes ? tokenRes.error : 'no token')
     } else {
       const sendResult = await sendEmail({
         to: body.owner_email.trim().toLowerCase(),
-        subject: `Bienvenue sur Gëstu Comply — ${body.name}`,
+        subject: `Bienvenue sur Gëstu ETP — ${body.name}`,
         html: cabinetOwnerInviteTemplate({
           firstName: body.owner_first_name.trim(),
           cabinetName: body.name,

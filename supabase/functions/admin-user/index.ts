@@ -4,7 +4,7 @@ import { sendEmail } from '../_shared/resend.ts'
 import { passwordResetTemplate } from '../_shared/email-templates/auth.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
-import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 
 /**
  * Edge Function : admin-user
@@ -55,24 +55,18 @@ Deno.serve(async (req) => {
 
     if (body.action === 'reset_password') {
       const siteUrl = await resolveCabinetSiteUrl(admin, u.organization_id)
-      // deno-lint-ignore no-explicit-any
-      const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
-        type: 'recovery',
-        email: u.email,
-        options: { redirectTo: `${siteUrl}/set-password` },
-      })
-      // Lien brandé via token_hash (pas le action_link brut → pas de host supabase.co).
-      const hashedToken = extractHashedToken(linkData)
-      const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
-      if (linkError || !link) {
-        console.error('[admin-user] reset_password generateLink error:', linkError?.message ?? 'no link returned')
+      // Jeton maison (reset, 1 h) — consommé uniquement à la soumission (anti-scanner).
+      const tokenRes = await createSetupToken(admin, { userId: u.id, purpose: 'reset', ttlHours: 1, createdBy: owner.id })
+      if ('error' in tokenRes) {
+        console.error('[admin-user] reset_password token error:', tokenRes.error)
         return jsonResponse({ error: 'Génération du lien de réinitialisation impossible' }, 500)
       }
+      const link = buildSetupLink(siteUrl, tokenRes.raw)
 
       const branding = await loadCabinetEmailBranding(admin, u.organization_id)
       const result = await sendEmail({
         to: u.email,
-        subject: `Réinitialisation de votre mot de passe — ${branding?.cabinetName ?? 'Gëstu Comply'}`,
+        subject: `Réinitialisation de votre mot de passe — ${branding?.cabinetName ?? 'Gëstu ETP'}`,
         html: passwordResetTemplate({ firstName: u.first_name || u.email, link, branding }),
         from: buildEmailFrom(branding),
         replyTo: branding?.supportEmail ?? undefined,
