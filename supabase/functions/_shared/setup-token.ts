@@ -20,10 +20,15 @@ export async function hashSetupToken(raw: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-/** Lien brandé de définition de mot de passe (jeton base64url → pas d'encodage requis). */
+/**
+ * Lien brandé de définition de mot de passe. Le jeton est placé dans le FRAGMENT
+ * (#) : il n'est PAS envoyé au serveur (pas dans les logs d'accès) ni via l'en-tête
+ * Referer vers des sous-ressources tierces — lu uniquement côté client.
+ * (base64url → URL-safe, pas d'encodage requis.)
+ */
 export function buildSetupLink(siteUrl: string, rawToken: string): string {
   const base = siteUrl.replace(/\/+$/, '')
-  return `${base}/set-password?setup_token=${rawToken}`
+  return `${base}/set-password#setup_token=${rawToken}`
 }
 
 /**
