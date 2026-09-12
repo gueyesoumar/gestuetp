@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useFeatureFlag } from '../../hooks/useFeatureFlag'
+import { useDemoLens, demoLensFilter } from '../demo/DemoLensContext'
 import {
   SCORE_DIMENSION_KEYS, SCORE_DIMENSION_KIND, type ScoreDimensionKey,
   SCORE_FACTOR_WEIGHTS, SCORE_COEFFICIENT_FLOOR, ASSURANCE_FRESHNESS_MONTHS,
@@ -144,6 +145,8 @@ function toFactorScore(
 
 export function useSelfDimensionScores(): SelfDimensionData {
   const { profile } = useAuth()
+  const { lensOn } = useDemoLens()
+  const uid = profile?.id ?? null
   const { enabled: riskImpact } = useFeatureFlag('risk_score_impact')
   const { enabled: policyImpact } = useFeatureFlag('policy_score_impact')
   const [data, setData] = useState<SelfDimensionData>({ ...EMPTY, loading: true })
@@ -162,10 +165,11 @@ export function useSelfDimensionScores(): SelfDimensionData {
         axes: DimScore[], factors: FactorScore[], compositePosture: number | null,
         effByControl: Map<string, number>,
       ): Promise<void> => {
+        // Lentille : inclut MES scénarios de démo (migration 00239) quand active.
         const { data: scenarios } = await supabase
           .from('risk_scenarios')
           .select('id, dimension, inherent_likelihood, inherent_impact')
-          .eq('organization_id', orgId).abortSignal(ctrl.signal)
+          .eq('organization_id', orgId).or(demoLensFilter(lensOn, uid)).abortSignal(ctrl.signal)
         if (ctrl.signal.aborted) return
         // Barrières (contrôles liés) par scénario → efficacité propre à chaque scénario.
         const { data: links } = await supabase
@@ -347,8 +351,10 @@ export function useSelfDimensionScores(): SelfDimensionData {
         })
       }
 
+      // Lentille démo : inclut MES missions de démo quand elle est active.
       const { data: missions, error: mErr } = await supabase
-        .from('missions').select('id').eq('cabinet_id', orgId).eq('is_active', true).eq('is_demo', false).abortSignal(ctrl.signal)
+        .from('missions').select('id').eq('cabinet_id', orgId).eq('is_active', true)
+        .or(demoLensFilter(lensOn, uid)).abortSignal(ctrl.signal)
       if (ctrl.signal.aborted) return
       if (mErr) { console.error('dimension scores missions:', mErr.message); setData(EMPTY); return }
 
@@ -454,7 +460,7 @@ export function useSelfDimensionScores(): SelfDimensionData {
     })()
 
     return () => ctrl.abort()
-  }, [profile?.organization_id, riskImpact, policyImpact])
+  }, [profile?.organization_id, uid, lensOn, riskImpact, policyImpact])
 
   return data
 }

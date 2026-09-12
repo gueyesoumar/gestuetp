@@ -5,7 +5,6 @@ import { Badge } from '../components/ui/Badge'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import { EmptyState } from '../components/ui/EmptyState'
-import { DemoModeBanner } from '../features/demo/DemoModeBanner'
 
 export function ClientsListPage() {
   const { clients, loading, error } = useCabinetClients()
@@ -16,7 +15,6 @@ export function ClientsListPage() {
 
   return (
     <div>
-      <DemoModeBanner />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Clients</h2>

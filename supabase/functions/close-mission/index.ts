@@ -2,6 +2,44 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 
+// Scoring de conformité (lecture seule) : score pondéré (c=100, lc=75, pc=50,
+// nc=0 ; na/null exclus) + ventilation par domaine. Extrait pour être réutilisé
+// à la clôture ET lors d'un rechargement idempotent d'une mission déjà clôturée.
+// deno-lint-ignore no-explicit-any
+function computeScoring(assessments: any[], domains: any[], controls: any[], closedById: string) {
+  const total = assessments.length
+  const approved = assessments.filter((a) => a.status === 'approved').length
+  const rejected = assessments.filter((a) => a.status === 'rejected').length
+  const pending = total - approved - rejected
+  const conformes = assessments.filter((a) => a.conformity_level === 'c').length
+  const partiels = assessments.filter((a) => a.conformity_level === 'lc' || a.conformity_level === 'pc').length
+  const nonConformes = assessments.filter((a) => a.conformity_level === 'nc').length
+  const nonApplicables = assessments.filter((a) => a.conformity_level === 'na').length
+  const weightOf = (level: string | null | undefined): number | null => {
+    switch (level) { case 'c': return 100; case 'lc': return 75; case 'pc': return 50; case 'nc': return 0; default: return null }
+  }
+  let scoreSum = 0, scoreCount = 0
+  for (const a of assessments) { const w = weightOf(a.conformity_level); if (w !== null) { scoreSum += w; scoreCount += 1 } }
+  const conformityScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0
+  const byControl = new Map(assessments.map((a) => [a.control_id, a.conformity_level as string | null]))
+  const domainScores = domains.map((domain) => {
+    const dControls = controls.filter((c) => c.domain_id === domain.id)
+    let dSum = 0, dCount = 0, dConformes = 0
+    for (const c of dControls) {
+      const w = weightOf(byControl.get(c.id))
+      if (w !== null) { dSum += w; dCount += 1 }
+      if (byControl.get(c.id) === 'c') dConformes += 1
+    }
+    return { domain_code: domain.code, domain_name: domain.name, total: dControls.length, approved: dConformes, score: dCount > 0 ? Math.round(dSum / dCount) : 0 }
+  })
+  return {
+    conformity_score: conformityScore, total_controls: total, approved_controls: approved,
+    rejected_controls: rejected, pending_controls: pending, conformes, partiels,
+    non_conformes: nonConformes, non_applicables: nonApplicables, domain_scores: domainScores,
+    closed_at: new Date().toISOString(), closed_by: closedById,
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -86,15 +124,28 @@ Deno.serve(async (req) => {
     const rejected = assessments?.filter((a) => a.status === 'rejected').length ?? 0
     const pending = total - approved - rejected
 
-    // Préconditions de clôture (constat E4) : empêcher de fabriquer un rapport de
-    // conformité en sautant la revue. Pas de re-clôture, et 100 % des évaluations
-    // doivent être approuvées (aucune en attente ni rejetée).
+    // Domaines + contrôles (lecture seule) pour le scoring par domaine.
+    const { data: domains } = await supabaseAdmin
+      .from('domains').select('id, code, name').eq('framework_id', mission.framework_id).order('sort_order')
+    const { data: controls } = await supabaseAdmin
+      .from('controls').select('id, domain_id').in('domain_id', (domains ?? []).map((d) => d.id))
+
+    // Mission déjà clôturée : IDEMPOTENT — on recalcule et renvoie le scoring sans
+    // rien modifier (permet à l'onglet Clôture de recharger la carte de score, et
+    // aux missions de démo en état « closure » de s'afficher pleinement).
     if (mission.status === 'closure') {
+      const scoring = computeScoring(assessments ?? [], domains ?? [], controls ?? [], callerProfile.id)
+      const { data: existing } = await supabaseAdmin
+        .from('reports').select('id').eq('mission_id', mission_id)
+        .order('created_at', { ascending: false }).limit(1).maybeSingle()
       return new Response(
-        JSON.stringify({ error: 'Mission déjà clôturée' }),
-        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: true, already_closed: true, report_id: (existing as { id: string } | null)?.id ?? null, scoring }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // Préconditions de clôture (constat E4) : empêcher de fabriquer un rapport de
+    // conformité en sautant la revue. 100 % des évaluations doivent être approuvées.
     if (total === 0) {
       return new Response(
         JSON.stringify({ error: 'Aucune évaluation à clôturer' }),
@@ -108,85 +159,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Compteurs de conformité (level), c'est ce qui est affiché en démo client
-    const conformes = assessments?.filter((a) => a.conformity_level === 'c').length ?? 0
-    const partiels = assessments?.filter((a) => a.conformity_level === 'lc' || a.conformity_level === 'pc').length ?? 0
-    const nonConformes = assessments?.filter((a) => a.conformity_level === 'nc').length ?? 0
-    const nonApplicables = assessments?.filter((a) => a.conformity_level === 'na').length ?? 0
-
-    // Score de conformité pondéré (c=100, lc=75, pc=50, nc=0). NA et
-    // assessments sans conformity_level sont exclus des deux côtés du ratio.
-    const weightOf = (level: string | null | undefined): number | null => {
-      switch (level) {
-        case 'c':  return 100
-        case 'lc': return 75
-        case 'pc': return 50
-        case 'nc': return 0
-        default:   return null
-      }
-    }
-    let scoreSum = 0
-    let scoreCount = 0
-    for (const a of assessments ?? []) {
-      const w = weightOf(a.conformity_level as string | null | undefined)
-      if (w !== null) { scoreSum += w; scoreCount += 1 }
-    }
-    const conformityScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0
-
-    // Charger les domaines pour le scoring par domaine
-    const { data: domains } = await supabaseAdmin
-      .from('domains')
-      .select('id, code, name')
-      .eq('framework_id', mission.framework_id)
-      .order('sort_order')
-
-    const { data: controls } = await supabaseAdmin
-      .from('controls')
-      .select('id, domain_id')
-      .in('domain_id', (domains ?? []).map((d) => d.id))
-
-    const assessmentByControl = new Map(
-      (assessments ?? []).map((a) => [a.control_id, a.conformity_level as string | null]),
-    )
-
-    const domainScores = (domains ?? []).map((domain) => {
-      const domainControls = (controls ?? []).filter((c) => c.domain_id === domain.id)
-      const domainTotal = domainControls.length
-      let dSum = 0
-      let dCount = 0
-      let dConformes = 0
-      for (const c of domainControls) {
-        const w = weightOf(assessmentByControl.get(c.id))
-        if (w !== null) { dSum += w; dCount += 1 }
-        if (assessmentByControl.get(c.id) === 'c') dConformes += 1
-      }
-      const score = dCount > 0 ? Math.round(dSum / dCount) : 0
-      return {
-        domain_code: domain.code,
-        domain_name: domain.name,
-        total: domainTotal,
-        approved: dConformes, // pour rétrocompat : `approved` = conformes côté domaine
-        score,
-      }
-    })
-
-    // Créer le rapport. On conserve approved/rejected/pending pour ne pas
-    // casser d'éventuels consommateurs historiques, et on ajoute les vrais
-    // compteurs de conformité (consommés par MissionClosureTab).
-    const reportData = {
-      conformity_score: conformityScore,
-      total_controls: total,
-      approved_controls: approved,
-      rejected_controls: rejected,
-      pending_controls: pending,
-      conformes,
-      partiels,
-      non_conformes: nonConformes,
-      non_applicables: nonApplicables,
-      domain_scores: domainScores,
-      closed_at: new Date().toISOString(),
-      closed_by: callerProfile.id,
-    }
+    // Scoring (score pondéré + ventilation par domaine), consommé par MissionClosureTab.
+    const reportData = computeScoring(assessments ?? [], domains ?? [], controls ?? [], callerProfile.id)
 
     const { data: report, error: reportError } = await supabaseAdmin
       .from('reports')
