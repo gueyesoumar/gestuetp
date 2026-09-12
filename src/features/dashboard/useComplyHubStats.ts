@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useDemoLens, demoLensFilter } from '../demo/DemoLensContext'
 
 /**
  * Stats résumées affichées sur la carte Comply du Hub :
@@ -28,6 +29,8 @@ const EMPTY: ComplyHubStats = { activeMissions: 0, totalControls: 0, conformityS
 
 export function useComplyHubStats(): UseComplyHubStatsResult {
   const { profile } = useAuth()
+  const { lensOn } = useDemoLens()
+  const uid = profile?.id ?? null
   const [stats, setStats] = useState<ComplyHubStats>(EMPTY)
   const [loading, setLoading] = useState(true)
 
@@ -45,7 +48,7 @@ export function useComplyHubStats(): UseComplyHubStatsResult {
         .select('id, status')
         .eq('cabinet_id', profile.organization_id)
         .eq('is_active', true)
-        .eq('is_demo', false) // exclut le bac à sable du score
+        .or(demoLensFilter(lensOn, uid)) // lentille : inclut ma démo si active
         .abortSignal(ctrl.signal)
 
       if (ctrl.signal.aborted) return
@@ -90,7 +93,7 @@ export function useComplyHubStats(): UseComplyHubStatsResult {
     })()
 
     return () => ctrl.abort()
-  }, [profile?.organization_id])
+  }, [profile?.organization_id, uid, lensOn])
 
   return { stats, loading }
 }
