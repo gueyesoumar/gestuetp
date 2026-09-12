@@ -29,7 +29,7 @@ export function ProductLauncher({
   const available = products.filter((p) => !isEnterable(p))
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-8 px-4 py-6">
+    <div className="flex w-full flex-col items-center gap-8 px-4 py-6">
       {/* posture compacte */}
       <div className="flex flex-col items-center gap-4">
         <div className="inline-flex items-center gap-3 rounded-full border border-[rgb(var(--hub-fg)/0.12)] bg-[rgb(var(--hub-fg)/0.04)] px-[18px] py-[9px]">
