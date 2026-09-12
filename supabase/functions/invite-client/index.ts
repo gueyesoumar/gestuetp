@@ -99,7 +99,11 @@ Deno.serve(async (req) => {
     let contactId: string
     let userId: string | null = null
     let isNewUser = false
+    // Le lien de mot de passe (jeton maison) sert UNIQUEMENT à composer l'email :
+    // il n'est jamais renvoyé dans la réponse HTTP (séparation des tâches — un
+    // auditeur ne doit pas pouvoir récupérer le jeton du client et poser son mdp).
     let inviteLink: string | null = null
+    let emailSent = false
 
     if (existingContacts && existingContacts.length > 0) {
       // Contact existe déjà
@@ -169,7 +173,8 @@ Deno.serve(async (req) => {
         if (createError) {
           console.error('[invite-client] createUser:', createError.message)
           return new Response(
-            JSON.stringify({ error: createError.message.includes('already been registered') ? 'Cet email est déjà utilisé' : 'Erreur lors de la création du compte' }),
+            // Message neutre : ne pas confirmer l'existence d'un compte (anti-énumération inter-tenant).
+            JSON.stringify({ error: 'Impossible de créer un compte avec cette adresse email.' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
@@ -272,6 +277,7 @@ Deno.serve(async (req) => {
       if (emailResult.error) {
         console.error('[invite-client] email error:', emailResult.error)
       } else {
+        emailSent = true
         console.log('[invite-client] email sent:', emailResult.id)
       }
     }
@@ -289,7 +295,7 @@ Deno.serve(async (req) => {
         contact_id: contactId,
         user_id: userId,
         is_new_user: isNewUser,
-        invite_link: inviteLink,
+        email_sent: emailSent,
       }),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

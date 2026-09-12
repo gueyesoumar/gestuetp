@@ -109,7 +109,10 @@ Deno.serve(async (req) => {
     let contactId: string
     let userId: string | null = null
     let isNewUser = false
+    // Lien de mot de passe (jeton maison) : sert UNIQUEMENT à composer l'email,
+    // jamais renvoyé dans la réponse HTTP (séparation des tâches — voir invite-client).
     let inviteLink: string | null = null
+    let emailSent = false
 
     if (existingContacts && existingContacts.length > 0) {
       contactId = existingContacts[0].id
@@ -156,7 +159,8 @@ Deno.serve(async (req) => {
         })
         if (createError) {
           console.error('[invite-assujetti] createUser:', createError.message)
-          return json({ error: createError.message.includes('already been registered') ? 'Cet email est déjà utilisé' : 'Erreur lors de la création du compte' }, 400)
+          // Message neutre : ne pas confirmer l'existence d'un compte (anti-énumération inter-tenant).
+          return json({ error: 'Impossible de créer un compte avec cette adresse email.' }, 400)
         }
 
         const nameParts = contact_name.trim().split(/\s+/)
@@ -231,6 +235,7 @@ Deno.serve(async (req) => {
         replyTo: branding?.supportEmail ?? undefined,
       })
       if (emailResult.error) console.error('[invite-assujetti] email error:', emailResult.error)
+      else emailSent = true
     }
 
     await logActivity(admin, {
@@ -240,7 +245,7 @@ Deno.serve(async (req) => {
       summary: `Accès portail assujetti accordé : ${contact_name}`,
     })
 
-    return json({ success: true, contact_id: contactId, user_id: userId, is_new_user: isNewUser, invite_link: inviteLink }, 201)
+    return json({ success: true, contact_id: contactId, user_id: userId, is_new_user: isNewUser, email_sent: emailSent }, 201)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
     console.error('[invite-assujetti] unexpected:', message)

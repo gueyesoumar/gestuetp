@@ -1,0 +1,40 @@
+# Configuration Supabase — Gëstu ETP.
+#
+# Ce fichier existe pour DÉCLARER, de façon versionnée et auditable, quelles edge
+# functions sont PUBLIQUES (verify_jwt = false). C'est la source de vérité lue par
+# `supabase functions deploy` (déploiement groupé). Le script
+# scripts/deploy-edge-functions.sh re-applique aussi --no-verify-jwt sur ces mêmes
+# fonctions (ceinture + bretelles). Toute fonction NON listée ici garde le défaut
+# verify_jwt = true (jeton utilisateur requis).
+#
+# project_id : informatif seulement — les déploiements ciblent l'environnement via
+# `--project-ref` (staging = snayz, prod = jibbl) dans le workflow Deploy, jamais
+# via ce champ. Les sections locales ([db]/[auth]/[api]) sont volontairement
+# absentes : ce projet travaille en cloud (pas de `supabase start`).
+project_id = "jibblzpownddlodzmewj"
+
+# --- Fonctions publiques (aucune authentification utilisateur dans le code) ---
+
+# Rapports Content-Security-Policy (navigateur, non authentifié).
+[functions.csp-report]
+verify_jwt = false
+
+# Résolution du tenant par hostname (marque blanche) — appelée avant la connexion.
+[functions.resolve-tenant-by-hostname]
+verify_jwt = false
+
+# Désabonnement email via lien signé (pas de session).
+[functions.email-preferences]
+verify_jwt = false
+
+# Callback CI d'analyse de faisabilité (jeton applicatif propre).
+[functions.feasibility-callback]
+verify_jwt = false
+
+# « Mot de passe oublié » depuis la page de connexion (pas de session).
+[functions.request-password-reset]
+verify_jwt = false
+
+# Définition du mot de passe via jeton d'invitation/reset maison (pas de session).
+[functions.set-password-with-token]
+verify_jwt = false

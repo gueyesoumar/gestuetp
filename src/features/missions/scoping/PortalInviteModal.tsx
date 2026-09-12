@@ -23,7 +23,6 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
 
   // New contact form
   const [showForm, setShowForm] = useState(false)
-  const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [jobTitle, setJobTitle] = useState('')
@@ -100,12 +99,10 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
       return
     }
 
-    const result = await res.json() as { invite_link?: string }
-    if (result.invite_link) {
-      setInviteLink(result.invite_link)
-    }
-
-    setSuccess(`${contactName} invit\u00e9(e) avec succ\u00e8s. Un email a \u00e9t\u00e9 envoy\u00e9.`)
+    const result = await res.json() as { email_sent?: boolean }
+    setSuccess(result.email_sent
+      ? `${contactName} invit\u00e9(e) avec succ\u00e8s. Un email de d\u00e9finition de mot de passe a \u00e9t\u00e9 envoy\u00e9.`
+      : `${contactName} invit\u00e9(e). L'email n'a pas pu \u00eatre envoy\u00e9 \u2014 le contact peut utiliser \u00ab Mot de passe oubli\u00e9 \u00bb depuis la page de connexion.`)
     setInviting(false)
     fetchData()
     onSuccess()
@@ -141,18 +138,6 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
               {'\u2713'} {success}
             </div>
           )}
-          {inviteLink && (
-            <div className="mb-3 p-3 bg-gold-50 border border-gold-200 rounded-lg">
-              <p className="text-[10px] font-semibold text-gold-600 mb-1">Lien d{'\u2019'}invitation (en cas de probl{'\u00e8'}me email)</p>
-              <div className="flex gap-2 items-center">
-                <input readOnly value={inviteLink} className="flex-1 text-[10px] text-gray-500 bg-white border border-gray-200 rounded px-2 py-1 outline-none" />
-                <button onClick={() => { navigator.clipboard.writeText(inviteLink); }} className="text-[10px] font-medium text-forest-700 bg-forest-50 px-2.5 py-1 rounded hover:bg-forest-100 transition-colors shrink-0">
-                  Copier
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Existing contacts */}
           {loading ? (
             <p className="text-xs text-gray-400 text-center py-8">Chargement...</p>

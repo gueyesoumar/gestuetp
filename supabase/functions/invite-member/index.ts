@@ -156,11 +156,10 @@ Deno.serve(async (req) => {
     })
 
     if (createError || !authUser?.user) {
-      const message = createError?.message.includes('already been registered')
-        ? 'Cet email est déjà utilisé'
-        : 'Erreur lors de la création du compte'
+      // Message neutre : ne pas confirmer l'existence d'un compte à un admin de
+      // cabinet (anti-énumération inter-tenant). Détail en logs uniquement.
       console.error('[invite-member] createUser:', createError?.message)
-      return jsonResponse({ error: message }, 400)
+      return jsonResponse({ error: 'Impossible de créer un compte avec cette adresse email.' }, 400)
     }
 
     // Créer le profil public.users
