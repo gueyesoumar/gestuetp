@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useDemoLens, demoLensFilter } from '../demo/DemoLensContext'
 import { riskExposure } from '../../lib/constants'
 import type { RiskCatalogEntry, ScoreDimension } from '../../types/database.types'
 
@@ -48,7 +49,9 @@ interface RegisterData {
 
 export function useRiskRegister(): RegisterData {
   const { profile } = useAuth()
+  const { lensOn } = useDemoLens()
   const orgId = profile?.organization_id ?? null
+  const uid = profile?.id ?? null
   const [scenarios, setScenarios] = useState<ScenarioRow[]>([])
   const [catalog, setCatalog] = useState<RiskCatalogEntry[]>([])
   const [assets, setAssets] = useState<Array<{ id: string; name: string }>>([])
@@ -66,7 +69,8 @@ export function useRiskRegister(): RegisterData {
       const [{ data: sc, error: sErr }, { data: cat }, { data: ast }] = await Promise.all([
         supabase.from('risk_scenarios')
           .select('id, title, description, dimension, asset_id, threat_ref, feared_event_ref, source_ref, vulnerability, inherent_likelihood, inherent_impact, treatment, treatment_status, asset:risk_assets(name)')
-          .eq('organization_id', orgId).order('created_at', { ascending: false }).abortSignal(ac.signal),
+          .eq('organization_id', orgId).or(demoLensFilter(lensOn, uid))
+          .order('created_at', { ascending: false }).abortSignal(ac.signal),
         supabase.from('risk_catalog').select('*').order('code').abortSignal(ac.signal),
         supabase.from('risk_assets').select('id, name').eq('organization_id', orgId).order('name').abortSignal(ac.signal),
       ])
@@ -84,7 +88,7 @@ export function useRiskRegister(): RegisterData {
       setLoading(false)
     })()
     return () => ac.abort()
-  }, [orgId, key])
+  }, [orgId, uid, lensOn, key])
 
   const createScenario = useCallback(async (s: NewScenario): Promise<boolean> => {
     if (!orgId) return false

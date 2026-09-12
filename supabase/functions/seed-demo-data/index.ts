@@ -24,7 +24,8 @@ interface SeedPayload {
   variant?: 'guided' | 'prefilled'
 }
 
-const DEMO_CLIENT_NAME = 'Client Démo'
+// Scénario nommé (fil rouge de la démo immersive) : un cabinet audite un client fictif.
+const DEMO_CLIENT_NAME = 'Téranga Finances'
 
 function json(data: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -59,6 +60,8 @@ interface MissionSpec {
   startOffset: number
   endOffset: number
   findings: FindingSpec[]
+  // Statuts des plans d'action (CAR) générés depuis les constats non conformes.
+  carStatusPool: string[]
 }
 
 // Trois missions à des stades différents → étendue réaliste + radar renseigné.
@@ -75,6 +78,7 @@ const MISSION_SPECS: MissionSpec[] = [
         risk: 'Des habilitations obsolètes peuvent subsister sans revue périodique.',
         recommendation: 'Planifier une revue trimestrielle des habilitations et tracer les validations.' },
     ],
+    carStatusPool: ['verified', 'closed'],
   },
   {
     namePrefix: 'Contrôle', status: 'fieldwork', maxControls: 9, approvedRatio: 0.55,
@@ -89,10 +93,11 @@ const MISSION_SPECS: MissionSpec[] = [
         risk: 'La capacité de reprise après incident n’est pas démontrée.',
         recommendation: 'Instaurer un test de restauration semestriel avec compte rendu.' },
     ],
+    carStatusPool: ['open', 'client_responded'],
   },
   {
     namePrefix: 'Audit', status: 'scoping', maxControls: 0, approvedRatio: 0,
-    startOffset: 5, endOffset: 60, findings: [],
+    startOffset: 5, endOffset: 60, findings: [], carStatusPool: [],
   },
 ]
 
@@ -108,20 +113,23 @@ const EVIDENCE_NOTES = [
  * un mélange approuvé / en revue (pour un radar < 100), preuves datées (assurance),
  * puis quelques constats. Best-effort — ne fait jamais échouer le seed.
  */
+// Renvoie les contrôles évalués (id + dimension) pour permettre au registre de
+// risques de s'appuyer sur des contrôles réellement travaillés (barrières).
 // deno-lint-ignore no-explicit-any
-async function seedMission(admin: any, missionId: string, frameworkId: string, ownerId: string, spec: MissionSpec): Promise<void> {
+async function seedMission(admin: any, missionId: string, frameworkId: string, ownerId: string, spec: MissionSpec): Promise<Array<{ id: string; dimension: string | null }>> {
   try {
-    if (spec.maxControls === 0) return
+    if (spec.maxControls === 0) return []
 
     const { data: domains } = await admin.from('domains').select('id').eq('framework_id', frameworkId)
     const domainIds = ((domains ?? []) as Array<{ id: string }>).map((d) => d.id)
-    if (domainIds.length === 0) return
+    if (domainIds.length === 0) return []
 
     // Contrôles + dimension → on étale la couverture sur un maximum de dimensions.
     const { data: ctrls } = await admin
       .from('controls').select('id, dimension').in('domain_id', domainIds).limit(40)
     const controls = ((ctrls ?? []) as Array<{ id: string; dimension: string | null }>)
-    if (controls.length === 0) return
+    if (controls.length === 0) return []
+    const dimById = new Map(controls.map((c) => [c.id, c.dimension]))
 
     // Regrouper par dimension puis prendre en round-robin pour couvrir large.
     const byDim = new Map<string, string[]>()
@@ -139,7 +147,7 @@ async function seedMission(admin: any, missionId: string, frameworkId: string, o
       if (id) picked.push(id)
       i++
     }
-    if (picked.length === 0) return
+    if (picked.length === 0) return []
 
     const approvedCount = Math.max(1, Math.round(picked.length * spec.approvedRatio))
     const rows = picked.map((cid, idx) => {
@@ -173,9 +181,88 @@ async function seedMission(admin: any, missionId: string, frameworkId: string, o
         priority: f.priority,
       }))
       await admin.from('assessment_findings').insert(findingRows)
+
+      // Plans d'action correctifs (CAR) issus des constats non conformes (hors point fort).
+      const carSources = spec.findings
+        .map((f, idx) => ({ f, aid: approvedIds[idx] }))
+        .filter((x) => x.aid && (x.f.classification === 'major_nc' || x.f.classification === 'minor_nc' || x.f.classification === 'observation'))
+      if (carSources.length > 0 && spec.carStatusPool.length > 0) {
+        const carRows = carSources.map((x, idx) => ({
+          mission_id: missionId,
+          assessment_id: x.aid,
+          code: `CAR-${String(idx + 1).padStart(3, '0')}`,
+          finding_classification: x.f.classification,
+          description: x.f.recommendation ?? x.f.description,
+          deadline: isoDate(30),
+          status: spec.carStatusPool[idx % spec.carStatusPool.length],
+          created_by: ownerId,
+        }))
+        await admin.from('corrective_action_requests').insert(carRows)
+      }
     }
+
+    return picked.map((id) => ({ id, dimension: dimById.get(id) ?? null }))
   } catch (err) {
     console.warn('[seed-demo-data] seedMission:', err instanceof Error ? err.message : err)
+    return []
+  }
+}
+
+/**
+ * Registre de risques de démo (Gëstu Risk) : 2 scénarios rattachés au cabinet,
+ * marqués is_demo + demo_owner_id (migration 00239) — exclus du registre/score
+ * réels, inclus sous la lentille. Chaque scénario est maîtrisé par une barrière
+ * (contrôle réellement évalué), pour un radar renseigné côté propriétaire.
+ */
+// deno-lint-ignore no-explicit-any
+async function seedRisk(admin: any, cabinetId: string, ownerId: string, missionId: string, controls: Array<{ id: string; dimension: string | null }>): Promise<void> {
+  try {
+    const withDim = controls.filter((c) => c.dimension)
+    if (withDim.length === 0) return
+    // Deux dimensions distinctes si possible.
+    const seen = new Set<string>()
+    const chosen: Array<{ id: string; dimension: string }> = []
+    for (const c of withDim) {
+      const dim = c.dimension as string
+      if (!seen.has(dim)) { seen.add(dim); chosen.push({ id: c.id, dimension: dim }) }
+      if (chosen.length === 2) break
+    }
+    if (chosen.length === 0) return
+
+    const SCENARIOS = [
+      { title: 'Intrusion non détectée sur les systèmes sensibles', vuln: 'Journalisation partielle des accès.', l: 3, i: 4, kind: 'detective' as const },
+      { title: 'Indisponibilité prolongée après incident', vuln: 'Restaurations non testées.', l: 2, i: 3, kind: 'corrective' as const },
+    ]
+    for (let idx = 0; idx < chosen.length; idx++) {
+      const c = chosen[idx]
+      const s = SCENARIOS[idx % SCENARIOS.length]
+      const { data: scenario } = await admin.from('risk_scenarios').insert({
+        organization_id: cabinetId,
+        title: s.title,
+        description: 'Scénario de démonstration (bac à sable).',
+        dimension: c.dimension,
+        vulnerability: s.vuln,
+        inherent_likelihood: s.l,
+        inherent_impact: s.i,
+        treatment: 'reduce',
+        treatment_status: idx === 0 ? 'in_progress' : 'open',
+        source_mission_id: missionId,
+        is_demo: true,
+        demo_owner_id: ownerId,
+        created_by: ownerId,
+      }).select('id').single()
+      const scenarioId = (scenario as { id: string } | null)?.id
+      if (scenarioId) {
+        await admin.from('risk_control_links').insert({
+          organization_id: cabinetId,
+          risk_scenario_id: scenarioId,
+          control_id: c.id,
+          kind: s.kind,
+        })
+      }
+    }
+  } catch (err) {
+    console.warn('[seed-demo-data] seedRisk:', err instanceof Error ? err.message : err)
   }
 }
 
@@ -242,6 +329,8 @@ Deno.serve(async (req) => {
     //    construire, accompagné par le tour). Variante 'prefilled' : les 3 stades.
     const specs = variant === 'prefilled' ? MISSION_SPECS : [MISSION_SPECS[2]]
     const missionIds: string[] = []
+    let riskControls: Array<{ id: string; dimension: string | null }> = []
+    let riskMissionId: string | null = null
 
     const { data: fws } = await admin
       .from('frameworks').select('id, name').eq('is_active', true).order('name').limit(3)
@@ -277,8 +366,15 @@ Deno.serve(async (req) => {
         await (admin.from('missions') as any)
           .update({ is_demo: true, demo_owner_id: ownerId, status: spec.status })
           .eq('id', missionId)
-        await seedMission(admin, missionId, fw.id, ownerId, spec)
+        const picked = await seedMission(admin, missionId, fw.id, ownerId, spec)
+        // Le registre de risques s'appuie sur la 1re mission peuplée (contrôles évalués).
+        if (picked.length > 0 && riskControls.length === 0) { riskControls = picked; riskMissionId = missionId }
       }
+    }
+
+    // Registre de risques de démo (variante riche uniquement).
+    if (variant === 'prefilled' && riskControls.length > 0 && riskMissionId) {
+      await seedRisk(admin, cabinetId, ownerId, riskMissionId, riskControls)
     }
 
     // Les insertions de mission créent des arêtes d'engagement (trigger). On les
