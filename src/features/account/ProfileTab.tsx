@@ -10,7 +10,7 @@ import { useFieldValidation, required, phone as phoneValidator } from '../../hoo
 
 /** Onglet Profil : identité et coordonnées de l'utilisateur connecté. */
 export function ProfileTab(): JSX.Element | null {
-  const { profile } = useAuth()
+  const { profile, refreshProfile } = useAuth()
 
   const firstName = useFieldValidation(profile?.first_name ?? '', required('Le prénom est requis.'))
   const lastName = useFieldValidation(profile?.last_name ?? '', required('Le nom est requis.'))
@@ -18,7 +18,10 @@ export function ProfileTab(): JSX.Element | null {
   const [jobTitle, setJobTitle] = useState(profile?.job_title ?? '')
   const [success, setSuccess] = useState(false)
 
-  const { updateProfile, updating, error } = useUpdateProfile(() => setSuccess(true))
+  const { updateProfile, updating, error } = useUpdateProfile(() => {
+    setSuccess(true)
+    void refreshProfile() // resynchronise l'état global → la valeur persiste au retour
+  })
 
   if (!profile) return null
 

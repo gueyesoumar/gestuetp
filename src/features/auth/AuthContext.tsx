@@ -17,6 +17,8 @@ export interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   refreshMfa: () => Promise<void>
+  /** Recharge le profil depuis la base (après édition du profil, etc.). */
+  refreshProfile: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthState | null>(null)
@@ -80,6 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { abortController.abort(); subscription.unsubscribe() }
   }, [fetchProfile, loadAal])
 
+  // Recharge le profil courant depuis la base (l'état en mémoire n'est sinon
+  // rafraîchi que sur événement d'auth → une édition de profil resterait invisible
+  // tant que l'utilisateur ne recharge pas la page).
+  const refreshProfile = useCallback(async () => {
+    const { data: { session: s } } = await supabase.auth.getSession()
+    if (s?.user) await fetchProfile(s.user.id)
+  }, [fetchProfile])
+
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     return { error }
@@ -98,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, aal, mfaLoading, signIn, signUp, signOut, refreshMfa: loadAal }}>
+    <AuthContext.Provider value={{ session, profile, loading, aal, mfaLoading, signIn, signUp, signOut, refreshMfa: loadAal, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
