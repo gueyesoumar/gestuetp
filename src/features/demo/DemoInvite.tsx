@@ -1,27 +1,32 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Compass, Zap, GraduationCap } from 'lucide-react'
+import { Compass, Zap, GraduationCap, Check } from 'lucide-react'
 import { useDemoSandbox, type DemoVariant } from './useDemoSandbox'
+import { useDemoLens } from './DemoLensContext'
 
 /**
- * Invitation « mode découverte » sur le Hub vide : l'utilisateur choisit une
- * variante (guidée / pré-remplie) et crée un bac à sable jetable. Rendu sur le
- * thème du Hub (variables --hub-fg). Ne s'affiche que si l'utilisateur n'a pas
- * déjà une démo (géré par le parent).
+ * Invitation « mode découverte » sur le Hub : l'utilisateur choisit une intention
+ * et crée un bac à sable jetable. À la création, la lentille démo s'active pour
+ * que le score et les dashboards s'allument immédiatement. Rendu sur le thème du
+ * Hub (variables --hub-fg). Ne s'affiche que si l'utilisateur n'a pas déjà une démo.
  */
 const OPTIONS: Array<{ key: DemoVariant; icon: typeof Compass; label: string; desc: string; recommended?: boolean }> = [
-  { key: 'guided', icon: Compass, label: 'Bac à sable guidé', desc: 'Vous créez la mission, pas à pas.', recommended: true },
-  { key: 'prefilled', icon: Zap, label: 'Démo pré-remplie', desc: 'Une mission déjà créée, prête à explorer.' },
+  { key: 'prefilled', icon: Zap, label: 'Explorer une mission déjà faite', desc: 'Un scénario complet — 3 missions, un radar renseigné, des constats — prêt à parcourir.', recommended: true },
+  { key: 'guided', icon: Compass, label: 'Construire pas à pas', desc: 'Vous créez votre première mission, accompagné par un tour guidé.' },
 ]
 
+const PREVIEW: Record<DemoVariant, string[]> = {
+  prefilled: ['3 missions à des stades variés', 'Score de confiance renseigné', 'Constats par gravité'],
+  guided: ['1 client de démonstration', 'Un tour pas à pas', 'Vous gardez la main'],
+}
+
 export function DemoInvite(): JSX.Element {
-  const navigate = useNavigate()
   const { seed, seeding } = useDemoSandbox()
-  const [variant, setVariant] = useState<DemoVariant>('guided')
+  const { setLensOn } = useDemoLens()
+  const [variant, setVariant] = useState<DemoVariant>('prefilled')
 
   const onCreate = async (): Promise<void> => {
     const ok = await seed(variant)
-    if (ok) navigate(variant === 'prefilled' ? '/missions' : '/clients')
+    if (ok) setLensOn(true) // allume la lentille : le score/dashboards prennent vie
   }
 
   return (
@@ -30,7 +35,7 @@ export function DemoInvite(): JSX.Element {
         <GraduationCap size={16} className="text-[#D4A843]" />
         <span className="text-[13px] font-semibold">Découvrir avec des données de démonstration</span>
       </div>
-      <p className="mt-1 text-[11.5px] text-[rgb(var(--hub-fg)/0.55)]">Choisissez votre point de départ — supprimable à tout moment.</p>
+      <p className="mt-1 text-[11.5px] text-[rgb(var(--hub-fg)/0.55)]">Un espace jetable, cloisonné, supprimable à tout moment. Vos vrais indicateurs n{'’'}en tiennent jamais compte.</p>
 
       <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         {OPTIONS.map((o) => {
@@ -60,6 +65,14 @@ export function DemoInvite(): JSX.Element {
           )
         })}
       </div>
+
+      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        {PREVIEW[variant].map((p) => (
+          <li key={p} className="flex items-center gap-1.5 text-[10.5px] text-[rgb(var(--hub-fg)/0.6)]">
+            <Check size={11} className="text-[#7FC79E]" />{p}
+          </li>
+        ))}
+      </ul>
 
       <button
         type="button"

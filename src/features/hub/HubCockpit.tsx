@@ -15,6 +15,8 @@ import { PoweredByGestu } from '../branding/BrandedAuthHeader'
 import { useSelfDimensionScores } from './useSelfDimensionScores'
 import { bandLabel } from './trustBand'
 import { DemoInvite } from '../demo/DemoInvite'
+import { DemoModeBanner } from '../demo/DemoModeBanner'
+import { DemoTour } from '../demo/DemoTour'
 import { useDemoSandbox } from '../demo/useDemoSandbox'
 import { OnboardingProgress } from '../onboarding/OnboardingProgress'
 
@@ -108,6 +110,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
         {/* Onboarding — placement P2 : barre fine épinglée sous la top-bar, qui
             n'empiète pas sur le lanceur (le centre reste au produit). */}
         <OnboardingProgress tone="dark" className="mt-1 shrink-0" />
+        <div className="mt-1 shrink-0"><DemoModeBanner tone="dark" /></div>
         {/* Conteneur défilant : le lanceur est centré quand il tient dans l'écran
             (min-h-full + justify-center), et défile proprement sinon. */}
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -116,10 +119,11 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
               products={products} isEnterable={isEnterable} onOpen={onOpen}
               composite={composite} bandLabel={bandLabel(composite)} onPosture={() => setView('self')} portfolio={portfolio}
             />
-            {!portfolio && !demo.loading && !demo.hasDemo && <DemoInvite />}
+            {!demo.loading && !demo.hasDemo && <DemoInvite />}
           </div>
         </div>
         <PoweredByGestu className="mt-2 shrink-0" />
+        <DemoTour />
       </div>
     )
   }
@@ -142,6 +146,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
   return (
     <div className="flex h-full w-full flex-col px-6 py-3">
       {topBar}
+      <div className="mt-1 shrink-0"><DemoModeBanner tone="dark" /></div>
       <div className="flex min-h-0 flex-1 flex-col items-center gap-6 py-4 md:flex-row md:items-center md:justify-center md:gap-12 md:px-6">
         <div className="flex flex-col items-center gap-3">
           <div className="h-[240px] w-[240px]"><SegmentedDial score={centre.score} /></div>

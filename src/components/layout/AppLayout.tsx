@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useVocab } from '../../features/edition/useVocab'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { DemoModeBanner } from '../../features/demo/DemoModeBanner'
 
 export function AppLayout() {
   const { profile } = useAuth()
@@ -31,6 +32,7 @@ export function AppLayout() {
         )}
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <DemoModeBanner />
           <Outlet />
         </main>
       </div>

@@ -6,6 +6,7 @@ import { MfaGate } from './features/auth/mfa/MfaGate'
 import { PasswordExpiryGate } from './features/auth/PasswordExpiryGate'
 import { OnboardingWelcome } from './features/onboarding/OnboardingWelcome'
 import { BrandingProvider } from './features/branding/BrandingContext'
+import { DemoLensProvider } from './features/demo/DemoLensContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { TenantAccessGuard } from './components/TenantAccessGuard'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
@@ -216,6 +217,7 @@ function App() {
           }}
         />
         <TenantAccessGuard>
+        <DemoLensProvider>
         <EditionProvider>
         <RecorderProvider>
         <MfaGate>
@@ -226,6 +228,7 @@ function App() {
         </MfaGate>
         </RecorderProvider>
         </EditionProvider>
+        </DemoLensProvider>
         </TenantAccessGuard>
       </AuthProvider>
       </BrandingProvider>

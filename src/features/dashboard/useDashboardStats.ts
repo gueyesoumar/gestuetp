@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useDemoLens, demoLensFilter } from '../demo/DemoLensContext'
 
 export interface DashboardStats {
   activeMissions: number
@@ -64,6 +65,8 @@ interface UseDashboardStatsResult {
 
 export function useDashboardStats(): UseDashboardStatsResult {
   const { profile } = useAuth()
+  const { lensOn } = useDemoLens()
+  const uid = profile?.id ?? null
   const [stats, setStats] = useState<DashboardStats>({
     activeMissions: 0,
     totalClients: 0,
@@ -105,7 +108,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         .select('id, name, status, start_date, end_date, updated_at, client:organizations!missions_client_id_fkey(name, sector)')
         .eq('cabinet_id', profile.organization_id)
         .eq('is_active', true)
-        .eq('is_demo', false) // exclut le bac à sable des indicateurs
+        .or(demoLensFilter(lensOn, uid)) // lentille : inclut ma démo si active
         .order('created_at', { ascending: false })
         .abortSignal(abortController.signal)
 
@@ -129,7 +132,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
         .from('cabinet_clients')
         .select('id')
         .eq('cabinet_id', profile.organization_id)
-        .eq('is_demo', false) // exclut la fiche client de démonstration
+        .or(demoLensFilter(lensOn, uid)) // lentille : inclut ma fiche démo si active
         .abortSignal(abortController.signal)
 
       if (abortController.signal.aborted) return
@@ -276,7 +279,7 @@ export function useDashboardStats(): UseDashboardStatsResult {
 
     fetchData()
     return () => abortController.abort()
-  }, [profile?.organization_id])
+  }, [profile?.organization_id, uid, lensOn])
 
   return { stats, missions, nearestDeadline, priorityMission, loading, error }
 }

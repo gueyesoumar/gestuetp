@@ -6,14 +6,18 @@ import { logActivity } from '../_shared/audit-log.ts'
  * Edge Function : seed-demo-data (E4 — bac à sable)
  *
  * Crée un espace de démonstration JETABLE, PAR UTILISATEUR (demo_owner_id).
- *  - variant 'guided'    : une fiche « Client Démo » seule. L'utilisateur crée
- *                          lui-même sa mission (apprentissage par la pratique).
- *  - variant 'prefilled' : + une mission de démo déjà créée (prête à travailler).
+ *  - variant 'guided'    : une fiche « Client Démo » + une mission de cadrage à
+ *                          construire pas à pas (accompagné d'un tour).
+ *  - variant 'prefilled' : un scénario RICHE — 3 missions à des stades variés,
+ *                          évaluations réparties sur plusieurs dimensions (radar),
+ *                          constats par gravité. Allume le score + les dashboards
+ *                          via la « lentille » démo, côté propriétaire.
  *
- * Sécurité : force TOUJOURS is_demo=true + demo_owner_id=appelant, plafonné à
- * un seul jeu par utilisateur (anti-spam). Non gaté sur les permissions cabinet :
- * un nouvel arrivant doit pouvoir essayer, la donnée étant cloisonnée et exclue
- * des indicateurs. is_demo n'est PAS une frontière de sécurité.
+ * Sécurité : force TOUJOURS is_demo=true + demo_owner_id=appelant, plafonné à un
+ * seul jeu par utilisateur. Le contenu reste Comply (contrôles/constats) : on
+ * n'injecte PAS de Risk/Policy, dont les tables sont rattachées à l'org RÉELLE du
+ * cabinet et pollueraient le registre réel. is_demo n'est PAS une frontière de
+ * sécurité — la donnée est cloisonnée par demo_owner_id et exclue des agrégats réels.
  */
 
 interface SeedPayload {
@@ -30,69 +34,149 @@ function json(data: Record<string, unknown>, status = 200): Response {
 }
 
 function demoSlug(): string {
-  return `client-demo-${Date.now().toString(36)}`
-}
-
-/**
- * Enrichit une mission de démo (variante pré-remplie) : quelques contrôles déjà
- * évalués (status 'approved') + un constat, pour que l'auditeur explore un vrai
- * terrain immédiatement. Best-effort : n'échoue jamais le seed. Insère
- * directement en table l'état terminal (pas via submit-assessment, qui met à
- * jour des lignes existantes) — cohérent avec les contraintes de 00015/00099.
- */
-// deno-lint-ignore no-explicit-any
-async function enrichDemoMission(admin: any, missionId: string, frameworkId: string, ownerId: string): Promise<void> {
-  try {
-    const { data: domains } = await admin.from('domains').select('id').eq('framework_id', frameworkId)
-    const domainIds = (domains ?? []).map((d: { id: string }) => d.id)
-    if (domainIds.length === 0) return
-
-    const { data: controls } = await admin.from('controls').select('id').in('domain_id', domainIds).limit(6)
-    const controlIds = (controls ?? []).map((c: { id: string }) => c.id)
-    if (controlIds.length === 0) return
-
-    // Le dernier contrôle porte une non-conformité mineure ; les autres sont conformes.
-    const ncControlId = controlIds[controlIds.length - 1]
-    const conformIds = controlIds.slice(0, -1)
-
-    if (conformIds.length > 0) {
-      await admin.from('control_assessments').insert(
-        conformIds.map((cid: string) => ({
-          mission_id: missionId, control_id: cid, auditor_id: ownerId,
-          status: 'approved', conformity_level: 'c',
-        })),
-      )
-    }
-
-    const { data: ncAssessment } = await admin
-      .from('control_assessments')
-      .insert({ mission_id: missionId, control_id: ncControlId, auditor_id: ownerId, status: 'approved', conformity_level: 'pc' })
-      .select('id')
-      .single()
-
-    if (ncAssessment?.id) {
-      await admin.from('assessment_findings').insert({
-        assessment_id: ncAssessment.id,
-        ord: 0,
-        classification: 'minor_nc',
-        description: "La politique de contrôle d'accès n'a pas été revue depuis plus de 12 mois.",
-        risk: 'Des accès obsolètes peuvent subsister sans revue périodique.',
-        recommendation: 'Planifier une revue trimestrielle des habilitations et tracer les validations.',
-        priority: 'medium',
-      })
-    }
-
-    // Mission « en cours de terrain » pour un rendu réaliste.
-    await admin.from('missions').update({ status: 'fieldwork' }).eq('id', missionId).eq('is_demo', true)
-  } catch (err) {
-    console.warn('[seed-demo-data] enrich:', err instanceof Error ? err.message : err)
-  }
+  return `client-demo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 }
 
 function isoDate(daysFromNow: number): string {
   const d = new Date()
   d.setDate(d.getDate() + daysFromNow)
   return d.toISOString().slice(0, 10)
+}
+
+interface FindingSpec {
+  classification: 'major_nc' | 'minor_nc' | 'observation' | 'strength'
+  priority: 'critical' | 'high' | 'medium' | 'low' | null
+  description: string
+  risk: string | null
+  recommendation: string | null
+}
+
+interface MissionSpec {
+  namePrefix: string
+  status: 'scoping' | 'fieldwork' | 'internal_review' | 'closure'
+  maxControls: number
+  approvedRatio: number
+  startOffset: number
+  endOffset: number
+  findings: FindingSpec[]
+}
+
+// Trois missions à des stades différents → étendue réaliste + radar renseigné.
+const MISSION_SPECS: MissionSpec[] = [
+  {
+    namePrefix: 'Audit', status: 'closure', maxControls: 12, approvedRatio: 0.85,
+    startOffset: -90, endOffset: -5,
+    findings: [
+      { classification: 'strength', priority: null,
+        description: 'La revue des accès à privilèges est formalisée et tracée trimestriellement.',
+        risk: null, recommendation: null },
+      { classification: 'minor_nc', priority: 'medium',
+        description: 'La politique de contrôle d’accès n’a pas été revue depuis plus de 12 mois.',
+        risk: 'Des habilitations obsolètes peuvent subsister sans revue périodique.',
+        recommendation: 'Planifier une revue trimestrielle des habilitations et tracer les validations.' },
+    ],
+  },
+  {
+    namePrefix: 'Contrôle', status: 'fieldwork', maxControls: 9, approvedRatio: 0.55,
+    startOffset: -20, endOffset: 25,
+    findings: [
+      { classification: 'major_nc', priority: 'high',
+        description: 'Aucune journalisation centralisée des accès aux systèmes sensibles.',
+        risk: 'Une intrusion pourrait rester indétectable faute de traces exploitables.',
+        recommendation: 'Déployer une collecte centralisée des journaux avec rétention et alertes.' },
+      { classification: 'minor_nc', priority: 'low',
+        description: 'Les sauvegardes ne font pas l’objet de tests de restauration documentés.',
+        risk: 'La capacité de reprise après incident n’est pas démontrée.',
+        recommendation: 'Instaurer un test de restauration semestriel avec compte rendu.' },
+    ],
+  },
+  {
+    namePrefix: 'Audit', status: 'scoping', maxControls: 0, approvedRatio: 0,
+    startOffset: 5, endOffset: 60, findings: [],
+  },
+]
+
+const EVIDENCE_NOTES = [
+  'Procédure fournie et revue ; entretien réalisé avec le responsable.',
+  'Capture de configuration et journal d’audit fournis.',
+  'Politique validée par la direction, diffusion confirmée.',
+  'Registre à jour ; échantillon de tickets contrôlé.',
+]
+
+/**
+ * Peuple une mission : évaluations réparties sur les dimensions des contrôles,
+ * un mélange approuvé / en revue (pour un radar < 100), preuves datées (assurance),
+ * puis quelques constats. Best-effort — ne fait jamais échouer le seed.
+ */
+// deno-lint-ignore no-explicit-any
+async function seedMission(admin: any, missionId: string, frameworkId: string, ownerId: string, spec: MissionSpec): Promise<void> {
+  try {
+    if (spec.maxControls === 0) return
+
+    const { data: domains } = await admin.from('domains').select('id').eq('framework_id', frameworkId)
+    const domainIds = ((domains ?? []) as Array<{ id: string }>).map((d) => d.id)
+    if (domainIds.length === 0) return
+
+    // Contrôles + dimension → on étale la couverture sur un maximum de dimensions.
+    const { data: ctrls } = await admin
+      .from('controls').select('id, dimension').in('domain_id', domainIds).limit(40)
+    const controls = ((ctrls ?? []) as Array<{ id: string; dimension: string | null }>)
+    if (controls.length === 0) return
+
+    // Regrouper par dimension puis prendre en round-robin pour couvrir large.
+    const byDim = new Map<string, string[]>()
+    for (const c of controls) {
+      const k = c.dimension ?? '_'
+      const arr = byDim.get(k) ?? []
+      arr.push(c.id); byDim.set(k, arr)
+    }
+    const picked: string[] = []
+    const buckets = [...byDim.values()]
+    let i = 0
+    while (picked.length < spec.maxControls && buckets.some((b) => b.length > 0)) {
+      const b = buckets[i % buckets.length]
+      const id = b.shift()
+      if (id) picked.push(id)
+      i++
+    }
+    if (picked.length === 0) return
+
+    const approvedCount = Math.max(1, Math.round(picked.length * spec.approvedRatio))
+    const rows = picked.map((cid, idx) => {
+      const approved = idx < approvedCount
+      return {
+        mission_id: missionId,
+        control_id: cid,
+        auditor_id: ownerId,
+        status: approved ? 'approved' : 'in_review',
+        conformity_level: approved ? (idx % 4 === 0 ? 'lc' : 'c') : 'pc',
+        evidence_notes: approved ? EVIDENCE_NOTES[idx % EVIDENCE_NOTES.length] : null,
+      }
+    })
+
+    const { data: inserted } = await admin
+      .from('control_assessments')
+      .upsert(rows, { onConflict: 'mission_id,control_id' })
+      .select('id, status')
+    const approvedIds = ((inserted ?? []) as Array<{ id: string; status: string }>)
+      .filter((a) => a.status === 'approved').map((a) => a.id)
+
+    // Constats sur les premières évaluations approuvées.
+    if (approvedIds.length > 0 && spec.findings.length > 0) {
+      const findingRows = spec.findings.slice(0, approvedIds.length).map((f, idx) => ({
+        assessment_id: approvedIds[idx],
+        ord: 0,
+        classification: f.classification,
+        description: f.description,
+        risk: f.risk,
+        recommendation: f.recommendation,
+        priority: f.priority,
+      }))
+      await admin.from('assessment_findings').insert(findingRows)
+    }
+  } catch (err) {
+    console.warn('[seed-demo-data] seedMission:', err instanceof Error ? err.message : err)
+  }
 }
 
 Deno.serve(async (req) => {
@@ -113,10 +197,7 @@ Deno.serve(async (req) => {
     if (authError || !caller) return json({ error: 'Non autorisé' }, 401)
 
     const { data: profile, error: profileError } = await admin
-      .from('users')
-      .select('id, organization_id')
-      .eq('auth_id', caller.id)
-      .single()
+      .from('users').select('id, organization_id').eq('auth_id', caller.id).single()
     if (profileError || !profile?.organization_id) return json({ error: 'Profil introuvable' }, 403)
     const cabinetId = (profile as { id: string; organization_id: string }).organization_id
     const ownerId = (profile as { id: string }).id
@@ -127,10 +208,8 @@ Deno.serve(async (req) => {
     // 2. Plafond : un seul bac à sable par utilisateur — on renvoie l'existant.
     const { data: existing } = await admin
       .from('cabinet_clients')
-      .select('id, client_org_id')
-      .eq('cabinet_id', cabinetId)
-      .eq('is_demo', true)
-      .eq('demo_owner_id', ownerId)
+      .select('id')
+      .eq('cabinet_id', cabinetId).eq('is_demo', true).eq('demo_owner_id', ownerId)
       .maybeSingle()
     if (existing) {
       return json({ ok: true, already: true, cabinet_client_id: (existing as { id: string }).id })
@@ -140,8 +219,7 @@ Deno.serve(async (req) => {
     const { data: org, error: orgError } = await admin
       .from('organizations')
       .insert({ name: DEMO_CLIENT_NAME, slug: demoSlug(), types: ['client'] })
-      .select('id')
-      .single()
+      .select('id').single()
     if (orgError || !org) {
       console.error('[seed-demo-data] org:', orgError?.message)
       return json({ error: 'Création de la démo impossible' }, 500)
@@ -152,8 +230,7 @@ Deno.serve(async (req) => {
     const { data: fiche, error: ficheError } = await admin
       .from('cabinet_clients')
       .insert({ cabinet_id: cabinetId, client_org_id: clientOrgId, is_demo: true, demo_owner_id: ownerId })
-      .select('id')
-      .single()
+      .select('id').single()
     if (ficheError || !fiche) {
       console.error('[seed-demo-data] fiche:', ficheError?.message)
       await admin.from('organizations').delete().eq('id', clientOrgId)
@@ -161,53 +238,51 @@ Deno.serve(async (req) => {
     }
     const ficheId = (fiche as { id: string }).id
 
-    // 5. Variante pré-remplie : une mission de démo prête à travailler.
-    let missionId: string | null = null
-    if (variant === 'prefilled') {
-      const { data: fw } = await admin
-        .from('frameworks')
-        .select('id, name')
-        .eq('is_active', true)
-        .order('name')
-        .limit(1)
-        .maybeSingle()
-      if (fw) {
-        const framework = fw as { id: string; name: string }
+    // 5. Missions de démo. Variante 'guided' : une seule mission de cadrage (à
+    //    construire, accompagné par le tour). Variante 'prefilled' : les 3 stades.
+    const specs = variant === 'prefilled' ? MISSION_SPECS : [MISSION_SPECS[2]]
+    const missionIds: string[] = []
+
+    const { data: fws } = await admin
+      .from('frameworks').select('id, name').eq('is_active', true).order('name').limit(3)
+    const frameworks = ((fws ?? []) as Array<{ id: string; name: string }>)
+
+    if (frameworks.length > 0) {
+      for (let idx = 0; idx < specs.length; idx++) {
+        const spec = specs[idx]
+        const fw = frameworks[idx % frameworks.length]
         // deno-lint-ignore no-explicit-any
         const { data: newMissionId, error: txError } = await (admin.rpc as any)('create_mission_tx', {
           p_cabinet_id: cabinetId,
           p_client_id: clientOrgId,
-          p_framework_id: framework.id,
-          p_name: `Audit ${framework.name} — Démo`,
+          p_framework_id: fw.id,
+          p_name: `${spec.namePrefix} ${fw.name} — Démo`,
           p_description: 'Mission de démonstration (bac à sable).',
           p_kind: 'audit',
           p_lead_auditor_id: ownerId,
           p_associate_id: null,
-          p_start_date: isoDate(0),
-          p_end_date: isoDate(30),
+          p_start_date: isoDate(spec.startOffset),
+          p_end_date: isoDate(spec.endOffset),
           p_member_ids: [ownerId],
           p_excluded_control_ids: [],
           p_created_by: ownerId,
         })
         if (txError || !newMissionId) {
           console.warn('[seed-demo-data] create_mission_tx:', txError?.message ?? 'no id')
-        } else {
-          missionId = newMissionId as string
-          // Marquer la mission comme démo (le RPC ne connaît pas ces colonnes).
-          // deno-lint-ignore no-explicit-any
-          const { error: markError } = await (admin.from('missions') as any)
-            .update({ is_demo: true, demo_owner_id: ownerId })
-            .eq('id', missionId)
-          if (markError) console.warn('[seed-demo-data] mark mission:', markError.message)
-          // Contenu de démo : contrôles évalués + un constat.
-          await enrichDemoMission(admin, missionId, framework.id, ownerId)
+          continue
         }
+        const missionId = newMissionId as string
+        missionIds.push(missionId)
+        // deno-lint-ignore no-explicit-any
+        await (admin.from('missions') as any)
+          .update({ is_demo: true, demo_owner_id: ownerId, status: spec.status })
+          .eq('id', missionId)
+        await seedMission(admin, missionId, fw.id, ownerId, spec)
       }
     }
 
-    // L'insertion de mission (variante B) crée une arête d'engagement via trigger.
-    // On la retire : le bac à sable ne doit pas apparaître dans le graphe des
-    // perspectives du Hub (tuiles clients). No-op en variante A (pas d'arête).
+    // Les insertions de mission créent des arêtes d'engagement (trigger). On les
+    // retire : le bac à sable ne doit pas apparaître comme tuile client du Hub.
     await admin
       .from('organization_relationships')
       .delete()
@@ -216,16 +291,12 @@ Deno.serve(async (req) => {
       .eq('nature', 'audit_engagement')
 
     await logActivity(admin, {
-      organizationId: cabinetId,
-      actorUserId: ownerId,
-      action: 'demo.seeded',
-      targetType: 'client',
-      targetId: ficheId,
-      targetLabel: DEMO_CLIENT_NAME,
-      summary: `Bac à sable créé (${variant})`,
+      organizationId: cabinetId, actorUserId: ownerId,
+      action: 'demo.seeded', targetType: 'client', targetId: ficheId, targetLabel: DEMO_CLIENT_NAME,
+      summary: `Bac à sable créé (${variant}, ${missionIds.length} mission${missionIds.length > 1 ? 's' : ''})`,
     })
 
-    return json({ ok: true, cabinet_client_id: ficheId, client_org_id: clientOrgId, mission_id: missionId, variant })
+    return json({ ok: true, cabinet_client_id: ficheId, client_org_id: clientOrgId, mission_ids: missionIds, variant })
   } catch (err) {
     console.error('[seed-demo-data]', err instanceof Error ? err.message : err)
     return json({ error: 'Erreur interne' }, 500)
