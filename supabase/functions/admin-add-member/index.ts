@@ -3,7 +3,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
 import { sendEmail } from '../_shared/resend.ts'
 import { memberInviteTemplate } from '../_shared/email-templates/auth.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
-import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
@@ -133,16 +133,11 @@ Deno.serve(async (req) => {
     // 6. Email brandé de définition de mot de passe (lien domaine cabinet via token_hash)
     const siteUrl = await resolveCabinetSiteUrl(admin, orgId)
     let invitationSent = false
-    // deno-lint-ignore no-explicit-any
-    const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
-      type: 'recovery',
-      email,
-      options: { redirectTo: `${siteUrl}/set-password` },
-    })
-    const hashedToken = extractHashedToken(linkData)
-    const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
-    if (linkError || !link) {
-      console.warn('[admin-add-member] generateLink:', linkError?.message ?? 'no token')
+    // Jeton maison (invitation, 24 h).
+    const tokenRes = await createSetupToken(admin, { userId: newUserId, purpose: 'invite', ttlHours: 24, createdBy: owner.id })
+    const link = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
+    if (!link) {
+      console.warn('[admin-add-member] token:', 'error' in tokenRes ? tokenRes.error : 'no token')
     } else {
       const branding = await loadCabinetEmailBranding(admin, orgId)
       const sendResult = await sendEmail({

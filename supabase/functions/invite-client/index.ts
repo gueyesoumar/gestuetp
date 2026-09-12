@@ -5,6 +5,7 @@ import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
@@ -205,15 +206,9 @@ Deno.serve(async (req) => {
 
         userId = newUser.id
 
-        // Générer le lien de récupération pour que le client définisse son mot de passe
-        const { data: linkData } = await admin.auth.admin.generateLink({
-          type: 'recovery',
-          email,
-          options: {
-            redirectTo: `${siteUrl}/set-password`,
-          },
-        })
-        inviteLink = linkData?.properties?.action_link ?? null
+        // Lien de définition de mot de passe (jeton maison, 24 h) — immunisé aux scanners.
+        const tokenRes = await createSetupToken(admin, { userId: newUser.id as string, purpose: 'invite', ttlHours: 24 })
+        inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
       }
 
       // Lier le user_id au contact et passer en status invited
@@ -247,15 +242,9 @@ Deno.serve(async (req) => {
 
     // Toujours envoyer un email (même si le user existe déjà)
     if (!inviteLink && userId) {
-      // Générer un lien de récupération pour l'utilisateur existant
-      const { data: linkData } = await admin.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-        options: {
-          redirectTo: `${siteUrl}/set-password`,
-        },
-      })
-      inviteLink = linkData?.properties?.action_link ?? null
+      // Utilisateur existant : lien de définition de mot de passe (jeton maison, 24 h).
+      const tokenRes = await createSetupToken(admin, { userId, purpose: 'invite', ttlHours: 24 })
+      inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
     }
 
     if (inviteLink) {

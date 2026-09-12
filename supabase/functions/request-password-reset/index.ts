@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { passwordResetTemplate } from '../_shared/email-templates/auth.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
-import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
@@ -51,23 +51,17 @@ Deno.serve(async (req) => {
       .select('id, first_name, email, organization_id, is_active')
       .eq('email', email)
       .maybeSingle()
-    const u = user as { first_name: string; email: string; organization_id: string; is_active: boolean } | null
+    const u = user as { id: string; first_name: string; email: string; organization_id: string; is_active: boolean } | null
     if (!u || !u.is_active) return neutral()
 
-    // Lien brandé (domaine cabinet) via token_hash — jamais consommé au chargement.
+    // Jeton maison (reset, 1 h) — lien brandé, consommé uniquement à la soumission.
     const siteUrl = await resolveCabinetSiteUrl(admin, u.organization_id)
-    // deno-lint-ignore no-explicit-any
-    const { data: linkData, error: linkError } = await (admin.auth.admin.generateLink as any)({
-      type: 'recovery',
-      email: u.email,
-      options: { redirectTo: `${siteUrl}/set-password` },
-    })
-    const hashedToken = extractHashedToken(linkData)
-    const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
-    if (linkError || !link) {
-      console.warn('[request-password-reset] generateLink:', linkError?.message ?? 'no token')
+    const tokenRes = await createSetupToken(admin, { userId: u.id, purpose: 'reset', ttlHours: 1 })
+    if ('error' in tokenRes) {
+      console.warn('[request-password-reset] token:', tokenRes.error)
       return neutral()
     }
+    const link = buildSetupLink(siteUrl, tokenRes.raw)
 
     const branding = await loadCabinetEmailBranding(admin, u.organization_id)
     const sendResult = await sendEmail({

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
 import { useCreateSupportRequest } from './useSupportRequests'
 import { demandeTypesForRole, type DemandeTypeOption } from '../../lib/constants'
 import type { User } from '../../types/database.types'
@@ -29,13 +29,11 @@ export function DemandeForm({ profile, cabinetId, missionId, onBack }: Props): J
     setLocalError(null)
 
     if (selected.handling === 'act') {
-      // Action immediate (reset mdp) : email Supabase, sans creation de ticket.
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(profile.email, {
-        redirectTo: `${window.location.origin}/set-password`,
-      })
+      // Action immédiate (reset mdp) : edge Resend brandée (jeton maison), sans ticket.
+      const res = await invokeEdgeFunction('request-password-reset', { email: profile.email })
       setBusy(false)
-      if (resetError) {
-        console.error('resetPasswordForEmail:', resetError.message)
+      if (!res.ok) {
+        console.error('request-password-reset:', res.error)
         setLocalError('Envoi impossible pour le moment. Veuillez reessayer.')
         return
       }

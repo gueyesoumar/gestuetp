@@ -16,12 +16,17 @@ import { useBranding } from '../features/branding/useBranding'
 import { BrandedBrandPanel } from '../features/branding/BrandedBrandPanel'
 import { BrandedAuthHeader, PoweredByGestu } from '../features/branding/BrandedAuthHeader'
 
-/** Lit le token_hash/type de l'URL (lien d'invitation brandé). null si absent. */
+/** Lit le token_hash/type de l'URL (ancien lien recovery Supabase). null si absent. */
 function readUrlToken(): { tokenHash: string; type: EmailOtpType } | null {
   const params = new URLSearchParams(window.location.search)
   const tokenHash = params.get('token_hash')
   const type = params.get('type')
   return tokenHash && type ? { tokenHash, type: type as EmailOtpType } : null
+}
+
+/** Lit le jeton d'invitation maison (setup_token). null si absent. */
+function readSetupToken(): string | null {
+  return new URLSearchParams(window.location.search).get('setup_token')
 }
 
 export function SetPasswordPage(): JSX.Element {
@@ -42,7 +47,8 @@ export function SetPasswordPage(): JSX.Element {
   // token ici (init) pour afficher le formulaire, et on l'échange seulement à la
   // SOUMISSION (geste humain délibéré) — voir handleSubmit.
   const [pendingToken, setPendingToken] = useState<{ tokenHash: string; type: EmailOtpType } | null>(readUrlToken)
-  const [sessionReady, setSessionReady] = useState<boolean>(() => readUrlToken() !== null)
+  const [setupToken] = useState<string | null>(readSetupToken)
+  const [sessionReady, setSessionReady] = useState<boolean>(() => readUrlToken() !== null || readSetupToken() !== null)
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -51,7 +57,7 @@ export function SetPasswordPage(): JSX.Element {
       }
     })
     // Compat : anciens liens (hash access_token) → PASSWORD_RECOVERY / session existante.
-    if (readUrlToken() === null) {
+    if (readUrlToken() === null && readSetupToken() === null) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) setSessionReady(true)
       })
@@ -74,6 +80,29 @@ export function SetPasswordPage(): JSX.Element {
     }
 
     setSubmitting(true)
+
+    // Flux jeton maison (setup_token) : l'edge public valide le jeton, pose le mot
+    // de passe, puis on ouvre une session propre via signInWithPassword.
+    if (setupToken) {
+      const res = await invokeEdgeFunction<{ email?: string }>('set-password-with-token', { setup_token: setupToken, password })
+      if (!res.ok) {
+        setError(res.error ?? 'Ce lien est invalide ou a expir\u00e9. Demandez un nouveau lien \u00e0 votre administrateur.')
+        setSubmitting(false)
+        return
+      }
+      const email = res.data?.email
+      if (email) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) console.error('SetPasswordPage signin:', signInError.message)
+      }
+      window.history.replaceState(null, '', window.location.pathname)
+      setSuccess(true)
+      setSubmitting(false)
+      setTimeout(() => {
+        navigate(profile?.role === 'client' ? '/client' : '/hub', { replace: true })
+      }, 2000)
+      return
+    }
 
     // \u00c9change du token SEULEMENT maintenant (geste humain) : ouvre la session de
     // r\u00e9cup\u00e9ration juste avant de poser le mot de passe. R\u00e9silient aux scanners.

@@ -4,6 +4,8 @@ import { logActivity } from '../_shared/audit-log.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
+import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
@@ -183,12 +185,9 @@ Deno.serve(async (req) => {
         }
         userId = newUser.id
 
-        const { data: linkData } = await admin.auth.admin.generateLink({
-          type: 'recovery',
-          email,
-          options: { redirectTo: `${Deno.env.get('SITE_URL') ?? 'http://localhost:5173'}/set-password` },
-        })
-        inviteLink = linkData?.properties?.action_link ?? null
+        const siteUrl = await resolveCabinetSiteUrl(admin, caller.organization_id)
+        const tokenRes = await createSetupToken(admin, { userId: newUser.id as string, purpose: 'invite', ttlHours: 24 })
+        inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
       }
 
       await admin
@@ -208,12 +207,9 @@ Deno.serve(async (req) => {
 
     // Email (lien recovery pour définir le mot de passe)
     if (!inviteLink && userId) {
-      const { data: linkData } = await admin.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-        options: { redirectTo: `${Deno.env.get('SITE_URL') ?? 'http://localhost:5173'}/set-password` },
-      })
-      inviteLink = linkData?.properties?.action_link ?? null
+      const siteUrl = await resolveCabinetSiteUrl(admin, caller.organization_id)
+      const tokenRes = await createSetupToken(admin, { userId, purpose: 'invite', ttlHours: 24 })
+      inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
     }
 
     if (inviteLink) {
