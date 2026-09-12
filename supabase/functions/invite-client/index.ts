@@ -5,6 +5,7 @@ import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
@@ -98,7 +99,11 @@ Deno.serve(async (req) => {
     let contactId: string
     let userId: string | null = null
     let isNewUser = false
+    // Le lien de mot de passe (jeton maison) sert UNIQUEMENT à composer l'email :
+    // il n'est jamais renvoyé dans la réponse HTTP (séparation des tâches — un
+    // auditeur ne doit pas pouvoir récupérer le jeton du client et poser son mdp).
     let inviteLink: string | null = null
+    let emailSent = false
 
     if (existingContacts && existingContacts.length > 0) {
       // Contact existe déjà
@@ -168,7 +173,8 @@ Deno.serve(async (req) => {
         if (createError) {
           console.error('[invite-client] createUser:', createError.message)
           return new Response(
-            JSON.stringify({ error: createError.message.includes('already been registered') ? 'Cet email est déjà utilisé' : 'Erreur lors de la création du compte' }),
+            // Message neutre : ne pas confirmer l'existence d'un compte (anti-énumération inter-tenant).
+            JSON.stringify({ error: 'Impossible de créer un compte avec cette adresse email.' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
@@ -205,15 +211,9 @@ Deno.serve(async (req) => {
 
         userId = newUser.id
 
-        // Générer le lien de récupération pour que le client définisse son mot de passe
-        const { data: linkData } = await admin.auth.admin.generateLink({
-          type: 'recovery',
-          email,
-          options: {
-            redirectTo: `${siteUrl}/set-password`,
-          },
-        })
-        inviteLink = linkData?.properties?.action_link ?? null
+        // Lien de définition de mot de passe (jeton maison, 24 h) — immunisé aux scanners.
+        const tokenRes = await createSetupToken(admin, { userId: newUser.id as string, purpose: 'invite', ttlHours: 24 })
+        inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
       }
 
       // Lier le user_id au contact et passer en status invited
@@ -247,15 +247,9 @@ Deno.serve(async (req) => {
 
     // Toujours envoyer un email (même si le user existe déjà)
     if (!inviteLink && userId) {
-      // Générer un lien de récupération pour l'utilisateur existant
-      const { data: linkData } = await admin.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-        options: {
-          redirectTo: `${siteUrl}/set-password`,
-        },
-      })
-      inviteLink = linkData?.properties?.action_link ?? null
+      // Utilisateur existant : lien de définition de mot de passe (jeton maison, 24 h).
+      const tokenRes = await createSetupToken(admin, { userId, purpose: 'invite', ttlHours: 24 })
+      inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
     }
 
     if (inviteLink) {
@@ -283,6 +277,7 @@ Deno.serve(async (req) => {
       if (emailResult.error) {
         console.error('[invite-client] email error:', emailResult.error)
       } else {
+        emailSent = true
         console.log('[invite-client] email sent:', emailResult.id)
       }
     }
@@ -300,7 +295,7 @@ Deno.serve(async (req) => {
         contact_id: contactId,
         user_id: userId,
         is_new_user: isNewUser,
-        invite_link: inviteLink,
+        email_sent: emailSent,
       }),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

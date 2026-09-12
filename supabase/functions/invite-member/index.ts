@@ -5,7 +5,7 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { memberInviteTemplate } from '../_shared/email-templates/auth.ts'
 import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
-import { buildSetPasswordLink, extractHashedToken } from '../_shared/auth-links.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
 
 /**
@@ -156,11 +156,10 @@ Deno.serve(async (req) => {
     })
 
     if (createError || !authUser?.user) {
-      const message = createError?.message.includes('already been registered')
-        ? 'Cet email est déjà utilisé'
-        : 'Erreur lors de la création du compte'
+      // Message neutre : ne pas confirmer l'existence d'un compte à un admin de
+      // cabinet (anti-énumération inter-tenant). Détail en logs uniquement.
       console.error('[invite-member] createUser:', createError?.message)
-      return jsonResponse({ error: message }, 400)
+      return jsonResponse({ error: 'Impossible de créer un compte avec cette adresse email.' }, 400)
     }
 
     // Créer le profil public.users
@@ -238,20 +237,23 @@ Deno.serve(async (req) => {
   }
 })
 
+// Génère le lien de définition de mot de passe (jeton maison, 24 h) pour un
+// membre (par public.users.id). Résout d'abord l'id si on n'a que l'email (renvoi).
 // deno-lint-ignore no-explicit-any
 async function generateRecoveryLink(admin: any, email: string, organizationId: string): Promise<{ link: string | null; error: string | null }> {
+  const { data: prof } = await admin
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .eq('organization_id', organizationId)
+    .maybeSingle()
+  const userId = (prof as { id: string } | null)?.id
+  if (!userId) return { link: null, error: 'Profil introuvable' }
+
   const siteUrl = await resolveCabinetSiteUrl(admin, organizationId)
-  // deno-lint-ignore no-explicit-any
-  const { data, error } = await (admin.auth.admin.generateLink as any)({
-    type: 'recovery',
-    email,
-    options: { redirectTo: `${siteUrl}/set-password` },
-  })
-  // Lien brandé sur le domaine cabinet via token_hash (pas le action_link brut,
-  // qui exposerait <projet>.supabase.co).
-  const hashedToken = extractHashedToken(data)
-  const link = hashedToken ? buildSetPasswordLink(siteUrl, hashedToken) : null
-  return { link, error: error?.message ?? null }
+  const tokenRes = await createSetupToken(admin, { userId, purpose: 'invite', ttlHours: 24 })
+  if ('error' in tokenRes) return { link: null, error: tokenRes.error }
+  return { link: buildSetupLink(siteUrl, tokenRes.raw), error: null }
 }
 
 function jsonResponse(data: Record<string, unknown>, status = 200): Response {

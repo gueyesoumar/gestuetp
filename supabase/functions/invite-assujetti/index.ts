@@ -4,6 +4,8 @@ import { logActivity } from '../_shared/audit-log.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import { clientInviteTemplate } from '../_shared/email-templates.ts'
 import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-branding.ts'
+import { resolveCabinetSiteUrl } from '../_shared/cabinet-site-url.ts'
+import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
@@ -107,7 +109,10 @@ Deno.serve(async (req) => {
     let contactId: string
     let userId: string | null = null
     let isNewUser = false
+    // Lien de mot de passe (jeton maison) : sert UNIQUEMENT à composer l'email,
+    // jamais renvoyé dans la réponse HTTP (séparation des tâches — voir invite-client).
     let inviteLink: string | null = null
+    let emailSent = false
 
     if (existingContacts && existingContacts.length > 0) {
       contactId = existingContacts[0].id
@@ -154,7 +159,8 @@ Deno.serve(async (req) => {
         })
         if (createError) {
           console.error('[invite-assujetti] createUser:', createError.message)
-          return json({ error: createError.message.includes('already been registered') ? 'Cet email est déjà utilisé' : 'Erreur lors de la création du compte' }, 400)
+          // Message neutre : ne pas confirmer l'existence d'un compte (anti-énumération inter-tenant).
+          return json({ error: 'Impossible de créer un compte avec cette adresse email.' }, 400)
         }
 
         const nameParts = contact_name.trim().split(/\s+/)
@@ -183,12 +189,9 @@ Deno.serve(async (req) => {
         }
         userId = newUser.id
 
-        const { data: linkData } = await admin.auth.admin.generateLink({
-          type: 'recovery',
-          email,
-          options: { redirectTo: `${Deno.env.get('SITE_URL') ?? 'http://localhost:5173'}/set-password` },
-        })
-        inviteLink = linkData?.properties?.action_link ?? null
+        const siteUrl = await resolveCabinetSiteUrl(admin, caller.organization_id)
+        const tokenRes = await createSetupToken(admin, { userId: newUser.id as string, purpose: 'invite', ttlHours: 24 })
+        inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
       }
 
       await admin
@@ -208,12 +211,9 @@ Deno.serve(async (req) => {
 
     // Email (lien recovery pour définir le mot de passe)
     if (!inviteLink && userId) {
-      const { data: linkData } = await admin.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-        options: { redirectTo: `${Deno.env.get('SITE_URL') ?? 'http://localhost:5173'}/set-password` },
-      })
-      inviteLink = linkData?.properties?.action_link ?? null
+      const siteUrl = await resolveCabinetSiteUrl(admin, caller.organization_id)
+      const tokenRes = await createSetupToken(admin, { userId, purpose: 'invite', ttlHours: 24 })
+      inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
     }
 
     if (inviteLink) {
@@ -235,6 +235,7 @@ Deno.serve(async (req) => {
         replyTo: branding?.supportEmail ?? undefined,
       })
       if (emailResult.error) console.error('[invite-assujetti] email error:', emailResult.error)
+      else emailSent = true
     }
 
     await logActivity(admin, {
@@ -244,7 +245,7 @@ Deno.serve(async (req) => {
       summary: `Accès portail assujetti accordé : ${contact_name}`,
     })
 
-    return json({ success: true, contact_id: contactId, user_id: userId, is_new_user: isNewUser, invite_link: inviteLink }, 201)
+    return json({ success: true, contact_id: contactId, user_id: userId, is_new_user: isNewUser, email_sent: emailSent }, 201)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
     console.error('[invite-assujetti] unexpected:', message)

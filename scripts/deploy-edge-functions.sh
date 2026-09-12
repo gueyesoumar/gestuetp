@@ -17,7 +17,7 @@ set -euo pipefail
 REF="${1:?usage: bash scripts/deploy-edge-functions.sh <project-ref>}"
 
 # Fonctions publiques (aucune auth utilisateur dans le code -> verify_jwt=false).
-PUBLIC_FNS=(csp-report resolve-tenant-by-hostname email-preferences feasibility-callback request-password-reset)
+PUBLIC_FNS=(csp-report resolve-tenant-by-hostname email-preferences feasibility-callback request-password-reset set-password-with-token)
 
 # Retry avec backoff : le bundling importe les deps depuis esm.sh, qui renvoie
 # régulièrement un 522 transitoire (CDN timeout) et fait échouer un déploiement
