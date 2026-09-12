@@ -105,12 +105,20 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
     return (
       <div className="flex h-full w-full flex-col px-6 py-3">
         {topBar}
-        <ProductLauncher
-          products={products} isEnterable={isEnterable} onOpen={onOpen}
-          composite={composite} bandLabel={bandLabel(composite)} onPosture={() => setView('self')} portfolio={portfolio}
-        />
-        <OnboardingChecklist tone="dark" className="mt-4" />
-        {!portfolio && !demo.loading && !demo.hasDemo && <DemoInvite />}
+        {/* Conteneur défilant : centré verticalement quand le contenu tient dans
+            l'écran (min-h-full + justify-center), qui défile proprement quand la
+            checklist d'onboarding + la démo le rendent plus haut que la fenêtre —
+            évite tout chevauchement du lanceur avec la carte « Prise en main ». */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="flex min-h-full flex-col justify-center py-2">
+            <ProductLauncher
+              products={products} isEnterable={isEnterable} onOpen={onOpen}
+              composite={composite} bandLabel={bandLabel(composite)} onPosture={() => setView('self')} portfolio={portfolio}
+            />
+            <OnboardingChecklist tone="dark" className="mt-4" />
+            {!portfolio && !demo.loading && !demo.hasDemo && <DemoInvite />}
+          </div>
+        </div>
         <PoweredByGestu className="mt-2 shrink-0" />
       </div>
     )
