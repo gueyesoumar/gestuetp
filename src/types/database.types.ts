@@ -2044,6 +2044,18 @@ export interface Database {
         Args: { p_org: string }
         Returns: OrgSubscriptionState
       }
+      org_effective_quota: {
+        Args: Record<PropertyKey, never>
+        Returns: { users: number | null; missions: number | null }
+      }
+      org_has_entitlement: {
+        Args: { p_org: string; p_key: string }
+        Returns: boolean
+      }
+      verify_entitlement_invariance: {
+        Args: Record<PropertyKey, never>
+        Returns: { org_id: string; capability: string; in_entitlements: boolean; in_capabilities: boolean }[]
+      }
       my_capabilities: {
         Args: Record<PropertyKey, never>
         Returns: string[]

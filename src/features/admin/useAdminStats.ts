@@ -8,7 +8,7 @@ export interface AdminStats {
   cabinets_suspended: number
   users_active_30d: number
   missions_in_progress: number
-  mrr_eur_estimated: number
+  mrr_xof: number
   alerts: Array<{ kind: 'warn' | 'info' | 'red'; message: string }>
   activity_14d: number[]
 }

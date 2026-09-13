@@ -7,9 +7,9 @@ import { requirePlatformOwner } from '../_shared/auth-platform-owner.ts'
  * Retourne les KPI plateforme agrégés cross-cabinet pour le tableau de bord
  * super-admin. Utilise le service-role pour bypasser les RLS standard.
  *
- * Le MRR est un placeholder calculé naïvement comme
- *   Σ (cabinets actifs × monthly_price du plan)
- * Pas d'intégration paiement — Stripe en Phase 2.
+ * Le MRR est la SEULE source de vérité : platform_mrr() (RFC 0008 P0), qui somme
+ * org_mrr() sur toutes les orgs (abonnements actifs + remises produit puis org).
+ * Montant en FCFA (XOF). Pas d'intégration paiement — Stripe en Phase 2.
  */
 
 interface StatsResponse {
@@ -18,7 +18,7 @@ interface StatsResponse {
   cabinets_suspended: number
   users_active_30d: number
   missions_in_progress: number
-  mrr_eur_estimated: number
+  mrr_xof: number
   alerts: Array<{ kind: 'warn' | 'info' | 'red'; message: string }>
   activity_14d: number[]
 }
@@ -36,13 +36,16 @@ Deno.serve(async (req) => {
     // Toutes les organisations (cabinets, clients, groupes, plateforme)
     const { data: orgs } = await admin
       .from('organizations')
-      .select('id, is_active, types, plan_id, plans(monthly_price)')
+      .select('id, is_active, types')
 
-    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[]; plans: { monthly_price: number } | null }>
+    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[] }>
     const active = allOrgs.filter((o) => o.is_active)
 
-    // MRR : Σ (orgs actives × tarif du plan, si plan)
-    const mrr = active.reduce((sum, o) => sum + Number(o.plans?.monthly_price ?? 0), 0)
+    // MRR : source unique platform_mrr() (RFC 0008 P0). Appelé en service_role
+    // (auth.uid() null → passe-droit serveur de la fonction). FCFA.
+    const { data: mrrData, error: mrrError } = await admin.rpc('platform_mrr')
+    if (mrrError) console.error('admin-stats platform_mrr:', mrrError.message)
+    const mrr = Number(mrrData ?? 0)
 
     // Utilisateurs actifs sur 30 jours (last_sign_in_at)
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString()
@@ -81,7 +84,7 @@ Deno.serve(async (req) => {
       cabinets_suspended: suspended,
       users_active_30d: usersActive30d ?? 0,
       missions_in_progress: missionsInProgress ?? 0,
-      mrr_eur_estimated: mrr,
+      mrr_xof: mrr,
       alerts,
       activity_14d: activity,
     }
