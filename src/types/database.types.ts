@@ -2044,6 +2044,10 @@ export interface Database {
         Args: { p_org: string }
         Returns: OrgSubscriptionState
       }
+      org_effective_quota: {
+        Args: Record<PropertyKey, never>
+        Returns: { users: number | null; missions: number | null }
+      }
       my_capabilities: {
         Args: Record<PropertyKey, never>
         Returns: string[]

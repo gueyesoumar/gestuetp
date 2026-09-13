@@ -5,9 +5,14 @@ import { useAuth } from './useAuth'
 /**
  * Charge les quotas du cabinet de l'utilisateur courant.
  *
+ * La limite affichée provient de la RPC `org_effective_quota()` : la MÊME source
+ * que les triggers d'enforcement DB (org_quota_limits, repli plans.max_*, RFC 0008
+ * P0). La jauge reflète donc exactement ce que la plateforme bloque, y compris une
+ * surcharge par org — contrairement à l'ancienne lecture directe de plans.max_*.
+ *
  * Retourne `null` (pas de quota) si :
  *  - aucun cabinet rattaché
- *  - le plan du cabinet n'a pas de limite (max_* = NULL)
+ *  - la limite effective est NULL (illimité)
  *  - l'organisation est de type 'platform' (exemptée par les triggers DB)
  *
  * Sinon retourne les valeurs courantes + max pour afficher des jauges.
@@ -44,13 +49,16 @@ export function useMyCabinetQuotas(): Result {
 
     void (async () => {
       try {
-        const [{ data: orgRow, error: orgErr }, { count: usersCount }, { count: missionsCount }] = await Promise.all([
+        const [{ data: orgRow, error: orgErr }, { data: quotaRow, error: quotaErr }, { count: usersCount }, { count: missionsCount }] = await Promise.all([
           supabase
             .from('organizations')
-            .select('types, plan:plans(max_users, max_missions)')
+            .select('types')
             .eq('id', orgId)
             .abortSignal(abort.signal)
             .single(),
+          // Limite EFFECTIVE (org_quota_limits, repli plans.max_*) — même source que
+          // les triggers d'enforcement. RPC own-org, sans paramètre.
+          supabase.rpc('org_effective_quota').abortSignal(abort.signal),
           supabase
             .from('users')
             .select('id', { count: 'exact', head: true })
@@ -67,14 +75,16 @@ export function useMyCabinetQuotas(): Result {
         ])
         if (abort.signal.aborted) return
         if (orgErr) throw orgErr
+        if (quotaErr) throw quotaErr
 
-        const org = orgRow as { types: string[]; plan: { max_users: number | null; max_missions: number | null } | null } | null
+        const org = orgRow as { types: string[] } | null
+        const quota = (quotaRow ?? {}) as { users: number | null; missions: number | null }
         const isPlatformOrg = (org?.types ?? []).includes('platform')
 
         setQuotas({
-          maxUsers: org?.plan?.max_users ?? null,
+          maxUsers: quota.users ?? null,
           currentActiveUsers: usersCount ?? 0,
-          maxMissions: org?.plan?.max_missions ?? null,
+          maxMissions: quota.missions ?? null,
           currentActiveMissions: missionsCount ?? 0,
           isPlatformOrg,
         })

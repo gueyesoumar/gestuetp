@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAdminStats } from '../../features/admin/useAdminStats'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { formatMoney } from '../../lib/money'
 
 export function AdminDashboardPage() {
   const { stats, loading, error } = useAdminStats()
@@ -26,10 +27,10 @@ export function AdminDashboardPage() {
         <KpiCard label="Missions en cours" value={stats.missions_in_progress.toString()} sub="toutes organisations confondues" accent="blue" />
         <KpiCard
           label="MRR estimé"
-          value={`${stats.mrr_eur_estimated.toLocaleString('fr-FR')} €`}
-          sub="placeholder · Stripe en Phase 2"
+          value={formatMoney(stats.mrr_xof, 'XOF')}
+          sub="abonnements actifs · Stripe en Phase 2"
           accent="gold"
-          tooltip="Calcul naïf : Σ (organisations actives avec plan × tarif). Pas un chiffre comptable."
+          tooltip="Source unique platform_mrr() : Σ des abonnements actifs, remises produit puis org incluses. Pas un chiffre comptable."
         />
       </div>
 
