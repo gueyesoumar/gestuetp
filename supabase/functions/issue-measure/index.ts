@@ -2,6 +2,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
+import { requireEntitlement } from '../_shared/require-entitlement.ts'
 
 /**
  * issue-measure — mesures graduées du régulateur (Gëstu Regul / M4).
@@ -59,6 +60,11 @@ Deno.serve(async (req) => {
     if (!(Array.isArray(callerOrg?.types) && callerOrg!.types.includes('group'))) {
       return json({ error: "Votre organisation n'est pas un régulateur" }, 403)
     }
+
+    // Enforcement d'entitlement (RFC 0008 P3). Soft par défaut → aucun effet tant que
+    // la clé 'measures' n'est pas passée en 'hard' dans entitlement_gate_policy.
+    const denied = await requireEntitlement(admin, caller.organization_id, 'measures')
+    if (denied) return denied
 
     // Sous-arbre du régulateur (assujettis autorisés).
     const { data: descRows } = await admin.rpc('get_subsidiary_ids', { parent_id: caller.organization_id })
