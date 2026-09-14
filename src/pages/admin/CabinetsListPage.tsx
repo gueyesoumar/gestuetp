@@ -5,22 +5,25 @@ import { useAdminCabinets, type AdminCabinet } from '../../features/admin/useAdm
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { CreateCabinetWizard } from '../../features/admin/CreateCabinetWizard'
+import { KpiTile } from '../../features/admin/dashboard/KpiTile'
 
 type StatusFilter = 'all' | 'active' | 'suspended'
-type TypeFilter = 'all' | 'cabinet' | 'client' | 'group' | 'platform' | 'autre'
+type NatureFilter = 'all' | 'cabinet' | 'regulator' | 'client' | 'group' | 'platform' | 'autre'
 
-const TYPE_LABELS: Record<string, { label: string; variant: 'forest' | 'blue' | 'gold' | 'purple' | 'gray' }> = {
+const NATURE_LABELS: Record<string, { label: string; variant: 'forest' | 'blue' | 'gold' | 'purple' | 'gray' | 'red' }> = {
   cabinet: { label: 'Cabinet', variant: 'forest' },
+  regulator: { label: 'Régulateur', variant: 'red' },
   client: { label: 'Client', variant: 'blue' },
   group: { label: 'Groupe', variant: 'gold' },
   platform: { label: 'Plateforme', variant: 'purple' },
 }
 
-function classifyType(types: string[]): TypeFilter {
-  if (types.includes('cabinet')) return 'cabinet'
-  if (types.includes('client')) return 'client'
-  if (types.includes('group')) return 'group'
-  if (types.includes('platform')) return 'platform'
+function natureOf(org: AdminCabinet): NatureFilter {
+  if (org.types.includes('cabinet')) return 'cabinet'
+  if (org.is_regulator) return 'regulator'
+  if (org.types.includes('client')) return 'client'
+  if (org.types.includes('group')) return 'group'
+  if (org.types.includes('platform')) return 'platform'
   return 'autre'
 }
 
@@ -28,7 +31,7 @@ export function CabinetsListPage() {
   const { cabinets, loading, error, refetch } = useAdminCabinets()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
+  const [typeFilter, setTypeFilter] = useState<NatureFilter>('all')
   const [wizardOpen, setWizardOpen] = useState(false)
 
   const filtered = useMemo(() => {
@@ -36,18 +39,18 @@ export function CabinetsListPage() {
     return cabinets.filter((c) => {
       if (statusFilter === 'active' && !c.is_active) return false
       if (statusFilter === 'suspended' && c.is_active) return false
-      if (typeFilter !== 'all' && classifyType(c.types) !== typeFilter) return false
+      if (typeFilter !== 'all' && natureOf(c) !== typeFilter) return false
       if (q && !c.name.toLowerCase().includes(q) && !c.slug.toLowerCase().includes(q)) return false
       return true
     })
   }, [cabinets, search, statusFilter, typeFilter])
 
   const counts = useMemo(() => {
-    const byType: Record<string, number> = { cabinet: 0, client: 0, group: 0, platform: 0, autre: 0 }
+    const byType: Record<string, number> = { cabinet: 0, regulator: 0, client: 0, group: 0, platform: 0, autre: 0 }
     let active = 0
     let suspended = 0
     for (const c of cabinets) {
-      byType[classifyType(c.types)]++
+      byType[natureOf(c)]++
       if (c.is_active) active++; else suspended++
     }
     return { byType, active, suspended, total: cabinets.length }
@@ -59,16 +62,18 @@ export function CabinetsListPage() {
   return (
     <div className="px-7 py-6">
       <div className="flex items-baseline gap-3 mb-1">
-        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> &rsaquo; Organisations</span>
+        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> › Organisations</span>
       </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Toutes les organisations</h1>
-      <p className="text-[12.5px] text-gray-500 mb-5">
-        {counts.total} organisations &mdash; {counts.byType.cabinet} cabinets, {counts.byType.client} clients
-        {counts.byType.group > 0 && `, ${counts.byType.group} groupes`}
-        {counts.byType.platform > 0 && `, ${counts.byType.platform} plateforme`}
-        {counts.byType.autre > 0 && `, ${counts.byType.autre} autres`}
-        {' · '}{counts.active} actives, {counts.suspended} suspendues.
-      </p>
+      <h1 className="text-xl font-bold text-gray-900 mb-4">Toutes les organisations</h1>
+
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3.5 mb-5">
+        <KpiTile label="Total" value={counts.total.toString()} sub={`${counts.active} actives · ${counts.suspended} susp.`} accent="gold" />
+        <KpiTile label="Cabinets" value={counts.byType.cabinet.toString()} accent="green" />
+        <KpiTile label="Régulateurs" value={counts.byType.regulator.toString()} accent="gold" />
+        <KpiTile label="Groupes" value={counts.byType.group.toString()} accent="gold" />
+        <KpiTile label="Clients" value={counts.byType.client.toString()} accent="blue" />
+        <KpiTile label="Plateforme" value={counts.byType.platform.toString()} accent="purple" />
+      </div>
 
       <div className="flex items-center gap-3 mb-3 flex-wrap">
         <div className="relative">
@@ -94,9 +99,10 @@ export function CabinetsListPage() {
       </div>
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <span className="text-[10.5px] uppercase tracking-wider text-gray-400 font-semibold">Type :</span>
-        <TypePill label="Tous" active={typeFilter === 'all'} count={counts.total} onClick={() => setTypeFilter('all')} variant="gray" />
+        <span className="text-[10.5px] uppercase tracking-wider text-gray-400 font-semibold">Nature :</span>
+        <TypePill label="Toutes" active={typeFilter === 'all'} count={counts.total} onClick={() => setTypeFilter('all')} variant="gray" />
         <TypePill label="Cabinets" active={typeFilter === 'cabinet'} count={counts.byType.cabinet} onClick={() => setTypeFilter('cabinet')} variant="forest" />
+        {counts.byType.regulator > 0 && <TypePill label="Régulateurs" active={typeFilter === 'regulator'} count={counts.byType.regulator} onClick={() => setTypeFilter('regulator')} variant="gold" />}
         <TypePill label="Clients" active={typeFilter === 'client'} count={counts.byType.client} onClick={() => setTypeFilter('client')} variant="blue" />
         {counts.byType.group > 0 && <TypePill label="Groupes" active={typeFilter === 'group'} count={counts.byType.group} onClick={() => setTypeFilter('group')} variant="gold" />}
         {counts.byType.platform > 0 && <TypePill label="Plateforme" active={typeFilter === 'platform'} count={counts.byType.platform} onClick={() => setTypeFilter('platform')} variant="purple" />}
@@ -112,7 +118,7 @@ export function CabinetsListPage() {
           <thead>
             <tr className="bg-page-bg text-[10.5px] uppercase tracking-wider text-gray-300 font-semibold">
               <th className="text-left px-4 py-3 border-b border-gray-200">Organisation</th>
-              <th className="text-left px-4 py-3 border-b border-gray-200">Type</th>
+              <th className="text-left px-4 py-3 border-b border-gray-200">Nature</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Plan</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Membres</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Missions</th>
@@ -135,8 +141,7 @@ export function CabinetsListPage() {
 }
 
 function OrganizationRow({ org }: { org: AdminCabinet }) {
-  const orgType = classifyType(org.types)
-  const typeMeta = TYPE_LABELS[orgType]
+  const typeMeta = NATURE_LABELS[natureOf(org)]
 
   return (
     <tr className="hover:bg-page-bg">
