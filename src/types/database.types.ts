@@ -1685,6 +1685,36 @@ export interface OrgSubscriptionState {
   subscriptions: OrgSubscriptionStateEntry[]
 }
 
+// État des entitlements résolu (retour jsonb de org_entitlement_state, RFC 0008 INC 5b).
+export type EntitlementStatus = 'active' | 'trial' | 'suspended'
+export type PricingKind = 'none' | 'flat' | 'per_unit' | 'metered'
+export type PriceUnit = 'month' | 'year' | 'seat' | 'mission' | 'assujetti' | 'client' | 'subsidiary' | 'credit'
+export type Enforcement = 'soft' | 'hard'
+
+export interface OrgEntitlementEntry {
+  key: string
+  status: EntitlementStatus
+  trial_ends_at: string | null
+  capability: string | null
+  limit_value: number | null
+  pricing_kind: PricingKind
+  price_amount: number | null
+  price_unit: PriceUnit | null
+  included_qty: number | null
+  discount_pct: number
+  enforcement: Enforcement
+  source: string
+}
+
+export interface OrgEntitlementState {
+  organization_id: string
+  discount_pct: number | null
+  home_product: string | null
+  mrr: number
+  entitlements: OrgEntitlementEntry[]
+  gate_policy: Record<string, Enforcement>
+}
+
 export interface Database {
   __InternalSupabase: {
     PostgrestVersion: '12'
@@ -2043,6 +2073,10 @@ export interface Database {
       org_subscription_state: {
         Args: { p_org: string }
         Returns: OrgSubscriptionState
+      }
+      org_entitlement_state: {
+        Args: { p_org: string }
+        Returns: OrgEntitlementState
       }
       org_effective_quota: {
         Args: Record<PropertyKey, never>
