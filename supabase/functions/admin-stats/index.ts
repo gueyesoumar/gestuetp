@@ -19,6 +19,9 @@ interface StatsResponse {
   users_active_30d: number
   missions_in_progress: number
   mrr_xof: number
+  orgs_by_nature: { cabinet: number; group: number; client: number; platform: number }
+  trials_count: number
+  new_orgs_30d: number
   alerts: Array<{ kind: 'warn' | 'info' | 'red'; message: string }>
   activity_14d: number[]
 }
@@ -36,10 +39,25 @@ Deno.serve(async (req) => {
     // Toutes les organisations (cabinets, clients, groupes, plateforme)
     const { data: orgs } = await admin
       .from('organizations')
-      .select('id, is_active, types')
+      .select('id, is_active, types, created_at')
 
-    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[] }>
+    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[]; created_at: string }>
     const active = allOrgs.filter((o) => o.is_active)
+
+    // Répartition par nature (types canoniques : cabinet | group | client | platform)
+    const has = (o: { types: string[] }, t: string) => Array.isArray(o.types) && o.types.includes(t)
+    const orgs_by_nature = {
+      cabinet: allOrgs.filter((o) => has(o, 'cabinet')).length,
+      group: allOrgs.filter((o) => has(o, 'group')).length,
+      client: allOrgs.filter((o) => has(o, 'client')).length,
+      platform: allOrgs.filter((o) => has(o, 'platform')).length,
+    }
+    const since30 = new Date(Date.now() - 30 * 86_400_000)
+    const new_orgs_30d = allOrgs.filter((o) => o.created_at && new Date(o.created_at) >= since30).length
+
+    // Essais en cours : orgs distinctes avec un droit status='trial'
+    const { data: trialRows } = await admin.from('org_entitlements').select('organization_id').eq('status', 'trial')
+    const trials_count = new Set(((trialRows ?? []) as Array<{ organization_id: string }>).map((r) => r.organization_id)).size
 
     // MRR : source unique platform_mrr() (RFC 0008 P0). Appelé en service_role
     // (auth.uid() null → passe-droit serveur de la fonction). FCFA.
@@ -85,6 +103,9 @@ Deno.serve(async (req) => {
       users_active_30d: usersActive30d ?? 0,
       missions_in_progress: missionsInProgress ?? 0,
       mrr_xof: mrr,
+      orgs_by_nature,
+      trials_count,
+      new_orgs_30d,
       alerts,
       activity_14d: activity,
     }
