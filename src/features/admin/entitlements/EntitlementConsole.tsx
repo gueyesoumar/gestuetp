@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
-import { useCurrencyDisplay } from '../subscription/useCurrencyDisplay'
+import { useCurrencyDisplay } from './useCurrencyDisplay'
 import { useOrgEntitlements } from './useOrgEntitlements'
 import { EntitlementRow } from './EntitlementRow'
 import { EntitlementEditModal } from './EntitlementEditModal'

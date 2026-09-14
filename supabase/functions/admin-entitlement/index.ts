@@ -59,7 +59,8 @@ Deno.serve(async (req) => {
     const { data: target } = await db.from('organizations').select('id, name').eq('id', org).single()
     if (!target) return json({ error: 'Organisation introuvable' }, 404)
 
-    const refresh = () => db.rpc('refresh_org_capabilities', { p_org: org })
+    // La projection des capacités est pilotée par le trigger trg_entitlement_refresh
+    // (00248) sur org_entitlements — pas d'appel refresh explicite ici.
     const log = (meta: Record<string, unknown>) =>
       logAdminAction(admin, owner.id, `entitlement.${body.action}`, 'organization', org, body.reason, { organization_name: target.name, key: key ?? null, ...meta })
 
@@ -106,7 +107,6 @@ Deno.serve(async (req) => {
       if (body.status === 'suspended') patch.suspended_at = new Date().toISOString()
       const { data: updated, error } = await db.from('org_entitlements').update(patch).eq('organization_id', org).eq('key', key).select('id').single()
       if (error || !updated) return json({ error: 'Entitlement introuvable pour cette organisation' }, 404)
-      await refresh()
       await log({ status: body.status })
       return json({ ok: true })
     }
@@ -134,7 +134,6 @@ Deno.serve(async (req) => {
       }
       const { error } = await db.from('org_entitlements').upsert(row, { onConflict: 'organization_id,key' })
       if (error) { console.error('[admin-entitlement] grant_manual:', error.message); return json({ error: 'Octroi impossible' }, 500) }
-      await refresh()
       await log({ granted: row.key, capability: row.capability })
       return json({ ok: true })
     }
@@ -144,7 +143,6 @@ Deno.serve(async (req) => {
         .eq('organization_id', org).eq('key', key).eq('source', 'manual').select('id')
       if (error) { console.error('[admin-entitlement] remove_manual:', error.message); return json({ error: 'Retrait impossible' }, 500) }
       if (!removed || removed.length === 0) return json({ error: 'Aucun droit manuel à retirer pour cette clé' }, 404)
-      await refresh()
       await log({ removed: key })
       return json({ ok: true })
     }
