@@ -11,7 +11,6 @@ import { DeleteCabinetModal } from '../../features/admin/DeleteCabinetModal'
 import { CabinetFeatureFlagsTab } from '../../features/admin/CabinetFeatureFlagsTab'
 import { CabinetMembersTab } from '../../features/admin/CabinetMembersTab'
 import { CabinetMissionsTab } from '../../features/admin/CabinetMissionsTab'
-import { CabinetSubscriptionTab } from '../../features/admin/subscription/CabinetSubscriptionTab'
 import { EntitlementConsole } from '../../features/admin/entitlements/EntitlementConsole'
 import { CabinetAuditLogTab } from '../../features/admin/CabinetAuditLogTab'
 import { CabinetWhiteLabelTab } from '../../features/admin/branding/CabinetWhiteLabelTab'
@@ -21,7 +20,7 @@ import { TerminologyEditor } from '../../features/organization-settings/Terminol
 import { EditOrganizationTypesModal } from '../../features/admin/EditOrganizationTypesModal'
 import { labelOrganizationType } from '../../features/admin/cabinetLabels'
 
-type TabKey = 'overview' | 'members' | 'missions' | 'subscription' | 'entitlements' | 'whitelabel' | 'flags' | 'audit' | 'terminologie'
+type TabKey = 'overview' | 'members' | 'missions' | 'entitlements' | 'whitelabel' | 'flags' | 'audit' | 'terminologie'
 
 export function CabinetDetailPage() {
   const { id } = useParams()
@@ -110,8 +109,7 @@ export function CabinetDetailPage() {
         <TabBtn k="overview" label="Vue d'ensemble" active={activeTab === 'overview'} onClick={setActiveTab} />
         <TabBtn k="members" label={`Membres · ${cabinet.members.length}`} active={activeTab === 'members'} onClick={setActiveTab} />
         <TabBtn k="missions" label={`Missions · ${cabinet.missions.length}`} active={activeTab === 'missions'} onClick={setActiveTab} />
-        <TabBtn k="subscription" label="Abonnement" active={activeTab === 'subscription'} onClick={setActiveTab} />
-        <TabBtn k="entitlements" label="Entitlements" active={activeTab === 'entitlements'} onClick={setActiveTab} />
+        <TabBtn k="entitlements" label="Abonnement" active={activeTab === 'entitlements'} onClick={setActiveTab} />
         <TabBtn k="whitelabel" label="Marque blanche" active={activeTab === 'whitelabel'} onClick={setActiveTab} />
         <TabBtn k="flags" label="Fonctionnalités" active={activeTab === 'flags'} onClick={setActiveTab} />
         <TabBtn k="terminologie" label="Terminologie" active={activeTab === 'terminologie'} onClick={setActiveTab} />
@@ -134,7 +132,6 @@ export function CabinetDetailPage() {
 
       {activeTab === 'members' && <CabinetMembersTab cabinetId={cabinet.id} cabinetName={cabinet.name} />}
       {activeTab === 'missions' && <CabinetMissionsTab cabinetId={cabinet.id} />}
-      {activeTab === 'subscription' && <CabinetSubscriptionTab cabinetId={cabinet.id} />}
       {activeTab === 'entitlements' && <EntitlementConsole cabinetId={cabinet.id} />}
       {activeTab === 'whitelabel' && <CabinetWhiteLabelTab cabinetId={cabinet.id} cabinetName={cabinet.name} />}
       {activeTab === 'flags' && <CabinetFeatureFlagsTab cabinetId={cabinet.id} />}

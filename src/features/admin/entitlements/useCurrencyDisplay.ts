@@ -5,9 +5,9 @@ import { formatMoney, type Currency } from '../../../lib/money'
 const KEY = 'gestu.subscription.currency'
 
 /**
- * Devise d'affichage de la console (RFC 0006). Base = FCFA ; préférence par
- * utilisateur (localStorage). Récupère le taux EUR↔USD via l'edge fx-rate
- * (cache 24 h serveur) ; repli sur 1.08 si indisponible.
+ * Devise d'affichage de la console d'entitlements (RFC 0008). Base = FCFA ;
+ * préférence par utilisateur (localStorage). Récupère le taux EUR↔USD via l'edge
+ * fx-rate (cache 24 h serveur) ; repli sur 1.08 si indisponible.
  */
 export function useCurrencyDisplay(): {
   currency: Currency

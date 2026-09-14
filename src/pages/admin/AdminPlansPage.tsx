@@ -9,7 +9,7 @@ import { PlansMatrixView } from '../../features/admin/plans/PlansMatrixView'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
-import { useCurrencyDisplay } from '../../features/admin/subscription/useCurrencyDisplay'
+import { useCurrencyDisplay } from '../../features/admin/entitlements/useCurrencyDisplay'
 import { CURRENCIES, CURRENCY_LABEL } from '../../lib/money'
 
 type ViewMode = 'cards' | 'matrix'
