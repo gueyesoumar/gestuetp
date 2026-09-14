@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { CreateCabinetWizard } from '../../features/admin/CreateCabinetWizard'
 import { KpiTile } from '../../features/admin/dashboard/KpiTile'
+import { bandLabel } from '../../features/hub/trustBand'
 
 type StatusFilter = 'all' | 'active' | 'suspended'
 type NatureFilter = 'all' | 'cabinet' | 'regulator' | 'client' | 'group' | 'platform' | 'autre'
@@ -36,12 +37,19 @@ export function CabinetsListPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return cabinets.filter((c) => {
+    const rows = cabinets.filter((c) => {
       if (statusFilter === 'active' && !c.is_active) return false
       if (statusFilter === 'suspended' && c.is_active) return false
       if (typeFilter !== 'all' && natureOf(c) !== typeFilter) return false
       if (q && !c.name.toLowerCase().includes(q) && !c.slug.toLowerCase().includes(q)) return false
       return true
+    })
+    // Tri « à risque en premier » : posture croissante, non évaluées (null) en fin.
+    return rows.sort((a, b) => {
+      if (a.posture === null && b.posture === null) return 0
+      if (a.posture === null) return 1
+      if (b.posture === null) return -1
+      return a.posture - b.posture
     })
   }, [cabinets, search, statusFilter, typeFilter])
 
@@ -120,6 +128,7 @@ export function CabinetsListPage() {
               <th className="text-left px-4 py-3 border-b border-gray-200">Organisation</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Nature</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Plan</th>
+              <th className="text-left px-4 py-3 border-b border-gray-200">Conformité</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Membres</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Missions</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Dernière activité</th>
@@ -129,13 +138,17 @@ export function CabinetsListPage() {
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-10 text-gray-300 text-[12px]">Aucune organisation ne correspond.</td></tr>
+              <tr><td colSpan={9} className="text-center py-10 text-gray-300 text-[12px]">Aucune organisation ne correspond.</td></tr>
             ) : (
               filtered.map((c) => <OrganizationRow key={c.id} org={c} />)
             )}
           </tbody>
         </table>
       </div>
+      <p className="mt-3 text-[11.5px] text-gray-400 leading-relaxed">
+        <b className="text-gray-500">Conformité</b> = posture moyenne des axes mesurés (part des contrôles approuvés), triée à risque en premier.
+        Les clients &amp; assujettis apparaissent «&nbsp;Non évalué&nbsp;» : leur conformité est portée par les missions de leur organisation mère.
+      </p>
     </div>
   )
 }
@@ -160,6 +173,7 @@ function OrganizationRow({ org }: { org: AdminCabinet }) {
         {typeMeta ? <Pill text={typeMeta.label} variant={typeMeta.variant} /> : <span className="text-gray-300 text-[11px]">—</span>}
       </td>
       <td className="px-4 py-3 border-b border-gray-100">{org.plan_name ? <Pill text={org.plan_name} variant="gold" /> : <span className="text-gray-300 text-[11px]">—</span>}</td>
+      <td className="px-4 py-3 border-b border-gray-100"><PostureCell score={org.posture} /></td>
       <td className="px-4 py-3 border-b border-gray-100">{org.members_count}</td>
       <td className="px-4 py-3 border-b border-gray-100">{org.missions_count > 0 ? org.missions_count : <span className="text-gray-300">—</span>}</td>
       <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-500">{formatRelative(org.last_activity_at)}</td>
@@ -215,6 +229,19 @@ function Pill({ text, variant }: { text: string; variant: 'green' | 'red' | 'gol
     purple: 'bg-purple-50 text-purple-700',
   }
   return <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${map[variant]}`}>{text}</span>
+}
+
+function PostureCell({ score }: { score: number | null }) {
+  if (score === null) return <span className="text-gray-300 text-[11px]">Non évalué</span>
+  const variant: 'green' | 'gold' | 'red' = score >= 80 ? 'green' : score >= 60 ? 'gold' : 'red'
+  const dot = { green: 'bg-green-500', gold: 'bg-gold-500', red: 'bg-red-500' }[variant]
+  const text = { green: 'text-green-700', gold: 'text-gold-600', red: 'text-red-700' }[variant]
+  return (
+    <span className="inline-flex items-center gap-2" title={bandLabel(score)}>
+      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`} />
+      <span className={`text-[12.5px] font-bold tabular-nums ${text}`}>{score}%</span>
+    </span>
+  )
 }
 
 function formatRelative(iso: string | null): string {

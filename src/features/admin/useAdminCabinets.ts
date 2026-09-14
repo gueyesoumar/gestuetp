@@ -14,6 +14,7 @@ export interface AdminCabinet {
   missions_count: number
   last_activity_at: string | null
   is_regulator: boolean
+  posture: number | null
 }
 
 interface Result {
@@ -87,6 +88,15 @@ export function useAdminCabinets(): Result {
         if (supError) console.error('[useAdminCabinets] supervision caps:', supError.message)
         const regulators = new Set(((supRows ?? []) as Array<{ org_id: string }>).map((r) => r.org_id))
 
+        // Posture de conformité par org (moyenne des %/axe mesuré) — RPC réservée
+        // au propriétaire plateforme. Enrichissement secondaire : on journalise en
+        // cas d'échec mais on n'interrompt pas le chargement de la liste.
+        const { data: scoreRows, error: scoreError } = await supabase.rpc('admin_org_scores')
+        if (scoreError) console.error('[useAdminCabinets] org scores:', scoreError.message)
+        const postureByOrg = new Map(
+          ((scoreRows ?? []) as Array<{ org_id: string; posture: number | null }>).map((r) => [r.org_id, r.posture]),
+        )
+
         const enriched: AdminCabinet[] = allOrgs.map((o) => ({
           id: o.id,
           name: o.name,
@@ -100,6 +110,7 @@ export function useAdminCabinets(): Result {
           missions_count: missionCounts[o.id] ?? 0,
           last_activity_at: lastActivity[o.id] ?? null,
           is_regulator: (o.types ?? []).includes('group') && regulators.has(o.id),
+          posture: postureByOrg.get(o.id) ?? null,
         }))
 
         setCabinets(enriched)
