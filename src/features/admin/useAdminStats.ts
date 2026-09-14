@@ -9,6 +9,9 @@ export interface AdminStats {
   users_active_30d: number
   missions_in_progress: number
   mrr_xof: number
+  orgs_by_nature: { cabinet: number; group: number; client: number; platform: number }
+  trials_count: number
+  new_orgs_30d: number
   alerts: Array<{ kind: 'warn' | 'info' | 'red'; message: string }>
   activity_14d: number[]
 }
