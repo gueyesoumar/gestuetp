@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Download } from 'lucide-react'
 import { useAdminCabinets, type AdminCabinet } from '../../features/admin/useAdminCabinets'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -69,10 +69,33 @@ export function CabinetsListPage() {
 
   return (
     <div className="px-7 py-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> › Organisations</span>
+      <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+        <div>
+          <div className="flex items-baseline gap-3 mb-1">
+            <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> › Organisations</span>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900">Organisations</h1>
+          <p className="text-[12.5px] text-gray-500 mt-1 max-w-2xl">
+            Toutes natures — cabinets, régulateurs, clients, groupes. Triées par conformité, les organisations à risque en premier.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportOrganizationsCsv(filtered)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-[12.5px] font-semibold hover:bg-page-bg"
+          >
+            <Download size={14} />
+            Exporter CSV
+          </button>
+          <button
+            onClick={() => setWizardOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest-700 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-900"
+          >
+            <Plus size={14} />
+            Onboarder une organisation
+          </button>
+        </div>
       </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-4">Toutes les organisations</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3.5 mb-5">
         <KpiTile label="Total" value={counts.total.toString()} sub={`${counts.active} actives · ${counts.suspended} susp.`} accent="gold" />
@@ -83,38 +106,23 @@ export function CabinetsListPage() {
         <KpiTile label="Plateforme" value={counts.byType.platform.toString()} accent="purple" />
       </div>
 
-      <div className="flex items-center gap-3 mb-3 flex-wrap">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrer par nom, slug…"
-            className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-72 bg-page-bg"
-          />
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <NatureSegment value={typeFilter} counts={counts} onChange={setTypeFilter} />
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <FilterPill label={`Actives · ${counts.active}`} active={statusFilter === 'active'} onClick={() => setStatusFilter('active')} variant="green" />
+          <FilterPill label={`Suspendues · ${counts.suspended}`} active={statusFilter === 'suspended'} onClick={() => setStatusFilter('suspended')} variant="warn" />
+          <FilterPill label={`Toutes · ${counts.total}`} active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} variant="gray" />
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher une organisation…"
+              className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-64 bg-page-bg"
+            />
+          </div>
         </div>
-        <FilterPill label={`Actives · ${counts.active}`} active={statusFilter === 'active'} onClick={() => setStatusFilter('active')} variant="green" />
-        <FilterPill label={`Suspendues · ${counts.suspended}`} active={statusFilter === 'suspended'} onClick={() => setStatusFilter('suspended')} variant="warn" />
-        <FilterPill label={`Toutes · ${counts.total}`} active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} variant="gray" />
-        <button
-          onClick={() => setWizardOpen(true)}
-          className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest-700 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-900"
-        >
-          <Plus size={14} />
-          Onboarder un cabinet
-        </button>
-      </div>
-
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <span className="text-[10.5px] uppercase tracking-wider text-gray-400 font-semibold">Nature :</span>
-        <TypePill label="Toutes" active={typeFilter === 'all'} count={counts.total} onClick={() => setTypeFilter('all')} variant="gray" />
-        <TypePill label="Cabinets" active={typeFilter === 'cabinet'} count={counts.byType.cabinet} onClick={() => setTypeFilter('cabinet')} variant="forest" />
-        {counts.byType.regulator > 0 && <TypePill label="Régulateurs" active={typeFilter === 'regulator'} count={counts.byType.regulator} onClick={() => setTypeFilter('regulator')} variant="gold" />}
-        <TypePill label="Clients" active={typeFilter === 'client'} count={counts.byType.client} onClick={() => setTypeFilter('client')} variant="blue" />
-        {counts.byType.group > 0 && <TypePill label="Groupes" active={typeFilter === 'group'} count={counts.byType.group} onClick={() => setTypeFilter('group')} variant="gold" />}
-        {counts.byType.platform > 0 && <TypePill label="Plateforme" active={typeFilter === 'platform'} count={counts.byType.platform} onClick={() => setTypeFilter('platform')} variant="purple" />}
-        {counts.byType.autre > 0 && <TypePill label="Autres" active={typeFilter === 'autre'} count={counts.byType.autre} onClick={() => setTypeFilter('autre')} variant="gray" />}
       </div>
 
       {wizardOpen && (
@@ -196,25 +204,31 @@ function FilterPill({ label, active, onClick, variant }: { label: string; active
   )
 }
 
-function TypePill({ label, active, count, onClick, variant }: { label: string; active: boolean; count: number; onClick: () => void; variant: 'forest' | 'blue' | 'gold' | 'purple' | 'gray' }) {
-  const ringColor = {
-    forest: 'border-forest-300 text-forest-700',
-    blue: 'border-blue-300 text-blue-700',
-    gold: 'border-gold-300 text-gold-600',
-    purple: 'border-purple-300 text-purple-700',
-    gray: 'border-gray-300 text-gray-600',
-  }[variant]
-  const activeBg = {
-    forest: 'bg-forest-700 text-white',
-    blue: 'bg-blue-600 text-white',
-    gold: 'bg-gold-500 text-forest-900',
-    purple: 'bg-purple-600 text-white',
-    gray: 'bg-gray-700 text-white',
-  }[variant]
+interface NatureCounts { byType: Record<string, number>; active: number; suspended: number; total: number }
+
+function NatureSegment({ value, counts, onChange }: { value: NatureFilter; counts: NatureCounts; onChange: (v: NatureFilter) => void }) {
+  const items: Array<{ key: NatureFilter; label: string; n: number }> = [
+    { key: 'all', label: 'Toutes', n: counts.total },
+    { key: 'cabinet', label: 'Cabinets', n: counts.byType.cabinet },
+    ...(counts.byType.regulator > 0 ? [{ key: 'regulator' as NatureFilter, label: 'Régulateurs', n: counts.byType.regulator }] : []),
+    { key: 'client', label: 'Clients', n: counts.byType.client },
+    ...(counts.byType.group > 0 ? [{ key: 'group' as NatureFilter, label: 'Groupes', n: counts.byType.group }] : []),
+    ...(counts.byType.platform > 0 ? [{ key: 'platform' as NatureFilter, label: 'Plateforme', n: counts.byType.platform }] : []),
+    ...(counts.byType.autre > 0 ? [{ key: 'autre' as NatureFilter, label: 'Autres', n: counts.byType.autre }] : []),
+  ]
   return (
-    <button type="button" onClick={onClick} className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${active ? activeBg : `bg-white border ${ringColor}`}`}>
-      {label} <span className="opacity-70">· {count}</span>
-    </button>
+    <div className="inline-flex items-center bg-white border border-gray-200 rounded-lg p-1 gap-1 flex-wrap">
+      {items.map((it) => (
+        <button
+          key={it.key}
+          type="button"
+          onClick={() => onChange(it.key)}
+          className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-colors ${value === it.key ? 'bg-forest-700 text-white' : 'text-gray-500 hover:bg-page-bg'}`}
+        >
+          {it.label} <span className={value === it.key ? 'opacity-70' : 'text-gray-300'}>{it.n}</span>
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -229,6 +243,33 @@ function Pill({ text, variant }: { text: string; variant: 'green' | 'red' | 'gol
     purple: 'bg-purple-50 text-purple-700',
   }
   return <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${map[variant]}`}>{text}</span>
+}
+
+function csvCell(v: string): string {
+  return /[",\r\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
+}
+
+function exportOrganizationsCsv(rows: AdminCabinet[]): void {
+  const header = ['Organisation', 'Slug', 'Nature', 'Plan', 'Conformité', 'Membres', 'Missions', 'Dernière activité', 'Statut']
+  const body = rows.map((c) => [
+    c.name,
+    c.slug,
+    NATURE_LABELS[natureOf(c)]?.label ?? 'Autre',
+    c.plan_name ?? '',
+    c.posture === null ? 'Non évalué' : `${c.posture}%`,
+    String(c.members_count),
+    String(c.missions_count),
+    c.last_activity_at ?? '',
+    c.is_active ? 'Actif' : 'Suspendu',
+  ])
+  const csv = [header, ...body].map((r) => r.map(csvCell).join(',')).join('\r\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `organisations-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function PostureCell({ score }: { score: number | null }) {
