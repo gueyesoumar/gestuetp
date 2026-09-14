@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { toast as sonner } from 'sonner'
 
 type ToastOpts = {
@@ -22,7 +23,10 @@ type PromiseMessages<T> = {
  * - Default durations follow BRAND.md toast spec.
  */
 export function useToast() {
-  return {
+  // Référence STABLE (les fonctions n'utilisent que le module `sonner` + leurs args).
+  // Sans cela, un nouvel objet à chaque rendu casse les hooks qui listent `toast`
+  // en dépendance d'un useEffect/useCallback (boucle de rendu → clignotement).
+  return useMemo(() => ({
     success: (title: string, opts?: ToastOpts) =>
       sonner.success(title, { duration: 4000, ...opts }),
 
@@ -43,5 +47,5 @@ export function useToast() {
       sonner.promise(p, m),
 
     dismiss: (id?: string | number) => sonner.dismiss(id),
-  }
+  }), [])
 }
