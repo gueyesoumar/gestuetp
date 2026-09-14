@@ -9,8 +9,9 @@ import type { OrgEntitlementState } from '../../../types/database.types'
  * mute via l'edge admin-entitlement (motif obligatoire). Aucune écriture directe.
  */
 export interface EntitlementAction {
-  action: 'set_attributes' | 'grant_manual' | 'remove_manual' | 'set_status'
-  key: string
+  action: 'set_attributes' | 'grant_manual' | 'remove_manual' | 'set_status' | 'apply_template'
+  key?: string
+  plan_slug?: string
   reason: string
   pricing_kind?: string
   price_amount?: number | null
@@ -24,8 +25,11 @@ export interface EntitlementAction {
   trial_ends_at?: string | null
 }
 
+export interface TemplatePlan { slug: string; name: string }
+
 interface Result {
   state: OrgEntitlementState | null
+  plans: TemplatePlan[]
   loading: boolean
   busy: boolean
   act: (a: EntitlementAction) => Promise<boolean>
@@ -34,12 +38,16 @@ interface Result {
 
 export function useOrgEntitlements(orgId: string): Result {
   const [state, setState] = useState<OrgEntitlementState | null>(null)
+  const [plans, setPlans] = useState<TemplatePlan[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const toast = useToast()
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc('org_entitlement_state', { p_org: orgId })
+    const [{ data, error }, { data: planRows }] = await Promise.all([
+      supabase.rpc('org_entitlement_state', { p_org: orgId }),
+      supabase.from('plans').select('slug, name').order('slug'),
+    ])
     if (error) {
       console.error('[useOrgEntitlements]', error.message)
       toast.error('Erreur de chargement', error)
@@ -47,6 +55,7 @@ export function useOrgEntitlements(orgId: string): Result {
       return
     }
     setState(data as OrgEntitlementState)
+    setPlans((planRows ?? []) as TemplatePlan[])
     setLoading(false)
   }, [orgId, toast])
 
@@ -67,5 +76,5 @@ export function useOrgEntitlements(orgId: string): Result {
     return true
   }, [orgId, load, toast])
 
-  return { state, loading, busy, act, reload: load }
+  return { state, plans, loading, busy, act, reload: load }
 }

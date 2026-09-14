@@ -5,6 +5,7 @@ import { useOrgEntitlements } from './useOrgEntitlements'
 import { EntitlementRow } from './EntitlementRow'
 import { EntitlementEditModal } from './EntitlementEditModal'
 import { GrantManualModal } from './GrantManualModal'
+import { EntitlementTemplates } from './EntitlementTemplates'
 import type { OrgEntitlementEntry } from '../../../types/database.types'
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -17,7 +18,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
-  const { state, loading, busy, act } = useOrgEntitlements(cabinetId)
+  const { state, plans, loading, busy, act } = useOrgEntitlements(cabinetId)
   const { currency, setCurrency, format } = useCurrencyDisplay()
   const [editing, setEditing] = useState<OrgEntitlementEntry | null>(null)
   const [granting, setGranting] = useState(false)
@@ -70,8 +71,10 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
         </table>
       </div>
 
+      <EntitlementTemplates plans={plans} busy={busy} onApply={(slug, reason) => act({ action: 'apply_template', plan_slug: slug, reason })} />
+
       <p className="text-[11px] text-gray-400">
-        Les modules (produits/features) restent pilotés par l&apos;onglet Abonnement ; ici on affine prix, plafonds, gate et droits manuels.
+        Appliquer un template sème les droits d&apos;un plan ; l&apos;édition affine prix, plafonds, gate et droits manuels.
       </p>
 
       {editing && <EntitlementEditModal entry={editing} busy={busy} onClose={() => setEditing(null)} onSubmit={act} />}
