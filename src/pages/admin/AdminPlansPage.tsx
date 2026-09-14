@@ -8,6 +8,7 @@ import { PlanDeleteModal } from '../../features/admin/plans/PlanDeleteModal'
 import { PlansMatrixView } from '../../features/admin/plans/PlansMatrixView'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { KpiTile } from '../../features/admin/dashboard/KpiTile'
 import { useToast } from '../../hooks/useToast'
 import { useCurrencyDisplay } from '../../features/admin/entitlements/useCurrencyDisplay'
 import { CURRENCIES, CURRENCY_LABEL } from '../../lib/money'
@@ -100,11 +101,11 @@ export function AdminPlansPage(): JSX.Element {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <KpiCard label="Plans actifs" value={String(plans.length)} accent="border-forest-700" />
-        <KpiCard label="Plan par défaut" value={stats.defaultPlan?.name ?? '—'} accent="border-gold-500" textClass="text-gold-900" small />
-        <KpiCard label="Cabinets total" value={String(stats.totalCabinets)} accent="border-gray-200" hint="répartis sur les plans" />
-        <KpiCard label="MRR estimé" value={format(stats.mrr)} accent="border-gray-200" textClass="text-emerald-700" mono hint="paiement non intégré" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+        <KpiTile label="Plans actifs" value={String(plans.length)} accent="green" />
+        <KpiTile label="Plan par défaut" value={stats.defaultPlan?.name ?? '—'} accent="gold" />
+        <KpiTile label="Cabinets total" value={String(stats.totalCabinets)} sub="répartis sur les plans" accent="blue" />
+        <KpiTile label="MRR estimé" value={format(stats.mrr)} sub="paiement non intégré" accent="purple" tooltip="Σ cabinets × prix mensuel du plan" />
       </div>
 
       <div className="flex items-center justify-between gap-3 mb-4">
@@ -173,16 +174,6 @@ export function AdminPlansPage(): JSX.Element {
   )
 }
 
-interface KpiCardProps {
-  label: string
-  value: string
-  accent: string
-  textClass?: string
-  hint?: string
-  mono?: boolean
-  small?: boolean
-}
-
 function ViewBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: JSX.Element; children: React.ReactNode }): JSX.Element {
   return (
     <button
@@ -198,14 +189,3 @@ function ViewBtn({ active, onClick, icon, children }: { active: boolean; onClick
   )
 }
 
-function KpiCard({ label, value, accent, textClass, hint, mono, small }: KpiCardProps): JSX.Element {
-  return (
-    <div className={`bg-white rounded-xl border border-gray-200 border-l-4 p-4 ${accent}`}>
-      <p className="text-[10.5px] uppercase tracking-wider text-gray-500 font-bold mb-1">{label}</p>
-      <p className={`${small ? 'text-[16px] mt-2' : 'text-[22px]'} font-extrabold text-gray-900 ${textClass ?? ''} ${mono ? 'font-mono' : ''}`}>
-        {value}
-      </p>
-      {hint && <p className="text-[11px] text-gray-500">{hint}</p>}
-    </div>
-  )
-}
