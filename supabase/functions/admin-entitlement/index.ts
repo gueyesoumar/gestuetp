@@ -11,7 +11,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
  * Coexiste avec le pont (non-destructif depuis 00245) : le pont préserve les
  * colonnes admin et ne touche jamais les lignes source='manual'.
  *
- * Actions : set_attributes | grant_manual | remove_manual | set_status
+ * Actions : set_attributes | grant_manual | remove_manual | set_status | apply_template
  */
 
 const PRICING_KINDS = new Set(['none', 'flat', 'per_unit', 'metered'])
@@ -20,9 +20,10 @@ const ENFORCEMENTS = new Set(['soft', 'hard'])
 const STATUSES = new Set(['active', 'trial', 'suspended'])
 
 interface Body {
-  action: 'set_attributes' | 'grant_manual' | 'remove_manual' | 'set_status'
+  action: 'set_attributes' | 'grant_manual' | 'remove_manual' | 'set_status' | 'apply_template'
   organization_id: string
-  key: string
+  key?: string
+  plan_slug?: string
   reason: string
   pricing_kind?: string
   price_amount?: number | null
@@ -52,14 +53,24 @@ Deno.serve(async (req) => {
     const body = await req.json() as Body
     const org = body.organization_id?.trim()
     const key = body.key?.trim()
-    if (!org || !key || !body.reason?.trim()) return json({ error: 'organization_id, key et reason requis' }, 400)
+    if (!org || !body.reason?.trim()) return json({ error: 'organization_id et reason requis' }, 400)
+    if (body.action !== 'apply_template' && !key) return json({ error: 'key requis' }, 400)
 
     const { data: target } = await db.from('organizations').select('id, name').eq('id', org).single()
     if (!target) return json({ error: 'Organisation introuvable' }, 404)
 
     const refresh = () => db.rpc('refresh_org_capabilities', { p_org: org })
     const log = (meta: Record<string, unknown>) =>
-      logAdminAction(admin, owner.id, `entitlement.${body.action}`, 'organization', org, body.reason, { organization_name: target.name, key, ...meta })
+      logAdminAction(admin, owner.id, `entitlement.${body.action}`, 'organization', org, body.reason, { organization_name: target.name, key: key ?? null, ...meta })
+
+    if (body.action === 'apply_template') {
+      const plan = body.plan_slug?.trim()
+      if (!plan) return json({ error: 'plan_slug requis' }, 400)
+      const { error } = await db.rpc('apply_entitlement_template', { p_org: org, p_plan: plan })
+      if (error) { console.error('[admin-entitlement] apply_template:', error.message); return json({ error: 'Application du template impossible' }, 500) }
+      await log({ plan_slug: plan })
+      return json({ ok: true })
+    }
 
     if (body.action === 'set_attributes') {
       const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
