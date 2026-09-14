@@ -24,6 +24,13 @@ const TIER_COLORS: Record<PlanTier, { bg: string; text: string }> = {
   custom: { bg: 'bg-gold-100', text: 'text-gold-700' },
 }
 
+const TIER_LABELS: Record<PlanTier, string> = {
+  free: 'Gratuit',
+  standard: 'Standard',
+  enterprise: 'Entreprise',
+  custom: 'Sur-mesure',
+}
+
 function formatLimit(value: number | null): string {
   return value === null ? '∞' : String(value)
 }
@@ -47,7 +54,10 @@ export function PlanCard({ plan, totalFeatures, format, onEdit, onDuplicate, onD
           {TIER_ICONS[plan.tier]}
         </div>
         <div>
-          <h3 className="text-[15px] font-bold text-gray-900">{plan.name}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-[15px] font-bold text-gray-900">{plan.name}</h3>
+            <span className={`text-[9.5px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${tierColor.bg} ${tierColor.text}`}>{TIER_LABELS[plan.tier]}</span>
+          </div>
           <span className="text-[10.5px] font-mono text-gray-400">{plan.slug}</span>
         </div>
       </div>
