@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Activity, AlertTriangle } from 'lucide-react'
 import { useAdminMonitoring, type AdminMonitoringStats } from '../../features/admin/useAdminMonitoring'
+import { CronWatchdog } from '../../features/admin/dashboard/CronWatchdog'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 
@@ -14,17 +15,25 @@ export function MonitoringPage() {
   return (
     <div className="px-7 py-6">
       <div className="flex items-baseline gap-3 mb-1">
-        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> &rsaquo; Santé / Monitoring</span>
+        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> › Observabilité &amp; santé</span>
       </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Santé plateforme</h1>
-      <p className="text-[12.5px] text-gray-500 mb-2">Usage IA, emails et storage. Coûts estimés à partir des prix Anthropic au 26 avril 2026.</p>
+      <h1 className="text-xl font-bold text-gray-900 mb-1">Observabilité &amp; santé</h1>
+      <p className="text-[12.5px] text-gray-500 mb-2">Tâches planifiées, usage IA, emails et storage. Coûts IA estimés (prix Anthropic).</p>
 
       <KpiRow stats={stats} />
 
-      <section className="mt-6 grid grid-cols-[1.4fr_1fr] gap-4">
+      <section className="mt-6">
+        <CronWatchdog />
+      </section>
+
+      <section className="mt-4 grid grid-cols-[1.4fr_1fr] gap-4">
         <FunctionsTable stats={stats} />
         <RightColumn stats={stats} />
       </section>
+
+      <p className="mt-4 text-[11px] text-gray-400">
+        Sondes infra live (DB · Auth · Storage · Resend · DNS) et tracking de délivrabilité e-mail : incrément à venir.
+      </p>
 
       <section className="mt-6">
         <FailuresList stats={stats} />
