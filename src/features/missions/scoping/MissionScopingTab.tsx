@@ -14,6 +14,7 @@ import { ScopingDocumentsTab } from './ScopingDocumentsTab'
 import { ScopingRisksTab } from './ScopingRisksTab'
 import { ScopingActorsTab } from './ScopingActorsTab'
 import { useMissionActors } from './useMissionActors'
+import { isStepEnabled } from '../mission-constants'
 import { ScopingProgressSidebar } from './ScopingProgressSidebar'
 import { PortalInviteModal } from './PortalInviteModal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -45,6 +46,20 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   // Moteur Contrôle (RFC 0003) : Cadrage allégé — sous-onglet Risques retiré,
   // Questionnaire optionnel (conservé mais hors checklist requise).
   const isControle = mission.workflow_version === 'controle'
+  // Sous-étapes du Cadrage désélectionnables via le template du cabinet (RFC 0009).
+  // isStepEnabled('scoping.risks') intègre déjà l'implicite moteur controle.
+  const showRisks = isStepEnabled(mission, 'scoping.risks')
+  const showQuestionnaire = isStepEnabled(mission, 'scoping.questionnaire')
+  const showDocuments = isStepEnabled(mission, 'scoping.documents')
+  const showActors = isStepEnabled(mission, 'scoping.actors')
+  // Garde-fou : si l'onglet actif a été désélectionné, retomber sur Périmètre
+  // (toujours obligatoire) plutôt que d'afficher un panneau vide.
+  useEffect(() => {
+    const enabled: Record<ScopingTab, boolean> = {
+      scope: true, questionnaire: showQuestionnaire, documents: showDocuments, risks: showRisks, actors: showActors,
+    }
+    if (!enabled[activeTab]) setActiveTab('scope')
+  }, [activeTab, showQuestionnaire, showDocuments, showRisks, showActors])
   const [actionLoading, setActionLoading] = useState(false)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
   const [showPortalModal, setShowPortalModal] = useState(false)
@@ -214,12 +229,18 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         {/* Tabs */}
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
           <TabBtn label="P&eacute;rim&egrave;tre" count={domains.length} active={activeTab === 'scope'} onClick={() => setActiveTab('scope')} />
-          <TabBtn label="Questionnaire" count={`${answeredCount}/${totalCount}`} active={activeTab === 'questionnaire'} onClick={() => setActiveTab('questionnaire')} />
-          <TabBtn label="Documents" count={docsExpected > 0 ? `${docsReceived}/${docsExpected}` : undefined} active={activeTab === 'documents'} onClick={() => setActiveTab('documents')} />
-          {!isControle && (
+          {showQuestionnaire && (
+            <TabBtn label="Questionnaire" count={`${answeredCount}/${totalCount}`} active={activeTab === 'questionnaire'} onClick={() => setActiveTab('questionnaire')} />
+          )}
+          {showDocuments && (
+            <TabBtn label="Documents" count={docsExpected > 0 ? `${docsReceived}/${docsExpected}` : undefined} active={activeTab === 'documents'} onClick={() => setActiveTab('documents')} />
+          )}
+          {showRisks && (
             <TabBtn label="Risques" count={risks.length} active={activeTab === 'risks'} onClick={() => setActiveTab('risks')} />
           )}
-          <TabBtn label="Acteurs" count={actors.length} active={activeTab === 'actors'} onClick={() => setActiveTab('actors')} />
+          {showActors && (
+            <TabBtn label="Acteurs" count={actors.length} active={activeTab === 'actors'} onClick={() => setActiveTab('actors')} />
+          )}
         </div>
 
         {saveError && <div className="mx-4 mt-3"><ErrorAlert message={saveError} /></div>}
@@ -228,16 +249,16 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         {activeTab === 'scope' && (
           <ScopingScopeTab mission={mission} domains={domains} exclusions={exclusions} client={client} onAddExclusion={handleAddExclusion} onRemoveExclusion={removeExclusion} saving={saving} />
         )}
-        {activeTab === 'questionnaire' && <ScopingQuestionnaireTab mission={mission} onRefetch={onRefetch} />}
-        {activeTab === 'documents' && (
+        {showQuestionnaire && activeTab === 'questionnaire' && <ScopingQuestionnaireTab mission={mission} onRefetch={onRefetch} />}
+        {showDocuments && activeTab === 'documents' && (
           <div className="flex-1 overflow-y-auto p-4">
             <ScopingDocumentsTab missionId={mission.id} domains={domains} exclusions={exclusions} />
           </div>
         )}
-        {!isControle && activeTab === 'risks' && (
+        {showRisks && activeTab === 'risks' && (
           <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} onPromoted={refetchScoping} saving={saving} error={saveError} />
         )}
-        {activeTab === 'actors' && <ScopingActorsTab missionId={mission.id} />}
+        {showActors && activeTab === 'actors' && <ScopingActorsTab missionId={mission.id} />}
       </div>
 
       {/* RIGHT SIDEBAR */}
