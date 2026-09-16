@@ -45,15 +45,15 @@ export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivit
         </div>
       </div>
 
-      {/* Activit\u00e9 r\u00e9cente \u2014 piste d'audit de la mission (activity_log) */}
+      {/* Activité récente — piste d'audit de la mission (activity_log) */}
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="px-4 py-3 border-b border-gray-200">
-          <span className="text-[13px] font-semibold text-gray-900">Activit\u00e9 r\u00e9cente</span>
+          <span className="text-[13px] font-semibold text-gray-900">Activité récente</span>
         </div>
         {activityLoading ? (
-          <div className="px-4 py-6 text-center text-xs text-gray-300">Chargement\u2026</div>
+          <div className="px-4 py-6 text-center text-xs text-gray-300">Chargement…</div>
         ) : activity.length === 0 ? (
-          <div className="px-4 py-6 text-center text-xs text-gray-300">Aucune activit\u00e9 r\u00e9cente.</div>
+          <div className="px-4 py-6 text-center text-xs text-gray-300">Aucune activité récente.</div>
         ) : (
           <ul>
             {activity.map((a) => (
@@ -61,7 +61,7 @@ export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivit
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-forest-500" />
                 <div className="min-w-0 flex-1">
                   <p className="text-[12.5px] text-gray-700 leading-snug">{a.summary ?? a.action}</p>
-                  <p className="mt-0.5 text-[11px] text-gray-400">{missionActorName(a)} \u00b7 {timeAgo(a.occurred_at)}</p>
+                  <p className="mt-0.5 text-[11px] text-gray-400">{missionActorName(a)} · {timeAgo(a.occurred_at)}</p>
                 </div>
               </li>
             ))}
