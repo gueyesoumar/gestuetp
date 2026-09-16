@@ -41,9 +41,8 @@ Le template ne peut désélectionner que des clés d'une **liste blanche** — t
 
 **Sous-étapes (désélectionnables) :**
 - Cadrage : `scoping.risks` (Risques), `scoping.questionnaire` (Questionnaire), `scoping.documents`, `scoping.actors`.
-- Travaux : étapes guidées `fieldwork.observe` / `.document` / `.analyze` / `.validate` (le noyau « saisie du constat » reste obligatoire).
 
-**Sous-étapes OBLIGATOIRES :** le périmètre du cadrage (`scoping.scope`), la saisie des constats en Travaux, la revue interne, la clôture.
+**Sous-étapes OBLIGATOIRES :** le périmètre du cadrage (`scoping.scope`), la **totalité des Travaux** (les étapes guidées Observer/Documenter/**Analyser**/**Validation** — Analyser = conformité+constats et Validation = soumission sont le noyau ; retirées de la liste blanche par la mig 00252, INC 2b abandonné), la revue interne, la clôture.
 
 > La liste blanche est **la garde-fou centrale** : un template ne peut jamais retirer une phase médiane ni un noyau obligatoire, donc la machine à états et les gates restent intacts (aucune migration d'enum ni de trigger `00148`).
 
