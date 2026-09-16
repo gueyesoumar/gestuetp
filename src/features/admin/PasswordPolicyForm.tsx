@@ -4,7 +4,6 @@ import type { PlatformPasswordPolicy, PlatformPasswordPolicyUpdate } from '../..
 interface Props {
   policy: PlatformPasswordPolicy
   saving: boolean
-  status: { ok: boolean; msg: string } | null
   onSave: (fields: PlatformPasswordPolicyUpdate) => void
 }
 
@@ -14,12 +13,12 @@ const TOGGLES: { key: BoolKey; label: string; hint?: string }[] = [
   { key: 'require_upper', label: 'Exiger une majuscule' },
   { key: 'require_lower', label: 'Exiger une minuscule' },
   { key: 'require_digit', label: 'Exiger un chiffre' },
-  { key: 'require_symbol', label: 'Exiger un symbole', hint: 'Déconseillé par NIST — à activer si un référentiel l’impose' },
+  { key: 'require_symbol', label: 'Exiger un symbole', hint: 'Déconseillé par NIST' },
   { key: 'forbid_common', label: 'Bloquer les mots de passe courants' },
   { key: 'check_hibp', label: 'Vérifier les fuites connues (HIBP)', hint: 'Recommandé' },
 ]
 
-export function PasswordPolicyForm({ policy, saving, status, onSave }: Props): JSX.Element {
+export function PasswordPolicyForm({ policy, saving, onSave }: Props): JSX.Element {
   const [form, setForm] = useState<PlatformPasswordPolicy>(policy)
 
   const setNum = (key: 'min_length' | 'min_unique', value: number): void =>
@@ -41,49 +40,68 @@ export function PasswordPolicyForm({ policy, saving, status, onSave }: Props): J
   }
 
   return (
-    <div className="mt-6 space-y-6">
-      <section className="grid grid-cols-2 gap-4">
-        <NumberField label="Longueur minimale" value={form.min_length} min={8} max={72}
-          onChange={(v) => setNum('min_length', v)} />
-        <NumberField label="Caractères différents min." value={form.min_unique} min={1} max={72}
-          onChange={(v) => setNum('min_unique', v)} />
-      </section>
+    <div className="space-y-5 max-w-3xl">
+      <Card title="Complexité" desc="Exigences appliquées à chaque nouveau mot de passe.">
+        <div className="grid grid-cols-2 gap-4 mb-2">
+          <NumberField label="Longueur minimale" value={form.min_length} min={8} max={72} onChange={(v) => setNum('min_length', v)} />
+          <NumberField label="Caractères différents min." value={form.min_unique} min={1} max={72} onChange={(v) => setNum('min_unique', v)} />
+        </div>
+        <div className="divide-y divide-gray-100 border-t border-gray-100 mt-2">
+          {TOGGLES.map((t) => (
+            <div key={t.key} className="flex items-center justify-between gap-4 py-3">
+              <span className="text-[12.5px] text-gray-800">
+                {t.label}
+                {t.hint && <span className="ml-2 text-[11px] text-gray-400">{t.hint}</span>}
+              </span>
+              <Toggle checked={form[t.key]} onChange={(v) => setForm((f) => ({ ...f, [t.key]: v }))} />
+            </div>
+          ))}
+        </div>
+      </Card>
 
-      <section className="divide-y divide-gray-100 rounded-xl border border-gray-200">
-        {TOGGLES.map((t) => (
-          <label key={t.key} className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
-            <span className="text-[13px] text-gray-800">
-              {t.label}
-              {t.hint && <span className="ml-2 text-[11px] text-gray-400">{t.hint}</span>}
-            </span>
-            <input type="checkbox" checked={form[t.key]}
-              onChange={(e) => setForm((f) => ({ ...f, [t.key]: e.target.checked }))}
-              className="h-4 w-4 accent-[#1B4332]" />
-          </label>
-        ))}
-      </section>
+      <Card title="Expiration &amp; historique" desc="Déconseillés par NIST — à activer seulement si un référentiel l’impose.">
+        <div className="grid grid-cols-2 gap-4">
+          <NumberField label="Expiration (jours, 0 = désactivée)" value={form.rotation_days ?? 0} min={0} max={3650}
+            onChange={(v) => setForm((f) => ({ ...f, rotation_days: v > 0 ? v : null }))} />
+          <NumberField label="Historique non-réutilisation (0 = désactivé)" value={form.history_count} min={0} max={24}
+            onChange={(v) => setForm((f) => ({ ...f, history_count: v }))} />
+        </div>
+        <p className="mt-3 text-[11px] text-gray-400">
+          L’activation de la rotation démarre le compteur pour tous les comptes (aucun verrouillage immédiat).
+        </p>
+      </Card>
 
-      <section className="grid grid-cols-2 gap-4">
-        <NumberField label="Expiration (jours, 0 = désactivée)" value={form.rotation_days ?? 0} min={0} max={3650}
-          onChange={(v) => setForm((f) => ({ ...f, rotation_days: v > 0 ? v : null }))} />
-        <NumberField label="Historique non-réutilisation (0 = désactivé)" value={form.history_count} min={0} max={24}
-          onChange={(v) => setForm((f) => ({ ...f, history_count: v }))} />
-      </section>
-      <p className="-mt-3 text-[11px] text-gray-400">
-        Rotation et historique sont déconseillés par NIST — à activer si un référentiel l’impose. L’activation de
-        la rotation démarre le compteur pour tous les comptes (aucun verrouillage immédiat).
-      </p>
-
-      <div className="flex items-center gap-4">
-        <button type="button" onClick={submit} disabled={saving}
-          className="rounded-lg bg-[#1B4332] px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-50">
-          {saving ? 'Enregistrement…' : 'Enregistrer'}
-        </button>
-        {status && (
-          <span className={`text-[12px] ${status.ok ? 'text-[#40916C]' : 'text-red-500'}`}>{status.msg}</span>
-        )}
-      </div>
+      <button type="button" onClick={submit} disabled={saving}
+        className="rounded-lg bg-forest-700 hover:bg-forest-900 px-5 py-2 text-[12.5px] font-semibold text-white disabled:opacity-50">
+        {saving ? 'Enregistrement…' : 'Enregistrer'}
+      </button>
     </div>
+  )
+}
+
+function Card({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }): JSX.Element {
+  return (
+    <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-gray-100">
+        <h2 className="text-[13.5px] font-bold text-gray-900">{title}</h2>
+        {desc && <p className="text-[11.5px] text-gray-400 mt-0.5">{desc}</p>}
+      </div>
+      <div className="p-5">{children}</div>
+    </section>
+  )
+}
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }): JSX.Element {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${checked ? 'bg-forest-700' : 'bg-gray-300'}`}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : ''}`} />
+    </button>
   )
 }
 
