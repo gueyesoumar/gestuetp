@@ -45,7 +45,7 @@ export function WizardQuestionCard({ question, sectionLabel, value, skipReason, 
         </span>
         {isPrefilled && (
           <span className="text-[10px] font-bold text-forest-700 bg-forest-50 border border-forest-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-            \u2713 Pr\u00e9-rempli depuis la fiche client
+            ✓ Pré-rempli depuis la fiche client
           </span>
         )}
         {!question.is_required && (
@@ -60,8 +60,8 @@ export function WizardQuestionCard({ question, sectionLabel, value, skipReason, 
       )}
       {skipped && (
         <div className="mb-3 p-2.5 bg-gold-50 border border-gold-300 rounded-lg text-xs text-gold-700">
-          <strong>Question marqu\u00e9e :</strong> {SKIP_OPTIONS.find((o) => o.reason === skipReason)?.label}
-          <span className="text-[11px] text-gold-600 ml-2">(cliquez \u00e0 nouveau sur la m\u00eame puce pour r\u00e9activer)</span>
+          <strong>Question marquée :</strong> {SKIP_OPTIONS.find((o) => o.reason === skipReason)?.label}
+          <span className="text-[11px] text-gold-600 ml-2">(cliquez à nouveau sur la même puce pour réactiver)</span>
         </div>
       )}
 
