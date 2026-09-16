@@ -273,6 +273,8 @@ export interface PlatformRolePermissions {
   can_manage_clients?: boolean
   can_edit_organization?: boolean
   can_manage_roles?: boolean
+  /** Édition du template de parcours du cabinet (RFC 0009, migration 00251). */
+  can_manage_workflow?: boolean
   /** Accès à la piste d'audit (F6, migration 00179). */
   can_view_audit_trail?: boolean
   dashboard_views?: DashboardView[]
@@ -498,6 +500,8 @@ export interface Mission {
   kind: MissionKind
   /** Moteur figé à la création (RFC 0003, migration 00181). */
   workflow_version?: 'audit' | 'controle'
+  /** Snapshot des étapes/sous-étapes désélectionnées, figé à la création (RFC 0009, migration 00251). */
+  workflow_disabled_steps?: string[]
   lead_auditor_id: string | null
   associate_id: string | null
   start_date: string | null
@@ -1715,6 +1719,26 @@ export interface OrgEntitlementState {
   gate_policy: Record<string, Enforcement>
 }
 
+// Template de parcours par cabinet (RFC 0009, migration 00251).
+export interface OrganizationWorkflowTemplate {
+  id: string
+  organization_id: string
+  name: string
+  disabled_steps: string[]
+  is_default: boolean
+  created_at: string
+  updated_at: string
+  updated_by: string | null
+}
+export interface OrganizationWorkflowTemplateInsert {
+  organization_id: string
+  name: string
+  disabled_steps?: string[]
+  is_default?: boolean
+  updated_by?: string | null
+}
+export type OrganizationWorkflowTemplateUpdate = Partial<OrganizationWorkflowTemplateInsert>
+
 export interface Database {
   __InternalSupabase: {
     PostgrestVersion: '12'
@@ -1725,6 +1749,12 @@ export interface Database {
         Row: Organization & Rec
         Insert: OrganizationInsert & Rec
         Update: OrganizationUpdate & Rec
+        Relationships: []
+      }
+      organization_workflow_templates: {
+        Row: OrganizationWorkflowTemplate & Rec
+        Insert: OrganizationWorkflowTemplateInsert & Rec
+        Update: OrganizationWorkflowTemplateUpdate & Rec
         Relationships: []
       }
       products: {
