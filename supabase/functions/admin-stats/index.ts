@@ -19,6 +19,12 @@ interface StatsResponse {
   users_active_30d: number
   missions_in_progress: number
   mrr_xof: number
+  ai_cost_7d_xof: number
+  orgs_by_nature: { cabinet: number; group: number; client: number; platform: number }
+  module_adoption: { comply: number; risk: number; policy: number }
+  trials_count: number
+  new_orgs_30d: number
+  signals: Array<{ severity: 'warn' | 'info'; title: string; detail: string }>
   alerts: Array<{ kind: 'warn' | 'info' | 'red'; message: string }>
   activity_14d: number[]
 }
@@ -36,10 +42,67 @@ Deno.serve(async (req) => {
     // Toutes les organisations (cabinets, clients, groupes, plateforme)
     const { data: orgs } = await admin
       .from('organizations')
-      .select('id, is_active, types')
+      .select('id, is_active, types, created_at, name')
 
-    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[] }>
+    const allOrgs = (orgs ?? []) as Array<{ id: string; is_active: boolean; types: string[]; created_at: string; name: string }>
+    const orgName = new Map(allOrgs.map((o) => [o.id, o.name]))
     const active = allOrgs.filter((o) => o.is_active)
+
+    // Répartition par nature (types canoniques : cabinet | group | client | platform)
+    const has = (o: { types: string[] }, t: string) => Array.isArray(o.types) && o.types.includes(t)
+    const orgs_by_nature = {
+      cabinet: allOrgs.filter((o) => has(o, 'cabinet')).length,
+      group: allOrgs.filter((o) => has(o, 'group')).length,
+      client: allOrgs.filter((o) => has(o, 'client')).length,
+      platform: allOrgs.filter((o) => has(o, 'platform')).length,
+    }
+    const since30 = new Date(Date.now() - 30 * 86_400_000)
+    const new_orgs_30d = allOrgs.filter((o) => o.created_at && new Date(o.created_at) >= since30).length
+
+    // Essais en cours : orgs distinctes avec un droit status='trial'
+    const { data: trialRows } = await admin.from('org_entitlements').select('organization_id').eq('status', 'trial')
+    const trials_count = new Set(((trialRows ?? []) as Array<{ organization_id: string }>).map((r) => r.organization_id)).size
+
+    // Coût IA sur 7 jours (ai_calls_log en USD → XOF, parité fixe + eurUsd défaut 1.08)
+    const since7 = new Date(Date.now() - 7 * 86_400_000).toISOString()
+    const { data: aiRows } = await admin.from('ai_calls_log').select('cost_estimate_usd').gte('created_at', since7)
+    const aiUsd = ((aiRows ?? []) as Array<{ cost_estimate_usd: number | null }>).reduce((s, r) => s + Number(r.cost_estimate_usd ?? 0), 0)
+    const ai_cost_7d_xof = Math.round((aiUsd / 1.08) * 655.957)
+
+    // Adoption des modules (capacités actives)
+    const { data: caps } = await admin.from('organization_capabilities').select('capability').eq('status', 'active')
+    const capArr = (caps ?? []) as Array<{ capability: string }>
+    const module_adoption = {
+      comply: capArr.filter((c) => c.capability === 'comply').length,
+      risk: capArr.filter((c) => c.capability === 'risk').length,
+      policy: capArr.filter((c) => c.capability === 'policy').length,
+    }
+
+    // Signaux actionnables (données réelles) : essais qui expirent + quotas proches limite
+    const signals: StatsResponse['signals'] = []
+    const in7 = new Date(Date.now() + 7 * 86_400_000).toISOString()
+    const { data: expTrials } = await admin
+      .from('org_entitlements')
+      .select('organization_id, key, trial_ends_at')
+      .eq('status', 'trial').not('trial_ends_at', 'is', null).lte('trial_ends_at', in7)
+    for (const t of ((expTrials ?? []) as Array<{ organization_id: string; key: string; trial_ends_at: string }>)) {
+      const days = Math.max(0, Math.ceil((new Date(t.trial_ends_at).getTime() - Date.now()) / 86_400_000))
+      signals.push({ severity: 'warn', title: `Essai « ${t.key} » expire dans ${days} j`, detail: orgName.get(t.organization_id) ?? 'Organisation' })
+    }
+    // Quota utilisateurs proche de la limite (>= 80%)
+    const { data: uLimits } = await admin.from('org_entitlements').select('organization_id, limit_value').eq('key', 'users').not('limit_value', 'is', null)
+    const limitMap = new Map(((uLimits ?? []) as Array<{ organization_id: string; limit_value: number }>).map((r) => [r.organization_id, r.limit_value]))
+    if (limitMap.size > 0) {
+      const { data: activeUsers } = await admin.from('users').select('organization_id').eq('is_active', true)
+      const tally = new Map<string, number>()
+      for (const u of ((activeUsers ?? []) as Array<{ organization_id: string }>)) tally.set(u.organization_id, (tally.get(u.organization_id) ?? 0) + 1)
+      for (const [orgId, limit] of limitMap) {
+        const used = tally.get(orgId) ?? 0
+        if (limit > 0 && used / limit >= 0.8) {
+          signals.push({ severity: 'warn', title: `Quota utilisateurs à ${Math.round((used / limit) * 100)}%`, detail: `${orgName.get(orgId) ?? 'Organisation'} · ${used}/${limit}` })
+        }
+      }
+    }
 
     // MRR : source unique platform_mrr() (RFC 0008 P0). Appelé en service_role
     // (auth.uid() null → passe-droit serveur de la fonction). FCFA.
@@ -85,6 +148,12 @@ Deno.serve(async (req) => {
       users_active_30d: usersActive30d ?? 0,
       missions_in_progress: missionsInProgress ?? 0,
       mrr_xof: mrr,
+      ai_cost_7d_xof,
+      orgs_by_nature,
+      module_adoption,
+      trials_count,
+      new_orgs_30d,
+      signals,
       alerts,
       activity_14d: activity,
     }

@@ -1,26 +1,30 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Download } from 'lucide-react'
 import { useAdminCabinets, type AdminCabinet } from '../../features/admin/useAdminCabinets'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { CreateCabinetWizard } from '../../features/admin/CreateCabinetWizard'
+import { KpiTile } from '../../features/admin/dashboard/KpiTile'
+import { bandLabel } from '../../features/hub/trustBand'
 
 type StatusFilter = 'all' | 'active' | 'suspended'
-type TypeFilter = 'all' | 'cabinet' | 'client' | 'group' | 'platform' | 'autre'
+type NatureFilter = 'all' | 'cabinet' | 'regulator' | 'client' | 'group' | 'platform' | 'autre'
 
-const TYPE_LABELS: Record<string, { label: string; variant: 'forest' | 'blue' | 'gold' | 'purple' | 'gray' }> = {
+const NATURE_LABELS: Record<string, { label: string; variant: 'forest' | 'blue' | 'gold' | 'purple' | 'gray' | 'red' }> = {
   cabinet: { label: 'Cabinet', variant: 'forest' },
+  regulator: { label: 'Régulateur', variant: 'red' },
   client: { label: 'Client', variant: 'blue' },
   group: { label: 'Groupe', variant: 'gold' },
   platform: { label: 'Plateforme', variant: 'purple' },
 }
 
-function classifyType(types: string[]): TypeFilter {
-  if (types.includes('cabinet')) return 'cabinet'
-  if (types.includes('client')) return 'client'
-  if (types.includes('group')) return 'group'
-  if (types.includes('platform')) return 'platform'
+function natureOf(org: AdminCabinet): NatureFilter {
+  if (org.types.includes('cabinet')) return 'cabinet'
+  if (org.is_regulator) return 'regulator'
+  if (org.types.includes('client')) return 'client'
+  if (org.types.includes('group')) return 'group'
+  if (org.types.includes('platform')) return 'platform'
   return 'autre'
 }
 
@@ -28,26 +32,33 @@ export function CabinetsListPage() {
   const { cabinets, loading, error, refetch } = useAdminCabinets()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
+  const [typeFilter, setTypeFilter] = useState<NatureFilter>('all')
   const [wizardOpen, setWizardOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return cabinets.filter((c) => {
+    const rows = cabinets.filter((c) => {
       if (statusFilter === 'active' && !c.is_active) return false
       if (statusFilter === 'suspended' && c.is_active) return false
-      if (typeFilter !== 'all' && classifyType(c.types) !== typeFilter) return false
+      if (typeFilter !== 'all' && natureOf(c) !== typeFilter) return false
       if (q && !c.name.toLowerCase().includes(q) && !c.slug.toLowerCase().includes(q)) return false
       return true
+    })
+    // Tri « à risque en premier » : posture croissante, non évaluées (null) en fin.
+    return rows.sort((a, b) => {
+      if (a.posture === null && b.posture === null) return 0
+      if (a.posture === null) return 1
+      if (b.posture === null) return -1
+      return a.posture - b.posture
     })
   }, [cabinets, search, statusFilter, typeFilter])
 
   const counts = useMemo(() => {
-    const byType: Record<string, number> = { cabinet: 0, client: 0, group: 0, platform: 0, autre: 0 }
+    const byType: Record<string, number> = { cabinet: 0, regulator: 0, client: 0, group: 0, platform: 0, autre: 0 }
     let active = 0
     let suspended = 0
     for (const c of cabinets) {
-      byType[classifyType(c.types)]++
+      byType[natureOf(c)]++
       if (c.is_active) active++; else suspended++
     }
     return { byType, active, suspended, total: cabinets.length }
@@ -58,49 +69,60 @@ export function CabinetsListPage() {
 
   return (
     <div className="px-7 py-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> &rsaquo; Organisations</span>
-      </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Toutes les organisations</h1>
-      <p className="text-[12.5px] text-gray-500 mb-5">
-        {counts.total} organisations &mdash; {counts.byType.cabinet} cabinets, {counts.byType.client} clients
-        {counts.byType.group > 0 && `, ${counts.byType.group} groupes`}
-        {counts.byType.platform > 0 && `, ${counts.byType.platform} plateforme`}
-        {counts.byType.autre > 0 && `, ${counts.byType.autre} autres`}
-        {' · '}{counts.active} actives, {counts.suspended} suspendues.
-      </p>
-
-      <div className="flex items-center gap-3 mb-3 flex-wrap">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrer par nom, slug…"
-            className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-72 bg-page-bg"
-          />
+      <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+        <div>
+          <div className="flex items-baseline gap-3 mb-1">
+            <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> › Organisations</span>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900">Organisations</h1>
+          <p className="text-[12.5px] text-gray-500 mt-1 max-w-2xl">
+            Toutes natures — cabinets, régulateurs, clients, groupes. Triées par conformité, les organisations à risque en premier.
+          </p>
         </div>
-        <FilterPill label={`Actives · ${counts.active}`} active={statusFilter === 'active'} onClick={() => setStatusFilter('active')} variant="green" />
-        <FilterPill label={`Suspendues · ${counts.suspended}`} active={statusFilter === 'suspended'} onClick={() => setStatusFilter('suspended')} variant="warn" />
-        <FilterPill label={`Toutes · ${counts.total}`} active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} variant="gray" />
-        <button
-          onClick={() => setWizardOpen(true)}
-          className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest-700 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-900"
-        >
-          <Plus size={14} />
-          Onboarder un cabinet
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportOrganizationsCsv(filtered)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-[12.5px] font-semibold hover:bg-page-bg"
+          >
+            <Download size={14} />
+            Exporter CSV
+          </button>
+          <button
+            onClick={() => setWizardOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest-700 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-900"
+          >
+            <Plus size={14} />
+            Onboarder une organisation
+          </button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <span className="text-[10.5px] uppercase tracking-wider text-gray-400 font-semibold">Type :</span>
-        <TypePill label="Tous" active={typeFilter === 'all'} count={counts.total} onClick={() => setTypeFilter('all')} variant="gray" />
-        <TypePill label="Cabinets" active={typeFilter === 'cabinet'} count={counts.byType.cabinet} onClick={() => setTypeFilter('cabinet')} variant="forest" />
-        <TypePill label="Clients" active={typeFilter === 'client'} count={counts.byType.client} onClick={() => setTypeFilter('client')} variant="blue" />
-        {counts.byType.group > 0 && <TypePill label="Groupes" active={typeFilter === 'group'} count={counts.byType.group} onClick={() => setTypeFilter('group')} variant="gold" />}
-        {counts.byType.platform > 0 && <TypePill label="Plateforme" active={typeFilter === 'platform'} count={counts.byType.platform} onClick={() => setTypeFilter('platform')} variant="purple" />}
-        {counts.byType.autre > 0 && <TypePill label="Autres" active={typeFilter === 'autre'} count={counts.byType.autre} onClick={() => setTypeFilter('autre')} variant="gray" />}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3.5 mb-5">
+        <KpiTile label="Total" value={counts.total.toString()} sub={`${counts.active} actives · ${counts.suspended} susp.`} accent="gold" />
+        <KpiTile label="Cabinets" value={counts.byType.cabinet.toString()} accent="green" />
+        <KpiTile label="Régulateurs" value={counts.byType.regulator.toString()} accent="gold" />
+        <KpiTile label="Groupes" value={counts.byType.group.toString()} accent="gold" />
+        <KpiTile label="Clients" value={counts.byType.client.toString()} accent="blue" />
+        <KpiTile label="Plateforme" value={counts.byType.platform.toString()} accent="purple" />
+      </div>
+
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <NatureSegment value={typeFilter} counts={counts} onChange={setTypeFilter} />
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <FilterPill label={`Actives · ${counts.active}`} active={statusFilter === 'active'} onClick={() => setStatusFilter('active')} variant="green" />
+          <FilterPill label={`Suspendues · ${counts.suspended}`} active={statusFilter === 'suspended'} onClick={() => setStatusFilter('suspended')} variant="warn" />
+          <FilterPill label={`Toutes · ${counts.total}`} active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} variant="gray" />
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher une organisation…"
+              className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-64 bg-page-bg"
+            />
+          </div>
+        </div>
       </div>
 
       {wizardOpen && (
@@ -112,8 +134,9 @@ export function CabinetsListPage() {
           <thead>
             <tr className="bg-page-bg text-[10.5px] uppercase tracking-wider text-gray-300 font-semibold">
               <th className="text-left px-4 py-3 border-b border-gray-200">Organisation</th>
-              <th className="text-left px-4 py-3 border-b border-gray-200">Type</th>
+              <th className="text-left px-4 py-3 border-b border-gray-200">Nature</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Plan</th>
+              <th className="text-left px-4 py-3 border-b border-gray-200">Conformité</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Membres</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Missions</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Dernière activité</th>
@@ -123,20 +146,23 @@ export function CabinetsListPage() {
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-10 text-gray-300 text-[12px]">Aucune organisation ne correspond.</td></tr>
+              <tr><td colSpan={9} className="text-center py-10 text-gray-300 text-[12px]">Aucune organisation ne correspond.</td></tr>
             ) : (
               filtered.map((c) => <OrganizationRow key={c.id} org={c} />)
             )}
           </tbody>
         </table>
       </div>
+      <p className="mt-3 text-[11.5px] text-gray-400 leading-relaxed">
+        <b className="text-gray-500">Conformité</b> = posture moyenne des axes mesurés (part des contrôles approuvés), triée à risque en premier.
+        Les clients &amp; assujettis apparaissent «&nbsp;Non évalué&nbsp;» : leur conformité est portée par les missions de leur organisation mère.
+      </p>
     </div>
   )
 }
 
 function OrganizationRow({ org }: { org: AdminCabinet }) {
-  const orgType = classifyType(org.types)
-  const typeMeta = TYPE_LABELS[orgType]
+  const typeMeta = NATURE_LABELS[natureOf(org)]
 
   return (
     <tr className="hover:bg-page-bg">
@@ -155,6 +181,7 @@ function OrganizationRow({ org }: { org: AdminCabinet }) {
         {typeMeta ? <Pill text={typeMeta.label} variant={typeMeta.variant} /> : <span className="text-gray-300 text-[11px]">—</span>}
       </td>
       <td className="px-4 py-3 border-b border-gray-100">{org.plan_name ? <Pill text={org.plan_name} variant="gold" /> : <span className="text-gray-300 text-[11px]">—</span>}</td>
+      <td className="px-4 py-3 border-b border-gray-100"><PostureCell score={org.posture} /></td>
       <td className="px-4 py-3 border-b border-gray-100">{org.members_count}</td>
       <td className="px-4 py-3 border-b border-gray-100">{org.missions_count > 0 ? org.missions_count : <span className="text-gray-300">—</span>}</td>
       <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-500">{formatRelative(org.last_activity_at)}</td>
@@ -177,25 +204,31 @@ function FilterPill({ label, active, onClick, variant }: { label: string; active
   )
 }
 
-function TypePill({ label, active, count, onClick, variant }: { label: string; active: boolean; count: number; onClick: () => void; variant: 'forest' | 'blue' | 'gold' | 'purple' | 'gray' }) {
-  const ringColor = {
-    forest: 'border-forest-300 text-forest-700',
-    blue: 'border-blue-300 text-blue-700',
-    gold: 'border-gold-300 text-gold-600',
-    purple: 'border-purple-300 text-purple-700',
-    gray: 'border-gray-300 text-gray-600',
-  }[variant]
-  const activeBg = {
-    forest: 'bg-forest-700 text-white',
-    blue: 'bg-blue-600 text-white',
-    gold: 'bg-gold-500 text-forest-900',
-    purple: 'bg-purple-600 text-white',
-    gray: 'bg-gray-700 text-white',
-  }[variant]
+interface NatureCounts { byType: Record<string, number>; active: number; suspended: number; total: number }
+
+function NatureSegment({ value, counts, onChange }: { value: NatureFilter; counts: NatureCounts; onChange: (v: NatureFilter) => void }) {
+  const items: Array<{ key: NatureFilter; label: string; n: number }> = [
+    { key: 'all', label: 'Toutes', n: counts.total },
+    { key: 'cabinet', label: 'Cabinets', n: counts.byType.cabinet },
+    ...(counts.byType.regulator > 0 ? [{ key: 'regulator' as NatureFilter, label: 'Régulateurs', n: counts.byType.regulator }] : []),
+    { key: 'client', label: 'Clients', n: counts.byType.client },
+    ...(counts.byType.group > 0 ? [{ key: 'group' as NatureFilter, label: 'Groupes', n: counts.byType.group }] : []),
+    ...(counts.byType.platform > 0 ? [{ key: 'platform' as NatureFilter, label: 'Plateforme', n: counts.byType.platform }] : []),
+    ...(counts.byType.autre > 0 ? [{ key: 'autre' as NatureFilter, label: 'Autres', n: counts.byType.autre }] : []),
+  ]
   return (
-    <button type="button" onClick={onClick} className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${active ? activeBg : `bg-white border ${ringColor}`}`}>
-      {label} <span className="opacity-70">· {count}</span>
-    </button>
+    <div className="inline-flex items-center bg-white border border-gray-200 rounded-lg p-1 gap-1 flex-wrap">
+      {items.map((it) => (
+        <button
+          key={it.key}
+          type="button"
+          onClick={() => onChange(it.key)}
+          className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-colors ${value === it.key ? 'bg-forest-700 text-white' : 'text-gray-500 hover:bg-page-bg'}`}
+        >
+          {it.label} <span className={value === it.key ? 'opacity-70' : 'text-gray-300'}>{it.n}</span>
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -210,6 +243,46 @@ function Pill({ text, variant }: { text: string; variant: 'green' | 'red' | 'gol
     purple: 'bg-purple-50 text-purple-700',
   }
   return <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${map[variant]}`}>{text}</span>
+}
+
+function csvCell(v: string): string {
+  return /[",\r\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
+}
+
+function exportOrganizationsCsv(rows: AdminCabinet[]): void {
+  const header = ['Organisation', 'Slug', 'Nature', 'Plan', 'Conformité', 'Membres', 'Missions', 'Dernière activité', 'Statut']
+  const body = rows.map((c) => [
+    c.name,
+    c.slug,
+    NATURE_LABELS[natureOf(c)]?.label ?? 'Autre',
+    c.plan_name ?? '',
+    c.posture === null ? 'Non évalué' : `${c.posture}%`,
+    String(c.members_count),
+    String(c.missions_count),
+    c.last_activity_at ?? '',
+    c.is_active ? 'Actif' : 'Suspendu',
+  ])
+  const csv = [header, ...body].map((r) => r.map(csvCell).join(',')).join('\r\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `organisations-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function PostureCell({ score }: { score: number | null }) {
+  if (score === null) return <span className="text-gray-300 text-[11px]">Non évalué</span>
+  const variant: 'green' | 'gold' | 'red' = score >= 80 ? 'green' : score >= 60 ? 'gold' : 'red'
+  const dot = { green: 'bg-green-500', gold: 'bg-gold-500', red: 'bg-red-500' }[variant]
+  const text = { green: 'text-green-700', gold: 'text-gold-600', red: 'text-red-700' }[variant]
+  return (
+    <span className="inline-flex items-center gap-2" title={bandLabel(score)}>
+      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`} />
+      <span className={`text-[12.5px] font-bold tabular-nums ${text}`}>{score}%</span>
+    </span>
+  )
 }
 
 function formatRelative(iso: string | null): string {

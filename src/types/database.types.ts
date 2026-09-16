@@ -2082,6 +2082,14 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: { users: number | null; missions: number | null }
       }
+      admin_cron_status: {
+        Args: Record<PropertyKey, never>
+        Returns: { jobname: string; schedule: string; active: boolean; last_run_at: string | null; last_status: string | null; last_duration_ms: number | null }[]
+      }
+      admin_org_scores: {
+        Args: Record<PropertyKey, never>
+        Returns: { org_id: string; posture: number | null; measured_axes: number; total_ctrl: number; approved_ctrl: number }[]
+      }
       org_has_entitlement: {
         Args: { p_org: string; p_key: string }
         Returns: boolean
