@@ -6,7 +6,6 @@ import { useToast } from '../../hooks/useToast'
 import { useAuth } from '../../hooks/useAuth'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
-import { WorkflowTemplateEditor } from './WorkflowTemplateEditor'
 
 /**
  * Onglet Paramètres — flux de travail. Depuis la consolidation RFC 0002, les
@@ -100,8 +99,6 @@ export function WorkflowSettingsTab(): JSX.Element {
           </label>
         </div>
       </div>
-
-      <WorkflowTemplateEditor />
     </div>
   )
 }

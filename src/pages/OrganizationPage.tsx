@@ -3,12 +3,13 @@ import type { ReactNode } from 'react'
 import { OrganizationInfoTab } from '../features/organization-settings/OrganizationInfoTab'
 import { WorkflowSettingsTab } from '../features/organization-settings/WorkflowSettingsTab'
 import { TerminologyEditor } from '../features/organization-settings/TerminologyEditor'
+import { WorkflowTemplatesTab } from '../features/organization-settings/WorkflowTemplatesTab'
 import { MembersPage } from './MembersPage'
 import { RolesTab } from '../features/members/RolesTab'
 import { AuditTrailPage } from '../features/audit/AuditTrailPage'
 import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
 
-type TabKey = 'general' | 'membres' | 'roles' | 'parametres' | 'terminologie' | 'piste-audit'
+type TabKey = 'general' | 'membres' | 'roles' | 'parametres' | 'parcours' | 'terminologie' | 'piste-audit'
 
 /**
  * Hub Organisation tout-en-onglets : Général, Membres, Rôles & permissions,
@@ -18,7 +19,7 @@ type TabKey = 'general' | 'membres' | 'roles' | 'parametres' | 'terminologie' | 
  * l'URL (?tab=) pour le lien direct et les redirections depuis /membres, /piste-audit.
  */
 export function OrganizationPage(): JSX.Element {
-  const { canManageMembers, canManageRoles, canEditOrganization, canViewAuditTrail } = useCabinetPermissions()
+  const { canManageMembers, canManageRoles, canEditOrganization, canViewAuditTrail, canManageWorkflow } = useCabinetPermissions()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const tabs: { key: TabKey; label: string; render: () => ReactNode }[] = [
@@ -26,6 +27,7 @@ export function OrganizationPage(): JSX.Element {
     ...((canManageMembers || canManageRoles) ? [{ key: 'membres' as TabKey, label: 'Membres', render: () => <MembersPage /> }] : []),
     ...(canManageRoles ? [{ key: 'roles' as TabKey, label: 'Rôles & permissions', render: () => <RolesTab /> }] : []),
     { key: 'parametres', label: 'Paramètres', render: () => <WorkflowSettingsTab /> },
+    ...(canManageWorkflow ? [{ key: 'parcours' as TabKey, label: 'Parcours', render: () => <WorkflowTemplatesTab /> }] : []),
     ...(canEditOrganization ? [{ key: 'terminologie' as TabKey, label: 'Terminologie', render: () => <TerminologyEditor /> }] : []),
     ...(canViewAuditTrail ? [{ key: 'piste-audit' as TabKey, label: "Piste d'audit", render: () => <AuditTrailPage /> }] : []),
   ]
