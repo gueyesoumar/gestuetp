@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf'
+import { isStepEnabled } from '../../missions/mission-constants'
 import { createContext, type ScopingNoteData as _ScopingNoteData } from './context'
 import { drawCoverPage } from './cover'
 import { loadImageAsDataURL } from './logo-loader'
@@ -33,7 +34,8 @@ export async function generateScopingNotePDF(data: ScopingNoteData): Promise<voi
   drawSection02Objectifs(ctx)
   drawSection03Perimetre(ctx)
   drawSection04Methodologie(ctx)
-  drawSection05Risques(ctx)
+  // Section Risques omise si la sous-étape est désélectionnée du parcours (RFC 0009).
+  if (isStepEnabled(data.mission, 'scoping.risks')) drawSection05Risques(ctx)
   drawSection06Equipe(ctx)
   drawSection07Planning(ctx)
   drawSection08LivrablesGouvernance(ctx)

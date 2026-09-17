@@ -3,6 +3,7 @@ import { Route } from 'lucide-react'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
+import { getMissionPhases } from '../missions/mission-constants'
 import { useWorkflowTemplate, WORKFLOW_STEP_GROUPS, ALL_DESELECTABLE_KEYS } from './useWorkflowTemplate'
 
 /**
@@ -28,7 +29,13 @@ export function WorkflowTemplateEditor(): JSX.Element {
   }
 
   const dirty = ALL_DESELECTABLE_KEYS.some((k) => included.has(k) !== !disabledSteps.includes(k))
-  const onSave = (): void => { void save(ALL_DESELECTABLE_KEYS.filter((k) => !included.has(k))) }
+  const disabledKeys = ALL_DESELECTABLE_KEYS.filter((k) => !included.has(k))
+  const onSave = (): void => { void save(disabledKeys) }
+
+  // Aperçu du parcours résultant (pur calcul, aucune requête).
+  const previewPhases = getMissionPhases({ workflow_disabled_steps: disabledKeys })
+  const scopingSteps = WORKFLOW_STEP_GROUPS.flatMap((g) => g.steps).filter((s) => s.key.startsWith('scoping.'))
+  const includedScoping = scopingSteps.filter((s) => included.has(s.key)).map((s) => s.label)
 
   if (loading || permLoading) return <div className="mt-6"><LoadingSpinner /></div>
   if (error) return <div className="mt-6"><ErrorAlert message={error} /></div>
@@ -76,6 +83,21 @@ export function WorkflowTemplateEditor(): JSX.Element {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-5 rounded-lg bg-page-bg border border-gray-200 p-4">
+          <h4 className="text-[10.5px] uppercase tracking-wider text-gray-400 font-semibold mb-2">Parcours résultant</h4>
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1.5">
+            {previewPhases.map((p, i) => (
+              <span key={p.key} className="inline-flex items-center gap-1.5">
+                {i > 0 && <span className="text-gray-300">&rarr;</span>}
+                <span className="text-[11.5px] font-semibold text-forest-800 bg-white border border-gray-200 rounded-full px-2.5 py-0.5">{p.label}</span>
+              </span>
+            ))}
+          </div>
+          <p className="mt-2.5 text-[11px] text-gray-500">
+            Cadrage &mdash; sous-&eacute;tapes&nbsp;: {includedScoping.length > 0 ? includedScoping.join(' · ') : 'périmètre seul'}
+          </p>
         </div>
 
         <div className="mt-5 flex items-center gap-3">
