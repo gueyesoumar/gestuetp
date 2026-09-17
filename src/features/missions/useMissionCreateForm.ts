@@ -36,6 +36,7 @@ export function useMissionCreateForm() {
   const [leadAuditorId, setLeadAuditorId] = useState('')
   const [memberIds, setMemberIds] = useState<string[]>([])
   const [scopeControlIds, setScopeControlIds] = useState<Set<string>>(new Set())
+  const [workflowTemplateId, setWorkflowTemplateId] = useState('')
 
   const isSupervision = kind === 'continuous_supervision'
 
@@ -162,8 +163,9 @@ export function useMissionCreateForm() {
         member_ids: allMemberIds,
         kind,
         scope_control_ids: [...scopeControlIds],
+        workflow_template_id: workflowTemplateId || undefined,
       }),
-    [missionName, isSupervision, subsidiaryId, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, createMission],
+    [missionName, isSupervision, subsidiaryId, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, workflowTemplateId, createMission],
   )
 
   return {
@@ -172,6 +174,7 @@ export function useMissionCreateForm() {
     clientId, setClientId, subsidiaryId, setSubsidiaryId,
     missionName, onMissionName, associateId, setAssociateId, leadAuditorId, setLeadAuditorId,
     memberIds, toggleMember, scopeControlIds, toggleControl, toggleDomain, startDate, endDate,
+    workflowTemplateId, setWorkflowTemplateId,
     selectedFramework, selectedClient, selectedSubsidiary, targetName, targetSelected,
     allMemberIds, teamSize, totalControls, totalFrameworkControls, selectedDomains, eligibleLeadIds, submit,
   }
