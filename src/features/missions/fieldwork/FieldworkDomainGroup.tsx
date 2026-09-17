@@ -9,12 +9,16 @@ interface FieldworkDomainGroupProps {
   auditorMap: Map<string, string>
   selectedControlId: string | null
   onSelectControl: (controlId: string) => void
+  selectedIds?: Set<string>
+  selectableControlIds?: Set<string>
+  onToggleSelect?: (controlId: string) => void
+  onToggleDomain?: (controlIds: string[]) => void
   defaultOpen?: boolean
   filter: string
   search: string
 }
 
-export function FieldworkDomainGroup({ domain, assessments, auditorMap, selectedControlId, onSelectControl, defaultOpen = false, filter, search }: FieldworkDomainGroupProps): JSX.Element {
+export function FieldworkDomainGroup({ domain, assessments, auditorMap, selectedControlId, onSelectControl, selectedIds, selectableControlIds, onToggleSelect, onToggleDomain, defaultOpen = false, filter, search }: FieldworkDomainGroupProps): JSX.Element {
   const [open, setOpen] = useState(defaultOpen)
 
   // Build a map of control_id → assessment status
@@ -51,6 +55,11 @@ export function FieldworkDomainGroup({ domain, assessments, auditorMap, selected
 
   if (visibleControls.length === 0) return <></>
 
+  // Sélection de masse : contrôles éligibles visibles de ce domaine.
+  const selectMode = !!onToggleSelect && !!selectableControlIds
+  const eligibleVisibleIds = visibleControls.filter((c) => selectableControlIds?.has(c.id)).map((c) => c.id)
+  const allDomainSelected = eligibleVisibleIds.length > 0 && eligibleVisibleIds.every((id) => selectedIds?.has(id))
+
   const total = domain.controls.length
   const completed = domain.controls.filter((c) => {
     const a = assessmentMap.get(c.id)
@@ -62,6 +71,16 @@ export function FieldworkDomainGroup({ domain, assessments, auditorMap, selected
   return (
     <div className="border-b border-gray-200">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-3.5 py-2.5 bg-[#FAFAFA] hover:bg-forest-50 transition-colors text-left">
+        {selectMode && eligibleVisibleIds.length > 0 && (
+          <input
+            type="checkbox"
+            checked={allDomainSelected}
+            onChange={() => onToggleDomain?.(eligibleVisibleIds)}
+            onClick={(e) => e.stopPropagation()}
+            className="w-3.5 h-3.5 accent-forest-700 shrink-0 cursor-pointer"
+            aria-label={`Sélectionner les contrôles éligibles de ${domain.name}`}
+          />
+        )}
         <ChevronIcon open={open} />
         <span className="text-xs font-semibold text-gray-900 flex-1 truncate">{domain.name}</span>
         <div className="w-12 h-1 bg-gray-200 rounded-full shrink-0">
@@ -74,25 +93,44 @@ export function FieldworkDomainGroup({ domain, assessments, auditorMap, selected
         const assessment = assessmentMap.get(control.id)
         const isSelected = selectedControlId === control.id
         const status = computeDisplayStatus(assessment ?? null)
+        const selectable = selectMode && (selectableControlIds?.has(control.id) ?? false)
+        const checked = selectedIds?.has(control.id) ?? false
 
         return (
-          <button
+          <div
             key={control.id}
-            onClick={() => onSelectControl(control.id)}
-            className={`w-full flex items-center gap-2 px-3.5 py-2 pl-8 text-left border-b border-gray-50 last:border-b-0 transition-colors ${
+            className={`w-full flex items-center gap-2 px-3.5 py-2 pl-8 border-b border-gray-50 last:border-b-0 transition-colors ${
               isSelected ? 'bg-forest-100 border-l-[3px] border-l-forest-700 pl-[29px]' : 'hover:bg-forest-50'
             }`}
           >
-            <StatusDot status={status} />
-            <div className="flex-1 min-w-0">
-              <span className="block text-[11px] font-mono font-medium text-forest-700">{control.code}</span>
-              <span className="block text-xs text-gray-700 truncate">{control.name}</span>
-              {assessment && auditorMap.get(assessment.auditor_id) && (
-                <span className="block text-[9px] text-gray-300 mt-0.5">{auditorMap.get(assessment.auditor_id)}</span>
-              )}
-            </div>
-            <StatusLabel status={status} />
-          </button>
+            {selectMode && (
+              selectable ? (
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => onToggleSelect?.(control.id)}
+                  className="w-3.5 h-3.5 accent-forest-700 shrink-0 cursor-pointer"
+                  aria-label={`Sélectionner ${control.code}`}
+                />
+              ) : (
+                <span className="w-3.5 shrink-0" />
+              )
+            )}
+            <button
+              onClick={() => onSelectControl(control.id)}
+              className="flex items-center gap-2 flex-1 min-w-0 text-left"
+            >
+              <StatusDot status={status} />
+              <div className="flex-1 min-w-0">
+                <span className="block text-[11px] font-mono font-medium text-forest-700">{control.code}</span>
+                <span className="block text-xs text-gray-700 truncate">{control.name}</span>
+                {assessment && auditorMap.get(assessment.auditor_id) && (
+                  <span className="block text-[9px] text-gray-300 mt-0.5">{auditorMap.get(assessment.auditor_id)}</span>
+                )}
+              </div>
+              <StatusLabel status={status} />
+            </button>
+          </div>
         )
       })}
     </div>
