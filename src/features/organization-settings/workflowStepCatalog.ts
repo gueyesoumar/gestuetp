@@ -14,6 +14,25 @@ export const WORKFLOW_STEP_GROUPS: StepGroup[] = [
     ],
   },
   {
+    title: 'Planification — sous-étapes',
+    steps: [
+      { key: 'planning.interviews', label: 'Entretiens', hint: 'Onglet entretiens + matrice' },
+    ],
+  },
+  {
+    title: 'Revue interne — sous-étapes',
+    steps: [
+      { key: 'review.quality', label: 'Synthèse qualité' },
+      { key: 'review.discussion', label: 'Panneau de discussion' },
+    ],
+  },
+  {
+    title: 'Clôture — sous-étapes',
+    steps: [
+      { key: 'closure.report', label: 'Générateur de rapport avancé' },
+    ],
+  },
+  {
     title: 'Phases optionnelles',
     steps: [
       { key: 'client_review', label: 'Validation client', hint: 'La revue mène directement à la clôture' },
