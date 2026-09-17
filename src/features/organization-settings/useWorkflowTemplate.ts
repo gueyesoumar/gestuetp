@@ -21,7 +21,7 @@ export const WORKFLOW_STEP_GROUPS: StepGroup[] = [
   {
     title: 'Phases optionnelles',
     steps: [
-      { key: 'client_review', label: 'Validation client', hint: 'La revue passe directement à la clôture' },
+      { key: 'client_review', label: 'Validation client', hint: 'La revue mène directement à la clôture' },
       { key: 'action_plan', label: "Plan d'action" },
     ],
   },
