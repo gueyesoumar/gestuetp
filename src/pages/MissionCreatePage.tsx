@@ -181,6 +181,8 @@ export function MissionCreatePage() {
         totalControls={f.totalControls}
         selectedDomains={f.selectedDomains}
         totalDomains={f.domains.length}
+        workflowTemplateId={f.workflowTemplateId}
+        onChangeTemplate={f.setWorkflowTemplateId}
       />
     ),
   })

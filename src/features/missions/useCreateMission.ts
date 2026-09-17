@@ -18,6 +18,8 @@ export interface CreateMissionPayload {
   kind?: MissionKind
   /** Contrôles retenus au périmètre (le complément est exclu côté serveur). */
   scope_control_ids?: string[]
+  /** Template de parcours choisi (RFC 0009). Absent -> template is_default de l'org. */
+  workflow_template_id?: string
 }
 
 interface UseCreateMissionResult {

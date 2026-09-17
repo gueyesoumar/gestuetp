@@ -1,6 +1,7 @@
-import { Target } from 'lucide-react'
+import { Target, Route } from 'lucide-react'
 import type { Framework } from '../../../types/database.types'
 import type { MemberWithRoles } from '../../members/types'
+import { WorkflowTemplatePicker } from '../WorkflowTemplatePicker'
 
 interface MissionConfirmStepProps {
   missionName: string
@@ -17,12 +18,14 @@ interface MissionConfirmStepProps {
   totalControls: number
   selectedDomains: number
   totalDomains: number
+  workflowTemplateId: string
+  onChangeTemplate: (id: string) => void
 }
 
 export function MissionConfirmStep({
   missionName, framework, targetLabel, targetValue,
   associateId, leadAuditorId, teamSize, startDate, endDate, members,
-  totalControls, selectedDomains, totalDomains,
+  totalControls, selectedDomains, totalDomains, workflowTemplateId, onChangeTemplate,
 }: MissionConfirmStepProps) {
   const associate = members.find((m) => m.id === associateId)
   const lead = members.find((m) => m.id === leadAuditorId)
@@ -62,6 +65,13 @@ export function MissionConfirmStep({
             <div className="px-4 py-3 text-[13px] font-semibold text-gray-900">{row.value}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-4">
+        <label className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 mb-1.5">
+          <Route size={13} className="text-forest-700" /> Parcours de mission
+        </label>
+        <WorkflowTemplatePicker value={workflowTemplateId} onChange={onChangeTemplate} />
       </div>
     </div>
   )
