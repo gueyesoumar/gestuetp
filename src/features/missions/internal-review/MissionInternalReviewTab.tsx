@@ -8,7 +8,7 @@ import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
 import { useInternalReviewData } from './useInternalReviewData'
-import { getMissionPhases } from '../mission-constants'
+import { getMissionPhases, isStepEnabled } from '../mission-constants'
 import { ObservationsConsultationPanel } from '../observations/ObservationsConsultationPanel'
 import { ValidationTimeline } from './ValidationTimeline'
 import { ReviewQualityCallout } from './ReviewQualityCallout'
@@ -111,10 +111,12 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
         </div>
       </div>
 
-      {/* Quality callout (B) */}
-      <div className="mb-5">
-        <ReviewQualityCallout assessments={review.assessmentDetails} />
-      </div>
+      {/* Quality callout (B) — désélectionnable via template (RFC 0009) */}
+      {isStepEnabled(mission, 'review.quality') && (
+        <div className="mb-5">
+          <ReviewQualityCallout assessments={review.assessmentDetails} />
+        </div>
+      )}
 
       <div className="grid grid-cols-[2fr_1fr] gap-6">
         {/* Left column */}
@@ -134,8 +136,8 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
 
         {/* Right column */}
         <div className="space-y-5">
-          {/* Discussion panel (C) */}
-          <ReviewDiscussionPanel missionId={mission.id} />
+          {/* Discussion panel (C) — désélectionnable via template (RFC 0009) */}
+          {isStepEnabled(mission, 'review.discussion') && <ReviewDiscussionPanel missionId={mission.id} />}
 
           {/* Checklist */}
           <Checklist review={review} />
