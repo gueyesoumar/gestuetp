@@ -10,11 +10,16 @@ interface FieldworkSidebarProps {
   members: MissionMemberRow[]
   selectedControlId: string | null
   onSelectControl: (controlId: string) => void
+  /** Sélection de masse (RFC UX Lot 3). */
+  selectedIds?: Set<string>
+  selectableControlIds?: Set<string>
+  onToggleSelect?: (controlId: string) => void
+  onToggleDomain?: (controlIds: string[]) => void
 }
 
 type FilterKey = 'all' | 'not_started' | 'draft' | 'submitted' | 'approved'
 
-export function FieldworkSidebar({ domains, assessments, members, selectedControlId, onSelectControl }: FieldworkSidebarProps): JSX.Element {
+export function FieldworkSidebar({ domains, assessments, members, selectedControlId, onSelectControl, selectedIds, selectableControlIds, onToggleSelect, onToggleDomain }: FieldworkSidebarProps): JSX.Element {
   // Build auditor name map
   const auditorMap = useMemo(() => {
     const map = new Map<string, string>()
@@ -87,6 +92,10 @@ export function FieldworkSidebar({ domains, assessments, members, selectedContro
             auditorMap={auditorMap}
             selectedControlId={selectedControlId}
             onSelectControl={onSelectControl}
+            selectedIds={selectedIds}
+            selectableControlIds={selectableControlIds}
+            onToggleSelect={onToggleSelect}
+            onToggleDomain={onToggleDomain}
             defaultOpen={i === 0}
             filter={filter}
             search={search}

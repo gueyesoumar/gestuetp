@@ -21,6 +21,8 @@ import {
   FieldworkTransitionBanner,
 } from './FieldworkProgressBanner'
 import { FieldworkPhaseRibbon } from './FieldworkPhaseRibbon'
+import { FieldworkBulkToolbar } from './FieldworkBulkToolbar'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionMemberRow, ControlAssignmentRow, MissionDetail } from '../useMissionDetail'
 
@@ -70,6 +72,10 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
   const [confirmLaunch, setConfirmLaunch] = useState(false)
   const [launching, setLaunching] = useState(false)
+  // Sélection de masse (RFC UX Lot 3) — par control_id.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [confirmBulk, setConfirmBulk] = useState(false)
+  const [bulkSaving, setBulkSaving] = useState(false)
   const [railOpen, setRailOpen] = useState<boolean>(readRailDefault)
   const toggleRail = useCallback(() => {
     setRailOpen((prev) => {
@@ -109,6 +115,54 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     setReviewTransition('Mission passée en revue interne.')
     onRefetch()
   }, [mission.id, onRefetch, toast])
+
+  // Contrôles éligibles au bulk « conforme » : mes brouillons/rejetés (control_id → assessment_id).
+  const eligibleControlIds = useMemo(() => {
+    const set = new Set<string>()
+    for (const a of assessments) {
+      if (a.auditor_id === profile?.id && (a.status === 'draft' || a.status === 'rejected')) set.add(a.control_id)
+    }
+    return set
+  }, [assessments, profile?.id])
+
+  const toggleSelect = useCallback((controlId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(controlId)) next.delete(controlId); else next.add(controlId)
+      return next
+    })
+  }, [])
+
+  const toggleDomain = useCallback((controlIds: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      const allSelected = controlIds.length > 0 && controlIds.every((id) => next.has(id))
+      for (const id of controlIds) { if (allSelected) next.delete(id); else next.add(id) }
+      return next
+    })
+  }, [])
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), [])
+
+  const handleBulkSubmit = useCallback(async () => {
+    const assessmentIds = assessments.filter((a) => selectedIds.has(a.control_id)).map((a) => a.id)
+    if (assessmentIds.length === 0) return
+    setBulkSaving(true)
+    const res = await invokeEdgeFunction<{ submitted_count: number; results: { ok: boolean }[] }>(
+      'submit-assessments-bulk', { assessment_ids: assessmentIds },
+    )
+    setBulkSaving(false)
+    setConfirmBulk(false)
+    if (!res.ok) { toast.error(res.error ?? 'Soumission impossible'); return }
+    const submitted = res.data?.submitted_count ?? 0
+    const skipped = (res.data?.results ?? []).filter((r) => !r.ok).length
+    toast.success(
+      `${submitted} contrôle${submitted > 1 ? 's' : ''} soumis${skipped > 0 ? `, ${skipped} ignoré${skipped > 1 ? 's' : ''}` : ''}`,
+    )
+    setSelectedIds(new Set())
+    refetch()
+    onRefetch()
+  }, [assessments, selectedIds, toast, refetch, onRefetch])
 
   // Filter assignments: auditors see only their own, lead/associate see all
   const filteredAssignments = useMemo(() => {
@@ -221,6 +275,33 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         }
       />
 
+      <ConfirmDialog
+        open={confirmBulk}
+        title="Marquer conforme & soumettre"
+        confirmLabel="Marquer conforme & soumettre"
+        busy={bulkSaving}
+        onConfirm={handleBulkSubmit}
+        onClose={() => setConfirmBulk(false)}
+        message={
+          <>
+            {selectedIds.size} contrôle{selectedIds.size > 1 ? 's' : ''} sélectionné{selectedIds.size > 1 ? 's' : ''}.
+            <br />
+            Ceux qui n'ont <strong>aucun constat</strong> seront marqués <strong>Conformes</strong> (une note
+            «&nbsp;Conforme, aucun écart identifié&nbsp;» est jointe) puis soumis. Ceux qui ont déjà des constats
+            ou sont déjà soumis seront <strong>ignorés</strong>.
+          </>
+        }
+      />
+
+      {selectedIds.size > 0 && (
+        <FieldworkBulkToolbar
+          selectedCount={selectedIds.size}
+          saving={bulkSaving}
+          onClear={clearSelection}
+          onSubmitConforme={() => setConfirmBulk(true)}
+        />
+      )}
+
       <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}>
         <div className="w-80 shrink-0 overflow-y-auto">
           <FieldworkSidebar
@@ -229,6 +310,10 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
             members={members}
             selectedControlId={state.selectedId}
             onSelectControl={state.selectControl}
+            selectedIds={selectedIds}
+            selectableControlIds={eligibleControlIds}
+            onToggleSelect={toggleSelect}
+            onToggleDomain={toggleDomain}
           />
         </div>
 
