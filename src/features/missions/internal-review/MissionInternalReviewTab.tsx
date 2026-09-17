@@ -4,9 +4,11 @@ import { Badge } from '../../../components/ui/Badge'
 import { InfoPopover } from '../../../components/ui/InfoPopover'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
+import { useToast } from '../../../hooks/useToast'
 import { useInternalReviewData } from './useInternalReviewData'
 import { getMissionPhases, isStepEnabled } from '../mission-constants'
 import { ObservationsConsultationPanel } from '../observations/ObservationsConsultationPanel'
@@ -23,10 +25,12 @@ interface MissionInternalReviewTabProps {
 
 export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInternalReviewTabProps) {
   const { profile } = useAuth()
+  const toast = useToast()
   const review = useInternalReviewData(mission.id, mission.framework_id)
   const [comment, setComment] = useState('')
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [confirmAction, setConfirmAction] = useState<'send' | 'reject' | null>(null)
 
   const isAssociate = profile?.id === mission.associate_user?.id
   const isLead = profile?.id === mission.lead_auditor_user?.id
@@ -51,16 +55,19 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
       console.error('send-to-client-review:', detail)
       setSendError("Erreur lors de l'envoi au client.")
       setSending(false)
+      setConfirmAction(null)
       return
     }
 
     setSending(false)
+    setConfirmAction(null)
+    toast.success('Rapport envoyé au client')
     onStatusChange?.()
-  }, [mission.id, comment, onStatusChange])
+  }, [mission.id, comment, onStatusChange, toast])
 
   const handleReject = useCallback(async () => {
     if (!comment.trim()) {
-      setSendError('Un commentaire est obligatoire pour renvoyer en revue.')
+      setSendError('Un commentaire est obligatoire pour renvoyer en correction.')
       return
     }
     setSending(true)
@@ -75,12 +82,15 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
     if (error) {
       setSendError('Erreur lors du renvoi.')
       setSending(false)
+      setConfirmAction(null)
       return
     }
 
     setSending(false)
+    setConfirmAction(null)
+    toast.success('Mission renvoyée en correction (Travaux)')
     onStatusChange?.()
-  }, [mission.id, comment, onStatusChange])
+  }, [mission.id, comment, onStatusChange, toast])
 
   if (review.loading) return <LoadingSpinner />
   if (review.error) return <ErrorAlert message={review.error} />
@@ -176,7 +186,7 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
                   </div>
                 ) : (
                   <button
-                    onClick={handleSendToClient}
+                    onClick={() => setConfirmAction('send')}
                     disabled={sending}
                     className="w-full flex items-center justify-center gap-2 rounded-lg bg-forest-700 px-4 py-3 text-[14px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50 transition-colors"
                   >
@@ -185,12 +195,12 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
                   </button>
                 )}
                 <button
-                  onClick={handleReject}
+                  onClick={() => setConfirmAction('reject')}
                   disabled={sending || !comment.trim()}
                   className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
                 >
                   <XCircle size={14} />
-                  Renvoyer en revue
+                  Renvoyer en correction (Travaux)
                 </button>
               </div>
             </div>
@@ -203,11 +213,43 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           <ObservationsConsultationPanel
             missionId={mission.id}
             heading="Consultation de l'assujetti"
-            subheading="Remarques non bloquantes de l'assujetti sur les contrôles. Répondez et décidez de modifier ou conserver le constat, puis clôturez. L'assujetti commente via son portail (accès contributeur)."
+            subheading="Remarques non bloquantes de l'assujetti sur les contrôles. Répondez et décidez d'ajuster ou de conserver le constat, puis clôturez. L'assujetti commente via son portail (accès contributeur)."
             emptyLabel="L'assujetti n'a pas encore déposé de remarque. Invitez un contact assujetti en « contributeur » pour ouvrir la consultation."
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmAction === 'send'}
+        title="Envoyer le rapport au client"
+        confirmLabel="Valider et envoyer"
+        busy={sending}
+        onConfirm={handleSendToClient}
+        onClose={() => setConfirmAction(null)}
+        message={
+          <>
+            Le rapport d'audit sera transmis au client pour validation
+            {comment.trim() ? ', accompagné de votre commentaire' : ''}. La mission passera en phase
+            «&nbsp;Validation client&nbsp;».
+          </>
+        }
+      />
+
+      <ConfirmDialog
+        open={confirmAction === 'reject'}
+        title="Renvoyer en correction (Travaux)"
+        variant="danger"
+        confirmLabel="Renvoyer en correction"
+        busy={sending}
+        onConfirm={handleReject}
+        onClose={() => setConfirmAction(null)}
+        message={
+          <>
+            La mission repassera en phase <strong>Travaux</strong> pour correction. Votre commentaire
+            accompagne le renvoi afin que l'équipe sache quoi ajuster.
+          </>
+        }
+      />
     </div>
   )
 }

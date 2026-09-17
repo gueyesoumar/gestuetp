@@ -212,7 +212,7 @@ function ObservationRow({ observation, expanded, onToggle, onSubmit, submitting 
                   </button>
                   <button onClick={() => onSubmit(responseText, 'modified')} disabled={!responseText.trim() || submitting}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-forest-700 text-white rounded-lg text-[12px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors">
-                    <Send size={12} /> Modifier le constat
+                    <Send size={12} /> Répondre et ajuster
                   </button>
                 </div>
               </div>

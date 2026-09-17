@@ -3,16 +3,14 @@ import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
-import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useToast } from '../../../hooks/useToast'
 import { useMissionUserRole } from '../useMissionUserRole'
-import { isStepEnabled } from '../mission-constants'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
 import { ClosureActionCards } from './ClosureActionCards'
 import { FindingSynthesis } from './FindingSynthesis'
 import { AuditConclusion } from './AuditConclusion'
-import { ReportGenerator } from './ReportGenerator'
 import { loadAuditReportData } from '../../reports/loadAuditReportData'
 import type { MissionDetail } from '../useMissionDetail'
 import type { ControlAssessment } from '../../../types/database.types'
@@ -51,8 +49,8 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const [scoring, setScoring] = useState<ScoringData | null>(null)
   const [findingClassifications, setFindingClassifications] = useState<string[]>([])
   const [generatingPdf, setGeneratingPdf] = useState(false)
+  const [confirmClose, setConfirmClose] = useState(false)
   const isClosed = mission.status === 'closure'
-  const reportFlag = useFeatureFlag('report_generator_advanced')
   const userRole = useMissionUserRole(mission)
 
   useEffect(() => {
@@ -114,12 +112,15 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       const msg = await readInvokeError(fnError, data, 'Erreur.')
       setCloseError(msg)
       setClosing(false)
+      setConfirmClose(false)
       return
     }
     if (data?.scoring) setScoring(data.scoring as ScoringData)
     setClosing(false)
+    setConfirmClose(false)
+    toast.success('Mission clôturée', { description: mission.name })
     onRefetch()
-  }, [mission.id, onRefetch])
+  }, [mission.id, mission.name, onRefetch, toast])
 
   // Auditeur sans contrôle affecté → rien à afficher.
   if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
@@ -148,7 +149,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
             <p className="text-sm font-medium text-amber-800">Pr&ecirc;t &agrave; cl&ocirc;turer la mission ?</p>
             <p className="text-xs text-amber-600 mt-0.5">Le scoring sera calcul&eacute; et la mission passera en statut cl&ocirc;tur&eacute;.</p>
           </div>
-          <button onClick={handleClose} disabled={closing}
+          <button onClick={() => setConfirmClose(true)} disabled={closing}
             className="bg-amber-600 text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-amber-700 disabled:opacity-50 transition-colors">
             {closing ? 'Clôture...' : 'Clôturer la mission'}
           </button>
@@ -189,11 +190,25 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}
             initialComment={(mission as unknown as Record<string, unknown>).audit_conclusion_comment as string | null ?? null}
           />
-          {!reportFlag.loading && reportFlag.enabled && userRole.isPrivileged && isStepEnabled(mission, 'closure.report') && (
-            <ReportGenerator missionId={mission.id} missionName={mission.name} />
-          )}
         </>
       )}
+
+      <ConfirmDialog
+        open={confirmClose}
+        title="Clôturer la mission"
+        variant="danger"
+        confirmWord="CLÔTURER"
+        confirmLabel="Clôturer la mission"
+        busy={closing}
+        onConfirm={handleClose}
+        onClose={() => setConfirmClose(false)}
+        message={
+          <>
+            Action <strong>irréversible</strong>. Le scoring de conformité sera calculé et figé, et la
+            mission passera en statut «&nbsp;Clôturé&nbsp;». Aucune modification ne sera ensuite possible.
+          </>
+        }
+      />
     </div>
   )
 }
