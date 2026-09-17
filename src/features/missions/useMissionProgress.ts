@@ -89,8 +89,10 @@ export function useMissionProgress(
     }
 
     const draftCount = scopedAssessments.filter((a) => a.status === 'draft' || a.status === 'rejected').length
-    const engine = mission.workflow_version ?? 'audit'
-    const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls, engine)
+    // Parcours sans « Validation client » (moteur contrôle/supervision, ou étape
+    // désélectionnée par le template RFC 0009) → la Revue mène droit à la clôture.
+    const skipClientReview = !getMissionPhases(mission).some((p) => p.key === 'client_review')
+    const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls, skipClientReview)
 
     const isClosure = mission.status === 'closure'
     const phases = getMissionPhases(mission)
@@ -127,7 +129,7 @@ function computeNextAction(
   submittedCount: number,
   totalControls: number,
   assessedCount: number,
-  engine: 'audit' | 'controle'
+  skipClientReview: boolean
 ): MissionProgress['nextAction'] {
   if (status === 'initialization' || status === 'scoping') {
     return { label: 'Compl\u00e9tez le cadrage de la mission.', ctaLabel: 'D\u00e9marrer le cadrage', tab: 'scoping' }
@@ -141,9 +143,9 @@ function computeNextAction(
   if (status === 'internal_review' && submittedCount > 0) {
     return { label: `${submittedCount} contr\u00f4les \u00e0 valider.`, ctaLabel: 'Revoir les travaux', tab: 'review' }
   }
-  // Moteur Contr\u00f4le : pas de validation client \u2192 la Revue m\u00e8ne directement \u00e0 la cl\u00f4ture.
-  if (status === 'internal_review' && engine === 'controle') {
-    return { label: 'Revue termin\u00e9e \u2014 pr\u00eat \u00e0 cl\u00f4turer le contr\u00f4le.', ctaLabel: 'Cl\u00f4turer le contr\u00f4le', tab: 'closure' }
+  // Parcours sans validation client \u2192 la Revue m\u00e8ne directement \u00e0 la cl\u00f4ture.
+  if (status === 'internal_review' && skipClientReview) {
+    return { label: 'Revue termin\u00e9e \u2014 pr\u00eat \u00e0 cl\u00f4turer la mission.', ctaLabel: 'Cl\u00f4turer la mission', tab: 'closure' }
   }
   if (status === 'client_review') {
     return { label: 'En attente de validation client.', ctaLabel: 'Voir le suivi', tab: 'client_review' }
