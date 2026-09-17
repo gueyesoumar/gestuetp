@@ -16,7 +16,12 @@ interface PlanningValidationGateProps {
   validating: boolean
   serverMissing?: { key: string; label: string; count: number; total: number }[] | null
   onValidate: () => Promise<void>
+  /** Sous-étape Entretiens active (RFC 0009). Si false, on masque les checks liés aux entretiens. */
+  showInterviewChecks?: boolean
 }
+
+// Checks liés aux entretiens — masqués si la sous-étape Entretiens est désélectionnée.
+const INTERVIEW_CHECK_KEYS = ['interviews', 'critical-coverage', 'domains-topics']
 
 interface CheckItem {
   key: string
@@ -27,7 +32,7 @@ interface CheckItem {
   countLabel: string
 }
 
-export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate }: PlanningValidationGateProps) {
+export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true }: PlanningValidationGateProps) {
   const [confirming, setConfirming] = useState(false)
 
   const checks = useMemo<CheckItem[]>(() => {
@@ -74,7 +79,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
       return topics.some((t) => t.control_ids.some((cid) => ctrlIds.has(cid)))
     }).length
 
-    return [
+    const all: CheckItem[] = [
       {
         key: 'assigned',
         label: 'Tous les contrôles affectés à un auditeur',
@@ -124,7 +129,8 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
         countLabel: `${domainsWithTopics}/${domains.length}`,
       },
     ]
-  }, [domains, plannings, assignments, contacts, interviews, topics])
+    return showInterviewChecks ? all : all.filter((c) => !INTERVIEW_CHECK_KEYS.includes(c.key))
+  }, [domains, plannings, assignments, contacts, interviews, topics, showInterviewChecks])
 
   const blockers = checks.filter((c) => c.blocker)
   const warnings = checks.filter((c) => !c.blocker)

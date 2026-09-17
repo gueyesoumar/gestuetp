@@ -63,15 +63,47 @@ export const CONTROLE_PHASES: MissionPhase[] = [
 ]
 
 export type MissionKindShort = 'audit' | 'continuous_supervision'
-type MissionEngineInput = { workflow_version?: 'audit' | 'controle' | null; kind?: MissionKindShort | null } | null | undefined
+type MissionEngineInput = {
+  workflow_version?: 'audit' | 'controle' | null
+  kind?: MissionKindShort | null
+  /** Snapshot des étapes désélectionnées, figé à la création (RFC 0009, INC 1). */
+  workflow_disabled_steps?: string[] | null
+} | null | undefined
+
+// Étapes désactivées IMPLICITEMENT par le moteur. Préserve le comportement
+// historique du moteur controle (qui masquait déjà le Cadrage/Risques) à
+// template vide → non-régression garantie (RFC 0009 INC 2).
+const ENGINE_IMPLICIT_DISABLED: Record<'audit' | 'controle', readonly string[]> = {
+  audit: [],
+  controle: ['scoping.risks'],
+}
+
+export function missionDisabledSteps(mission: MissionEngineInput): string[] {
+  return mission?.workflow_disabled_steps ?? []
+}
+
+/**
+ * Une étape / sous-étape est-elle active pour cette mission ? (RFC 0009)
+ * Désactivée si elle est dans le snapshot du template OU implicitement désactivée
+ * par le moteur. Source UNIQUE de vérité pour l'affichage conditionnel du parcours.
+ */
+export function isStepEnabled(mission: MissionEngineInput, key: string): boolean {
+  if (missionDisabledSteps(mission).includes(key)) return false
+  const engine = mission?.workflow_version === 'controle' ? 'controle' : 'audit'
+  return !ENGINE_IMPLICIT_DISABLED[engine].includes(key)
+}
 
 /**
  * Résout les phases selon le MOTEUR de la mission (workflow_version, RFC 0003)
- * puis, pour le moteur audit, selon `kind` (audit vs supervision continue).
+ * puis, pour le moteur audit, selon `kind` (audit vs supervision continue), puis
+ * retire les phases désélectionnées par le template du cabinet (RFC 0009).
  */
 export function getMissionPhases(mission: MissionEngineInput): MissionPhase[] {
-  if (mission?.workflow_version === 'controle') return CONTROLE_PHASES
-  return mission?.kind === 'continuous_supervision' ? CONTINUOUS_SUPERVISION_PHASES : MISSION_PHASES
+  const base = mission?.workflow_version === 'controle'
+    ? CONTROLE_PHASES
+    : mission?.kind === 'continuous_supervision' ? CONTINUOUS_SUPERVISION_PHASES : MISSION_PHASES
+  const disabled = missionDisabledSteps(mission)
+  return disabled.length === 0 ? base : base.filter((p) => !disabled.includes(p.key))
 }
 
 /** Source UNIQUE des libellés de statut de mission (badge + listes). */

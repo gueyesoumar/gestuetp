@@ -8,6 +8,7 @@ import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
 import { useInternalReviewData } from './useInternalReviewData'
+import { getMissionPhases, isStepEnabled } from '../mission-constants'
 import { ObservationsConsultationPanel } from '../observations/ObservationsConsultationPanel'
 import { ValidationTimeline } from './ValidationTimeline'
 import { ReviewQualityCallout } from './ReviewQualityCallout'
@@ -30,9 +31,11 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
   const isAssociate = profile?.id === mission.associate_user?.id
   const isLead = profile?.id === mission.lead_auditor_user?.id
   const canDecide = isAssociate || isLead
-  // Moteur Contrôle (RFC 0003) : l'assujetti ne valide pas → pas d'envoi au client,
-  // la Revue mène directement à la clôture (via le CTA « Clôturer le contrôle »).
+  // Moteur Contrôle (RFC 0003) : panneau de consultation de l'assujetti.
   const isControle = mission.workflow_version === 'controle'
+  // Parcours sans « Validation client » (contrôle/supervision, ou étape désélectionnée
+  // par le template RFC 0009) → pas d'envoi au client, la Revue mène droit à la clôture.
+  const skipClientReview = !getMissionPhases(mission).some((p) => p.key === 'client_review')
   const allApproved = review.approvedControls === review.totalControls && review.totalControls > 0
 
   const handleSendToClient = useCallback(async () => {
@@ -108,10 +111,12 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
         </div>
       </div>
 
-      {/* Quality callout (B) */}
-      <div className="mb-5">
-        <ReviewQualityCallout assessments={review.assessmentDetails} />
-      </div>
+      {/* Quality callout (B) — désélectionnable via template (RFC 0009) */}
+      {isStepEnabled(mission, 'review.quality') && (
+        <div className="mb-5">
+          <ReviewQualityCallout assessments={review.assessmentDetails} />
+        </div>
+      )}
 
       <div className="grid grid-cols-[2fr_1fr] gap-6">
         {/* Left column */}
@@ -131,8 +136,8 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
 
         {/* Right column */}
         <div className="space-y-5">
-          {/* Discussion panel (C) */}
-          <ReviewDiscussionPanel missionId={mission.id} />
+          {/* Discussion panel (C) — désélectionnable via template (RFC 0009) */}
+          {isStepEnabled(mission, 'review.discussion') && <ReviewDiscussionPanel missionId={mission.id} />}
 
           {/* Checklist */}
           <Checklist review={review} />
@@ -157,17 +162,17 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
             <div className="rounded-xl border-2 border-forest-700 bg-forest-50 p-5">
               <h3 className="text-[14px] font-bold text-forest-900 mb-1">D&eacute;cision</h3>
               <p className="text-[12px] text-gray-500 mb-4">
-                {isControle
-                  ? 'Validez la cohérence d’ensemble, puis clôturez le contrôle (aucune validation de l’assujetti).'
+                {skipClientReview
+                  ? 'Validez la cohérence d’ensemble, puis clôturez la mission (pas de validation client sur ce parcours).'
                   : 'Validez l’ensemble de la mission avant envoi au client.'}
               </p>
 
               {sendError && <ErrorAlert message={sendError} />}
 
               <div className="space-y-2">
-                {isControle ? (
+                {skipClientReview ? (
                   <div className="rounded-lg border border-forest-200 bg-white px-4 py-3 text-[12.5px] text-gray-600">
-                    Ce contr&ocirc;le ne requiert pas de validation de l&rsquo;assujetti. Utilisez <span className="font-semibold text-forest-700">&laquo;&nbsp;Cl&ocirc;turer le contr&ocirc;le&nbsp;&raquo;</span> en haut de page pour finaliser.
+                    Cette mission ne requiert pas de validation client. Utilisez <span className="font-semibold text-forest-700">&laquo;&nbsp;Cl&ocirc;turer la mission&nbsp;&raquo;</span> (&eacute;tape Cl&ocirc;ture) pour finaliser.
                   </div>
                 ) : (
                   <button

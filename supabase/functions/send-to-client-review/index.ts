@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // Verifier que l'appelant est chef de mission ou associé
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, lead_auditor_id, associate_id')
+      .select('id, lead_auditor_id, associate_id, workflow_version, kind, workflow_disabled_steps')
       .eq('id', mission_id)
       .single()
 
@@ -66,6 +66,21 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Mission introuvable' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Garde-fou (RFC 0009) : refuser si le parcours de la mission ne comporte pas
+    // l'étape « Validation client » (moteur contrôle, supervision continue, ou
+    // désélectionnée par le template). Empêche de pousser la mission dans un statut
+    // correspondant à une phase absente de son parcours (mission bloquée).
+    const m = mission as { workflow_version?: string | null; kind?: string | null; workflow_disabled_steps?: string[] | null }
+    const hasClientReview = m.workflow_version !== 'controle'
+      && m.kind !== 'continuous_supervision'
+      && !(m.workflow_disabled_steps ?? []).includes('client_review')
+    if (!hasClientReview) {
+      return new Response(
+        JSON.stringify({ error: 'Cette mission ne requiert pas de validation client ; clôturez-la directement.' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 

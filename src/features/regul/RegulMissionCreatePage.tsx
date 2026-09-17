@@ -6,6 +6,7 @@ import { useMembers } from '../members/useMembers'
 import { useSubsidiaries } from '../group-module/useSubsidiaries'
 import { EntityFormModal } from '../group-module/EntityFormModal'
 import { useCreateMission } from '../missions/useCreateMission'
+import { WorkflowTemplatePicker } from '../missions/WorkflowTemplatePicker'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { useToast } from '../../hooks/useToast'
 
@@ -29,6 +30,7 @@ export function RegulMissionCreatePage(): JSX.Element {
   const [associateId, setAssociateId] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [workflowTemplateId, setWorkflowTemplateId] = useState('')
 
   const fw = useMemo(() => frameworks.find((f) => f.id === frameworkId) ?? null, [frameworks, frameworkId])
   const assujetti = useMemo(() => subsidiaries.find((s) => s.id === assujettiId) ?? null, [subsidiaries, assujettiId])
@@ -57,6 +59,7 @@ export function RegulMissionCreatePage(): JSX.Element {
       end_date: endDate,
       member_ids: [...new Set([leadId, associateId])],
       kind: 'audit',
+      workflow_template_id: workflowTemplateId || undefined,
     })
     if (res.ok) { toast.success('Mission de contrôle créée'); navigate('/controles') }
     else toast.error(res.error ?? 'Création impossible')
@@ -118,6 +121,10 @@ export function RegulMissionCreatePage(): JSX.Element {
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Fin *</label>
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={field} />
           </div>
+        </div>
+        <div>
+          <label className="block text-[12px] font-medium text-gray-600 mb-1">Parcours de mission</label>
+          <WorkflowTemplatePicker value={workflowTemplateId} onChange={setWorkflowTemplateId} />
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => navigate('/controles')} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>

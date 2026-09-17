@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { isStepEnabled } from '../mission-constants'
 import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
@@ -50,6 +51,9 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const { syncTopics, syncActors } = useInterviewRelations()
   const { topics: auditTopics } = useAuditTopics(mission.framework_id, mission.id)
   const [activeTab, setActiveTab] = useState<PlanTab>('programme')
+  // Sous-étape Entretiens désélectionnable via le template (RFC 0009).
+  const showInterviews = isStepEnabled(mission, 'planning.interviews')
+  useEffect(() => { if (!showInterviews && activeTab === 'entretiens') setActiveTab('programme') }, [showInterviews, activeTab])
   const [showInterviewModal, setShowInterviewModal] = useState(false)
   const [editingInterview, setEditingInterview] = useState<InterviewWithRelations | null>(null)
   const [showMatrix, setShowMatrix] = useState(false)
@@ -277,6 +281,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             validating={validating}
             serverMissing={serverMissing}
             onValidate={handleValidatePlanning}
+            showInterviewChecks={showInterviews}
           />
         )}
 
@@ -295,7 +300,9 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
         {/* Sub-tabs */}
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
           <TabBtn label="Programme de travail" count={totalControls} active={activeTab === 'programme'} onClick={() => setActiveTab('programme')} />
-          <TabBtn label="Entretiens" count={interviews.length} active={activeTab === 'entretiens'} onClick={() => setActiveTab('entretiens')} />
+          {showInterviews && (
+            <TabBtn label="Entretiens" count={interviews.length} active={activeTab === 'entretiens'} onClick={() => setActiveTab('entretiens')} />
+          )}
         </div>
 
         {/* Tab content */}
@@ -316,7 +323,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             onSelectionChange={setSelection}
           />
         )}
-        {activeTab === 'entretiens' && (
+        {showInterviews && activeTab === 'entretiens' && (
           <InterviewsPanel interviews={interviews} contacts={contacts} topics={auditTopics}
             onAdd={() => setShowInterviewModal(true)}
             onEdit={(iv) => setEditingInterview(iv)}

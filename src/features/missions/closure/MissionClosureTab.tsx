@@ -6,6 +6,7 @@ import { EmptyState } from '../../../components/ui/EmptyState'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { useToast } from '../../../hooks/useToast'
 import { useMissionUserRole } from '../useMissionUserRole'
+import { isStepEnabled } from '../mission-constants'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
 import { ClosureActionCards } from './ClosureActionCards'
@@ -188,7 +189,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}
             initialComment={(mission as unknown as Record<string, unknown>).audit_conclusion_comment as string | null ?? null}
           />
-          {!reportFlag.loading && reportFlag.enabled && userRole.isPrivileged && (
+          {!reportFlag.loading && reportFlag.enabled && userRole.isPrivileged && isStepEnabled(mission, 'closure.report') && (
             <ReportGenerator missionId={mission.id} missionName={mission.name} />
           )}
         </>
