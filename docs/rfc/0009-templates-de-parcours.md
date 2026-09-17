@@ -118,6 +118,6 @@ Retrait de **phases médianes** (ex. Planification) : nécessiterait de rendre l
 
 ## 10. Décisions (actées le 2026-09-16)
 
-1. **Un seul template `is_default` par org** pour les INC 1-4. La table reste multi-templates (pas de re-migration quand la phase 2 — templates nommés + choix à la création — arrivera).
+1. **Un seul template `is_default` par org** pour les INC 1-4. La table reste multi-templates. **Phase 2 (en cours)** : templates nommés + choix à la création — INC 5 (backend : `missions.workflow_template_id` + `create_mission_tx(p_template_id)` + trigger résout le template choisi (fallback `is_default`) + auto-démotion du défaut, mig 00253), INC 6 (éditeur multi-templates CRUD), INC 7 (sélecteur au wizard de création). `is_default` devient « pré-sélectionné au wizard ».
 2. **Liste blanche maximale** : on rend désélectionnable **tout ce qui est techniquement sûr** (n'appartient pas au noyau structurant d'une phase et ne casse ni la machine à états, ni la visibilité client, ni un gate). Enumération exhaustive figée à l'INC 2 après revue de chaque phase ; seuls restent obligatoires : les 5 phases médianes, le périmètre du cadrage, la saisie des constats, la revue interne, la clôture.
 3. **Nouvelle permission `can_manage_workflow`** (clé dans `platform_roles.permissions`), distincte des permissions existantes, requise pour éditer le template. Créée à l'INC 1 (défaut : accordée aux rôles privilégiés type Associé/Lead), vérifiée en RLS + UI.

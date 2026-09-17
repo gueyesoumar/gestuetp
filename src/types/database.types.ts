@@ -502,6 +502,8 @@ export interface Mission {
   workflow_version?: 'audit' | 'controle'
   /** Snapshot des étapes/sous-étapes désélectionnées, figé à la création (RFC 0009, migration 00251). */
   workflow_disabled_steps?: string[]
+  /** Template de parcours choisi à la création (RFC 0009 phase 2, migration 00253). */
+  workflow_template_id?: string | null
   lead_auditor_id: string | null
   associate_id: string | null
   start_date: string | null
