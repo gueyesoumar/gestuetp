@@ -13,6 +13,8 @@ import { RightRail } from './right-rail/RightRail'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
+import { useToast } from '../../../hooks/useToast'
 import {
   FieldworkProgressBanner,
   FieldworkLaunchReviewBanner,
@@ -63,8 +65,11 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     return merged
   }, [myAssessments, allSubmitted, isLeadOrAssociate])
 
+  const toast = useToast()
   const state = useFieldworkState(assessments, refetch, mission.workflow_version ?? 'audit')
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
+  const [confirmLaunch, setConfirmLaunch] = useState(false)
+  const [launching, setLaunching] = useState(false)
   const [railOpen, setRailOpen] = useState<boolean>(readRailDefault)
   const toggleRail = useCallback(() => {
     setRailOpen((prev) => {
@@ -86,6 +91,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   const canLaunchReview = isLeadOrAssociate && submittedCount > 0 && mission.status === 'fieldwork' && (completionPct >= 50 || notStartedCount === 0)
 
   const handleLaunchReview = useCallback(async () => {
+    setLaunching(true)
     setReviewTransition(null)
     const { error: updateError } = await supabase
       .from('missions')
@@ -94,11 +100,15 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     if (updateError) {
       console.error('[MissionFieldworkTab] launch review:', updateError.message)
       setReviewTransition('Erreur lors de la transition.')
+      setLaunching(false)
       return
     }
+    setLaunching(false)
+    setConfirmLaunch(false)
+    toast.success('Mission passée en revue interne')
     setReviewTransition('Mission passée en revue interne.')
     onRefetch()
-  }, [mission.id, onRefetch])
+  }, [mission.id, onRefetch, toast])
 
   // Filter assignments: auditors see only their own, lead/associate see all
   const filteredAssignments = useMemo(() => {
@@ -188,9 +198,28 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         totalReference={totalReference}
         draftCount={draftCount}
         notStartedCount={notStartedCount}
-        onLaunch={() => void handleLaunchReview()}
+        onLaunch={() => setConfirmLaunch(true)}
       />
       <FieldworkTransitionBanner message={reviewTransition} />
+
+      <ConfirmDialog
+        open={confirmLaunch}
+        title="Lancer la revue interne"
+        confirmLabel="Lancer la revue"
+        busy={launching}
+        onConfirm={handleLaunchReview}
+        onClose={() => setConfirmLaunch(false)}
+        message={
+          <>
+            {submittedCount}/{totalReference} contrôles soumis
+            {draftCount > 0 ? ` · ${draftCount} en brouillon` : ''}
+            {notStartedCount > 0 ? ` · ${notStartedCount} non commencé${notStartedCount > 1 ? 's' : ''}` : ''}.
+            <br />
+            Les contrôles non soumis ne seront pas inclus dans la revue. Vous pourrez renvoyer la
+            mission en Travaux si nécessaire.
+          </>
+        }
+      />
 
       <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}>
         <div className="w-80 shrink-0 overflow-y-auto">
