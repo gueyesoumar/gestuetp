@@ -120,6 +120,7 @@ export function GuidedWorkflow(props: GuidedWorkflowProps){
           <ValidationStep
             assessment={assessment}
             observations={props.observations}
+            conformityLevel={props.conformityLevel}
             findingsHook={findingsHook}
             onSubmit={props.onSubmit}
             saving={saving}
