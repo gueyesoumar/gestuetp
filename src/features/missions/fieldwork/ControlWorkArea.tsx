@@ -75,6 +75,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
   const declineSource = useAssessmentDeclineSource(assessment.id)
   const status = ASSESSMENT_STATUS_CONFIG[assessment.status]
   const findingsCount = findingsHook.findings.length
+  // Voie express : contrôle Conforme sans constat → soumission directe autorisée.
+  const isExpressConforme = findingsCount === 0 && conformityLevel === 'c'
 
   const formData = useMemo(() => ({
     evidence_notes: evidenceNotes, observations, conformity_level: conformityLevel,
@@ -116,12 +118,28 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
   }, [assessment.id, assessment.control.code, formData, onSave, onSubmit, toast])
 
   const handleSubmit = useCallback(async () => {
-    if (findingsCount === 0) {
-      toast.warn('Au moins un constat requis', { description: 'Ajoutez un constat avant de soumettre.' })
-      return
+    let currentFindings = findingsHook.findings
+    if (currentFindings.length === 0) {
+      if (conformityLevel === 'c') {
+        // Voie express « Conforme » : un contrôle conforme sans écart n'exige plus
+        // un constat factice. On joint automatiquement une observation standard,
+        // cohérente avec le niveau Conforme (matrice métier), puis on soumet.
+        const created = await findingsHook.addFinding({
+          classification: 'observation',
+          description: 'Conforme, aucun écart identifié.',
+        })
+        if (!created) {
+          toast.error('Soumission impossible')
+          return
+        }
+        currentFindings = [...currentFindings, created]
+      } else {
+        toast.warn('Au moins un constat requis', { description: 'Ajoutez un constat avant de soumettre.' })
+        return
+      }
     }
     // Variante B : blocage dur si NC majeure/mineure sans recommandation ou priorit&eacute;.
-    const incomplete = findIncompleteNcFindings(findingsHook.findings)
+    const incomplete = findIncompleteNcFindings(currentFindings)
     if (incomplete.length > 0) {
       toast.warn(
         `${incomplete.length} non-conformité${incomplete.length > 1 ? 's' : ''} à compléter`,
@@ -130,13 +148,13 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
       return
     }
     // Coherence findings <-> conformity_level : warning + justification obligatoire si incoherent.
-    const coherent = isConformityCoherent(conformityLevel as ConformityLevel | null, findingsHook.findings)
+    const coherent = isConformityCoherent(conformityLevel as ConformityLevel | null, currentFindings)
     if (!coherent) {
       setJustificationOpen(true)
       return
     }
     await doSubmit(null)
-  }, [findingsCount, findingsHook.findings, conformityLevel, doSubmit, toast])
+  }, [findingsHook, conformityLevel, doSubmit, toast])
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -276,6 +294,7 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           saving={saving}
           readOnly={readOnly}
           findingsCount={findingsCount}
+          allowEmptySubmit={isExpressConforme}
           autosave={autosave}
           onToggleAutoAdvance={onToggleAutoAdvance}
           onGuidedStepChange={onGuidedStepChange}

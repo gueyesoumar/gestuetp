@@ -15,6 +15,8 @@ interface ControlAuthoringFooterProps {
   saving: boolean
   readOnly: boolean
   findingsCount: number
+  /** Voie express « Conforme » : autorise la soumission sans constat saisi. */
+  allowEmptySubmit?: boolean
   autosave: AutosaveState
   onToggleAutoAdvance: () => void
   onGuidedStepChange: (step: number) => void
@@ -29,6 +31,7 @@ export function ControlAuthoringFooter({
   saving,
   readOnly,
   findingsCount,
+  allowEmptySubmit = false,
   autosave,
   onToggleAutoAdvance,
   onGuidedStepChange,
@@ -68,8 +71,8 @@ export function ControlAuthoringFooter({
           </button>
         )}
         {mode === 'libre' && !readOnly && (
-          <button onClick={() => void onSubmit()} disabled={saving || findingsCount === 0} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors flex items-center gap-1.5">
-            <Play size={13} /> Soumettre
+          <button onClick={() => void onSubmit()} disabled={saving || (findingsCount === 0 && !allowEmptySubmit)} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors flex items-center gap-1.5">
+            <Play size={13} /> {allowEmptySubmit ? 'Soumettre — conforme' : 'Soumettre'}
           </button>
         )}
       </div>
