@@ -22,6 +22,8 @@ interface CreateMissionPayload {
   /** Périmètre optionnel : CONTRÔLES retenus. Le complément est persisté en
    *  exclusions (mission_exclusions). Absent -> aucune exclusion (rétro-compatible). */
   scope_control_ids?: string[]
+  /** Template de parcours choisi (RFC 0009). Absent -> template is_default de l'org. */
+  workflow_template_id?: string
 }
 
 function quarterLabel(dateIso: string): string {
@@ -273,6 +275,24 @@ Deno.serve(async (req) => {
     // 7. Créer la mission + cycle + membres + exclusions EN UNE TRANSACTION
     //    (create_mission_tx, SECURITY DEFINER). Atomicité : plus d'état partiel
     //    (mission sans équipe) comme avec les inserts séparés d'avant.
+    // Template de parcours (RFC 0009) : valider qu'il appartient à l'org appelante.
+    let workflowTemplateId: string | null = null
+    if (body.workflow_template_id) {
+      const { data: tpl } = await supabaseAdmin
+        .from('organization_workflow_templates')
+        .select('id')
+        .eq('id', body.workflow_template_id)
+        .eq('organization_id', callerProfile.organization_id)
+        .maybeSingle()
+      if (!tpl) {
+        return new Response(
+          JSON.stringify({ error: 'Template de parcours invalide' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      workflowTemplateId = body.workflow_template_id
+    }
+
     const { data: newMissionId, error: txError } = await supabaseAdmin.rpc('create_mission_tx', {
       p_cabinet_id: callerProfile.organization_id,
       p_client_id: clientOrgId,
@@ -290,6 +310,7 @@ Deno.serve(async (req) => {
       p_cycle_label: cycleLabel,
       p_cycle_start: cycleStart,
       p_cycle_end: cycleEnd,
+      p_template_id: workflowTemplateId,
     })
 
     if (txError || !newMissionId) {
