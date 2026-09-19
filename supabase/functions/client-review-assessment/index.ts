@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
     // Verifier que l'appelant est du côté client de la mission
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, client_id, status')
+      .select('id, cabinet_id, client_id, status')
       .eq('id', assessment.mission_id)
       .single()
 
@@ -175,6 +175,34 @@ Deno.serve(async (req) => {
         .from('control_assessments')
         .update({ status: 'draft' })
         .eq('id', assessment_id)
+    }
+
+    // Événement de mission (RFC UX Lot 5) : rejet → toujours ; validation → seulement
+    // quand plus aucun contrôle n'est en attente de validation client (mission validée).
+    const cabinetId = (mission as { cabinet_id: string }).cabinet_id
+    if (decision === 'rejected') {
+      await supabaseAdmin.from('mission_status_events').insert({
+        mission_id: assessment.mission_id,
+        organization_id: cabinetId,
+        event_type: 'client_rejected',
+        actor_user_id: callerProfile.id,
+        reason: comment || null,
+        metadata: { assessment_id },
+      })
+    } else {
+      const { data: remaining } = await supabaseAdmin
+        .from('control_assessments')
+        .select('id')
+        .eq('mission_id', assessment.mission_id)
+        .eq('status', 'in_review')
+      if (!remaining || remaining.length === 0) {
+        await supabaseAdmin.from('mission_status_events').insert({
+          mission_id: assessment.mission_id,
+          organization_id: cabinetId,
+          event_type: 'client_validated',
+          actor_user_id: callerProfile.id,
+        })
+      }
     }
 
     return new Response(

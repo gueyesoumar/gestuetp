@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { supabase } from '../../../lib/supabase'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
 import { useToast } from '../../../hooks/useToast'
@@ -73,14 +74,11 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
     setSending(true)
     setSendError(null)
 
-    // Revert mission status to fieldwork
-    const { error } = await supabase
-      .from('missions')
-      .update({ status: 'fieldwork' })
-      .eq('id', mission.id)
+    // Renvoi via edge : capture le motif dans mission_status_events (RFC UX Lot 5).
+    const res = await invokeEdgeFunction('return-to-fieldwork', { mission_id: mission.id, reason: comment })
 
-    if (error) {
-      setSendError('Erreur lors du renvoi.')
+    if (!res.ok) {
+      setSendError(res.error ?? 'Erreur lors du renvoi.')
       setSending(false)
       setConfirmAction(null)
       return

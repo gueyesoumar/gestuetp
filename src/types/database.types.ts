@@ -706,6 +706,40 @@ export interface AssessmentValidationInsert {
   created_at?: string
 }
 
+export type MissionStatusEventType =
+  | 'sent_to_client'
+  | 'returned_to_fieldwork'
+  | 'client_validated'
+  | 'client_rejected'
+
+export interface MissionStatusEvent {
+  id: string
+  mission_id: string
+  organization_id: string
+  event_type: MissionStatusEventType
+  actor_user_id: string | null
+  actor_label: string | null
+  reason: string | null
+  from_status: string | null
+  to_status: string | null
+  metadata: Record<string, unknown>
+  created_at: string
+}
+
+export interface MissionStatusEventInsert {
+  id?: string
+  mission_id: string
+  organization_id: string
+  event_type: MissionStatusEventType
+  actor_user_id?: string | null
+  actor_label?: string | null
+  reason?: string | null
+  from_status?: string | null
+  to_status?: string | null
+  metadata?: Record<string, unknown>
+  created_at?: string
+}
+
 export type QuestionnaireSkipReason = 'rssi_validation' | 'no_object' | 'unknown'
 
 export interface QuestionnaireInstance {
@@ -1954,6 +1988,12 @@ export interface Database {
       assessment_validations: {
         Row: AssessmentValidation & Rec
         Insert: AssessmentValidationInsert & Rec
+        Update: never & Rec
+        Relationships: []
+      }
+      mission_status_events: {
+        Row: MissionStatusEvent & Rec
+        Insert: MissionStatusEventInsert & Rec
         Update: never & Rec
         Relationships: []
       }

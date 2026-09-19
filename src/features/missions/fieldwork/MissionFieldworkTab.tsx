@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react'
-import { ArrowLeft, Keyboard } from 'lucide-react'
+import { ArrowLeft, Keyboard, RotateCcw } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { useAuditorAssessments } from '../useAuditorAssessments'
@@ -22,6 +22,7 @@ import {
 } from './FieldworkProgressBanner'
 import { FieldworkPhaseRibbon } from './FieldworkPhaseRibbon'
 import { FieldworkBulkToolbar } from './FieldworkBulkToolbar'
+import { useMissionStatusEvents } from '../useMissionStatusEvents'
 import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionMemberRow, ControlAssignmentRow, MissionDetail } from '../useMissionDetail'
@@ -68,6 +69,11 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   }, [myAssessments, allSubmitted, isLeadOrAssociate])
 
   const toast = useToast()
+  const { events: statusEvents } = useMissionStatusEvents(mission.id)
+  const latestReturn = useMemo(() => {
+    const returns = statusEvents.filter((e) => e.event_type === 'returned_to_fieldwork')
+    return returns.length > 0 ? returns[returns.length - 1] : null
+  }, [statusEvents])
   const state = useFieldworkState(assessments, refetch, mission.workflow_version ?? 'audit')
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
   const [confirmLaunch, setConfirmLaunch] = useState(false)
@@ -238,6 +244,22 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         scopedTotal={totalReference}
         scopedDone={submittedCount}
       />
+      {mission.status === 'fieldwork' && latestReturn && (
+        <div className="flex items-start gap-3 p-4 mb-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <RotateCcw size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-800">
+              Mission renvoy&eacute;e pour correction
+              {latestReturn.actor_label ? ` par ${latestReturn.actor_label}` : ''}
+            </p>
+            {latestReturn.reason && (
+              <p className="text-[13px] text-amber-900/80 mt-0.5 whitespace-pre-wrap leading-relaxed">
+                {latestReturn.reason}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
       <FieldworkProgressBanner
         visible={!canLaunchReview && mission.status === 'fieldwork' && isLeadOrAssociate && totalReference > 0}
         submittedCount={submittedCount}
