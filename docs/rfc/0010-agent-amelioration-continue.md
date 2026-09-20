@@ -94,7 +94,7 @@ Migration **00256** (extensions additives, pas de rupture) :
 Le chemin d'écriture (5b) est le point sensible ; il est clôturé ainsi :
 
 - **Cible `staging` uniquement** — le workflow refuse tout `base` ≠ `staging` ; `main` hors d'atteinte de l'agent (le gate prod reste 100 % humain).
-- **Token à portée minimale** — GitHub App / PAT fine-grained, `contents:write` + `pull_requests:write` sur **ce seul repo**, distinct du `GITHUB_DISPATCH_TOKEN` de lecture.
+- **Token à portée minimale — GitHub App dédiée (acté, déc. A)** — une App « Gëstu Agents » installée sur **ce seul repo**, permissions `contents:write` + `pull_requests:write` (+ `actions:write` pour les `workflow_dispatch`). Le workflow **frappe un token court à l'exécution** via `actions/create-github-app-token` (secrets = `APP_ID` + `APP_PRIVATE_KEY` uniquement, aucun token longue durée au repos). Elle **remplace** le PAT `GITHUB_DISPATCH_TOKEN`. Révocation en un point (désinstaller l'App). La restriction « jamais `main` » n'est pas portée par le token (les Apps ne restreignent pas la branche) mais par la **branch protection sur `main`** (gate prod) + le workflow qui ne cible que `staging` (défense en profondeur).
 - **Périmètre borné** — brouillon autorisé seulement si faisabilité `go`/`a_etudier` **et** `effort_estimate ∈ {S, M}` ; au-delà (L/XL) → pas de brouillon auto (reste manuel).
 - **Double flag + DPA** — 5a et 5b OFF par défaut ; activation après validation DPA (le brouillon embarque plus de contexte code que le `body`+`module` minimal, à re-scoper).
 - **Triple validation humaine** — déclenchement owner, revue de la PR, gate prod.
@@ -117,7 +117,7 @@ Chaîne visible : suggestion → RICE → impact → PR, via `parent_run_id`.
 
 1. **DPA** : couverture Anthropic pour un agent qui lit le repo en profondeur et rédige du code (5b) — bloquant pour la prod.
 2. **Périmètre auto** : plafond d'effort pour le brouillon auto (proposé : S/M) et modules éligibles (proposé : exclure migrations/RLS lourdes en 5b v1).
-3. **Token** : GitHub App dédiée vs PAT fine-grained.
+3. **Token** : ~~GitHub App dédiée vs PAT fine-grained~~ → **ACTÉ (2026-09-20)** : GitHub App unique « Gëstu Agents », périmètre minimal, token court minté par run, remplace le PAT. Motif : durée courte, révocable en un point, non liée à une personne, auditable. Voir §7.
 4. **Callback** : étendre `feasibility-callback` (rapide) vs nouveau `agent-callback` (plus propre).
 5. **Modèle** : `claude-code` (Sonnet) pour 5a/5b, budget par run.
 
