@@ -44,7 +44,7 @@ Deux sous-phases, séquencées par risque.
 
 Plutôt qu'un unique `impact-analyst` généraliste (contexte dilué, moyen partout), l'analyse d'impact est **décomposée en agents spécialisés** orchestrés en **map-reduce**, tous code-facing et lecture seule. Objectif : précision (prompt/outils/critères dédiés par axe) **et** efficacité (parallélisme + fan-out conditionnel + modèle par tâche).
 
-**① Cartographe d'impact** (map, modèle léger) — tourne en premier. Trace fichiers/modules/composants/hooks touchés + appelants, et **classe les couches impactées** (base / edge / frontend / RGPD). Son verdict **déclenche conditionnellement** la suite.
+**① Cartographe d'impact** (map, Haiku) — tourne en premier. Trace fichiers/modules/composants/hooks touchés + appelants, et **classe les couches impactées** (base / edge / frontend / RGPD). Son verdict **déclenche conditionnellement** la suite.
 
 Puis, **en parallèle et uniquement pour les couches signalées** :
 
@@ -53,7 +53,7 @@ Puis, **en parallèle et uniquement pour les couches signalées** :
 - **④ Frontend & charte** — **réutilise l'agent `code-reviewer`** : composants > 150 lignes, patterns, BRAND.md, entités JSX (`check:entities`), selects centralisés, cleanup async.
 - **⑤ Qualité & plan de test** *(nouveau)* — golden path + cas limites + **test compte non-admin (RLS)**, surface de régression.
 
-**⑥ Synthétiseur d'impact** (reduce, modèle fort) — fusionne les rapports en **un seul** livrable (rayon d'action · migrations/RLS · backend · sécurité · UX · plan de test · **découpage en lots** · verdict + risques classés), réconcilie/dédoublonne, et lance une **vérification adverse** ciblée sur tout constat « bloquant » sécurité/RLS.
+**⑥ Synthétiseur d'impact** (reduce, Opus) — fusionne les rapports en **un seul** livrable (rayon d'action · migrations/RLS · backend · sécurité · UX · plan de test · **découpage en lots** · verdict + risques classés), réconcilie/dédoublonne, et lance une **vérification adverse** ciblée sur tout constat « bloquant » sécurité/RLS.
 
 Architecture retenue : **5 spécialistes + synthèse**, **fan-out conditionnel** via le cartographe (un lot purement frontend ne réveille ni Données/RLS ni forcément Sécurité serveur). On ne crée que 3 agents (cartographe, données/RLS, tests) + le synthétiseur ; ③ et ④ réutilisent l'existant.
 
@@ -99,6 +99,7 @@ Le chemin d'écriture (5b) est le point sensible ; il est clôturé ainsi :
 - **Double flag + DPA** — 5a et 5b OFF par défaut ; activation après validation DPA (le brouillon embarque plus de contexte code que le `body`+`module` minimal, à re-scoper).
 - **Triple validation humaine** — déclenchement owner, revue de la PR, gate prod.
 - **Traçabilité** — `agent_runs` (tokens/coût) + `ai_calls_log` + **`admin_audit_log`** pour toute action d'écriture (création de branche/PR).
+- **Budget & modèles (acté, déc. D)** — tiering Haiku (①④⑤) / Sonnet (②③) / Opus (⑥) ; coupes dures **3 $** (impact) et **5 $** (brouillon) → run `error` au-delà ; tours bornés par spécialiste ; coût réel via PRICING (voir §9.5).
 - **Anti-injection** — le `body` reste « donnée à analyser » ; l'agent de code ne suit pas d'instructions issues de la suggestion.
 - **Gates durs** — la PR ne s'ouvre que si `typecheck` + `build` + `check:entities` passent dans le workflow.
 - **Anti-rejeu** — `record_pr` borné à `kind='draft_pr'` + `status='running'`, comme `writeback`.
@@ -119,7 +120,7 @@ Chaîne visible : suggestion → RICE → impact → PR, via `parent_run_id`.
 2. **Périmètre auto** : plafond d'effort pour le brouillon auto (proposé : S/M) et modules éligibles (proposé : exclure migrations/RLS lourdes en 5b v1).
 3. **Token** : ~~GitHub App dédiée vs PAT fine-grained~~ → **ACTÉ (2026-09-20)** : GitHub App unique « Gëstu Agents », périmètre minimal, token court minté par run, remplace le PAT. Motif : durée courte, révocable en un point, non liée à une personne, auditable. Voir §7.
 4. **Callback** : étendre `feasibility-callback` (rapide) vs nouveau `agent-callback` (plus propre).
-5. **Modèle** : `claude-code` (Sonnet) pour 5a/5b, budget par run.
+5. **Modèle & budget** : ~~à préciser~~ → **ACTÉ (2026-09-20, déc. D)**. Tiering par tâche : **Haiku** pour ① Cartographe, ④ Frontend&charte, ⑤ Tests ; **Sonnet** pour ② Données&RLS, ③ Sécurité serveur ; **Opus** pour ⑥ Synthétiseur (arbitrage + vérif adverse). Versions pinnées en un seul endroit (aligner l'edge `run-agent` de `sonnet-4-6` sur Sonnet 5 / Haiku 4.5). **Coupes dures** : run d'impact (5a) **3 $**, run de brouillon (5b) **5 $** → au-delà, run marqué `error` (pas de rapport partiel trompeur) ; tours bornés par spécialiste (motif `MAX_TURNS`). PRICING : ajouter `claude-code-impact`/`claude-code-draft-pr` et corriger `claude-code-feasibility` (aujourd'hui prix de repli). *Suivi (hors D)* : plafond mensuel global qui bascule le flag OFF si dépassé.
 
 ## 10. Plan de livraison (incrémental)
 
