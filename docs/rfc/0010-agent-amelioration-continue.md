@@ -40,18 +40,24 @@ La roadmap documentée s'arrête à la Phase 4. Ce RFC définit la **Phase 5**.
 
 Deux sous-phases, séquencées par risque.
 
-### Phase 5a — Agent d'analyse d'impact (`impact-analyst`, lecture seule)
+### Phase 5a — Analyse d'impact spécialisée (map-reduce, lecture seule)
 
-Un second passage code-facing, **plus profond que le RICE**, déclenché après un rapport de faisabilité `go`/`a_etudier` :
+Plutôt qu'un unique `impact-analyst` généraliste (contexte dilué, moyen partout), l'analyse d'impact est **décomposée en agents spécialisés** orchestrés en **map-reduce**, tous code-facing et lecture seule. Objectif : précision (prompt/outils/critères dédiés par axe) **et** efficacité (parallélisme + fan-out conditionnel + modèle par tâche).
 
-- **Rayon d'action** : fichiers/modules touchés, composants et hooks impactés.
-- **Impact base** : migrations nécessaires (n° suivant = **00256**), tables/colonnes, **impact RLS** et cloisonnement multi-tenant.
-- **Impact backend** : edges à créer/modifier, déclenchement du gate prod (mig/functions).
-- **Plan de test** : golden path + cas limites + compte non-admin (RLS).
-- **Découpage proposé** : incréments livrables (comme nos « lots »).
-- **Section sécurité** obligatoire (cohérent avec `feedback_impact_analysis`).
+**① Cartographe d'impact** (map, modèle léger) — tourne en premier. Trace fichiers/modules/composants/hooks touchés + appelants, et **classe les couches impactées** (base / edge / frontend / RGPD). Son verdict **déclenche conditionnellement** la suite.
 
-Réutilise **tel quel** le pattern existant : workflow read-only, `fetch` de la suggestion, `writeback` du rapport. **Aucun nouveau risque d'écriture.** C'est le livrable qui remplace l'analyse d'impact qu'on écrit à la main aujourd'hui.
+Puis, **en parallèle et uniquement pour les couches signalées** :
+
+- **② Données & RLS / migrations** *(nouveau, spécialité n°1 ici)* — tables/colonnes, migration `up`+`down` (n° suivant = **00256**), **impact RLS & isolation multi-tenant** (pas de récursion, helpers `SECURITY DEFINER`), maintien manuel de `database.types.ts`, déclenchement du gate deploy.
+- **③ Sécurité serveur & edges** — **réutilise l'agent `security-auditor`** : IDOR, `service_role`, auth des edges, secrets, messages d'erreur.
+- **④ Frontend & charte** — **réutilise l'agent `code-reviewer`** : composants > 150 lignes, patterns, BRAND.md, entités JSX (`check:entities`), selects centralisés, cleanup async.
+- **⑤ Qualité & plan de test** *(nouveau)* — golden path + cas limites + **test compte non-admin (RLS)**, surface de régression.
+
+**⑥ Synthétiseur d'impact** (reduce, modèle fort) — fusionne les rapports en **un seul** livrable (rayon d'action · migrations/RLS · backend · sécurité · UX · plan de test · **découpage en lots** · verdict + risques classés), réconcilie/dédoublonne, et lance une **vérification adverse** ciblée sur tout constat « bloquant » sécurité/RLS.
+
+Architecture retenue : **5 spécialistes + synthèse**, **fan-out conditionnel** via le cartographe (un lot purement frontend ne réveille ni Données/RLS ni forcément Sécurité serveur). On ne crée que 3 agents (cartographe, données/RLS, tests) + le synthétiseur ; ③ et ④ réutilisent l'existant.
+
+Côté exécution : le workflow `impact.yml` orchestre le fan-out via des **sous-agents** (comme des subagents Claude Code) à l'intérieur d'un seul job ; il réutilise **tel quel** le pattern existant (read-only, `fetch` de la suggestion, `writeback` du rapport synthétisé). **Aucun risque d'écriture.** Une seule ligne `agent_runs` (`kind='impact'`) porte le rapport final ; le détail par spécialiste (constats, tokens/coût) est stocké dans `result.specialists[]`. Ce livrable remplace l'analyse d'impact qu'on écrit à la main aujourd'hui.
 
 ### Phase 5b — Agent de brouillon de PR (`draft-pr`, chemin d'écriture, sur-gardé)
 
@@ -78,7 +84,7 @@ Migration **00256** (extensions additives, pas de rupture) :
 ## 6. Edges & workflows
 
 - **`dispatch-impact`** (edge, owner + flag `support_agent_impact`) : insère `agent_runs {kind:'impact', parent_run_id}`, déclenche `.github/workflows/impact.yml` avec `run_id`. Calqué sur `dispatch-feasibility`.
-- **`impact.yml`** (CI, `permissions: contents: read`) : identique à `feasibility.yml`, prompt `.github/impact-prompt.md`, agent `impact-analyst` (lecture seule), `writeback` du rapport d'impact.
+- **`impact.yml`** (CI, `permissions: contents: read`) : calqué sur `feasibility.yml` ; **orchestre le map-reduce** (cartographe → spécialistes conditionnels en parallèle → synthétiseur) via des sous-agents ; `writeback` du rapport synthétisé (détail par spécialiste dans `result.specialists[]`).
 - **`dispatch-draft-pr`** (edge, owner + flag `support_agent_draft_pr`) : insère `agent_runs {kind:'draft_pr', parent_run_id}`, déclenche `.github/workflows/draft-pr.yml`.
 - **`draft-pr.yml`** (CI, `permissions: contents: write, pull-requests: write`) : **le seul** workflow à écriture ; branche depuis `staging`, agent de code, gates, ouvre la PR, appelle `record_pr`.
 - **`feasibility-callback`** : ajouter l'action **`record_pr { run_id, pr_url, pr_branch, pr_state }`** (garde `.eq('kind','draft_pr')` + `.eq('status','running')`). Optionnellement renommer en `agent-callback` (compat conservée).
@@ -117,7 +123,7 @@ Chaîne visible : suggestion → RICE → impact → PR, via `parent_run_id`.
 
 ## 10. Plan de livraison (incrémental)
 
-- **Lot 1 (5a)** — `impact-analyst` + `impact-prompt.md` + `impact.yml` (read-only) + `dispatch-impact` + `record impact` (writeback) + `ImpactReport.tsx` + flag `support_agent_impact` (mig 00256 partielle). **Faible risque** (lecture seule).
+- **Lot 1 (5a)** — analyse d'impact spécialisée : agents `impact-cartographe`, `impact-data-rls`, `impact-tests` + `impact-synthetiseur` (réutilise `security-auditor` et `code-reviewer`), prompts associés, `impact.yml` (read-only, orchestre le fan-out conditionnel) + `dispatch-impact` + `writeback` + `ImpactReport.tsx` + flag `support_agent_impact` (mig 00256 partielle). **Faible risque** (lecture seule).
 - **Lot 2 (5b backend)** — `draft-pr.yml` (write, staging-only) + `dispatch-draft-pr` + `record_pr` + colonnes PR + flag `support_agent_draft_pr` + token dédié. Testé sur snayz, flag OFF.
 - **Lot 3 (5b UX + activation)** — bouton owner + suivi PR + `admin_audit_log` + PRICING + DPA → activation.
 
