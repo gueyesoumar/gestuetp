@@ -99,7 +99,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
       {
         key: 'actors',
         label: 'Au moins 1 acteur SI renseigné',
-        detail: 'Configurez les interlocuteurs côté client (Phase Cadrage > Acteurs).',
+        detail: 'Ajoutez les interlocuteurs côté client dans l’onglet « Acteurs ».',
         blocker: false,
         ok: actorsCount > 0,
         countLabel: `${actorsCount}`,
