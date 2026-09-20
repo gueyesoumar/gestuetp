@@ -11,6 +11,8 @@ import type { UseAssessmentFindingsReturn, FindingClassification } from '../find
 interface ValidationStepProps {
   assessment: AssessmentWithControl
   observations: string
+  /** Niveau de conformité vif (état d'édition), source de vérité pour la voie express. */
+  conformityLevel: string | null
   findingsHook: UseAssessmentFindingsReturn
   onSubmit: () => void
   saving: boolean
@@ -58,11 +60,16 @@ function useValidationInfo(assessmentId: string): ValidationInfo {
   return info
 }
 
-export function ValidationStep({ assessment, observations, findingsHook, onSubmit, saving }: ValidationStepProps) {
+export function ValidationStep({ assessment, observations, conformityLevel, findingsHook, onSubmit, saving }: ValidationStepProps) {
   const findings = findingsHook.findings
   const incompleteNc = findIncompleteNcFindings(findings)
-  const coherent = isConformityCoherent(assessment.conformity_level as ConformityLevel | null, findings)
-  const canSubmit = findings.length > 0 && incompleteNc.length === 0
+  const coherent = isConformityCoherent(conformityLevel as ConformityLevel | null, findings)
+  // Voies express : Conforme (note auto-jointe) ou Non applicable (rien à évaluer)
+  // sans constat → soumission directe.
+  const isExpressConforme = findings.length === 0 && conformityLevel === 'c'
+  const isExpressNA = findings.length === 0 && conformityLevel === 'na'
+  const isExpressEmpty = isExpressConforme || isExpressNA
+  const canSubmit = (findings.length > 0 || isExpressEmpty) && incompleteNc.length === 0
   const status = ASSESSMENT_STATUS_CONFIG[assessment.status]
   const alreadySubmitted = assessment.status !== 'draft' && assessment.status !== 'rejected'
   const val = useValidationInfo(assessment.id)
@@ -90,7 +97,13 @@ export function ValidationStep({ assessment, observations, findingsHook, onSubmi
         </SummaryRow>
         <SummaryRow label={`Constats (${findings.length})`}>
           {findings.length === 0 ? (
-            <p className="text-[13px] text-red-500">Aucun constat (obligatoire)</p>
+            isExpressConforme ? (
+              <p className="text-[13px] text-emerald-600">Conforme — rien à signaler (note jointe automatiquement)</p>
+            ) : isExpressNA ? (
+              <p className="text-[13px] text-emerald-600">Non applicable — rien à évaluer</p>
+            ) : (
+              <p className="text-[13px] text-red-500">Aucun constat (obligatoire)</p>
+            )
           ) : (
             <div className="space-y-1.5">
               <div className="flex flex-wrap gap-2 text-[11px]">
@@ -143,9 +156,19 @@ export function ValidationStep({ assessment, observations, findingsHook, onSubmi
         </div>
       ) : (
         <>
-          {findings.length === 0 && (
+          {findings.length === 0 && !isExpressEmpty && (
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               <AlertTriangle size={13} className="inline mr-1" />Au moins un constat est requis pour soumettre ce contr&ocirc;le.
+            </p>
+          )}
+          {isExpressConforme && (
+            <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+              <Check size={13} className="inline mr-1" />Contr&ocirc;le conforme, rien &agrave; signaler. Une note &laquo;&nbsp;Conforme, aucun &eacute;cart identifi&eacute;&nbsp;&raquo; sera jointe &agrave; la soumission.
+            </p>
+          )}
+          {isExpressNA && (
+            <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+              <Check size={13} className="inline mr-1" />Contr&ocirc;le non applicable : rien &agrave; &eacute;valuer, aucun constat requis.
             </p>
           )}
           {incompleteNc.length > 0 && (
@@ -171,7 +194,7 @@ export function ValidationStep({ assessment, observations, findingsHook, onSubmi
             disabled={!canSubmit || saving}
             className="w-full bg-forest-700 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
-            <Play size={14} /> {saving ? 'Soumission...' : 'Soumettre au chef de mission'}
+            <Play size={14} /> {saving ? 'Soumission...' : isExpressConforme ? 'Soumettre — conforme, aucun écart' : isExpressNA ? 'Soumettre — non applicable' : 'Soumettre au chef de mission'}
           </button>
         </>
       )}

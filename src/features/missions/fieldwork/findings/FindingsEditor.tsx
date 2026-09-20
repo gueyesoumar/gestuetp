@@ -65,7 +65,7 @@ export function FindingsEditor({ findingsHook, readOnly }: FindingsEditorProps) 
                 </button>
               </div>
               <p className="text-[10px] text-gray-400 mt-4 inline-flex items-center gap-1 italic">
-                <Info size={10} /> Vide = conformit&eacute; totale, vous pouvez soumettre tel quel apr&egrave;s ajout d&apos;un constat &laquo;&nbsp;Point fort&nbsp;&raquo; ou observation positive.
+                <Info size={10} /> Contr&ocirc;le <strong>Conforme</strong> : soumettez directement, une note &laquo;&nbsp;Conforme, aucun &eacute;cart&nbsp;&raquo; sera jointe. Sinon, ajoutez au moins un constat.
               </p>
             </>
           ) : (

@@ -144,7 +144,7 @@ export function InterviewMatrixPanel({
             <div className="text-center py-12">
               <Users size={28} className="mx-auto text-gray-300 mb-2" />
               <p className="text-[12px] text-gray-500 mb-1">Aucun acteur déclaré pour cette mission.</p>
-              <p className="text-[11px] text-gray-400">Ajoutez-les dans l&apos;onglet « Acteurs » du cadrage.</p>
+              <p className="text-[11px] text-gray-400">Ajoutez-les dans l&apos;onglet « Acteurs » (Cadrage ou Planification).</p>
             </div>
           ) : activeTopics.length === 0 ? (
             <div className="text-center py-12 text-[12px] text-gray-500">

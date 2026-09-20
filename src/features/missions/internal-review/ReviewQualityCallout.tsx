@@ -32,9 +32,9 @@ export function ReviewQualityCallout({ assessments }: ReviewQualityCalloutProps)
   const issues = useMemo<QualityIssue[]>(() => {
     const out: QualityIssue[] = []
 
-    // 1. Approuvés sans constat
+    // 1. Approuvés sans constat (les « Non applicable » sont légitimement sans constat)
     const noFinding = assessments
-      .filter((a) => a.status === 'approved' && a.findingsCount === 0)
+      .filter((a) => a.status === 'approved' && a.findingsCount === 0 && a.conformityLevel !== 'na')
       .map((a) => ({ code: a.controlCode, name: a.controlName }))
     if (noFinding.length > 0) {
       out.push({

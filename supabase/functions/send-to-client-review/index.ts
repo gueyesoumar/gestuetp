@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile } = await supabaseAdmin
       .from('users')
-      .select('id, is_active')
+      .select('id, first_name, last_name, is_active')
       .eq('auth_id', caller.id)
       .single()
 
@@ -43,9 +43,10 @@ Deno.serve(async (req) => {
     }
 
     // Parser le payload
-    const { mission_id, assessment_ids } = await req.json() as {
+    const { mission_id, assessment_ids, comment } = await req.json() as {
       mission_id: string
       assessment_ids?: string[]
+      comment?: string | null
     }
 
     if (!mission_id) {
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
     // Verifier que l'appelant est chef de mission ou associé
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, lead_auditor_id, associate_id, workflow_version, kind, workflow_disabled_steps')
+      .select('id, cabinet_id, lead_auditor_id, associate_id, workflow_version, kind, workflow_disabled_steps')
       .eq('id', mission_id)
       .single()
 
@@ -134,6 +135,21 @@ Deno.serve(async (req) => {
       .from('missions')
       .update({ status: 'client_review' })
       .eq('id', mission_id)
+
+    // Événement de mission : envoi au client (persiste enfin le commentaire).
+    await supabaseAdmin
+      .from('mission_status_events')
+      .insert({
+        mission_id,
+        organization_id: (mission as { cabinet_id: string }).cabinet_id,
+        event_type: 'sent_to_client',
+        actor_user_id: callerProfile.id,
+        actor_label: `${callerProfile.first_name} ${callerProfile.last_name}`,
+        reason: comment && comment.trim().length > 0 ? comment.trim() : null,
+        from_status: 'internal_review',
+        to_status: 'client_review',
+        metadata: { count: ids.length },
+      })
 
     return new Response(
       JSON.stringify({ success: true, count: ids.length }),

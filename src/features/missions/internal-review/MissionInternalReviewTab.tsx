@@ -4,9 +4,12 @@ import { Badge } from '../../../components/ui/Badge'
 import { InfoPopover } from '../../../components/ui/InfoPopover'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { supabase } from '../../../lib/supabase'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useAuth } from '../../../hooks/useAuth'
+import { useToast } from '../../../hooks/useToast'
 import { useInternalReviewData } from './useInternalReviewData'
 import { getMissionPhases, isStepEnabled } from '../mission-constants'
 import { ObservationsConsultationPanel } from '../observations/ObservationsConsultationPanel'
@@ -23,10 +26,12 @@ interface MissionInternalReviewTabProps {
 
 export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInternalReviewTabProps) {
   const { profile } = useAuth()
+  const toast = useToast()
   const review = useInternalReviewData(mission.id, mission.framework_id)
   const [comment, setComment] = useState('')
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [confirmAction, setConfirmAction] = useState<'send' | 'reject' | null>(null)
 
   const isAssociate = profile?.id === mission.associate_user?.id
   const isLead = profile?.id === mission.lead_auditor_user?.id
@@ -51,36 +56,39 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
       console.error('send-to-client-review:', detail)
       setSendError("Erreur lors de l'envoi au client.")
       setSending(false)
+      setConfirmAction(null)
       return
     }
 
     setSending(false)
+    setConfirmAction(null)
+    toast.success('Rapport envoyé au client')
     onStatusChange?.()
-  }, [mission.id, comment, onStatusChange])
+  }, [mission.id, comment, onStatusChange, toast])
 
   const handleReject = useCallback(async () => {
     if (!comment.trim()) {
-      setSendError('Un commentaire est obligatoire pour renvoyer en revue.')
+      setSendError('Un commentaire est obligatoire pour renvoyer en correction.')
       return
     }
     setSending(true)
     setSendError(null)
 
-    // Revert mission status to fieldwork
-    const { error } = await supabase
-      .from('missions')
-      .update({ status: 'fieldwork' })
-      .eq('id', mission.id)
+    // Renvoi via edge : capture le motif dans mission_status_events (RFC UX Lot 5).
+    const res = await invokeEdgeFunction('return-to-fieldwork', { mission_id: mission.id, reason: comment })
 
-    if (error) {
-      setSendError('Erreur lors du renvoi.')
+    if (!res.ok) {
+      setSendError(res.error ?? 'Erreur lors du renvoi.')
       setSending(false)
+      setConfirmAction(null)
       return
     }
 
     setSending(false)
+    setConfirmAction(null)
+    toast.success('Mission renvoyée en correction (Travaux)')
     onStatusChange?.()
-  }, [mission.id, comment, onStatusChange])
+  }, [mission.id, comment, onStatusChange, toast])
 
   if (review.loading) return <LoadingSpinner />
   if (review.error) return <ErrorAlert message={review.error} />
@@ -110,6 +118,67 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           <div className="text-[13px] text-gray-500">V&eacute;rifiez la coh&eacute;rence d&rsquo;ensemble avant {isControle ? 'de clôturer le contrôle.' : 'd’envoyer au client.'}</div>
         </div>
       </div>
+
+      {/* Décision de revue — barre épinglée en tête (RFC UX Lot 4) */}
+      {canDecide && (
+        <div className="sticky top-0 z-20 -mx-6 mb-6 border-b-2 border-forest-700 bg-forest-50/95 backdrop-blur px-6 py-4 shadow-sm">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-[15px] font-bold text-forest-900">D&eacute;cision de revue</h3>
+                <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${review.globalScore >= 80 ? 'bg-emerald-100 text-emerald-700' : review.globalScore >= 60 ? 'bg-gold-200 text-gold-600' : 'bg-red-100 text-red-700'}`}>
+                  Score {review.globalScore}%
+                </span>
+                {review.findingSummary.ncMajor > 0 && (
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">
+                    {review.findingSummary.ncMajor} NC majeure{review.findingSummary.ncMajor > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+              <p className="text-[12px] text-gray-500 mt-0.5">
+                {skipClientReview
+                  ? 'Validez la cohérence d’ensemble, puis clôturez la mission (pas de validation client sur ce parcours).'
+                  : 'Décidez sans faire défiler : validez l’ensemble avant envoi au client, ou renvoyez en correction.'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {skipClientReview ? (
+                <span className="text-[12px] text-gray-500 max-w-[220px]">
+                  Pas de validation client sur ce parcours — clôturez à l&rsquo;étape Cl&ocirc;ture.
+                </span>
+              ) : (
+                <button
+                  onClick={() => setConfirmAction('send')}
+                  disabled={sending}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-forest-700 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50 transition-colors"
+                >
+                  <Send size={15} />
+                  {sending ? 'Envoi...' : 'Valider et envoyer au client'}
+                </button>
+              )}
+              <button
+                onClick={() => setConfirmAction('reject')}
+                disabled={sending || !comment.trim()}
+                className="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+              >
+                <XCircle size={14} />
+                Renvoyer en correction (Travaux)
+              </button>
+            </div>
+          </div>
+
+          {sendError && <div className="mt-3"><ErrorAlert message={sendError} /></div>}
+
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={2}
+            className="mt-3 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 resize-none"
+            placeholder="Commentaire — obligatoire pour renvoyer en correction, transmis au client en cas d'envoi..."
+            disabled={sending}
+          />
+        </div>
+      )}
 
       {/* Quality callout (B) — désélectionnable via template (RFC 0009) */}
       {isStepEnabled(mission, 'review.quality') && (
@@ -141,60 +210,6 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
 
           {/* Checklist */}
           <Checklist review={review} />
-
-          {/* Comment */}
-          {canDecide && (
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="text-[14px] font-bold text-gray-900 mb-2">Commentaire</h3>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 resize-none"
-                placeholder="Observations sur la coh&eacute;rence d'ensemble, points d'attention pour le client..."
-                disabled={sending}
-              />
-            </div>
-          )}
-
-          {/* Decision */}
-          {canDecide && (
-            <div className="rounded-xl border-2 border-forest-700 bg-forest-50 p-5">
-              <h3 className="text-[14px] font-bold text-forest-900 mb-1">D&eacute;cision</h3>
-              <p className="text-[12px] text-gray-500 mb-4">
-                {skipClientReview
-                  ? 'Validez la cohérence d’ensemble, puis clôturez la mission (pas de validation client sur ce parcours).'
-                  : 'Validez l’ensemble de la mission avant envoi au client.'}
-              </p>
-
-              {sendError && <ErrorAlert message={sendError} />}
-
-              <div className="space-y-2">
-                {skipClientReview ? (
-                  <div className="rounded-lg border border-forest-200 bg-white px-4 py-3 text-[12.5px] text-gray-600">
-                    Cette mission ne requiert pas de validation client. Utilisez <span className="font-semibold text-forest-700">&laquo;&nbsp;Cl&ocirc;turer la mission&nbsp;&raquo;</span> (&eacute;tape Cl&ocirc;ture) pour finaliser.
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleSendToClient}
-                    disabled={sending}
-                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-forest-700 px-4 py-3 text-[14px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50 transition-colors"
-                  >
-                    <Send size={15} />
-                    {sending ? 'Envoi...' : 'Valider et envoyer au client'}
-                  </button>
-                )}
-                <button
-                  onClick={handleReject}
-                  disabled={sending || !comment.trim()}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
-                >
-                  <XCircle size={14} />
-                  Renvoyer en revue
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -203,11 +218,43 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
           <ObservationsConsultationPanel
             missionId={mission.id}
             heading="Consultation de l'assujetti"
-            subheading="Remarques non bloquantes de l'assujetti sur les contrôles. Répondez et décidez de modifier ou conserver le constat, puis clôturez. L'assujetti commente via son portail (accès contributeur)."
+            subheading="Remarques non bloquantes de l'assujetti sur les contrôles. Répondez et décidez d'ajuster ou de conserver le constat, puis clôturez. L'assujetti commente via son portail (accès contributeur)."
             emptyLabel="L'assujetti n'a pas encore déposé de remarque. Invitez un contact assujetti en « contributeur » pour ouvrir la consultation."
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmAction === 'send'}
+        title="Envoyer le rapport au client"
+        confirmLabel="Valider et envoyer"
+        busy={sending}
+        onConfirm={handleSendToClient}
+        onClose={() => setConfirmAction(null)}
+        message={
+          <>
+            Le rapport d'audit sera transmis au client pour validation
+            {comment.trim() ? ', accompagné de votre commentaire' : ''}. La mission passera en phase
+            «&nbsp;Validation client&nbsp;».
+          </>
+        }
+      />
+
+      <ConfirmDialog
+        open={confirmAction === 'reject'}
+        title="Renvoyer en correction (Travaux)"
+        variant="danger"
+        confirmLabel="Renvoyer en correction"
+        busy={sending}
+        onConfirm={handleReject}
+        onClose={() => setConfirmAction(null)}
+        message={
+          <>
+            La mission repassera en phase <strong>Travaux</strong> pour correction. Votre commentaire
+            accompagne le renvoi afin que l'équipe sache quoi ajuster.
+          </>
+        }
+      />
     </div>
   )
 }

@@ -15,6 +15,7 @@ import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
 import { InterviewMatrixPanel } from './InterviewMatrixPanel'
+import { ScopingActorsTab } from '../scoping/ScopingActorsTab'
 import { buildPvTemplate } from './buildPvTemplate'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningRiskCallout } from './PlanningRiskCallout'
@@ -40,7 +41,7 @@ interface MissionPlanningTabProps {
   onRefetch: () => void
 }
 
-type PlanTab = 'programme' | 'entretiens'
+type PlanTab = 'programme' | 'entretiens' | 'acteurs'
 
 export function MissionPlanningTab({ mission, domains, members, assignments, onRefetch }: MissionPlanningTabProps) {
   const { plannings, interviews, contacts, loading, error, refetch: refetchPlanning } = usePlanningData(mission.id)
@@ -54,6 +55,12 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   // Sous-étape Entretiens désélectionnable via le template (RFC 0009).
   const showInterviews = isStepEnabled(mission, 'planning.interviews')
   useEffect(() => { if (!showInterviews && activeTab === 'entretiens') setActiveTab('programme') }, [showInterviews, activeTab])
+  // En quittant l'onglet Acteurs, rafraîchir les données Planif (le gate, la matrice et
+  // les modales lisent `contacts` via un fetch séparé de celui de l'onglet Acteurs).
+  const goTab = useCallback((next: PlanTab) => {
+    if (activeTab === 'acteurs' && next !== 'acteurs') refetchPlanning()
+    setActiveTab(next)
+  }, [activeTab, refetchPlanning])
   const [showInterviewModal, setShowInterviewModal] = useState(false)
   const [editingInterview, setEditingInterview] = useState<InterviewWithRelations | null>(null)
   const [showMatrix, setShowMatrix] = useState(false)
@@ -299,10 +306,11 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
 
         {/* Sub-tabs */}
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
-          <TabBtn label="Programme de travail" count={totalControls} active={activeTab === 'programme'} onClick={() => setActiveTab('programme')} />
+          <TabBtn label="Programme de travail" count={totalControls} active={activeTab === 'programme'} onClick={() => goTab('programme')} />
           {showInterviews && (
-            <TabBtn label="Entretiens" count={interviews.length} active={activeTab === 'entretiens'} onClick={() => setActiveTab('entretiens')} />
+            <TabBtn label="Entretiens" count={interviews.length} active={activeTab === 'entretiens'} onClick={() => goTab('entretiens')} />
           )}
+          <TabBtn label="Acteurs" count={contacts.length} active={activeTab === 'acteurs'} onClick={() => goTab('acteurs')} />
         </div>
 
         {/* Tab content */}
@@ -331,6 +339,11 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             onDelete={(id) => deleteInterview(id)}
             onOpenMatrix={() => setShowMatrix(true)}
             saving={interviewSaving} />
+        )}
+        {activeTab === 'acteurs' && (
+          <div className="p-4">
+            <ScopingActorsTab missionId={mission.id} />
+          </div>
         )}
       </div>
 
