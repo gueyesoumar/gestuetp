@@ -97,7 +97,10 @@ Deno.serve(async (req) => {
       priority: 'critical' | 'high' | 'medium' | 'low' | null
     }>
 
-    if (findingsList.length === 0) {
+    // Voie express « Non applicable » : un contrôle N/A n'a rien à évaluer, il se
+    // soumet sans constat (état cohérent avec la matrice : 0 constat → na ou c).
+    // Les autres niveaux exigent toujours au moins un constat.
+    if (findingsList.length === 0 && assessment.conformity_level !== 'na') {
       return new Response(
         JSON.stringify({ error: 'Au moins un constat doit etre defini avant soumission' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
