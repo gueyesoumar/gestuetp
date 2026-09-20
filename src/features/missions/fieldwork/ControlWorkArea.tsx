@@ -75,8 +75,11 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
   const declineSource = useAssessmentDeclineSource(assessment.id)
   const status = ASSESSMENT_STATUS_CONFIG[assessment.status]
   const findingsCount = findingsHook.findings.length
-  // Voie express : contrôle Conforme sans constat → soumission directe autorisée.
+  // Voies express : Conforme (note auto-jointe) ou Non applicable (rien à évaluer)
+  // sans constat → soumission directe autorisée.
   const isExpressConforme = findingsCount === 0 && conformityLevel === 'c'
+  const isExpressNA = findingsCount === 0 && conformityLevel === 'na'
+  const allowEmptySubmit = isExpressConforme || isExpressNA
 
   const formData = useMemo(() => ({
     evidence_notes: evidenceNotes, observations, conformity_level: conformityLevel,
@@ -133,6 +136,10 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           return
         }
         currentFindings = [...currentFindings, created]
+      } else if (conformityLevel === 'na') {
+        // Voie express « Non applicable » : rien à évaluer, on soumet sans constat.
+        await doSubmit(null)
+        return
       } else {
         toast.warn('Au moins un constat requis', { description: 'Ajoutez un constat avant de soumettre.' })
         return
@@ -294,7 +301,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           saving={saving}
           readOnly={readOnly}
           findingsCount={findingsCount}
-          allowEmptySubmit={isExpressConforme}
+          allowEmptySubmit={allowEmptySubmit}
+          emptySubmitLabel={isExpressNA ? 'Soumettre — non applicable' : 'Soumettre — conforme'}
           autosave={autosave}
           onToggleAutoAdvance={onToggleAutoAdvance}
           onGuidedStepChange={onGuidedStepChange}
