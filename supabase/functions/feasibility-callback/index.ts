@@ -18,7 +18,14 @@ import { logAiCall, estimateCostUsd } from '../_shared/log-ai-call.ts'
 // Actions :
 //   fetch     { run_id }            -> { body, module } de la suggestion (minimise)
 //   writeback { run_id, report, usage? } -> ecrit le rapport + passe le run a 'done'
-const MODEL_LABEL = 'claude-code-feasibility'
+//
+// Accepte les runs kind='feasibility' (Phase 4) ET kind='impact' (Phase 5a, RFC 0010) :
+// meme contrat fetch/writeback. Le workflow impact (map-reduce multi-modeles) fournit
+// le cout agrege dans usage.cost_usd.
+const MODEL_LABELS: Record<string, string> = {
+  feasibility: 'claude-code-feasibility',
+  impact: 'claude-code-impact',
+}
 
 /** Comparaison a temps quasi-constant pour limiter les timing attacks sur le secret. */
 function safeEqual(a: string, b: string): boolean {
@@ -42,10 +49,11 @@ Deno.serve(async (req: Request) => {
     const { action, run_id, report, usage } = await req.json()
     if (!run_id) return json({ error: 'run_id requis' }, 400)
 
-    // Le run doit exister, etre une faisabilite, et encore 'running' (sinon rejeu).
+    // Le run doit exister, etre code-facing (feasibility|impact), et encore 'running' (sinon rejeu).
     const { data: run } = await admin.from('agent_runs').select('id, request_id, kind, status').eq('id', run_id).maybeSingle()
-    if (!run || run.kind !== 'feasibility') return json({ error: 'Run introuvable' }, 404)
+    if (!run || (run.kind !== 'feasibility' && run.kind !== 'impact')) return json({ error: 'Run introuvable' }, 404)
     if (run.status !== 'running') return json({ error: 'Run deja traite' }, 409)
+    const label = MODEL_LABELS[run.kind] ?? 'claude-code-feasibility'
 
     if (action === 'fetch') {
       // Minimisation : on ne renvoie QUE le texte de l'idee + le module. Jamais
@@ -59,17 +67,20 @@ Deno.serve(async (req: Request) => {
     if (action === 'writeback') {
       const inTok = Number(usage?.input_tokens ?? 0) || null
       const outTok = Number(usage?.output_tokens ?? 0) || null
+      // Le workflow impact agrege le cout multi-modeles lui-meme ; on le prefere si fourni.
+      const providedCost = Number(usage?.cost_usd)
+      const cost = Number.isFinite(providedCost) && providedCost > 0 ? providedCost : estimateCostUsd(label, inTok, outTok)
       const ok = report && typeof report === 'object'
       const { error: upErr } = await admin.from('agent_runs').update({
         status: ok ? 'done' : 'error',
         result: ok ? report : { _error: 'rapport invalide' },
         input_tokens: inTok,
         output_tokens: outTok,
-        cost_usd: estimateCostUsd(MODEL_LABEL, inTok, outTok),
+        cost_usd: cost,
       }).eq('id', run_id).eq('status', 'running')
       if (upErr) return json({ error: 'Ecriture impossible.' }, 500)
 
-      void logAiCall({ admin, function_name: 'feasibility-callback', model: MODEL_LABEL, input_tokens: inTok, output_tokens: outTok, success: ok, duration_ms: 0, user_id: null })
+      void logAiCall({ admin, function_name: 'feasibility-callback', model: label, input_tokens: inTok, output_tokens: outTok, success: ok, duration_ms: 0, user_id: null })
       return json({ ok: true })
     }
 
