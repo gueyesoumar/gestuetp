@@ -30,4 +30,4 @@ SORTIE — STRICTEMENT report.json (ecris-le via : cat > report.json). AUCUN tex
 REGLES
 - verdict global : no_go si une dimension est bloquant ; sinon a_etudier s'il reste des attention ; sinon go.
 - rice.reach / impact / confidence / effort / score sont des NOMBRES (jamais des objets).
-- Champs texte en francais. Reste factuel : pas de chiffre invente sans base, pas de promesse.
+- Champs texte en francais correct AVEC les accents (é, è, à, ç, ô, ê, û…) en UTF-8 — n'écris jamais en ASCII sans accents. Reste factuel : pas de chiffre invente sans base, pas de promesse.
