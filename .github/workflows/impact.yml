@@ -77,12 +77,20 @@ jobs:
             { sed '1,/^---$/d' ".claude/agents/$1"; \
               printf '\n\nProduis EXCLUSIVEMENT le fichier %s via Bash (cat > %s). Aucun texte hors du JSON. Schéma : {"axis":"%s","verdict":"ok|attention|bloquant","findings":["..."],"note":"..."}.\n\nSUGGESTION (module: %s) :\n---\n%s\n---\n' "$2" "$2" "$3" "$MODULE" "$SUG"; } > p.txt
           }
+          # Récupère le JSON produit : le fichier écrit par l'agent s'il existe et est valide,
+          # sinon on l'extrait de la réponse de l'agent (.result de l'enveloppe --output-format json),
+          # en retirant d'éventuelles clôtures ```… (les modèles légers répondent souvent inline).
+          get_json() {  # $1 = enveloppe, $2 = fichier de sortie
+            if [ -f "$2" ] && jq empty "$2" 2>/dev/null; then return 0; fi
+            jq -r '.result // ""' "$1" 2>/dev/null | sed '/^```/d' > "$2"
+            jq empty "$2" 2>/dev/null
+          }
 
           # ① Cartographe (Haiku)
           mkprompt impact-prompt-cartographe.md
           claude -p "$(cat p.txt)" --model haiku --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-carto.json || true
-          test -f carto.json && jq empty carto.json || { echo "carto.json manquant/invalide"; exit 1; }
           add_cost env-carto.json
+          get_json env-carto.json carto.json || { echo "carto.json manquant/invalide"; exit 1; }
           L_DATA=$(jq -r '.layers.data_rls // false' carto.json)
           L_SEC=$(jq -r '.layers.security // false' carto.json)
           L_FRONT=$(jq -r '.layers.frontend // false' carto.json)
@@ -93,23 +101,27 @@ jobs:
             mkprompt impact-prompt-data-rls.md
             claude -p "$(cat p.txt)" --model sonnet --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-data.json || true
             add_cost env-data.json
+            get_json env-data.json spec-data.json || echo "spec-data indisponible (ignoré)"
           fi
           # ③ Sécurité serveur (Sonnet) — conditionnel, réutilise security-auditor
           if [ "$L_SEC" = "true" ]; then
             run_specialist_from_agent security-auditor.md spec-sec.json "Sécurité serveur"
             claude -p "$(cat p.txt)" --model sonnet --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-sec.json || true
             add_cost env-sec.json
+            get_json env-sec.json spec-sec.json || echo "spec-sec indisponible (ignoré)"
           fi
           # ④ Frontend & charte (Haiku) — conditionnel, réutilise code-reviewer
           if [ "$L_FRONT" = "true" ]; then
             run_specialist_from_agent code-reviewer.md spec-front.json "Frontend & charte"
             claude -p "$(cat p.txt)" --model haiku --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-front.json || true
             add_cost env-front.json
+            get_json env-front.json spec-front.json || echo "spec-front indisponible (ignoré)"
           fi
           # ⑤ Qualité & tests (Haiku) — toujours
           mkprompt impact-prompt-tests.md
           claude -p "$(cat p.txt)" --model haiku --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-tests.json || true
           add_cost env-tests.json
+          get_json env-tests.json spec-tests.json || echo "spec-tests indisponible (ignoré)"
 
           # ⑥ Synthétiseur (Opus)
           cp .github/impact-prompt-synthese.md p.txt
@@ -120,8 +132,9 @@ jobs:
           printf '\n\nSUGGESTION (module: %s) :\n---\n%s\n---\n' "$MODULE" "$SUG" >> p.txt
           claude -p "$(cat p.txt)" --model opus --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-synth.json || true
           add_cost env-synth.json
+          get_json env-synth.json report.json || { echo "report.json manquant/invalide"; exit 1; }
 
-          test -f report.json && jq empty report.json || { echo "report.json manquant/invalide"; exit 1; }
+          jq empty report.json || { echo "report.json invalide"; exit 1; }
           jq -e '
             (.verdict|type=="string") and (.summary|type=="string") and
             (.blast_radius|type=="array") and (.tests|type=="array") and
