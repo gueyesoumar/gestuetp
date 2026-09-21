@@ -67,7 +67,9 @@ jobs:
             c=$(jq -r '.total_cost_usd // 0' "$1" 2>/dev/null || echo 0)
             total=$(awk -v a="$total" -v b="$c" 'BEGIN{printf "%.4f", a+b}')
             echo "coût cumulé : $total \$"
-            awk -v t="$total" 'BEGIN{exit !(t>3.0)}' && { echo "Budget 3\$ dépassé — arrêt"; exit 1; }
+            # Coupe dure à 3 $. NB: on renvoie 0 dans le cas normal (sinon `set -e` tue le script).
+            if awk -v t="$total" 'BEGIN{exit !(t>3.0)}'; then echo "Budget 3\$ dépassé — arrêt"; exit 1; fi
+            return 0
           }
           mkprompt() {  # $1 = fichier prompt du repo
             cp ".github/$1" p.txt
