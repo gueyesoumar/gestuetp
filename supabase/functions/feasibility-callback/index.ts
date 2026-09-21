@@ -46,12 +46,12 @@ Deno.serve(async (req: Request) => {
     if (!safeEqual(provided, expected)) return json({ error: 'Non autorise.' }, 401)
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-    const { action, run_id, report, usage } = await req.json()
+    const { action, run_id, report, usage, pr_url, pr_branch, pr_state } = await req.json()
     if (!run_id) return json({ error: 'run_id requis' }, 400)
 
-    // Le run doit exister, etre code-facing (feasibility|impact), et encore 'running' (sinon rejeu).
-    const { data: run } = await admin.from('agent_runs').select('id, request_id, kind, status').eq('id', run_id).maybeSingle()
-    if (!run || (run.kind !== 'feasibility' && run.kind !== 'impact')) return json({ error: 'Run introuvable' }, 404)
+    // Le run doit exister, etre code-facing (feasibility|impact|draft_pr), et encore 'running' (sinon rejeu).
+    const { data: run } = await admin.from('agent_runs').select('id, request_id, kind, status, parent_run_id').eq('id', run_id).maybeSingle()
+    if (!run || !['feasibility', 'impact', 'draft_pr'].includes(run.kind)) return json({ error: 'Run introuvable' }, 404)
     if (run.status !== 'running') return json({ error: 'Run deja traite' }, 409)
     const label = MODEL_LABELS[run.kind] ?? 'claude-code-feasibility'
 
@@ -61,7 +61,26 @@ Deno.serve(async (req: Request) => {
       const { data: ticket } = await admin.from('support_requests').select('body, context').eq('id', run.request_id).maybeSingle()
       if (!ticket) return json({ error: 'Suggestion introuvable' }, 404)
       const ctx = (ticket.context ?? {}) as { module?: string }
-      return json({ body: ticket.body ?? '', module: ctx.module ?? 'Général' })
+      // Pour un brouillon de PR : joindre le rapport d'impact parent (contexte code, pas de PII).
+      let impact: unknown = null
+      if (run.kind === 'draft_pr' && run.parent_run_id) {
+        const { data: parent } = await admin.from('agent_runs').select('kind, result').eq('id', run.parent_run_id).maybeSingle()
+        if (parent?.kind === 'impact') impact = parent.result ?? null
+      }
+      return json({ body: ticket.body ?? '', module: ctx.module ?? 'Général', impact })
+    }
+
+    if (action === 'record_pr') {
+      // Brouillon de PR ouvert : on enregistre l'URL/branche/état (kind='draft_pr' uniquement).
+      if (run.kind !== 'draft_pr') return json({ error: 'Action reservee aux brouillons de PR' }, 400)
+      const { error: upErr } = await admin.from('agent_runs').update({
+        status: 'done',
+        pr_url: typeof pr_url === 'string' ? pr_url : null,
+        pr_branch: typeof pr_branch === 'string' ? pr_branch : null,
+        pr_state: typeof pr_state === 'string' ? pr_state : 'open',
+      }).eq('id', run_id).eq('kind', 'draft_pr').eq('status', 'running')
+      if (upErr) return json({ error: 'Ecriture impossible.' }, 500)
+      return json({ ok: true })
     }
 
     if (action === 'writeback') {
