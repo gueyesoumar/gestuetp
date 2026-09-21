@@ -57,6 +57,8 @@ jobs:
       - name: Run impact (map-reduce)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LANG: C.UTF-8
+          LC_ALL: C.UTF-8
         run: |
           set -e
           MODULE="$(cat module.txt)"; SUG="$(cat body.txt)"
@@ -77,7 +79,7 @@ jobs:
           }
           run_specialist_from_agent() {  # $1=agent md, $2=outfile, $3=axis
             { sed '1,/^---$/d' ".claude/agents/$1"; \
-              printf '\n\nProduis EXCLUSIVEMENT le fichier %s via Bash (cat > %s). Aucun texte hors du JSON. Schéma : {"axis":"%s","verdict":"ok|attention|bloquant","findings":["..."],"note":"..."}.\n\nSUGGESTION (module: %s) :\n---\n%s\n---\n' "$2" "$2" "$3" "$MODULE" "$SUG"; } > p.txt
+              printf '\n\nProduis EXCLUSIVEMENT le fichier %s via Bash (cat > %s). Aucun texte hors du JSON. Rédige les champs en français avec les accents (UTF-8), jamais en ASCII. Schéma : {"axis":"%s","verdict":"ok|attention|bloquant","findings":["..."],"note":"..."}.\n\nSUGGESTION (module: %s) :\n---\n%s\n---\n' "$2" "$2" "$3" "$MODULE" "$SUG"; } > p.txt
           }
           # Récupère le JSON produit : le fichier écrit par l'agent s'il existe et est valide,
           # sinon on l'extrait de la réponse de l'agent (.result de l'enveloppe --output-format json),

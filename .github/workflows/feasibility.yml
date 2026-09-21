@@ -59,6 +59,8 @@ jobs:
       - name: Run suggestion-analyst
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LANG: C.UTF-8
+          LC_ALL: C.UTF-8
         run: |
           cp .github/feasibility-prompt.md prompt.txt
           printf '\n\nSUGGESTION A ANALYSER (module: %s) :\n---\n' "$(cat module.txt)" >> prompt.txt
