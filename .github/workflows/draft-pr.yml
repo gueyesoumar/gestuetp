@@ -1,0 +1,126 @@
+name: Brouillon de PR (agent)
+
+# Phase 5b (code-facing, RFC 0010). Déclenché par l'Edge Function dispatch-draft-pr
+# (workflow_dispatch), qui a déjà re-vérifié l'éligibilité (frontend-only, go, S/M).
+# SEUL workflow à écrire : ouvre un BROUILLON de PR sur staging (JAMAIS main).
+#
+# Clôtures : base=staging codée en dur ; token via GitHub App « Gëstu Agents »
+# (contents+PR) ; l'agent code sans Bash (Edit/Write) ; le commit est restreint à
+# src/ (les modifs hors src/ sont écartées mécaniquement) ; coupe coût 5 $ ; gates
+# durs avant PR. GITHUB_TOKEN reste en lecture seule (writes via le token App).
+# Secrets requis : APP_ID, APP_PRIVATE_KEY, ANTHROPIC_API_KEY,
+# FEASIBILITY_CALLBACK_SECRET, SUPABASE_FUNCTIONS_URL.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'agent_runs.id (run draft_pr à alimenter)'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: draft-pr-${{ github.event.inputs.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    name: Brouillon de PR (staging)
+    runs-on: ubuntu-latest
+    env:
+      RUN_ID: ${{ github.event.inputs.run_id }}
+      CB_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}/feasibility-callback
+      CB_SECRET: ${{ secrets.FEASIBILITY_CALLBACK_SECRET }}
+      BRANCH: agent/draft-${{ github.event.inputs.run_id }}
+    steps:
+      - name: Mint GitHub App token
+        id: apptoken
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout staging
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+          fetch-depth: 0
+          token: ${{ steps.apptoken.outputs.token }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install deps + Claude Code
+        run: |
+          npm ci
+          npm i -g @anthropic-ai/claude-code
+
+      - name: Fetch suggestion + impact
+        run: |
+          curl -sf -X POST "$CB_URL" \
+            -H "x-callback-secret: $CB_SECRET" \
+            -H 'Content-Type: application/json' \
+            -d "{\"action\":\"fetch\",\"run_id\":\"$RUN_ID\"}" -o ctx.json
+          jq -r '.body // ""'      ctx.json > body.txt
+          jq -r '.module // "Général"' ctx.json > module.txt
+          jq -c '.impact // {}'    ctx.json > impact.json
+          test -s body.txt || { echo "Suggestion vide"; exit 1; }
+
+      - name: Run coding agent (frontend-only)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -e
+          cp .github/draft-pr-prompt.md prompt.txt
+          printf '\n\nSUGGESTION (module: %s) :\n---\n%s\n---\n\nANALYSE D IMPACT (JSON) :\n%s\n' \
+            "$(cat module.txt)" "$(cat body.txt)" "$(cat impact.json)" >> prompt.txt
+          claude -p "$(cat prompt.txt)" --model sonnet --output-format json \
+            --permission-mode acceptEdits --allowedTools "Read,Grep,Glob,Edit,Write" > env.json || true
+          COST=$(jq -r '.total_cost_usd // 0' env.json 2>/dev/null || echo 0)
+          echo "coût agent : $COST \$"
+          awk -v t="$COST" 'BEGIN{exit !(t>5.0)}' && { echo "Budget 5\$ dépassé — arrêt"; exit 1; }
+
+          # Clôture frontend-only : restaurer les modifs suivies hors src/ + supprimer
+          # les fichiers non suivis hors src/ (node_modules ignoré n'est pas touché).
+          git checkout -- ':(exclude)src' 2>/dev/null || true
+          git ls-files --others --exclude-standard | grep -v '^src/' | xargs -r rm -f || true
+
+      - name: Gates (typecheck, build, entities)
+        run: |
+          npm run typecheck
+          npm run build
+          npm run check:entities
+
+      - name: Commit, push et ouverture du brouillon de PR
+        env:
+          GH_TOKEN: ${{ steps.apptoken.outputs.token }}
+        run: |
+          set -e
+          git config user.name "gestu-agents[bot]"
+          git config user.email "gestu-agents[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add -A src/
+          if git diff --cached --quiet; then echo "Aucune modification frontend produite"; exit 1; fi
+          git commit -m "feat(agent): brouillon — $(cat module.txt) (run ${RUN_ID})"
+          git push origin "$BRANCH"
+          BODY=$(printf '**Brouillon généré par un agent — à revoir avant merge.**\n\nModule : %s\nRun : %s\n\nSuggestion :\n%s\n\n_Périmètre frontend-only (src/) ; base staging ; gates CI passés._' \
+            "$(cat module.txt)" "$RUN_ID" "$(cat body.txt)")
+          PR_URL=$(gh pr create --base staging --head "$BRANCH" \
+            --title "Brouillon agent — $(cat module.txt) (run ${RUN_ID})" --body "$BODY")
+          echo "PR: $PR_URL"
+          jq -n --arg u "$PR_URL" --arg b "$BRANCH" \
+            '{action:"record_pr", run_id:env.RUN_ID, pr_url:$u, pr_branch:$b, pr_state:"open"}' > rec.json
+          curl -sf -X POST "$CB_URL" -H "x-callback-secret: $CB_SECRET" \
+            -H 'Content-Type: application/json' --data @rec.json
+
+      - name: Mark error on failure
+        if: failure()
+        run: |
+          curl -s -X POST "$CB_URL" \
+            -H "x-callback-secret: $CB_SECRET" \
+            -H 'Content-Type: application/json' \
+            -d "{\"action\":\"writeback\",\"run_id\":\"$RUN_ID\"}" || true
