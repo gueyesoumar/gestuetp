@@ -1955,6 +1955,12 @@ export interface Database {
         Update: { seen_at?: string } & Rec
         Relationships: []
       }
+      demo_preferences: {
+        Row: { user_id: string; lens_on: boolean; updated_at: string } & Rec
+        Insert: { user_id: string; lens_on?: boolean; updated_at?: string } & Rec
+        Update: { lens_on?: boolean; updated_at?: string } & Rec
+        Relationships: []
+      }
       evidence_catalog: {
         Row: EvidenceCatalogItem & Rec
         Insert: never & Rec
