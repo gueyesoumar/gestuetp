@@ -73,7 +73,7 @@ Tours guidés : config déclarative front (lib de tour) — étapes = code, jama
 Les articles d'aide sont la source. Deux approches possibles (**décision A**) : (i) l'agent appelle un outil `search_help(query)` qui interroge la table help côté serveur (toujours **filtré par `HelpAudience` selon le rôle du caller**) ; (ii) en complément, une **« carte de la plateforme »** curatée (sommaire des modules/écrans/actions) injectée dans le system prompt pour l'orientation générale.
 
 ### 5.2 Tours guidés
-Le contenu des tours est **déclaratif** (liste d'étapes : sélecteur d'élément + texte), versionné dans le front. L'agent ne fait que **proposer** un tour existant (`suggest_tour(tour_id)`) ; le widget affiche un bouton « Lancer le tour » qui exécute la lib de tour (**décision C actée : `Shepherd`** — positionnement avancé via Floating UI, thèmes ; maintenance/adoption à confirmer sur npmjs avant install, cf. CLAUDE.md §3 ; thème inliné aligné sur BRAND.md). Déclenchement possible aussi à la **1ʳᵉ visite** d'un module (table `onboarding_tours_seen`, cf. décision B).
+Le contenu des tours est **déclaratif** (liste d'étapes : sélecteur d'élément + texte), versionné dans le front. L'agent ne fait que **proposer** un tour existant (`suggest_tour(tour_id)`) ; le widget affiche un bouton « Lancer le tour » qui exécute la lib de tour (**décision C actée : `driver.js` — licence MIT**, léger et sans dépendance ; thème inliné aligné sur BRAND.md). *NB : `Shepherd` avait été retenu initialement mais s'avère relicencié **AGPL-3.0** (copyleft réseau) — écarté pour un SaaS propriétaire ; cf. CLAUDE.md §3 « dépendances ».* Déclenchement possible aussi à la **1ʳᵉ visite** d'un module (table `onboarding_tours_seen`, cf. décision B).
 
 ### 5.3 Streaming
 L'Edge Function renvoie un `ReadableStream` (SSE : `text/event-stream`). Le front consomme via `fetch` + `response.body.getReader()` (le helper `invokeEdgeFunction` étant bloquant, l'appel streaming se fait par `fetch` direct sur l'URL de la fonction **avec le Bearer de session**). Fallback non-streaming si le flux échoue.
@@ -114,7 +114,7 @@ Chaque migration a son `_up` **et** son `_down`.
 
 - **A · Base de connaissance** — ✅ **Articles d'aide (`search_help`, filtrés par `HelpAudience`) + « carte de la plateforme » curatée** injectée dans le system prompt. Détail ancré + orientation navigation fiable.
 - **B · Persistance des conversations** — ✅ **Stockées avec RLS** (`onboarding_conversations`, chacun ne voit que les siennes). Audit + reprise + alimentation de la boucle RFC 0010 (questions sans réponse → suggestions). Rétention RGPD à documenter.
-- **C · Bibliothèque de tours** — ✅ **Shepherd** (positionnement Floating UI, thèmes). Maintenance/adoption à vérifier sur npmjs avant install (CLAUDE.md §3) ; thème inliné aligné BRAND.md.
+- **C · Bibliothèque de tours** — ✅ **driver.js** (licence **MIT**, ~5 kB, sans dépendance, très adopté) ; thème inliné aligné BRAND.md. *Correction : `Shepherd` (retenu d'abord) est passé en **AGPL-3.0** → écarté pour un produit propriétaire.*
 - **D · Modèle & budget** — ✅ **Haiku 4.5 par défaut + Sonnet 5 en repli** (questions complexes) ; **plafond dur 0,50 $/conversation**.
 
 ## 10. Plan par lots
