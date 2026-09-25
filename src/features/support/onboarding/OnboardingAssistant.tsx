@@ -49,6 +49,7 @@ export function OnboardingAssistant(): JSX.Element | null {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Assistant d'onboarding"
+        data-tour="onboarding-bubble"
         className="flex h-12 w-12 items-center justify-center rounded-full bg-forest-900 text-xl text-white shadow-lg ring-2 ring-gold-500 transition hover:bg-forest-700"
       >
         {open ? '✕' : '🧭'}

@@ -47,6 +47,7 @@ export function MissionsListPage() {
           {canCreateMission && (
             <Link
               to="/missions/nouvelle"
+              data-tour="new-mission"
               className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 transition-colors"
             >
               + Nouvelle mission
@@ -62,7 +63,7 @@ export function MissionsListPage() {
             description="Créez votre première mission pour commencer."
             action={
               canCreateMission ? (
-                <Link to="/missions/nouvelle" className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900">
+                <Link to="/missions/nouvelle" data-tour="new-mission" className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900">
                   + Nouvelle mission
                 </Link>
               ) : undefined
