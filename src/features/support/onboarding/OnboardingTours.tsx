@@ -21,11 +21,13 @@ export function OnboardingTours(): null {
       if (!def) return
 
       const run = (): void => {
+        // Fond assombri teinté avec la couleur de marque (surchargée par la marque blanche).
+        const overlayColor = getComputedStyle(document.documentElement).getPropertyValue('--color-forest-900').trim() || '#12241C'
         const d = driver({
           showProgress: def.steps.length > 1,
           progressText: '{{current}} sur {{total}}',
           allowClose: true,
-          overlayColor: '#12241C',
+          overlayColor,
           overlayOpacity: 0.6,
           stagePadding: 6,
           stageRadius: 10,
