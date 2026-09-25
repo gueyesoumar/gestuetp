@@ -1949,6 +1949,12 @@ export interface Database {
         Update: HelpArticleUpdate & Rec
         Relationships: []
       }
+      onboarding_tours_seen: {
+        Row: { user_id: string; tour_id: string; seen_at: string } & Rec
+        Insert: { user_id: string; tour_id: string; seen_at?: string } & Rec
+        Update: { seen_at?: string } & Rec
+        Relationships: []
+      }
       evidence_catalog: {
         Row: EvidenceCatalogItem & Rec
         Insert: never & Rec

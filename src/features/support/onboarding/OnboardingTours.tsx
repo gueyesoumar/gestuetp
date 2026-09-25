@@ -4,6 +4,9 @@ import { driver } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import './driver-theme.css'
 import { TOUR_DEFS } from './tourDefs'
+import { DEMO_TOUR_DEFS } from '../../demo/demoTours'
+
+const ALL_TOUR_DEFS = { ...TOUR_DEFS, ...DEMO_TOUR_DEFS }
 
 // Moteur de tours guidés (RFC 0011, Lot 3). Écoute l'événement `onboarding:tour`
 // (émis par launchTour depuis le widget) et déroule le tour driver.js correspondant.
@@ -17,7 +20,7 @@ export function OnboardingTours(): null {
   useEffect(() => {
     const onTour = (e: Event): void => {
       const id = (e as CustomEvent<string>).detail
-      const def = TOUR_DEFS[id]
+      const def = ALL_TOUR_DEFS[id]
       if (!def) return
 
       const run = (): void => {
