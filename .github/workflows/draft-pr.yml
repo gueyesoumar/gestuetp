@@ -29,6 +29,9 @@ jobs:
   draft:
     name: Brouillon de PR (staging)
     runs-on: ubuntu-latest
+    # ref main → agents-production (jibbl), ref staging → agents-staging (snayz).
+    environment:
+      name: ${{ github.ref_name == 'main' && 'agents-production' || 'agents-staging' }}
     env:
       RUN_ID: ${{ github.event.inputs.run_id }}
       CB_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}/feasibility-callback
