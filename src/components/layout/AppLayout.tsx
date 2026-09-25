@@ -5,6 +5,7 @@ import { useVocab } from '../../features/edition/useVocab'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { DemoModeBanner } from '../../features/demo/DemoModeBanner'
+import { OnboardingAssistant } from '../../features/support/onboarding/OnboardingAssistant'
 
 export function AppLayout() {
   const { profile } = useAuth()
@@ -36,6 +37,8 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <OnboardingAssistant />
     </div>
   )
 }
