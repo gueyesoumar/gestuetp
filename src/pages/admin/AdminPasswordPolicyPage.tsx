@@ -63,7 +63,7 @@ export function AdminPasswordPolicyPage(): JSX.Element {
       </div>
       <h1 className="text-xl font-bold text-gray-900">Sécurité</h1>
       <p className="text-[12.5px] text-gray-500 mt-1 mb-5 max-w-2xl">
-        Politique de mot de passe de la plateforme — appliquée côté serveur à toute définition ou changement. Ne réinitialise pas les mots de passe existants.
+        Définissez ici les règles de mot de passe imposées à tous les utilisateurs de la plateforme. Elles sont appliquées côté serveur à chaque définition ou changement de mot de passe, sans réinitialiser les mots de passe existants.
       </p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
