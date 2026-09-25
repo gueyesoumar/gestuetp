@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GraduationCap, Eye, EyeOff, RefreshCw } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useDemoSandbox } from './useDemoSandbox'
 import { useDemoLens } from './DemoLensContext'
+import { DemoControlPopover } from './DemoControlPopover'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { useToast } from '../../hooks/useToast'
 
@@ -15,22 +16,30 @@ const CONFIRMS: Record<ConfirmKind, { title: string; message: string; confirmLab
 }
 
 /**
- * Bandeau « Mode découverte » — centre de contrôle de la démo. Affiché sur toutes
- * les pages quand l'utilisateur possède un bac à sable. Porte la bascule LENTILLE
- * (afficher/masquer ma démo dans le score) et une sortie. Toute action destructrice
- * (régénérer, nettoyer, quitter) passe par une confirmation + un toast de retour.
- * `tone` : « light » sur les pages standard, « dark » sur le Hub.
+ * Indicateur « Mode démo » — pastille compacte + popover de contrôle (remplace
+ * l'ancien bandeau pleine largeur). Un seul montage (AppLayout) couvre toutes les
+ * pages. Regroupe la bascule LENTILLE et les actions ; toute action destructrice
+ * passe par une confirmation + un toast. Ne rend rien sans bac à sable.
  */
-export function DemoModeBanner({ tone = 'light' }: { tone?: 'light' | 'dark' }): JSX.Element | null {
+export function DemoModeBanner(): JSX.Element | null {
   const navigate = useNavigate()
   const toast = useToast()
   const { hasDemo, loading, teardown, deleting, seed, seeding } = useDemoSandbox()
   const { lensOn, setLensOn } = useDemoLens()
-  const [exiting, setExiting] = useState(false)
+  const [open, setOpen] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmKind | null>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent): void => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
 
   if (loading || !hasDemo) return null
-
   const busy = deleting || seeding
 
   const regenerate = async (): Promise<void> => {
@@ -55,58 +64,31 @@ export function DemoModeBanner({ tone = 'light' }: { tone?: 'light' | 'dark' }):
     setConfirm(null)
   }
 
-  const dark = tone === 'dark'
-  const shell = dark
-    ? 'border-[rgb(var(--hub-fg)/0.18)] bg-[rgb(var(--hub-fg)/0.06)] text-[rgb(var(--hub-fg)/0.85)]'
-    : 'border-[#EBD79B] bg-[#FBF3DD] text-[#8a6516]'
-  const chip = dark ? 'border-[rgb(var(--hub-fg)/0.2)] bg-[rgb(var(--hub-fg)/0.06)]' : 'border-[#e6d9a8] bg-white/70'
-  const btnGhost = dark
-    ? 'border-[rgb(var(--hub-fg)/0.25)] bg-transparent text-[rgb(var(--hub-fg)/0.75)]'
-    : 'border-[#e0dccf] bg-white text-gray-600'
+  const openConfirm = (kind: ConfirmKind): void => { setOpen(false); setConfirm(kind) }
 
   return (
-    <div className={`mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border px-4 py-2.5 text-[12px] font-medium ${shell}`}>
-      <GraduationCap size={15} className="shrink-0" />
-      <span>Mode découverte — vous explorez des données de démonstration.</span>
+    <div className="mb-3 flex justify-end">
+      <div ref={wrapRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="inline-flex items-center gap-2 rounded-full bg-forest-900 py-1.5 pl-2.5 pr-3 text-[12px] font-semibold text-white shadow-md hover:bg-forest-700"
+        >
+          <span className="h-[7px] w-[7px] rounded-full bg-gold-500 shadow-[0_0_0_3px_rgba(212,168,67,0.28)]" aria-hidden="true" />
+          Mode démo
+          <ChevronDown size={13} className={`opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
 
-      <button
-        type="button"
-        onClick={() => setLensOn(!lensOn)}
-        aria-pressed={lensOn}
-        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${chip}`}
-        title="Afficher ou masquer la démo dans le score et les dashboards"
-      >
-        {lensOn ? <Eye size={13} /> : <EyeOff size={13} />}
-        {lensOn ? 'Visible dans le score' : 'Masquée du score'}
-      </button>
-
-      <div className="ml-auto flex items-center gap-2">
-        {exiting ? (
-          <>
-            <button type="button" onClick={() => setConfirm('configure')} disabled={busy} className="rounded-lg bg-[#2f7d5b] px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-50">Configurer pour de vrai</button>
-            <button type="button" onClick={() => setConfirm('cleanup')} disabled={busy} className="rounded-lg bg-[#a4472b] px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-50">Terminer et nettoyer</button>
-            <button type="button" onClick={() => setExiting(false)} disabled={busy} className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold disabled:opacity-50 ${btnGhost}`}>Annuler</button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => setConfirm('regenerate')}
-              disabled={busy}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold disabled:opacity-50 ${btnGhost}`}
-              title="Supprimer et recréer un espace de démonstration neuf"
-            >
-              <RefreshCw size={12} className={seeding ? 'animate-spin' : ''} />
-              {busy ? 'Régénération…' : 'Régénérer'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setExiting(true)}
-              className={`rounded-lg border px-3 py-1 text-[11px] font-bold ${dark ? 'border-[rgb(var(--hub-fg)/0.3)] text-[rgb(var(--hub-fg)/0.85)]' : 'border-[#e6bfb2] bg-white text-[#a4472b]'}`}
-            >
-              Quitter la démo
-            </button>
-          </>
+        {open && (
+          <DemoControlPopover
+            lensOn={lensOn}
+            busy={busy}
+            onToggleLens={() => setLensOn(!lensOn)}
+            onRegenerate={() => openConfirm('regenerate')}
+            onConfigure={() => openConfirm('configure')}
+            onCleanup={() => openConfirm('cleanup')}
+          />
         )}
       </div>
 
