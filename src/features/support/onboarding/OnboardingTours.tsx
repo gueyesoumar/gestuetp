@@ -23,8 +23,12 @@ export function OnboardingTours(): null {
       const run = (): void => {
         const d = driver({
           showProgress: def.steps.length > 1,
+          progressText: '{{current}} sur {{total}}',
           allowClose: true,
-          overlayOpacity: 0.55,
+          overlayColor: '#12241C',
+          overlayOpacity: 0.6,
+          stagePadding: 6,
+          stageRadius: 10,
           nextBtnText: 'Suivant',
           prevBtnText: 'Précédent',
           doneBtnText: 'Terminer',
