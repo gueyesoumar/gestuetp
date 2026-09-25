@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react'
 import { useDemoSandbox } from './useDemoSandbox'
 import { useDemoLens } from './DemoLensContext'
 import { DemoControlPopover } from './DemoControlPopover'
+import { DemoDiscovery } from './DemoDiscovery'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { useToast } from '../../hooks/useToast'
 
@@ -27,6 +28,7 @@ export function DemoModeBanner(): JSX.Element | null {
   const { hasDemo, loading, teardown, deleting, seed, seeding } = useDemoSandbox()
   const { lensOn, setLensOn } = useDemoLens()
   const [open, setOpen] = useState(false)
+  const [discoverOpen, setDiscoverOpen] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmKind | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -38,6 +40,16 @@ export function DemoModeBanner(): JSX.Element | null {
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
+
+  // À la première existence d'une démo (par navigateur), ouvre le parcours de découverte.
+  useEffect(() => {
+    if (!hasDemo) return
+    try {
+      if (localStorage.getItem('gestu.demo.discovery.started') === '1') return
+      localStorage.setItem('gestu.demo.discovery.started', '1')
+      setDiscoverOpen(true)
+    } catch { /* localStorage indisponible */ }
+  }, [hasDemo])
 
   if (loading || !hasDemo) return null
   const busy = deleting || seeding
@@ -84,6 +96,7 @@ export function DemoModeBanner(): JSX.Element | null {
           <DemoControlPopover
             lensOn={lensOn}
             busy={busy}
+            onDiscover={() => { setOpen(false); setDiscoverOpen(true) }}
             onToggleLens={() => setLensOn(!lensOn)}
             onRegenerate={() => openConfirm('regenerate')}
             onConfigure={() => openConfirm('configure')}
@@ -91,6 +104,8 @@ export function DemoModeBanner(): JSX.Element | null {
           />
         )}
       </div>
+
+      <DemoDiscovery open={discoverOpen} onClose={() => setDiscoverOpen(false)} />
 
       {confirm && (
         <ConfirmDialog

@@ -1,8 +1,9 @@
-import { GraduationCap, RefreshCw, ArrowRight, Trash2 } from 'lucide-react'
+import { GraduationCap, RefreshCw, ArrowRight, Trash2, Compass } from 'lucide-react'
 
 interface Props {
   lensOn: boolean
   busy: boolean
+  onDiscover: () => void
   onToggleLens: () => void
   onRegenerate: () => void
   onConfigure: () => void
@@ -14,7 +15,7 @@ interface Props {
  * visible/masquée dans le score) et les actions — chacune confirmée côté parent.
  * Présentation only : l'état et les confirmations vivent dans DemoModeBanner.
  */
-export function DemoControlPopover({ lensOn, busy, onToggleLens, onRegenerate, onConfigure, onCleanup }: Props): JSX.Element {
+export function DemoControlPopover({ lensOn, busy, onDiscover, onToggleLens, onRegenerate, onConfigure, onCleanup }: Props): JSX.Element {
   return (
     <div className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
       <div className="flex items-center gap-2.5 bg-gradient-to-br from-forest-900 to-forest-700 px-4 py-3 text-white">
@@ -28,6 +29,18 @@ export function DemoControlPopover({ lensOn, busy, onToggleLens, onRegenerate, o
       </div>
 
       <div className="p-3">
+        <button
+          type="button"
+          onClick={onDiscover}
+          className="mb-2 flex w-full items-center gap-2.5 rounded-xl bg-gradient-to-br from-gold-400 to-gold-500 px-3 py-2.5 text-left text-forest-900 hover:brightness-105"
+        >
+          <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-lg bg-forest-900/10"><Compass size={15} /></span>
+          <span className="min-w-0">
+            <span className="block text-[12.5px] font-bold">Parcours de découverte</span>
+            <span className="block text-[11px] text-forest-800/80">Reprendre la visite guidée.</span>
+          </span>
+        </button>
+
         <button
           type="button"
           onClick={onToggleLens}
