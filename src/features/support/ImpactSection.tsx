@@ -65,14 +65,19 @@ export function ImpactSection({ requestId, feasibilityRunId, feasibilityReport }
   const report = run?.status === 'done' && run.result && !('_error' in run.result) ? (run.result as ImpactReport) : null
   const running = run?.status === 'running' || run?.status === 'queued'
 
-  // Éligibilité brouillon (miroir du garde serveur, déc. C) : go + effort S/M +
-  // aucune couche à fort enjeu (migration/edge) + aucun bloquant.
-  const draftEligible = draftEnabled && !!report && report.verdict === 'go'
-    && ['S', 'M'].includes(feasibilityReport.effort_estimate)
-    && report.migrations?.needed !== true
-    && (!Array.isArray(report.backend?.edges) || report.backend.edges.length === 0)
-    && report.rls_impact?.verdict !== 'bloquant'
-    && report.securite?.verdict !== 'bloquant'
+  // Éligibilité brouillon (miroir du garde serveur, déc. C) + raisons de non-recommandation.
+  // L'owner peut forcer sauf bloquant sécurité/RLS (déc. C amendée).
+  const draftReasons: string[] = []
+  if (report) {
+    if (report.verdict !== 'go') draftReasons.push('verdict non « go »')
+    if (!['S', 'M'].includes(feasibilityReport.effort_estimate)) draftReasons.push('effort > M')
+    if (report.migrations?.needed === true) draftReasons.push('migration requise')
+    if (Array.isArray(report.backend?.edges) && report.backend.edges.length > 0) draftReasons.push('modifie un edge')
+    if (report.rls_impact?.verdict === 'bloquant') draftReasons.push('bloquant RLS')
+    if (report.securite?.verdict === 'bloquant') draftReasons.push('bloquant sécurité')
+  }
+  const draftHardBlock = !!report && (report.rls_impact?.verdict === 'bloquant' || report.securite?.verdict === 'bloquant')
+  const draftEligible = draftEnabled && !!report && draftReasons.length === 0
 
   return (
     <div className="mt-3 pt-3 border-t border-forest-100">
@@ -97,7 +102,7 @@ export function ImpactSection({ requestId, feasibilityRunId, feasibilityReport }
       {report && <ImpactReportView report={report} />}
 
       {report && run && draftEnabled && (
-        <DraftPrSection requestId={requestId} impactRunId={run.id} eligible={draftEligible} />
+        <DraftPrSection requestId={requestId} impactRunId={run.id} eligible={draftEligible} reasons={draftReasons} hardBlock={draftHardBlock} />
       )}
     </div>
   )

@@ -38,7 +38,7 @@ Deno.serve(async (req: Request) => {
     const ghRef = Deno.env.get('DRAFT_PR_WORKFLOW_REF') ?? Deno.env.get('FEASIBILITY_WORKFLOW_REF') ?? 'main'
     if (!ghToken || !ghRepo) return json({ error: 'Dispatch non configure.' }, 500)
 
-    const { request_id, impact_run_id } = await req.json()
+    const { request_id, impact_run_id, force } = await req.json()
     if (!request_id || !impact_run_id) return json({ error: 'request_id et impact_run_id requis' }, 400)
 
     // Le run d'impact doit exister, être terminé, et appartenir à la même suggestion (pas d'IDOR).
@@ -59,7 +59,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // ÉLIGIBILITÉ (déc. C) — multi-facteur, périmètre frontend-only / additif.
+    // L'owner peut FORCER (déc. C amendée) sur tous les motifs SAUF un bloquant
+    // sécurité/RLS (garde-fou dur, jamais forçable). Le write-path reste sûr quoi
+    // qu'il arrive (staging-only, diff limité à src/, gates).
     const edges = Array.isArray(impact.backend?.edges) ? (impact.backend?.edges as unknown[]) : []
+    const hardBlock = impact.rls_impact?.verdict === 'bloquant' || impact.securite?.verdict === 'bloquant'
     const reasons: string[] = []
     if (impact.verdict !== 'go') reasons.push('verdict non « go »')
     if (!['S', 'M'].includes(effort)) reasons.push('effort > M (ou inconnu)')
@@ -68,19 +72,31 @@ Deno.serve(async (req: Request) => {
     if (impact.rls_impact?.verdict === 'bloquant') reasons.push('impact RLS bloquant')
     if (impact.securite?.verdict === 'bloquant') reasons.push('constat sécurité bloquant')
     if (reasons.length > 0) {
-      return json({ error: `Non éligible au brouillon automatique : ${reasons.join(', ')}. À traiter manuellement.` }, 409)
+      if (hardBlock) {
+        return json({ error: 'Brouillon refusé : bloquant sécurité/RLS. À traiter manuellement.' }, 409)
+      }
+      if (force !== true) {
+        return json({ error: `Non recommandé (${reasons.join(', ')}). Générez « quand même » pour forcer.`, reasons }, 409)
+      }
+      // force === true et pas de bloquant sécu/RLS → on procède (override owner, tracé).
     }
+    const forced = reasons.length > 0
 
     const { data: run, error: runErr } = await admin.from('agent_runs').insert({
       request_id, kind: 'draft_pr', status: 'running', created_by: auth.profile.id,
       parent_run_id: impact_run_id, pr_state: 'drafted',
+      result: forced ? { forced: true, bypassed: reasons } : null,
     }).select('id').single()
     if (runErr || !run) return json({ error: 'Creation du run impossible.' }, 500)
 
     // Trace l'action owner dans admin_audit_log (best-effort, ne bloque pas le dispatch).
+    // Un override (forced) est explicitement journalisé avec les critères contournés.
     try {
-      await logAdminAction(admin, auth.profile.id, 'agent.draft_pr.dispatch', 'support_request', request_id,
-        'Génération d un brouillon de PR (agent, staging)', { run_id: run.id, impact_run_id })
+      const reason = forced
+        ? `Génération FORCÉE d un brouillon de PR (owner) — override : ${reasons.join(', ')}`
+        : 'Génération d un brouillon de PR (agent, staging)'
+      await logAdminAction(admin, auth.profile.id, forced ? 'agent.draft_pr.force' : 'agent.draft_pr.dispatch',
+        'support_request', request_id, reason, { run_id: run.id, impact_run_id, forced, bypassed: reasons })
     } catch (e) { console.error('draft-pr audit:', e instanceof Error ? e.message : String(e)) }
 
     const res = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/draft-pr.yml/dispatches`, {
