@@ -3,6 +3,7 @@ import { FlaskConical, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
 import { FeasibilityReportView, type FeasibilityReport } from './FeasibilityReport'
+import { ImpactSection } from './ImpactSection'
 import type { SupportRequest } from '../../types/database.types'
 
 interface Props {
@@ -17,8 +18,8 @@ interface RunRow {
 
 /**
  * Faisabilite IA (Phase 4, code-facing). Visible pour une suggestion ET si le flag
- * support_agent_feasibility est ON (garde-fou DPA, comme le serveur). Declenche
- * GitHub Actions via dispatch-feasibility ; l'analyse est asynchrone (refresh manuel).
+ * support_agent_feasibility est ON (garde-fou DPA). En aval, ImpactSection ajoute
+ * l'analyse d'impact (5a) et le brouillon de PR (5b), chacun garde par son flag.
  */
 export function SupportFeasibilityPanel({ request }: Props): JSX.Element | null {
   const [enabled, setEnabled] = useState<boolean | null>(null)
@@ -80,6 +81,10 @@ export function SupportFeasibilityPanel({ request }: Props): JSX.Element | null 
       {running && <p className="text-xs text-gray-500 mt-2">Analyse en cours (GitHub Actions)&hellip; rafra&icirc;chissez dans une minute.</p>}
       {run?.status === 'error' && <p className="text-xs text-red-500 mt-2">L&apos;analyse a &eacute;chou&eacute;. Vous pouvez la relancer.</p>}
       {report && <FeasibilityReportView report={report} />}
+
+      {report && run && report.verdict !== 'no_go' && (
+        <ImpactSection requestId={request.id} feasibilityRunId={run.id} feasibilityReport={report} />
+      )}
     </div>
   )
 }
