@@ -5,6 +5,12 @@
 export const TOUR_LABELS: Record<string, string> = {
   'hub-overview': 'Découvrir le Hub ETP',
   'create-mission': 'Créer une mission',
+  'missions-views': 'Changer de vue des missions',
+  frameworks: 'Explorer les référentiels',
+  'setup-2fa': 'Configurer la double authentification',
+  'invite-member': 'Inviter un membre',
+  'manage-clients': 'Gérer les clients',
+  supervision: 'Découvrir la supervision',
   'mission-planning': 'Planifier une mission',
   fieldwork: 'Réaliser le travail de terrain',
   'client-portal': 'Utiliser le portail client',

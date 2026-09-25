@@ -7,6 +7,12 @@
 export const TOURS: { id: string; label: string; when: string }[] = [
   { id: 'hub-overview', label: 'Découvrir le Hub ETP', when: "l'utilisateur découvre la navigation entre modules" },
   { id: 'create-mission', label: 'Créer une mission', when: "l'utilisateur veut lancer une nouvelle mission (assistant 6 étapes)" },
+  { id: 'missions-views', label: 'Changer de vue des missions', when: "l'utilisateur veut basculer entre Kanban, Split et Cartes" },
+  { id: 'frameworks', label: 'Explorer les référentiels', when: "l'utilisateur cherche les référentiels/cadres de conformité disponibles" },
+  { id: 'setup-2fa', label: 'Configurer la double authentification', when: "l'utilisateur veut activer/gérer le 2FA (Mon compte → Sécurité)" },
+  { id: 'invite-member', label: 'Inviter un membre', when: "l'utilisateur veut ajouter un membre à son organisation" },
+  { id: 'manage-clients', label: 'Gérer les clients', when: "l'utilisateur veut créer un client ou gérer son portefeuille" },
+  { id: 'supervision', label: 'Découvrir la supervision', when: "l'utilisateur veut suivre ses indicateurs de supervision" },
   { id: 'mission-planning', label: 'Planifier une mission', when: "l'utilisateur est sur la planification (contrôles, équipe, calendrier)" },
   { id: 'fieldwork', label: 'Réaliser le travail de terrain', when: "l'utilisateur évalue les contrôles et saisit des constats" },
   { id: 'client-portal', label: 'Utiliser le portail client', when: "l'utilisateur gère l'accès ou l'échange de documents avec un client" },

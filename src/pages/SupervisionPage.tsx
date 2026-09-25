@@ -79,7 +79,7 @@ export function SupervisionPage(): JSX.Element {
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Supervision</h2>
+          <h2 data-tour="supervision-header" className="text-xl font-semibold text-gray-900">Supervision</h2>
           <p className="mt-1 text-[13px] text-gray-500">{subtitle}</p>
         </div>
         <div className="flex gap-2">

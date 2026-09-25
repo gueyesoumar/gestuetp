@@ -37,12 +37,12 @@ export function MissionsListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Missions</h2>
+          <h2 data-tour="missions-header" className="text-xl font-semibold text-gray-900">Missions</h2>
           <p className="mt-1 text-[13px] text-gray-500">
             Gérez vos missions d'audit et de conformité.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div data-tour="missions-views" className="flex items-center gap-3">
           <ViewSwitch value={view} onChange={setView} />
           {canCreateMission && (
             <Link

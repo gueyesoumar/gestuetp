@@ -69,7 +69,7 @@ export function FrameworksPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">R&eacute;f&eacute;rentiels</h2>
+          <h2 data-tour="frameworks-header" className="text-xl font-semibold text-gray-900">R&eacute;f&eacute;rentiels</h2>
           <p className="mt-1 text-[13px] text-gray-500">
             R&eacute;f&eacute;rentiels de conformit&eacute;, d&apos;audit et d&apos;&eacute;valuation disponibles sur la plateforme.
           </p>

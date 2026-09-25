@@ -35,7 +35,13 @@ export function OnboardingTours(): null {
           prevBtnText: 'Précédent',
           doneBtnText: 'Terminer',
           popoverClass: 'gestu-tour',
-          steps: def.steps.map((s) => ({ element: s.element, popover: s.popover })),
+          // Anti-hallucination : si l'élément ancré n'existe pas dans le DOM au moment du
+          // tour (page différente, état vide, permission), l'étape bascule en carte centrée
+          // au lieu de pointer un élément inexistant. Aucun pointeur cassé possible.
+          steps: def.steps.map((s) => ({
+            element: s.element && document.querySelector(s.element) ? s.element : undefined,
+            popover: s.popover,
+          })),
         })
         d.drive()
       }
