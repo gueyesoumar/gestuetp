@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { GitPullRequest, RefreshCw, ExternalLink } from 'lucide-react'
+import { GitPullRequest, RefreshCw, ExternalLink, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { invokeEdgeFunction } from '../../lib/invokeEdgeFunction'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 
 interface DraftRunRow {
   id: string
@@ -13,18 +14,24 @@ interface DraftRunRow {
 interface Props {
   requestId: string
   impactRunId: string
-  /** Éligibilité (miroir du garde serveur) : go + S/M + aucune couche à fort enjeu + aucun bloquant. */
+  /** Éligible au brouillon recommandé (go + S/M + aucune couche à fort enjeu + aucun bloquant). */
   eligible: boolean
+  /** Raisons de non-recommandation (affichées à l'owner pour décider de forcer). */
+  reasons: string[]
+  /** Bloquant sécurité/RLS : jamais forçable (garde-fou dur). */
+  hardBlock: boolean
 }
 
 /**
- * Section « Brouillon de PR » (RFC 0010, Phase 5b). Owner-only (rendue dans la
- * console super-admin). Le déclenchement est re-vérifié côté edge dispatch-draft-pr.
+ * Section « Brouillon de PR » (RFC 0010, Phase 5b). Owner-only. Recommandé si éligible ;
+ * sinon l'owner garde le dernier mot et peut FORCER (sauf bloquant sécurité/RLS).
+ * L'edge dispatch-draft-pr re-vérifie tout (autoritatif) et trace l'override.
  */
-export function DraftPrSection({ requestId, impactRunId, eligible }: Props): JSX.Element {
+export function DraftPrSection({ requestId, impactRunId, eligible, reasons, hardBlock }: Props): JSX.Element {
   const [run, setRun] = useState<DraftRunRow | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [confirmForce, setConfirmForce] = useState(false)
 
   const load = useCallback(async (): Promise<void> => {
     const res = await supabase.from('agent_runs').select('id, status, pr_url, pr_state')
@@ -35,14 +42,15 @@ export function DraftPrSection({ requestId, impactRunId, eligible }: Props): JSX
 
   useEffect(() => { void load() }, [load])
 
-  const launch = async (): Promise<void> => {
+  const launch = useCallback(async (force: boolean): Promise<void> => {
     setBusy(true)
     setError(null)
-    const res = await invokeEdgeFunction('dispatch-draft-pr', { request_id: requestId, impact_run_id: impactRunId })
+    const res = await invokeEdgeFunction('dispatch-draft-pr', { request_id: requestId, impact_run_id: impactRunId, force })
     setBusy(false)
+    setConfirmForce(false)
     if (!res.ok) { setError(res.error ?? 'Declenchement impossible.'); return }
     await load()
-  }
+  }, [requestId, impactRunId, load])
 
   const running = run?.status === 'running' || run?.status === 'queued'
   const done = run?.status === 'done' && run.pr_url
@@ -58,13 +66,12 @@ export function DraftPrSection({ requestId, impactRunId, eligible }: Props): JSX
             <RefreshCw size={12} /> Rafra&icirc;chir
           </button>
         ) : eligible ? (
-          <button onClick={() => void launch()} disabled={busy} className="px-3 py-1.5 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 disabled:opacity-50">
+          <button onClick={() => void launch(false)} disabled={busy} className="px-3 py-1.5 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 disabled:opacity-50">
             {busy ? 'Lancement…' : done ? 'Régénérer' : 'Générer un brouillon'}
           </button>
         ) : null}
       </div>
 
-      {!eligible && <p className="text-xs text-gray-500 mt-2">Non &eacute;ligible au brouillon automatique (migration / edge / bloquant, ou effort &gt; M). &Agrave; traiter manuellement.</p>}
       {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
       {running && <p className="text-xs text-gray-500 mt-2">G&eacute;n&eacute;ration en cours (GitHub Actions)&hellip; rafra&icirc;chissez dans une minute.</p>}
       {run?.status === 'error' && <p className="text-xs text-red-500 mt-2">La g&eacute;n&eacute;ration a &eacute;chou&eacute;. Vous pouvez la relancer.</p>}
@@ -74,6 +81,40 @@ export function DraftPrSection({ requestId, impactRunId, eligible }: Props): JSX
           {run.pr_state && <span className="ml-1 font-mono text-[10.5px] bg-forest-100 text-forest-700 rounded px-1.5 py-0.5">{run.pr_state}</span>}
         </a>
       )}
+
+      {/* Cas non recommandé : l'owner décide (sauf bloquant sécu/RLS) */}
+      {!eligible && !running && (
+        <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2.5">
+          <p className="text-[11.5px] text-amber-800 flex items-start gap-1.5">
+            <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+            <span>Non recommand&eacute; : {reasons.join(', ') || 'crit&egrave;res non r&eacute;unis'}.</span>
+          </p>
+          {hardBlock ? (
+            <p className="text-[11px] text-red-600 mt-1.5">Non for&ccedil;able : bloquant s&eacute;curit&eacute;/RLS &mdash; &agrave; traiter manuellement.</p>
+          ) : (
+            <button onClick={() => setConfirmForce(true)} disabled={busy} className="mt-2 px-3 py-1.5 border border-amber-300 text-amber-800 bg-white rounded-lg text-xs font-semibold hover:bg-amber-100 disabled:opacity-50">
+              {done ? 'Régénérer quand même' : 'Générer un brouillon quand même'}
+            </button>
+          )}
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmForce}
+        title="Forcer le brouillon ?"
+        variant="danger"
+        confirmLabel="Générer quand même"
+        busy={busy}
+        onConfirm={() => void launch(true)}
+        onClose={() => setConfirmForce(false)}
+        message={
+          <>
+            L&apos;analyse ne recommande pas le brouillon automatique&nbsp;: <strong>{reasons.join(', ')}</strong>.
+            <br />
+            Le brouillon peut être <strong>partiel</strong> (frontend-only ; migration/edge éventuels restent à faire à la main) et devra être revu attentivement. Il reste sur <strong>staging</strong>, limité à <code>src/</code>, gates CI appliqués.
+          </>
+        }
+      />
     </div>
   )
 }
