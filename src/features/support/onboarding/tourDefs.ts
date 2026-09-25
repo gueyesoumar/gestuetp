@@ -1,7 +1,10 @@
 // Tours guidés déclaratifs (RFC 0011, Lot 3, décision C = driver.js/MIT).
 // Chaque tour = une séquence d'étapes. `element` (sélecteur data-tour) ancre l'étape à
-// un élément réel ; sans `element`, driver.js affiche une carte centrée. `route` fait
-// naviguer vers la page attendue avant de dérouler (ancrage fiable).
+// un élément réel ; `route` fait naviguer vers la page attendue avant de dérouler.
+//
+// Anti-hallucination : le moteur (OnboardingTours) vérifie l'existence de chaque
+// `element` au moment du tour ; s'il est absent (page vide, permission manquante), l'étape
+// bascule automatiquement en carte centrée. On peut donc ancrer largement sans risque.
 
 export interface TourStep {
   element?: string
@@ -21,8 +24,47 @@ export const TOUR_DEFS: Record<string, TourDef> = {
   'create-mission': {
     route: '/missions',
     steps: [
-      { popover: { title: 'Créer une mission', description: "Voici comment lancer une nouvelle mission d'audit ou de contrôle." } },
+      { element: '[data-tour="missions-header"]', popover: { title: 'Le module Missions', description: "C'est ici que vous gérez toutes vos missions d'audit et de conformité." } },
       { element: '[data-tour="new-mission"]', popover: { title: 'Nouvelle mission', description: "Cliquez ici, puis suivez l'assistant : type → client → périmètre → équipe → calendrier → confirmation.", side: 'bottom', align: 'end' } },
+    ],
+  },
+  'missions-views': {
+    route: '/missions',
+    steps: [
+      { element: '[data-tour="missions-views"]', popover: { title: 'Vos vues', description: 'Basculez entre Kanban, Split et Cartes selon votre façon de travailler. Votre choix est mémorisé.', side: 'bottom', align: 'end' } },
+    ],
+  },
+  frameworks: {
+    route: '/referentiels',
+    steps: [
+      { element: '[data-tour="frameworks-header"]', popover: { title: 'Les référentiels', description: "Les cadres de conformité disponibles (ISO 27001, RGPD, PSSI-ES…). Ils structurent l'évaluation de vos missions." } },
+    ],
+  },
+  'setup-2fa': {
+    route: '/compte?tab=securite',
+    steps: [
+      { element: '[data-tour="twofa-section"]', popover: { title: 'Sécurité & 2FA', description: "La double authentification est requise sur tous les comptes. Gérez vos authentificateurs ici." } },
+      { element: '[data-tour="twofa-add"]', popover: { title: 'Ajouter un authentificateur', description: "Cliquez ici, nommez l'appareil, scannez le QR code puis saisissez le code à 6 chiffres.", side: 'top', align: 'start' } },
+    ],
+  },
+  'invite-member': {
+    route: '/organisation?tab=membres',
+    steps: [
+      { element: '[data-tour="members-header"]', popover: { title: 'Les membres', description: "Gérez les membres de votre organisation et leurs rôles." } },
+      { element: '[data-tour="invite-member"]', popover: { title: 'Inviter un membre', description: "Renseignez l'email et le rôle : un lien d'invitation est envoyé automatiquement.", side: 'bottom', align: 'end' } },
+    ],
+  },
+  'manage-clients': {
+    route: '/clients',
+    steps: [
+      { element: '[data-tour="clients-header"]', popover: { title: 'Vos clients', description: 'Votre portefeuille de clients. Chaque client peut ensuite accéder à son portail cloisonné.' } },
+      { element: '[data-tour="new-client"]', popover: { title: 'Nouveau client', description: "Créez un client ici, puis invitez son contact au portail depuis sa fiche.", side: 'bottom', align: 'end' } },
+    ],
+  },
+  supervision: {
+    route: '/supervision',
+    steps: [
+      { element: '[data-tour="supervision-header"]', popover: { title: 'Supervision', description: "Le tableau de bord de supervision : suivez vos indicateurs et générez le rapport." } },
     ],
   },
   'mission-planning': {
@@ -37,7 +79,7 @@ export const TOUR_DEFS: Record<string, TourDef> = {
   },
   'client-portal': {
     steps: [
-      { popover: { title: 'Portail client', description: "Créez le client puis invitez son contact : il suivra ses missions et échangera les documents dans un espace cloisonné à ses propres données." } },
+      { popover: { title: 'Portail client', description: "Depuis la fiche d'un client, invitez son contact : il suivra ses missions et échangera les documents dans un espace cloisonné à ses propres données." } },
     ],
   },
 }
