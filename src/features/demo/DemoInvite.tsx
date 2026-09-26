@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Compass, Zap, GraduationCap, Check, ShieldCheck } from 'lucide-react'
 import { useDemoSandbox, type DemoVariant } from './useDemoSandbox'
 import { useDemoLens } from './DemoLensContext'
+import { DemoCreationProgress } from './DemoCreationProgress'
+import { useToast } from '../../hooks/useToast'
 
 /**
  * Invitation « mode découverte » sur le Hub. Deux ACTIONS distinctes (chacune son
@@ -15,13 +17,15 @@ const GUIDED: string[] = ['Vous gardez la main', 'Accompagné pas à pas par Dou
 export function DemoInvite(): JSX.Element {
   const { seed, seeding } = useDemoSandbox()
   const { setLensOn } = useDemoLens()
+  const toast = useToast()
   const [pending, setPending] = useState<DemoVariant | null>(null)
 
   const create = async (variant: DemoVariant): Promise<void> => {
     setPending(variant)
     const ok = await seed(variant)
     setPending(null)
-    if (ok) setLensOn(true)
+    if (ok) { setLensOn(true); toast.success('Espace de démonstration créé') }
+    else toast.error('La création a échoué. Réessayez.')
   }
 
   return (
@@ -79,6 +83,8 @@ export function DemoInvite(): JSX.Element {
         <ShieldCheck size={12} className="text-[#7FC79E]" />
         Aucun impact sur vos données réelles · supprimable à tout moment
       </div>
+
+      <DemoCreationProgress variant={pending} />
     </div>
   )
 }
