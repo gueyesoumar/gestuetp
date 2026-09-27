@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { PlayCircle } from 'lucide-react'
 import { useMissions } from '../features/missions/useMissions'
 import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
+import { useHelpVideo } from '../features/support/help/useHelpVideo'
 import { MissionsKanbanView } from '../features/missions/views/MissionsKanbanView'
 import { MissionsCardsView } from '../features/missions/views/MissionsCardsView'
 import { MissionsSplitView } from '../features/missions/views/MissionsSplitView'
@@ -10,13 +12,16 @@ import type { ViewMode } from '../components/ui/ViewSwitch'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import { EmptyState } from '../components/ui/EmptyState'
+import { VideoModal } from '../components/ui/VideoModal'
 
 type FilterKey = 'all' | 'active' | 'closed'
 
 export function MissionsListPage() {
   const { missions, loading, error } = useMissions()
   const { canCreateMission } = useCabinetPermissions()
+  const { videoUrl, title: videoTitle } = useHelpVideo('create-mission')
   const [filter, setFilter] = useState<FilterKey>('all')
+  const [videoOpen, setVideoOpen] = useState(false)
   const [view, setView] = useState<ViewMode>(() => {
     return (localStorage.getItem('gestu-missions-view') as ViewMode) || 'kanban'
   })
@@ -27,6 +32,15 @@ export function MissionsListPage() {
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
+
+  const videoCta = videoUrl ? (
+    <button
+      onClick={() => setVideoOpen(true)}
+      className="flex items-center gap-1.5 rounded-lg border border-forest-200 px-4 py-2.5 text-[13px] font-semibold text-forest-700 hover:bg-forest-50 transition-colors"
+    >
+      <PlayCircle size={16} /> Voir la vidéo
+    </button>
+  ) : null
 
   const activeCount = missions.filter((m) => m.status !== 'closure').length
   const closedCount = missions.filter((m) => m.status === 'closure').length
@@ -44,6 +58,7 @@ export function MissionsListPage() {
         </div>
         <div data-tour="missions-views" className="flex items-center gap-3">
           <ViewSwitch value={view} onChange={setView} />
+          {videoCta}
           {canCreateMission && (
             <Link
               to="/missions/nouvelle"
@@ -62,10 +77,15 @@ export function MissionsListPage() {
             title="Aucune mission"
             description="Créez votre première mission pour commencer."
             action={
-              canCreateMission ? (
-                <Link to="/missions/nouvelle" data-tour="new-mission" className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900">
-                  + Nouvelle mission
-                </Link>
+              (canCreateMission || videoCta) ? (
+                <div className="flex items-center gap-3">
+                  {canCreateMission && (
+                    <Link to="/missions/nouvelle" data-tour="new-mission" className="rounded-lg bg-forest-700 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900">
+                      + Nouvelle mission
+                    </Link>
+                  )}
+                  {videoCta}
+                </div>
               ) : undefined
             }
           />
@@ -86,6 +106,10 @@ export function MissionsListPage() {
           {view === 'cards' && <MissionsCardsView missions={filtered} />}
           {view === 'split' && <MissionsSplitView missions={filtered} />}
         </>
+      )}
+
+      {videoOpen && videoUrl && (
+        <VideoModal src={videoUrl} title={videoTitle ?? 'Créer une mission'} onClose={() => setVideoOpen(false)} />
       )}
     </div>
   )

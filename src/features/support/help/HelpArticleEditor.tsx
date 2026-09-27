@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ImagePlus } from 'lucide-react'
-import { supabase } from '../../../lib/supabase'
+import { ImagePlus, Film, X } from 'lucide-react'
 import { ArticleMarkdown } from '../../../components/ui/ArticleMarkdown'
+import { VideoPlayer } from '../../../components/ui/VideoPlayer'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { useHelpMediaUpload } from './useHelpMediaUpload'
+import { MediaUploadButton } from './MediaUploadButton'
 import type { HelpArticle, HelpArticleInsert, HelpAudience } from '../../../types/database.types'
 
 interface Props {
@@ -34,13 +36,12 @@ export function HelpArticleEditor({ article, saving, error, onSave, onCancel }: 
   const [audience, setAudience] = useState<HelpAudience>(article?.audience ?? 'all')
   const [excerpt, setExcerpt] = useState(article?.excerpt ?? '')
   const [body, setBody] = useState(article?.body ?? '')
+  const [videoUrl, setVideoUrl] = useState(article?.video_url ?? '')
   const [isPublished, setIsPublished] = useState(article?.is_published ?? true)
   const [sortOrder, setSortOrder] = useState(article?.sort_order ?? 0)
   const [slugTouched, setSlugTouched] = useState(Boolean(article))
-  const [uploading, setUploading] = useState(false)
-  const [uploadErr, setUploadErr] = useState<string | null>(null)
+  const { upload, uploading, error: uploadErr } = useHelpMediaUpload()
   const bodyRef = useRef<HTMLTextAreaElement>(null)
-  const fileRef = useRef<HTMLInputElement>(null)
 
   const onTitle = (v: string): void => {
     setTitle(v)
@@ -51,36 +52,28 @@ export function HelpArticleEditor({ article, saving, error, onSave, onCancel }: 
     const ta = bodyRef.current
     const start = ta?.selectionStart ?? body.length
     const end = ta?.selectionEnd ?? body.length
-    const next = body.slice(0, start) + text + body.slice(end)
-    setBody(next)
+    setBody(body.slice(0, start) + text + body.slice(end))
     requestAnimationFrame(() => {
       if (!ta) return
       ta.focus()
-      const pos = start + text.length
-      ta.setSelectionRange(pos, pos)
+      ta.setSelectionRange(start + text.length, start + text.length)
     })
   }
 
   const onPickImage = async (file: File): Promise<void> => {
-    setUploadErr(null); setUploading(true)
-    const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')
-    const path = `articles/${Date.now()}_${safe}`
-    const { error } = await supabase.storage.from('help-media').upload(path, file)
-    if (error) {
-      console.error('help image upload:', error.message)
-      setUploadErr('Téléversement impossible.')
-      setUploading(false)
-      return
-    }
-    const { data } = supabase.storage.from('help-media').getPublicUrl(path)
-    setUploading(false)
-    if (data?.publicUrl) insertAtCursor(`\n\n![${file.name.replace(/\.[^.]+$/, '')}](${data.publicUrl})\n\n`)
+    const url = await upload(file, 'image')
+    if (url) insertAtCursor(`\n\n![${file.name.replace(/\.[^.]+$/, '')}](${url})\n\n`)
+  }
+
+  const onPickVideo = async (file: File): Promise<void> => {
+    const url = await upload(file, 'video')
+    if (url) setVideoUrl(url)
   }
 
   const submit = (e: FormEvent): void => {
     e.preventDefault()
     if (!title.trim() || !slug.trim() || !category.trim()) return
-    onSave({ title: title.trim(), slug: slug.trim(), category: category.trim(), audience, excerpt: excerpt.trim(), body, is_published: isPublished, sort_order: sortOrder })
+    onSave({ title: title.trim(), slug: slug.trim(), category: category.trim(), audience, excerpt: excerpt.trim(), body, video_url: videoUrl.trim() || null, is_published: isPublished, sort_order: sortOrder })
   }
 
   return (
@@ -106,19 +99,20 @@ export function HelpArticleEditor({ article, saving, error, onSave, onCancel }: 
       </div>
       <div>
         <div className="mb-1 flex items-center gap-2">
+          <label className={label}>Vidéo de démo (optionnelle)</label>
+          <MediaUploadButton icon={Film} label="Téléverser une vidéo" accept="video/*" uploading={uploading} onFile={(f) => void onPickVideo(f)} />
+        </div>
+        {videoUrl && (
+          <div className="mt-1 space-y-1.5">
+            <VideoPlayer src={videoUrl} className="max-w-md" />
+            <button type="button" onClick={() => setVideoUrl('')} className="flex items-center gap-1 text-[12px] text-gray-500 hover:text-gray-700"><X size={13} /> Retirer la vidéo</button>
+          </div>
+        )}
+      </div>
+      <div>
+        <div className="mb-1 flex items-center gap-2">
           <label className={label}>Contenu (markdown)</label>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="ml-auto flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1 text-[12px] text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-          >
-            <ImagePlus size={14} /> {uploading ? 'Téléversement…' : 'Insérer une image'}
-          </button>
-          <input
-            ref={fileRef} type="file" accept="image/*" hidden
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPickImage(f); e.target.value = '' }}
-          />
+          <MediaUploadButton icon={ImagePlus} label="Insérer une image" accept="image/*" uploading={uploading} onFile={(f) => void onPickImage(f)} />
         </div>
         <textarea ref={bodyRef} value={body} onChange={(e) => setBody(e.target.value)} rows={10} className={`${field} resize-y font-mono`} />
         {uploadErr && <p className="mt-1 text-[12px]" style={{ color: 'var(--color-error)' }}>{uploadErr}</p>}
