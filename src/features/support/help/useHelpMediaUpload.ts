@@ -31,7 +31,12 @@ export function useHelpMediaUpload(): UseHelpMediaUpload {
     setUploading(true)
     const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')
     const path = `articles/${Date.now()}_${safe}`
-    const { error: e } = await supabase.storage.from('help-media').upload(path, file)
+    // contentType explicite : sans lui, un objet servi en application/octet-stream peut
+    // ne pas se décoder dans <video> (écran noir). On force le vrai type MIME du fichier.
+    const { error: e } = await supabase.storage.from('help-media').upload(path, file, {
+      contentType: file.type || undefined,
+      upsert: false,
+    })
     if (e) {
       console.error('help media upload:', e.message)
       setError('Téléversement impossible.')
