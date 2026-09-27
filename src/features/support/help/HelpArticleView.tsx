@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { ArticleMarkdown } from '../../../components/ui/ArticleMarkdown'
+import { VideoPlayer } from '../../../components/ui/VideoPlayer'
 import type { HelpArticle } from '../../../types/database.types'
 
 /** Vue d'un article de la base de connaissances (corps markdown rendu en toute sécurité). */
@@ -13,6 +14,11 @@ export function HelpArticleView({ article, onBack }: { article: HelpArticle; onB
         {article.category}
       </span>
       <h2 className="mt-2 text-lg font-bold text-gray-900">{article.title}</h2>
+      {article.video_url && (
+        <div className="mt-3 max-w-2xl">
+          <VideoPlayer src={article.video_url} />
+        </div>
+      )}
       <div className="mt-3 max-w-2xl text-[13px] text-gray-700">
         <ArticleMarkdown>{article.body}</ArticleMarkdown>
       </div>

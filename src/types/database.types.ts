@@ -1531,6 +1531,7 @@ export interface HelpArticle {
   audience: HelpAudience
   is_published: boolean
   sort_order: number
+  video_url: string | null
   created_at: string
   updated_at: string
 }
@@ -1545,6 +1546,7 @@ export interface HelpArticleInsert {
   audience?: HelpAudience
   is_published?: boolean
   sort_order?: number
+  video_url?: string | null
 }
 
 export interface HelpArticleUpdate {
@@ -1557,6 +1559,7 @@ export interface HelpArticleUpdate {
   audience?: HelpAudience
   is_published?: boolean
   sort_order?: number
+  video_url?: string | null
 }
 
 /**
