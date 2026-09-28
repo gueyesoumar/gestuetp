@@ -17,9 +17,9 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps): 
         preload="metadata"
         playsInline
         poster={poster ?? undefined}
+        src={src}
         className="absolute inset-0 h-full w-full"
       >
-        <source src={src} />
         Votre navigateur ne peut pas lire cette vidéo.
       </video>
     </div>
