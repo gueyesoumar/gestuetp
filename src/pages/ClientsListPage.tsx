@@ -17,7 +17,7 @@ export function ClientsListPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Clients</h2>
+          <h2 data-tour="clients-header" className="text-xl font-semibold text-gray-900">Clients</h2>
           <p className="mt-1 text-sm text-gray-600">
             G&eacute;rez votre portefeuille de clients.
           </p>
@@ -25,6 +25,7 @@ export function ClientsListPage() {
         {canManageClients && (
           <Link
             to="/clients/nouveau"
+            data-tour="new-client"
             className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900"
           >
             Nouveau client

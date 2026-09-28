@@ -30,7 +30,7 @@ export function TwoFactorSection(): JSX.Element {
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
       <div className="grid grid-cols-[240px_1fr]">
         <div className="bg-page-bg border-r border-gray-200 p-6">
-          <h4 className="text-[14px] font-semibold text-gray-900">Deux facteurs (2FA)</h4>
+          <h4 data-tour="twofa-section" className="text-[14px] font-semibold text-gray-900">Deux facteurs (2FA)</h4>
           <p className="mt-1 text-[12px] leading-relaxed text-gray-500">
             Vos applications d&apos;authentification. Le 2FA est requis sur tous les comptes.
           </p>
@@ -66,6 +66,7 @@ export function TwoFactorSection(): JSX.Element {
 
           <button
             onClick={() => setAddOpen(true)}
+            data-tour="twofa-add"
             className="flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2.5 text-[13px] font-medium text-forest-700 transition-colors hover:bg-forest-50 hover:border-forest-300"
           >
             <Plus size={16} /> Ajouter un authentificateur

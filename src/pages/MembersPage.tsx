@@ -120,7 +120,7 @@ export function MembersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Membres</h2>
+          <h2 data-tour="members-header" className="text-xl font-semibold text-gray-900">Membres</h2>
           <p className="mt-1 text-sm text-gray-600">
             G&eacute;rez les membres de votre organisation.
           </p>
@@ -137,6 +137,7 @@ export function MembersPage() {
           )}
           {canManageMembers && (
             <button
+              data-tour="invite-member"
               className={`rounded-md px-4 py-2 text-sm font-medium shadow-sm ${userQuotaReached
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-forest-700 text-white hover:bg-forest-900'}`}

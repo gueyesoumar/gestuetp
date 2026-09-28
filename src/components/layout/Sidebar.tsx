@@ -109,6 +109,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
           <NavLink
             to="/hub"
             onClick={onClose}
+            data-tour="hub-link"
             title={collapsed ? 'Retour au Hub ETP' : undefined}
             className={collapsed
               ? 'flex items-center justify-center w-11 h-11 mx-auto rounded-xl text-white/30 hover:bg-white/8 hover:text-white/60 transition-colors'
@@ -128,7 +129,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation principale */}
-        <nav className={`flex-1 py-3 ${collapsed ? 'px-2' : 'px-3'}`}>
+        <nav data-tour="sidebar-nav" className={`flex-1 py-3 ${collapsed ? 'px-2' : 'px-3'}`}>
           {!collapsed && (
             <p className="mb-2 px-3.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/30">Espace de travail</p>
           )}

@@ -1531,6 +1531,7 @@ export interface HelpArticle {
   audience: HelpAudience
   is_published: boolean
   sort_order: number
+  video_url: string | null
   created_at: string
   updated_at: string
 }
@@ -1545,6 +1546,7 @@ export interface HelpArticleInsert {
   audience?: HelpAudience
   is_published?: boolean
   sort_order?: number
+  video_url?: string | null
 }
 
 export interface HelpArticleUpdate {
@@ -1557,6 +1559,7 @@ export interface HelpArticleUpdate {
   audience?: HelpAudience
   is_published?: boolean
   sort_order?: number
+  video_url?: string | null
 }
 
 /**
@@ -1947,6 +1950,18 @@ export interface Database {
         Row: HelpArticle & Rec
         Insert: HelpArticleInsert & Rec
         Update: HelpArticleUpdate & Rec
+        Relationships: []
+      }
+      onboarding_tours_seen: {
+        Row: { user_id: string; tour_id: string; seen_at: string } & Rec
+        Insert: { user_id: string; tour_id: string; seen_at?: string } & Rec
+        Update: { seen_at?: string } & Rec
+        Relationships: []
+      }
+      demo_preferences: {
+        Row: { user_id: string; lens_on: boolean; updated_at: string } & Rec
+        Insert: { user_id: string; lens_on?: boolean; updated_at?: string } & Rec
+        Update: { lens_on?: boolean; updated_at?: string } & Rec
         Relationships: []
       }
       evidence_catalog: {
