@@ -4,6 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
 
 // ============================================================================
 // Types & validators
@@ -108,6 +109,11 @@ Deno.serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
       cabinetIdForLog = (m as { cabinet_id?: string }).cabinet_id ?? null
+      // Garde IA : ne rien envoyer au modèle si le cabinet a coupé l'IA.
+      if (!(await isAiEnabled(admin, cabinetIdForLog))) {
+        return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: AI_DISABLED_REASON }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
       if (m) {
         // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
         const cc = await getClientContext(admin, (m as { cabinet_id?: string }).cabinet_id, m.client_id)

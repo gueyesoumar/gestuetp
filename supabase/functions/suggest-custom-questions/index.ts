@@ -4,6 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
 
 /**
  * Edge Function : suggest-custom-questions
@@ -77,6 +78,10 @@ Deno.serve(async (req) => {
         // Cloisonnement : la mission doit appartenir au cabinet de l'appelant
         if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
           return jsonResponse({ error: ACCESS_DENIED }, 403)
+        }
+        // Garde IA : ne rien envoyer au modèle si le cabinet a coupé l'IA.
+        if (!(await isAiEnabled(admin, mission.cabinet_id))) {
+          return jsonResponse({ suggestions: [], skipped_reason: AI_DISABLED_REASON })
         }
         // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
         const client = await getClientContext(admin, mission.cabinet_id, mission.client_id)

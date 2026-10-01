@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Sparkles, X, Loader2, Plus, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { useToast } from '../../../hooks/useToast'
 import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 
@@ -41,6 +42,7 @@ export function AiSuggestPanel({ missionId, frameworkId, sections, existingCodes
   const [suggestions, setSuggestions] = useState<AiSuggestion[]>([])
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [edits, setEdits] = useState<Record<string, Partial<AiSuggestion>>>({})
+  const toast = useToast()
 
   const handleGenerate = async (): Promise<void> => {
     if (prompt.trim().length === 0) return
@@ -59,6 +61,10 @@ export function AiSuggestPanel({ missionId, frameworkId, sections, existingCodes
       },
     })
     setLoading(false)
+    if ((data as { skipped_reason?: string })?.skipped_reason === 'cabinet_ai_disabled') {
+      toast.info("Les suggestions IA sont désactivées pour ce cabinet (Réglages → Organisation).")
+      return
+    }
     if (fnError || (data && (data as { error?: string }).error)) {
       const msg = await readInvokeError(fnError, data, 'Erreur IA.')
       setError(msg)

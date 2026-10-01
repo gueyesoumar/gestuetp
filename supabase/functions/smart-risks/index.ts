@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -42,6 +43,12 @@ Deno.serve(async (req) => {
     if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
       return new Response(JSON.stringify({ error: ACCESS_DENIED }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Garde IA : ne rien envoyer au modèle si le cabinet a coupé l'IA.
+    if (!(await isAiEnabled(admin, (mission as { cabinet_id?: string }).cabinet_id))) {
+      return new Response(JSON.stringify({ risks: [], skipped_reason: AI_DISABLED_REASON }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // Client (RFC 0007 P1c.2) : identité (nœud organizations) + contexte (engagement_profiles).

@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
 
 const SYSTEM_PROMPT = `Tu es un expert en audit SI. Pour chaque contrôle, tu détermines le risk_level, les audit_techniques, et l'auditor_id.
 
@@ -72,6 +73,12 @@ Deno.serve(async (req) => {
     if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
       return new Response(JSON.stringify({ error: ACCESS_DENIED }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Garde IA : ne rien envoyer au modèle si le cabinet a coupé l'IA.
+    if (!(await isAiEnabled(supabaseAdmin, (mission as { cabinet_id?: string }).cabinet_id))) {
+      return new Response(JSON.stringify({ success: false, controls: [], assignments: [], skipped_reason: AI_DISABLED_REASON }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: domains } = await supabaseAdmin
