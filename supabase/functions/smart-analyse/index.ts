@@ -5,6 +5,7 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
+import { computeExposure } from '../_shared/exposure-score.ts'
 
 // ============================================================================
 // Types & validators
@@ -413,6 +414,11 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
 
     const prompt = promptIntro + '\n\n' + promptSections.join('\n\n') + '\n\n' + promptInstructions
 
+    // Score d'exposition déterministe (P1, observe-only) sur le contexte textuel envoyé
+    // (le contenu des documents transmis par file_id/URL n'est pas lisible ici).
+    const exAnalyse = computeExposure([promptSections.join('\n\n')])
+    const exposure = { score: exAnalyse.score, level: exAnalyse.level, pii: exAnalyse.counts.pii, financial: exAnalyse.counts.financial, secret: exAnalyse.counts.secret }
+
     contentParts.push({ type: 'text', text: prompt })
 
     console.log('[smart-analyse] Content blocks:', contentParts.map((p: { type: string }) => p.type).join(', '))
@@ -461,13 +467,13 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
         userMessage = 'Les documents fournis sont trop volumineux. Limite : 32 Mo par requete.'
       }
 
-      void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${userMessage}`, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
+      void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${userMessage}`, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null, exposure })
       return new Response(JSON.stringify({ error: userMessage }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const data = await claudeRes.json()
-    void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
+    void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null, exposure })
     const rawText = data.content?.[0]?.text ?? ''
     const clean = rawText.replace(/```json|```/g, '').trim()
 
