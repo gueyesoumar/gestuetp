@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { isStepEnabled } from '../mission-constants'
 import { supabase } from '../../../lib/supabase'
+import { useToast } from '../../../hooks/useToast'
 import { readInvokeError } from '../../../lib/edgeError'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { usePlanningData } from './usePlanningData'
@@ -66,6 +67,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [showMatrix, setShowMatrix] = useState(false)
   const [generatingMatrix, setGeneratingMatrix] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const toast = useToast()
   const planFlag = useFeatureFlag('smart_plan_mission')
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -156,6 +158,12 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
       body: { mission_id: mission.id },
     })
 
+    if (data?.skipped_reason === 'cabinet_ai_disabled') {
+      toast.info("La génération IA est désactivée pour ce cabinet (Réglages → Organisation).")
+      setGenerating(false)
+      return
+    }
+
     if (fnError || data?.error) {
       const detail = await readInvokeError(fnError, data, 'Erreur inconnue')
       console.error('SmartPlan error:', detail, 'data:', data)
@@ -191,7 +199,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
 
     setGenerating(false)
     setPreview({ proposals, assignments: aiAssignments })
-  }, [mission.id, domains, members, assignments, batchUpsert, assignControls, refetchPlanning, onRefetch])
+  }, [mission.id, domains, members, assignments, batchUpsert, assignControls, refetchPlanning, onRefetch, toast])
 
   const handleApplyPreview = useCallback(async (selectedIds: Set<string>): Promise<void> => {
     if (!preview) return

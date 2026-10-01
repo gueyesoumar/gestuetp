@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
+import { isAiEnabled } from '../_shared/ai-guard.ts'
 
 /**
  * Edge Function : extract-document-metadata (Passe 1 du pipeline IA)
@@ -205,13 +206,7 @@ Deno.serve(async (req) => {
     const cabinetId = (missionData as { cabinet_id?: string } | null)?.cabinet_id ?? null
 
     if (cabinetId) {
-      const { data: orgData } = await admin
-        .from('organizations')
-        .select('ai_analysis_enabled')
-        .eq('id', cabinetId)
-        .maybeSingle()
-      const enabled = (orgData as { ai_analysis_enabled?: boolean } | null)?.ai_analysis_enabled ?? true
-      if (!enabled) {
+      if (!(await isAiEnabled(admin, cabinetId))) {
         return jsonResponse({ skipped: 'cabinet_ai_disabled' })
       }
     }

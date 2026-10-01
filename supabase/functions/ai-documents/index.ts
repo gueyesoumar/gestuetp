@@ -4,6 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED, type CallerProfile } from '../_shared/auth.ts'
+import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
 // @deno-types="npm:@types/mammoth"
 import mammoth from 'npm:mammoth@1.6.0'
 import * as XLSX from 'npm:xlsx@0.18.5'
@@ -115,6 +116,12 @@ async function handleUpload(
   // Cloisonnement : le document doit appartenir a une mission du cabinet de l'appelant
   if (!(await callerOwnsMission(admin, caller, (doc as { mission_id?: string }).mission_id))) {
     return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+
+  // Garde IA : ne pas téléverser le document vers Anthropic si le cabinet a coupé l'IA.
+  const { data: mForAi } = await admin.from('missions').select('cabinet_id').eq('id', (doc as { mission_id?: string }).mission_id).maybeSingle()
+  if (!(await isAiEnabled(admin, (mForAi as { cabinet_id?: string } | null)?.cabinet_id))) {
+    return jsonResponse({ skipped_reason: AI_DISABLED_REASON })
   }
 
   if (doc.anthropic_file_id) {
@@ -322,6 +329,11 @@ async function handleAnalyze(
   const owned = (ownedMissions ?? []) as Array<{ id: string; cabinet_id: string }>
   if (owned.length !== missionIds.length || !owned.every((m) => sameCabinet(caller, m.cabinet_id))) {
     return jsonResponse({ error: ACCESS_DENIED }, 403)
+  }
+
+  // Garde IA : ne rien envoyer au modèle si le cabinet a coupé l'IA.
+  if (owned.length > 0 && !(await isAiEnabled(admin, owned[0].cabinet_id))) {
+    return jsonResponse({ skipped_reason: AI_DISABLED_REASON })
   }
 
   const kindByFileId = new Map<string, FileKind>()

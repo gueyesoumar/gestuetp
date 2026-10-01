@@ -3,6 +3,7 @@ import { AlertTriangle, Sparkles } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
 import { readInvokeError } from '../../../../lib/edgeError'
 import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
+import { useToast } from '../../../../hooks/useToast'
 import { CONFORMITY_LEVELS } from '../../mission-constants'
 import { FindingsEditor } from '../findings/FindingsEditor'
 import { AiAnalysisPanel, type AiAnalysis, type AiFinding } from './AiAnalysisPanel'
@@ -47,6 +48,7 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
   const [aiLoading, setAiLoading] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(null)
   const aiFlag = useFeatureFlag('smart_analyse_control')
+  const toast = useToast()
 
   const handleAiSuggest = async () => {
     setAiLoading(true)
@@ -64,6 +66,12 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
         evidence_notes: evidenceNotes,
       },
     })
+
+    if (data?.skipped_reason === 'cabinet_ai_disabled') {
+      toast.info("L'analyse IA est désactivée pour ce cabinet (Réglages → Organisation).")
+      setAiLoading(false)
+      return
+    }
 
     if (fnErr || data?.error) {
       const detail = await readInvokeError(fnErr, data, 'Analyse IA indisponible.')

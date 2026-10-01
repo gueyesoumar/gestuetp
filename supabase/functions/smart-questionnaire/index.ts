@@ -4,6 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { isAiEnabled } from '../_shared/ai-guard.ts'
 
 /**
  * Edge Function : smart-questionnaire (Passe 2 du pipeline IA)
@@ -183,13 +184,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: ACCESS_DENIED }, 403)
     }
 
-    const { data: orgData } = await admin
-      .from('organizations')
-      .select('ai_analysis_enabled')
-      .eq('id', mission.cabinet_id)
-      .maybeSingle()
-    const aiEnabled = (orgData as { ai_analysis_enabled?: boolean } | null)?.ai_analysis_enabled ?? true
-    if (!aiEnabled) {
+    if (!(await isAiEnabled(admin, mission.cabinet_id))) {
       return jsonResponse({
         answers: [], docs_analyzed: 0, docs_total: 0,
         docs_analyzed_names: [], docs_skipped: [], docs_failed: [],

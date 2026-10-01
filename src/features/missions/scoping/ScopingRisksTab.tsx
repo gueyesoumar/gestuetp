@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Sparkles, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { useToast } from '../../../hooks/useToast'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { ScopingRiskCard } from './ScopingRiskCard'
 import { PromoteRiskModal } from '../../risk/PromoteRiskModal'
@@ -28,6 +29,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
   const [source, setSource] = useState('')
   const [generating, setGenerating] = useState(false)
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
+  const toast = useToast()
   const risksFlag = useFeatureFlag('smart_risks_ai')
 
   const handleSubmit = async (): Promise<void> => {
@@ -51,7 +53,13 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
     })
 
     if (!res.ok) { setGenerating(false); return }
-    const data = await res.json() as { risks: { title: string; risk_level: string; description: string; source: string }[] }
+    const data = await res.json() as { risks: { title: string; risk_level: string; description: string; source: string }[]; skipped_reason?: string }
+
+    if (data.skipped_reason === 'cabinet_ai_disabled') {
+      toast.info("La génération IA est désactivée pour ce cabinet (Réglages → Organisation).")
+      setGenerating(false)
+      return
+    }
 
     let added = 0
     for (const risk of data.risks ?? []) {
@@ -71,7 +79,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
       setGenSuccess(`${added} risque${added > 1 ? 's' : ''} g\u00e9n\u00e9r\u00e9${added > 1 ? 's' : ''} depuis le questionnaire`)
       setTimeout(() => setGenSuccess(null), 4000)
     }
-  }, [missionId, userId, onAddRisk])
+  }, [missionId, userId, onAddRisk, toast])
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
