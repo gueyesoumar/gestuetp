@@ -4,6 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
+import { computeExposure } from '../_shared/exposure-score.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -101,6 +102,10 @@ Génère un JSON: {"risks":[{"title":"titre court","risk_level":"critical|high|m
 
 JSON uniquement, en français. Maximum 8 risques.`
 
+    // Score d'exposition déterministe (P1, observe-only) sur ce qui est réellement envoyé.
+    const ex = computeExposure([prompt])
+    const exposure = { score: ex.score, level: ex.level, pii: ex.counts.pii, financial: ex.counts.financial, secret: ex.counts.secret }
+
     const startedAt = Date.now()
     const MODEL = 'claude-haiku-4-5-20251001'
     const cabinetIdForLog = (mission as { cabinet_id?: string } | null)?.cabinet_id ?? null
@@ -121,13 +126,13 @@ JSON uniquement, en français. Maximum 8 risques.`
 
     if (!claudeRes.ok) {
       console.error('[smart-risks] Claude error:', claudeRes.status)
-      void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `Claude ${claudeRes.status}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
+      void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `Claude ${claudeRes.status}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null, exposure })
       return new Response(JSON.stringify({ error: 'Erreur IA' }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const claudeData = await claudeRes.json()
-    void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
+    void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null, exposure })
     const rawText = claudeData.content?.[0]?.text ?? ''
     const clean = rawText.replace(/```json|```/g, '').trim()
 

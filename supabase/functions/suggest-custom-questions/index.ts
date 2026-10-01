@@ -5,6 +5,7 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
+import { computeExposure } from '../_shared/exposure-score.ts'
 
 /**
  * Edge Function : suggest-custom-questions
@@ -124,6 +125,10 @@ Deno.serve(async (req) => {
       existingCodes,
     })
 
+    // Score d'exposition déterministe (P1, observe-only) sur ce qui est réellement envoyé.
+    const exSuggest = computeExposure([prompt])
+    const exposure = { score: exSuggest.score, level: exSuggest.level, pii: exSuggest.counts.pii, financial: exSuggest.counts.financial, secret: exSuggest.counts.secret }
+
     const startedAt = Date.now()
     let claudeRes: Response
     try {
@@ -149,7 +154,7 @@ Deno.serve(async (req) => {
         admin, function_name: 'suggest-custom-questions', model: MODEL,
         input_tokens: null, output_tokens: null, success: false,
         error_message: 'fetch error', duration_ms: Date.now() - startedAt,
-        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId,
+        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId, exposure,
       })
       return jsonResponse({ error: `Appel Claude echoue : ${message}` }, 502)
     }
@@ -161,7 +166,7 @@ Deno.serve(async (req) => {
         admin, function_name: 'suggest-custom-questions', model: MODEL,
         input_tokens: null, output_tokens: null, success: false,
         error_message: `${claudeRes.status}`, duration_ms: Date.now() - startedAt,
-        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId,
+        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId, exposure,
       })
       return jsonResponse({ error: `Erreur Claude (${claudeRes.status})` }, 502)
     }
@@ -175,7 +180,7 @@ Deno.serve(async (req) => {
       input_tokens: claudeData.usage?.input_tokens ?? null,
       output_tokens: claudeData.usage?.output_tokens ?? null,
       success: true, duration_ms: Date.now() - startedAt,
-      organization_id: null, mission_id: body.mission_id ?? null, user_id: caller.id,
+      organization_id: null, mission_id: body.mission_id ?? null, user_id: caller.id, exposure,
     })
 
     let parsed: { suggestions: unknown[] }

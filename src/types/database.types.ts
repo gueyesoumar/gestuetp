@@ -969,6 +969,11 @@ export interface Document {
   ai_metadata: DocumentAiMetadata | null
   ai_extracted_at: string | null
   ai_extract_error: string | null
+  ai_sensitivity: 'faible' | 'moyenne' | 'elevee' | 'non_inspecte' | null
+  ai_pii_count: number | null
+  ai_financial_count: number | null
+  ai_secret_count: number | null
+  ai_exposure_at: string | null
   created_at: string
 }
 

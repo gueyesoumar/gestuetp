@@ -5,6 +5,7 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED, type CallerProfile } from '../_shared/auth.ts'
 import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
+import { computeExposure } from '../_shared/exposure-score.ts'
 // @deno-types="npm:@types/mammoth"
 import mammoth from 'npm:mammoth@1.6.0'
 import * as XLSX from 'npm:xlsx@0.18.5'
@@ -158,6 +159,25 @@ async function handleUpload(
     return jsonResponse({ error: `Fichier converti trop volumineux (${sizeMb}Mo). Maximum: 32Mo.` }, 400)
   }
 
+  // Score d'exposition déterministe (P1, observe-only) sur le texte réellement lisible.
+  // PDF/images : contenu non lisible côté edge → 'non_inspecte'.
+  const ext = (doc.file_name.split('.').pop() ?? '').toLowerCase()
+  const isTextual = prepared.kind !== 'image' && ext !== 'pdf'
+  let exposureFields: Record<string, unknown>
+  if (isTextual) {
+    const text = await prepared.blob.text().catch(() => '')
+    const ex = computeExposure([doc.file_name, text])
+    exposureFields = {
+      ai_sensitivity: ex.level,
+      ai_pii_count: ex.counts.pii,
+      ai_financial_count: ex.counts.financial,
+      ai_secret_count: ex.counts.secret,
+      ai_exposure_at: new Date().toISOString(),
+    }
+  } else {
+    exposureFields = { ai_sensitivity: 'non_inspecte', ai_exposure_at: new Date().toISOString() }
+  }
+
   const formData = new FormData()
   formData.append('file', prepared.blob, prepared.fileName)
 
@@ -194,6 +214,7 @@ async function handleUpload(
       anthropic_file_id: fileId,
       anthropic_file_uploaded_at: new Date().toISOString(),
       anthropic_file_kind: prepared.kind,
+      ...exposureFields,
     })
     .eq('id', document_id)
 

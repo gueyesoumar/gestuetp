@@ -31,6 +31,8 @@ export interface LogAiCallParams {
   mission_id?: string | null
   user_id?: string | null
   duration_ms: number
+  // Score d'exposition déterministe (P1) — optionnel, observe-only.
+  exposure?: { score: number; level: string; pii: number; financial: number; secret: number } | null
   // deno-lint-ignore no-explicit-any
   admin: any  // ReturnType<typeof createClient> with service-role
 }
@@ -60,6 +62,11 @@ export async function logAiCall(params: LogAiCallParams): Promise<void> {
       mission_id: params.mission_id ?? null,
       user_id: params.user_id ?? null,
       duration_ms: params.duration_ms,
+      exposure_score: params.exposure?.score ?? null,
+      exposure_level: params.exposure?.level ?? null,
+      exposure_pii: params.exposure?.pii ?? null,
+      exposure_financial: params.exposure?.financial ?? null,
+      exposure_secret: params.exposure?.secret ?? null,
     })
 
     if (error) {
