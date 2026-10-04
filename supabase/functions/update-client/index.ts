@@ -124,6 +124,13 @@ Deno.serve(async (req) => {
     for (const k of FICHE_FIELDS) {
       if (k in body) ficheUpdate[k] = body[k]
     }
+    // Consentement IA (RFC 0012, P2) : horodatage + auteur posés côté serveur (jamais le client).
+    if ('ai_consent' in body) {
+      const consent = body.ai_consent === true
+      ficheUpdate.ai_consent = consent
+      ficheUpdate.ai_consent_at = consent ? new Date().toISOString() : null
+      ficheUpdate.ai_consent_by = consent ? callerProfile.id : null
+    }
     if (Object.keys(ficheUpdate).length > 0) {
       const { error: updErr } = await supabaseAdmin
         .from('cabinet_clients')

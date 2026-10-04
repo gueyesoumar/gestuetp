@@ -24,6 +24,8 @@ interface CreateMissionPayload {
   scope_control_ids?: string[]
   /** Template de parcours choisi (RFC 0009). Absent -> template is_default de l'org. */
   workflow_template_id?: string
+  /** Surcharge du consentement IA (RFC 0012). null = hérite de la fiche client. */
+  ai_consent_override?: boolean | null
 }
 
 function quarterLabel(dateIso: string): string {
@@ -319,6 +321,16 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Erreur lors de la création de la mission' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // Surcharge du consentement IA (RFC 0012, P2) : NULL = hérite de la fiche client ;
+    // true/false = force pour cette mission. Non bloquant.
+    if (body.ai_consent_override === true || body.ai_consent_override === false) {
+      const { error: consentErr } = await supabaseAdmin
+        .from('missions')
+        .update({ ai_consent_override: body.ai_consent_override })
+        .eq('id', newMissionId)
+      if (consentErr) console.error('create-mission ai_consent_override:', consentErr.message)
     }
 
     // 7.bis Snapshot probant (P1b, RFC 0007 §8.1) — fige le contexte d'engagement

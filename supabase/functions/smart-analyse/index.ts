@@ -4,8 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
-import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
-import { computeExposure } from '../_shared/exposure-score.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 
 // ============================================================================
 // Types & validators
@@ -110,11 +109,6 @@ Deno.serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
       cabinetIdForLog = (m as { cabinet_id?: string }).cabinet_id ?? null
-      // Garde IA : ne rien envoyer au modèle si le cabinet a coupé l'IA.
-      if (!(await isAiEnabled(admin, cabinetIdForLog))) {
-        return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: AI_DISABLED_REASON }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-      }
       if (m) {
         // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
         const cc = await getClientContext(admin, (m as { cabinet_id?: string }).cabinet_id, m.client_id)
@@ -414,12 +408,26 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
 
     const prompt = promptIntro + '\n\n' + promptSections.join('\n\n') + '\n\n' + promptInstructions
 
-    // Score d'exposition déterministe (P1, observe-only) sur le contexte textuel envoyé
-    // (le contenu des documents transmis par file_id/URL n'est pas lisible ici).
-    const exAnalyse = computeExposure([promptSections.join('\n\n')])
-    const exposure = { score: exAnalyse.score, level: exAnalyse.level, pii: exAnalyse.counts.pii, financial: exAnalyse.counts.financial, secret: exAnalyse.counts.secret }
+    // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+    // Porte sur le contexte textuel ; le contenu des documents (file_id/URL) n'est pas lisible ici.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId: cabinetIdForLog,
+      missionId: mission_id ?? null,
+      text: prompt,
+      destination: `anthropic:${CLAUDE_SONNET}`,
+      functionName: 'smart-analyse',
+      actorUserId: (caller as { id?: string | null }).id ?? null,
+      targetType: 'mission',
+      targetId: mission_id ?? null,
+    })
+    if (!gate.allowed) {
+      return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: gate.skipped_reason }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    const exposure = { score: gate.exposure.score, level: gate.exposure.level, pii: gate.exposure.counts.pii, financial: gate.exposure.counts.financial, secret: gate.exposure.counts.secret }
 
-    contentParts.push({ type: 'text', text: prompt })
+    contentParts.push({ type: 'text', text: gate.text })
 
     console.log('[smart-analyse] Content blocks:', contentParts.map((p: { type: string }) => p.type).join(', '))
 

@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, ACCESS_DENIED } from '../_shared/auth.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 
 /**
  * Edge Function : extract-org-chart-actors
@@ -83,6 +84,24 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Format non supporte (PDF ou image attendus)' }, 400)
     }
 
+    // Garde d'exposition IA (P2) : kill-switch + scellement F6. Corrige le contournement
+    // du kill-switch (cette fonction ne le vérifiait pas). L'organigramme (image/PDF) n'est
+    // pas inspectable côté edge → inspection de contenu + gating par consentement reportés au P3.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId: mission.cabinet_id,
+      missionId,
+      text: buildPrompt(),
+      destination: `anthropic:${MODEL}`,
+      functionName: 'extract-org-chart-actors',
+      actorUserId: (caller as { id?: string | null }).id ?? null,
+      targetType: 'mission',
+      targetId: missionId,
+    })
+    if (!gate.allowed) {
+      return jsonResponse({ actors: [], skipped_reason: gate.skipped_reason })
+    }
+
     // 1. Upload du fichier vers Anthropic Files API
     const fd = new FormData()
     fd.append('file', file, file.name)
@@ -132,7 +151,7 @@ Deno.serve(async (req) => {
         admin, function_name: 'extract-org-chart-actors', model: MODEL,
         input_tokens: null, output_tokens: null, success: false,
         error_message: `${claudeRes.status}`, duration_ms: Date.now() - startedAt,
-        organization_id: null, mission_id: missionId, user_id: caller.id,
+        organization_id: mission.cabinet_id, mission_id: missionId, user_id: caller.id,
       })
       await cleanupFile(anthropicKey, fileId)
       return jsonResponse({ error: `Erreur Claude (${claudeRes.status})` }, 502)
@@ -147,7 +166,7 @@ Deno.serve(async (req) => {
       input_tokens: claudeData.usage?.input_tokens ?? null,
       output_tokens: claudeData.usage?.output_tokens ?? null,
       success: true, duration_ms: Date.now() - startedAt,
-      organization_id: null, mission_id: missionId, user_id: caller.id,
+      organization_id: mission.cabinet_id, mission_id: missionId, user_id: caller.id,
     })
 
     // 3. Cleanup Anthropic file
