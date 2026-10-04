@@ -84,9 +84,11 @@ Deno.serve(async (req) => {
     }
 
     // Cloisonnement : la fiche doit appartenir au cabinet de l'appelant.
+    // Note : l'identité (client_name…) a migré sur le nœud organizations (mig 00222) ;
+    // ne PAS la sélectionner ici — la colonne n'existe plus sur cabinet_clients.
     const { data: fiche, error: ficheErr } = await supabaseAdmin
       .from('cabinet_clients')
-      .select('id, cabinet_id, client_org_id, client_name')
+      .select('id, cabinet_id, client_org_id')
       .eq('id', ficheId)
       .single()
     if (ficheErr || !fiche) {
@@ -178,7 +180,7 @@ Deno.serve(async (req) => {
       action: 'client.updated',
       targetType: 'client',
       targetId: fiche.id,
-      targetLabel: (body.client_name as string) ?? fiche.client_name,
+      targetLabel: (body.client_name as string) ?? null,
     })
 
     return new Response(
