@@ -43,7 +43,7 @@ export function ClientAiConsentSection({ aiConsent, consentAt, disabled, onChang
             disabled={disabled}
             onChange={(e) => onChange(e.target.checked)}
           />
-          <div className="h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-forest-600 peer-focus:ring-2 peer-focus:ring-forest-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-5" />
+          <div className="h-6 w-11 rounded-full bg-gray-300 transition-colors peer-checked:bg-forest-700 peer-focus:ring-2 peer-focus:ring-forest-100 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
         </label>
       </div>
 
