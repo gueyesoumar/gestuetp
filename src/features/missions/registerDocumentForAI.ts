@@ -11,7 +11,7 @@ import { readInvokeError } from '../../lib/edgeError'
  * - La whitelist doit rester synchro avec uploadValidation.ts ACCEPTED_FORMATS
  *   et avec la branche prepareAsset() de la edge function ai-documents.
  */
-export function registerDocumentForAI(documentId: string, fileName: string): void {
+export function registerDocumentForAI(documentId: string, fileName: string, onDone?: () => void): void {
   const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
   const supportedExts = [
     'pdf', 'txt', 'csv', 'html', 'htm', 'md',
@@ -23,7 +23,8 @@ export function registerDocumentForAI(documentId: string, fileName: string): voi
     return
   }
 
-  // Fire-and-forget — don't await
+  // Fire-and-forget — don't await. `onDone` est appelé quand l'edge a répondu
+  // (la sensibilité est alors persistée) pour rafraîchir la liste et afficher la pastille.
   void (async () => {
     try {
       const { data, error } = await supabase.functions.invoke('ai-documents', {
@@ -41,9 +42,11 @@ export function registerDocumentForAI(documentId: string, fileName: string): voi
         return
       }
 
-      console.log(`[registerDocumentForAI] ${fileName} registered with Anthropic Files API:`, data?.file_id)
+      console.log(`[registerDocumentForAI] ${fileName} scanned (sensitivity persisted), AI upload en tâche de fond`)
     } catch (err) {
       console.warn(`[registerDocumentForAI] Unexpected error for ${fileName}:`, err)
+    } finally {
+      onDone?.()
     }
   })()
 }
