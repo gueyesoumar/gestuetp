@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Columns2, X } from 'lucide-react'
 import { ErrorAlert } from '../../../../components/ui/ErrorAlert'
+import { SensitivityBadge } from '../../../../components/ui/SensitivityBadge'
 import { SplitDocumentPreview } from '../SplitDocumentPreview'
 import type { Document } from '../../../../types/database.types'
 
@@ -82,6 +83,12 @@ export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents
                 <p className="text-xs font-medium text-gray-900 truncate">{doc.file_name}</p>
                 {doc.description && <p className="text-[10px] text-gray-400 truncate">{doc.description}</p>}
               </div>
+              <span className="shrink-0">
+                <SensitivityBadge
+                  level={doc.ai_sensitivity}
+                  counts={{ pii: doc.ai_pii_count, financial: doc.ai_financial_count, secret: doc.ai_secret_count }}
+                />
+              </span>
               <span className="text-[10px] text-gray-300 shrink-0">{formatSize(doc.file_size)}</span>
               {doc.file_size && doc.file_size > MAX_SIZE_IA ? (
                 <span className="text-[9px] font-medium text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded shrink-0">{'\u26A0'} Trop gros</span>
