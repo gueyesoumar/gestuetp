@@ -192,6 +192,7 @@ async function handleUpload(
         ai_pii_count: gate.exposure.counts.pii,
         ai_financial_count: gate.exposure.counts.financial,
         ai_secret_count: gate.exposure.counts.secret,
+        ai_detected_categories: gate.exposure.categories,
         ai_exposure_at: new Date().toISOString(),
       }
     : { ai_sensitivity: 'non_inspecte', ai_exposure_at: new Date().toISOString() }

@@ -87,6 +87,7 @@ export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents
                 <SensitivityBadge
                   level={doc.ai_sensitivity}
                   counts={{ pii: doc.ai_pii_count, financial: doc.ai_financial_count, secret: doc.ai_secret_count }}
+                  categories={doc.ai_detected_categories}
                 />
               </span>
               <span className="text-[10px] text-gray-300 shrink-0">{formatSize(doc.file_size)}</span>
