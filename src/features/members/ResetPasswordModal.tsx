@@ -78,6 +78,11 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
             placeholder="Nouveau mot de passe"
           />
           <PasswordCriteria password={newPassword} policy={policy} tone="light" className="mt-3" />
+          {policy.check_hibp && (
+            <p className="mt-2 text-xs text-gray-400">
+              L&rsquo;absence du mot de passe dans une fuite de donn&eacute;es connue est v&eacute;rifi&eacute;e &agrave; la validation.
+            </p>
+          )}
         </div>
 
         <div>
