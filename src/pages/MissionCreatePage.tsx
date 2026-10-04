@@ -183,6 +183,10 @@ export function MissionCreatePage() {
         totalDomains={f.domains.length}
         workflowTemplateId={f.workflowTemplateId}
         onChangeTemplate={f.setWorkflowTemplateId}
+        showConsent={!f.isSupervision}
+        clientConsent={f.selectedClient?.ai_consent ?? null}
+        aiConsentOverride={f.aiConsentOverride}
+        onChangeConsentOverride={f.setAiConsentOverride}
       />
     ),
   })

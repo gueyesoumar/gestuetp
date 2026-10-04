@@ -3,8 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
-import { isAiEnabled, AI_DISABLED_REASON } from '../_shared/ai-guard.ts'
-import { computeExposure } from '../_shared/exposure-score.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -44,12 +43,6 @@ Deno.serve(async (req) => {
     if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
       return new Response(JSON.stringify({ error: ACCESS_DENIED }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
-
-    // Garde IA : ne rien envoyer au modèle si le cabinet a coupé l'IA.
-    if (!(await isAiEnabled(admin, (mission as { cabinet_id?: string }).cabinet_id))) {
-      return new Response(JSON.stringify({ risks: [], skipped_reason: AI_DISABLED_REASON }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // Client (RFC 0007 P1c.2) : identité (nœud organizations) + contexte (engagement_profiles).
@@ -102,13 +95,30 @@ Génère un JSON: {"risks":[{"title":"titre court","risk_level":"critical|high|m
 
 JSON uniquement, en français. Maximum 8 risques.`
 
-    // Score d'exposition déterministe (P1, observe-only) sur ce qui est réellement envoyé.
-    const ex = computeExposure([prompt])
-    const exposure = { score: ex.score, level: ex.level, pii: ex.counts.pii, financial: ex.counts.financial, secret: ex.counts.secret }
-
-    const startedAt = Date.now()
     const MODEL = 'claude-haiku-4-5-20251001'
     const cabinetIdForLog = (mission as { cabinet_id?: string } | null)?.cabinet_id ?? null
+
+    // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId: cabinetIdForLog,
+      missionId: mission_id,
+      clientOrgId: mission.client_id,
+      text: prompt,
+      destination: `anthropic:${MODEL}`,
+      functionName: 'smart-risks',
+      actorUserId: (caller as { id?: string | null }).id ?? null,
+      targetType: 'mission',
+      targetId: mission_id,
+    })
+    if (!gate.allowed) {
+      return new Response(JSON.stringify({ risks: [], skipped_reason: gate.skipped_reason }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    const promptToSend = gate.text
+    const exposure = { score: gate.exposure.score, level: gate.exposure.level, pii: gate.exposure.counts.pii, financial: gate.exposure.counts.financial, secret: gate.exposure.counts.secret }
+
+    const startedAt = Date.now()
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -120,7 +130,7 @@ JSON uniquement, en français. Maximum 8 risques.`
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: 'user', content: promptToSend }],
       }),
     })
 

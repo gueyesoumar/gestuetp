@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react'
 import { Sparkles, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
-import { useToast } from '../../../hooks/useToast'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { AiPreflightPanel } from '../../../components/ui/AiPreflightPanel'
+import { isAiSkip } from '../aiSkip'
 import { ScopingRiskCard } from './ScopingRiskCard'
 import { PromoteRiskModal } from '../../risk/PromoteRiskModal'
 import { EmptyState } from '../../../components/ui/EmptyState'
@@ -29,7 +30,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
   const [source, setSource] = useState('')
   const [generating, setGenerating] = useState(false)
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
-  const toast = useToast()
+  const [aiSkip, setAiSkip] = useState<string | null>(null)
   const risksFlag = useFeatureFlag('smart_risks_ai')
 
   const handleSubmit = async (): Promise<void> => {
@@ -41,6 +42,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
   const handleGenerateFromQuestionnaire = useCallback(async (): Promise<void> => {
     setGenerating(true)
     setGenSuccess(null)
+    setAiSkip(null)
 
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
@@ -55,8 +57,8 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
     if (!res.ok) { setGenerating(false); return }
     const data = await res.json() as { risks: { title: string; risk_level: string; description: string; source: string }[]; skipped_reason?: string }
 
-    if (data.skipped_reason === 'cabinet_ai_disabled') {
-      toast.info("La génération IA est désactivée pour ce cabinet (Réglages → Organisation).")
+    if (isAiSkip(data.skipped_reason)) {
+      setAiSkip(data.skipped_reason)
       setGenerating(false)
       return
     }
@@ -79,7 +81,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
       setGenSuccess(`${added} risque${added > 1 ? 's' : ''} g\u00e9n\u00e9r\u00e9${added > 1 ? 's' : ''} depuis le questionnaire`)
       setTimeout(() => setGenSuccess(null), 4000)
     }
-  }, [missionId, userId, onAddRisk, toast])
+  }, [missionId, userId, onAddRisk])
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -109,6 +111,8 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
           <p className="text-xs text-green-700 font-medium">{genSuccess}</p>
         </div>
       )}
+
+      <AiPreflightPanel reason={aiSkip} onDismiss={() => setAiSkip(null)} />
 
       {error && <ErrorAlert message={error} />}
 

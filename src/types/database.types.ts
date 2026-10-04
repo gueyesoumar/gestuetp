@@ -504,6 +504,8 @@ export interface Mission {
   workflow_disabled_steps?: string[]
   /** Template de parcours choisi à la création (RFC 0009 phase 2, migration 00253). */
   workflow_template_id?: string | null
+  /** Surcharge du consentement IA pour cette mission (NULL = hérite du client ; RFC 0012, migration 00262). */
+  ai_consent_override?: boolean | null
   lead_auditor_id: string | null
   associate_id: string | null
   start_date: string | null
@@ -529,6 +531,7 @@ export interface MissionInsert {
   description?: string | null
   status?: MissionStatus
   kind?: MissionKind
+  ai_consent_override?: boolean | null
   lead_auditor_id?: string | null
   associate_id?: string | null
   start_date?: string | null
@@ -545,6 +548,7 @@ export interface MissionUpdate {
   name?: string
   description?: string | null
   status?: MissionStatus
+  ai_consent_override?: boolean | null
   lead_auditor_id?: string | null
   associate_id?: string | null
   start_date?: string | null
@@ -861,6 +865,10 @@ export interface CabinetClient {
   it_environment: string | null
   it_systems: string[]
   notes: string | null
+  /** Consentement IA du client (RFC 0012, migration 00262). NULL/false = non consenti. */
+  ai_consent: boolean | null
+  ai_consent_at: string | null
+  ai_consent_by: string | null
   /** Fiche client de démonstration (E4, migration 00235). */
   is_demo: boolean
   demo_owner_id: string | null
@@ -889,6 +897,9 @@ export interface CabinetClientInsert {
   parties_interessees?: PartieInteressee[]
   exigences_reglementaires?: ExigenceReglementaire[]
   notes?: string | null
+  ai_consent?: boolean | null
+  ai_consent_at?: string | null
+  ai_consent_by?: string | null
   is_demo?: boolean
   demo_owner_id?: string | null
 }
@@ -916,6 +927,9 @@ export interface CabinetClientUpdate {
   brand_accent_color?: string | null
   brand_font?: string | null
   notes?: string | null
+  ai_consent?: boolean | null
+  ai_consent_at?: string | null
+  ai_consent_by?: string | null
 }
 
 export interface SignatureEvidence {

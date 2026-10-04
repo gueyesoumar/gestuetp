@@ -4,7 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
-import { isAiEnabled } from '../_shared/ai-guard.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 
 /**
  * Edge Function : smart-questionnaire (Passe 2 du pipeline IA)
@@ -184,14 +184,6 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: ACCESS_DENIED }, 403)
     }
 
-    if (!(await isAiEnabled(admin, mission.cabinet_id))) {
-      return jsonResponse({
-        answers: [], docs_analyzed: 0, docs_total: 0,
-        docs_analyzed_names: [], docs_skipped: [], docs_failed: [],
-        skipped_reason: 'cabinet_ai_disabled',
-      })
-    }
-
     // 2. Documents + métadonnées Passe 1 — chargés AVANT le check de cache
     // pour pouvoir détecter les docs en attente de Passe 1 et invalider le
     // cache obsolète automatiquement.
@@ -312,6 +304,29 @@ Deno.serve(async (req) => {
       const regs = (cc.exigences_reglementaires ?? []).map((r) => r.nom).join(', ')
       clientContext = `Client: ${cc.client_name} | Secteur: ${cc.client_sector ?? '?'} | Taille: ${cc.effectifs ?? '?'} | IT: ${(cc.it_systems ?? []).join(', ') || '?'} | Réglementations: ${regs || 'aucune'} | Référentiel: ${mission.framework?.name ?? '?'}`
     }
+
+    // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+    // Les documents (file_id) ont déjà été filtrés à l'upload ; on filtre ici le contexte client inline.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId: mission.cabinet_id,
+      missionId: mission_id,
+      clientOrgId: mission.client_id,
+      text: clientContext,
+      destination: `anthropic:${CLAUDE_SONNET}`,
+      functionName: 'smart-questionnaire',
+      actorUserId: caller.id,
+      targetType: 'mission',
+      targetId: mission_id,
+    })
+    if (!gate.allowed) {
+      return jsonResponse({
+        answers: [], docs_analyzed: 0, docs_total: 0,
+        docs_analyzed_names: [], docs_skipped: [], docs_failed: [],
+        skipped_reason: gate.skipped_reason,
+      })
+    }
+    clientContext = gate.text
 
     // 5. Caller user_id pour log (profil déjà résolu par authenticateCaller)
     const logCtx = {

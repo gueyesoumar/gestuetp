@@ -7,6 +7,7 @@ import { ClientIdentitySection } from '../features/clients/ClientIdentitySection
 import { ClientInfoSection } from '../features/clients/ClientInfoSection'
 import { ExigencesSection } from '../features/clients/ExigencesSection'
 import { ClientBrandingSection } from '../features/clients/ClientBrandingSection'
+import { ClientAiConsentSection } from '../features/clients/ClientAiConsentSection'
 import { SplitForm } from '../components/ui/SplitForm'
 import { SplitFormSection } from '../components/ui/SplitFormSection'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -38,6 +39,7 @@ export function ClientDetailPage() {
   const [brandAccent, setBrandAccent] = useState<string | null>(null)
   const [brandFont, setBrandFont] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
+  const [aiConsent, setAiConsent] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -65,6 +67,7 @@ export function ClientDetailPage() {
     setBrandAccent(client.brand_accent_color ?? null)
     setBrandFont(client.brand_font ?? null)
     setNotes(client.notes ?? '')
+    setAiConsent(client.ai_consent === true)
     setInitialized(true)
   }
 
@@ -91,6 +94,7 @@ export function ClientDetailPage() {
       brand_accent_color: brandAccent,
       brand_font: brandFont,
       notes: notes || null,
+      ai_consent: aiConsent,
     }
     const ok = await updateClient(client.id, payload as Record<string, unknown> & import('../types/database.types').CabinetClientUpdate)
     if (ok) setSuccess(true)
@@ -147,6 +151,15 @@ export function ClientDetailPage() {
               onSecondaryColor={setBrandSecondary}
               onAccentColor={setBrandAccent}
               onBrandFont={setBrandFont}
+            />
+          </SplitFormSection>
+
+          <SplitFormSection title="Confidentialit&eacute; IA" description="Consentement du client &agrave; l'analyse IA de ses donn&eacute;es">
+            <ClientAiConsentSection
+              aiConsent={aiConsent}
+              consentAt={client.ai_consent_at ?? null}
+              disabled={updating}
+              onChange={setAiConsent}
             />
           </SplitFormSection>
 
