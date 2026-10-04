@@ -112,7 +112,8 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
       }
 
       if (insertedDoc?.id && filesApiFlag.enabled) {
-        registerDocumentForAI(insertedDoc.id, file.name)
+        // Rafraîchit la liste dès que le scan est terminé (pastille de sensibilité).
+        registerDocumentForAI(insertedDoc.id, file.name, refetch)
       }
 
       return file.name

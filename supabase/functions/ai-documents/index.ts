@@ -196,11 +196,14 @@ async function handleUpload(
       }
     : { ai_sensitivity: 'non_inspecte', ai_exposure_at: new Date().toISOString() }
 
-  // Politique bloquante (secret / accord client manquant / IA coupée) : on NE téléverse PAS
-  // vers Anthropic. On persiste la sensibilité détectée (badge) + on renvoie le motif.
+  // Persiste la sensibilité IMMÉDIATEMENT (dès le scan, avant tout envoi réseau) : la
+  // pastille s'affiche sans attendre l'upload Anthropic, et reste correcte même si
+  // celui-ci échoue ensuite.
+  // deno-lint-ignore no-explicit-any
+  await (admin.from('documents') as any).update(exposureFields).eq('id', document_id)
+
+  // Politique bloquante (secret / accord client manquant / IA coupée) : on NE téléverse PAS.
   if (!gate.allowed) {
-    // deno-lint-ignore no-explicit-any
-    await (admin.from('documents') as any).update(exposureFields).eq('id', document_id)
     return jsonResponse({ ...exposureFields, skipped_reason: gate.skipped_reason })
   }
 
@@ -210,76 +213,64 @@ async function handleUpload(
   const blobToUpload = redacting ? new Blob([gate.text], { type: 'text/plain' }) : prepared.blob
   const uploadName = redacting ? prepared.fileName.replace(/\.[^.]+$/, '') + '.redacted.txt' : prepared.fileName
 
-  const formData = new FormData()
-  formData.append('file', blobToUpload, uploadName)
+  // Upload vers Anthropic + Passe 1 en TÂCHE DE FOND : on répond tout de suite (la
+  // sensibilité est déjà persistée), sans bloquer sur le round-trip réseau Anthropic.
+  const background = (async () => {
+    try {
+      const formData = new FormData()
+      formData.append('file', blobToUpload, uploadName)
 
-  const uploadRes = await fetch(`${ANTHROPIC_API}/files`, {
-    method: 'POST',
-    headers: {
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-beta': ANTHROPIC_BETA,
-    },
-    body: formData,
-  })
+      const uploadRes = await fetch(`${ANTHROPIC_API}/files`, {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': ANTHROPIC_BETA,
+        },
+        body: formData,
+      })
 
-  if (!uploadRes.ok) {
-    const errText = await uploadRes.text()
-    console.error('[ai-documents] Anthropic upload error:', uploadRes.status, errText)
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text()
+        console.error('[ai-documents] Anthropic upload error:', uploadRes.status, errText)
+        await persistExtractError(admin, document_id, `anthropic_${uploadRes.status}`)
+        return
+      }
 
-    let userMessage = 'Erreur lors de l\'upload vers le service d\'analyse'
-    if (errText.includes('file_too_large')) userMessage = 'Fichier trop volumineux pour l\'analyse IA'
-    if (errText.includes('unsupported')) userMessage = 'Type de fichier non supporté pour l\'analyse IA'
+      const fileId = (await uploadRes.json()).id as string
+      console.log(`[ai-documents] Uploaded ${doc.file_name} (kind=${prepared.kind}) → ${fileId}`)
 
-    await persistExtractError(admin, document_id, `anthropic_${uploadRes.status}`)
-    return jsonResponse({ error: userMessage }, 502)
-  }
+      // deno-lint-ignore no-explicit-any
+      const { error: updateErr } = await (admin.from('documents') as any)
+        .update({
+          anthropic_file_id: fileId,
+          anthropic_file_uploaded_at: new Date().toISOString(),
+          anthropic_file_kind: prepared.kind,
+        })
+        .eq('id', document_id)
+      if (updateErr) console.error('[ai-documents] DB update error:', updateErr.message)
 
-  const uploadData = await uploadRes.json()
-  const fileId = uploadData.id as string
+      // Passe 1 (extraction métadonnées). Forward du JWT utilisateur (callerAuth).
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+      const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+      await fetch(`${supabaseUrl}/functions/v1/extract-document-metadata`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': callerAuth, 'apikey': anonKey },
+        body: JSON.stringify({ document_id }),
+      }).catch((err: unknown) => {
+        console.warn('[ai-documents] extract-document-metadata fetch failed:', err instanceof Error ? err.message : 'unknown')
+      })
+    } catch (err) {
+      console.error('[ai-documents] background upload failed:', err instanceof Error ? err.message : 'unknown')
+    }
+  })()
 
-  console.log(`[ai-documents] Uploaded ${doc.file_name} (kind=${prepared.kind}) → ${fileId}`)
-
-  // deno-lint-ignore no-explicit-any
-  const { error: updateErr } = await (admin.from('documents') as any)
-    .update({
-      anthropic_file_id: fileId,
-      anthropic_file_uploaded_at: new Date().toISOString(),
-      anthropic_file_kind: prepared.kind,
-      ...exposureFields,
-    })
-    .eq('id', document_id)
-
-  if (updateErr) {
-    console.error('[ai-documents] DB update error:', updateErr.message)
-  }
-
-  // Fire-and-forget : Passe 1 (extraction métadonnées par doc).
-  // Forward du JWT utilisateur (callerAuth) pour passer la vérification
-  // gateway de extract-document-metadata sans dépendre de --no-verify-jwt.
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
-  const extractPromise = fetch(`${supabaseUrl}/functions/v1/extract-document-metadata`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': callerAuth,
-      'apikey': anonKey,
-    },
-    body: JSON.stringify({ document_id }),
-  }).catch((err: unknown) => {
-    const msg = err instanceof Error ? err.message : 'unknown'
-    console.warn('[ai-documents] extract-document-metadata fetch failed:', msg)
-  })
   // deno-lint-ignore no-explicit-any
   const runtime = (globalThis as any).EdgeRuntime
-  if (runtime?.waitUntil) {
-    runtime.waitUntil(extractPromise)
-  } else {
-    void extractPromise
-  }
+  if (runtime?.waitUntil) runtime.waitUntil(background)
+  else void background
 
-  return jsonResponse({ file_id: fileId, file_name: doc.file_name, kind: prepared.kind })
+  return jsonResponse({ ...exposureFields, kind: prepared.kind, pending_ai_upload: true })
 }
 
 // ── DELETE ──────────────────────────────────────────────────────────────────
