@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Sparkles, X, Loader2, Plus, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
-import { useToast } from '../../../hooks/useToast'
 import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
+import { AiPreflightPanel } from '../../../components/ui/AiPreflightPanel'
+import { isAiSkip } from '../aiSkip'
 
 export type AiQuestionType = 'text' | 'textarea' | 'boolean' | 'date' | 'number' | 'scale_percent' | 'file' | 'organigramme'
 
@@ -42,12 +43,13 @@ export function AiSuggestPanel({ missionId, frameworkId, sections, existingCodes
   const [suggestions, setSuggestions] = useState<AiSuggestion[]>([])
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [edits, setEdits] = useState<Record<string, Partial<AiSuggestion>>>({})
-  const toast = useToast()
+  const [aiSkip, setAiSkip] = useState<string | null>(null)
 
   const handleGenerate = async (): Promise<void> => {
     if (prompt.trim().length === 0) return
     setLoading(true)
     setError(null)
+    setAiSkip(null)
     setSuggestions([])
     setPicked(new Set())
     setEdits({})
@@ -61,8 +63,9 @@ export function AiSuggestPanel({ missionId, frameworkId, sections, existingCodes
       },
     })
     setLoading(false)
-    if ((data as { skipped_reason?: string })?.skipped_reason === 'cabinet_ai_disabled') {
-      toast.info("Les suggestions IA sont désactivées pour ce cabinet (Réglages → Organisation).")
+    const skip = (data as { skipped_reason?: string })?.skipped_reason
+    if (isAiSkip(skip)) {
+      setAiSkip(skip)
       return
     }
     if (fnError || (data && (data as { error?: string }).error)) {
@@ -110,6 +113,7 @@ export function AiSuggestPanel({ missionId, frameworkId, sections, existingCodes
 
         <div className="px-5 py-4 overflow-y-auto flex-1">
           {error && <div className="mb-3"><ErrorAlert message={error} /></div>}
+          {aiSkip && <div className="mb-3"><AiPreflightPanel reason={aiSkip} onDismiss={() => setAiSkip(null)} /></div>}
 
           <div className="mb-4">
             <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">

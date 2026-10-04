@@ -20,6 +20,8 @@ export interface CreateMissionPayload {
   scope_control_ids?: string[]
   /** Template de parcours choisi (RFC 0009). Absent -> template is_default de l'org. */
   workflow_template_id?: string
+  /** Surcharge du consentement IA (RFC 0012). null = hérite de la fiche client. */
+  ai_consent_override?: boolean | null
 }
 
 interface UseCreateMissionResult {
