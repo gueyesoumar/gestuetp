@@ -10,6 +10,7 @@ export interface ExposureScore {
   score: number // 0-100
   level: SensitivityLevel
   counts: Record<PiiGroup, number>
+  categories: Record<string, number> // détail par catégorie (email, iban, …), comptes only
   pct_flagged: number // part des caractères couverts par une détection (0-100)
   total_chars: number
 }
@@ -25,9 +26,11 @@ export function computeExposure(texts: Array<string | null | undefined>): Exposu
   const joined = texts.filter(Boolean).join('\n')
   const matches = detectPii(joined)
   const counts: Record<PiiGroup, number> = { pii: 0, financial: 0, secret: 0 }
+  const categories: Record<string, number> = {}
   let flaggedChars = 0
   for (const m of matches) {
     counts[m.group]++
+    categories[m.category] = (categories[m.category] ?? 0) + 1
     flaggedChars += m.end - m.start
   }
   const total = joined.length
@@ -36,5 +39,5 @@ export function computeExposure(texts: Array<string | null | undefined>): Exposu
   const level: SensitivityLevel =
     counts.secret > 0 || score >= 60 ? 'elevee' : score >= 25 ? 'moyenne' : 'faible'
   const pct_flagged = total > 0 ? Math.round((flaggedChars / total) * 1000) / 10 : 0
-  return { score, level, counts, pct_flagged, total_chars: total }
+  return { score, level, counts, categories, pct_flagged, total_chars: total }
 }

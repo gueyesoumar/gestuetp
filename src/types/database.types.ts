@@ -987,6 +987,8 @@ export interface Document {
   ai_pii_count: number | null
   ai_financial_count: number | null
   ai_secret_count: number | null
+  /** Détail par catégorie (comptes only, aucune valeur) — RFC 0012 P2, migration 00265. */
+  ai_detected_categories: Record<string, number> | null
   ai_exposure_at: string | null
   created_at: string
 }

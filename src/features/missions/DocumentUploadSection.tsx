@@ -95,6 +95,7 @@ export function DocumentUploadSection({ documents, uploading, uploadError, onUpl
                   <SensitivityBadge
                     level={doc.ai_sensitivity}
                     counts={{ pii: doc.ai_pii_count, financial: doc.ai_financial_count, secret: doc.ai_secret_count }}
+                    categories={doc.ai_detected_categories}
                   />
                   <span className="text-xs text-gray-400">{formatFileSize(doc.file_size)}</span>
                   <Badge label={doc.mime_type?.split('/')[1] ?? 'fichier'} variant="gray" />
