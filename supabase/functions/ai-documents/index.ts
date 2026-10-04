@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { Buffer } from 'node:buffer'
 import { corsHeaders } from '../_shared/cors.ts'
 import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
@@ -529,10 +530,11 @@ async function prepareAsset(blob: Blob, fileName: string): Promise<PreparedAsset
     }
   }
 
-  // DOCX / DOC → texte plat via mammoth
+  // DOCX / DOC → texte plat via mammoth. En Deno (compat Node), mammoth attend
+  // { buffer: Buffer } et non { arrayBuffer } (sinon « Could not find file in options »).
   if (ext === 'docx' || ext === 'doc') {
     const buffer = await blob.arrayBuffer()
-    const result = await mammoth.extractRawText({ arrayBuffer: buffer })
+    const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) })
     const text = (result?.value ?? '').trim()
     if (!text) throw new Error('Document Word vide ou illisible')
     const newName = fileName.replace(/\.docx?$/i, '') + '.txt'
