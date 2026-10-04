@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import { Modal } from '../../components/ui/Modal'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { PasswordCriteria } from '../../components/ui/PasswordCriteria'
 import { usePasswordPolicy } from '../../hooks/usePasswordPolicy'
 import { passwordMeetsPolicy } from '../../lib/passwordPolicy'
+import { isPwnedPassword } from '../../lib/hibp'
 import { useResetPassword } from './useResetPassword'
 import type { MemberWithRoles } from './types'
+
+type PwnedState = 'idle' | 'checking' | 'ok' | 'pwned'
 
 interface ResetPasswordModalProps {
   member: MemberWithRoles
@@ -19,6 +22,7 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
   const [confirmPassword, setConfirmPassword] = useState('')
   const [mismatch, setMismatch] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [pwned, setPwned] = useState<PwnedState>('idle')
   const { policy } = usePasswordPolicy()
 
   const { resetPassword, resetting, error } = useResetPassword(() => {
@@ -26,8 +30,23 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
   })
 
   const meetsPolicy = passwordMeetsPolicy(newPassword, policy)
+
+  // Vérification « fuite connue » EN DIRECT (débouncée) dès que les règles synchrones
+  // passent, pour éviter un rejet-surprise au submit. k-anonymity (cf. lib/hibp).
+  useEffect(() => {
+    if (!policy.check_hibp || !meetsPolicy) { setPwned('idle'); return }
+    const ctrl = new AbortController()
+    setPwned('checking')
+    const t = setTimeout(() => {
+      void isPwnedPassword(newPassword, ctrl.signal).then((bad) => {
+        if (!ctrl.signal.aborted) setPwned(bad ? 'pwned' : 'ok')
+      })
+    }, 500)
+    return () => { ctrl.abort(); clearTimeout(t) }
+  }, [newPassword, policy.check_hibp, meetsPolicy])
+
   const confirmMatches = confirmPassword.length > 0 && newPassword === confirmPassword
-  const canSubmit = meetsPolicy && confirmMatches && !resetting
+  const canSubmit = meetsPolicy && confirmMatches && !resetting && pwned !== 'pwned' && pwned !== 'checking'
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
@@ -79,8 +98,14 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
           />
           <PasswordCriteria password={newPassword} policy={policy} tone="light" className="mt-3" />
           {policy.check_hibp && (
-            <p className="mt-2 text-xs text-gray-400">
-              L&rsquo;absence du mot de passe dans une fuite de donn&eacute;es connue est v&eacute;rifi&eacute;e &agrave; la validation.
+            <p className={`mt-2 text-xs ${pwned === 'pwned' ? 'text-red-600' : pwned === 'ok' ? 'text-green-600' : 'text-gray-400'}`}>
+              {pwned === 'checking'
+                ? 'Vérification des fuites connues…'
+                : pwned === 'pwned'
+                  ? '⚠ Ce mot de passe figure dans une fuite de données connue — choisissez-en un autre.'
+                  : pwned === 'ok'
+                    ? '✓ Absent des fuites de données connues.'
+                    : 'L’absence du mot de passe dans une fuite connue est vérifiée en direct.'}
             </p>
           )}
         </div>
