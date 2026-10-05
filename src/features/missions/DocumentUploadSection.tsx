@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { Badge } from '../../components/ui/Badge'
+import { SensitivityBadge } from '../../components/ui/SensitivityBadge'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import type { Document } from '../../types/database.types'
 
@@ -91,6 +92,11 @@ export function DocumentUploadSection({ documents, uploading, uploadError, onUpl
                   )}
                 </div>
                 <div className="flex items-center gap-2">
+                  <SensitivityBadge
+                    level={doc.ai_sensitivity}
+                    counts={{ pii: doc.ai_pii_count, financial: doc.ai_financial_count, secret: doc.ai_secret_count }}
+                    categories={doc.ai_detected_categories}
+                  />
                   <span className="text-xs text-gray-400">{formatFileSize(doc.file_size)}</span>
                   <Badge label={doc.mime_type?.split('/')[1] ?? 'fichier'} variant="gray" />
                 </div>

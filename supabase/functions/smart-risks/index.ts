@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -94,9 +95,30 @@ Génère un JSON: {"risks":[{"title":"titre court","risk_level":"critical|high|m
 
 JSON uniquement, en français. Maximum 8 risques.`
 
-    const startedAt = Date.now()
     const MODEL = 'claude-haiku-4-5-20251001'
     const cabinetIdForLog = (mission as { cabinet_id?: string } | null)?.cabinet_id ?? null
+
+    // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId: cabinetIdForLog,
+      missionId: mission_id,
+      clientOrgId: mission.client_id,
+      text: prompt,
+      destination: `anthropic:${MODEL}`,
+      functionName: 'smart-risks',
+      actorUserId: (caller as { id?: string | null }).id ?? null,
+      targetType: 'mission',
+      targetId: mission_id,
+    })
+    if (!gate.allowed) {
+      return new Response(JSON.stringify({ risks: [], skipped_reason: gate.skipped_reason }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    const promptToSend = gate.text
+    const exposure = { score: gate.exposure.score, level: gate.exposure.level, pii: gate.exposure.counts.pii, financial: gate.exposure.counts.financial, secret: gate.exposure.counts.secret }
+
+    const startedAt = Date.now()
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -108,19 +130,19 @@ JSON uniquement, en français. Maximum 8 risques.`
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: 'user', content: promptToSend }],
       }),
     })
 
     if (!claudeRes.ok) {
       console.error('[smart-risks] Claude error:', claudeRes.status)
-      void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `Claude ${claudeRes.status}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
+      void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `Claude ${claudeRes.status}`, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null, exposure })
       return new Response(JSON.stringify({ error: 'Erreur IA' }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const claudeData = await claudeRes.json()
-    void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null })
+    void logAiCall({ admin, function_name: 'smart-risks', model: MODEL, input_tokens: claudeData.usage?.input_tokens ?? null, output_tokens: claudeData.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id, organization_id: cabinetIdForLog, user_id: null, exposure })
     const rawText = claudeData.content?.[0]?.text ?? ''
     const clean = rawText.replace(/```json|```/g, '').trim()
 

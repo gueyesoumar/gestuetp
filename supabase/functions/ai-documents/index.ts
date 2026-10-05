@@ -1,12 +1,15 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { Buffer } from 'node:buffer'
 import { corsHeaders } from '../_shared/cors.ts'
 import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED, type CallerProfile } from '../_shared/auth.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 // @deno-types="npm:@types/mammoth"
 import mammoth from 'npm:mammoth@1.6.0'
 import * as XLSX from 'npm:xlsx@0.18.5'
+import { extractText, getDocumentProxy } from 'npm:unpdf@0.12.1'
 
 /**
  * Edge Function: ai-documents
@@ -26,6 +29,9 @@ import * as XLSX from 'npm:xlsx@0.18.5'
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
 const ANTHROPIC_BETA = 'files-api-2025-04-14,context-1m-2025-08-07'
 const MAX_FILE_SIZE = 32 * 1024 * 1024 // 32 MB (Anthropic Files API limit)
+// Plafond dédié à l'extraction de texte PDF (pdfjs via unpdf est plus gourmand en
+// mémoire que mammoth/sheetjs) : au-delà, on n'extrait pas (PDF envoyé natif, non inspecté).
+const MAX_PDF_EXTRACT = 15 * 1024 * 1024 // 15 MB
 
 type FileKind = 'document' | 'image'
 
@@ -33,6 +39,9 @@ interface PreparedAsset {
   blob: Blob
   fileName: string
   kind: FileKind
+  // Texte extrait pour le SCAN d'exposition (PDF, P2c). Le blob natif reste envoyé
+  // à Anthropic ; ce texte ne sert qu'à la détection/politique côté edge.
+  extractedText?: string
 }
 
 Deno.serve(async (req) => {
@@ -117,6 +126,9 @@ async function handleUpload(
     return jsonResponse({ error: ACCESS_DENIED }, 403)
   }
 
+  const { data: mForAi } = await admin.from('missions').select('cabinet_id').eq('id', (doc as { mission_id?: string }).mission_id).maybeSingle()
+  const cabinetId = (mForAi as { cabinet_id?: string } | null)?.cabinet_id ?? null
+
   if (doc.anthropic_file_id) {
     return jsonResponse({ file_id: doc.anthropic_file_id, already_uploaded: true })
   }
@@ -151,75 +163,115 @@ async function handleUpload(
     return jsonResponse({ error: `Fichier converti trop volumineux (${sizeMb}Mo). Maximum: 32Mo.` }, 400)
   }
 
-  const formData = new FormData()
-  formData.append('file', prepared.blob, prepared.fileName)
+  // Détection + politique d'exposition (P2) sur le texte réellement lisible.
+  // PDF : texte extrait et scanné (P2c) ; images (et PDF trop gros / illisibles) → 'non_inspecte'.
+  const ext = (doc.file_name.split('.').pop() ?? '').toLowerCase()
+  // PDF scannable si l'extraction de texte a réussi (P2c), sinon 'non_inspecte'.
+  const pdfText = ext === 'pdf' ? prepared.extractedText : undefined
+  const isTextual = prepared.kind !== 'image' && (ext !== 'pdf' || pdfText != null)
+  const scanText = isTextual
+    ? (ext === 'pdf' ? (pdfText ?? '') : await prepared.blob.text().catch(() => ''))
+    : ''
 
-  const uploadRes = await fetch(`${ANTHROPIC_API}/files`, {
-    method: 'POST',
-    headers: {
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-beta': ANTHROPIC_BETA,
-    },
-    body: formData,
+  // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+  const gate = await guardAiExposure({
+    admin,
+    cabinetId,
+    missionId: (doc as { mission_id?: string }).mission_id ?? null,
+    text: scanText,
+    destination: 'anthropic:files-api',
+    functionName: 'ai-documents',
+    actorUserId: (caller as { id?: string | null }).id ?? null,
+    targetType: 'document',
+    targetId: document_id,
   })
 
-  if (!uploadRes.ok) {
-    const errText = await uploadRes.text()
-    console.error('[ai-documents] Anthropic upload error:', uploadRes.status, errText)
+  const exposureFields: Record<string, unknown> = isTextual
+    ? {
+        ai_sensitivity: gate.exposure.level,
+        ai_pii_count: gate.exposure.counts.pii,
+        ai_financial_count: gate.exposure.counts.financial,
+        ai_secret_count: gate.exposure.counts.secret,
+        ai_detected_categories: gate.exposure.categories,
+        ai_exposure_at: new Date().toISOString(),
+      }
+    : { ai_sensitivity: 'non_inspecte', ai_exposure_at: new Date().toISOString() }
 
-    let userMessage = 'Erreur lors de l\'upload vers le service d\'analyse'
-    if (errText.includes('file_too_large')) userMessage = 'Fichier trop volumineux pour l\'analyse IA'
-    if (errText.includes('unsupported')) userMessage = 'Type de fichier non supporté pour l\'analyse IA'
-
-    await persistExtractError(admin, document_id, `anthropic_${uploadRes.status}`)
-    return jsonResponse({ error: userMessage }, 502)
-  }
-
-  const uploadData = await uploadRes.json()
-  const fileId = uploadData.id as string
-
-  console.log(`[ai-documents] Uploaded ${doc.file_name} (kind=${prepared.kind}) → ${fileId}`)
-
+  // Persiste la sensibilité IMMÉDIATEMENT (dès le scan, avant tout envoi réseau) : la
+  // pastille s'affiche sans attendre l'upload Anthropic, et reste correcte même si
+  // celui-ci échoue ensuite.
   // deno-lint-ignore no-explicit-any
-  const { error: updateErr } = await (admin.from('documents') as any)
-    .update({
-      anthropic_file_id: fileId,
-      anthropic_file_uploaded_at: new Date().toISOString(),
-      anthropic_file_kind: prepared.kind,
-    })
-    .eq('id', document_id)
+  await (admin.from('documents') as any).update(exposureFields).eq('id', document_id)
 
-  if (updateErr) {
-    console.error('[ai-documents] DB update error:', updateErr.message)
+  // Politique bloquante (secret / accord client manquant / IA coupée) : on NE téléverse PAS.
+  if (!gate.allowed) {
+    return jsonResponse({ ...exposureFields, skipped_reason: gate.skipped_reason })
   }
 
-  // Fire-and-forget : Passe 1 (extraction métadonnées par doc).
-  // Forward du JWT utilisateur (callerAuth) pour passer la vérification
-  // gateway de extract-document-metadata sans dépendre de --no-verify-jwt.
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
-  const extractPromise = fetch(`${supabaseUrl}/functions/v1/extract-document-metadata`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': callerAuth,
-      'apikey': anonKey,
-    },
-    body: JSON.stringify({ document_id }),
-  }).catch((err: unknown) => {
-    const msg = err instanceof Error ? err.message : 'unknown'
-    console.warn('[ai-documents] extract-document-metadata fetch failed:', msg)
-  })
+  // Caviardage : si la politique l'exige, on téléverse une version expurgée du texte
+  // (un PDF perd alors sa mise en forme, mais aucune donnée sensible ne fuit).
+  const redacting = gate.action === 'redact'
+  const blobToUpload = redacting ? new Blob([gate.text], { type: 'text/plain' }) : prepared.blob
+  const uploadName = redacting ? prepared.fileName.replace(/\.[^.]+$/, '') + '.redacted.txt' : prepared.fileName
+
+  // Upload vers Anthropic + Passe 1 en TÂCHE DE FOND : on répond tout de suite (la
+  // sensibilité est déjà persistée), sans bloquer sur le round-trip réseau Anthropic.
+  const background = (async () => {
+    try {
+      const formData = new FormData()
+      formData.append('file', blobToUpload, uploadName)
+
+      const uploadRes = await fetch(`${ANTHROPIC_API}/files`, {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': ANTHROPIC_BETA,
+        },
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text()
+        console.error('[ai-documents] Anthropic upload error:', uploadRes.status, errText)
+        await persistExtractError(admin, document_id, `anthropic_${uploadRes.status}`)
+        return
+      }
+
+      const fileId = (await uploadRes.json()).id as string
+      console.log(`[ai-documents] Uploaded ${doc.file_name} (kind=${prepared.kind}) → ${fileId}`)
+
+      // deno-lint-ignore no-explicit-any
+      const { error: updateErr } = await (admin.from('documents') as any)
+        .update({
+          anthropic_file_id: fileId,
+          anthropic_file_uploaded_at: new Date().toISOString(),
+          anthropic_file_kind: prepared.kind,
+        })
+        .eq('id', document_id)
+      if (updateErr) console.error('[ai-documents] DB update error:', updateErr.message)
+
+      // Passe 1 (extraction métadonnées). Forward du JWT utilisateur (callerAuth).
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+      const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+      await fetch(`${supabaseUrl}/functions/v1/extract-document-metadata`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': callerAuth, 'apikey': anonKey },
+        body: JSON.stringify({ document_id }),
+      }).catch((err: unknown) => {
+        console.warn('[ai-documents] extract-document-metadata fetch failed:', err instanceof Error ? err.message : 'unknown')
+      })
+    } catch (err) {
+      console.error('[ai-documents] background upload failed:', err instanceof Error ? err.message : 'unknown')
+    }
+  })()
+
   // deno-lint-ignore no-explicit-any
   const runtime = (globalThis as any).EdgeRuntime
-  if (runtime?.waitUntil) {
-    runtime.waitUntil(extractPromise)
-  } else {
-    void extractPromise
-  }
+  if (runtime?.waitUntil) runtime.waitUntil(background)
+  else void background
 
-  return jsonResponse({ file_id: fileId, file_name: doc.file_name, kind: prepared.kind })
+  return jsonResponse({ ...exposureFields, kind: prepared.kind, pending_ai_upload: true })
 }
 
 // ── DELETE ──────────────────────────────────────────────────────────────────
@@ -351,20 +403,33 @@ async function handleAnalyze(
     if (ctx) enrichedPrompt = `${ctx}\n\n${prompt}`
   }
 
-  content.push({ type: 'text', text: enrichedPrompt })
+  const usedModel = model ?? CLAUDE_SONNET
+  const cabinetIdForLog = owned[0]?.cabinet_id ?? null
 
-  console.log(`[ai-documents] Analyzing ${trimmedFileIds.length} file(s) with ${model ?? CLAUDE_SONNET}`)
+  // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+  // Porte sur le prompt textuel ; le contenu des fichiers (file_id) a déjà été filtré au téléversement.
+  const gate = await guardAiExposure({
+    admin,
+    cabinetId: cabinetIdForLog,
+    missionId: mission_id ?? null,
+    text: enrichedPrompt,
+    destination: `anthropic:${usedModel}`,
+    functionName: 'ai-documents',
+    actorUserId: (caller as { id?: string | null }).id ?? null,
+    targetType: 'mission',
+    targetId: mission_id ?? null,
+  })
+  if (!gate.allowed) {
+    return jsonResponse({ skipped_reason: gate.skipped_reason })
+  }
+
+  content.push({ type: 'text', text: gate.text })
+
+  console.log(`[ai-documents] Analyzing ${trimmedFileIds.length} file(s) with ${usedModel}`)
 
   const claudeController = new AbortController()
   const claudeTimeout = setTimeout(() => claudeController.abort(), 180_000)
   const startedAt = Date.now()
-  const usedModel = model ?? CLAUDE_SONNET
-
-  let cabinetIdForLog: string | null = null
-  if (mission_id) {
-    const { data: m } = await admin.from('missions').select('cabinet_id').eq('id', mission_id).maybeSingle()
-    cabinetIdForLog = (m as { cabinet_id?: string } | null)?.cabinet_id ?? null
-  }
 
   let claudeRes: Response
   try {
@@ -421,9 +486,21 @@ async function handleAnalyze(
 async function prepareAsset(blob: Blob, fileName: string): Promise<PreparedAsset> {
   const ext = (fileName.split('.').pop() ?? '').toLowerCase()
 
-  // PDF natif
+  // PDF : envoyé natif à Anthropic (fidélité), mais texte extrait côté edge pour
+  // permettre le scan d'exposition (P2c, Décision D). Images d'un PDF non couvertes.
   if (ext === 'pdf') {
-    return { blob, fileName, kind: 'document' }
+    let extractedText: string | undefined
+    if (blob.size <= MAX_PDF_EXTRACT) {
+      try {
+        const buffer = await blob.arrayBuffer()
+        const pdf = await getDocumentProxy(new Uint8Array(buffer))
+        const { text } = await extractText(pdf, { mergePages: true })
+        extractedText = (Array.isArray(text) ? text.join('\n') : text).trim()
+      } catch (err) {
+        console.warn('[ai-documents] PDF extraction failed (scan ignoré):', err instanceof Error ? err.message : 'unknown')
+      }
+    }
+    return { blob, fileName, kind: 'document', extractedText }
   }
 
   // Images natives
@@ -445,10 +522,11 @@ async function prepareAsset(blob: Blob, fileName: string): Promise<PreparedAsset
     }
   }
 
-  // DOCX / DOC → texte plat via mammoth
+  // DOCX / DOC → texte plat via mammoth. En Deno (compat Node), mammoth attend
+  // { buffer: Buffer } et non { arrayBuffer } (sinon « Could not find file in options »).
   if (ext === 'docx' || ext === 'doc') {
     const buffer = await blob.arrayBuffer()
-    const result = await mammoth.extractRawText({ arrayBuffer: buffer })
+    const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) })
     const text = (result?.value ?? '').trim()
     if (!text) throw new Error('Document Word vide ou illisible')
     const newName = fileName.replace(/\.docx?$/i, '') + '.txt'

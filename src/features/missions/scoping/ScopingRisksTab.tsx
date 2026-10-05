@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react'
 import { Sparkles, Check } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { AiPreflightPanel } from '../../../components/ui/AiPreflightPanel'
+import { isAiSkip } from '../aiSkip'
 import { ScopingRiskCard } from './ScopingRiskCard'
 import { PromoteRiskModal } from '../../risk/PromoteRiskModal'
 import { EmptyState } from '../../../components/ui/EmptyState'
@@ -28,6 +30,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
   const [source, setSource] = useState('')
   const [generating, setGenerating] = useState(false)
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
+  const [aiSkip, setAiSkip] = useState<string | null>(null)
   const risksFlag = useFeatureFlag('smart_risks_ai')
 
   const handleSubmit = async (): Promise<void> => {
@@ -39,6 +42,7 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
   const handleGenerateFromQuestionnaire = useCallback(async (): Promise<void> => {
     setGenerating(true)
     setGenSuccess(null)
+    setAiSkip(null)
 
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
@@ -51,7 +55,13 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
     })
 
     if (!res.ok) { setGenerating(false); return }
-    const data = await res.json() as { risks: { title: string; risk_level: string; description: string; source: string }[] }
+    const data = await res.json() as { risks: { title: string; risk_level: string; description: string; source: string }[]; skipped_reason?: string }
+
+    if (isAiSkip(data.skipped_reason)) {
+      setAiSkip(data.skipped_reason)
+      setGenerating(false)
+      return
+    }
 
     let added = 0
     for (const risk of data.risks ?? []) {
@@ -101,6 +111,8 @@ export function ScopingRisksTab({ missionId, risks, userId, onAddRisk, onRemoveR
           <p className="text-xs text-green-700 font-medium">{genSuccess}</p>
         </div>
       )}
+
+      <AiPreflightPanel reason={aiSkip} onDismiss={() => setAiSkip(null)} />
 
       {error && <ErrorAlert message={error} />}
 

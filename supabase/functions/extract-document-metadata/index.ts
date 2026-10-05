@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 
 /**
  * Edge Function : extract-document-metadata (Passe 1 du pipeline IA)
@@ -204,16 +205,21 @@ Deno.serve(async (req) => {
       .maybeSingle()
     const cabinetId = (missionData as { cabinet_id?: string } | null)?.cabinet_id ?? null
 
-    if (cabinetId) {
-      const { data: orgData } = await admin
-        .from('organizations')
-        .select('ai_analysis_enabled')
-        .eq('id', cabinetId)
-        .maybeSingle()
-      const enabled = (orgData as { ai_analysis_enabled?: boolean } | null)?.ai_analysis_enabled ?? true
-      if (!enabled) {
-        return jsonResponse({ skipped: 'cabinet_ai_disabled' })
-      }
+    // Garde d'exposition IA (P2) : kill-switch + scellement F6. Le contenu du document
+    // (file_id) a déjà été filtré par la politique au téléversement dans ai-documents.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId,
+      missionId: doc.mission_id ?? null,
+      text: EXTRACT_PROMPT,
+      destination: `anthropic:${MODEL}`,
+      functionName: 'extract-document-metadata',
+      actorUserId: (caller as { id?: string | null }).id ?? null,
+      targetType: 'document',
+      targetId: doc.id,
+    })
+    if (!gate.allowed) {
+      return jsonResponse({ skipped: gate.skipped_reason })
     }
 
     // 3. Build content block

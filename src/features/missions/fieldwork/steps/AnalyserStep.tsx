@@ -3,6 +3,8 @@ import { AlertTriangle, Sparkles } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
 import { readInvokeError } from '../../../../lib/edgeError'
 import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
+import { AiPreflightPanel } from '../../../../components/ui/AiPreflightPanel'
+import { isAiSkip } from '../../aiSkip'
 import { CONFORMITY_LEVELS } from '../../mission-constants'
 import { FindingsEditor } from '../findings/FindingsEditor'
 import { AiAnalysisPanel, type AiAnalysis, type AiFinding } from './AiAnalysisPanel'
@@ -46,11 +48,13 @@ function todayPlusDays(days: number): string {
 export function AnalyserStep({ assessment, observations, evidenceNotes, findingsHook, conformityLevel, onConformityChange, readOnly }: AnalyserStepProps) {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(null)
+  const [aiSkip, setAiSkip] = useState<string | null>(null)
   const aiFlag = useFeatureFlag('smart_analyse_control')
 
   const handleAiSuggest = async () => {
     setAiLoading(true)
     setAiAnalysis(null)
+    setAiSkip(null)
 
     const { data, error: fnErr } = await supabase.functions.invoke('smart-analyse', {
       body: {
@@ -64,6 +68,12 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
         evidence_notes: evidenceNotes,
       },
     })
+
+    if (isAiSkip(data?.skipped_reason)) {
+      setAiSkip(data.skipped_reason)
+      setAiLoading(false)
+      return
+    }
 
     if (fnErr || data?.error) {
       const detail = await readInvokeError(fnErr, data, 'Analyse IA indisponible.')
@@ -129,6 +139,8 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
           </button>
         )}
       </div>
+
+      <AiPreflightPanel reason={aiSkip} onDismiss={() => setAiSkip(null)} />
 
       {aiAnalysis && (
         <AiAnalysisPanel

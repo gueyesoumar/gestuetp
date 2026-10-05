@@ -46,10 +46,12 @@ export function useFeatureFlag(slug: string): FeatureFlagState {
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as CachedValue
+        // Stale-while-revalidate : on affiche le cache tout de suite (zéro flicker)
+        // MAIS on ne s'arrête pas là — on réinterroge en arrière-plan ci-dessous pour
+        // propager tout changement de flag sans attendre la fermeture de l'onglet.
         setState({ enabled: parsed.enabled, loading: false, source: parsed.source })
-        return
       } catch {
-        // cache corrompu — on ré-interroge
+        // cache corrompu — on ré-interroge (sessionStorage sera réécrit par commit()).
       }
     }
 

@@ -30,18 +30,18 @@ export function EditionProvider({ children }: { children: ReactNode }): JSX.Elem
   const { profile } = useAuth()
   const [capabilities, setCapabilities] = useState<Set<Capability>>(new Set())
   const [vocab, setVocab] = useState<Map<string, string>>(new Map())
-  const [loading, setLoading] = useState(true)
+  // Org pour laquelle les capacités ont été RÉSOLUES. `undefined` = pas encore tenté.
+  const [resolvedOrg, setResolvedOrg] = useState<string | null | undefined>(undefined)
 
   useEffect(() => {
-    const orgId = profile?.organization_id
+    const orgId = profile?.organization_id ?? null
     if (!orgId) {
       setCapabilities(new Set())
       setVocab(new Map())
-      setLoading(false)
+      setResolvedOrg(null)
       return
     }
     const ctrl = new AbortController()
-    setLoading(true)
 
     void (async () => {
       const [capRes, vocRes] = await Promise.all([
@@ -56,11 +56,17 @@ export function EditionProvider({ children }: { children: ReactNode }): JSX.Elem
       setCapabilities(new Set(caps))
       const vocRows = Array.isArray(vocRes.data) ? (vocRes.data as Array<{ key: string; value: string }>) : []
       setVocab(new Map(vocRows.map((r) => [r.key, r.value])))
-      setLoading(false)
+      setResolvedOrg(orgId) // résolue (même en cas d'erreur RPC : caps vides)
     })()
 
     return () => ctrl.abort()
   }, [profile?.organization_id])
+
+  // `loading` DÉRIVÉ au rendu (race-free) : un profil avec une org non encore résolue
+  // compte comme « en chargement » dès le premier rendu, sans attendre l'effet — évite
+  // la fenêtre où `hasCapability` renvoie false et déclenche une redirection prématurée.
+  const orgId = profile?.organization_id ?? null
+  const loading = orgId ? resolvedOrg !== orgId : false
 
   const hasCapability = (cap: Capability): boolean => capabilities.has(cap)
 

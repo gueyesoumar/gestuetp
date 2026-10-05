@@ -4,6 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { guardAiExposure } from '../_shared/ai-gate.ts'
 
 /**
  * Edge Function : suggest-custom-questions
@@ -67,6 +68,8 @@ Deno.serve(async (req) => {
 
     // Charger le contexte mission/client (optionnel, mais ameliore la pertinence)
     let missionContext = ''
+    let cabinetId: string | null = null
+    let clientOrgId: string | null = null
     if (body.mission_id) {
       const { data: mission } = await admin
         .from('missions')
@@ -78,6 +81,8 @@ Deno.serve(async (req) => {
         if (!sameCabinet(caller, (mission as { cabinet_id?: string }).cabinet_id)) {
           return jsonResponse({ error: ACCESS_DENIED }, 403)
         }
+        cabinetId = mission.cabinet_id ?? null
+        clientOrgId = mission.client_id ?? null
         // Client (RFC 0007 P1c.2) : identité (nœud) + contexte (engagement_profiles).
         const client = await getClientContext(admin, mission.cabinet_id, mission.client_id)
         if (client) {
@@ -119,6 +124,25 @@ Deno.serve(async (req) => {
       existingCodes,
     })
 
+    // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId,
+      missionId: body.mission_id ?? null,
+      clientOrgId,
+      text: prompt,
+      destination: `anthropic:${MODEL}`,
+      functionName: 'suggest-custom-questions',
+      actorUserId: caller.id,
+      targetType: 'mission',
+      targetId: body.mission_id ?? null,
+    })
+    if (!gate.allowed) {
+      return jsonResponse({ suggestions: [], skipped_reason: gate.skipped_reason })
+    }
+    const promptToSend = gate.text
+    const exposure = { score: gate.exposure.score, level: gate.exposure.level, pii: gate.exposure.counts.pii, financial: gate.exposure.counts.financial, secret: gate.exposure.counts.secret }
+
     const startedAt = Date.now()
     let claudeRes: Response
     try {
@@ -133,7 +157,7 @@ Deno.serve(async (req) => {
           model: MODEL,
           max_tokens: 3000,
           messages: [
-            { role: 'user', content: prompt },
+            { role: 'user', content: promptToSend },
             { role: 'assistant', content: '{"suggestions":[' },
           ],
         }),
@@ -144,7 +168,7 @@ Deno.serve(async (req) => {
         admin, function_name: 'suggest-custom-questions', model: MODEL,
         input_tokens: null, output_tokens: null, success: false,
         error_message: 'fetch error', duration_ms: Date.now() - startedAt,
-        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId,
+        organization_id: cabinetId, mission_id: body.mission_id ?? null, user_id: auth.authUserId, exposure,
       })
       return jsonResponse({ error: `Appel Claude echoue : ${message}` }, 502)
     }
@@ -156,7 +180,7 @@ Deno.serve(async (req) => {
         admin, function_name: 'suggest-custom-questions', model: MODEL,
         input_tokens: null, output_tokens: null, success: false,
         error_message: `${claudeRes.status}`, duration_ms: Date.now() - startedAt,
-        organization_id: null, mission_id: body.mission_id ?? null, user_id: auth.authUserId,
+        organization_id: cabinetId, mission_id: body.mission_id ?? null, user_id: auth.authUserId, exposure,
       })
       return jsonResponse({ error: `Erreur Claude (${claudeRes.status})` }, 502)
     }
@@ -170,7 +194,7 @@ Deno.serve(async (req) => {
       input_tokens: claudeData.usage?.input_tokens ?? null,
       output_tokens: claudeData.usage?.output_tokens ?? null,
       success: true, duration_ms: Date.now() - startedAt,
-      organization_id: null, mission_id: body.mission_id ?? null, user_id: caller.id,
+      organization_id: cabinetId, mission_id: body.mission_id ?? null, user_id: caller.id, exposure,
     })
 
     let parsed: { suggestions: unknown[] }

@@ -84,9 +84,11 @@ Deno.serve(async (req) => {
     }
 
     // Cloisonnement : la fiche doit appartenir au cabinet de l'appelant.
+    // Note : l'identité (client_name…) a migré sur le nœud organizations (mig 00222) ;
+    // ne PAS la sélectionner ici — la colonne n'existe plus sur cabinet_clients.
     const { data: fiche, error: ficheErr } = await supabaseAdmin
       .from('cabinet_clients')
-      .select('id, cabinet_id, client_org_id, client_name')
+      .select('id, cabinet_id, client_org_id')
       .eq('id', ficheId)
       .single()
     if (ficheErr || !fiche) {
@@ -123,6 +125,13 @@ Deno.serve(async (req) => {
     const ficheUpdate: Record<string, unknown> = {}
     for (const k of FICHE_FIELDS) {
       if (k in body) ficheUpdate[k] = body[k]
+    }
+    // Consentement IA (RFC 0012, P2) : horodatage + auteur posés côté serveur (jamais le client).
+    if ('ai_consent' in body) {
+      const consent = body.ai_consent === true
+      ficheUpdate.ai_consent = consent
+      ficheUpdate.ai_consent_at = consent ? new Date().toISOString() : null
+      ficheUpdate.ai_consent_by = consent ? callerProfile.id : null
     }
     if (Object.keys(ficheUpdate).length > 0) {
       const { error: updErr } = await supabaseAdmin
@@ -171,7 +180,7 @@ Deno.serve(async (req) => {
       action: 'client.updated',
       targetType: 'client',
       targetId: fiche.id,
-      targetLabel: (body.client_name as string) ?? fiche.client_name,
+      targetLabel: (body.client_name as string) ?? null,
     })
 
     return new Response(

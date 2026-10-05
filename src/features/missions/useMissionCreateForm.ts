@@ -37,6 +37,8 @@ export function useMissionCreateForm() {
   const [memberIds, setMemberIds] = useState<string[]>([])
   const [scopeControlIds, setScopeControlIds] = useState<Set<string>>(new Set())
   const [workflowTemplateId, setWorkflowTemplateId] = useState('')
+  // Surcharge mission du consentement IA (RFC 0012, P2) : null = hériter du client.
+  const [aiConsentOverride, setAiConsentOverride] = useState<boolean | null>(null)
 
   const isSupervision = kind === 'continuous_supervision'
 
@@ -164,8 +166,9 @@ export function useMissionCreateForm() {
         kind,
         scope_control_ids: [...scopeControlIds],
         workflow_template_id: workflowTemplateId || undefined,
+        ai_consent_override: aiConsentOverride,
       }),
-    [missionName, isSupervision, subsidiaryId, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, workflowTemplateId, createMission],
+    [missionName, isSupervision, subsidiaryId, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, workflowTemplateId, aiConsentOverride, createMission],
   )
 
   return {
@@ -175,6 +178,7 @@ export function useMissionCreateForm() {
     missionName, onMissionName, associateId, setAssociateId, leadAuditorId, setLeadAuditorId,
     memberIds, toggleMember, scopeControlIds, toggleControl, toggleDomain, startDate, endDate,
     workflowTemplateId, setWorkflowTemplateId,
+    aiConsentOverride, setAiConsentOverride,
     selectedFramework, selectedClient, selectedSubsidiary, targetName, targetSelected,
     allMemberIds, teamSize, totalControls, totalFrameworkControls, selectedDomains, eligibleLeadIds, submit,
   }

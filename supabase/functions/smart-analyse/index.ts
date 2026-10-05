@@ -4,6 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
+import { guardAiExposure, resolveAiConsent } from '../_shared/ai-gate.ts'
 
 // ============================================================================
 // Types & validators
@@ -193,7 +194,7 @@ Deno.serve(async (req) => {
 
     if (mission_id && control_id) {
       const { data: directDocs } = await admin.from('documents')
-        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id')
+        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id, ai_sensitivity, ai_secret_count')
         .eq('mission_id', mission_id)
         .eq('control_id', control_id)
         .order('created_at', { ascending: false })
@@ -206,7 +207,7 @@ Deno.serve(async (req) => {
 
       const { data: viaEvidence } = await admin.from('documents')
         .select(`
-          file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id,
+          file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id, ai_sensitivity, ai_secret_count,
           evidence_request:mission_evidence_requests!evidence_request_id (
             evidence_catalog:evidence_catalog!evidence_catalog_id ( control_id )
           )
@@ -222,6 +223,25 @@ Deno.serve(async (req) => {
         }
       }
       dedicatedCount = dedicatedDocs.length
+
+      // Garde documentaire (RFC 0012) : refuser l'analyse si un document du périmètre est
+      // sensible sans accord. Un secret bloque toujours ; un document « élevé » exige le
+      // consentement client. Ferme l'écart « document bloqué mais analyse qui tourne ».
+      const hasSecretDoc = dedicatedDocs.some((d) => (d.ai_secret_count ?? 0) > 0)
+      const hasElevatedDoc = dedicatedDocs.some((d) => d.ai_sensitivity === 'elevee')
+      if (hasSecretDoc || hasElevatedDoc) {
+        const consent = cabinetIdForLog
+          ? await resolveAiConsent(admin, cabinetIdForLog, mission_id, null)
+          : false
+        if (hasSecretDoc) {
+          return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: 'blocked' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+        if (hasElevatedDoc && !consent) {
+          return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: 'consent_required' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+      }
 
       const dedicatedNeedingUpload = dedicatedDocs.filter((d) => !d.anthropic_file_id)
       if (dedicatedNeedingUpload.length > 0 && callerAuth) {
@@ -407,7 +427,26 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
 
     const prompt = promptIntro + '\n\n' + promptSections.join('\n\n') + '\n\n' + promptInstructions
 
-    contentParts.push({ type: 'text', text: prompt })
+    // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
+    // Porte sur le contexte textuel ; le contenu des documents (file_id/URL) n'est pas lisible ici.
+    const gate = await guardAiExposure({
+      admin,
+      cabinetId: cabinetIdForLog,
+      missionId: mission_id ?? null,
+      text: prompt,
+      destination: `anthropic:${CLAUDE_SONNET}`,
+      functionName: 'smart-analyse',
+      actorUserId: (caller as { id?: string | null }).id ?? null,
+      targetType: 'mission',
+      targetId: mission_id ?? null,
+    })
+    if (!gate.allowed) {
+      return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: gate.skipped_reason }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    const exposure = { score: gate.exposure.score, level: gate.exposure.level, pii: gate.exposure.counts.pii, financial: gate.exposure.counts.financial, secret: gate.exposure.counts.secret }
+
+    contentParts.push({ type: 'text', text: gate.text })
 
     console.log('[smart-analyse] Content blocks:', contentParts.map((p: { type: string }) => p.type).join(', '))
 
@@ -455,13 +494,13 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
         userMessage = 'Les documents fournis sont trop volumineux. Limite : 32 Mo par requete.'
       }
 
-      void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${userMessage}`, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
+      void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: null, output_tokens: null, success: false, error_message: `${claudeRes.status}: ${userMessage}`, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null, exposure })
       return new Response(JSON.stringify({ error: userMessage }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const data = await claudeRes.json()
-    void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null })
+    void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null, exposure })
     const rawText = data.content?.[0]?.text ?? ''
     const clean = rawText.replace(/```json|```/g, '').trim()
 

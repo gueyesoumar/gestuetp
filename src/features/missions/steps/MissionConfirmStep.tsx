@@ -2,6 +2,7 @@ import { Target, Route } from 'lucide-react'
 import type { Framework } from '../../../types/database.types'
 import type { MemberWithRoles } from '../../members/types'
 import { WorkflowTemplatePicker } from '../WorkflowTemplatePicker'
+import { MissionConsentOverride } from './MissionConsentOverride'
 
 interface MissionConfirmStepProps {
   missionName: string
@@ -20,12 +21,18 @@ interface MissionConfirmStepProps {
   totalDomains: number
   workflowTemplateId: string
   onChangeTemplate: (id: string) => void
+  /** Consentement IA (audit uniquement). Absent -> bloc masqué (ex. supervision). */
+  showConsent?: boolean
+  clientConsent?: boolean | null
+  aiConsentOverride?: boolean | null
+  onChangeConsentOverride?: (value: boolean | null) => void
 }
 
 export function MissionConfirmStep({
   missionName, framework, targetLabel, targetValue,
   associateId, leadAuditorId, teamSize, startDate, endDate, members,
   totalControls, selectedDomains, totalDomains, workflowTemplateId, onChangeTemplate,
+  showConsent = false, clientConsent = null, aiConsentOverride = null, onChangeConsentOverride,
 }: MissionConfirmStepProps) {
   const associate = members.find((m) => m.id === associateId)
   const lead = members.find((m) => m.id === leadAuditorId)
@@ -73,6 +80,14 @@ export function MissionConfirmStep({
         </label>
         <WorkflowTemplatePicker value={workflowTemplateId} onChange={onChangeTemplate} />
       </div>
+
+      {showConsent && onChangeConsentOverride && (
+        <MissionConsentOverride
+          clientConsent={clientConsent}
+          value={aiConsentOverride}
+          onChange={onChangeConsentOverride}
+        />
+      )}
     </div>
   )
 }

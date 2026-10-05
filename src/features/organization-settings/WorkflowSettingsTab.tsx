@@ -78,8 +78,8 @@ export function WorkflowSettingsTab(): JSX.Element {
           <div className="flex-1">
             <p className="text-[13px] text-gray-700 leading-relaxed">
               {aiEnabled
-                ? <>L&rsquo;<b>analyse IA</b> est <b>activ&eacute;e</b> pour ce cabinet. Les documents fournis par les clients sont analys&eacute;s automatiquement (extraction de m&eacute;tadonn&eacute;es&nbsp;: version, signatures, couverture des contr&ocirc;les) et le questionnaire est pr&eacute;-rempli intelligemment.</>
-                : <>L&rsquo;<b>analyse IA</b> est <b>d&eacute;sactiv&eacute;e</b>. Aucun document n&rsquo;est envoy&eacute; aux serveurs Anthropic. L&rsquo;extraction de m&eacute;tadonn&eacute;es et le pr&eacute;-remplissage du questionnaire sont indisponibles pour toutes les missions de ce cabinet.</>
+                ? <>L&rsquo;<b>analyse IA</b> est <b>activée</b> pour ce cabinet. Des documents et données clients peuvent être transmis au modèle&nbsp;: extraction de métadonnées, pré-remplissage du questionnaire, analyse des contrôles, génération de risques et de plan, suggestions de questions.</>
+                : <>L&rsquo;<b>analyse IA</b> est <b>désactivée</b>. Aucun document ni donnée client n&rsquo;est transmis au modèle&nbsp;: toutes les fonctions IA (extraction, pré-remplissage, analyse des contrôles, génération de risques et de plan, suggestions) sont coupées pour ce cabinet.</>
               }
             </p>
             <p className="mt-2 text-[11.5px] text-gray-400">

@@ -42,7 +42,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Erreur chargement profil:', error.message)
         setProfile(null); profileRef.current = null; return
       }
-      setProfile(data); profileRef.current = data
+      // Dédupe : au refresh de token (retour sur l'onglet), onAuthStateChange relance
+      // fetchProfile. Si le profil est identique, on NE recrée PAS l'objet -> pas de
+      // nouvelle référence -> pas de re-render en cascade des conscommateurs de useAuth
+      // (sinon les hooks qui dépendent de `profile` re-tournent et démontent des vues,
+      // ex. l'analyse IA en cours).
+      if (!profileRef.current || JSON.stringify(profileRef.current) !== JSON.stringify(data)) {
+        setProfile(data); profileRef.current = data
+      }
     } finally {
       if (!signal?.aborted) setLoading(false)
     }

@@ -2,6 +2,8 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { isStepEnabled } from '../mission-constants'
 import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
+import { AiPreflightPanel } from '../../../components/ui/AiPreflightPanel'
+import { isAiSkip } from '../aiSkip'
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { usePlanningData } from './usePlanningData'
 import { useSavePlanning } from './useSavePlanning'
@@ -68,6 +70,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [generating, setGenerating] = useState(false)
   const planFlag = useFeatureFlag('smart_plan_mission')
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
+  const [aiSkip, setAiSkip] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selection, setSelection] = useState<Set<string>>(new Set())
   const [preview, setPreview] = useState<{ proposals: SmartPlanProposal[]; assignments: SmartPlanAssignment[] } | null>(null)
@@ -150,11 +153,18 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const handleGenerate = useCallback(async () => {
     setGenerating(true)
     setGenSuccess(null)
+    setAiSkip(null)
 
     // 1. Call AI Edge Function
     const { data, error: fnError } = await supabase.functions.invoke('smart-plan', {
       body: { mission_id: mission.id },
     })
+
+    if (isAiSkip(data?.skipped_reason)) {
+      setAiSkip(data.skipped_reason)
+      setGenerating(false)
+      return
+    }
 
     if (fnError || data?.error) {
       const detail = await readInvokeError(fnError, data, 'Erreur inconnue')
@@ -273,6 +283,11 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
               {genSuccess.includes('Erreur') ? '\u26A0' : '\u2713'} {genSuccess}
             </p>
             <button onClick={() => setGenSuccess(null)} className="text-xs text-gray-400 hover:text-gray-600">{'\u2715'}</button>
+          </div>
+        )}
+        {aiSkip && (
+          <div className="px-4 py-2.5 border-b border-gray-100">
+            <AiPreflightPanel reason={aiSkip} onDismiss={() => setAiSkip(null)} />
           </div>
         )}
 
