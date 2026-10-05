@@ -8,6 +8,7 @@ import { OnboardingWelcome } from './features/onboarding/OnboardingWelcome'
 import { BrandingProvider } from './features/branding/BrandingContext'
 import { DemoLensProvider } from './features/demo/DemoLensContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { FullscreenLoader } from './components/FullscreenLoader'
 import { TenantAccessGuard } from './components/TenantAccessGuard'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
@@ -82,7 +83,7 @@ import { AssujettiIncidentsPage } from './features/regul/incidents/AssujettiInci
 // branchement sur l'édition ; le chrome (Hub, compte, notifications, admin, portail)
 // est partagé. Pré-auth : capacités vides → Comply (comme le déploiement principal).
 function AppRoutes(): JSX.Element {
-  const { hasCapability } = useEdition()
+  const { hasCapability, loading: edLoading } = useEdition()
   const isRegul = hasCapability('supervision')
   return (
     <Routes>
@@ -101,17 +102,17 @@ function AppRoutes(): JSX.Element {
           </ProtectedRoute>
         }
       >
-        <Route index element={isRegul ? <RegulDashboard /> : <DashboardPage />} />
+        <Route index element={edLoading ? <FullscreenLoader /> : isRegul ? <RegulDashboard /> : <DashboardPage />} />
         <Route path="compte" element={<AccountPage />} />
         <Route path="profil" element={<Navigate to="/compte" replace />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="organisation" element={<OrganizationPage />} />
         <Route path="membres" element={<Navigate to="/organisation?tab=membres" replace />} />
         <Route path="piste-audit" element={<Navigate to="/organisation?tab=piste-audit" replace />} />
-        <Route path="risque" element={hasCapability('risk') ? <RiskPage /> : <Navigate to="/" replace />} />
-        <Route path="risque/registre" element={hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
-        <Route path="politiques" element={hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />
-        <Route path="politiques/couverture" element={hasCapability('policy') ? <PolicyCoveragePage /> : <Navigate to="/" replace />} />
+        <Route path="risque" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskPage /> : <Navigate to="/" replace />} />
+        <Route path="risque/registre" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
+        <Route path="politiques" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />
+        <Route path="politiques/couverture" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyCoveragePage /> : <Navigate to="/" replace />} />
         <Route path="aide" element={<SupportCenterPage />} />
         {isRegul ? (
           <>
@@ -192,7 +193,9 @@ function AppRoutes(): JSX.Element {
         <Route path="aide" element={<ClientSupportCenterPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Tant que les capacités chargent, ne pas rediriger (sinon saut vers l'accueil au
+          refresh d'une route Regul non encore montée) : on attend la résolution. */}
+      <Route path="*" element={edLoading ? <FullscreenLoader /> : <Navigate to="/" replace />} />
     </Routes>
   )
 }
