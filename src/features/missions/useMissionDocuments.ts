@@ -113,7 +113,8 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
 
       if (insertedDoc?.id && filesApiFlag.enabled) {
         // Rafraîchit la liste dès que le scan est terminé (pastille de sensibilité).
-        registerDocumentForAI(insertedDoc.id, file.name, refetch)
+        // `file` transmis pour l'OCR navigateur des images (P3a).
+        registerDocumentForAI(insertedDoc.id, file.name, refetch, file)
       }
 
       return file.name
