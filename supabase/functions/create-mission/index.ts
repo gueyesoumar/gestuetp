@@ -26,6 +26,8 @@ interface CreateMissionPayload {
   workflow_template_id?: string
   /** Surcharge du consentement IA (RFC 0012). null = hérite de la fiche client. */
   ai_consent_override?: boolean | null
+  /** Surcharge de l'anonymisation IA (RFC 0012 P4). null = hérite de la fiche client. */
+  ai_anonymize_override?: boolean | null
 }
 
 function quarterLabel(dateIso: string): string {
@@ -331,6 +333,15 @@ Deno.serve(async (req) => {
         .update({ ai_consent_override: body.ai_consent_override })
         .eq('id', newMissionId)
       if (consentErr) console.error('create-mission ai_consent_override:', consentErr.message)
+    }
+
+    // Surcharge de l'anonymisation IA (RFC 0012 P4) : même logique. Non bloquant.
+    if (body.ai_anonymize_override === true || body.ai_anonymize_override === false) {
+      const { error: anonErr } = await supabaseAdmin
+        .from('missions')
+        .update({ ai_anonymize_override: body.ai_anonymize_override })
+        .eq('id', newMissionId)
+      if (anonErr) console.error('create-mission ai_anonymize_override:', anonErr.message)
     }
 
     // 7.bis Snapshot probant (P1b, RFC 0007 §8.1) — fige le contexte d'engagement

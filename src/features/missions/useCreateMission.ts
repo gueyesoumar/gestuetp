@@ -22,6 +22,8 @@ export interface CreateMissionPayload {
   workflow_template_id?: string
   /** Surcharge du consentement IA (RFC 0012). null = hérite de la fiche client. */
   ai_consent_override?: boolean | null
+  /** Surcharge de l'anonymisation IA (RFC 0012 P4). null = hérite de la fiche client. */
+  ai_anonymize_override?: boolean | null
 }
 
 interface UseCreateMissionResult {

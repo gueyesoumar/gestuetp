@@ -506,6 +506,8 @@ export interface Mission {
   workflow_template_id?: string | null
   /** Surcharge du consentement IA pour cette mission (NULL = hérite du client ; RFC 0012, migration 00262). */
   ai_consent_override?: boolean | null
+  /** Surcharge de l'anonymisation IA pour cette mission (NULL = hérite du client ; RFC 0012 P4, migration 00266). */
+  ai_anonymize_override?: boolean | null
   lead_auditor_id: string | null
   associate_id: string | null
   start_date: string | null
@@ -532,6 +534,7 @@ export interface MissionInsert {
   status?: MissionStatus
   kind?: MissionKind
   ai_consent_override?: boolean | null
+  ai_anonymize_override?: boolean | null
   lead_auditor_id?: string | null
   associate_id?: string | null
   start_date?: string | null
@@ -549,6 +552,7 @@ export interface MissionUpdate {
   description?: string | null
   status?: MissionStatus
   ai_consent_override?: boolean | null
+  ai_anonymize_override?: boolean | null
   lead_auditor_id?: string | null
   associate_id?: string | null
   start_date?: string | null
@@ -869,6 +873,10 @@ export interface CabinetClient {
   ai_consent: boolean | null
   ai_consent_at: string | null
   ai_consent_by: string | null
+  /** Anonymisation réversible avant envoi IA (RFC 0012 P4, migration 00266). NULL/false = désactivé. */
+  ai_anonymize: boolean | null
+  ai_anonymize_at: string | null
+  ai_anonymize_by: string | null
   /** Fiche client de démonstration (E4, migration 00235). */
   is_demo: boolean
   demo_owner_id: string | null
@@ -900,6 +908,9 @@ export interface CabinetClientInsert {
   ai_consent?: boolean | null
   ai_consent_at?: string | null
   ai_consent_by?: string | null
+  ai_anonymize?: boolean | null
+  ai_anonymize_at?: string | null
+  ai_anonymize_by?: string | null
   is_demo?: boolean
   demo_owner_id?: string | null
 }
@@ -930,6 +941,9 @@ export interface CabinetClientUpdate {
   ai_consent?: boolean | null
   ai_consent_at?: string | null
   ai_consent_by?: string | null
+  ai_anonymize?: boolean | null
+  ai_anonymize_at?: string | null
+  ai_anonymize_by?: string | null
 }
 
 export interface SignatureEvidence {
