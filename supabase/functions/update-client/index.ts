@@ -133,6 +133,13 @@ Deno.serve(async (req) => {
       ficheUpdate.ai_consent_at = consent ? new Date().toISOString() : null
       ficheUpdate.ai_consent_by = consent ? callerProfile.id : null
     }
+    // Anonymisation réversible IA (RFC 0012, P4) : même modèle probant (horodatage + auteur serveur).
+    if ('ai_anonymize' in body) {
+      const anon = body.ai_anonymize === true
+      ficheUpdate.ai_anonymize = anon
+      ficheUpdate.ai_anonymize_at = anon ? new Date().toISOString() : null
+      ficheUpdate.ai_anonymize_by = anon ? callerProfile.id : null
+    }
     if (Object.keys(ficheUpdate).length > 0) {
       const { error: updErr } = await supabaseAdmin
         .from('cabinet_clients')

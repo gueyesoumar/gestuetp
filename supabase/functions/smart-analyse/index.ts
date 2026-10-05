@@ -5,6 +5,7 @@ import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
 import { guardAiExposure, resolveAiConsent } from '../_shared/ai-gate.ts'
+import { rehydrate } from '../_shared/ai-pseudonymize.ts'
 
 // ============================================================================
 // Types & validators
@@ -439,6 +440,7 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
       actorUserId: (caller as { id?: string | null }).id ?? null,
       targetType: 'mission',
       targetId: mission_id ?? null,
+      rehydrates: true, // ré-hydratation de la réponse ci-dessous (P4)
     })
     if (!gate.allowed) {
       return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: gate.skipped_reason }),
@@ -501,7 +503,11 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
 
     const data = await claudeRes.json()
     void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null, exposure })
-    const rawText = data.content?.[0]?.text ?? ''
+    // Ré-hydratation (P4) : si le texte envoyé a été pseudonymisé, on restaure les
+    // vraies valeurs dans la réponse AVANT parsing. Les valeurs déterministes (email,
+    // IBAN, tél…) ne contiennent pas de guillemet → sûr dans le JSON brut.
+    const rawModelText = data.content?.[0]?.text ?? ''
+    const rawText = gate.anonymized && gate.mapping ? rehydrate(rawModelText, gate.mapping) : rawModelText
     const clean = rawText.replace(/```json|```/g, '').trim()
 
     // ── 5. Parse + validate response ─────────────────────────────────────────

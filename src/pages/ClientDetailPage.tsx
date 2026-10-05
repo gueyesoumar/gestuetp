@@ -8,6 +8,7 @@ import { ClientInfoSection } from '../features/clients/ClientInfoSection'
 import { ExigencesSection } from '../features/clients/ExigencesSection'
 import { ClientBrandingSection } from '../features/clients/ClientBrandingSection'
 import { ClientAiConsentSection } from '../features/clients/ClientAiConsentSection'
+import { ClientAiAnonymizeSection } from '../features/clients/ClientAiAnonymizeSection'
 import { SplitForm } from '../components/ui/SplitForm'
 import { SplitFormSection } from '../components/ui/SplitFormSection'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -40,6 +41,7 @@ export function ClientDetailPage() {
   const [brandFont, setBrandFont] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
   const [aiConsent, setAiConsent] = useState(false)
+  const [aiAnonymize, setAiAnonymize] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -68,6 +70,7 @@ export function ClientDetailPage() {
     setBrandFont(client.brand_font ?? null)
     setNotes(client.notes ?? '')
     setAiConsent(client.ai_consent === true)
+    setAiAnonymize(client.ai_anonymize === true)
     setInitialized(true)
   }
 
@@ -95,6 +98,7 @@ export function ClientDetailPage() {
       brand_font: brandFont,
       notes: notes || null,
       ai_consent: aiConsent,
+      ai_anonymize: aiAnonymize,
     }
     const ok = await updateClient(client.id, payload as Record<string, unknown> & import('../types/database.types').CabinetClientUpdate)
     if (ok) setSuccess(true)
@@ -154,13 +158,22 @@ export function ClientDetailPage() {
             />
           </SplitFormSection>
 
-          <SplitFormSection title="Confidentialit&eacute; IA" description="Consentement du client &agrave; l'analyse IA de ses donn&eacute;es">
-            <ClientAiConsentSection
-              aiConsent={aiConsent}
-              consentAt={client.ai_consent_at ?? null}
-              disabled={updating}
-              onChange={setAiConsent}
-            />
+          <SplitFormSection title="Confidentialit&eacute; IA" description="Consentement et anonymisation des donn&eacute;es envoy&eacute;es &agrave; l'IA">
+            <div className="space-y-6">
+              <ClientAiConsentSection
+                aiConsent={aiConsent}
+                consentAt={client.ai_consent_at ?? null}
+                disabled={updating}
+                onChange={setAiConsent}
+              />
+              <div className="border-t border-gray-100" />
+              <ClientAiAnonymizeSection
+                aiAnonymize={aiAnonymize}
+                anonymizeAt={client.ai_anonymize_at ?? null}
+                disabled={updating}
+                onChange={setAiAnonymize}
+              />
+            </div>
           </SplitFormSection>
 
           <SplitFormSection title="Exigences" description="Cadre l&eacute;gal et normatif">

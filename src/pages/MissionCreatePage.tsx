@@ -187,6 +187,9 @@ export function MissionCreatePage() {
         clientConsent={f.selectedClient?.ai_consent ?? null}
         aiConsentOverride={f.aiConsentOverride}
         onChangeConsentOverride={f.setAiConsentOverride}
+        clientAnonymize={f.selectedClient?.ai_anonymize ?? null}
+        aiAnonymizeOverride={f.aiAnonymizeOverride}
+        onChangeAnonymizeOverride={f.setAiAnonymizeOverride}
       />
     ),
   })

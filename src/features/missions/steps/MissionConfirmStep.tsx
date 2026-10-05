@@ -3,6 +3,7 @@ import type { Framework } from '../../../types/database.types'
 import type { MemberWithRoles } from '../../members/types'
 import { WorkflowTemplatePicker } from '../WorkflowTemplatePicker'
 import { MissionConsentOverride } from './MissionConsentOverride'
+import { MissionAnonymizeOverride } from './MissionAnonymizeOverride'
 
 interface MissionConfirmStepProps {
   missionName: string
@@ -26,6 +27,10 @@ interface MissionConfirmStepProps {
   clientConsent?: boolean | null
   aiConsentOverride?: boolean | null
   onChangeConsentOverride?: (value: boolean | null) => void
+  /** Anonymisation IA (audit uniquement, RFC 0012 P4). */
+  clientAnonymize?: boolean | null
+  aiAnonymizeOverride?: boolean | null
+  onChangeAnonymizeOverride?: (value: boolean | null) => void
 }
 
 export function MissionConfirmStep({
@@ -33,6 +38,7 @@ export function MissionConfirmStep({
   associateId, leadAuditorId, teamSize, startDate, endDate, members,
   totalControls, selectedDomains, totalDomains, workflowTemplateId, onChangeTemplate,
   showConsent = false, clientConsent = null, aiConsentOverride = null, onChangeConsentOverride,
+  clientAnonymize = null, aiAnonymizeOverride = null, onChangeAnonymizeOverride,
 }: MissionConfirmStepProps) {
   const associate = members.find((m) => m.id === associateId)
   const lead = members.find((m) => m.id === leadAuditorId)
@@ -86,6 +92,14 @@ export function MissionConfirmStep({
           clientConsent={clientConsent}
           value={aiConsentOverride}
           onChange={onChangeConsentOverride}
+        />
+      )}
+
+      {showConsent && onChangeAnonymizeOverride && (
+        <MissionAnonymizeOverride
+          clientAnonymize={clientAnonymize}
+          value={aiAnonymizeOverride}
+          onChange={onChangeAnonymizeOverride}
         />
       )}
     </div>
