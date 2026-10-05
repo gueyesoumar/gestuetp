@@ -106,7 +106,7 @@ async function callerOwnsMission(
 async function handleUpload(
   admin: ReturnType<typeof createClient>,
   anthropicKey: string,
-  body: { document_id: string },
+  body: { document_id: string; ocr_text?: string },
   callerAuth: string,
   caller: CallerProfile,
 ): Promise<Response> {
@@ -166,12 +166,20 @@ async function handleUpload(
   // Détection + politique d'exposition (P2) sur le texte réellement lisible.
   // PDF : texte extrait et scanné (P2c) ; images (et PDF trop gros / illisibles) → 'non_inspecte'.
   const ext = (doc.file_name.split('.').pop() ?? '').toLowerCase()
-  // PDF scannable si l'extraction de texte a réussi (P2c), sinon 'non_inspecte'.
+  // PDF scannable si l'extraction de texte a réussi (P2c). Image scannable si l'OCR
+  // navigateur a fourni du texte (P3a). Sinon 'non_inspecte'.
   const pdfText = ext === 'pdf' ? prepared.extractedText : undefined
-  const isTextual = prepared.kind !== 'image' && (ext !== 'pdf' || pdfText != null)
-  const scanText = isTextual
-    ? (ext === 'pdf' ? (pdfText ?? '') : await prepared.blob.text().catch(() => ''))
-    : ''
+  const imageOcr = prepared.kind === 'image' ? ((body.ocr_text ?? '').trim() || undefined) : undefined
+  const isTextual = prepared.kind === 'image'
+    ? imageOcr != null
+    : (ext !== 'pdf' || pdfText != null)
+  const scanText = !isTextual
+    ? ''
+    : prepared.kind === 'image'
+      ? (imageOcr ?? '')
+      : ext === 'pdf'
+        ? (pdfText ?? '')
+        : await prepared.blob.text().catch(() => '')
 
   // Garde d'exposition IA (P2) : kill-switch + détection + consentement + politique + caviardage + scellement F6.
   const gate = await guardAiExposure({
@@ -210,7 +218,9 @@ async function handleUpload(
 
   // Caviardage : si la politique l'exige, on téléverse une version expurgée du texte
   // (un PDF perd alors sa mise en forme, mais aucune donnée sensible ne fuit).
-  const redacting = gate.action === 'redact'
+  // Exception : une IMAGE ne peut pas être caviardée → moyenne = envoyée telle quelle
+  // (décision P3a : pas de régression ; secret/élevé-sans-accord restent bloqués en amont).
+  const redacting = gate.action === 'redact' && prepared.kind !== 'image'
   const blobToUpload = redacting ? new Blob([gate.text], { type: 'text/plain' }) : prepared.blob
   const uploadName = redacting ? prepared.fileName.replace(/\.[^.]+$/, '') + '.redacted.txt' : prepared.fileName
 
