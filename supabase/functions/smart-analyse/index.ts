@@ -4,7 +4,7 @@ import { getClientContext } from '../_shared/client-context.ts'
 import { logAiCall } from '../_shared/log-ai-call.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 import { authenticateCaller, sameCabinet, ACCESS_DENIED } from '../_shared/auth.ts'
-import { guardAiExposure } from '../_shared/ai-gate.ts'
+import { guardAiExposure, resolveAiConsent } from '../_shared/ai-gate.ts'
 
 // ============================================================================
 // Types & validators
@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
 
     if (mission_id && control_id) {
       const { data: directDocs } = await admin.from('documents')
-        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id')
+        .select('file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id, ai_sensitivity, ai_secret_count')
         .eq('mission_id', mission_id)
         .eq('control_id', control_id)
         .order('created_at', { ascending: false })
@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
 
       const { data: viaEvidence } = await admin.from('documents')
         .select(`
-          file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id,
+          file_name, file_path, mime_type, file_size, anthropic_file_id, anthropic_file_kind, evidence_request_id, ai_sensitivity, ai_secret_count,
           evidence_request:mission_evidence_requests!evidence_request_id (
             evidence_catalog:evidence_catalog!evidence_catalog_id ( control_id )
           )
@@ -223,6 +223,25 @@ Deno.serve(async (req) => {
         }
       }
       dedicatedCount = dedicatedDocs.length
+
+      // Garde documentaire (RFC 0012) : refuser l'analyse si un document du périmètre est
+      // sensible sans accord. Un secret bloque toujours ; un document « élevé » exige le
+      // consentement client. Ferme l'écart « document bloqué mais analyse qui tourne ».
+      const hasSecretDoc = dedicatedDocs.some((d) => (d.ai_secret_count ?? 0) > 0)
+      const hasElevatedDoc = dedicatedDocs.some((d) => d.ai_sensitivity === 'elevee')
+      if (hasSecretDoc || hasElevatedDoc) {
+        const consent = cabinetIdForLog
+          ? await resolveAiConsent(admin, cabinetIdForLog, mission_id, null)
+          : false
+        if (hasSecretDoc) {
+          return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: 'blocked' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+        if (hasElevatedDoc && !consent) {
+          return new Response(JSON.stringify({ findings: [], analysis_summary: '', skipped_reason: 'consent_required' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+      }
 
       const dedicatedNeedingUpload = dedicatedDocs.filter((d) => !d.anthropic_file_id)
       if (dedicatedNeedingUpload.length > 0 && callerAuth) {

@@ -63,37 +63,39 @@ interface MissionConsentRow {
 
 /**
  * Résout le consentement effectif : surcharge mission (si non NULL) sinon consentement
- * de la fiche client. Défaut sûr : false (non consenti).
+ * de la fiche client. Défaut sûr : false (non consenti). Exporté pour que les fonctions
+ * qui joignent des documents (ex. smart-analyse) puissent re-vérifier le consentement.
  */
-async function resolveConsent(
+export async function resolveAiConsent(
   admin: SupabaseClient,
   cabinetId: string,
-  input: AiGateInput,
+  missionId?: string | null,
+  clientOrgId?: string | null,
 ): Promise<boolean> {
   let override: boolean | null | undefined = undefined
-  let clientOrgId = input.clientOrgId ?? null
+  let org = clientOrgId ?? null
 
-  if (input.missionId && (override === undefined || !clientOrgId)) {
+  if (missionId) {
     // Cast : friction de génériques supabase-js (idiome du repo, cf. ai-guard.ts).
     const { data } = await (admin
       .from('missions')
       .select('client_id, ai_consent_override')
-      .eq('id', input.missionId)
+      .eq('id', missionId)
       .maybeSingle() as unknown as Promise<{ data: MissionConsentRow | null }>)
     override = data?.ai_consent_override ?? null
-    clientOrgId = clientOrgId ?? data?.client_id ?? null
+    org = org ?? data?.client_id ?? null
   }
 
   // Surcharge explicite (true OU false) l'emporte sur la fiche client.
   if (override === true) return true
   if (override === false) return false
 
-  if (!clientOrgId) return false
+  if (!org) return false
   const { data: cc } = await (admin
     .from('cabinet_clients')
     .select('ai_consent')
     .eq('cabinet_id', cabinetId)
-    .eq('client_org_id', clientOrgId)
+    .eq('client_org_id', org)
     .maybeSingle() as unknown as Promise<{ data: { ai_consent?: boolean | null } | null }>)
   return cc?.ai_consent === true
 }
@@ -120,7 +122,9 @@ export async function guardAiExposure(input: AiGateInput): Promise<AiGateResult>
   const hasSecret = exposure.counts.secret > 0
 
   // [2] Consentement effectif (surcharge mission → fiche client).
-  const hasConsent = cabinetId ? await resolveConsent(admin, cabinetId, input) : false
+  const hasConsent = cabinetId
+    ? await resolveAiConsent(admin, cabinetId, input.missionId ?? null, input.clientOrgId ?? null)
+    : false
 
   // [3] Politique. Sans cabinet (appel hors mission), aucun consentement n'est
   // résoluble : on dégrade « demander accord » en caviardage (minimisation), le
