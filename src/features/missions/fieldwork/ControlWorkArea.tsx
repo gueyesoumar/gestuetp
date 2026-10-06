@@ -18,6 +18,8 @@ import { ControlReviewView } from './ControlReviewView'
 import { ControlReviewActions } from './ControlReviewActions'
 import { ControlAuthoringFooter } from './ControlAuthoringFooter'
 import { ControlStatementCard } from './ControlStatementCard'
+import { InterControlProvider } from './interControl'
+import { CoherenceBannerConnected } from './CoherenceBanner'
 import { ConformityJustificationModal } from './findings/ConformityJustificationModal'
 import { isConformityCoherent, getIncoherenceMessage, findIncompleteNcFindings } from './findings/conformityRules'
 import type { ConformityLevel } from '../mission-constants'
@@ -164,6 +166,7 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
   }, [findingsHook, conformityLevel, doSubmit, toast])
 
   return (
+    <InterControlProvider missionId={assessment.mission_id}>
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-200 bg-white shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -184,6 +187,15 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0 pb-4">
+
+      {!canReview && (
+        <CoherenceBannerConnected
+          controlId={assessment.control_id}
+          conformityLevel={conformityLevel}
+          onAlign={(level) => setConformityLevel(level)}
+          readOnly={readOnly}
+        />
+      )}
 
       {assessment.status === 'rejected' && (
         <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5">
@@ -319,5 +331,6 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
         onCancel={() => setJustificationOpen(false)}
       />
     </div>
+    </InterControlProvider>
   )
 }

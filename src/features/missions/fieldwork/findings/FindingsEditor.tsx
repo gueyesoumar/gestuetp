@@ -2,19 +2,47 @@ import { useState, useMemo } from 'react'
 import { Plus, AlertCircle, ClipboardList, Info } from 'lucide-react'
 import { FindingCard } from './FindingCard'
 import { SuggestionChips } from './SuggestionChips'
+import { SystemicPicker } from './SystemicPicker'
 import { PromoteFindingModal } from '../../../risk/PromoteFindingModal'
+import { useInterControlCtx } from '../interControl'
+import { useToast } from '../../../../hooks/useToast'
 import type { AssessmentFinding, UseAssessmentFindingsReturn } from './useAssessmentFindings'
+import type { AssessmentWithControl } from '../../useAuditorAssessments'
 
 interface FindingsEditorProps {
   findingsHook: UseAssessmentFindingsReturn
   readOnly: boolean
   /** Suggestions de constats dérivées du référentiel (controls.audit_checklist). */
   checklistSuggestions?: string[]
+  /** Contrôle courant — active le constat systémique (propagation vers contrôles liés). */
+  assessment?: AssessmentWithControl
 }
 
-export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = [] }: FindingsEditorProps) {
+export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = [], assessment }: FindingsEditorProps) {
   const { findings, loading, error, addFinding, updateFinding, deleteFinding, moveFinding, refetch } = findingsHook
   const [promoteTarget, setPromoteTarget] = useState<AssessmentFinding | null>(null)
+  const interControl = useInterControlCtx()
+  const toast = useToast()
+  const [systemicFor, setSystemicFor] = useState<AssessmentFinding | null>(null)
+  const [systemicSaving, setSystemicSaving] = useState(false)
+
+  const canSystemic = !!interControl && !!assessment && !readOnly
+
+  const confirmSystemic = async (assessmentIds: string[]): Promise<void> => {
+    if (!interControl || !systemicFor) return
+    setSystemicSaving(true)
+    const groupId = crypto.randomUUID()
+    const okOrigin = await updateFinding(systemicFor.id, { systemic_group_id: groupId, is_systemic_origin: true })
+    const okMirrors = okOrigin && await interControl.createSystemic(systemicFor, assessmentIds, groupId)
+    setSystemicSaving(false)
+    if (okOrigin && okMirrors) {
+      interControl.refetch()
+      toast.success('Constat systémique créé', { description: `${assessmentIds.length + 1} contrôles couverts.` })
+      setSystemicFor(null)
+    } else {
+      toast.error('Création du constat systémique impossible')
+    }
+  }
 
   // Points à vérifier non encore saisis comme constat (évite les doublons).
   const remainingSuggestions = useMemo(() => {
@@ -102,6 +130,8 @@ export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = 
               onMoveUp={() => moveFinding(f.id, 'up')}
               onMoveDown={() => moveFinding(f.id, 'down')}
               onPromote={setPromoteTarget}
+              systemicCount={interControl?.groupCount(f.systemic_group_id)}
+              onMakeSystemic={canSystemic ? setSystemicFor : undefined}
             />
           ))}
         </div>
@@ -112,6 +142,17 @@ export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = 
           finding={promoteTarget}
           onClose={() => setPromoteTarget(null)}
           onDone={() => void refetch()}
+        />
+      )}
+
+      {systemicFor && interControl && assessment && (
+        <SystemicPicker
+          controlCode={assessment.control.code}
+          findingLabel={systemicFor.description || '(constat)'}
+          targets={interControl.linkedTargets(assessment.control_id)}
+          saving={systemicSaving}
+          onConfirm={(ids) => { void confirmSystemic(ids) }}
+          onClose={() => setSystemicFor(null)}
         />
       )}
     </div>

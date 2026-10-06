@@ -1386,6 +1386,10 @@ export interface AssessmentFinding {
   updated_at: string
   /** Horodatage de promotion vers le registre Gëstu Risk de l'org auditée (null = non promu). */
   promoted_at: string | null
+  /** Groupe partagé des répliques d'un constat systémique (null = constat local). Lot 2. */
+  systemic_group_id: string | null
+  /** true sur la réplique d'origine du groupe systémique (porte l'action corrective partagée). */
+  is_systemic_origin: boolean
 }
 
 export interface AssessmentFindingInsert {
@@ -1399,6 +1403,8 @@ export interface AssessmentFindingInsert {
   priority?: FindingPriority | null
   proposed_deadline?: string | null
   ai_generated?: boolean
+  systemic_group_id?: string | null
+  is_systemic_origin?: boolean
 }
 
 export interface AssessmentFindingUpdate {
@@ -1409,6 +1415,8 @@ export interface AssessmentFindingUpdate {
   recommendation?: string | null
   priority?: FindingPriority | null
   proposed_deadline?: string | null
+  systemic_group_id?: string | null
+  is_systemic_origin?: boolean
 }
 
 // ============================================================

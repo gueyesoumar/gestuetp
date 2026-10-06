@@ -21,6 +21,8 @@ interface FindingRow {
   classification: string
   description: string
   proposed_deadline: string | null
+  systemic_group_id: string | null
+  is_systemic_origin: boolean
 }
 
 interface MissionRow {
@@ -155,7 +157,7 @@ Deno.serve(async (req) => {
     // 2. Charger les findings classifies (NC majeure / mineure / observation)
     const { data: findings, error: findingsErr } = await supabaseAdmin
       .from('assessment_findings')
-      .select('id, assessment_id, classification, description, proposed_deadline')
+      .select('id, assessment_id, classification, description, proposed_deadline, systemic_group_id, is_systemic_origin')
       .in('assessment_id', assessmentIds)
       .in('classification', ['major_nc', 'minor_nc', 'observation'])
       .order('ord', { ascending: true })
@@ -169,7 +171,9 @@ Deno.serve(async (req) => {
       )
     }
 
-    const candidates = findings ?? []
+    // Constat systémique (Lot 2) : un groupe de répliques ne doit générer QU'UNE action
+    // corrective (portée par la réplique d'origine) → on écarte les répliques non-origine.
+    const candidates = (findings ?? []).filter((f) => !(f.systemic_group_id && f.is_systemic_origin === false))
     if (candidates.length === 0) {
       return new Response(
         JSON.stringify({ created: 0, skipped: 0, total: 0, cars: [] }),

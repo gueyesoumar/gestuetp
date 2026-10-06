@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { ChevronUp, ChevronDown, Trash2, Sparkles, AlertTriangle, ArrowUpRight, Check } from 'lucide-react'
+import { ChevronUp, ChevronDown, Trash2, Sparkles, AlertTriangle, ArrowUpRight, Check, GitBranch } from 'lucide-react'
 import { MarkdownToolbar } from '../../../../components/ui/MarkdownToolbar'
 import { FindingClassificationPicker, FindingPriorityPicker, getClassificationConfig } from './FindingPickers'
 import type { AssessmentFinding, FindingPatch } from './useAssessmentFindings'
@@ -15,6 +15,10 @@ interface FindingCardProps {
   onMoveDown: () => Promise<boolean>
   /** Fourni uniquement en contexte staff terrain → active « Promouvoir vers le registre ». */
   onPromote?: (finding: AssessmentFinding) => void
+  /** Nombre de contrôles couverts par le groupe systémique (>1 → affiche le badge « Systémique »). */
+  systemicCount?: number
+  /** Ouvre le sélecteur « étendre à des contrôles liés » (non fourni → action masquée). */
+  onMakeSystemic?: (finding: AssessmentFinding) => void
 }
 
 function formatDeadline(iso: string | null): string {
@@ -22,7 +26,7 @@ function formatDeadline(iso: string | null): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-export function FindingCard({ finding, index, total, readOnly, onChange, onDelete, onMoveUp, onMoveDown, onPromote }: FindingCardProps) {
+export function FindingCard({ finding, index, total, readOnly, onChange, onDelete, onMoveUp, onMoveDown, onPromote, systemicCount, onMakeSystemic }: FindingCardProps) {
   const [description, setDescription] = useState(finding.description)
   const [risk, setRisk] = useState(finding.risk ?? '')
   const [recommendation, setRecommendation] = useState(finding.recommendation ?? '')
@@ -86,6 +90,18 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
             <Sparkles size={9} /> IA
           </span>
         )}
+
+        {finding.systemic_group_id ? (
+          <span className="text-[9px] font-bold uppercase tracking-wide text-forest-700 bg-forest-50 border border-forest-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1" title="Constat répliqué sur plusieurs contrôles liés">
+            <GitBranch size={9} /> Systémique{systemicCount && systemicCount > 1 ? ` · ${systemicCount} contrôles` : ''}
+          </span>
+        ) : (!readOnly && !isStrength && onMakeSystemic && (
+          <button type="button" onClick={() => onMakeSystemic(finding)}
+            className="text-[9px] font-bold uppercase tracking-wide text-forest-700 hover:bg-forest-50 border border-forest-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1"
+            title="Étendre ce constat à des contrôles liés">
+            <GitBranch size={9} /> Étendre
+          </button>
+        ))}
 
         {!readOnly && (
           <div className="ml-auto flex items-center gap-0.5">

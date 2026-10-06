@@ -72,6 +72,7 @@ export function FreeWorkForm(props: FreeWorkFormProps){
         findingsHook={findingsHook}
         readOnly={readOnly}
         checklistSuggestions={(assessment.control.audit_checklist ?? []).map((i) => i.label)}
+        assessment={assessment}
       />
 
       <Field label="Notes sur les preuves" value={props.evidenceNotes} onChange={props.onEvidenceNotesChange} disabled={readOnly}
