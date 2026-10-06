@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { Paperclip, X } from 'lucide-react'
-import { CONFORMITY_LEVELS } from '../mission-constants'
 import { FindingsEditor } from './findings/FindingsEditor'
+import { ControlVerdictCard } from './findings/ControlVerdictCard'
+import { ControlExpressLane } from './ControlExpressLane'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { UseAssessmentFindingsReturn } from './findings/useAssessmentFindings'
@@ -22,6 +23,9 @@ interface FreeWorkFormProps {
   onObservationsChange: (v: string) => void
   onEvidenceNotesChange: (v: string) => void
   readOnly: boolean
+  saving: boolean
+  /** Voie express : fixe le niveau et soumet directement (sans constat). */
+  onExpressSubmit: (level: 'c' | 'na') => void
 }
 
 export function FreeWorkForm(props: FreeWorkFormProps){
@@ -42,28 +46,19 @@ export function FreeWorkForm(props: FreeWorkFormProps){
         </div>
       )}
 
-      <div>
-        <p className="text-[13px] font-semibold text-gray-700 mb-2">Niveau de conformit&eacute;</p>
-        <div className="flex gap-2">
-          {CONFORMITY_LEVELS.map((level) => {
-            const selected = props.conformityLevel === level.key
-            return (
-              <button
-                key={level.key}
-                type="button"
-                onClick={() => props.onConformityChange(level.key)}
-                disabled={readOnly}
-                className={`flex-1 py-2 border-2 rounded-xl text-center transition-all ${
-                  selected ? 'border-forest-500 bg-forest-50' : 'border-gray-200 hover:border-forest-300'
-                } ${readOnly ? 'cursor-default opacity-60' : 'cursor-pointer'}`}
-              >
-                <p className={`text-lg font-bold ${selected ? 'text-forest-700' : 'text-gray-500'}`}>{level.short}</p>
-                <p className={`text-[10px] ${selected ? 'text-forest-600' : 'text-gray-400'}`}>{level.label}</p>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+      {!readOnly && (
+        <ControlExpressLane
+          disabled={props.saving || findingsHook.findings.length > 0}
+          onExpress={props.onExpressSubmit}
+        />
+      )}
+
+      <ControlVerdictCard
+        conformityLevel={props.conformityLevel}
+        findings={findingsHook.findings}
+        readOnly={readOnly}
+        onChange={props.onConformityChange}
+      />
 
       <Field label="Observations terrain" value={props.observations} onChange={props.onObservationsChange} disabled={readOnly}
         placeholder="Notez ce que vous avez observ&eacute;..." rows={3} />

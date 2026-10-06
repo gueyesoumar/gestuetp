@@ -165,6 +165,29 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
     await doSubmit(null)
   }, [findingsHook, conformityLevel, doSubmit, toast])
 
+  // Voie express : fixe le niveau (Conforme / Non applicable) et soumet directement.
+  // Réservée au cas « rien à signaler » (aucun constat) → cohérence garantie,
+  // on contourne donc la closure d'état en passant le niveau explicitement.
+  const handleExpressSubmit = useCallback(async (level: 'c' | 'na') => {
+    setConformityLevel(level)
+    const saved = await onSave(assessment.id, { evidence_notes: evidenceNotes, observations, conformity_level: level })
+    if (!saved) return
+    if (level === 'c' && findingsHook.findings.length === 0) {
+      const created = await findingsHook.addFinding({
+        classification: 'observation',
+        description: 'Conforme, aucun écart identifié.',
+      })
+      if (!created) {
+        toast.error('Soumission impossible')
+        return
+      }
+    }
+    const submitted = await onSubmit(assessment.id, null)
+    if (submitted) {
+      toast.success('Travaux soumis pour revue', { description: `${assessment.control.code} · transmis au lead` })
+    }
+  }, [assessment.id, assessment.control.code, evidenceNotes, observations, onSave, onSubmit, findingsHook, toast])
+
   return (
     <InterControlProvider missionId={assessment.mission_id}>
     <div className="flex flex-col flex-1 min-h-0">
@@ -291,6 +314,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           onObservationsChange={setObservations}
           onEvidenceNotesChange={setEvidenceNotes}
           readOnly={readOnly}
+          saving={saving}
+          onExpressSubmit={handleExpressSubmit}
         />
       )}
 
