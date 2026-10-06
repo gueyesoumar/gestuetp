@@ -5,6 +5,7 @@ import { SuggestionChips } from './SuggestionChips'
 import { SystemicPicker } from './SystemicPicker'
 import { PromoteFindingModal } from '../../../risk/PromoteFindingModal'
 import { useInterControlCtx } from '../interControl'
+import { useFindingTemplates } from './useFindingTemplates'
 import { useToast } from '../../../../hooks/useToast'
 import type { AssessmentFinding, UseAssessmentFindingsReturn } from './useAssessmentFindings'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
@@ -22,6 +23,7 @@ export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = 
   const { findings, loading, error, addFinding, updateFinding, deleteFinding, moveFinding, refetch } = findingsHook
   const [promoteTarget, setPromoteTarget] = useState<AssessmentFinding | null>(null)
   const interControl = useInterControlCtx()
+  const { templates, saveTemplate } = useFindingTemplates(assessment?.control_id)
   const toast = useToast()
   const [systemicFor, setSystemicFor] = useState<AssessmentFinding | null>(null)
   const [systemicSaving, setSystemicSaving] = useState(false)
@@ -132,6 +134,8 @@ export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = 
               onPromote={setPromoteTarget}
               systemicCount={interControl?.groupCount(f.systemic_group_id)}
               onMakeSystemic={canSystemic ? setSystemicFor : undefined}
+              templates={templates}
+              onSaveTemplate={assessment && !readOnly ? saveTemplate : undefined}
             />
           ))}
         </div>

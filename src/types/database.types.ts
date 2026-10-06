@@ -1419,6 +1419,44 @@ export interface AssessmentFindingUpdate {
   is_systemic_origin?: boolean
 }
 
+// Bibliothèque de constats-types réutilisables (Lot 3, catalogue lié / mémoire du cabinet).
+export type FindingTemplateScope = 'platform' | 'cabinet'
+
+export interface FindingTemplate {
+  id: string
+  scope: FindingTemplateScope
+  org_id: string | null
+  control_id: string
+  classification: FindingClassification
+  description: string
+  risks: string[]
+  recommendations: string[]
+  usage_count: number
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface FindingTemplateInsert {
+  id?: string
+  scope: FindingTemplateScope
+  org_id?: string | null
+  control_id: string
+  classification: FindingClassification
+  description: string
+  risks?: string[]
+  recommendations?: string[]
+  usage_count?: number
+  created_by?: string | null
+}
+
+export interface FindingTemplateUpdate {
+  description?: string
+  risks?: string[]
+  recommendations?: string[]
+  usage_count?: number
+}
+
 // ============================================================
 // Control Comments / Discussion (migration 00103, hardened by 00104)
 // ============================================================
@@ -2143,6 +2181,12 @@ export interface Database {
         Row: AssessmentFinding & Rec
         Insert: AssessmentFindingInsert & Rec
         Update: AssessmentFindingUpdate & Rec
+        Relationships: []
+      }
+      finding_templates: {
+        Row: FindingTemplate & Rec
+        Insert: FindingTemplateInsert & Rec
+        Update: FindingTemplateUpdate & Rec
         Relationships: []
       }
       control_comments: {
