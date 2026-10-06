@@ -68,7 +68,11 @@ export function FreeWorkForm(props: FreeWorkFormProps){
       <Field label="Observations terrain" value={props.observations} onChange={props.onObservationsChange} disabled={readOnly}
         placeholder="Notez ce que vous avez observ&eacute;..." rows={3} />
 
-      <FindingsEditor findingsHook={findingsHook} readOnly={readOnly} />
+      <FindingsEditor
+        findingsHook={findingsHook}
+        readOnly={readOnly}
+        checklistSuggestions={(assessment.control.audit_checklist ?? []).map((i) => i.label)}
+      />
 
       <Field label="Notes sur les preuves" value={props.evidenceNotes} onChange={props.onEvidenceNotesChange} disabled={readOnly}
         placeholder="D&eacute;crivez les preuves collect&eacute;es..." rows={2} />

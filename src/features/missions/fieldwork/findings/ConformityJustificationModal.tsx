@@ -10,8 +10,6 @@ interface ConformityJustificationModalProps {
   onCancel: () => void
 }
 
-const MIN_REASON_LENGTH = 20
-
 export function ConformityJustificationModal({
   open, incoherenceMessage, saving, onConfirm, onCancel,
 }: ConformityJustificationModalProps): JSX.Element {
@@ -19,8 +17,8 @@ export function ConformityJustificationModal({
   const [confirmed, setConfirmed] = useState(false)
 
   const trimmed = reason.trim()
-  const reasonValid = trimmed.length >= MIN_REASON_LENGTH
-  const canSubmit = reasonValid && confirmed && !saving
+  // Justification facultative : seule la prise en compte consciente de l'écart est requise.
+  const canSubmit = confirmed && !saving
 
   const handleConfirm = (): void => {
     if (!canSubmit) return
@@ -28,7 +26,7 @@ export function ConformityJustificationModal({
   }
 
   return (
-    <Modal open={open} onClose={onCancel} title="Justification requise">
+    <Modal open={open} onClose={onCancel} title="Écart de conformité">
       <div className="space-y-4">
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3">
           <AlertTriangle size={16} className="text-amber-600 mt-0.5 shrink-0" />
@@ -40,22 +38,20 @@ export function ConformityJustificationModal({
 
         <div>
           <label htmlFor="conformity-justification" className="block text-[13px] font-medium text-gray-700 mb-1.5">
-            Justification (visible par le chef de mission et l&apos;associ&eacute;)
+            Justification <span className="font-normal text-gray-400">— facultative, visible par le chef de mission et l&apos;associ&eacute;</span>
           </label>
           <textarea
             id="conformity-justification"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Expliquez pourquoi ce niveau de conformit&eacute; est appropri&eacute; malgr&eacute; les findings..."
+            placeholder="Expliquez pourquoi ce niveau de conformit&eacute; est appropri&eacute; malgr&eacute; les findings (facultatif)..."
             rows={5}
             disabled={saving}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-[13px] text-gray-900 outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 resize-y disabled:bg-gray-50"
           />
-          <div className="mt-1 flex items-center justify-between">
-            <p className={`text-[10px] ${reasonValid ? 'text-green-600' : 'text-gray-400'}`}>
-              {reasonValid ? '✓ Justification suffisante' : `Minimum ${MIN_REASON_LENGTH} caractères (${trimmed.length}/${MIN_REASON_LENGTH})`}
-            </p>
-          </div>
+          <p className="mt-1 text-[10px] text-gray-400">
+            {trimmed.length > 0 ? '✓ Justification renseignée' : 'Laissez vide si vous ne souhaitez pas justifier.'}
+          </p>
         </div>
 
         <label className="flex items-start gap-2 cursor-pointer">

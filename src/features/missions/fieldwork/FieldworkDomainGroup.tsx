@@ -128,6 +128,7 @@ export function FieldworkDomainGroup({ domain, assessments, auditorMap, selected
                   <span className="block text-[9px] text-gray-300 mt-0.5">{auditorMap.get(assessment.auditor_id)}</span>
                 )}
               </div>
+              <ConformityBadge level={assessment?.conformity_level ?? null} />
               <StatusLabel status={status} />
             </button>
           </div>
@@ -148,6 +149,21 @@ function StatusDot({ status }: { status: string }): JSX.Element {
     rejected: 'bg-red-600',
   }
   return <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${colors[status] ?? 'bg-gray-200'}`} />
+}
+
+// Niveau de conformité déduit/choisi du contrôle (lecture seule) — complète le statut workflow.
+function ConformityBadge({ level }: { level: string | null }): JSX.Element | null {
+  if (!level) return null
+  const map: Record<string, { short: string; cls: string }> = {
+    c: { short: 'C', cls: 'bg-green-100 text-green-700' },
+    lc: { short: 'LC', cls: 'bg-teal-100 text-teal-700' },
+    pc: { short: 'PC', cls: 'bg-amber-100 text-amber-700' },
+    nc: { short: 'NC', cls: 'bg-red-100 text-red-700' },
+    na: { short: 'N/A', cls: 'bg-gray-100 text-gray-500' },
+  }
+  const m = map[level]
+  if (!m) return null
+  return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${m.cls}`} title="Niveau de conformité">{m.short}</span>
 }
 
 function StatusLabel({ status }: { status: string }): JSX.Element | null {

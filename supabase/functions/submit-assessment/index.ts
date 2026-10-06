@@ -143,16 +143,12 @@ Deno.serve(async (req) => {
       else if (counts.observation > 0 || counts.strength > 0) coherent = level === 'c' || level === 'lc'
       else coherent = level === 'na' || level === 'c'
     }
+    // Justification d'ecart desormais FACULTATIVE : on ne bloque plus la soumission si le
+    // niveau choisi diverge des findings. Si une justification est fournie, on la persiste
+    // (visible en revue + audit trail) ; sinon on laisse null. Le blocage dur sur les NC
+    // incompletes (recommandation/priorite manquantes) reste en vigueur ci-dessus.
     const reason = typeof conformity_override_reason === 'string' ? conformity_override_reason.trim() : ''
-    if (!coherent && reason.length < 20) {
-      return new Response(
-        JSON.stringify({
-          error: 'Le niveau de conformite choisi est incoherent avec les findings. Une justification ecrite (minimum 20 caracteres) est obligatoire.',
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-    const persistedReason = coherent ? null : reason
+    const persistedReason = (!coherent && reason.length > 0) ? reason : null
 
     // 7. Check if submitter is the lead auditor → skip lead_review
     const { data: mission } = await supabaseAdmin

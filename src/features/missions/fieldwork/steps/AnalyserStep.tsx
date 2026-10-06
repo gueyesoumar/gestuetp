@@ -208,7 +208,11 @@ export function AnalyserStep({ assessment, observations, evidenceNotes, findings
         })()}
       </div>
 
-      <FindingsEditor findingsHook={findingsHook} readOnly={readOnly} />
+      <FindingsEditor
+        findingsHook={findingsHook}
+        readOnly={readOnly}
+        checklistSuggestions={(assessment.control.audit_checklist ?? []).map((i) => i.label)}
+      />
     </div>
   )
 }

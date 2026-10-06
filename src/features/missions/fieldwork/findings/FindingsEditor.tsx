@@ -1,17 +1,26 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Plus, AlertCircle, ClipboardList, Info } from 'lucide-react'
 import { FindingCard } from './FindingCard'
+import { SuggestionChips } from './SuggestionChips'
 import { PromoteFindingModal } from '../../../risk/PromoteFindingModal'
 import type { AssessmentFinding, UseAssessmentFindingsReturn } from './useAssessmentFindings'
 
 interface FindingsEditorProps {
   findingsHook: UseAssessmentFindingsReturn
   readOnly: boolean
+  /** Suggestions de constats dérivées du référentiel (controls.audit_checklist). */
+  checklistSuggestions?: string[]
 }
 
-export function FindingsEditor({ findingsHook, readOnly }: FindingsEditorProps) {
+export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = [] }: FindingsEditorProps) {
   const { findings, loading, error, addFinding, updateFinding, deleteFinding, moveFinding, refetch } = findingsHook
   const [promoteTarget, setPromoteTarget] = useState<AssessmentFinding | null>(null)
+
+  // Points à vérifier non encore saisis comme constat (évite les doublons).
+  const remainingSuggestions = useMemo(() => {
+    const used = new Set(findings.map((f) => f.description.trim().toLowerCase()))
+    return checklistSuggestions.filter((s) => s.trim() && !used.has(s.trim().toLowerCase()))
+  }, [checklistSuggestions, findings])
 
   return (
     <div className="space-y-3">
@@ -40,6 +49,13 @@ export function FindingsEditor({ findingsHook, readOnly }: FindingsEditorProps) 
         <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-[11px] text-red-700 inline-flex items-center gap-1.5">
           <AlertCircle size={13} /> {error}
         </div>
+      )}
+
+      {!readOnly && remainingSuggestions.length > 0 && (
+        <SuggestionChips
+          suggestions={remainingSuggestions}
+          onPick={(label) => { void addFinding({ description: label }) }}
+        />
       )}
 
       {loading ? (
