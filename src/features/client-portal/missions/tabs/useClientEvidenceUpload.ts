@@ -20,13 +20,14 @@ export interface ClientEvidenceUploadApi {
   linkingDocName: string | null
   setLinkingDocName: (name: string | null) => void
   availableForLinking: Document[]
-  triggerFileInput: (docName: string | null, controlIds?: string[], evidenceRequestIds?: string[]) => void
+  triggerFileInput: (docName: string | null, controlIds?: string[], evidenceRequestIds?: string[], evidenceItemId?: string | null) => void
   handleFileSelected: () => Promise<void>
   handleDrop: (e: React.DragEvent) => Promise<void>
   linkExistingDoc: (
     existingDoc: { file_name: string; file_path: string; file_size: number | null; mime_type: string | null },
     evidenceName: string,
     controlIds?: string[],
+    evidenceItemId?: string | null,
   ) => Promise<void>
 }
 
@@ -45,19 +46,21 @@ export function useClientEvidenceUpload({
   const [pendingDocName, setPendingDocName] = useState<string | null>(null)
   const [pendingControlIds, setPendingControlIds] = useState<string[]>([])
   const [pendingEvidenceRequestIds, setPendingEvidenceRequestIds] = useState<string[]>([])
+  const [pendingEvidenceItemId, setPendingEvidenceItemId] = useState<string | null>(null)
   const [linkingDocName, setLinkingDocName] = useState<string | null>(null)
 
-  const triggerFileInput = useCallback((docName: string | null, controlIds?: string[], evidenceRequestIds?: string[]): void => {
+  const triggerFileInput = useCallback((docName: string | null, controlIds?: string[], evidenceRequestIds?: string[], evidenceItemId?: string | null): void => {
     setPendingDocName(docName)
     setPendingControlIds(controlIds ?? [])
     setPendingEvidenceRequestIds(evidenceRequestIds ?? [])
+    setPendingEvidenceItemId(evidenceItemId ?? null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
       fileInputRef.current.click()
     }
   }, [])
 
-  const uploadOne = useCallback(async (file: File, evidenceName: string | null, controlIds: string[], evidenceRequestIds: string[]): Promise<void> => {
+  const uploadOne = useCallback(async (file: File, evidenceName: string | null, controlIds: string[], evidenceRequestIds: string[], evidenceItemId: string | null): Promise<void> => {
     if (!profile) return
 
     const description = evidenceName ? `[EVIDENCE:${evidenceName}]` : ''
@@ -97,6 +100,7 @@ export function useClientEvidenceUpload({
           mission_id: missionId,
           control_id: controlId,
           evidence_request_id: evidenceRequestId,
+          evidence_item_id: evidenceItemId,
           uploaded_by: profile.id,
           file_name: file.name,
           file_path: filePath,
@@ -131,7 +135,7 @@ export function useClientEvidenceUpload({
     try { await promise } catch { /* toast already informed the user */ }
   }, [missionId, profile, filesApiFlag.enabled, toast])
 
-  const processSelectedFiles = useCallback(async (files: FileList | File[], evidenceName: string | null, controlIds: string[], evidenceRequestIds: string[]): Promise<void> => {
+  const processSelectedFiles = useCallback(async (files: FileList | File[], evidenceName: string | null, controlIds: string[], evidenceRequestIds: string[], evidenceItemId: string | null): Promise<void> => {
     const { ok, failures } = validateFiles(files)
     for (const f of failures) {
       toast.error(`${f.fileName} : ${f.reason}`)
@@ -139,7 +143,7 @@ export function useClientEvidenceUpload({
     if (ok.length === 0) return
     for (const file of ok) {
       // eslint-disable-next-line no-await-in-loop
-      await uploadOne(file, evidenceName, controlIds, evidenceRequestIds)
+      await uploadOne(file, evidenceName, controlIds, evidenceRequestIds, evidenceItemId)
     }
     refetchDocs()
     setTimeout(() => refetchExpected(), 500)
@@ -148,20 +152,21 @@ export function useClientEvidenceUpload({
   const handleFileSelected = useCallback(async (): Promise<void> => {
     const files = fileInputRef.current?.files
     if (!files || files.length === 0) return
-    await processSelectedFiles(files, pendingDocName, pendingControlIds, pendingEvidenceRequestIds)
+    await processSelectedFiles(files, pendingDocName, pendingControlIds, pendingEvidenceRequestIds, pendingEvidenceItemId)
     setPendingDocName(null)
     setPendingControlIds([])
     setPendingEvidenceRequestIds([])
-  }, [processSelectedFiles, pendingDocName, pendingControlIds, pendingEvidenceRequestIds])
+    setPendingEvidenceItemId(null)
+  }, [processSelectedFiles, pendingDocName, pendingControlIds, pendingEvidenceRequestIds, pendingEvidenceItemId])
 
   const handleDrop = useCallback(async (e: React.DragEvent): Promise<void> => {
     e.preventDefault()
     const files = e.dataTransfer.files
     if (!files || files.length === 0) return
-    await processSelectedFiles(files, null, [], [])
+    await processSelectedFiles(files, null, [], [], null)
   }, [processSelectedFiles])
 
-  const linkExistingDoc = useCallback(async (existingDoc: { file_name: string; file_path: string; file_size: number | null; mime_type: string | null }, evidenceName: string, controlIds?: string[]): Promise<void> => {
+  const linkExistingDoc = useCallback(async (existingDoc: { file_name: string; file_path: string; file_size: number | null; mime_type: string | null }, evidenceName: string, controlIds?: string[], evidenceItemId?: string | null): Promise<void> => {
     if (!profile) return
 
     const controlId = controlIds && controlIds.length > 0 ? controlIds[0] : null
@@ -182,6 +187,7 @@ export function useClientEvidenceUpload({
         body: JSON.stringify({
           mission_id: missionId,
           control_id: controlId,
+          evidence_item_id: evidenceItemId ?? null,
           uploaded_by: profile.id,
           file_name: existingDoc.file_name,
           file_path: existingDoc.file_path,

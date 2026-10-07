@@ -5,23 +5,25 @@ interface Props {
   available: Document[]
   evidenceName: string
   controlIds: string[]
+  evidenceItemId?: string | null
   onLink: (
     existingDoc: { file_name: string; file_path: string; file_size: number | null; mime_type: string | null },
     evidenceName: string,
     controlIds?: string[],
+    evidenceItemId?: string | null,
   ) => void
   onClose: () => void
 }
 
 /** Dropdown de sélection d'un document existant à lier (extrait de ExpectedDocCard, CLAUDE.md §2). */
-export function LinkDocDropdown({ available, evidenceName, controlIds, onLink, onClose }: Props): JSX.Element {
+export function LinkDocDropdown({ available, evidenceName, controlIds, evidenceItemId, onLink, onClose }: Props): JSX.Element {
   return (
     <div className="mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
       <p className="text-[10px] font-semibold text-gray-500 mb-2">S&eacute;lectionner un document existant :</p>
       <div className="space-y-1">
         {available.map((d) => (
           <button key={d.id}
-            onClick={() => onLink({ file_name: d.file_name, file_path: d.file_path, file_size: d.file_size, mime_type: d.mime_type }, evidenceName, controlIds)}
+            onClick={() => onLink({ file_name: d.file_name, file_path: d.file_path, file_size: d.file_size, mime_type: d.mime_type }, evidenceName, controlIds, evidenceItemId)}
             className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left hover:bg-forest-50 transition-colors"
           >
             <FileText size={13} />

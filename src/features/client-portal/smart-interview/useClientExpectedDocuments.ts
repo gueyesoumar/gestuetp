@@ -9,6 +9,8 @@ export interface ExpectedDocument {
   isRequired: boolean
   controlCodes: string[]
   controlIds: string[]
+  /** Preuve canonique mutualisée (migration 00275) — lien id-based preuve↔document. */
+  evidenceItemId: string | null
   /** Statut combiné (toutes les demandes de la même evidence regroupées). */
   status: EvidenceRequestStatus
   uploadedFileName: string | null
@@ -99,13 +101,13 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
 
       // 2. Fetch the catalog items for these IDs
       const catRes = await fetch(
-        `${baseUrl}/rest/v1/evidence_catalog?id=in.(${requestedCatalogIds.join(',')})&select=id,name,description,is_required,control_id&order=sort_order`,
+        `${baseUrl}/rest/v1/evidence_catalog?id=in.(${requestedCatalogIds.join(',')})&select=id,name,description,is_required,control_id,evidence_item_id&order=sort_order`,
         { headers, signal: controller.signal }
       )
       if (controller.signal.aborted) return
       if (!catRes.ok) { setLoading(false); return }
       const catalogItems = await catRes.json() as {
-        id: string; name: string; description: string | null; is_required: boolean; control_id: string
+        id: string; name: string; description: string | null; is_required: boolean; control_id: string; evidence_item_id: string | null
       }[]
 
       if (catalogItems.length === 0) { setExpectedDocs([]); setLoading(false); return }
@@ -178,6 +180,7 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
       type Group = {
         id: string; name: string; description: string | null
         isRequired: boolean; controlCodes: string[]; controlIds: string[]
+        evidenceItemId: string | null
         evidenceRequestIds: string[]
         statuses: EvidenceRequestStatus[]
         declineReason: EvidenceDeclineReason | null
@@ -195,6 +198,7 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
         if (existing) {
           if (code && !existing.controlCodes.includes(code)) existing.controlCodes.push(code)
           if (!existing.controlIds.includes(cat.control_id)) existing.controlIds.push(cat.control_id)
+          if (!existing.evidenceItemId && cat.evidence_item_id) existing.evidenceItemId = cat.evidence_item_id
           if (cat.is_required) existing.isRequired = true
           if (req) {
             existing.evidenceRequestIds.push(req.id)
@@ -216,6 +220,7 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
             isRequired: cat.is_required,
             controlCodes: code ? [code] : [],
             controlIds: [cat.control_id],
+            evidenceItemId: cat.evidence_item_id,
             evidenceRequestIds: req ? [req.id] : [],
             statuses: req ? [req.status] : [],
             declineReason: req?.decline_reason ?? null,
@@ -258,6 +263,7 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
           isRequired: group.isRequired,
           controlCodes: group.controlCodes.sort(),
           controlIds: group.controlIds,
+          evidenceItemId: group.evidenceItemId,
           status: combined,
           uploadedFileName: uploadedFileMap.get(group.name) ?? null,
           evidenceRequestIds: group.evidenceRequestIds,

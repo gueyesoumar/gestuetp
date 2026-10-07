@@ -420,12 +420,25 @@ export type EvidenceRequestStatus =
 
 export type EvidenceDeclineReason = 'inexistant' | 'non_applicable' | 'confidentialite'
 
+export interface EvidenceItem {
+  id: string
+  framework_id: string | null
+  name: string
+  description: string | null
+  kind: EvidenceKind
+  created_at: string
+  updated_at: string
+}
+
 export interface EvidenceCatalogItem {
   id: string
   control_id: string
+  /** Preuve canonique mutualisée (migration 00275) ; partagée entre contrôles si identique. */
+  evidence_item_id: string | null
   name: string
   description: string | null
   is_required: boolean
+  kind: EvidenceKind
   sort_order: number
   created_at: string
   updated_at: string
@@ -985,6 +998,8 @@ export interface Document {
   assessment_id: string | null
   control_id: string | null
   evidence_request_id: string | null
+  /** Preuve canonique à laquelle ce document répond (migration 00275). */
+  evidence_item_id: string | null
   uploaded_by: string
   file_name: string
   file_path: string
@@ -1013,6 +1028,7 @@ export interface DocumentInsert {
   assessment_id?: string | null
   control_id?: string | null
   evidence_request_id?: string | null
+  evidence_item_id?: string | null
   uploaded_by: string
   file_name: string
   file_path: string
@@ -1390,6 +1406,8 @@ export interface AssessmentFinding {
   systemic_group_id: string | null
   /** true sur la réplique d'origine du groupe systémique (porte l'action corrective partagée). */
   is_systemic_origin: boolean
+  /** Preuve canonique rattachée au constat (migration 00275) ; support de propagation. */
+  evidence_item_id: string | null
 }
 
 export interface AssessmentFindingInsert {
@@ -1405,6 +1423,7 @@ export interface AssessmentFindingInsert {
   ai_generated?: boolean
   systemic_group_id?: string | null
   is_systemic_origin?: boolean
+  evidence_item_id?: string | null
 }
 
 export interface AssessmentFindingUpdate {
@@ -1417,6 +1436,7 @@ export interface AssessmentFindingUpdate {
   proposed_deadline?: string | null
   systemic_group_id?: string | null
   is_systemic_origin?: boolean
+  evidence_item_id?: string | null
 }
 
 // Bibliothèque de constats-types réutilisables (Lot 3, catalogue lié / mémoire du cabinet).
@@ -2043,6 +2063,12 @@ export interface Database {
         Row: { user_id: string; lens_on: boolean; updated_at: string } & Rec
         Insert: { user_id: string; lens_on?: boolean; updated_at?: string } & Rec
         Update: { lens_on?: boolean; updated_at?: string } & Rec
+        Relationships: []
+      }
+      evidence_items: {
+        Row: EvidenceItem & Rec
+        Insert: never & Rec
+        Update: never & Rec
         Relationships: []
       }
       evidence_catalog: {

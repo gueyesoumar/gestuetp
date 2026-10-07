@@ -98,7 +98,7 @@ export function ExpectedDocCard({
           ) : canContribute ? (
             <>
               <button
-                onClick={() => triggerFileInput(doc.name, doc.controlIds, doc.evidenceRequestIds)}
+                onClick={() => triggerFileInput(doc.name, doc.controlIds, doc.evidenceRequestIds, doc.evidenceItemId)}
                 disabled={uploading}
                 className="w-full px-2.5 py-1.5 border border-forest-300 rounded-md text-[10.5px] font-semibold text-forest-700 bg-forest-50 hover:bg-forest-100 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5 leading-none"
               >
@@ -138,6 +138,7 @@ export function ExpectedDocCard({
           available={availableForLinking}
           evidenceName={doc.name}
           controlIds={doc.controlIds}
+          evidenceItemId={doc.evidenceItemId}
           onLink={linkExistingDoc}
           onClose={() => setLinkingDocName(null)}
         />
