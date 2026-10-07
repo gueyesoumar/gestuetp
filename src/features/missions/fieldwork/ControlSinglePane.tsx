@@ -1,6 +1,5 @@
 import { FindingsEditor } from './findings/FindingsEditor'
 import { ControlVerdictCard } from './findings/ControlVerdictCard'
-import { ControlExpressLane } from './ControlExpressLane'
 import { AiPreAnalysisSection } from './AiPreAnalysisSection'
 import { ExpectedEvidenceSection } from './ExpectedEvidenceSection'
 import { DocumenterStep } from './steps/DocumenterStep'
@@ -27,8 +26,6 @@ interface ControlSinglePaneProps {
   onEvidenceNotesChange: (v: string) => void
   readOnly: boolean
   saving: boolean
-  /** Voie express : fixe le niveau et soumet directement (sans constat). */
-  onExpressSubmit: (level: 'c' | 'na') => void
 }
 
 /**
@@ -68,22 +65,12 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
 
   return (
     <div className="p-6 space-y-5">
-      {!readOnly && (
-        <ControlExpressLane
-          disabled={props.saving || findingsHook.findings.length > 0}
-          onExpress={props.onExpressSubmit}
-        />
-      )}
-
       <ControlVerdictCard
         conformityLevel={props.conformityLevel}
         findings={findingsHook.findings}
         readOnly={readOnly}
         onChange={props.onConformityChange}
       />
-
-      <Field label="Notes" value={props.observations} onChange={props.onObservationsChange} disabled={readOnly}
-        placeholder="Notes libres sur ce contr&ocirc;le (contexte, &eacute;l&eacute;ments observ&eacute;s, pertinence des preuves)..." rows={3} />
 
       <AiPreAnalysisSection
         assessment={assessment}
@@ -115,26 +102,6 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
         onUpload={props.onUpload}
         onDelete={props.onDeleteDoc}
         readOnly={readOnly}
-      />
-    </div>
-  )
-}
-
-function Field({ label, value, onChange, disabled, placeholder, rows, required }: {
-  label: string; value: string; onChange: (v: string) => void; disabled: boolean; placeholder: string; rows: number; required?: boolean
-}){
-  return (
-    <div>
-      <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
-        {label} {required && <span className="text-red-600">*</span>}
-      </label>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        placeholder={placeholder}
-        rows={rows}
-        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[13px] text-gray-700 leading-relaxed outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 resize-y disabled:bg-gray-50"
       />
     </div>
   )

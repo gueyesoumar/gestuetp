@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Sparkles, PencilLine } from 'lucide-react'
 import { ConformityPicker } from './ConformityPicker'
 import { deriveSuggestedConformity, getConformityLabel, getConformityShort } from './conformityRules'
@@ -21,31 +20,30 @@ interface ControlVerdictCardProps {
 }
 
 /**
- * Carte verdict de l'écran unique : niveau effectif (choisi, sinon déduit des
- * constats), tag « déduit / ajusté », bouton Modifier révélant le sélecteur.
+ * Carte verdict de l'écran unique : niveau effectif (choisi, sinon déduit), tag
+ * « déduit / ajusté », et le sélecteur de niveaux affiché en continu (la voie
+ * express est intégrée : « Conforme » ou « N/A » sans constat → soumission directe).
  */
 export function ControlVerdictCard({ conformityLevel, findings, readOnly, onChange }: ControlVerdictCardProps) {
-  const [pickerOpen, setPickerOpen] = useState(false)
   const derived = deriveSuggestedConformity(findings)
   const chosen = conformityLevel as ConformityLevel | null
   const effective = chosen ?? derived
   const isAdjusted = chosen != null && derived != null && chosen !== derived
 
   return (
-    <div>
-      <p className="text-[13px] font-semibold text-gray-700 mb-2">Niveau de conformit&eacute;</p>
-      <div className="flex items-center gap-3 border border-gray-200 rounded-xl p-3">
+    <div className="border border-gray-200 rounded-xl p-3">
+      <div className="flex items-center gap-3">
         <span className={`text-sm font-extrabold px-2.5 py-1 rounded-lg ${effective ? LEVEL_BADGE[effective] : 'bg-gray-100 text-gray-400'}`}>
           {effective ? getConformityShort(effective) : '—'}
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Niveau retenu</p>
-          <p className="text-[12px] text-gray-500 truncate">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Niveau de conformit&eacute;</p>
+          <p className="text-[12px] text-gray-600 truncate">
             {effective ? getConformityLabel(effective) : 'À déterminer'}
-            {isAdjusted && derived && <> &middot; ajust&eacute; manuellement (d&eacute;duit&nbsp;: {getConformityShort(derived)})</>}
+            {isAdjusted && derived && <> &middot; d&eacute;duit&nbsp;: {getConformityShort(derived)}</>}
           </p>
         </div>
-        {!readOnly && effective && (
+        {effective && (
           <span
             className={`inline-flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wide px-2 py-1 rounded shrink-0 ${
               isAdjusted ? 'bg-blue-50 text-blue-600' : 'bg-gold-50 text-gold-600'
@@ -54,19 +52,14 @@ export function ControlVerdictCard({ conformityLevel, findings, readOnly, onChan
             {isAdjusted ? <><PencilLine size={10} /> Ajust&eacute;</> : <><Sparkles size={10} /> D&eacute;duit</>}
           </span>
         )}
-        {!readOnly && (
-          <button
-            type="button"
-            onClick={() => setPickerOpen((v) => !v)}
-            className="text-[11.5px] font-semibold text-forest-700 hover:text-forest-900 underline underline-offset-2 shrink-0"
-          >
-            {pickerOpen ? 'Fermer' : 'Modifier'}
-          </button>
-        )}
       </div>
-      {pickerOpen && !readOnly && (
-        <div className="mt-2 border border-dashed border-gray-200 rounded-xl p-3">
+
+      {!readOnly && (
+        <div className="mt-3">
           <ConformityPicker conformityLevel={conformityLevel} findings={findings} readOnly={readOnly} onChange={(l) => onChange(l)} />
+          <p className="text-[10.5px] text-gray-400 mt-2">
+            &laquo;&nbsp;Conforme&nbsp;&raquo; ou &laquo;&nbsp;Non applicable&nbsp;&raquo; sans constat &rarr; <span className="text-forest-700 font-semibold">soumission directe</span>.
+          </p>
         </div>
       )}
     </div>
