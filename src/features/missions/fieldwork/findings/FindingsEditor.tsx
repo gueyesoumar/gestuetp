@@ -67,7 +67,7 @@ export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = 
         {!readOnly && (
           <button
             type="button"
-            onClick={() => void addFinding()}
+            onClick={() => void addFinding({ classification: 'minor_nc' })}
             className="text-[11px] font-semibold text-forest-700 bg-white border border-forest-300 px-3 py-1.5 rounded-lg hover:bg-forest-50 inline-flex items-center gap-1.5 shrink-0"
           >
             <Plus size={13} /> Ajouter un constat
@@ -84,7 +84,7 @@ export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = 
       {!readOnly && remainingSuggestions.length > 0 && (
         <SuggestionChips
           suggestions={remainingSuggestions}
-          onPick={(label) => { void addFinding({ description: label }) }}
+          onPick={(label) => { void addFinding({ description: label, classification: 'minor_nc' }) }}
         />
       )}
 
@@ -104,7 +104,7 @@ export function FindingsEditor({ findingsHook, readOnly, checklistSuggestions = 
               <div className="flex items-center justify-center gap-2">
                 <button
                   type="button"
-                  onClick={() => void addFinding()}
+                  onClick={() => void addFinding({ classification: 'minor_nc' })}
                   className="text-[11px] font-semibold text-white bg-forest-700 px-3 py-1.5 rounded-lg hover:bg-forest-900 inline-flex items-center gap-1.5"
                 >
                   <Plus size={12} /> Ajouter un constat

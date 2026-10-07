@@ -160,6 +160,9 @@ export function FindingBody({ finding, readOnly, onChange, templates, onSaveTemp
               {k === 'risk' && <AlertTriangle size={10} className="inline mb-0.5" />} {STEP_LABEL[k]}
             </span>
             {!readOnly && <FindingOptionList options={optionsOf(k)} value={val} onPick={(v) => handlePick(k, v)} />}
+            {!readOnly && k === 'constat' && optionsOf('constat').length === 0 && (
+              <p className="text-[10px] text-gray-400 italic mb-1.5">Aucun constat-type pour cette classification &mdash; saisie libre.</p>
+            )}
             {!readOnly && <MarkdownToolbar textareaRef={refOf(k)} disabled={readOnly} onChange={(v) => applyStep(k, v)} />}
             <textarea
               ref={refOf(k)} value={val} disabled={readOnly}
