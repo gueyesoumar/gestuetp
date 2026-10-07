@@ -2,6 +2,7 @@ import { FindingsEditor } from './findings/FindingsEditor'
 import { ControlVerdictCard } from './findings/ControlVerdictCard'
 import { ControlExpressLane } from './ControlExpressLane'
 import { AiPreAnalysisSection } from './AiPreAnalysisSection'
+import { ExpectedEvidenceSection } from './ExpectedEvidenceSection'
 import { DocumenterStep } from './steps/DocumenterStep'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { UseAssessmentFindingsReturn } from './findings/useAssessmentFindings'
@@ -77,6 +78,8 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
         checklistSuggestions={(assessment.control.audit_checklist ?? []).map((i) => i.label)}
         assessment={assessment}
       />
+
+      <ExpectedEvidenceSection missionId={assessment.mission_id} controlId={assessment.control_id} />
 
       <DocumenterStep
         evidenceNotes={props.evidenceNotes}
