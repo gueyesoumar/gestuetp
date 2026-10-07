@@ -1,0 +1,2 @@
+-- Rollback 00292 — non réversible : les lignes legacy supprimées peuvent être régénérées
+-- en rejouant les seeds de référentiels correspondants. Aucune action.

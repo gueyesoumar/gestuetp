@@ -77,14 +77,15 @@ export function useControlExpectedEvidence(missionId: string | undefined, contro
       }
 
       if (ac.signal.aborted) return
-      // Dédup : une même preuve canonique (ou un même intitulé) ne doit apparaître qu'une fois.
-      const seen = new Set<string>()
-      const uniqueRows = rows.filter((r) => {
-        const key = r.evidence_item_id ?? `name:${r.name.trim().toLowerCase()}`
-        if (seen.has(key)) return false
-        seen.add(key)
-        return true
-      })
+      // Dédup par intitulé normalisé (une preuve n'apparaît qu'une fois), en préférant la
+      // ligne rattachée à une preuve canonique (evidence_item_id) pour la couverture/propagation.
+      const byName = new Map<string, typeof rows[number]>()
+      for (const r of rows) {
+        const key = r.name.trim().toLowerCase()
+        const existing = byName.get(key)
+        if (!existing || (!existing.evidence_item_id && r.evidence_item_id)) byName.set(key, r)
+      }
+      const uniqueRows = [...byName.values()]
       setItems(uniqueRows.map((r) => ({
         id: r.id,
         evidenceItemId: r.evidence_item_id,
