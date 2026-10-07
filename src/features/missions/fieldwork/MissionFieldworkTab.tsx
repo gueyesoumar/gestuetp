@@ -235,7 +235,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   }
 
   return (
-    <div>
+    <div className="flex flex-col min-h-0" style={{ height: 'calc(100dvh - 180px)' }}>
       <FieldworkPhaseRibbon
         mission={mission}
         scopedTotal={totalReference}
@@ -321,7 +321,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         />
       )}
 
-      <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}>
+      <div className="flex flex-1 min-h-0 border border-gray-200 rounded-xl overflow-hidden bg-white">
         <div className="w-80 shrink-0 overflow-y-auto">
           <FieldworkSidebar
             domains={filteredDomains}
