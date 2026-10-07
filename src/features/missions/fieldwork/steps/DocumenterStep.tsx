@@ -6,8 +6,6 @@ import { SplitDocumentPreview } from '../SplitDocumentPreview'
 import type { Document } from '../../../../types/database.types'
 
 interface DocumenterStepProps {
-  evidenceNotes: string
-  onEvidenceNotesChange: (value: string) => void
   documents: Document[]
   uploading: boolean
   uploadError: string | null
@@ -16,7 +14,7 @@ interface DocumenterStepProps {
   readOnly: boolean
 }
 
-export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents, uploading, uploadError, onUpload, onDelete, readOnly }: DocumenterStepProps) {
+export function DocumenterStep({ documents, uploading, uploadError, onUpload, onDelete, readOnly }: DocumenterStepProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [desc, setDesc] = useState('')
   const [dragOver, setDragOver] = useState(false)
@@ -139,15 +137,6 @@ export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents
           <input ref={fileRef} type="file" className="hidden" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.xlsx,.xls,.csv,.doc,.docx" onChange={() => { const f = fileRef.current?.files?.[0]; if (f) handleFile(f) }} disabled={uploading} />
         </>
       )}
-
-      {/* Notes */}
-      <div>
-        <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Notes sur les preuves</label>
-        <p className="text-[10px] text-gray-300 mb-1.5">D{'\u00e9'}crivez le contenu des documents et leur pertinence.</p>
-        <textarea value={evidenceNotes} onChange={(e) => onEvidenceNotesChange(e.target.value)} disabled={readOnly}
-          placeholder="Ex : La PSSI v2 couvre 10 domaines mais ne mentionne pas le BYOD..."
-          className="w-full min-h-[80px] px-4 py-3 border border-gray-200 rounded-xl text-[13px] text-gray-700 leading-relaxed outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 resize-y disabled:bg-gray-50" />
-      </div>
 
         </div>
         {splitView && (

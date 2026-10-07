@@ -82,8 +82,8 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
         onChange={props.onConformityChange}
       />
 
-      <Field label="Observations terrain" value={props.observations} onChange={props.onObservationsChange} disabled={readOnly}
-        placeholder="Notez ce que vous avez observ&eacute;..." rows={3} />
+      <Field label="Notes" value={props.observations} onChange={props.onObservationsChange} disabled={readOnly}
+        placeholder="Notes libres sur ce contr&ocirc;le (contexte, &eacute;l&eacute;ments observ&eacute;s, pertinence des preuves)..." rows={3} />
 
       <AiPreAnalysisSection
         assessment={assessment}
@@ -109,8 +109,6 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
       />
 
       <DocumenterStep
-        evidenceNotes={props.evidenceNotes}
-        onEvidenceNotesChange={props.onEvidenceNotesChange}
         documents={props.documents}
         uploading={props.uploading}
         uploadError={props.uploadError}
