@@ -12,7 +12,7 @@ interface UseMissionDocumentsResult {
   error: string | null
   uploading: boolean
   uploadError: string | null
-  uploadDocument: (file: File, description: string) => Promise<boolean>
+  uploadDocument: (file: File, description: string, evidenceItemId?: string | null) => Promise<boolean>
   deleteDocument: (docId: string, filePath: string) => Promise<boolean>
   refetch: () => void
 }
@@ -69,7 +69,7 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
     return () => abortController.abort()
   }, [missionId, controlId, refreshKey])
 
-  const uploadDocument = useCallback(async (file: File, description: string): Promise<boolean> => {
+  const uploadDocument = useCallback(async (file: File, description: string, evidenceItemId?: string | null): Promise<boolean> => {
     if (!missionId || !profile) return false
 
     setUploading(true)
@@ -96,6 +96,7 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
         .insert({
           mission_id: missionId,
           control_id: controlId || null,
+          evidence_item_id: evidenceItemId ?? null,
           uploaded_by: profile.id,
           file_name: file.name,
           file_path: filePath,

@@ -19,7 +19,7 @@ interface ControlSinglePaneProps {
   documents: Document[]
   uploading: boolean
   uploadError: string | null
-  onUpload: (file: File, description: string) => Promise<boolean>
+  onUpload: (file: File, description: string, evidenceItemId?: string | null) => Promise<boolean>
   onDeleteDoc: (docId: string, filePath: string) => Promise<boolean>
   findingsHook: UseAssessmentFindingsReturn
   onObservationsChange: (v: string) => void
@@ -95,6 +95,8 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
           missionId={assessment.mission_id}
           controlId={assessment.control_id}
           onCreateFinding={readOnly ? undefined : (item) => { void createEvidenceFinding(item) }}
+          onUpload={readOnly ? undefined : props.onUpload}
+          uploading={props.uploading}
         />
         <DocumenterStep
           documents={props.documents}
