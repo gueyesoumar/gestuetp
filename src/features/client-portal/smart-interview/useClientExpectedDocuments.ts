@@ -156,19 +156,25 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
       }
       setTotalControls(totalCtrlCount)
 
-      // 5. Check which have been uploaded
+      // 5. Check which have been uploaded (id-based via evidence_item_id, repli nom pour le legacy)
       const docRes = await fetch(
-        `${baseUrl}/rest/v1/documents?mission_id=eq.${missionId}&select=file_name,description`,
+        `${baseUrl}/rest/v1/documents?mission_id=eq.${missionId}&select=file_name,description,evidence_item_id`,
         { headers, signal: controller.signal }
       )
       if (controller.signal.aborted) return
       const uploadedDocs = docRes.ok
-        ? await docRes.json() as { file_name: string; description: string | null }[]
+        ? await docRes.json() as { file_name: string; description: string | null; evidence_item_id: string | null }[]
         : []
 
       const uploadedEvidenceNames = new Set<string>()
       const uploadedFileMap = new Map<string, string>()
+      const uploadedItemIds = new Set<string>()
+      const uploadedItemFileMap = new Map<string, string>()
       for (const doc of uploadedDocs) {
+        if (doc.evidence_item_id) {
+          uploadedItemIds.add(doc.evidence_item_id)
+          if (!uploadedItemFileMap.has(doc.evidence_item_id)) uploadedItemFileMap.set(doc.evidence_item_id, doc.file_name)
+        }
         const match = doc.description?.match(/\[EVIDENCE:(.+?)\]/)
         if (match) {
           uploadedEvidenceNames.add(match[1])
@@ -237,7 +243,8 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
       const coveredControlSet = new Set<string>()
 
       for (const [, group] of docGroups) {
-        const isUploaded = uploadedEvidenceNames.has(group.name)
+        const isUploaded = uploadedEvidenceNames.has(group.name) ||
+          (group.evidenceItemId != null && uploadedItemIds.has(group.evidenceItemId))
         // Statut combiné côté client :
         //  uploaded   → si au moins un fichier matche le nom (legacy [EVIDENCE:...])
         //  sinon, on prend le statut DB le plus "avancé" du groupe :
@@ -265,7 +272,7 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
           controlIds: group.controlIds,
           evidenceItemId: group.evidenceItemId,
           status: combined,
-          uploadedFileName: uploadedFileMap.get(group.name) ?? null,
+          uploadedFileName: uploadedFileMap.get(group.name) ?? (group.evidenceItemId ? uploadedItemFileMap.get(group.evidenceItemId) ?? null : null),
           evidenceRequestIds: group.evidenceRequestIds,
           declineReason: group.declineReason,
           declineJustification: group.declineJustification,

@@ -85,29 +85,80 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 4. Inserer les demandes (ignorer les doublons)
-    const entries = evidence_catalog_ids.map((ecId: string) => ({
-      mission_id,
-      evidence_catalog_id: ecId,
-      requested_by: callerProfile.id,
-      status: 'pending',
-    }))
+    // 4. Résoudre la preuve canonique de chaque ligne catalogue pour dédupliquer :
+    //    une seule demande par preuve mutualisée (evidence_item_id), en conservant
+    //    une ligne catalogue REPRÉSENTATIVE (par contrôle) pour decline/escalate.
+    const { data: catRows, error: catErr } = await supabaseAdmin
+      .from('evidence_catalog')
+      .select('id, evidence_item_id')
+      .in('id', evidence_catalog_ids)
 
-    const { data: inserted, error: insertError } = await supabaseAdmin
-      .from('mission_evidence_requests')
-      .upsert(entries, { onConflict: 'mission_id,evidence_catalog_id' })
-      .select('id')
-
-    if (insertError) {
-      console.error('request-evidence insert:', insertError.message)
+    if (catErr) {
+      console.error('request-evidence catalog:', catErr.message)
       return new Response(
-        JSON.stringify({ error: 'Erreur lors de la création des demandes' }),
+        JSON.stringify({ error: 'Erreur lors de la résolution des preuves' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    // Demandes canoniques : une par evidence_item_id (1re ligne catalogue = représentative).
+    const canonicalByItem = new Map<string, string>()
+    const legacyCatalogIds: string[] = []
+    for (const row of (catRows ?? []) as { id: string; evidence_item_id: string | null }[]) {
+      if (row.evidence_item_id) {
+        if (!canonicalByItem.has(row.evidence_item_id)) canonicalByItem.set(row.evidence_item_id, row.id)
+      } else {
+        legacyCatalogIds.push(row.id)
+      }
+    }
+
+    let count = 0
+
+    if (canonicalByItem.size > 0) {
+      const canonicalEntries = [...canonicalByItem.entries()].map(([itemId, repCatalogId]) => ({
+        mission_id,
+        evidence_catalog_id: repCatalogId,
+        evidence_item_id: itemId,
+        requested_by: callerProfile.id,
+        status: 'pending',
+      }))
+      const { data: ins1, error: err1 } = await supabaseAdmin
+        .from('mission_evidence_requests')
+        .upsert(canonicalEntries, { onConflict: 'mission_id,evidence_item_id' })
+        .select('id')
+      if (err1) {
+        console.error('request-evidence canonical insert:', err1.message)
+        return new Response(
+          JSON.stringify({ error: 'Erreur lors de la création des demandes' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      count += ins1?.length ?? 0
+    }
+
+    if (legacyCatalogIds.length > 0) {
+      const legacyEntries = legacyCatalogIds.map((ecId) => ({
+        mission_id,
+        evidence_catalog_id: ecId,
+        requested_by: callerProfile.id,
+        status: 'pending',
+      }))
+      const { data: ins2, error: err2 } = await supabaseAdmin
+        .from('mission_evidence_requests')
+        .upsert(legacyEntries, { onConflict: 'mission_id,evidence_catalog_id' })
+        .select('id')
+      if (err2) {
+        console.error('request-evidence legacy insert:', err2.message)
+        return new Response(
+          JSON.stringify({ error: 'Erreur lors de la création des demandes' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      count += ins2?.length ?? 0
+    }
+
     return new Response(
-      JSON.stringify({ success: true, count: inserted?.length ?? 0 }),
+      JSON.stringify({ success: true, count }),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
