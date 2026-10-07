@@ -21,8 +21,8 @@ export function ExpectedEvidenceSection({ missionId, controlId, onCreateFinding 
 
   return (
     <div>
-      <p className="text-[13px] font-semibold text-gray-700 mb-1.5">
-        Preuves attendues <span className="text-[11px] font-normal text-gray-400">({covered}/{items.length} fournies)</span>
+      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1.5">
+        Attendues <span className="font-normal normal-case">· {covered}/{items.length} fournies</span>
       </p>
       <ul className="space-y-1.5">
         {items.map((it) => (

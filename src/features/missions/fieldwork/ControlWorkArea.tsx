@@ -9,14 +9,9 @@ import { useToast } from '../../../hooks/useToast'
 import { useAutosave } from '../../../hooks/useAutosave'
 import { useAssessmentDeclineSource } from './useAssessmentDeclineSource'
 import { useAssessmentFindings } from './findings/useAssessmentFindings'
-import { useControlContext } from './right-rail/useControlContext'
-import { useInterviewNotesForControl } from './right-rail/useInterviewNotesForControl'
-import { CadrageInline } from './right-rail/CadrageInline'
-import { InterviewNotesInline } from './right-rail/InterviewNotesInline'
 import { ControlReviewView } from './ControlReviewView'
 import { ControlReviewActions } from './ControlReviewActions'
 import { ControlAuthoringFooter } from './ControlAuthoringFooter'
-import { ControlStatementCard } from './ControlStatementCard'
 import { InterControlProvider } from './interControl'
 import { CoherenceBannerConnected } from './CoherenceBanner'
 import { ConformityJustificationModal } from './findings/ConformityJustificationModal'
@@ -53,8 +48,6 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
   const [conformityLevel, setConformityLevel] = useState<string | null>(assessment.conformity_level ?? null)
 
   const findingsHook = useAssessmentFindings(assessment.id)
-  const controlContext = useControlContext(assessment.mission_id, assessment.control_id)
-  const { snippets: interviewNotes } = useInterviewNotesForControl(assessment.mission_id, assessment.control.code)
 
   const isSubmittedOrAbove = assessment.status === 'submitted' || assessment.status === 'in_review' || assessment.status === 'approved'
   const readOnly = isSubmittedOrAbove
@@ -170,6 +163,15 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
         </div>
       </div>
 
+      {assessment.control.description && (
+        <div className="px-6 py-2 border-b border-gray-100 bg-[#FAFAF8] shrink-0">
+          <p className="text-[12px] text-gray-500 truncate" title={assessment.control.description}>
+            {assessment.control.description}
+            <span className="text-gray-400"> &middot; d&eacute;tail dans l&apos;onglet Contexte &rarr;</span>
+          </p>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto min-h-0 pb-4">
 
       {!canReview && (
@@ -206,26 +208,6 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
       )}
 
       {saveError && <div className="mx-6 mt-4"><ErrorAlert message={saveError} /></div>}
-
-      <div className="mx-6 mt-4">
-        <ControlStatementCard
-          description={assessment.control.description}
-          guidance={assessment.control.guidance}
-          riskLevel={assessment.control.risk_level}
-        />
-      </div>
-
-      {!canReview && controlContext.cadrageAnswers.length > 0 && (
-        <div className="mx-6 mt-4">
-          <CadrageInline answers={controlContext.cadrageAnswers} />
-        </div>
-      )}
-
-      {!canReview && interviewNotes.length > 0 && (
-        <div className="mx-6 mt-4">
-          <InterviewNotesInline snippets={interviewNotes} />
-        </div>
-      )}
 
       {canReview ? (
         <ControlReviewView

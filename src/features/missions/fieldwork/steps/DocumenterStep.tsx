@@ -36,11 +36,9 @@ export function DocumenterStep({ documents, uploading, uploadError, onUpload, on
     <div>
       <div className="flex items-start justify-between mb-4 gap-3">
         <div className="flex-1">
-          <h4 className="text-[13px] font-semibold text-gray-900 mb-1 flex items-center gap-1.5">
-            Preuves fournies
-          </h4>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-0.5">D\u00e9poser</p>
           <p className="text-xs text-gray-300 leading-relaxed">
-            D{'\u00e9'}posez les documents. Ils seront analys{'\u00e9'}s par l{'\u2019'}IA.
+            Glissez un document ou parcourez. Analys{'\u00e9'} par l{'\u2019'}IA.
           </p>
         </div>
         {documents.length > 0 && (

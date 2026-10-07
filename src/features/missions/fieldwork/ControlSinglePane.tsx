@@ -89,20 +89,22 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
         assessment={assessment}
       />
 
-      <ExpectedEvidenceSection
-        missionId={assessment.mission_id}
-        controlId={assessment.control_id}
-        onCreateFinding={readOnly ? undefined : (item) => { void createEvidenceFinding(item) }}
-      />
-
-      <DocumenterStep
-        documents={props.documents}
-        uploading={props.uploading}
-        uploadError={props.uploadError}
-        onUpload={props.onUpload}
-        onDelete={props.onDeleteDoc}
-        readOnly={readOnly}
-      />
+      <div className="space-y-3">
+        <p className="text-[13px] font-semibold text-gray-700">Preuves</p>
+        <ExpectedEvidenceSection
+          missionId={assessment.mission_id}
+          controlId={assessment.control_id}
+          onCreateFinding={readOnly ? undefined : (item) => { void createEvidenceFinding(item) }}
+        />
+        <DocumenterStep
+          documents={props.documents}
+          uploading={props.uploading}
+          uploadError={props.uploadError}
+          onUpload={props.onUpload}
+          onDelete={props.onDeleteDoc}
+          readOnly={readOnly}
+        />
+      </div>
     </div>
   )
 }

@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { ChevronRight, ChevronLeft, Check, MessageSquare, Info } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check, MessageSquare, Info, FileText } from 'lucide-react'
 import { ValidationTab } from './ValidationTab'
 import { DiscussionTab } from './DiscussionTab'
 import { MissionInfoTab } from './MissionInfoTab'
+import { ControlContextTab } from './ControlContextTab'
 import { PolicyEvidencePanel } from '../../../policy/PolicyEvidencePanel'
 import { useControlComments } from './useControlComments'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
@@ -15,10 +16,10 @@ interface RightRailProps {
   onToggle: () => void
 }
 
-type TabKey = 'validation' | 'discussion' | 'mission'
+type TabKey = 'contexte' | 'validation' | 'discussion' | 'mission'
 
 export function RightRail({ mission, assessment, collapsed, onToggle }: RightRailProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>('validation')
+  const [activeTab, setActiveTab] = useState<TabKey>('contexte')
   const commentsHook = useControlComments(mission.id, assessment?.control_id ?? null)
 
   if (collapsed) {
@@ -41,6 +42,12 @@ export function RightRail({ mission, assessment, collapsed, onToggle }: RightRai
   return (
     <aside className="w-80 shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-hidden">
       <div className="flex items-stretch border-b border-gray-200 bg-[#FAFAF8]">
+        <TabButton
+          active={activeTab === 'contexte'}
+          onClick={() => setActiveTab('contexte')}
+          icon={<FileText size={12} />}
+          label="Contexte"
+        />
         <TabButton
           active={activeTab === 'validation'}
           onClick={() => setActiveTab('validation')}
@@ -72,6 +79,13 @@ export function RightRail({ mission, assessment, collapsed, onToggle }: RightRai
       </div>
 
       <div className="flex-1 overflow-hidden flex flex-col">
+        {activeTab === 'contexte' && (
+          <div className="flex-1 overflow-y-auto">
+            {assessment
+              ? <ControlContextTab assessment={assessment} missionId={mission.id} />
+              : <p className="text-[11px] text-gray-400 italic text-center py-6 px-3">S&eacute;lectionnez un contr&ocirc;le.</p>}
+          </div>
+        )}
         {activeTab === 'validation' && (
           <div className="flex-1 overflow-y-auto">
             <ValidationTab assessment={assessment} missionEndDate={mission.end_date ?? null} />
