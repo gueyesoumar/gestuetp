@@ -3,8 +3,7 @@ import { AlertTriangle, Sparkles } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { ASSESSMENT_STATUS_CONFIG } from '../mission-constants'
-import { GuidedWorkflow } from './GuidedWorkflow'
-import { FreeWorkForm } from './FreeWorkForm'
+import { ControlSinglePane } from './ControlSinglePane'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useToast } from '../../../hooks/useToast'
 import { useAutosave } from '../../../hooks/useAutosave'
@@ -27,17 +26,12 @@ import type { AssessmentWithControl } from '../useAuditorAssessments'
 
 interface ControlWorkAreaProps {
   assessment: AssessmentWithControl
-  clientName?: string | null
-  mode: 'guided' | 'libre'
-  guidedStep: number
   autoAdvance: boolean
   saving: boolean
   saveError: string | null
   isReviewer: boolean
   reviewerRole: 'lead' | 'associate' | 'none'
   leadApproved: boolean
-  onModeChange: (mode: 'guided' | 'libre') => void
-  onGuidedStepChange: (step: number) => void
   onToggleAutoAdvance: () => void
   onSave: (id: string, data: { evidence_notes: string; observations: string; conformity_level: string | null }, opts?: { silent?: boolean }) => Promise<boolean>
   onSubmit: (id: string, conformity_override_reason?: string | null) => Promise<boolean>
@@ -52,7 +46,7 @@ function labelForReason(reason: string | null): string {
   return 'Non disponible'
 }
 
-export function ControlWorkArea({ assessment, clientName, mode, guidedStep, autoAdvance, saving, saveError, isReviewer, reviewerRole, leadApproved, onModeChange, onGuidedStepChange, onToggleAutoAdvance, onSave, onSubmit, onApprove, onReject }: ControlWorkAreaProps){
+export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, isReviewer, reviewerRole, leadApproved, onToggleAutoAdvance, onSave, onSubmit, onApprove, onReject }: ControlWorkAreaProps){
   const toast = useToast()
   const [observations, setObservations] = useState(assessment.observations ?? '')
   const [evidenceNotes, setEvidenceNotes] = useState(assessment.evidence_notes ?? '')
@@ -197,16 +191,6 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           <span className="text-[15px] font-semibold text-gray-900 truncate">{assessment.control.name}</span>
           <Badge label={status.label} variant={status.variant} />
         </div>
-        {!canReview && (
-          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-[#FAFAF8] shrink-0">
-            <button onClick={() => onModeChange('guided')} className={`px-3.5 py-1.5 text-xs font-medium transition-colors ${mode === 'guided' ? 'bg-forest-50 text-forest-900' : 'text-gray-500 hover:text-forest-700'}`}>
-              Guid&eacute;
-            </button>
-            <button onClick={() => onModeChange('libre')} className={`px-3.5 py-1.5 text-xs font-medium transition-colors ${mode === 'libre' ? 'bg-forest-50 text-forest-900' : 'text-gray-500 hover:text-forest-700'}`}>
-              Libre
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0 pb-4">
@@ -274,32 +258,8 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           documents={documents}
           findings={findingsHook.findings}
         />
-      ) : mode === 'guided' ? (
-        <GuidedWorkflow
-          assessment={assessment}
-          currentStep={guidedStep}
-          onStepChange={onGuidedStepChange}
-          observations={observations}
-          evidenceNotes={evidenceNotes}
-          documents={documents}
-          uploading={docUploading}
-          uploadError={docUploadError}
-          onUpload={uploadDocument}
-          onDeleteDoc={deleteDocument}
-          onObservationsChange={setObservations}
-          onEvidenceNotesChange={setEvidenceNotes}
-          conformityLevel={conformityLevel}
-          onConformityChange={setConformityLevel}
-          findingsHook={findingsHook}
-          auditChecklist={controlContext.auditChecklist}
-          cadrageAnswers={controlContext.cadrageAnswers}
-          clientName={clientName}
-          onSubmit={handleSubmit}
-          saving={saving}
-          readOnly={readOnly}
-        />
       ) : (
-        <FreeWorkForm
+        <ControlSinglePane
           assessment={assessment}
           observations={observations}
           evidenceNotes={evidenceNotes}
@@ -332,8 +292,6 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
         />
       ) : (
         <ControlAuthoringFooter
-          mode={mode}
-          guidedStep={guidedStep}
           autoAdvance={autoAdvance}
           saving={saving}
           readOnly={readOnly}
@@ -342,7 +300,6 @@ export function ControlWorkArea({ assessment, clientName, mode, guidedStep, auto
           emptySubmitLabel={isExpressNA ? 'Soumettre — non applicable' : 'Soumettre — conforme'}
           autosave={autosave}
           onToggleAutoAdvance={onToggleAutoAdvance}
-          onGuidedStepChange={onGuidedStepChange}
           onSave={handleSave}
           onSubmit={handleSubmit}
         />

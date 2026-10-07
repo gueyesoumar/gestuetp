@@ -4,11 +4,8 @@ import type { AssessmentWithControl } from '../useAuditorAssessments'
 interface UseFieldworkShortcutsArgs {
   assessments: AssessmentWithControl[]
   selectedId: string | null
-  guidedStep: number
-  mode: 'guided' | 'libre'
   enabled: boolean
   onSelectControl: (controlId: string) => void
-  onSetGuidedStep: (step: number) => void
   onSave: () => void | Promise<void>
   onSubmit?: () => void | Promise<void>
   onShowHelp: () => void
@@ -25,11 +22,8 @@ function isEditableTarget(target: EventTarget | null): boolean {
 export function useFieldworkShortcuts({
   assessments,
   selectedId,
-  guidedStep,
-  mode,
   enabled,
   onSelectControl,
-  onSetGuidedStep,
   onSave,
   onSubmit,
   onShowHelp,
@@ -48,14 +42,10 @@ export function useFieldworkShortcuts({
         return
       }
 
-      // ⌘/Ctrl + Enter → next step (guidé) ou submit (Validation/Libre)
+      // ⌘/Ctrl + Enter → soumettre
       if (ctrlOrMeta && e.key === 'Enter') {
         e.preventDefault()
-        if (mode === 'guided' && guidedStep < 3) {
-          onSetGuidedStep(guidedStep + 1)
-        } else if (onSubmit) {
-          void onSubmit()
-        }
+        if (onSubmit) void onSubmit()
         return
       }
 
@@ -70,15 +60,6 @@ export function useFieldworkShortcuts({
         return
       }
 
-      // 1/2/3/4 → step (uniquement hors saisie)
-      if (!editable && !ctrlOrMeta && ['1', '2', '3', '4'].includes(e.key)) {
-        e.preventDefault()
-        if (mode === 'guided') {
-          onSetGuidedStep(parseInt(e.key, 10) - 1)
-        }
-        return
-      }
-
       // ? → aide
       if (!editable && e.key === '?') {
         e.preventDefault()
@@ -89,5 +70,5 @@ export function useFieldworkShortcuts({
 
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [enabled, assessments, selectedId, guidedStep, mode, onSelectControl, onSetGuidedStep, onSave, onSubmit, onShowHelp])
+  }, [enabled, assessments, selectedId, onSelectControl, onSave, onSubmit, onShowHelp])
 }

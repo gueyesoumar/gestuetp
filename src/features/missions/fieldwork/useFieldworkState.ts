@@ -3,18 +3,12 @@ import { supabase } from '../../../lib/supabase'
 import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 
-type WorkMode = 'guided' | 'libre'
-
 interface FieldworkState {
   selectedId: string | null
-  mode: WorkMode
-  guidedStep: number
   autoAdvance: boolean
   saving: boolean
   saveError: string | null
   selectControl: (id: string) => void
-  setMode: (mode: WorkMode) => void
-  setGuidedStep: (step: number) => void
   toggleAutoAdvance: () => void
   saveAssessment: (id: string, data: { evidence_notes: string; observations: string; conformity_level: string | null }, opts?: { silent?: boolean }) => Promise<boolean>
   submitAssessment: (id: string) => Promise<boolean>
@@ -23,10 +17,6 @@ interface FieldworkState {
 }
 
 const AUTO_KEY = 'gestu:fieldwork-auto-advance'
-// Clé de mode spécifique au moteur (RFC 0003) : audit et controle ont des
-// préférences distinctes → le moteur Contrôle démarre en « libre » (formulaire
-// direct) sans écraser le choix fait sur un audit.
-const modeKeyFor = (engine: 'audit' | 'controle'): string => `gestu:fieldwork-mode:${engine}`
 
 function readStorage<T>(key: string, fallback: T): T {
   try {
@@ -40,23 +30,13 @@ function readStorage<T>(key: string, fallback: T): T {
 export function useFieldworkState(
   assessments: AssessmentWithControl[],
   refetch: () => void,
-  engine: 'audit' | 'controle' = 'audit'
 ): FieldworkState {
-  const modeKey = modeKeyFor(engine)
   const [selectedId, setSelectedId] = useState<string | null>(
     () => assessments.find((a) => a.status === 'draft')?.control_id ?? assessments[0]?.control_id ?? null
   )
-  // Défaut du moteur : Contrôle → « libre » (formulaire direct), Audit → « guided ».
-  const [mode, setModeState] = useState<WorkMode>(() => readStorage(modeKey, engine === 'controle' ? 'libre' : 'guided'))
-  const [guidedStep, setGuidedStep] = useState(0)
   const [autoAdvance, setAutoAdvance] = useState(() => readStorage(AUTO_KEY, true))
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-
-  const setMode = useCallback((m: WorkMode) => {
-    setModeState(m)
-    localStorage.setItem(modeKey, JSON.stringify(m))
-  }, [modeKey])
 
   const toggleAutoAdvance = useCallback(() => {
     setAutoAdvance((prev) => {
@@ -68,7 +48,6 @@ export function useFieldworkState(
 
   const selectControl = useCallback((id: string) => {
     setSelectedId(id)
-    setGuidedStep(0)
     setSaveError(null)
   }, [])
 
@@ -79,7 +58,6 @@ export function useFieldworkState(
     const nextId = draftIds[currentIdx + 1] ?? draftIds[0]
     if (nextId && nextId !== selectedId) {
       setSelectedId(nextId)
-      setGuidedStep(0) // Reset to Observer step for the new control
     }
   }, [autoAdvance, assessments, selectedId])
 
@@ -172,8 +150,8 @@ export function useFieldworkState(
   }, [refetch])
 
   return {
-    selectedId, mode, guidedStep, autoAdvance, saving, saveError,
-    selectControl, setMode, setGuidedStep, toggleAutoAdvance,
+    selectedId, autoAdvance, saving, saveError,
+    selectControl, toggleAutoAdvance,
     saveAssessment, submitAssessment, approveAssessment, rejectAssessment,
   }
 }

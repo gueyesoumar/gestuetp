@@ -74,7 +74,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     const returns = statusEvents.filter((e) => e.event_type === 'returned_to_fieldwork')
     return returns.length > 0 ? returns[returns.length - 1] : null
   }, [statusEvents])
-  const state = useFieldworkState(assessments, refetch, mission.workflow_version ?? 'audit')
+  const state = useFieldworkState(assessments, refetch)
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
   const [confirmLaunch, setConfirmLaunch] = useState(false)
   const [launching, setLaunching] = useState(false)
@@ -216,11 +216,8 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   useFieldworkShortcuts({
     assessments,
     selectedId: state.selectedId,
-    guidedStep: state.guidedStep,
-    mode: state.mode,
     enabled: !isReviewerForSelected,
     onSelectControl: state.selectControl,
-    onSetGuidedStep: state.setGuidedStep,
     onSave: triggerSave,
     onSubmit: triggerSubmit,
     onShowHelp: () => setShowShortcutsHelp(true),
@@ -342,17 +339,12 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
         {selectedAssessment ? (
           <ControlWorkArea
             assessment={selectedAssessment}
-            clientName={mission.client?.name ?? null}
-            mode={state.mode}
-            guidedStep={state.guidedStep}
             autoAdvance={state.autoAdvance}
             saving={state.saving}
             saveError={state.saveError}
             isReviewer={isReviewerForSelected}
             reviewerRole={reviewerRole}
             leadApproved={leadHasApprovedSelected}
-            onModeChange={state.setMode}
-            onGuidedStepChange={state.setGuidedStep}
             onToggleAutoAdvance={state.toggleAutoAdvance}
             onSave={state.saveAssessment}
             onSubmit={state.submitAssessment}

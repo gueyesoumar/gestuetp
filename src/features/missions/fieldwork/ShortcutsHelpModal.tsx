@@ -15,7 +15,7 @@ const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
     group: 'Sauvegarde & soumission',
     items: [
       { keys: ['⌘/Ctrl', 'S'], label: 'Enregistrer manuellement' },
-      { keys: ['⌘/Ctrl', '⏎'], label: 'Étape suivante (mode guidé) ou soumettre' },
+      { keys: ['⌘/Ctrl', '⏎'], label: 'Soumettre le contrôle' },
     ],
   },
   {
@@ -23,10 +23,6 @@ const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
     items: [
       { keys: ['⌘/Ctrl', 'J'], label: 'Contrôle suivant' },
       { keys: ['⌘/Ctrl', 'K'], label: 'Contrôle précédent' },
-      { keys: ['1'], label: 'Étape 1 — Observer' },
-      { keys: ['2'], label: 'Étape 2 — Documenter' },
-      { keys: ['3'], label: 'Étape 3 — Analyser' },
-      { keys: ['4'], label: 'Étape 4 — Validation' },
     ],
   },
   {
