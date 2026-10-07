@@ -39,10 +39,10 @@ export function DocumenterStep({ evidenceNotes, onEvidenceNotesChange, documents
       <div className="flex items-start justify-between mb-4 gap-3">
         <div className="flex-1">
           <h4 className="text-[13px] font-semibold text-gray-900 mb-1 flex items-center gap-1.5">
-            Preuves
+            Preuves fournies
           </h4>
           <p className="text-xs text-gray-300 leading-relaxed">
-            Ajoutez les preuves. Les documents seront analys{'\u00e9'}s par l{'\u2019'}IA.
+            D{'\u00e9'}posez les documents. Ils seront analys{'\u00e9'}s par l{'\u2019'}IA.
           </p>
         </div>
         {documents.length > 0 && (

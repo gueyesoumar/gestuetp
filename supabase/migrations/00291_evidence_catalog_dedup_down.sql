@@ -1,0 +1,3 @@
+-- Rollback 00291 — non réversible : les lignes de preuves dupliquées supprimées ne peuvent
+-- pas être restaurées (nettoyage de données). Les migrations de contenu peuvent être
+-- rejouées pour régénérer le catalogue si nécessaire. Aucune action.

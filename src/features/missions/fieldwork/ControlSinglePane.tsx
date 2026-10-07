@@ -68,13 +68,6 @@ export function ControlSinglePane(props: ControlSinglePaneProps) {
 
   return (
     <div className="p-6 space-y-5">
-      {assessment.control.description && (
-        <div className="bg-[#FAFAF8] border border-gray-100 rounded-lg p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-1">Description</p>
-          <p className="text-[13px] text-gray-500 leading-relaxed">{assessment.control.description}</p>
-        </div>
-      )}
-
       {!readOnly && (
         <ControlExpressLane
           disabled={props.saving || findingsHook.findings.length > 0}

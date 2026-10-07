@@ -71,8 +71,11 @@ export function FindingBody({ finding, readOnly, onChange, templates, onSaveTemp
 
   const isStrength = finding.classification === 'strength'
   const isNC = isNcClassification(finding.classification)
-  // Catalogue lié : constats-types de la classification courante ; le constat choisi adapte risques/recos.
-  const constatTemplates = templates.filter((t) => t.classification === finding.classification)
+  // Catalogue lié : constats-types du contrôle, toutes classifications confondues (dédupliqués
+  // par énoncé) — l'auditeur choisit la classification à part ; le constat choisi adapte risques/recos.
+  const constatTemplates = Array.from(
+    new Map(templates.map((t) => [t.description.trim(), t])).values(),
+  )
   const selectedTpl = constatTemplates.find((t) => t.description.trim() === description.trim()) ?? null
   const hasConstat = description.trim().length > 0
   const alreadyInCabinet = !!selectedTpl && selectedTpl.scope === 'cabinet'
