@@ -1,9 +1,11 @@
-import { FileCheck2, FileWarning, Share2 } from 'lucide-react'
-import { useControlExpectedEvidence } from './useControlExpectedEvidence'
+import { FileCheck2, FileWarning, Share2, FilePlus2 } from 'lucide-react'
+import { useControlExpectedEvidence, type ExpectedEvidence } from './useControlExpectedEvidence'
 
 interface ExpectedEvidenceSectionProps {
   missionId: string
   controlId: string
+  /** Crée un constat rattaché à la preuve (et le propage aux contrôles partageant la preuve). */
+  onCreateFinding?: (item: ExpectedEvidence) => void
 }
 
 /**
@@ -11,7 +13,7 @@ interface ExpectedEvidenceSectionProps {
  * preuve canonique (evidence_item_id) et badge « partagée » quand la même preuve
  * couvre plusieurs contrôles.
  */
-export function ExpectedEvidenceSection({ missionId, controlId }: ExpectedEvidenceSectionProps) {
+export function ExpectedEvidenceSection({ missionId, controlId, onCreateFinding }: ExpectedEvidenceSectionProps) {
   const { items, loading } = useControlExpectedEvidence(missionId, controlId)
   if (loading || items.length === 0) return null
 
@@ -43,6 +45,16 @@ export function ExpectedEvidenceSection({ missionId, controlId }: ExpectedEviden
               {it.description && <p className="text-[10px] text-gray-400 leading-snug">{it.description}</p>}
               {it.fulfilled && it.fulfilledFileName && (
                 <p className="text-[10px] text-green-700 truncate mt-0.5">&#x2713; {it.fulfilledFileName}</p>
+              )}
+              {onCreateFinding && !it.fulfilled && (
+                <button
+                  type="button"
+                  onClick={() => onCreateFinding(it)}
+                  className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-forest-700 hover:text-forest-900"
+                  title={it.sharedControlCount > 1 ? 'Crée un constat et le propage aux contrôles partageant cette preuve' : 'Crée un constat lié à cette preuve'}
+                >
+                  <FilePlus2 size={11} /> Constat{it.sharedControlCount > 1 ? ' (propagé)' : ''}
+                </button>
               )}
             </div>
           </li>

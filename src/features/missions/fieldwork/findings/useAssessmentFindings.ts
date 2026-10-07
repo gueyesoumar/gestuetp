@@ -84,6 +84,7 @@ export function useAssessmentFindings(assessmentId: string | null): UseAssessmen
       priority: input?.priority ?? null,
       proposed_deadline: input?.proposed_deadline ?? null,
       ai_generated: input?.ai_generated ?? false,
+      evidence_item_id: input?.evidence_item_id ?? null,
     }
     const result = await supabase.from(TABLE)
       .insert(payload)
