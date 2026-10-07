@@ -47,7 +47,7 @@ export function ConformityPicker({ conformityLevel, findings, readOnly, onChange
           )}
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         {CONFORMITY_LEVELS.map((level) => {
           const isSelected = conformityLevel === level.key
           const colorCls = LEVEL_TEXT_COLORS[level.key] ?? 'text-gray-500'
@@ -57,12 +57,13 @@ export function ConformityPicker({ conformityLevel, findings, readOnly, onChange
               type="button"
               onClick={() => !readOnly && onChange(level.key)}
               disabled={readOnly}
-              className={`flex-1 py-2.5 px-1.5 border-2 rounded-xl text-center transition-all ${
-                isSelected ? 'border-forest-700 bg-forest-50 ring-2 ring-forest-200' : 'border-gray-200 hover:border-forest-300 hover:bg-forest-50'
+              title={level.label}
+              className={`flex-1 py-1.5 px-1 border rounded-lg text-center transition-all ${
+                isSelected ? 'border-forest-700 bg-forest-50 ring-1 ring-forest-200' : 'border-gray-200 hover:border-forest-300 hover:bg-forest-50'
               } disabled:cursor-not-allowed`}
             >
-              <p className={`text-lg font-bold ${colorCls}`}>{level.short}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">{level.label}</p>
+              <span className={`text-[12px] font-bold ${colorCls}`}>{level.short}</span>
+              <span className="block text-[8.5px] text-gray-500 leading-tight truncate">{level.label}</span>
             </button>
           )
         })}

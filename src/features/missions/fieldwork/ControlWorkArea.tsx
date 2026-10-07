@@ -154,7 +154,7 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
 
   return (
     <InterControlProvider missionId={assessment.mission_id}>
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col flex-1 min-w-0 min-h-0">
       <div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-200 bg-white shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="font-mono text-sm font-semibold text-forest-700">{assessment.control.code}</span>
