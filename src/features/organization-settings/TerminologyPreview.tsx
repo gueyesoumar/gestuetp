@@ -6,6 +6,10 @@ import type { VocabGroupId } from '../../lib/vocab-keys'
 export function TerminologyPreview({ group, get }: { group: VocabGroupId; get: (key: string) => string }): JSX.Element {
   const T = ({ children }: { children: ReactNode }) => <b className="text-forest-700">{children}</b>
   const und = get('entity_gender') === 'm' ? 'un' : 'une'
+  const findingF = get('finding_gender') === 'f'
+  const measureF = get('measure_gender') === 'f'
+  const auditorF = get('auditor_gender') === 'f'
+  const approverF = get('client_approver_gender') === 'f'
 
   const lines: Record<VocabGroupId, JSX.Element[]> = {
     entity: [
@@ -14,14 +18,14 @@ export function TerminologyPreview({ group, get }: { group: VocabGroupId; get: (
       <>Rapport concernant <T>{get('entity_with_dem')}</T></>,
     ],
     work: [
-      <>Nouvelle <T>{get('mission_term')}</T> de conformité</>,
-      <><T>{get('finding_term')}</T> classé « majeur » lors de l’évaluation</>,
-      <>Émettre une <T>{get('measure_term')}</T></>,
+      <>Gérer les <T>{get('mission_term')}</T> de conformité</>,
+      <><T>{get('finding_term')}</T> class{findingF ? 'ée' : 'é'} « majeur{findingF ? 'e' : ''} » lors de l’évaluation</>,
+      <>Émettre {measureF ? 'une' : 'un'} <T>{get('measure_term')}</T></>,
     ],
     actors: [
-      <>Le <T>{get('auditor_term')}</T> soumet son évaluation.</>,
+      <>{auditorF ? 'La' : 'Le'} <T>{get('auditor_term')}</T> soumet son évaluation.</>,
       <>Validation : <T>{get('lead_term')}</T>, puis <T>{get('associate_term')}</T>.</>,
-      <>Portail : le <T>{get('client_approver_term')}</T> signe au nom de son organisation.</>,
+      <>Portail : {approverF ? 'la' : 'le'} <T>{get('client_approver_term')}</T> signe au nom de son organisation.</>,
     ],
     portal: [
       <>En-tête du portail : <T>{get('portal_label')}</T></>,

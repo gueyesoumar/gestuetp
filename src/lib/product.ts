@@ -37,8 +37,16 @@ export interface ProductVocab {
   missionTerm: string
   /** Résultat d'évaluation : « constat ». */
   findingTerm: string
+  /** Pluriel du terme « constat » (évite un « +s » naïf sur un terme irrégulier). */
+  findingPlural: string
+  /** Genre grammatical du terme « constat » → pilote l'accord FR. */
+  findingGender: 'm' | 'f'
   /** Acte émis : « recommandation » / « mesure ». */
   measureTerm: string
+  /** Pluriel du terme « mesure ». */
+  measurePlural: string
+  /** Genre grammatical du terme « mesure » → pilote l'accord FR. */
+  measureGender: 'm' | 'f'
   /** Bandeau de contexte en haut de la coquille (vide = pas de bandeau). */
   contextBanner: string
   contextBannerSub: string
@@ -46,11 +54,15 @@ export interface ProductVocab {
   providerTerm: string
   /** Personne qui mène : « auditeur » / « contrôleur » (surtout emails). */
   auditorTerm: string
+  /** Genre grammatical du rôle auditeur → pilote l'accord FR (le/la). */
+  auditorGender: 'm' | 'f'
   /** Acteurs de validation interne (niveaux de revue). */
   leadTerm: string
   associateTerm: string
   /** Rôles côté partie auditée (portail). */
   clientApproverTerm: string
+  /** Genre grammatical du rôle approbateur client → pilote l'accord FR (le/la). */
+  clientApproverGender: 'm' | 'f'
   clientContributorTerm: string
   clientViewerTerm: string
 }
@@ -68,14 +80,20 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entityWithDem: 'cette entité',
     missionTerm: 'Missions',
     findingTerm: 'constat',
+    findingPlural: 'constats',
+    findingGender: 'm',
     measureTerm: 'recommandation',
+    measurePlural: 'recommandations',
+    measureGender: 'f',
     contextBanner: '',
     contextBannerSub: '',
     providerTerm: 'cabinet',
     auditorTerm: 'auditeur',
+    auditorGender: 'm',
     leadTerm: 'Chef de mission',
     associateTerm: 'Associé',
     clientApproverTerm: 'Approbateur',
+    clientApproverGender: 'm',
     clientContributorTerm: 'Contributeur',
     clientViewerTerm: 'Lecteur',
   },
@@ -91,14 +109,20 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
     entityWithDem: 'cet assujetti',
     missionTerm: 'Contrôles',
     findingTerm: 'constat',
+    findingPlural: 'constats',
+    findingGender: 'm',
     measureTerm: 'mesure',
+    measurePlural: 'mesures',
+    measureGender: 'f',
     contextBanner: 'Console régulateur',
     contextBannerSub: 'Superviseur de conformité cyber',
     providerTerm: 'régulateur',
     auditorTerm: 'contrôleur',
+    auditorGender: 'm',
     leadTerm: 'Chef de mission',
     associateTerm: 'Associé',
     clientApproverTerm: 'Approbateur',
+    clientApproverGender: 'm',
     clientContributorTerm: 'Contributeur',
     clientViewerTerm: 'Lecteur',
   },

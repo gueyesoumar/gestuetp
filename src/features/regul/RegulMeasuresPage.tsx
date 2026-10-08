@@ -51,7 +51,7 @@ export function RegulMeasuresPage(): JSX.Element {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">{cap(vocab.findingTerm)}s &amp; {vocab.measureTerm}s</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{cap(vocab.findingPlural)} &amp; {vocab.measurePlural}</h1>
         <p className="mt-1 text-[13px] text-gray-500">Actes gradués du régulateur, ancrés dans le journal probant.</p>
       </div>
 
