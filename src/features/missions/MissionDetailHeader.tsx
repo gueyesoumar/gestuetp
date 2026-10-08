@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, FileText, Building2, Calendar, Clock, Play, MoreVertical, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { FileText, Building2, Calendar, Clock, Play, MoreVertical, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { readInvokeError } from '../../lib/edgeError'
 import { MissionStatusBadge } from './MissionStatusBadge'
@@ -46,71 +46,67 @@ export function MissionDetailHeader({ mission, progress, onCtaClick }: MissionDe
 
   return (
     <div className="bg-white border-b border-gray-200">
-      <div className="px-7 pt-5 pb-0">
-        <Link to="/missions" className="inline-flex items-center gap-1.5 text-[13px] text-forest-700 hover:text-forest-900 mb-3">
-          <ArrowLeft size={14} /> Missions
-        </Link>
-
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{mission.name}</h2>
-            <div className="flex items-center gap-4 mt-1.5 text-[13px] text-gray-500">
-              {mission.framework?.name && <span className="inline-flex items-center gap-1"><FileText size={13} /> {mission.framework.name}</span>}
-              <Dot />
-              {mission.client?.name && <span className="inline-flex items-center gap-1"><Building2 size={13} /> {mission.client.name}</span>}
-              {period && <><Dot /><span className="inline-flex items-center gap-1"><Calendar size={13} /> {period}</span></>}
-            </div>
+      {/* En-tête fusionné sur une ligne : le nom de mission est déjà dans le fil
+          d'Ariane global, donc on retire le retour « ← Missions » redondant et on
+          met titre + méta à gauche, badge + CTA à droite. */}
+      <div className="flex items-center gap-3 px-7 py-2.5">
+        <div className="flex items-center gap-3 min-w-0">
+          <h2 className="text-[15px] font-bold text-gray-900 truncate shrink-0 max-w-[32ch]" title={mission.name}>{mission.name}</h2>
+          <div className="hidden lg:flex items-center gap-3 text-[12px] text-gray-500 min-w-0">
+            {mission.framework?.name && <span className="inline-flex items-center gap-1 truncate"><FileText size={12} className="shrink-0" /> {mission.framework.name}</span>}
+            {mission.client?.name && <><Dot /><span className="inline-flex items-center gap-1 truncate"><Building2 size={12} className="shrink-0" /> {mission.client.name}</span></>}
+            {period && <><Dot /><span className="inline-flex items-center gap-1 whitespace-nowrap"><Calendar size={12} className="shrink-0" /> {period}</span></>}
           </div>
+        </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            {progress.daysRemaining !== null && progress.daysRemaining <= 30 && (
-              <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full inline-flex items-center gap-1">
-                <Clock size={12} /> {progress.daysRemaining}j restants
-              </span>
-            )}
-            <MissionStatusBadge status={mission.status} />
-            {progress.nextAction && (
-              <button
-                onClick={onCtaClick}
-                className="bg-forest-700 text-white px-5 py-2 rounded-lg text-[13px] font-semibold hover:bg-forest-900 transition-colors flex items-center gap-1.5"
-              >
-                <Play size={13} /> {progress.nextAction.ctaLabel}
+        <div className="flex items-center gap-2.5 shrink-0 ml-auto">
+          {progress.daysRemaining !== null && progress.daysRemaining <= 30 && (
+            <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap">
+              <Clock size={11} /> {progress.daysRemaining}j restants
+            </span>
+          )}
+          <MissionStatusBadge status={mission.status} />
+          {progress.nextAction && (
+            <button
+              onClick={onCtaClick}
+              className="bg-forest-700 text-white px-3.5 py-1.5 rounded-lg text-[12px] font-semibold hover:bg-forest-900 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <Play size={12} /> {progress.nextAction.ctaLabel}
+            </button>
+          )}
+
+          {/* Menu contextuel : visible uniquement si l'utilisateur peut faire au moins une action */}
+          {canDeleteMission && (
+            <div className="relative">
+              <button onClick={() => setShowMenu(!showMenu)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
+                <MoreVertical size={15} />
               </button>
-            )}
-
-            {/* Menu contextuel : visible uniquement si l'utilisateur peut faire au moins une action */}
-            {canDeleteMission && (
-              <div className="relative">
-                <button onClick={() => setShowMenu(!showMenu)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
-                  <MoreVertical size={16} />
-                </button>
-                {showMenu && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                    <div className="absolute right-0 top-10 z-20 w-52 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5">
-                      <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true) }}
-                        className="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                        <Trash2 size={13} /> Supprimer la mission
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 top-9 z-20 w-52 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5">
+                    <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true) }}
+                      className="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                      <Trash2 size={13} /> Supprimer la mission
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Progress bar */}
-        <div className="h-[3px] bg-gray-200 -mx-7">
-          <div
-            className="h-[3px] rounded-r-sm transition-all duration-500"
-            style={{
-              width: `${progress.overallPercent}%`,
-              background: 'linear-gradient(90deg, #40916C, #D4A843)',
-            }}
-          />
-        </div>
+      {/* Progress bar */}
+      <div className="h-[3px] bg-gray-200">
+        <div
+          className="h-[3px] rounded-r-sm transition-all duration-500"
+          style={{
+            width: `${progress.overallPercent}%`,
+            background: 'linear-gradient(90deg, #40916C, #D4A843)',
+          }}
+        />
       </div>
 
       {/* Modal de confirmation */}

@@ -25,7 +25,7 @@ export function MissionStepper({ phases, activeTab, onTabChange, showAuditedRisk
       {/* Overview button — always accessible */}
       <button
         onClick={() => onTabChange('overview')}
-        className={`flex items-center gap-2 py-4 px-3 mr-4 shrink-0 relative text-xs font-medium whitespace-nowrap transition-colors ${
+        className={`flex items-center gap-2 py-2.5 px-3 mr-3 shrink-0 relative text-xs font-medium whitespace-nowrap transition-colors ${
           activeTab === 'overview'
             ? 'text-forest-700 font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-forest-700 after:rounded-t'
             : 'text-gray-500 hover:text-forest-700'
@@ -37,7 +37,7 @@ export function MissionStepper({ phases, activeTab, onTabChange, showAuditedRisk
       {showAuditedRisks && (
         <button
           onClick={() => onTabChange('audited_risks')}
-          className={`flex items-center gap-2 py-4 px-3 mr-4 shrink-0 relative text-xs font-medium whitespace-nowrap transition-colors ${
+          className={`flex items-center gap-2 py-2.5 px-3 mr-3 shrink-0 relative text-xs font-medium whitespace-nowrap transition-colors ${
             activeTab === 'audited_risks'
               ? 'text-forest-700 font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-forest-700 after:rounded-t'
               : 'text-gray-500 hover:text-forest-700'
@@ -47,7 +47,7 @@ export function MissionStepper({ phases, activeTab, onTabChange, showAuditedRisk
         </button>
       )}
 
-      <div className="w-px h-6 bg-gray-200 mr-4 shrink-0" />
+      <div className="w-px h-5 bg-gray-200 mr-3 shrink-0" />
 
       {phases.map((phase, i) => {
         const tab = PHASE_TO_TAB[phase.key]
@@ -60,27 +60,23 @@ export function MissionStepper({ phases, activeTab, onTabChange, showAuditedRisk
             <button
               onClick={() => isClickable && onTabChange(tab)}
               disabled={!isClickable}
-              className={`flex items-center gap-2.5 py-4 px-1.5 shrink-0 relative ${
+              title={phase.label}
+              className={`flex items-center gap-2 py-2.5 px-1.5 shrink-0 relative ${
                 activeTab === tab ? 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-forest-700 after:rounded-t' : ''
               }`}
             >
               <StepDot state={phase.state} index={i + 1} />
-              <div className="flex flex-col">
-                <span className={`text-xs font-medium whitespace-nowrap ${
-                  phase.state === 'done' ? 'text-green-600' :
-                  phase.state === 'active' ? 'text-forest-700 font-semibold' :
-                  'text-gray-300'
-                }`}>
-                  {phase.label}
-                </span>
-                {phase.sublabel && (
-                  <span className={`text-[10px] mt-0.5 ${
-                    phase.state === 'active' ? 'text-forest-500' : 'text-gray-300'
-                  }`}>
-                    {phase.sublabel}
-                  </span>
-                )}
-              </div>
+              {/* Dégraissé (Option B) : seule la phase active affiche son libellé et son
+                  sous-libellé. Les autres restent des pastilles numérotées ; le nom
+                  complet reste accessible au survol via l'attribut title du bouton. */}
+              {phase.state === 'active' && (
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-xs font-semibold text-forest-700 whitespace-nowrap">{phase.label}</span>
+                  {phase.sublabel && (
+                    <span className="text-[10px] text-forest-500 whitespace-nowrap">{phase.sublabel}</span>
+                  )}
+                </div>
+              )}
             </button>
           </div>
         )
@@ -90,13 +86,13 @@ export function MissionStepper({ phases, activeTab, onTabChange, showAuditedRisk
 }
 
 function StepDot({ state, index }: { state: 'done' | 'active' | 'locked'; index: number }){
-  const base = 'w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all'
+  const base = 'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all'
 
   if (state === 'done') {
-    return <div className={`${base} bg-green-600 text-white`}><Check size={14} /></div>
+    return <div className={`${base} bg-green-600 text-white`}><Check size={13} /></div>
   }
   if (state === 'active') {
-    return <div className={`${base} bg-forest-700 text-white shadow-[0_0_0_4px_theme(colors.forest.100)]`}>{index}</div>
+    return <div className={`${base} bg-forest-700 text-white shadow-[0_0_0_3px_theme(colors.forest.100)]`}>{index}</div>
   }
   return <div className={`${base} bg-white text-gray-300 border-2 border-gray-200`}>{index}</div>
 }
@@ -105,5 +101,5 @@ function Connector({ state }: { state: 'done' | 'active' | 'locked' }){
   const color = state === 'done' ? 'bg-green-600' :
     state === 'active' ? 'bg-gradient-to-r from-green-600 to-forest-300' :
     'bg-gray-200'
-  return <div className={`w-8 h-0.5 shrink-0 ${color}`} />
+  return <div className={`w-6 h-0.5 shrink-0 ${color}`} />
 }
