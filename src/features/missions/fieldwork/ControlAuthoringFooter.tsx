@@ -47,15 +47,15 @@ export function ControlAuthoringFooter({
           <AutosaveIndicator status={autosave.status} lastSavedAt={autosave.lastSavedAt} onRetry={() => { void autosave.flush() }} />
         )}
       </div>
-      <div className="flex gap-2.5">
+      <div className="flex gap-2.5 shrink-0">
         {!readOnly && (
-          <button onClick={() => void onSave()} disabled={saving} className="px-4 py-2 border border-gray-200 rounded-lg text-[13px] font-medium text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 disabled:opacity-50 transition-colors">
+          <button onClick={() => void onSave()} disabled={saving} className="px-4 py-2 border border-gray-200 rounded-lg text-[13px] font-medium text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 disabled:opacity-50 transition-colors whitespace-nowrap shrink-0">
             <Save size={13} className="inline" /> Enregistrer
           </button>
         )}
         {!readOnly && (
-          <button onClick={() => void onSubmit()} disabled={saving || (findingsCount === 0 && !allowEmptySubmit)} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors flex items-center gap-1.5">
-            <Play size={13} /> {allowEmptySubmit ? emptySubmitLabel : 'Soumettre'}
+          <button onClick={() => void onSubmit()} disabled={saving || (findingsCount === 0 && !allowEmptySubmit)} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0">
+            <Play size={13} className="shrink-0" /> {allowEmptySubmit ? emptySubmitLabel : 'Soumettre'}
           </button>
         )}
       </div>
