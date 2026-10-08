@@ -16,9 +16,11 @@ interface FieldworkDomainGroupProps {
   defaultOpen?: boolean
   filter: string
   search: string
+  /** Contrôles à écart probable signalé par le cadrage (L2). */
+  gaps?: Set<string>
 }
 
-export function FieldworkDomainGroup({ domain, assessments, auditorMap, selectedControlId, onSelectControl, selectedIds, selectableControlIds, onToggleSelect, onToggleDomain, defaultOpen = false, filter, search }: FieldworkDomainGroupProps): JSX.Element {
+export function FieldworkDomainGroup({ domain, assessments, auditorMap, selectedControlId, onSelectControl, selectedIds, selectableControlIds, onToggleSelect, onToggleDomain, defaultOpen = false, filter, search, gaps }: FieldworkDomainGroupProps): JSX.Element {
   const [open, setOpen] = useState(defaultOpen)
 
   // Build a map of control_id → assessment status
@@ -43,6 +45,7 @@ export function FieldworkDomainGroup({ domain, assessments, auditorMap, selected
       if (filter === 'draft' && status !== 'draft' && status !== 'in_progress' && status !== 'rejected') return false
       if (filter === 'submitted' && status !== 'submitted' && status !== 'in_review') return false
       if (filter === 'approved' && status !== 'approved') return false
+      if (filter === 'gap' && !gaps?.has(c.id)) return false
 
       // Search
       if (search) {
@@ -51,7 +54,7 @@ export function FieldworkDomainGroup({ domain, assessments, auditorMap, selected
       }
       return true
     })
-  }, [domain.controls, assessmentMap, filter, search])
+  }, [domain.controls, assessmentMap, filter, search, gaps])
 
   if (visibleControls.length === 0) return <></>
 
@@ -128,6 +131,9 @@ export function FieldworkDomainGroup({ domain, assessments, auditorMap, selected
                   <span className="block text-[9px] text-gray-300 mt-0.5">{auditorMap.get(assessment.auditor_id)}</span>
                 )}
               </div>
+              {gaps?.has(control.id) && (
+                <span title="Écart probable signalé par le cadrage" className="text-[11px] text-red-500 shrink-0 leading-none">&#9888;</span>
+              )}
               <ConformityBadge level={assessment?.conformity_level ?? null} />
               <StatusLabel status={status} />
             </button>

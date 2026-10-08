@@ -321,6 +321,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
             domains={filteredDomains}
             assessments={assessments}
             members={members}
+            missionId={mission.id}
             selectedControlId={state.selectedId}
             onSelectControl={state.selectControl}
             selectedIds={selectedIds}

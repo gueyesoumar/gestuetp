@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { FieldworkDomainGroup } from './FieldworkDomainGroup'
+import { useCadrageGaps } from './useCadrageGaps'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { MissionMemberRow } from '../useMissionDetail'
@@ -8,6 +9,7 @@ interface FieldworkSidebarProps {
   domains: DomainWithControls[]
   assessments: AssessmentWithControl[]
   members: MissionMemberRow[]
+  missionId: string
   selectedControlId: string | null
   onSelectControl: (controlId: string) => void
   /** Sélection de masse (RFC UX Lot 3). */
@@ -17,9 +19,9 @@ interface FieldworkSidebarProps {
   onToggleDomain?: (controlIds: string[]) => void
 }
 
-type FilterKey = 'all' | 'not_started' | 'draft' | 'submitted' | 'approved'
+type FilterKey = 'all' | 'not_started' | 'draft' | 'submitted' | 'approved' | 'gap'
 
-export function FieldworkSidebar({ domains, assessments, members, selectedControlId, onSelectControl, selectedIds, selectableControlIds, onToggleSelect, onToggleDomain }: FieldworkSidebarProps): JSX.Element {
+export function FieldworkSidebar({ domains, assessments, members, missionId, selectedControlId, onSelectControl, selectedIds, selectableControlIds, onToggleSelect, onToggleDomain }: FieldworkSidebarProps): JSX.Element {
   // Build auditor name map
   const auditorMap = useMemo(() => {
     const map = new Map<string, string>()
@@ -34,14 +36,17 @@ export function FieldworkSidebar({ domains, assessments, members, selectedContro
   const [filter, setFilter] = useState<FilterKey>('all')
 
   const totalControls = domains.reduce((sum, d) => sum + d.controls.length, 0)
+  const allControlIds = useMemo(() => domains.flatMap((d) => d.controls.map((c) => c.id)), [domains])
+  const gaps = useCadrageGaps(missionId, allControlIds)
 
-  const counts = useMemo(() => ({
+  const counts: Record<FilterKey, number> = useMemo(() => ({
     all: totalControls,
     not_started: totalControls - assessments.length,
     draft: assessments.filter((a) => a.status === 'draft' || a.status === 'rejected').length,
     submitted: assessments.filter((a) => a.status === 'submitted' || a.status === 'in_review').length,
     approved: assessments.filter((a) => a.status === 'approved').length,
-  }), [assessments, totalControls])
+    gap: gaps.size,
+  }), [assessments, totalControls, gaps])
 
   const filters: { key: FilterKey; label: string }[] = [
     { key: 'all', label: 'Tous' },
@@ -49,6 +54,8 @@ export function FieldworkSidebar({ domains, assessments, members, selectedContro
     { key: 'draft', label: 'Brouillon' },
     { key: 'submitted', label: 'Soumis' },
     { key: 'approved', label: 'Valid\u00e9' },
+    // Chip \u00ab \u00e9cart probable \u00bb affich\u00e9e seulement si le cadrage en signale (L2).
+    ...(gaps.size > 0 ? [{ key: 'gap' as FilterKey, label: '\u26a0 \u00c9cart probable' }] : []),
   ]
 
   return (
@@ -99,6 +106,7 @@ export function FieldworkSidebar({ domains, assessments, members, selectedContro
             defaultOpen={i === 0}
             filter={filter}
             search={search}
+            gaps={gaps}
           />
         ))}
       </div>

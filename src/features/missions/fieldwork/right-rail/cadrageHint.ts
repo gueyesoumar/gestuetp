@@ -9,12 +9,17 @@ function normalize(v: unknown): string {
   return s
 }
 
+/** Vrai si la réponse diffère de l'attendu (polarité définie des deux côtés). */
+export function isUnfavorablePair(expected: string | null, value: unknown): boolean {
+  if (!expected) return false
+  const e = normalize(expected)
+  const g = normalize(value)
+  return Boolean(e) && Boolean(g) && g !== e
+}
+
 /** Vrai si la réponse du client diffère de la réponse attendue (polarité définie). */
 export function isUnfavorable(a: CadrageAnswer): boolean {
-  if (!a.expected_answer) return false
-  const expected = normalize(a.expected_answer)
-  const got = normalize(a.response_value)
-  return Boolean(expected) && Boolean(got) && got !== expected
+  return isUnfavorablePair(a.expected_answer, a.response_value)
 }
 
 export interface CadrageHint { unfavorable: number; worstWeight: number }
