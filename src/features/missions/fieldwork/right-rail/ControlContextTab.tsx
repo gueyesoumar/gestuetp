@@ -24,7 +24,6 @@ export function ControlContextTab({ assessment, missionId }: ControlContextTabPr
       <ControlStatementCard
         description={assessment.control.description}
         guidance={assessment.control.guidance}
-        riskLevel={assessment.control.risk_level}
       />
       {ctx.cadrageAnswers.length > 0 && <CadrageInline answers={ctx.cadrageAnswers} />}
       {snippets.length > 0 && <InterviewNotesInline snippets={snippets} />}
