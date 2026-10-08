@@ -29,21 +29,16 @@ export function FieldworkProgressBanner({
   if (!visible) return null
   const plural = notStartedCount > 1 ? 's' : ''
   return (
-    <div className="flex items-center gap-4 p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-gray-900">
-          Progression : {submittedCount}/{totalReference} contr&ocirc;les soumis
-        </p>
-        <p className="text-xs text-gray-400 mt-0.5">
-          {draftCount > 0 ? `${draftCount} en brouillon. ` : ''}
-          {notStartedCount > 0 ? `${notStartedCount} non commencé${plural}.` : ''}
-        </p>
-      </div>
-      <div className="w-32">
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-2 bg-forest-500 rounded-full transition-all" style={{ width: `${completionPct}%` }} />
+    <div className="flex items-center gap-3 px-3 py-2 mb-2 bg-white border border-gray-200 rounded-lg text-[12px]">
+      <span className="font-semibold text-gray-900">{submittedCount}/{totalReference} soumis</span>
+      <span className="text-gray-400 truncate">
+        {draftCount > 0 ? `· ${draftCount} brouillon` : ''}{notStartedCount > 0 ? ` · ${notStartedCount} non commencé${plural}` : ''}
+      </span>
+      <div className="ml-auto flex items-center gap-2 shrink-0">
+        <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-forest-500 rounded-full transition-all" style={{ width: `${completionPct}%` }} />
         </div>
-        <p className="text-[10px] text-gray-400 text-right mt-1">{Math.round(completionPct)}%</p>
+        <span className="text-[10px] text-gray-400 font-mono">{Math.round(completionPct)}%</span>
       </div>
     </div>
   )
@@ -68,14 +63,12 @@ export function FieldworkLaunchReviewBanner({
     : 'Vous pouvez lancer la revue sans attendre les contrôles restants.'
 
   return (
-    <div className="flex items-center justify-between p-4 mb-4 bg-forest-50 border border-forest-300 rounded-xl">
-      <div>
-        <p className="text-sm font-semibold text-forest-900">{headline}</p>
-        <p className="text-xs text-forest-600 mt-0.5">{subline}</p>
-      </div>
+    <div className="flex items-center gap-3 px-3 py-2 mb-2 bg-forest-50 border border-forest-300 rounded-lg text-[12px]">
+      <span className="font-semibold text-forest-900 truncate">{headline}</span>
+      <span className="text-forest-600 truncate hidden md:inline">&middot; {subline}</span>
       <button onClick={onLaunch}
-        className="px-5 py-2.5 bg-forest-700 text-white rounded-lg text-[13px] font-semibold hover:bg-forest-900 transition-colors shrink-0">
-        <ArrowRight size={14} className="inline" /> Lancer la revue interne
+        className="ml-auto px-3 py-1.5 bg-forest-700 text-white rounded-lg text-[12px] font-semibold hover:bg-forest-900 transition-colors shrink-0 inline-flex items-center gap-1">
+        <ArrowRight size={13} /> Lancer la revue
       </button>
     </div>
   )

@@ -20,7 +20,6 @@ import {
   FieldworkLaunchReviewBanner,
   FieldworkTransitionBanner,
 } from './FieldworkProgressBanner'
-import { FieldworkPhaseRibbon } from './FieldworkPhaseRibbon'
 import { FieldworkBulkToolbar } from './FieldworkBulkToolbar'
 import { useMissionStatusEvents } from '../useMissionStatusEvents'
 import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
@@ -236,11 +235,6 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
 
   return (
     <div className="flex flex-col min-h-0" style={{ height: 'calc(100dvh - 180px)' }}>
-      <FieldworkPhaseRibbon
-        mission={mission}
-        scopedTotal={totalReference}
-        scopedDone={submittedCount}
-      />
       {mission.status === 'fieldwork' && latestReturn && (
         <div className="flex items-start gap-3 p-4 mb-4 bg-amber-50 border border-amber-200 rounded-xl">
           <RotateCcw size={18} className="text-amber-600 shrink-0 mt-0.5" />
