@@ -8,11 +8,13 @@ import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useToast } from '../../hooks/useToast'
 import { readInvokeError } from '../../lib/edgeError'
 import { SCORE_DIMENSION_KEYS, SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, type ScoreDimensionKey } from '../../lib/constants'
+import { QuestionMappingTab } from '../../features/admin/question-mapping/QuestionMappingTab'
 
 export function AdminFrameworkDetailPage() {
   const { slug } = useParams()
   const { framework, loading, error, refetch } = useAdminFrameworkDetail(slug)
   const toast = useToast()
+  const [tab, setTab] = useState<'content' | 'mapping'>('content')
 
   if (loading) return <div className="p-8"><LoadingSpinner /></div>
   if (error || !framework) return <div className="p-8"><ErrorAlert message={error ?? 'Référentiel introuvable'} /></div>
@@ -66,6 +68,18 @@ export function AdminFrameworkDetailPage() {
 
       <MetadataEditor framework={framework} onSaved={refetch} toast={toast} />
 
+      <div className="flex gap-1 border-b border-gray-200 mt-3 mb-4">
+        {([['content', 'Domaines & contrôles'], ['mapping', 'Cadrage']] as const).map(([k, label]) => (
+          <button key={k} type="button" onClick={() => setTab(k)}
+            className={`text-[13px] font-semibold px-3.5 py-2 border-b-2 ${tab === k ? 'text-gray-900 border-gold-500' : 'text-gray-500 border-transparent hover:text-forest-700'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'mapping' && <QuestionMappingTab frameworkId={framework.id} />}
+
+      {tab === 'content' && (<>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[14px] font-bold text-gray-900">Domaines &amp; contrôles</h2>
         <div className="flex items-center gap-2">
@@ -97,6 +111,7 @@ export function AdminFrameworkDetailPage() {
           ))}
         </div>
       )}
+      </>)}
     </div>
   )
 }
