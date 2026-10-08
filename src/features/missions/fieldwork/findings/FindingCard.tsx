@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MoreHorizontal, ChevronUp, ChevronDown, Trash2, Sparkles, ArrowUpRight, Check, GitBranch, Pencil } from 'lucide-react'
+import { MoreHorizontal, ChevronUp, ChevronDown, ChevronRight, Trash2, Sparkles, ArrowUpRight, Check, GitBranch, Pencil } from 'lucide-react'
 import { FindingClassificationPicker, FindingPriorityPicker, getClassificationConfig } from './FindingPickers'
 import { FindingBody } from './FindingBody'
 import type { AssessmentFinding, FindingPatch } from './useAssessmentFindings'
@@ -26,6 +26,8 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
   const [menuOpen, setMenuOpen] = useState(false)
   // Un constat déjà rédigé s'affiche replié ; un nouveau (vide) s'ouvre en édition.
   const [editing, setEditing] = useState(() => !finding.description?.trim())
+  // Déroulé lecture seule du constat replié (voir le détail sans passer en édition).
+  const [expanded, setExpanded] = useState(false)
   const classifCfg = getClassificationConfig(finding.classification)
   const isStrength = finding.classification === 'strength'
 
@@ -60,8 +62,9 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
     </div>
   )
 
-  // ----- Vue repliée : résumé sur une ligne -----
+  // ----- Vue repliée : résumé sur une ligne (cliquable pour dérouler le détail) -----
   if (!editing) {
+    const hasDetail = !!(finding.description?.trim() || finding.risk?.trim() || finding.recommendation?.trim())
     return (
       <div className={`border rounded-xl bg-white ${classifCfg.cardBorder}`}>
         <div className="flex items-center gap-2 px-3 py-2">
@@ -69,12 +72,32 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
           {!isStrength && finding.priority && (
             <span className="text-[9px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">{finding.priority === 'critical' ? 'Critique' : finding.priority === 'high' ? 'Haute' : finding.priority === 'medium' ? 'Moyenne' : 'Basse'}</span>
           )}
-          <span className="flex-1 min-w-0 text-[12px] text-gray-900 truncate" title={finding.description}>{finding.description || <em className="text-gray-400">Constat vide</em>}</span>
+          <button
+            type="button"
+            onClick={() => hasDetail && setExpanded((v) => !v)}
+            disabled={!hasDetail}
+            aria-expanded={expanded}
+            title={hasDetail ? (expanded ? 'Réduire le constat' : 'Dérouler le constat') : undefined}
+            className="flex-1 min-w-0 inline-flex items-center gap-1.5 text-left group disabled:cursor-default"
+          >
+            {hasDetail && (expanded
+              ? <ChevronDown size={13} className="shrink-0 text-gray-400 group-hover:text-forest-700" />
+              : <ChevronRight size={13} className="shrink-0 text-gray-400 group-hover:text-forest-700" />)}
+            <span className={`flex-1 min-w-0 text-[12px] text-gray-900 group-hover:text-forest-800 ${expanded ? '' : 'truncate'}`}>{finding.description || <em className="text-gray-400">Constat vide</em>}</span>
+          </button>
           {!readOnly && (
             <button type="button" onClick={() => setEditing(true)} className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-forest-700 hover:text-forest-900"><Pencil size={11} /> Modifier</button>
           )}
           {menu}
         </div>
+
+        {expanded && hasDetail && (
+          <div className="px-3 pb-3 pt-0.5 border-t border-gray-100 space-y-2.5">
+            <ReadField label="Constat" value={finding.description} />
+            {!isStrength && finding.risk?.trim() && <ReadField label="Risque" value={finding.risk} />}
+            {!isStrength && finding.recommendation?.trim() && <ReadField label="Recommandation" value={finding.recommendation} />}
+          </div>
+        )}
       </div>
     )
   }
@@ -107,6 +130,16 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+/** Champ en lecture seule du constat déroulé (constat / risque / recommandation). */
+function ReadField({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5">{label}</p>
+      <p className="text-[12px] text-gray-700 whitespace-pre-wrap leading-relaxed">{value}</p>
     </div>
   )
 }
