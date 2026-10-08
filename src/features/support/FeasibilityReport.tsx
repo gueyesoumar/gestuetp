@@ -35,7 +35,7 @@ export function FeasibilityReportView({ report }: { report: FeasibilityReport })
       <p className="text-gray-700">{report.summary}</p>
 
       <div className="grid grid-cols-4 gap-2 text-center">
-        {[['Reach', rice.reach], ['Impact', rice.impact], ['Confiance', rice.confidence], ['Effort', rice.effort]].map(([k, val]) => (
+        {[['Portée', rice.reach], ['Impact', rice.impact], ['Confiance', rice.confidence], ['Effort', rice.effort]].map(([k, val]) => (
           <div key={String(k)} className="bg-white border border-gray-100 rounded-lg py-1.5">
             <div className="text-[10px] uppercase text-gray-400">{k}</div>
             <div className="text-sm font-semibold text-gray-800">{val}</div>

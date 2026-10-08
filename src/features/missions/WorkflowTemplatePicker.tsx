@@ -21,7 +21,7 @@ export function WorkflowTemplatePicker({ value, onChange }: { value: string; onC
   if (templates.length === 0) {
     return (
       <p className="text-[11.5px] text-gray-400">
-        Parcours complet. Créez des templates dans <b className="text-gray-500">Organisation → Parcours</b> pour proposer des variantes.
+        Parcours complet. Créez des modèles dans <b className="text-gray-500">Organisation → Parcours</b> pour proposer des variantes.
       </p>
     )
   }

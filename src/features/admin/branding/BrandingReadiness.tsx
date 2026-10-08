@@ -9,7 +9,7 @@ interface Props {
 /**
  * Récapitulatif « prêt pour la marque blanche » : indique ce qui est complet et
  * ce qui manque pour un rendu correct. Indicatif — l'activation effective passe
- * par le flag white_label_branding (onglet Feature flags).
+ * par le flag white_label_branding (onglet Indicateurs de fonctionnalité).
  */
 export function BrandingReadiness({ branding, domains }: Props): JSX.Element {
   const checks = [
@@ -40,7 +40,7 @@ export function BrandingReadiness({ branding, domains }: Props): JSX.Element {
       </ul>
       <p className="mt-2.5 text-[11.5px] leading-relaxed text-gray-600">
         {allReady
-          ? 'Configuration complète. Activez la marque blanche via le flag white_label_branding (onglet Feature flags).'
+          ? 'Configuration complète. Activez la marque blanche via le flag white_label_branding (onglet Indicateurs de fonctionnalité).'
           : 'Complétez les points manquants avant d’activer la marque blanche — sinon le rendu client sera dégradé (logo absent, couleurs par défaut, domaine non servi).'}
       </p>
     </section>

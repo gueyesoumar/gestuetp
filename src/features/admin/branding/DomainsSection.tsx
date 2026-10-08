@@ -73,7 +73,7 @@ export function DomainsSection({ cabinetId, domains, onChanged }: Props): JSX.El
       <header className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <div>
           <span className="text-[13px] font-bold text-gray-900">Domaines personnalisés</span>
-          <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-gold-700 bg-gold-50 px-2 py-0.5 rounded-full">Niveau 3</span>
+          <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-gold-700 bg-gold-50 px-2 py-0.5 rounded-full">Niveau 3 — domaine personnalisé</span>
         </div>
         <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-forest-700 text-white rounded-lg text-[11.5px] font-semibold hover:bg-forest-900"><Plus size={13} /> Ajouter un domaine</button>
       </header>

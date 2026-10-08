@@ -63,7 +63,7 @@ export function PasswordPolicyForm({ policy, saving, onSave }: Props): JSX.Eleme
         <div className="grid grid-cols-2 gap-4">
           <NumberField label="Expiration (jours, 0 = désactivée)" value={form.rotation_days ?? 0} min={0} max={3650}
             onChange={(v) => setForm((f) => ({ ...f, rotation_days: v > 0 ? v : null }))} />
-          <NumberField label="Historique non-réutilisation (0 = désactivé)" value={form.history_count} min={0} max={24}
+          <NumberField label="Historique de non-réutilisation (0 = désactivé)" value={form.history_count} min={0} max={24}
             onChange={(v) => setForm((f) => ({ ...f, history_count: v }))} />
         </div>
         <p className="mt-3 text-[11px] text-gray-400">

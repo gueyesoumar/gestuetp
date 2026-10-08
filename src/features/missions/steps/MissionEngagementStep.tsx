@@ -50,7 +50,7 @@ export function MissionEngagementStep({ kind, onChange, groupAvailable }: Missio
             'Cycles trimestriels (Q1, Q2, Q3, Q4) renouvelés en continu',
             'Pas de validation client (supervision interne)',
             "Plans d'action transverses persistants",
-            'Dashboard temps réel avec KPI consolidés',
+            'Tableau de bord en temps réel avec indicateurs consolidés',
           ]}
           example="Supervision permanente d'une filiale bancaire, suivi continu PSSI-ES sur un établissement de santé."
         />

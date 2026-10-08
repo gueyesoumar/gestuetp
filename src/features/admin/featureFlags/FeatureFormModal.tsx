@@ -21,7 +21,7 @@ const CATEGORIES: Array<{ value: FeatureCategory; label: string }> = [
 
 const MATURITIES: Array<{ value: FeatureMaturity; label: string }> = [
   { value: 'stable', label: 'Stable — production' },
-  { value: 'beta', label: 'Beta — utilisable mais en évolution' },
+  { value: 'beta', label: 'Bêta — utilisable mais en évolution' },
   { value: 'new', label: 'Nouveau — récemment lancé' },
 ]
 
@@ -75,7 +75,7 @@ export function FeatureFormModal({ feature, onClose, onSubmit, onRequestDelete }
             <Field label="Nom *">
               <input
                 type="text" value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Plan d'action généré par IA" disabled={submitting}
+                placeholder="Ex. : Plan d'action généré par IA" disabled={submitting}
                 className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
               />
             </Field>
@@ -115,7 +115,7 @@ export function FeatureFormModal({ feature, onClose, onSubmit, onRequestDelete }
           <Field label="Icône (slug lucide-react · optionnel)">
             <input
               type="text" value={iconName} onChange={(e) => setIconName(e.target.value)}
-              placeholder="Ex: sparkles, file-text, shield-check" disabled={submitting}
+              placeholder="Ex. : sparkles, file-text, shield-check" disabled={submitting}
               className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
             />
           </Field>
@@ -123,7 +123,7 @@ export function FeatureFormModal({ feature, onClose, onSubmit, onRequestDelete }
           <Field label="Motif (obligatoire) *">
             <textarea
               value={reason} onChange={(e) => setReason(e.target.value)}
-              rows={2} placeholder="Pourquoi cette modification ? (tracé dans l'audit log)" disabled={submitting}
+              rows={2} placeholder="Pourquoi cette modification ? (tracé dans le journal d'audit)" disabled={submitting}
               className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
             />
           </Field>

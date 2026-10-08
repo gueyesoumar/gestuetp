@@ -25,7 +25,7 @@ export function AuditChecklistCard({ items }: AuditChecklistCardProps) {
         {items.length === 0 ? (
           <div className="flex items-start gap-2 text-[11px] text-gray-400 italic">
             <HelpCircle size={13} className="mt-0.5 shrink-0" />
-            <p>Pas de checklist normative pour ce contr&ocirc;le. Vous pouvez quand m&ecirc;me &eacute;valuer librement.</p>
+            <p>Pas de liste de points de contrôle normative pour ce contr&ocirc;le. Vous pouvez quand m&ecirc;me &eacute;valuer librement.</p>
           </div>
         ) : (
           <ul className="space-y-2">

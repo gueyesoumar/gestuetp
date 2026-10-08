@@ -18,10 +18,10 @@ interface PlanGeneralTabProps {
 }
 
 const TIERS: Array<{ value: PlanTier; label: string }> = [
-  { value: 'free', label: 'Free — gratuit, démo / découverte' },
+  { value: 'free', label: 'Gratuit — démo / découverte' },
   { value: 'standard', label: 'Standard — payant, usage régulier' },
-  { value: 'enterprise', label: 'Enterprise — grands comptes' },
-  { value: 'custom', label: 'Custom — sur devis / accord spécifique' },
+  { value: 'enterprise', label: 'Entreprise — grands comptes' },
+  { value: 'custom', label: 'Sur mesure — sur devis / accord spécifique' },
 ]
 
 export function PlanGeneralTab(props: PlanGeneralTabProps): JSX.Element {
@@ -34,12 +34,12 @@ export function PlanGeneralTab(props: PlanGeneralTabProps): JSX.Element {
         <Field label="Nom du plan *">
           <input
             type="text" value={name} onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: Pro" disabled={disabled}
+            placeholder="Ex. : Pro" disabled={disabled}
             className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
           />
         </Field>
         {isEdit && (
-          <Field label="Slug (immutable)">
+          <Field label="Slug (immuable)">
             <input
               type="text" value={slug} disabled
               className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg font-mono bg-gray-50 text-gray-500"
@@ -74,7 +74,7 @@ export function PlanGeneralTab(props: PlanGeneralTabProps): JSX.Element {
       <label className="flex items-center gap-2 text-[12.5px] text-gray-700 cursor-pointer">
         <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} disabled={disabled}
           className="w-4 h-4 accent-forest-700" />
-        <span>Plan par défaut pour les nouveaux cabinets (un seul plan peut être défaut)</span>
+        <span>Plan par défaut pour les nouveaux cabinets (un seul plan peut être le plan par défaut)</span>
       </label>
 
       {isEdit && cabinetsImpact !== undefined && cabinetsImpact > 0 && (

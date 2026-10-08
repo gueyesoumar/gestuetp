@@ -17,8 +17,8 @@ interface Triage {
 }
 
 const CAT_LABEL: Record<string, string> = {
-  bug_code: 'Bug code', probleme_donnee: 'Problème donnée', permission_rls: 'Permission / RLS',
-  erreur_utilisateur: 'Erreur utilisateur', infra_externe: 'Infra externe', indetermine: 'Indéterminé',
+  bug_code: 'Bug de code', probleme_donnee: 'Problème de données', permission_rls: 'Permission / RLS',
+  erreur_utilisateur: 'Erreur utilisateur', infra_externe: 'Infrastructure externe', indetermine: 'Indéterminé',
 }
 
 /** Triage IA (Phase 3, data-facing). Visible seulement pour un bug ET si le flag est ON. */

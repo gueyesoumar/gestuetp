@@ -53,7 +53,7 @@ export function SupportFeasibilityPanel({ request }: Props): JSX.Element | null 
     setError(null)
     const res = await invokeEdgeFunction('dispatch-feasibility', { request_id: request.id })
     setBusy(false)
-    if (!res.ok) { setError(res.error ?? 'Declenchement impossible.'); return }
+    if (!res.ok) { setError(res.error ?? 'Déclenchement impossible.'); return }
     await loadRun()
   }
 

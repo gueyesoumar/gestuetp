@@ -24,7 +24,7 @@ const RecorderCtx = createContext<RecorderState | null>(null)
 
 export function useRecorder(): RecorderState {
   const ctx = useContext(RecorderCtx)
-  if (!ctx) throw new Error('useRecorder doit etre utilise dans RecorderProvider')
+  if (!ctx) throw new Error('useRecorder doit être utilisé dans RecorderProvider')
   return ctx
 }
 

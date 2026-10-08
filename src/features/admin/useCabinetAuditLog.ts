@@ -71,7 +71,7 @@ export function useCabinetAuditLog(cabinetId: string | undefined): Result {
       if (abort.signal.aborted) return
       if (queryError) {
         console.error('useCabinetAuditLog:', queryError.message)
-        setError('Chargement de l\'audit log impossible')
+        setError('Chargement du journal d\'audit impossible')
         setLoading(false)
         return
       }

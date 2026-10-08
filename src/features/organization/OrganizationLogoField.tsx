@@ -26,7 +26,7 @@ export function OrganizationLogoField({ currentUrl, canEdit, onUploaded }: Props
     if (file.size > MAX_BYTES) { toast.error(`Fichier trop volumineux (max ${Math.round(MAX_BYTES / 1024)} Ko)`); return }
     if (!['image/png', 'image/svg+xml'].includes(file.type)) { toast.error('PNG ou SVG uniquement'); return }
     const res = await upload(file)
-    if (!res.ok) { toast.error(res.error ?? 'Upload impossible'); return }
+    if (!res.ok) { toast.error(res.error ?? 'Téléversement impossible'); return }
     setPreview(res.url ?? null)
     toast.success('Logo mis à jour')
     onUploaded()

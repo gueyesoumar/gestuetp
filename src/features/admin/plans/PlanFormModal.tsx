@@ -68,7 +68,7 @@ export function PlanFormModal(props: PlanFormModalProps): JSX.Element {
       const setRes = await onSetFeatures(targetPlanId, [...featureIds], reason)
       if (!setRes.ok) {
         setSubmitting(false)
-        setErrorMsg(`Plan enregistré mais features partiellement appliquées: ${setRes.error ?? 'erreur'}`)
+        setErrorMsg(`Plan enregistré mais fonctionnalités partiellement appliquées : ${setRes.error ?? 'erreur'}`)
         return
       }
     }
@@ -139,7 +139,7 @@ export function PlanFormModal(props: PlanFormModalProps): JSX.Element {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={2}
-              placeholder="Pourquoi cette modification ? (tracé dans l'audit log)"
+              placeholder="Pourquoi cette modification ? (tracé dans le journal d'audit)"
               className="w-full px-3 py-2 text-[12.5px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
               disabled={submitting}
             />

@@ -28,7 +28,7 @@ export function CabinetKpiStrip({ health }: KpiStripProps): JSX.Element {
         icon={<FolderOpen size={13} />}
         value={String(activity.missionsTotal)}
         delta={activity.missionsCreated30d > 0 ? `+${activity.missionsCreated30d}` : undefined}
-        hint={`${activity.missionsCreated30d} créée${activity.missionsCreated30d > 1 ? 's' : ''} sur 30 derniers jours`}
+        hint={`${activity.missionsCreated30d} créée${activity.missionsCreated30d > 1 ? 's' : ''} sur les 30 derniers jours`}
       />
       <KpiCard
         label="Coût IA · 30j"

@@ -20,7 +20,7 @@ const NAV: NavItem[] = [
   { to: '/admin/monitoring', label: 'Santé / Monitoring', icon: <Activity size={16} strokeWidth={1.5} /> },
   { to: '/admin/support', label: 'Support', icon: <LifeBuoy size={16} strokeWidth={1.5} /> },
   { to: '/admin/aide', label: 'Base de connaissances', icon: <BookOpen size={16} strokeWidth={1.5} /> },
-  { to: '/admin/audit-log', label: 'Audit log', icon: <ClipboardList size={16} strokeWidth={1.5} /> },
+  { to: '/admin/audit-log', label: 'Journal d\'audit', icon: <ClipboardList size={16} strokeWidth={1.5} /> },
   { to: '/admin/securite', label: 'Sécurité', icon: <ShieldCheck size={16} strokeWidth={1.5} /> },
 ]
 
@@ -58,7 +58,7 @@ export function AdminLayout() {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="bg-gold-500 text-forest-900 px-5 py-2 flex items-center gap-3 text-[12px] font-semibold">
-          <span className="px-2 py-0.5 border border-forest-900 rounded-full text-[10px] font-bold uppercase tracking-wider">Admin mode</span>
+          <span className="px-2 py-0.5 border border-forest-900 rounded-full text-[10px] font-bold uppercase tracking-wider">Mode administrateur</span>
           Console super-admin G&euml;stu &mdash; toutes vos actions sont trac&eacute;es.
           <SpaceSwitcher />
         </div>

@@ -48,7 +48,7 @@ export function DraftPrSection({ requestId, impactRunId, eligible, reasons, hard
     const res = await invokeEdgeFunction('dispatch-draft-pr', { request_id: requestId, impact_run_id: impactRunId, force })
     setBusy(false)
     setConfirmForce(false)
-    if (!res.ok) { setError(res.error ?? 'Declenchement impossible.'); return }
+    if (!res.ok) { setError(res.error ?? 'Déclenchement impossible.'); return }
     await load()
   }, [requestId, impactRunId, load])
 
@@ -87,7 +87,7 @@ export function DraftPrSection({ requestId, impactRunId, eligible, reasons, hard
         <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2.5">
           <p className="text-[11.5px] text-amber-800 flex items-start gap-1.5">
             <AlertTriangle size={12} className="mt-0.5 shrink-0" />
-            <span>Non recommand&eacute; : {reasons.join(', ') || 'crit&egrave;res non r&eacute;unis'}.</span>
+            <span>Non recommand&eacute; : {reasons.join(', ') || 'critères non réunis'}.</span>
           </p>
           {hardBlock ? (
             <p className="text-[11px] text-red-600 mt-1.5">Non for&ccedil;able : bloquant s&eacute;curit&eacute;/RLS &mdash; &agrave; traiter manuellement.</p>
@@ -111,7 +111,7 @@ export function DraftPrSection({ requestId, impactRunId, eligible, reasons, hard
           <>
             L&apos;analyse ne recommande pas le brouillon automatique&nbsp;: <strong>{reasons.join(', ')}</strong>.
             <br />
-            Le brouillon peut être <strong>partiel</strong> (frontend-only ; migration/edge éventuels restent à faire à la main) et devra être revu attentivement. Il reste sur <strong>staging</strong>, limité à <code>src/</code>, gates CI appliqués.
+            Le brouillon peut être <strong>partiel</strong> (front-end uniquement ; migration/fonction edge éventuelles restent à faire à la main) et devra être revu attentivement. Il reste sur <strong>staging</strong>, limité à <code>src/</code>, verrous CI appliqués.
           </>
         }
       />

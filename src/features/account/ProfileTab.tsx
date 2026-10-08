@@ -55,7 +55,7 @@ export function ProfileTab(): JSX.Element | null {
             <FormField id="prof-email" label="Email" value={profile.email} onChange={() => {}} disabled hint="L'email ne peut pas être modifié. Contactez un administrateur." />
             <div className="grid grid-cols-2 gap-4">
               <FormField id="prof-phone" label="Téléphone" type="tel" value={phone.value} onChange={phone.onChange} onBlur={phone.onBlur} error={phone.error} disabled={updating} placeholder="+221 77 123 45 67" />
-              <FormField id="prof-job" label="Poste / Fonction" value={jobTitle} onChange={setJobTitle} disabled={updating} placeholder="Ex : Associé, Manager..." />
+              <FormField id="prof-job" label="Poste / Fonction" value={jobTitle} onChange={setJobTitle} disabled={updating} placeholder="Ex : Associé, Responsable…" />
             </div>
           </div>
         </SplitFormSection>

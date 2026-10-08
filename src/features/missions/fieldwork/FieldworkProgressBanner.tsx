@@ -32,7 +32,7 @@ export function FieldworkProgressBanner({
     <div className="flex items-center gap-3 px-3 py-2 mb-2 bg-white border border-gray-200 rounded-lg text-[12px]">
       <span className="font-semibold text-gray-900">{submittedCount}/{totalReference} soumis</span>
       <span className="text-gray-400 truncate">
-        {draftCount > 0 ? `· ${draftCount} brouillon` : ''}{notStartedCount > 0 ? ` · ${notStartedCount} non commencé${plural}` : ''}
+        {draftCount > 0 ? `· ${draftCount} brouillon${draftCount > 1 ? 's' : ''}` : ''}{notStartedCount > 0 ? ` · ${notStartedCount} non commencé${plural}` : ''}
       </span>
       <div className="ml-auto flex items-center gap-2 shrink-0">
         <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">

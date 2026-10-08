@@ -65,7 +65,7 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
             <h3 className="text-[14.5px] font-bold text-red-700">Suppression définitive</h3>
             <p className="text-[12px] text-red-700 mt-0.5 leading-relaxed">
               Cette action efface l&apos;organisation <b>{cabinetName}</b>, toutes ses missions, contrôles, documents et utilisateurs.
-              <b> Irréversible.</b> Un snapshot léger est conservé dans l&apos;audit log.
+              <b> Irréversible.</b> Un snapshot léger est conservé dans le journal d&apos;audit.
             </p>
           </div>
         </div>

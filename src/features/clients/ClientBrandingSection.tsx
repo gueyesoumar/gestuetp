@@ -161,7 +161,7 @@ export function ClientBrandingSection({
       {/* Preview */}
       {(logoUrl || primaryColor) && (
         <div>
-          <label className="block text-[13px] font-medium text-gray-700 mb-2">Aper&ccedil;u en-t&ecirc;te rapport</label>
+          <label className="block text-[13px] font-medium text-gray-700 mb-2">Aper&ccedil;u de l&rsquo;en-t&ecirc;te du rapport</label>
           <div className="border border-gray-200 rounded-xl p-4 bg-white">
             <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
               {logoUrl && <img src={logoUrl} alt="" className="h-8 object-contain" />}

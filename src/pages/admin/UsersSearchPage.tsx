@@ -191,7 +191,7 @@ function UserRow({ user, onPickAction, onChangeRole }: { user: AdminUserRow; onP
             <div className="font-semibold text-gray-900 text-[12.5px]">{user.first_name} {user.last_name}</div>
             <div className="text-[11px] text-gray-300 truncate">{user.email}</div>
           </div>
-          {user.is_platform_owner && <span className="ml-1 text-[9.5px] uppercase tracking-wider font-bold bg-gold-50 text-gold-600 px-1.5 py-0.5 rounded flex-shrink-0">Owner</span>}
+          {user.is_platform_owner && <span className="ml-1 text-[9.5px] uppercase tracking-wider font-bold bg-gold-50 text-gold-600 px-1.5 py-0.5 rounded flex-shrink-0">Propriétaire</span>}
         </div>
       </td>
       <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700">{user.organization_name}</td>
@@ -309,7 +309,7 @@ function ActionModal({ title, submitLabel, danger, reason, onChangeReason, submi
         <div className="px-5 py-4">
           <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Motif <span className="text-red-500">*</span></label>
           <textarea value={reason} onChange={(e) => onChangeReason(e.target.value)} rows={3} placeholder="Pourquoi cette action ? (obligatoire)" className="w-full" disabled={submitting} />
-          <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé dans l&apos;audit log.</p>
+          <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé dans le journal d&apos;audit.</p>
         </div>
         <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
           <button onClick={onCancel} disabled={submitting} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>

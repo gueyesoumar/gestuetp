@@ -61,7 +61,7 @@ export function CabinetFeatureFlagsTab({ cabinetId }: Props): JSX.Element {
         icon={<Sparkles size={14} />}
         iconBg="bg-gold-100 text-gold-700"
         title="Personnalisations"
-        subtitle="Overrides spécifiques à ce cabinet (forcés ON ou OFF)."
+        subtitle="Dérogations spécifiques à ce cabinet (forcés ON ou OFF)."
         emptyMessage="Aucune personnalisation pour ce cabinet."
         flags={grouped.overrides}
         onAction={(flag, action) => setPending({ flag, action })}
@@ -151,7 +151,7 @@ function KpiStrip({ total, active, overrides, available }: KpiStripProps): JSX.E
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <Kpi label="Total" value={total} hint="fonctionnalités déployées" />
       <Kpi label="Actives ici" value={active} hint="utilisables aujourd'hui" accent="text-emerald-700" />
-      <Kpi label="Personnalisées" value={overrides} hint="overrides spécifiques" accent="text-gold-700" />
+      <Kpi label="Personnalisées" value={overrides} hint="dérogations spécifiques" accent="text-gold-700" />
       <Kpi label="Hors plan" value={available} hint="débloquables" accent="text-gray-700" />
     </div>
   )

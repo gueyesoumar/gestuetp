@@ -68,7 +68,7 @@ export function ReviewDiscussionPanel({ missionId }: ReviewDiscussionPanelProps)
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-[14px] font-bold text-gray-900">Discussion revue</h3>
-          <p className="text-[11px] text-gray-400">Échange entre lead et associé sur la cohérence d'ensemble</p>
+          <p className="text-[11px] text-gray-400">Échange entre chef de mission et associé sur la cohérence d'ensemble</p>
         </div>
         <span className="text-[11px] text-gray-400">{comments.length} message{comments.length > 1 ? 's' : ''}</span>
       </div>

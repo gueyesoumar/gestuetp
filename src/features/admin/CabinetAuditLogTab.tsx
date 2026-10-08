@@ -12,13 +12,13 @@ const ACTION_LABELS: Record<string, { label: string; variant: 'green' | 'warn' |
   export_cabinet_data: { label: 'Export cabinet', variant: 'blue' },
   delete_cabinet: { label: 'Suppression cabinet', variant: 'red' },
   create_cabinet: { label: 'Création cabinet', variant: 'green' },
-  reset_user_password: { label: 'Reset password', variant: 'blue' },
+  reset_user_password: { label: 'Réinit. mot de passe', variant: 'blue' },
   change_user_role: { label: 'Changement rôle', variant: 'gold' },
-  activate_user: { label: 'Activation user', variant: 'green' },
-  deactivate_user: { label: 'Désactivation user', variant: 'red' },
-  view_user: { label: 'Aperçu user', variant: 'blue' },
-  set_feature_flag_override: { label: 'Override flag', variant: 'gold' },
-  reset_feature_flag_override: { label: 'Reset override flag', variant: 'gray' },
+  activate_user: { label: 'Activation utilisateur', variant: 'green' },
+  deactivate_user: { label: 'Désactivation utilisateur', variant: 'red' },
+  view_user: { label: 'Consultation utilisateur', variant: 'blue' },
+  set_feature_flag_override: { label: 'Dérogation fonctionnalité', variant: 'gold' },
+  reset_feature_flag_override: { label: 'Réinit. dérogation fonctionnalité', variant: 'gray' },
 }
 
 const VARIANT_CLASS: Record<string, string> = {

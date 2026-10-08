@@ -109,7 +109,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
               </select>
             </div>
             <div>
-              <label className="block text-[12px] font-medium text-gray-600 mb-1">Rattachée à</label>
+              <label className="block text-[12px] font-medium text-gray-600 mb-1">Rattaché{vocab.entityGender === 'f' ? 'e' : ''} à</label>
               <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={field}>
                 <option value="">Racine du groupe</option>
                 {parentOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -160,8 +160,8 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
                   <input value={regime} onChange={(e) => setRegime(e.target.value)} placeholder="ex. r&eacute;gime renforc&eacute;" className={field} />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-medium text-gray-600 mb-1">Tier de criticit&eacute;</label>
-                  <input value={tier} onChange={(e) => setTier(e.target.value)} placeholder="ex. Tier 1" className={field} />
+                  <label className="block text-[12px] font-medium text-gray-600 mb-1">Niveau de criticit&eacute;</label>
+                  <input value={tier} onChange={(e) => setTier(e.target.value)} placeholder="ex. Niveau 1" className={field} />
                 </div>
               </div>
             </div>

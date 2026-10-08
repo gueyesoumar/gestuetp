@@ -91,7 +91,7 @@ export function EditOrganizationTypesModal({ organizationId, organizationName, c
               disabled={submitting || isPlatform}
               className="w-full"
             />
-            <p className="mt-2 text-[11px] text-gray-400">Le motif est trac&eacute; dans l&apos;audit log et conserv&eacute; ind&eacute;finiment.</p>
+            <p className="mt-2 text-[11px] text-gray-400">Le motif est trac&eacute; dans le journal d&apos;audit et conserv&eacute; ind&eacute;finiment.</p>
           </div>
         </div>
         <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">

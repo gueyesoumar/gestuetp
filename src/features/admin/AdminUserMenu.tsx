@@ -34,7 +34,7 @@ export function AdminUserMenu({ profile }: { profile: User | null }): JSX.Elemen
         <div className="w-7 h-7 rounded-full bg-gold-500 text-forest-900 flex items-center justify-center font-extrabold text-[11px]">{initials}</div>
         <div className="text-left leading-tight">
           <div className="text-white font-semibold text-[11.5px]">{profile?.first_name} {profile?.last_name}</div>
-          <div className="text-[10px] text-white/55">Platform owner</div>
+          <div className="text-[10px] text-white/55">Propriétaire de la plateforme</div>
         </div>
         <span className="ml-auto text-white/50 text-xs">{open ? '▴' : '▾'}</span>
       </button>

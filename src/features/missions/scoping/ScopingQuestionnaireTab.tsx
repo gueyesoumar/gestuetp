@@ -11,8 +11,8 @@ import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import type { MissionDetail } from '../useMissionDetail'
 
 const EVIDENCE_META: Record<EvidenceType, { label: string; icon: typeof ShieldCheck; classes: string }> = {
-  declared_with_signed_doc: { label: 'Doc signé', icon: ShieldCheck, classes: 'bg-forest-100 text-forest-700 border border-forest-200' },
-  declared_with_doc: { label: 'Doc fourni', icon: FileText, classes: 'bg-gold-50 text-gold-700 border border-gold-200' },
+  declared_with_signed_doc: { label: 'Document signé', icon: ShieldCheck, classes: 'bg-forest-100 text-forest-700 border border-forest-200' },
+  declared_with_doc: { label: 'Document fourni', icon: FileText, classes: 'bg-gold-50 text-gold-700 border border-gold-200' },
   declared_only: { label: 'Déclaratif', icon: MessageSquare, classes: 'bg-gray-100 text-gray-600 border border-gray-200' },
 }
 
@@ -257,7 +257,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                             <button
                               type="button"
                               onClick={() => handleStartEdit(q.code, resp?.value ?? '')}
-                              title="Saisir / éditer la réponse (mode interview)"
+                              title="Saisir / éditer la réponse (mode entretien)"
                               className="w-6 h-6 inline-flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gold-50 hover:border-gold-300 hover:text-gold-700 transition-colors"
                             >
                               <Pencil size={11} />
@@ -295,7 +295,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                         <div className="px-4 pb-3 ml-[76px]">
                           <div className="bg-gold-50 border border-gold-300 rounded-lg p-2.5">
                             <div className="text-[10px] font-bold uppercase tracking-wide text-gold-700 mb-1.5 inline-flex items-center gap-1">
-                              <Pencil size={10} /> Saisir à la place du client (mode interview)
+                              <Pencil size={10} /> Saisir à la place du client (mode entretien)
                             </div>
                             <textarea
                               value={editDraft}

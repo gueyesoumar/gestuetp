@@ -81,7 +81,7 @@ export function AdminFrameworkCreatePage() {
           <Field label="Version">
             <input type="text" value={version} onChange={(e) => setVersion(e.target.value)} placeholder="2022" disabled={submitting} />
           </Field>
-          <Field label="Éditeur / Publisher">
+          <Field label="Éditeur">
             <input type="text" value={publisher} onChange={(e) => setPublisher(e.target.value)} placeholder="ISO" disabled={submitting} />
           </Field>
         </div>

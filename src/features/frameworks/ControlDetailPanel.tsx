@@ -72,13 +72,13 @@ function getExpectedEvidence(code: string): string[] {
       'Liste des acc\u00e8s par profil',
     ],
     'A.8.5': [
-      'Politique d\u2019authentification (MFA, complexit\u00e9 mots de passe)',
+      'Politique d\u2019authentification (MFA, complexité des mots de passe)',
       'Configuration technique des m\u00e9canismes d\u2019authentification',
     ],
     'A.8.13': [
       'Politique de sauvegarde',
       'Rapports de tests de restauration',
-      'Logs de sauvegarde r\u00e9cents',
+      'Journaux de sauvegarde récents',
     ],
   }
 

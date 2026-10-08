@@ -67,7 +67,7 @@ export function CoBrandingFooter({ collapsed = false }: { collapsed?: boolean })
 
   if (collapsed) {
     return (
-      <div className="border-t border-white/10 py-2 flex justify-center" title={`${own.cabinet_name} · Powered by Gestu`}>
+      <div className="border-t border-white/10 py-2 flex justify-center" title={`${own.cabinet_name} · Propulsé par Gëstu`}>
         <div className={`w-7 h-7 rounded-md flex items-center justify-center overflow-hidden ${own.logo_dark_url ? '' : 'bg-white p-0.5'}`}>
           <img src={logoUrl} alt={own.cabinet_name} className="max-w-full max-h-full object-contain" />
         </div>
@@ -83,7 +83,7 @@ export function CoBrandingFooter({ collapsed = false }: { collapsed?: boolean })
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[11px] font-semibold text-white/80 truncate">{own.cabinet_name}</p>
-          <p className="text-[9px] text-white/40 tracking-wide uppercase">Powered by Gëstu</p>
+          <p className="text-[9px] text-white/40 tracking-wide uppercase">Propulsé par Gëstu</p>
         </div>
       </div>
     </div>

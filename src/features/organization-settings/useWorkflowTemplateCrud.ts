@@ -17,7 +17,7 @@ interface Result {
 // Double filet : n'écrire que des clés de la liste blanche (le CHECK 00252 refuse le reste).
 const clean = (steps: string[]): string[] => steps.filter((k) => ALL_DESELECTABLE_KEYS.includes(k))
 const mapErr = (e: { code?: string } | null, fallback: string): string =>
-  e?.code === '23505' ? 'Un template porte déjà ce nom.' : fallback
+  e?.code === '23505' ? 'Un modèle porte déjà ce nom.' : fallback
 
 /** CRUD des templates de parcours en RLS directe (own-org + can_manage_workflow). RFC 0009 phase 2. */
 export function useWorkflowTemplateCrud(onSuccess?: () => void): Result {

@@ -83,7 +83,7 @@ export function UserDetailPage() {
           <div className="text-[11.5px] text-gray-500">{user.email}</div>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          {user.is_platform_owner && <span className="text-[10px] uppercase tracking-wider font-bold bg-gold-50 text-gold-600 px-2 py-1 rounded-full">Platform owner</span>}
+          {user.is_platform_owner && <span className="text-[10px] uppercase tracking-wider font-bold bg-gold-50 text-gold-600 px-2 py-1 rounded-full">Propriétaire de la plateforme</span>}
           {user.is_active ? (
             <span className="px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-[11px] font-semibold">Actif</span>
           ) : (
@@ -175,7 +175,7 @@ export function UserDetailPage() {
             <div className="px-5 py-4">
               <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Motif <span className="text-red-500">*</span></label>
               <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Pourquoi consultez-vous ce compte ? (obligatoire)" className="w-full" disabled={registering} />
-              <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé indéfiniment dans l&apos;audit log.</p>
+              <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé indéfiniment dans le journal d&apos;audit.</p>
             </div>
             <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
               <button onClick={() => navigate(-1)} disabled={registering} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>

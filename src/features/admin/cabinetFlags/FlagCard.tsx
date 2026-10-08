@@ -19,7 +19,7 @@ function formatRelative(iso: string | null): string {
 
 function MaturityBadge({ maturity }: { maturity: 'stable' | 'beta' | 'new' }): JSX.Element | null {
   if (maturity === 'stable') return null
-  if (maturity === 'beta') return <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-gold-100 text-gold-700">Beta</span>
+  if (maturity === 'beta') return <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-gold-100 text-gold-700">Bêta</span>
   return <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">Nouveau</span>
 }
 
@@ -48,7 +48,7 @@ export function FlagCard({ flag, onAction }: FlagCardProps): JSX.Element {
         <div className={`mt-3 rounded-lg p-2.5 ${isOverrideOn ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
           <div className="flex items-center justify-between mb-1">
             <span className={`text-[10px] uppercase tracking-wider font-bold ${isOverrideOn ? 'text-emerald-700' : 'text-red-700'}`}>
-              Override actif — {isOverrideOn ? 'Forcé ON' : 'Forcé OFF'}
+              Dérogation active — {isOverrideOn ? 'Forcé ON' : 'Forcé OFF'}
             </span>
             <span className="text-[10px] text-gray-500">{formatRelative(flag.override_updated_at)}</span>
           </div>
@@ -73,7 +73,7 @@ function StatePill({ state }: { state: CabinetFlag['state'] }): JSX.Element {
   const variants: Record<CabinetFlag['state'], { bg: string; text: string; icon: JSX.Element; label: string }> = {
     plan_included: { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: <CheckCircle2 size={11} />, label: 'Active · via plan' },
     override_on: { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: <Unlock size={11} />, label: 'Active · personnalisée' },
-    override_off: { bg: 'bg-red-50', text: 'text-red-700', icon: <Lock size={11} />, label: 'Désactivée · override' },
+    override_off: { bg: 'bg-red-50', text: 'text-red-700', icon: <Lock size={11} />, label: 'Désactivée · dérogation' },
     available: { bg: 'bg-gray-100', text: 'text-gray-500', icon: <MinusCircle size={11} />, label: 'Hors plan' },
     unavailable: { bg: 'bg-gray-100', text: 'text-gray-400', icon: <XCircle size={11} />, label: 'Indisponible' },
   }

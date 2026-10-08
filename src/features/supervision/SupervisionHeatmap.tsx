@@ -23,7 +23,7 @@ export function SupervisionHeatmap({ entities, domains, frameworkName }: Supervi
   if (entities.length === 0 || domains.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-        <p className="text-sm text-gray-400">Aucune donn&eacute;e disponible pour la heatmap.</p>
+        <p className="text-sm text-gray-400">Aucune donn&eacute;e disponible pour la carte de chaleur.</p>
       </div>
     )
   }

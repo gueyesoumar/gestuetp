@@ -6,10 +6,10 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { ActionPlanFilters, applyFilters, type ActionPlanFilterState } from '../missions/action-plan/ActionPlanFilters'
 
 const STATUS_BADGES: Record<string, { label: string; color: string }> = {
-  open: { label: 'Ouvert', color: 'text-amber-700 bg-amber-50' },
+  open: { label: 'Ouverte', color: 'text-amber-700 bg-amber-50' },
   client_responded: { label: 'À vérifier', color: 'text-blue-700 bg-blue-50' },
-  verified: { label: 'Vérifié', color: 'text-green-700 bg-green-50' },
-  closed: { label: 'Clôturé', color: 'text-gray-500 bg-gray-100' },
+  verified: { label: 'Vérifiée', color: 'text-green-700 bg-green-50' },
+  closed: { label: 'Clôturée', color: 'text-gray-500 bg-gray-100' },
 }
 
 const CLASS_BADGES: Record<string, { label: string; color: string }> = {

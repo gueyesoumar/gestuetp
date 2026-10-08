@@ -82,7 +82,7 @@ function FeatureRow({ item, checked, onChange, disabled }: { item: FeatureCatalo
           <MaturityBadge maturity={item.maturity} />
           {!item.is_globally_enabled && (
             <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-red-50 text-red-600" title="Kill switch global activé">
-              Off global
+              Désactivée globalement
             </span>
           )}
         </div>
@@ -96,7 +96,7 @@ function FeatureRow({ item, checked, onChange, disabled }: { item: FeatureCatalo
 function MaturityBadge({ maturity }: { maturity: 'stable' | 'beta' | 'new' }): JSX.Element | null {
   if (maturity === 'stable') return null
   if (maturity === 'beta') {
-    return <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-gold-100 text-gold-700">Beta</span>
+    return <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-gold-100 text-gold-700">Bêta</span>
   }
   return <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">Nouveau</span>
 }

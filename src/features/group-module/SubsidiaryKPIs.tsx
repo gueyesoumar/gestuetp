@@ -18,7 +18,7 @@ export function SubsidiaryKPIs({ data }: SubsidiaryKPIsProps): JSX.Element {
   return (
     <div className="grid grid-cols-4 gap-4">
       <Card label="Missions actives" value={`${data.totalActiveMissions}`} sub={`Sur ${vocab.entityWithDem}`} />
-      <Card label="Contrôles évalués" value={evaluated} sub="Cumul tous référentiels" />
+      <Card label="Contrôles évalués" value={evaluated} sub="Cumul de tous les référentiels" />
       <Card label="Plans d'action ouverts" value={`${data.openCars}`} sub={overdueLabel} accent={data.overdueCars > 0 ? 'red' : 'forest'} />
       <Card label="Prochaine échéance" value={formatShortDate(data.nextReviewDate)} sub="Cycle ouvert le plus proche" />
     </div>

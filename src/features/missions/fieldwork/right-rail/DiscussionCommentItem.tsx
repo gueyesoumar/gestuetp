@@ -7,7 +7,7 @@ function relativeTime(iso: string): string {
   const now = Date.now()
   const t = new Date(iso).getTime()
   const diffSec = Math.round((now - t) / 1000)
-  if (diffSec < 60) return 'a l’instant'
+  if (diffSec < 60) return 'à l’instant'
   const diffMin = Math.round(diffSec / 60)
   if (diffMin < 60) return `il y a ${diffMin} min`
   const diffH = Math.round(diffMin / 60)

@@ -46,7 +46,7 @@ export function CycleTimeline({ cycles, onClose, busy }: CycleTimelineProps): JS
                 <p className="font-bold text-[12px] text-gray-900">{c.period_label}</p>
                 <p className="text-[10px] text-gray-500 mt-0.5">{formatDate(c.period_start)} → {formatDate(c.period_end)}</p>
                 {isClosed && c.score !== null && (
-                  <p className="text-[12px] mt-2"><strong>{c.score}%</strong> conformité</p>
+                  <p className="text-[12px] mt-2"><strong>{c.score}%</strong> de conformité</p>
                 )}
                 {isInProgress && (
                   <p className="text-[11px] text-amber-800 font-semibold mt-2">En cours</p>

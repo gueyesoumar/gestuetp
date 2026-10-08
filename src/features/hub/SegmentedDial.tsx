@@ -52,7 +52,7 @@ export function SegmentedDial({ score, segments }: SegmentedDialProps): JSX.Elem
 
   return (
     <div className="relative h-full w-full">
-      <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className="h-full w-full" role="img" aria-label={`Trust Score ${score ?? 'non évalué'}`}>
+      <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className="h-full w-full" role="img" aria-label={`Score de confiance ${score ?? 'non évalué'}`}>
         {arcs}
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">

@@ -37,8 +37,8 @@ export function KillSwitchModal({ flagSlug, flagName, nextEnabled, onClose, onCo
             </h3>
             <p className="text-[11.5px] text-gray-600 mt-1 leading-relaxed">
               {nextEnabled
-                ? 'La fonctionnalité redevient disponible pour tous les cabinets dont le plan l’inclut ou qui ont un override ON.'
-                : 'Coupe la fonctionnalité pour TOUS les cabinets, quels que soient leurs plans ou overrides. À utiliser pour gérer un incident.'}
+                ? 'La fonctionnalité redevient disponible pour tous les cabinets dont le plan l’inclut ou qui ont une dérogation activée.'
+                : 'Coupe la fonctionnalité pour TOUS les cabinets, quels que soient leurs plans ou dérogations. À utiliser pour gérer un incident.'}
             </p>
             <div className="mt-2 text-[11.5px] text-gray-700">
               <b>{flagName}</b> <span className="text-[10.5px] text-gray-400 font-mono">· {flagSlug}</span>
@@ -54,7 +54,7 @@ export function KillSwitchModal({ flagSlug, flagName, nextEnabled, onClose, onCo
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Pourquoi ce changement global ? (tracé dans l'audit log)"
+            placeholder="Pourquoi ce changement global ? (tracé dans le journal d'audit)"
             rows={3}
             className="w-full px-3 py-2 text-[12.5px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
             disabled={submitting}

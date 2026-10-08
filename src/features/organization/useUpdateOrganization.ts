@@ -23,7 +23,7 @@ export function useUpdateOrganization(onSuccess?: () => void): UseUpdateOrganiza
 
     if (queryError) {
       console.error('useUpdateOrganization:', queryError.message)
-      setError('Impossible de mettre \u00e0 jour l\u2019organisation.')
+      setError('Impossible de mettre à jour l’organisation.')
       setUpdating(false)
       return false
     }

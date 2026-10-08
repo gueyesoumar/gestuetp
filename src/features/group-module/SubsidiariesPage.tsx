@@ -134,7 +134,7 @@ export function SubsidiariesPage(): JSX.Element {
       )}
 
       {totalCount === 0 ? (
-        <EmptyState title={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre premier${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} n’est encore rattaché${vocab.entityGender === 'f' ? 'e' : ''}.`} />
+        <EmptyState title={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre ${vocab.entityGender === 'f' ? 'première' : 'premier'} ${vocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction…)'} avec le bouton ci-dessus.` : `Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} n’est encore rattaché${vocab.entityGender === 'f' ? 'e' : ''}.`} />
       ) : filtered.length === 0 ? (
         <EmptyState title="Aucun résultat" description={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} ne correspond à votre recherche.`} />
       ) : (

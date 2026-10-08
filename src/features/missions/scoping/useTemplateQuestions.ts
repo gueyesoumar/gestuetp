@@ -36,7 +36,7 @@ export function useTemplateQuestions(frameworkId: string | undefined): UseTempla
       if (ac.signal.aborted) return
       if (tErr) {
         console.error('[useTemplateQuestions] template:', tErr.message)
-        setError('Impossible de charger le template')
+        setError('Impossible de charger le modèle')
         setLoading(false)
         return
       }

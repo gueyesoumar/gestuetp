@@ -441,7 +441,7 @@ function EvidenceRow({ row, showCheckbox, checked, onToggle, dimmed, onToggleEss
               ? 'text-gold-500 hover:bg-gold-50'
               : 'text-gray-200 hover:text-gold-400 hover:bg-gold-50'
           }`}
-          title={row.isRequired ? 'Marqu&eacute;e comme essentielle (cliquez pour retirer)' : 'Marquer comme essentielle pour cette mission'}
+          title={row.isRequired ? 'Marquée comme essentielle (cliquez pour retirer)' : 'Marquer comme essentielle pour cette mission'}
         >
           <Star size={14} fill={row.isRequired ? 'currentColor' : 'none'} />
         </button>

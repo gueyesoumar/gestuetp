@@ -84,7 +84,7 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
 
       {/* Checklist */}
       <div className="p-4 border-b border-gray-200">
-        <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Checklist de cadrage</h4>
+        <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Liste de contrôle du cadrage</h4>
         {checklist.map((item, i) => {
           const isClickable = !!item.tab
           return (

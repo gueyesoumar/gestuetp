@@ -38,7 +38,7 @@ export function EntitlementRow({ entry, format, onEdit }: Props) {
       <td className="px-4 py-3 border-b border-gray-100 text-[13px]">{price}</td>
       <td className="px-4 py-3 border-b border-gray-100">
         {entry.enforcement === 'hard'
-          ? <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-50 text-red-600">🔒 Dur</span>
+          ? <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-50 text-red-600">🔒 Strict</span>
           : <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-500">Souple</span>}
       </td>
       <td className="px-4 py-3 border-b border-gray-100 text-right">

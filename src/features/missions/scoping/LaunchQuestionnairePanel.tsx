@@ -240,7 +240,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
                         })
                       }}
                       className="text-[10px] px-2 py-0.5 border border-purple-200 rounded text-purple-700 bg-purple-50 outline-none focus:border-purple-500"
-                      title="Assigner cette section à un respondent"
+                      title="Assigner cette section à un répondant"
                     >
                       <option value="">👤 Tous les contacts</option>
                       {contacts.map((c) => (
@@ -308,7 +308,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
           {standaloneCustoms.length > 0 && (
             <div className="border border-gold-300 rounded-lg overflow-hidden">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gold-50 border-b border-gold-200">
-                <span className="text-[10px] font-bold text-gold-700 bg-gold-100 px-2 py-0.5 rounded font-mono">CUSTOM</span>
+                <span className="text-[10px] font-bold text-gold-700 bg-gold-100 px-2 py-0.5 rounded font-mono">PERSONNALISÉE</span>
                 <span className="text-[12px] font-semibold text-gold-700 flex-1">Questions hors section</span>
                 <span className="text-[10px] font-semibold text-gold-700">{standaloneCustoms.length}</span>
               </div>
@@ -337,7 +337,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
           {/* Add custom question */}
           {showCustomForm ? (
             <div className="border-2 border-dashed border-gold-300 rounded-lg p-3 bg-gold-50/40">
-              <p className="text-[11px] font-bold text-gold-700 uppercase tracking-wide mb-2">Nouvelle question custom</p>
+              <p className="text-[11px] font-bold text-gold-700 uppercase tracking-wide mb-2">Nouvelle question personnalisée</p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <input
@@ -351,7 +351,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
                     value={customDraft.section ?? ''}
                     onChange={(e) => setCustomDraft({ ...customDraft, section: e.target.value === '' ? null : e.target.value })}
                     className="px-2 py-1.5 border border-gray-200 rounded text-[11px] outline-none focus:border-gold-500"
-                    title="Rattacher la question a une section du questionnaire"
+                    title="Rattacher la question à une section du questionnaire"
                   >
                     <option value="">Hors section</option>
                     {[...sections.keys()].map((prefix) => (

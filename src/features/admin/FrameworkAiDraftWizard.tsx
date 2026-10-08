@@ -206,7 +206,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
           {step === 2 && (
             <div className="px-5 py-4 space-y-3">
               <p className="text-[12px] text-gray-500">
-                Joignez 0 à 5 PDFs (norme officielle, document métier, brouillon interne…). L&apos;IA s&apos;appuiera dessus
+                Joignez 0 à 5 PDF (norme officielle, document métier, brouillon interne…). L&apos;IA s&apos;appuiera dessus
                 pour produire la structure. Sans fichier, elle propose un squelette à partir du nom et des instructions.
               </p>
               <Field label="Instructions (optionnel)">
@@ -214,7 +214,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
                   rows={3}
-                  placeholder="Ex: 'Extraire uniquement la section 5 du PDF', 'Adapter au contexte des PMI africaines', 'Garder les codes originaux ISO'"
+                  placeholder="Ex. : 'Extraire uniquement la section 5 du PDF', 'Adapter au contexte des PMI africaines', 'Garder les codes originaux ISO'"
                   maxLength={4000}
                 />
                 <p className="text-[10.5px] text-gray-400 mt-1">{instructions.length} / 4000</p>
@@ -232,7 +232,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
                     id="ai-draft-files"
                   />
                   <label htmlFor="ai-draft-files" className="cursor-pointer text-[12.5px] text-forest-700 font-semibold">
-                    Cliquez pour ajouter des PDFs
+                    Cliquez pour ajouter des PDF
                   </label>
                   <p className="text-[11px] text-gray-400 mt-1">PDF, TXT, HTML — max 32 Mo / fichier</p>
                 </div>

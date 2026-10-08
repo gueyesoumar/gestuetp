@@ -22,8 +22,8 @@ export function EntitlementTemplates({ plans, busy, onApply }: Props) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4">
-      <h3 className="text-[13px] font-bold text-gray-900 mb-1">Appliquer un template</h3>
-      <p className="text-[11.5px] text-gray-500 mb-3">Sème les droits du plan dans les entitlements (préserve les droits manuels).</p>
+      <h3 className="text-[13px] font-bold text-gray-900 mb-1">Appliquer un modèle</h3>
+      <p className="text-[11.5px] text-gray-500 mb-3">Sème les droits du plan dans les droits (préserve les droits manuels).</p>
       <div className="grid gap-2 sm:grid-cols-3">
         {plans.map((p) => (
           <div key={p.slug} className="rounded-lg border border-gray-200 p-3 flex flex-col gap-2">
@@ -49,7 +49,7 @@ export function EntitlementTemplates({ plans, busy, onApply }: Props) {
               <label className="block text-[11px] uppercase tracking-wide text-gray-500 font-semibold mb-1">Motif <span className="text-red-500">*</span></label>
               <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
-              <p className="mt-2 text-[11px] text-gray-400">Tracé dans l&apos;audit log. Les droits manuels ne sont pas écrasés.</p>
+              <p className="mt-2 text-[11px] text-gray-400">Tracé dans le journal d&apos;audit. Les droits manuels ne sont pas écrasés.</p>
             </div>
             <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
               <button onClick={() => { setPending(null); setReason('') }} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>

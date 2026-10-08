@@ -71,7 +71,7 @@ export function useOrgEntitlements(orgId: string): Result {
       toast.error('Action impossible', await readInvokeError(error, data, 'Erreur'))
       return false
     }
-    toast.success('Entitlement mis à jour')
+    toast.success('Droit mis à jour')
     await load()
     return true
   }, [orgId, load, toast])

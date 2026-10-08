@@ -113,7 +113,7 @@ export function CabinetDetailPage() {
         <TabBtn k="whitelabel" label="Marque blanche" active={activeTab === 'whitelabel'} onClick={setActiveTab} />
         <TabBtn k="flags" label="Fonctionnalités" active={activeTab === 'flags'} onClick={setActiveTab} />
         <TabBtn k="terminologie" label="Terminologie" active={activeTab === 'terminologie'} onClick={setActiveTab} />
-        <TabBtn k="audit" label="Audit log" active={activeTab === 'audit'} onClick={setActiveTab} />
+        <TabBtn k="audit" label="Journal d’audit" active={activeTab === 'audit'} onClick={setActiveTab} />
       </div>
 
       {activeTab === 'overview' && (
@@ -191,7 +191,7 @@ function ReasonModal({ title, submitLabel, danger, reason, onChangeReason, submi
             className="w-full"
             disabled={submitting}
           />
-          <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé dans l&apos;audit log et conservé indéfiniment.</p>
+          <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé dans le journal d&apos;audit et conservé indéfiniment.</p>
         </div>
         <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
           <button onClick={onCancel} disabled={submitting} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>

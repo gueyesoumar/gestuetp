@@ -50,7 +50,7 @@ export function drawSection02Objectifs(ctx: DocContext): void {
     ctx,
     '02 — Objectifs',
     'Que cherche-t-on à mesurer ?',
-    "Texte libre du cadrage complété par des objectifs structurels générés à partir du framework et des réglementations applicables.",
+    "Texte libre du cadrage complété par des objectifs structurels générés à partir du référentiel et des réglementations applicables.",
   )
 
   drawH3(ctx, 'Objectifs structurels de la mission')
@@ -99,7 +99,7 @@ export function drawSection03Perimetre(ctx: DocContext): void {
     ctx,
     '03 — Périmètre',
     'Quatre dimensions du périmètre',
-    "Périmètre fonctionnel et technique généré depuis les champs IT du dossier client, périmètre temporel depuis les dates de la mission. Détail des inclusions/exclusions issu de mission_exclusions.",
+    "Périmètre fonctionnel et technique généré depuis les champs SI du dossier client, périmètre temporel depuis les dates de la mission. Détail des inclusions et exclusions issu des exclusions documentées de la mission.",
   )
 
   // 4 cards en grille 2×2
@@ -108,7 +108,7 @@ export function drawSection03Perimetre(ctx: DocContext): void {
   const startY = ctx.y
   const fwName = `${ctx.data.mission.framework?.name ?? '—'}${ctx.data.mission.framework?.version ? ' v' + ctx.data.mission.framework.version : ''}`
   drawPerimCard(ctx, ctx.marginL, startY, cardW, cardH, FOREST_700, 'Fonctionnel',
-    `Intégralité du SMSI couvert par le référentiel ${fwName}, soit ${ctx.data.domains.length} domaine(s) couvrant la gouvernance et les contrôles applicables.`)
+    `Intégralité du périmètre couvert par le référentiel ${fwName}, soit ${ctx.data.domains.length} domaine(s) couvrant la gouvernance et les contrôles applicables.`)
   drawPerimCard(ctx, ctx.marginL + cardW + 4, startY, cardW, cardH, GOLD_500, 'Organisationnel',
     `Évaluation portant sur ${ctx.data.client?.client_name ?? ctx.data.mission.client?.name ?? 'l\'entité cliente'}${ctx.data.client?.effectifs ? ` (${ctx.data.client.effectifs} collaborateurs)` : ''}.`)
   drawPerimCard(ctx, ctx.marginL, startY + cardH + 4, cardW, cardH, BLUE, 'Temporel',
@@ -162,18 +162,18 @@ export function drawSection04Methodologie(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
     '04 — Méthodologie',
-    "Approche d'audit basée risques",
+    "Approche d'audit fondée sur les risques",
     "Méthodologie standardisée du cabinet, identique pour toutes les missions de ce type.",
   )
 
-  writeWrapped(ctx, "La mission s'appuie sur une démarche d'audit basée sur les risques (risk-based approach) conforme aux principes de l'ISO/IEC 27007:2020. Les contrôles sont priorisés par leur exposition au risque résiduel et leur criticité opérationnelle, selon la grille d'analyse standard du cabinet.")
+  writeWrapped(ctx, "La mission s'appuie sur une démarche d'audit fondée sur les risques conforme aux principes de l'ISO/IEC 27007:2020. Les contrôles sont priorisés par leur exposition au risque résiduel et leur criticité opérationnelle, selon la grille d'analyse standard du cabinet.")
 
   drawH3(ctx, 'Cinq phases d\'audit')
   const phases = [
-    { num: '1', label: 'Cadrage', desc: 'Validation périmètre, équipe, planning.' },
+    { num: '1', label: 'Cadrage', desc: 'Validation du périmètre, de l\'équipe et du planning.' },
     { num: '2', label: 'Prise de connaissance', desc: 'Questionnaire structuré, collecte documentaire.' },
     { num: '3', label: 'Exécution', desc: 'Entretiens, observations, revues de configuration.' },
-    { num: '4', label: 'Synthèse', desc: 'Qualification écarts, plan de remédiation, restitutions.' },
+    { num: '4', label: 'Synthèse', desc: 'Qualification des écarts, plan de remédiation, restitutions.' },
     { num: '5', label: 'Livraison', desc: 'Rapport définitif et transfert du dossier d\'audit.' },
   ]
   for (const p of phases) {
@@ -282,7 +282,7 @@ export function drawSection06Equipe(ctx: DocContext): void {
     ctx,
     '06 — Organisation',
     'Équipe & matrice RACI',
-    "Composition de l'équipe extraite des affectations mission. La matrice RACI ci-dessous est un template standard du cabinet.",
+    "Composition de l'équipe extraite des affectations mission. La matrice RACI ci-dessous est un modèle standard du cabinet.",
   )
 
   drawH3(ctx, "Équipe d'audit affectée")
@@ -297,9 +297,9 @@ export function drawSection06Equipe(ctx: DocContext): void {
 
   drawH3(ctx, 'Matrice RACI standard')
   writeWrapped(ctx, "Matrice issue du modèle d'organisation du cabinet, applicable par défaut. Toute adaptation est consignée en COPIL.", { size: 9 })
-  drawTable(ctx, ['Activité', 'Sponsor', 'Référent tech.', 'Chef miss.', 'Associé'], [
-    ['Validation périmètre', 'A', 'C', 'R', 'I'],
-    ['Mise à dispo. documentation', 'I', 'R', 'C', 'I'],
+  drawTable(ctx, ['Activité', 'Sponsor', 'Référent technique', 'Chef de mission', 'Associé'], [
+    ['Validation du périmètre', 'A', 'C', 'R', 'I'],
+    ['Mise à disposition de la documentation', 'I', 'R', 'C', 'I'],
     ['Conduite des entretiens', 'I', 'C', 'R', 'I'],
     ['Qualification des écarts', 'I', 'C', 'R', 'A'],
     ['Plan de remédiation', 'I', 'R', 'C', 'I'],
@@ -307,7 +307,7 @@ export function drawSection06Equipe(ctx: DocContext): void {
   ])
   setText(ctx.doc, TEXT_500, 8, 'normal')
   ctx.y += 2
-  ctx.doc.text('R = Réalise · A = Approuve · C = Consulté · I = Informé', ctx.marginL, ctx.y)
+  ctx.doc.text('R = Réalisateur · A = Approbateur · C = Consulté · I = Informé', ctx.marginL, ctx.y)
   ctx.y += 5
 }
 
@@ -318,7 +318,7 @@ export function drawSection07Planning(ctx: DocContext): void {
     ctx,
     '07 — Planning',
     `${ctx.durationWeeks} semaines, 5 phases d'audit`,
-    "Découpage en 5 phases proportionnelles à la durée de la mission, calculé à partir de start_date et end_date.",
+    "Découpage en 5 phases proportionnelles à la durée de la mission, calculé à partir des dates de début et de fin de la mission.",
   )
 
   writeWrapped(ctx, `La mission s'étend du ${formatDate(ctx.data.mission.start_date)} au ${formatDate(ctx.data.mission.end_date)}, soit ${ctx.durationWeeks} semaines. Le découpage standard du cabinet en cinq phases est proportionné à cette durée.`)
@@ -400,7 +400,7 @@ export function drawSection08LivrablesGouvernance(ctx: DocContext): void {
   drawH3(ctx, 'Instances de pilotage')
   for (const inst of [
     { label: 'COPIL hebdomadaire', desc: 'Vendredi, 45 min. Avancement, levée des points bloquants. Sponsor + référent technique + chef de mission.' },
-    { label: 'Stand-up quotidien', desc: '15 min en phase d\'exécution uniquement. Chef de mission + référent technique + auditeur senior.' },
+    { label: 'Point quotidien', desc: '15 min en phase d\'exécution uniquement. Chef de mission + référent technique + auditeur senior.' },
     { label: 'Revues qualité internes', desc: 'Mi-mission et avant restitution finale. Associé en charge selon référentiel cabinet.' },
   ]) {
     setText(ctx.doc, TEXT_900, 9.5, 'bold')
@@ -467,7 +467,7 @@ export function drawSection09Hypotheses(ctx: DocContext): void {
   drawCallout(
     ctx,
     'Cadre de validité',
-    "L'audit n'est pas un audit de certification : il ne donne pas droit à délivrance de certificat. Périmètre limité aux contrôles inclus (cf. section 3). Conclusions à date : toute évolution ultérieure du SMSI n'est pas reflétée.",
+    "L'audit n'est pas un audit de certification : il ne donne pas droit à délivrance de certificat. Périmètre limité aux contrôles inclus (cf. section 3). Conclusions à date : toute évolution ultérieure du périmètre évalué n'est pas reflétée.",
     'gold',
   )
 }

@@ -39,7 +39,7 @@ export function useOrganization(): UseOrganizationResult {
         if (abortController.signal.aborted) return
         if (queryError) {
           console.error('useOrganization:', queryError.message)
-          setError('Impossible de charger l\u2019organisation.')
+          setError('Impossible de charger l’organisation.')
           setOrganization(null)
         } else {
           setOrganization(data)

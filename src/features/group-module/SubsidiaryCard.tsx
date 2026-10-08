@@ -69,7 +69,7 @@ export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }:
               )}
             </div>
             <p className="text-[11px] text-gray-500">{subsidiary.sector ?? 'Secteur non renseigné'}{subsidiary.city ? ` · ${subsidiary.city}` : ''}</p>
-            {parentName && <p className="text-[10px] text-gray-400">&#8627; rattach&eacute;e &agrave; {parentName}</p>}
+            {parentName && <p className="text-[10px] text-gray-400">&#8627; rattach&eacute;{vocab.entityGender === 'f' ? 'e' : ''} &agrave; {parentName}</p>}
           </div>
         </div>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${band.badge}`}>{band.label}</span>

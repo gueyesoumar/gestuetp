@@ -34,7 +34,7 @@ export function MissionTeamStep({
 
       <div className="mt-4 flex items-center gap-2 rounded-[10px] bg-forest-50 border border-forest-100 px-4 py-3 text-[12px] text-forest-700">
         <span>💡</span>
-        Pour <strong>{totalControls} contrôles</strong>, nous recommandons <strong>{suggestedAuditors} auditeurs</strong> sur une durée de <strong>{suggestedDays} jours</strong>.
+        Pour <strong>{totalControls} contrôle{totalControls > 1 ? 's' : ''}</strong>, nous recommandons <strong>{suggestedAuditors} auditeurs</strong> sur une durée de <strong>{suggestedDays} jours</strong>.
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3.5">

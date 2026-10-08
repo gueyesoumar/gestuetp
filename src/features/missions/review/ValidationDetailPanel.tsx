@@ -21,8 +21,8 @@ interface ValidationDetailPanelProps {
 
 const STAGE_LABELS: Record<ValidationStage, string> = {
   auditor_submitted: 'Soumis',
-  lead_review: 'Revue Lead',
-  associate_review: 'Revue Associ\u00e9',
+  lead_review: 'Revue chef de mission',
+  associate_review: 'Revue associé',
   client_review: 'Client',
 }
 

@@ -52,7 +52,7 @@ export function PoweredByGestu({ className = '' }: { className?: string }): JSX.
   const isLight = effectiveSurface(branding, 'login') === 'light'
   return (
     <div className={`text-center text-[10px] tracking-[0.4px] ${isLight ? 'text-gray-400' : 'text-white/35'} ${className}`}>
-      Powered by <span className={`font-semibold ${isLight ? 'text-gray-600' : 'text-white/55'}`}>G&euml;stu</span>
+      Propulsé par <span className={`font-semibold ${isLight ? 'text-gray-600' : 'text-white/55'}`}>G&euml;stu</span>
     </div>
   )
 }

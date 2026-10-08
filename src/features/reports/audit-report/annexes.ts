@@ -32,7 +32,7 @@ export function drawAnnexAGlossary(ctx: DocContext): void {
 export function drawAnnexBEvidence(ctx: DocContext): void {
   drawSectionBanner(ctx, 'B', 'Preuves examinées', "Liste des éléments documentaires versés au dossier de mission")
   if (ctx.data.evidenceDocs.length === 0) {
-    writeWrapped(ctx, 'Aucun document n’a été versé au dossier de mission via la plateforme. Les preuves examinées au cours de l’audit ont fait l’objet de constats et d’extraits archivés dans les workpapers internes.', { color: TEXT_500 })
+    writeWrapped(ctx, 'Aucun document n’a été versé au dossier de mission via la plateforme. Les preuves examinées au cours de l’audit ont fait l’objet de constats et d’extraits archivés dans les fiches de travail internes.', { color: TEXT_500 })
     return
   }
   writeWrapped(ctx, `Le tableau ci-dessous liste les ${ctx.data.evidenceDocs.length} document(s) versé(s) au dossier de la mission. Il s’agit des preuves examinées formellement par l’équipe d’audit en complément des entretiens, observations et tests substantifs conduits sur site.`, { size: 9.5, lineHeight: 4.8 })

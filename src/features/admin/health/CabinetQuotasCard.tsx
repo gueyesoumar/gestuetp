@@ -81,7 +81,7 @@ function QuotaBar({ icon, label, current, max, state }: { icon: JSX.Element; lab
         </div>
       )}
       {state === 'over' && (
-        <p className="text-[10px] text-red-600 mt-1">⚠️ Cabinet en surcapacité — futures insertions bloquées</p>
+        <p className="text-[10px] text-red-600 mt-1">⚠️ Cabinet en surcapacité — création de nouvelles ressources bloquée</p>
       )}
       {state === 'critical' && (
         <p className="text-[10px] text-red-600 mt-1">Quota presque atteint</p>

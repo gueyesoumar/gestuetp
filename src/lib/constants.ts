@@ -24,7 +24,7 @@ export const SECTEURS_OPTIONS = [
   'Énergie',
   'Hôtellerie / Restauration',
   'Immobilier',
-  'Industrie / Manufacturing',
+  'Industrie / Fabrication',
   'Logistique / Transport',
   'Médias / Communication',
   'Mines / Extraction',
@@ -32,7 +32,7 @@ export const SECTEURS_OPTIONS = [
   'Santé / Pharmaceutique',
   'Services aux entreprises',
   'Télécommunications',
-  'Technologies / IT',
+  'Technologies / Informatique',
   'Tourisme',
   'Autre',
 ] as const
@@ -101,7 +101,7 @@ export const ENTITY_TYPE_OPTIONS = [
   { value: 'filiale', label: 'Filiale' },
   { value: 'site', label: 'Site' },
   { value: 'direction', label: 'Direction' },
-  { value: 'business_unit', label: 'Business Unit' },
+  { value: 'business_unit', label: 'Unité d\'affaires' },
 ] as const
 
 // Types d'assujetti pour Gëstu Regul (entités publiques sénégalaises). Distincts
@@ -111,9 +111,9 @@ export const REGUL_ENTITY_TYPE_OPTIONS = [
   { value: 'direction_generale', label: 'Direction Générale' },
   { value: 'agence', label: 'Agence' },
   { value: 'societe_nationale', label: 'Société Nationale' },
-  { value: 'operateur', label: 'Opérateurs' },
+  { value: 'operateur', label: 'Opérateur' },
   { value: 'institution_financiere', label: 'Institution Financière' },
-  { value: 'autre', label: 'Autres' },
+  { value: 'autre', label: 'Autre' },
 ] as const
 
 export type EntityType =
@@ -170,14 +170,14 @@ export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   filiale: 'Filiale',
   site: 'Site',
   direction: 'Direction',
-  business_unit: 'Business Unit',
+  business_unit: 'Unité d\'affaires',
   ministere: 'Ministère',
   direction_generale: 'Direction Générale',
   agence: 'Agence',
   societe_nationale: 'Société Nationale',
-  operateur: 'Opérateurs',
+  operateur: 'Opérateur',
   institution_financiere: 'Institution Financière',
-  autre: 'Autres',
+  autre: 'Autre',
 }
 
 export const PERMISSION_LABELS: Record<string, string> = {
@@ -198,7 +198,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
 } as const
 
 export const DASHBOARD_VIEW_LABELS: Record<string, string> = {
-  executive: 'Executive',
+  executive: 'Direction',
   pilotage: 'Pilotage',
   operationnel: 'Opérationnel',
 } as const

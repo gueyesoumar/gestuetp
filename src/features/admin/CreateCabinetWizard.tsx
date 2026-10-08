@@ -71,7 +71,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
       return
     }
     toast.success('Cabinet créé', {
-      description: data?.invitation_sent ? 'L\'owner a reçu un lien de définition de mot de passe.' : 'Compte créé sans email — renvoyer le lien depuis Utilisateurs.',
+      description: data?.invitation_sent ? 'Le propriétaire a reçu un lien de définition de mot de passe.' : 'Compte créé sans email — renvoyer le lien depuis Utilisateurs.',
     })
     onClose()
     onCreated?.(data.cabinet_id)
@@ -106,7 +106,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
 
         {step === 2 && (
           <div className="px-5 py-4 space-y-3">
-            <p className="text-[12px] text-gray-500 mb-2">Cette personne sera l&apos;owner du cabinet. Un lien de définition de mot de passe lui sera envoyé par email.</p>
+            <p className="text-[12px] text-gray-500 mb-2">Cette personne sera le propri&eacute;taire du cabinet. Un lien de définition de mot de passe lui sera envoyé par email.</p>
             <Field label="Email *">
               <input type="email" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} placeholder="aissatou@auditco.sn" disabled={submitting} />
             </Field>
@@ -126,7 +126,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
             <div className="bg-page-bg border border-gray-200 rounded-lg px-4 py-3 text-[12.5px] space-y-1">
               <div><span className="text-gray-500">Cabinet :</span> <b>{name}</b> <span className="font-mono text-[11px] text-gray-400">{slug}</span></div>
               <div><span className="text-gray-500">Plan :</span> {plans.find((p) => p.slug === planSlug)?.name}</div>
-              <div><span className="text-gray-500">Owner :</span> {ownerFirstName} {ownerLastName} &lt;{ownerEmail}&gt;</div>
+              <div><span className="text-gray-500">Propriétaire :</span> {ownerFirstName} {ownerLastName} &lt;{ownerEmail}&gt;</div>
             </div>
             <Field label="Motif * (audit)">
               <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Contrat signé le… / contact entrant via…" disabled={submitting} />

@@ -10,7 +10,7 @@ export interface DiscoveryStep { id: string; title: string; desc: string }
 export const DISCOVERY_STEPS: DiscoveryStep[] = [
   { id: 'demo-dashboard', title: 'Le tableau de bord & votre score', desc: 'Voyez le score de confiance « prendre vie ».' },
   { id: 'demo-mission', title: 'Une mission de A à Z', desc: 'Cadrage → planification → terrain → constats → clôture.' },
-  { id: 'demo-findings', title: 'Les constats par gravité', desc: 'Comment naissent et se classent les findings.' },
+  { id: 'demo-findings', title: 'Les constats par gravité', desc: 'Comment naissent et se classent les constats.' },
   { id: 'demo-risk', title: 'Le radar de risques', desc: 'Le registre des risques et sa lecture.' },
   { id: 'demo-clients', title: 'Le portail client', desc: 'Ce que voit votre client, cloisonné.' },
   { id: 'demo-create', title: 'Créez votre propre mission', desc: "La transition vers l'usage réel, guidée." },
@@ -31,7 +31,7 @@ export const DEMO_TOUR_DEFS: Record<string, TourDef> = {
   },
   'demo-findings': {
     steps: [
-      { popover: { title: 'Les constats', description: "Dans l'onglet Terrain d'une mission, chaque contrôle évalué génère des constats (findings) classés par gravité. Ils alimentent le rapport et le score." } },
+      { popover: { title: 'Les constats', description: "Dans l'onglet Terrain d'une mission, chaque contrôle évalué génère des constats classés par gravité. Ils alimentent le rapport et le score." } },
     ],
   },
   'demo-risk': {

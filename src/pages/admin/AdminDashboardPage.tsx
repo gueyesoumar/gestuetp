@@ -38,11 +38,11 @@ export function AdminDashboardPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3.5 mb-5">
         <KpiTile label="Organisations actives" value={stats.cabinets_active.toString()} delta={stats.new_orgs_30d > 0 ? `+${stats.new_orgs_30d} / 30j` : undefined} sub={`/ ${stats.cabinets_total} · ${stats.cabinets_suspended} susp.`} accent="gold" />
-        <KpiTile label="MRR net" value={formatMoney(stats.mrr_xof, 'XOF')} sub="abonnements actifs" accent="green" tooltip="Source unique platform_mrr()." />
+        <KpiTile label="MRR net" value={formatMoney(stats.mrr_xof, 'XOF')} sub="abonnements actifs" accent="green" tooltip="Revenu mensuel récurrent net, calculé à partir des abonnements actifs de la plateforme." />
         <KpiTile label="Utilisateurs · 30j" value={stats.users_active_30d.toString()} sub="connectés" accent="blue" />
         <KpiTile label="Missions en cours" value={stats.missions_in_progress.toString()} sub="toutes orgs" accent="green" />
         <KpiTile label="Essais en cours" value={stats.trials_count.toString()} sub="droits en essai" accent="purple" />
-        <KpiTile label="Coût IA · 7j" value={formatMoney(stats.ai_cost_7d_xof, 'XOF')} sub="estimation" accent="gold" tooltip="Somme ai_calls_log (USD→XOF, estimation)." />
+        <KpiTile label="Coût IA · 7j" value={formatMoney(stats.ai_cost_7d_xof, 'XOF')} sub="estimation" accent="gold" tooltip="Somme des coûts des appels IA sur 7 jours (conversion USD→XOF, estimation)." />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 mb-4">
@@ -59,7 +59,7 @@ export function AdminDashboardPage() {
             <div className="flex flex-col gap-2">
               <Link to="/admin/cabinets" className="px-3.5 py-2 bg-forest-900 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-700 text-center">Voir toutes les organisations →</Link>
               <Link to="/admin/monitoring" className="px-3.5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12.5px] font-semibold hover:bg-forest-50 text-center">Santé / Monitoring</Link>
-              <Link to="/admin/audit-log" className="px-3.5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12.5px] font-semibold hover:bg-forest-50 text-center">Audit log</Link>
+              <Link to="/admin/audit-log" className="px-3.5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12.5px] font-semibold hover:bg-forest-50 text-center">Journal d’audit</Link>
             </div>
           </section>
         </div>

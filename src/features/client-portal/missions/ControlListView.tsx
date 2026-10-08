@@ -192,7 +192,7 @@ export function ControlListView({
                       {hasObs && (
                         <span
                           className="text-gold-600 shrink-0"
-                          title={c.myObservationId ? 'Vous avez posté une observation' : `${c.observationCount} observation(s)`}
+                          title={c.myObservationId ? 'Vous avez publié une observation' : `${c.observationCount} observation(s)`}
                         >
                           <MessageSquare size={12} />
                         </span>

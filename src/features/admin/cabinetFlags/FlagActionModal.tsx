@@ -14,19 +14,19 @@ interface FlagActionModalProps {
 const ACTION_LABELS: Record<FlagAction, { title: string; description: string; submit: string; danger: boolean }> = {
   lock: {
     title: 'Désactiver cette fonctionnalité pour ce cabinet ?',
-    description: 'Crée un override OFF — la fonctionnalité reste activée pour les autres cabinets sur le même plan.',
+    description: 'Crée une dérogation « désactivée » — la fonctionnalité reste activée pour les autres cabinets sur le même plan.',
     submit: 'Désactiver pour ce cabinet',
     danger: true,
   },
   unlock: {
     title: 'Débloquer cette fonctionnalité pour ce cabinet ?',
-    description: 'Crée un override ON — la fonctionnalité sera disponible même si le plan ne l’inclut pas.',
+    description: 'Crée une dérogation « activée » — la fonctionnalité sera disponible même si le plan ne l’inclut pas.',
     submit: 'Débloquer',
     danger: false,
   },
   reset: {
     title: 'Réinitialiser (hériter du plan) ?',
-    description: 'Supprime l’override personnalisé. La fonctionnalité reviendra à l’état défini par le plan du cabinet.',
+    description: 'Supprime la dérogation personnalisée. La fonctionnalité reviendra à l’état défini par le plan du cabinet.',
     submit: 'Réinitialiser',
     danger: false,
   },
@@ -67,7 +67,7 @@ export function FlagActionModal({ flag, action, onClose, onConfirm }: FlagAction
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Pourquoi cette action ? (tracé dans l'audit log)"
+            placeholder="Pourquoi cette action ? (tracé dans le journal d'audit)"
             rows={3}
             className="w-full px-3 py-2 text-[12.5px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
             disabled={submitting}

@@ -269,7 +269,7 @@ function ScoreSection({ score, domains }: { score: number; domains: DomainScore[
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[14px] font-bold text-gray-900">Score de conformit&eacute;</h3>
-        <InfoPopover text="Score pond&eacute;r&eacute; sur conformity_level : c=100, lc=75, pc=50, nc=0. NA exclus." />
+        <InfoPopover text="Score pondéré selon le niveau de conformité : conforme = 100, largement conforme = 75, partiellement conforme = 50, non conforme = 0. Non applicable exclu." />
       </div>
       <div className="flex items-center gap-8">
         {/* Ring */}
@@ -374,14 +374,14 @@ function Checklist({ review }: { review: ReturnType<typeof useInternalReviewData
     { label: 'Contr\u00f4les valid\u00e9s', value: `${review.approvedControls}/${review.totalControls}`, ok: review.approvedControls === review.totalControls },
     { label: 'Constats renseign\u00e9s', value: `${review.withFindings}/${review.totalControls}`, ok: review.withFindings === review.totalControls },
     { label: 'NC majeures identifi\u00e9es', value: String(review.findingSummary.ncMajor), ok: true },
-    { label: 'Preuves jointes', value: `${review.withEvidence} docs`, ok: review.withEvidence > 0 },
+    { label: 'Preuves jointes', value: `${review.withEvidence} documents`, ok: review.withEvidence > 0 },
     { label: 'Score global', value: `${review.globalScore}%`, ok: true },
   ]
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
       <div className="px-5 py-3 border-b border-gray-100">
-        <h3 className="text-[14px] font-bold text-gray-900">Checklist de revue</h3>
+        <h3 className="text-[14px] font-bold text-gray-900">Liste de contrôle de la revue</h3>
         <p className="text-[11px] text-gray-400 mt-0.5">Points &agrave; v&eacute;rifier avant envoi au client</p>
       </div>
       {items.map((item, i) => (

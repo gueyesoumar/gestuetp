@@ -62,7 +62,7 @@ export function LogoUploadField({ cabinetId, variant, currentUrl, onUploaded }: 
         body: form,
       })
       const json = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(json.error ?? 'Upload impossible')
+      if (!res.ok) throw new Error(json.error ?? 'Téléversement impossible')
 
       const colors = await colorsPromise
       toast.success('Logo téléversé', { description: variant === 'light' ? 'Variante fond clair' : 'Variante fond sombre' })
@@ -70,7 +70,7 @@ export function LogoUploadField({ cabinetId, variant, currentUrl, onUploaded }: 
       setReason('')
       onUploaded(colors)
     } catch (err) {
-      toast.error('Upload impossible', err)
+      toast.error('Téléversement impossible', err)
     } finally {
       setSubmitting(false)
     }

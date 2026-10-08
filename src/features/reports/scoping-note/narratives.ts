@@ -26,7 +26,7 @@ export function generateClientPresentation(data: ScopingNoteData): string {
     parts.push(`Son environnement SI repose sur les systèmes principaux suivants : ${c.it_systems.slice(0, 6).join(', ')}.`)
   }
   if (c?.it_environment) {
-    parts.push(` Description de l'environnement IT : « ${c.it_environment} »`)
+    parts.push(` Description de l'environnement SI : « ${c.it_environment} »`)
   }
   return parts.join('')
 }
@@ -51,18 +51,18 @@ export function generateStructuralObjectives(data: ScopingNoteData): { title: st
   })
   items.push({
     title: 'Identifier les non-conformités et les qualifier',
-    description: 'Tout écart sera classé majeure (compromettant la certification), mineure (ponctuel non systémique) ou observation, selon la grille standard du cabinet.',
+    description: 'Tout écart sera classé en non-conformité majeure (compromettant la certification), mineure (ponctuel non systémique) ou observation, selon la grille standard du cabinet.',
   })
   if (regs.length > 0) {
     const regsLabel = regs.slice(0, 3).map((r) => r.nom).join(', ')
     items.push({
       title: 'Vérifier la conformité aux réglementations applicables',
-      description: `Cartographier les exigences réglementaires (${regsLabel}) contre les contrôles testés, et qualifier le respect des principes applicables.`,
+      description: `Cartographier les exigences réglementaires (${regsLabel}) au regard des contrôles testés, et qualifier le respect des principes applicables.`,
     })
   }
   items.push({
     title: 'Formuler un plan de remédiation priorisé',
-    description: "Tableur exécutoire avec estimation de charge par écart, jalons recommandés, dépendances inter-écarts et identification des responsables internes proposés.",
+    description: "Tableur exploitable avec estimation de charge par écart, jalons recommandés, dépendances inter-écarts et identification des responsables internes proposés.",
   })
   return items
 }

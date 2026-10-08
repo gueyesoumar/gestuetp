@@ -39,7 +39,7 @@ function FeatureActivation({ request, onResolved }: Props): JSX.Element {
     if (!slug) return
     setBusy(true)
     setErr(null)
-    const ok = await setOverride(slug, true, `Active via demande support #${request.id.slice(0, 8)}`)
+    const ok = await setOverride(slug, true, `Activé via demande support #${request.id.slice(0, 8)}`)
     setBusy(false)
     if (!ok) { setErr('Activation impossible pour le moment.'); return }
     onResolved()

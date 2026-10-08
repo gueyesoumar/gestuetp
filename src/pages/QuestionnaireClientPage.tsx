@@ -43,7 +43,7 @@ export function QuestionnaireClientPage() {
       <div className="max-w-[640px] mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-lg font-bold text-gray-900">{templateName}</h1>
-          <p className="text-[13px] text-gray-400 mt-1">Remplissez le questionnaire &eacute;tape par &eacute;tape. Vos r&eacute;ponses sont sauvegard&eacute;es automatiquement.</p>
+          <p className="text-[13px] text-gray-400 mt-1">Remplissez le questionnaire &eacute;tape par &eacute;tape. Vos r&eacute;ponses sont enregistr&eacute;es automatiquement.</p>
         </div>
 
         {hasAssignment && assignedSections.size > 0 && assignedSections.size < totalSections.size && (

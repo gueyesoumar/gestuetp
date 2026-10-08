@@ -67,7 +67,7 @@ export function PlansMatrixView({ plans, featuresByPlan, format, onSetFeatures }
   }
 
   const handleFeatureUpdate = async (input: FeatureCreateInput | FeatureUpdateInput, motif: string): ReturnType<typeof updateFeatureFlag> => {
-    if (!editingFeature) return { ok: false, error: 'Aucune feature en édition' }
+    if (!editingFeature) return { ok: false, error: 'Aucune fonctionnalité en cours d\'édition' }
     const res = await updateFeatureFlag(editingFeature.id, input, motif)
     if (res.ok) {
       toast.success('Fonctionnalité mise à jour', { description: editingFeature.name })
@@ -77,7 +77,7 @@ export function PlansMatrixView({ plans, featuresByPlan, format, onSetFeatures }
   }
 
   const handleFeatureDelete = async (motif: string): ReturnType<typeof deleteFeatureFlag> => {
-    if (!deletingFeature) return { ok: false, error: 'Aucune feature à supprimer' }
+    if (!deletingFeature) return { ok: false, error: 'Aucune fonctionnalité à supprimer' }
     const res = await deleteFeatureFlag(deletingFeature.id, motif)
     if (res.ok) {
       toast.success('Fonctionnalité supprimée', { description: deletingFeature.name })
@@ -184,7 +184,7 @@ function ReasonBar({ reason, setReason }: { reason: string; setReason: (v: strin
           type="text"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Ex: ajustement offre Q2, ouverture beta, etc."
+          placeholder="Ex. : ajustement offre T2, ouverture bêta, etc."
           className="w-full px-3 py-1.5 text-[12.5px] border border-gold-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
         />
         <p className="text-[10.5px] text-gold-700 mt-1">
@@ -203,7 +203,7 @@ function PlanHeaderCell({ plan, saving, format }: { plan: AdminPlan; saving: boo
         <span className="text-[10px] font-mono text-gray-400 normal-case tracking-normal">
           {format(plan.monthly_price)}
         </span>
-        {saving && <span className="text-[9.5px] text-gold-700 normal-case">enregistrement…</span>}
+        {saving && <span className="text-[9.5px] text-gold-700 normal-case">Enregistrement…</span>}
       </div>
     </th>
   )
@@ -280,7 +280,7 @@ function FeatureRow({ item, plans, featuresByPlan, onPlanToggle, onKillToggle, o
                 className="text-[12.5px] font-semibold text-red-900 line-through opacity-80 inline-flex items-center gap-1.5 hover:opacity-100 hover:underline cursor-pointer text-left"
               >
                 {item.name}
-                {item.maturity === 'beta' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700 no-underline">Beta</span>}
+                {item.maturity === 'beta' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700 no-underline">Bêta</span>}
                 {item.maturity === 'new' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-emerald-100 text-emerald-700 no-underline">Nouveau</span>}
               </button>
               <div className="flex items-center gap-2 mt-0.5">
@@ -319,7 +319,7 @@ function FeatureRow({ item, plans, featuresByPlan, onPlanToggle, onKillToggle, o
             className="text-[12.5px] font-semibold text-gray-900 inline-flex items-center gap-1.5 hover:text-forest-700 hover:underline cursor-pointer text-left"
           >
             {item.name}
-            {item.maturity === 'beta' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700 no-underline">Beta</span>}
+            {item.maturity === 'beta' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-gold-100 text-gold-700 no-underline">Bêta</span>}
             {item.maturity === 'new' && <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-emerald-100 text-emerald-700 no-underline">Nouveau</span>}
           </button>
           <div className="flex items-center gap-2 mt-0.5">
@@ -377,7 +377,7 @@ function Legend(): JSX.Element {
       </span>
       <span className="inline-flex items-center gap-1.5">
         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gold-100 text-gold-700 font-bold">β</span>
-        Beta inclus
+        Bêta incluse
       </span>
       <span className="inline-flex items-center gap-1.5">
         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-50 text-gray-300 font-bold">—</span>

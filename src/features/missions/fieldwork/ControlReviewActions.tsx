@@ -45,7 +45,7 @@ export function ControlReviewActions({
     const ok = await onReject(assessmentId, comment, stage)
     setComment('')
     setAction('idle')
-    if (ok) toast.warn('Constat rejeté', { description: `${controlCode} · renvoyé à l'auditeur` })
+    if (ok) toast.warn('Contrôle rejeté', { description: `${controlCode} · renvoyé à l'auditeur` })
   }
 
   return (

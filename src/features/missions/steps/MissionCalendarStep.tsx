@@ -121,7 +121,7 @@ export function MissionCalendarStep({ startDate, endDate, startDateError, endDat
       </div>
 
       <div className="mt-4">
-        <div className="text-[13px] font-semibold text-gray-900 mb-2">Timeline prévisionnelle</div>
+        <div className="text-[13px] font-semibold text-gray-900 mb-2">Calendrier prévisionnel</div>
         <div className="flex rounded-lg overflow-hidden h-7">
           {phases.map((p) => (
             <div

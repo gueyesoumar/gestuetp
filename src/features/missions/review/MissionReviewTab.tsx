@@ -24,7 +24,7 @@ export function MissionReviewTab({ mission }: MissionReviewTabProps){
     submitted: 'Soumis',
     lead_review: `Revue ${lead}`,
     associate_review: `Revue ${associate}`,
-    client_review: 'Revue Client',
+    client_review: 'Revue client',
     validated: 'Validé',
   }
 
@@ -69,7 +69,7 @@ export function MissionReviewTab({ mission }: MissionReviewTabProps){
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="text-base font-bold text-gray-900">Pipeline de validation</h3>
+          <h3 className="text-base font-bold text-gray-900">Circuit de validation</h3>
           <p className="text-[13px] text-gray-500 mt-0.5">Suivez le parcours de chaque contr&ocirc;le.</p>
         </div>
         <div className="flex gap-2">

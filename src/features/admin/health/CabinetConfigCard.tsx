@@ -17,7 +17,7 @@ export function CabinetConfigCard({ data }: ConfigCardProps): JSX.Element {
     { label: 'Logo sombre', status: data.hasDarkLogo ? 'ok' : 'neutral', value: data.hasDarkLogo ? 'OK' : 'absent' },
     { label: 'Couleur primaire', status: data.hasPrimaryColor ? 'ok' : 'missing', value: data.hasPrimaryColor ? 'OK' : 'absente' },
     {
-      label: 'Domaines custom',
+      label: 'Domaines personnalisés',
       status: data.domainsConfigured === 0
         ? 'neutral'
         : data.domainsVerified === data.domainsConfigured
@@ -28,7 +28,7 @@ export function CabinetConfigCard({ data }: ConfigCardProps): JSX.Element {
         : `${data.domainsVerified}/${data.domainsConfigured} vérifié${data.domainsVerified > 1 ? 's' : ''}`,
     },
     { label: 'Plan', status: data.planName ? 'ok' : 'missing', value: data.planName ?? 'Non défini' },
-    { label: 'Feature flags actifs', status: 'count', value: String(data.activeFlagsCount) },
+    { label: 'Fonctionnalités actives', status: 'count', value: String(data.activeFlagsCount) },
   ]
 
   const okCount = items.filter((i) => i.status === 'ok').length

@@ -78,15 +78,15 @@ const CONFORMITY_LABELS: Record<ConformityLevel, string> = {
 }
 
 /**
- * Renvoie un message d'incoherence destine a l'UI (warning banner +
- * justification modal). Renvoie null si tout est coherent.
+ * Renvoie un message d'incohérence destiné à l'UI (warning banner +
+ * justification modal). Renvoie null si tout est cohérent.
  */
 export function getIncoherenceMessage(
   level: ConformityLevel | null,
   findings: AssessmentFinding[],
 ): string | null {
   if (isConformityCoherent(level, findings)) return null
-  if (!level) return 'Selectionnez un niveau de conformite.'
+  if (!level) return 'Sélectionnez un niveau de conformité.'
 
   const c = countByClassification(findings)
   const suggested = deriveSuggestedConformity(findings)
@@ -94,15 +94,15 @@ export function getIncoherenceMessage(
   const chosenLabel = CONFORMITY_LABELS[level]
 
   if (c.major > 0) {
-    return `Vous avez choisi « ${chosenLabel} » mais ${c.major} non-conformite majeure${c.major > 1 ? 's' : ''} est presente. Niveau suggere : « ${suggestedLabel} ».`
+    return `Vous avez choisi « ${chosenLabel} » mais ${c.major} non-conformité majeure${c.major > 1 ? 's sont présentes' : ' est présente'}. Niveau suggéré : « ${suggestedLabel} ».`
   }
   if (c.minor > 0) {
-    return `Vous avez choisi « ${chosenLabel} » mais ${c.minor} non-conformite mineure${c.minor > 1 ? 's' : ''} est presente. Niveau suggere : « ${suggestedLabel} ».`
+    return `Vous avez choisi « ${chosenLabel} » mais ${c.minor} non-conformité mineure${c.minor > 1 ? 's sont présentes' : ' est présente'}. Niveau suggéré : « ${suggestedLabel} ».`
   }
   if (c.observation > 0 || c.strength > 0) {
-    return `Vous avez choisi « ${chosenLabel} » mais les findings ne contiennent que des observations / points forts. Niveau suggere : « ${suggestedLabel} ».`
+    return `Vous avez choisi « ${chosenLabel} » mais les constats ne contiennent que des observations / points forts. Niveau suggéré : « ${suggestedLabel} ».`
   }
-  return `Aucun finding enregistre, mais le niveau « ${chosenLabel} » a ete choisi. Niveau suggere : « ${suggestedLabel} ».`
+  return `Aucun constat enregistré, mais le niveau « ${chosenLabel} » a été choisi. Niveau suggéré : « ${suggestedLabel} ».`
 }
 
 /**

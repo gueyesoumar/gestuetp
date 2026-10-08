@@ -49,7 +49,7 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
           <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-5"><Check size={32} /></div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Questionnaire termin&eacute; !</h2>
           <p className="text-[13px] text-gray-400 mb-6 max-w-md mx-auto leading-relaxed">
-            Merci d&apos;avoir compl&eacute;t&eacute; le questionnaire. Vos {answeredCount} r&eacute;ponses ont &eacute;t&eacute; sauvegard&eacute;es automatiquement.
+            Merci d&apos;avoir compl&eacute;t&eacute; le questionnaire. {answeredCount > 1 ? `Vos ${answeredCount} réponses ont été sauvegardées` : 'Votre réponse a été sauvegardée'} automatiquement.
             L&apos;&eacute;quipe d&apos;audit les analysera pour pr&eacute;parer la mission.
           </p>
           <div className="flex items-center justify-center gap-4">

@@ -96,7 +96,7 @@ export function ValidationTab({ assessment, missionEndDate }: ValidationTabProps
           <p className="text-[10px] uppercase tracking-wider font-bold text-red-700 inline-flex items-center gap-1">
             <X size={11} /> Rejet&eacute;
           </p>
-          <p className="text-[11px] text-red-700 mt-0.5">Le constat doit &ecirc;tre corrig&eacute; et resoumis.</p>
+          <p className="text-[11px] text-red-700 mt-0.5">Le contrôle doit &ecirc;tre corrig&eacute; et resoumis.</p>
         </div>
       )}
 

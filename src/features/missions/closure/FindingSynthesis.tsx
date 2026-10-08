@@ -5,8 +5,8 @@ interface Props {
 }
 
 const CARDS = [
-  { key: 'major_nc', label: 'NC Majeures', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50 border-red-200' },
-  { key: 'minor_nc', label: 'NC Mineures', icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' },
+  { key: 'major_nc', label: 'NC majeures', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50 border-red-200' },
+  { key: 'minor_nc', label: 'NC mineures', icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' },
   { key: 'observation', label: 'Observations', icon: Eye, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
   { key: 'strength', label: 'Points forts', icon: ThumbsUp, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
 ] as const

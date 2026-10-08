@@ -18,7 +18,7 @@ export function MonitoringPage() {
         <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> › Observabilité &amp; santé</span>
       </div>
       <h1 className="text-xl font-bold text-gray-900 mb-1">Observabilité &amp; santé</h1>
-      <p className="text-[12.5px] text-gray-500 mb-2">Tâches planifiées, usage IA, emails et storage. Coûts IA estimés (prix Anthropic).</p>
+      <p className="text-[12.5px] text-gray-500 mb-2">Tâches planifiées, usage IA, e-mails et stockage. Coûts IA estimés (prix Anthropic).</p>
 
       <KpiRow stats={stats} />
 
@@ -50,7 +50,7 @@ function KpiRow({ stats }: { stats: AdminMonitoringStats }) {
     <div className="grid grid-cols-5 gap-3 mt-4">
       <KpiCard label="Appels IA · 30j" value={stats.ai_30d.total_calls.toLocaleString('fr-FR')} sub={`${stats.ai_7d.total_calls} sur 7j`} accent="gold" />
       <KpiCard label="Coût IA estimé · 30j" value={`${formatUsd(stats.ai_30d.cost_usd)}`} sub={`${formatUsd(stats.ai_7d.cost_usd)} sur 7j`} accent="gold" />
-      <KpiCard label="Tokens input · 30j" value={`${(stats.ai_30d.input_tokens / 1000).toFixed(0)} k`} sub={`${(stats.ai_30d.output_tokens / 1000).toFixed(0)}k output`} accent="green" />
+      <KpiCard label="Jetons en entrée · 30j" value={`${(stats.ai_30d.input_tokens / 1000).toFixed(0)} k`} sub={`${(stats.ai_30d.output_tokens / 1000).toFixed(0)}k en sortie`} accent="green" />
       <KpiCard label="Taux de succès" value={`${successRate}%`} sub={`${stats.ai_30d.failed_calls} échec(s)`} accent={successRate < 95 ? 'red' : 'green'} />
       <KpiCard label="Emails envoyés · 30j" value={stats.emails_30d_total.toLocaleString('fr-FR')} sub={`${stats.emails_30d_by_type.length} types`} accent="blue" />
     </div>
@@ -121,7 +121,7 @@ function RightColumn({ stats }: { stats: AdminMonitoringStats }) {
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <header className="flex items-center px-4 py-3 border-b border-gray-200">
-          <span className="text-[13px] font-bold text-gray-900">Storage par organisation</span>
+          <span className="text-[13px] font-bold text-gray-900">Stockage par organisation</span>
           <span className="ml-auto text-[10.5px] text-gray-300">Total : {stats.storage_total_mb.toFixed(1)} Mo</span>
         </header>
         {stats.storage_per_cabinet.length === 0 ? (

@@ -70,7 +70,7 @@ export function DocumentUploadSection({ documents, uploading, uploadError, onUpl
             disabled={uploading}
             className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-forest-900 disabled:opacity-50"
           >
-            {uploading ? 'Upload en cours...' : 'Ajouter le document'}
+            {uploading ? 'Téléversement en cours…' : 'Ajouter le document'}
           </button>
         </div>
       </div>

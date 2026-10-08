@@ -99,7 +99,7 @@ export function drawPriorityMatrix(ctx: DocContext, x: number, y: number, w: num
 
   // Quadrants labels
   setText(doc, TEXT_500, 7, 'bold')
-  doc.text('Quick wins', ix + 2, iy + 5)
+  doc.text('Gains rapides', ix + 2, iy + 5)
   doc.text('Stratégique', ix + iw - 2, iy + 5, { align: 'right' })
   doc.text('Faible enjeu', ix + 2, iy + ih - 2)
   doc.text('Coûteux', ix + iw - 2, iy + ih - 2, { align: 'right' })

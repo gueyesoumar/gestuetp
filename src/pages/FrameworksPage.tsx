@@ -58,8 +58,8 @@ export function FrameworksPage() {
   if (frameworks.length === 0) {
     return (
       <EmptyState
-        title="Aucun r\u00e9f\u00e9rentiel disponible"
-        description="Les r\u00e9f\u00e9rentiels sont g\u00e9r\u00e9s par G\u00ebstu."
+        title="Aucun référentiel disponible"
+        description="Les référentiels sont gérés par Gëstu."
       />
     )
   }

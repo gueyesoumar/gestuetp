@@ -106,7 +106,7 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
     if (!saved) return
     const submitted = await onSubmit(assessment.id, reason)
     if (submitted) {
-      toast.success('Travaux soumis pour revue', { description: `${assessment.control.code} · transmis au lead` })
+      toast.success('Travaux soumis pour revue', { description: `${assessment.control.code} · transmis au chef de mission` })
       setJustificationOpen(false)
     }
   }, [assessment.id, assessment.control.code, formData, onSave, onSubmit, toast])

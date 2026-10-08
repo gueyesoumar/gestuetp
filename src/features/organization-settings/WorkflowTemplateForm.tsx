@@ -25,7 +25,7 @@ export function WorkflowTemplateForm(props: Props): JSX.Element {
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit() }} className="max-w-2xl space-y-5">
       <div>
-        <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Nom du template</label>
+        <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Nom du modèle</label>
         <input
           type="text" value={name} onChange={(e) => onChangeName(e.target.value)} disabled={saving}
           placeholder="Ex. Mission allégée, Contrôle rapide…"
@@ -70,7 +70,7 @@ export function WorkflowTemplateForm(props: Props): JSX.Element {
 
       <label className="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" checked={isDefault} onChange={(e) => onChangeDefault(e.target.checked)} disabled={saving} className="rounded border-gray-300 text-forest-600" />
-        <span className="text-[12.5px] text-gray-700">Template par d&eacute;faut (pr&eacute;-s&eacute;lectionn&eacute; &agrave; la cr&eacute;ation de mission)</span>
+        <span className="text-[12.5px] text-gray-700">Mod&egrave;le par d&eacute;faut (pr&eacute;-s&eacute;lectionn&eacute; &agrave; la cr&eacute;ation de mission)</span>
       </label>
 
       <div className="flex items-center gap-2 pt-1">

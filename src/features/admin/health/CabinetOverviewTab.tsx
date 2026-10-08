@@ -121,7 +121,7 @@ function SensitiveZone({ isActive, onSuspend, onReactivate, onExport, onDelete }
     <section className="bg-red-50 border border-red-200 rounded-xl p-4">
       <h4 className="text-[11.5px] uppercase tracking-wider text-red-700 font-bold mb-1.5">Zone sensible</h4>
       <p className="text-[11px] text-red-700 leading-relaxed mb-3">
-        Toute action est tracée dans l&apos;audit log avec le motif que vous saisirez.
+        Toute action est tracée dans le journal d&apos;audit avec le motif que vous saisirez.
       </p>
       <div className="flex flex-col gap-2">
         {isActive ? (

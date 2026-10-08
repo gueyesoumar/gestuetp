@@ -27,10 +27,10 @@ export function useUploadOrgLogo(): { upload: (file: File) => Promise<UploadResu
         body: form,
       })
       const payload = await res.json().catch(() => ({}))
-      if (!res.ok) return { ok: false, error: payload.error ?? 'Upload impossible' }
+      if (!res.ok) return { ok: false, error: payload.error ?? 'Téléversement impossible' }
       return { ok: true, url: payload.url }
     } catch {
-      return { ok: false, error: 'Upload impossible' }
+      return { ok: false, error: 'Téléversement impossible' }
     } finally {
       setUploading(false)
     }

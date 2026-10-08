@@ -47,7 +47,7 @@ export function PlanDeleteModal({ plan, onClose, onConfirm }: PlanDeleteModalPro
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Pourquoi supprimer ce plan ? (tracé dans l'audit log)"
+            placeholder="Pourquoi supprimer ce plan ? (tracé dans le journal d'audit)"
             rows={3}
             className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300"
             disabled={submitting}

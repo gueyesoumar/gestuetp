@@ -107,7 +107,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
       {
         key: 'interviews',
         label: 'Au moins 1 entretien planifié',
-        detail: 'Génère depuis la matrice ou crée manuellement.',
+        detail: 'Générez depuis la matrice ou créez manuellement.',
         blocker: false,
         ok: activeInterviews.length > 0,
         countLabel: `${activeInterviews.length}`,

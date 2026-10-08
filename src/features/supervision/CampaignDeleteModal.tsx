@@ -53,7 +53,7 @@ export function CampaignDeleteModal({ campaign, onClose, onConfirm, deleting }: 
                 />
                 <div>
                   <span className="text-[12px] font-medium text-gray-700">Conserver les missions</span>
-                  <p className="text-[10px] text-gray-400">Les missions seront d{'é'}tach{'é'}es de la campagne mais reste autonomes.</p>
+                  <p className="text-[10px] text-gray-400">Les missions seront d{'é'}tach{'é'}es de la campagne mais restent autonomes.</p>
                 </div>
               </label>
               <label className="flex items-start gap-2 cursor-pointer">
@@ -66,7 +66,7 @@ export function CampaignDeleteModal({ campaign, onClose, onConfirm, deleting }: 
                 />
                 <div>
                   <span className="text-[12px] font-medium text-red-600">Supprimer aussi les missions</span>
-                  <p className="text-[10px] text-gray-400">Les {campaign.totalEntities} missions et leurs donn{'é'}es (constats, validations, CARs) seront supprim{'é'}es.</p>
+                  <p className="text-[10px] text-gray-400">{campaign.totalEntities > 1 ? `Les ${campaign.totalEntities} missions et leurs données (constats, validations, CAR) seront supprimées.` : 'La mission et ses données (constats, validations, CAR) seront supprimées.'}</p>
                 </div>
               </label>
             </div>

@@ -25,9 +25,9 @@ export function PilotageDashboard({ stats, missions }: PilotageDashboardProps): 
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-4">
         <DashboardKpiCard icon={<Briefcase className="h-3.5 w-3.5" />} iconBg="bg-forest-100 text-forest-700" label="Mes missions" value={activeMissions.length} sub={`${missions.filter((m) => m.status === 'fieldwork').length} en terrain`} info="Missions où vous êtes auditeur principal ou membre de l'équipe" barColor="bg-forest-500" />
-        <DashboardKpiCard icon={<GitPullRequest className="h-3.5 w-3.5" />} iconBg="bg-gold-200 text-gold-600" label="Revues en attente" value={totalSubmitted} sub="à valider en tant que lead" info="Évaluations soumises par les auditeurs qui attendent votre validation" barColor="bg-gold-500" valueColor="text-gold-600" />
+        <DashboardKpiCard icon={<GitPullRequest className="h-3.5 w-3.5" />} iconBg="bg-gold-200 text-gold-600" label="Revues en attente" value={totalSubmitted} sub="à valider en tant que chef de mission" info="Évaluations soumises par les auditeurs qui attendent votre validation" barColor="bg-gold-500" valueColor="text-gold-600" />
         <DashboardKpiCard icon={<XCircle className="h-3.5 w-3.5" />} iconBg="bg-red-100 text-red-600" label="Rejets client" value={totalRejected} sub="à retravailler" info="Constats rejetés par le client nécessitant une révision" barColor="bg-red-500" valueColor="text-red-600" />
-        <DashboardKpiCard icon={<CheckCircle className="h-3.5 w-3.5" />} iconBg="bg-emerald-100 text-emerald-600" label="Taux validation" value={`${firstPassRate}%`} sub="first-pass approval" info="Évaluations approuvées du premier coup" barColor="bg-emerald-500" valueColor="text-emerald-600" />
+        <DashboardKpiCard icon={<CheckCircle className="h-3.5 w-3.5" />} iconBg="bg-emerald-100 text-emerald-600" label="Taux de validation" value={`${firstPassRate}%`} sub="validation au premier passage" info="Évaluations approuvées du premier coup" barColor="bg-emerald-500" valueColor="text-emerald-600" />
       </div>
 
       <div className="grid grid-cols-[3fr_2fr] gap-4">

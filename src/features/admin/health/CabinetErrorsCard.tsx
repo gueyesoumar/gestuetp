@@ -42,7 +42,7 @@ export function CabinetErrorsCard({ data }: ErrorsCardProps): JSX.Element {
           <p className="text-[11.5px] text-gray-500">Aucune erreur IA enregistrée sur la période.</p>
         )}
         <p className="text-[10.5px] text-gray-400 italic">
-          Les erreurs côté edge functions et auth ne sont pas encore loggées centralement.
+          Les erreurs côté fonctions edge et l’authentification ne sont pas encore journalisées de façon centralisée.
         </p>
       </div>
     </section>

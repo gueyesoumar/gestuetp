@@ -18,7 +18,7 @@ export function MissionClientReviewTab({ mission }: MissionClientReviewTabProps)
       <ObservationsConsultationPanel
         missionId={mission.id}
         heading="Observations du client"
-        subheading="Les observations du client sont non-bloquantes. Vous pouvez y répondre et décider d'ajuster ou de conserver le constat."
+        subheading="Les observations du client sont non bloquantes. Vous pouvez y répondre et décider d'ajuster ou de conserver le constat."
         emptyLabel="Le client n’a pas encore posté d’observation."
       />
     </div>

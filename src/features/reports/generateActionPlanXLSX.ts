@@ -37,10 +37,10 @@ const CLASS_LABEL: Record<string, string> = {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  open: 'Ouvert',
-  client_responded: 'Répondu',
-  verified: 'Vérifié',
-  closed: 'Clôturé',
+  open: 'Ouverte',
+  client_responded: 'Répondue',
+  verified: 'Vérifiée',
+  closed: 'Clôturée',
 }
 
 const VERIF_LABEL: Record<string, string> = {

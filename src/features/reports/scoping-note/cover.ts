@@ -58,7 +58,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): voi
   // Subtitle
   const fwName = `${data.mission.framework?.name ?? '—'}${data.mission.framework?.version ? ' v' + data.mission.framework.version : ''}`
   const subtitle = doc.splitTextToSize(
-    `Évaluation de la conformité du Système de Management de la Sécurité de l'Information aux exigences du référentiel ${fwName}.`,
+    `Évaluation de la conformité aux exigences du référentiel ${fwName}.`,
     contentW,
   ) as string[]
   setText(doc, WHITE, 11, 'normal')

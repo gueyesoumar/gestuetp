@@ -33,7 +33,7 @@ export function CronWatchdog() {
   return (
     <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <header className="flex items-center px-4 py-3 border-b border-gray-200">
-        <span className="text-[13px] font-bold text-gray-900">Tâches planifiées — watchdog</span>
+        <span className="text-[13px] font-bold text-gray-900">Tâches planifiées — surveillance</span>
         <span className="ml-auto text-[10px] uppercase tracking-wider text-gray-400 font-semibold">dead-man&apos;s switch</span>
         {alerts > 0 && <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600 tabular-nums">{alerts}</span>}
       </header>
@@ -48,7 +48,7 @@ export function CronWatchdog() {
           <thead>
             <tr className="text-[10.5px] uppercase tracking-wider text-gray-300 font-semibold">
               <th className="text-left px-4 py-2 border-b border-gray-100">Tâche</th>
-              <th className="text-left px-4 py-2 border-b border-gray-100">Dernier run</th>
+              <th className="text-left px-4 py-2 border-b border-gray-100">Dernière exécution</th>
               <th className="text-right px-4 py-2 border-b border-gray-100">Durée</th>
               <th className="text-right px-4 py-2 border-b border-gray-100">Statut</th>
             </tr>

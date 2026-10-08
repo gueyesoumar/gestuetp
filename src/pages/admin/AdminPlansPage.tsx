@@ -104,7 +104,7 @@ export function AdminPlansPage(): JSX.Element {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
         <KpiTile label="Plans actifs" value={String(plans.length)} accent="green" />
         <KpiTile label="Plan par défaut" value={stats.defaultPlan?.name ?? '—'} accent="gold" />
-        <KpiTile label="Cabinets total" value={String(stats.totalCabinets)} sub="répartis sur les plans" accent="blue" />
+        <KpiTile label="Total cabinets" value={String(stats.totalCabinets)} sub="répartis sur les plans" accent="blue" />
         <KpiTile label="MRR estimé" value={format(stats.mrr)} sub="paiement non intégré" accent="purple" tooltip="Σ cabinets × prix mensuel du plan" />
       </div>
 

@@ -149,7 +149,7 @@ export function SupervisionReport({ entities, frameworkName, frameworkPublisher 
           <h3 className="text-[14px] font-bold text-gray-900 mb-3">IV. Recommandations</h3>
           <ol className="list-decimal list-inside space-y-2 text-[13px] text-gray-700">
             <li>&Eacute;tendre le p&eacute;rim&egrave;tre d&rsquo;audit pour l&rsquo;exercice suivant</li>
-            <li>Prioriser les domaines syst&eacute;miquement faibles identifi&eacute;s dans la heatmap</li>
+            <li>Prioriser les domaines syst&eacute;miquement faibles identifi&eacute;s dans la carte de chaleur</li>
             {totalNc > 0 && <li>Exiger un plan de rem&eacute;diation sous 90 jours pour les NC majeures ouvertes</li>}
             {nonConformCount > 0 && <li>Planifier un audit prioritaire des {nonConformCount} entit&eacute;{nonConformCount !== 1 ? 's' : ''} non conforme{nonConformCount !== 1 ? 's' : ''}</li>}
           </ol>

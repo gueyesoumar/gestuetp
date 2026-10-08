@@ -29,7 +29,7 @@ const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
     group: 'Aide',
     items: [
       { keys: ['?'], label: 'Afficher cette fenêtre' },
-      { keys: ['Échap'], label: 'Fermer un modal' },
+      { keys: ['Échap'], label: 'Fermer la fenêtre' },
     ],
   },
 ]

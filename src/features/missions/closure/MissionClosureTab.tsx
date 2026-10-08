@@ -137,7 +137,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       <div>
         <h3 className="text-base font-bold text-gray-900">Cl&ocirc;ture &amp; livraison</h3>
         <p className="text-[13px] text-gray-500 mt-0.5">
-          {isClosed ? 'Cette mission est clôturée.' : 'Clôturez la mission pour générer le scoring.'}
+          {isClosed ? 'Cette mission est clôturée.' : 'Clôturez la mission pour générer le score.'}
         </p>
       </div>
 
@@ -147,7 +147,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
         <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div>
             <p className="text-sm font-medium text-amber-800">Pr&ecirc;t &agrave; cl&ocirc;turer la mission ?</p>
-            <p className="text-xs text-amber-600 mt-0.5">Le scoring sera calcul&eacute; et la mission passera en statut cl&ocirc;tur&eacute;.</p>
+            <p className="text-xs text-amber-600 mt-0.5">Le score sera calculé et la mission passera en statut clôturé.</p>
           </div>
           <button onClick={() => setConfirmClose(true)} disabled={closing}
             className="bg-amber-600 text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-amber-700 disabled:opacity-50 transition-colors">
@@ -204,7 +204,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
         onClose={() => setConfirmClose(false)}
         message={
           <>
-            Action <strong>irréversible</strong>. Le scoring de conformité sera calculé et figé, et la
+            Action <strong>irréversible</strong>. Le score de conformité sera calculé et figé, et la
             mission passera en statut «&nbsp;Clôturé&nbsp;». Aucune modification ne sera ensuite possible.
           </>
         }
@@ -235,14 +235,14 @@ function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport }: Scorin
     supabase.functions.invoke('close-mission', { body: { mission_id: missionId } })
       .then(async ({ data, error }) => {
         if (error || data?.error) {
-          console.error('close-mission (scoring):', await readInvokeError(error, data, 'Chargement du scoring impossible'))
+          console.error('close-mission (scoring):', await readInvokeError(error, data, 'Chargement du score impossible'))
           return
         }
         if (data?.scoring) setScoring(data.scoring as ScoringData)
       })
   }, [missionId])
 
-  if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du scoring...</p>
+  if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du score…</p>
 
   return (
     <>

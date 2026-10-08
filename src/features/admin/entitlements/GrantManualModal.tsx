@@ -57,10 +57,10 @@ export function GrantManualModal({ onClose, onSubmit, busy }: Props) {
             <input className={field} value={capability} onChange={(e) => setCapability(e.target.value)} placeholder="ex. risk" />
           </div>
           <div>
-            <label className={label}>Enforcement</label>
+            <label className={label}>Application</label>
             <select className={field} value={enforcement} onChange={(e) => setEnforcement(e.target.value)}>
-              <option value="soft">soft (UX)</option>
-              <option value="hard">hard (serveur)</option>
+              <option value="soft">souple (interface)</option>
+              <option value="hard">strict (serveur)</option>
             </select>
           </div>
           <div>
@@ -87,7 +87,7 @@ export function GrantManualModal({ onClose, onSubmit, busy }: Props) {
           <div className="col-span-2">
             <label className={label}>Motif <span className="text-red-500">*</span></label>
             <textarea rows={2} className={field} value={reason} onChange={(e) => setReason(e.target.value)} />
-            <p className="mt-1.5 text-[11px] text-gray-400">Tracé dans l&apos;audit log.</p>
+            <p className="mt-1.5 text-[11px] text-gray-400">Tracé dans le journal d&apos;audit.</p>
           </div>
         </div>
         <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">

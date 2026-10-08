@@ -29,7 +29,7 @@ export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExc
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200">
           <h4 className="text-[14px] font-bold text-gray-900 flex items-center gap-2">&#127919; Objectifs de la mission</h4>
-          <span className="text-[10px] font-medium text-purple-500 flex items-center gap-1">&#9733; Auto-g&eacute;n&eacute;r&eacute;</span>
+          <span className="text-[10px] font-medium text-purple-500 flex items-center gap-1">&#9733; Généré automatiquement</span>
         </div>
         <div className="px-5 py-2">
           {objectives.map((obj, i) => (

@@ -43,7 +43,7 @@ export function registerDocumentForAI(documentId: string, fileName: string, onDo
       })
 
       if (error) {
-        const detail = await readInvokeError(error, data, 'Upload IA impossible')
+        const detail = await readInvokeError(error, data, 'Téléversement IA impossible')
         console.warn(`[registerDocumentForAI] Upload failed for ${fileName}:`, detail)
         return
       }

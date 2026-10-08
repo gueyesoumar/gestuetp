@@ -14,7 +14,7 @@ export function PlanLimitsTab({ maxUsers, setMaxUsers, maxMissions, setMaxMissio
       </p>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Max utilisateurs">
+        <Field label="Nombre max. d’utilisateurs">
           <input
             type="number" min="1" value={maxUsers} onChange={(e) => setMaxUsers(e.target.value)}
             placeholder="∞" disabled={disabled}
@@ -22,7 +22,7 @@ export function PlanLimitsTab({ maxUsers, setMaxUsers, maxMissions, setMaxMissio
           />
           <Hint>Nombre maximum d&apos;utilisateurs actifs</Hint>
         </Field>
-        <Field label="Max missions actives">
+        <Field label="Nombre max. de missions actives">
           <input
             type="number" min="1" value={maxMissions} onChange={(e) => setMaxMissions(e.target.value)}
             placeholder="∞" disabled={disabled}
@@ -34,7 +34,7 @@ export function PlanLimitsTab({ maxUsers, setMaxUsers, maxMissions, setMaxMissio
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
         <p className="text-[11px] text-gray-600 leading-relaxed">
-          ℹ️ L&apos;application des quotas côté backend reste à implémenter côté Edge Functions et triggers.
+          ℹ️ Les quotas ne sont pas encore appliqués automatiquement côté serveur.
           Cette configuration sert à documenter l&apos;offre commerciale et préparer la mise en application.
         </p>
       </div>

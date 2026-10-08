@@ -146,9 +146,9 @@ export type GuidedStepKey = typeof GUIDED_STEPS[number]['key']
 
 export const KANBAN_COLUMNS = [
   { key: 'submitted', label: 'Soumis', color: '#3B82F6' },
-  { key: 'lead_review', label: 'Revue Lead', color: '#D4A843' },
-  { key: 'associate_review', label: 'Revue Associ\u00e9', color: '#40916C' },
-  { key: 'client_review', label: 'Revue Client', color: '#7B68EE' },
+  { key: 'lead_review', label: 'Revue chef de mission', color: '#D4A843' },
+  { key: 'associate_review', label: 'Revue associé', color: '#40916C' },
+  { key: 'client_review', label: 'Revue client', color: '#7B68EE' },
   { key: 'validated', label: 'Valid\u00e9', color: '#27AE60' },
 ] as const
 

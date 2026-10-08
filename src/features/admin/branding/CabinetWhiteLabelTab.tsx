@@ -32,7 +32,7 @@ const EMPTY_DRAFT: BrandingDraft = {
  * Onglet "Marque blanche" sur la fiche organisation (admin only).
  *
  * Trois sections :
- *   - Identité visuelle  : dual-logo (Option D : light requis + dark optionnel)
+ *   - Identité visuelle  : à double logo (Option D : light requis + dark optionnel)
  *   - Couleurs / emails  : primary, accent, support_email, email_from_name, footer
  *   - Domaines           : niveau 3, hostnames CNAME + DNS verification
  *
@@ -68,7 +68,7 @@ export function CabinetWhiteLabelTab({ cabinetId, cabinetName }: Props): JSX.Ele
       <section>
         <h3 className="text-[13px] font-bold text-gray-900 mb-2 flex items-baseline gap-2">
           Identité visuelle
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gold-700 bg-gold-50 px-2 py-0.5 rounded-full">Stratégie hybride dual-logo</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gold-700 bg-gold-50 px-2 py-0.5 rounded-full">Stratégie hybride à double logo</span>
         </h3>
         <p className="text-[12px] text-gray-500 mb-3 leading-relaxed">
           Deux variantes pour un rendu propre partout. Sans variante fond sombre, le logo principal est encadré dans une

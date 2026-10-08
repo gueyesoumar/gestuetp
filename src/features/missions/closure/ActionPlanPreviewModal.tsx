@@ -23,7 +23,7 @@ export function ActionPlanPreviewModal({ open, busy, findings, onClose, onConfir
       <div className="space-y-4">
         <p className="text-sm text-gray-600">
           Cette op&eacute;ration cr&eacute;e une demande d&apos;action corrective (CAR) pour chaque constat
-          class&eacute; major_nc, minor_nc ou observation. Les CAR existantes ne sont pas dupliqu&eacute;es.
+          classé NC majeure, NC mineure ou observation. Les CAR existantes ne sont pas dupliqu&eacute;es.
         </p>
 
         {!hasFindings ? (

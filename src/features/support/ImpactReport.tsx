@@ -42,7 +42,7 @@ export function ImpactReportView({ report }: { report: ImpactReport }): JSX.Elem
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${v.cls}`}>{v.label}</span>
           {report.migrations?.needed && <Chip cls="bg-amber-50 text-amber-700 border-amber-200">Migration requise</Chip>}
-          {report.backend?.gate_prod && <Chip cls="bg-gray-100 text-gray-600 border-gray-200">Gate prod</Chip>}
+          {report.backend?.gate_prod && <Chip cls="bg-gray-100 text-gray-600 border-gray-200">Verrou prod</Chip>}
         </div>
         <p className="text-[13px] text-gray-700 mt-2.5 leading-relaxed">{report.summary}</p>
       </div>

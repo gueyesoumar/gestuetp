@@ -34,7 +34,7 @@ export function DemandeForm({ profile, cabinetId, missionId, onBack }: Props): J
       setBusy(false)
       if (!res.ok) {
         console.error('request-password-reset:', res.error)
-        setLocalError('Envoi impossible pour le moment. Veuillez reessayer.')
+        setLocalError('Envoi impossible pour le moment. Veuillez réessayer.')
         return
       }
       setDone('Un email de réinitialisation vient de vous être envoyé.')
@@ -52,7 +52,7 @@ export function DemandeForm({ profile, cabinetId, missionId, onBack }: Props): J
       role_at_submit: role, context: { routedTo: selected.routedTo ?? null },
     })
     setBusy(false)
-    if (!res.ok) { setLocalError('Envoi impossible pour le moment. Veuillez reessayer.'); return }
+    if (!res.ok) { setLocalError('Envoi impossible pour le moment. Veuillez réessayer.'); return }
     setDone('Votre demande a bien été transmise.')
   }
 

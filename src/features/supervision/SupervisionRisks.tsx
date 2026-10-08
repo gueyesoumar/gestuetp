@@ -107,14 +107,14 @@ function RiskCard({ risk }: { risk: SystemicRisk }) {
             {risk.domain} {'\u2014'} {risk.domainName}
           </div>
           <div className="text-[12px] text-gray-600 mt-1">
-            {risk.avgScore}% de conformit&eacute; moyenne {'\u2014'} {risk.failingEntities}/{risk.totalEntities} entit&eacute;s sous le seuil
+            {risk.avgScore}% de conformit&eacute; moyenne {'\u2014'} {risk.failingEntities}/{risk.totalEntities} {risk.totalEntities > 1 ? 'entités' : 'entité'} sous le seuil
           </div>
           <div className="mt-2 flex gap-2">
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${isCrit ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
               {risk.avgScore}% moyen
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-              {risk.failingEntities} entit&eacute;s concern&eacute;es
+              {risk.failingEntities} {risk.failingEntities > 1 ? 'entités concernées' : 'entité concernée'}
             </span>
           </div>
         </div>

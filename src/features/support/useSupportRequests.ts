@@ -38,7 +38,7 @@ export function useCreateSupportRequest(): UseCreateSupportRequest {
 
     if (insertError) {
       console.error('useCreateSupportRequest:', insertError.message)
-      setError('Impossible d’envoyer votre demande pour le moment. Veuillez reessayer.')
+      setError('Impossible d’envoyer votre demande pour le moment. Veuillez réessayer.')
       return { ok: false }
     }
 

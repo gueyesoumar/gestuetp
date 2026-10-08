@@ -36,7 +36,7 @@ export function CadrageAnswersCard({ answers, hasInstance }: CadrageAnswersCardP
         {answers.length === 0 ? (
           <div className="flex items-start gap-2 text-[11px] text-gray-400 italic">
             <AlertCircle size={13} className="mt-0.5 shrink-0" />
-            <p>Aucune question cadrage n&apos;est mapp&eacute;e &agrave; ce contr&ocirc;le.</p>
+            <p>Aucune question de cadrage n&apos;est associ&eacute;e &agrave; ce contr&ocirc;le.</p>
           </div>
         ) : (
           <ul className="space-y-2.5">

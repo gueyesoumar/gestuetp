@@ -46,9 +46,9 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl border border-gray-200 bg-white overflow-hidden">
         <Stat label="Accueil" value={state.home_product ?? '—'} />
-        <Stat label="Remise org" value={`${state.discount_pct ?? 0} %`} />
+        <Stat label="Remise organisation" value={`${state.discount_pct ?? 0} %`} />
         <Stat label="MRR net" value={format(state.mrr)} />
-        <Stat label="Statuts" value={`${counts.active ?? 0} A · ${counts.trial ?? 0} E · ${counts.suspended ?? 0} S`} />
+        <Stat label="Statuts" value={`${counts.active ?? 0} actifs · ${counts.trial ?? 0} essais · ${counts.suspended ?? 0} suspendus`} />
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -59,13 +59,13 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
               <th className="text-left px-4 py-3 border-b border-gray-200">Statut</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Accès</th>
               <th className="text-left px-4 py-3 border-b border-gray-200">Prix</th>
-              <th className="text-left px-4 py-3 border-b border-gray-200">Gate</th>
+              <th className="text-left px-4 py-3 border-b border-gray-200">Verrou</th>
               <th className="px-4 py-3 border-b border-gray-200"></th>
             </tr>
           </thead>
           <tbody>
             {ent.length === 0
-              ? <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400 text-[13px]">Aucun entitlement</td></tr>
+              ? <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400 text-[13px]">Aucun droit</td></tr>
               : ent.map((e) => <EntitlementRow key={e.key} entry={e} format={format} onEdit={setEditing} />)}
           </tbody>
         </table>
@@ -74,7 +74,7 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
       <EntitlementTemplates plans={plans} busy={busy} onApply={(slug, reason) => act({ action: 'apply_template', plan_slug: slug, reason })} />
 
       <p className="text-[11px] text-gray-400">
-        Appliquer un template sème les droits d&apos;un plan ; l&apos;édition affine prix, plafonds, gate et droits manuels.
+        Appliquer un template sème les droits d&apos;un plan ; l&apos;édition affine prix, plafonds, verrou et droits manuels.
       </p>
 
       {editing && <EntitlementEditModal entry={editing} busy={busy} onClose={() => setEditing(null)} onSubmit={act} />}

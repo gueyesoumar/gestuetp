@@ -56,7 +56,7 @@ export function ControlObservationsSection({ control, obs, review, canContribute
 
       {control.myObservationId && !obs.observations.find((o) => o.id === control.myObservationId)?.response_text && (
         <div className="p-2.5 bg-forest-50 border border-forest-200 rounded-lg text-[11px] text-forest-700">
-          Vous avez d{'é'}j{'à'} post{'é'} une observation. L{'’'}auditeur r{'é'}pondra prochainement.
+          Vous avez d{'é'}j{'à'} publi{'é'} une observation. L{'’'}auditeur r{'é'}pondra prochainement.
         </div>
       )}
     </div>

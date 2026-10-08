@@ -138,10 +138,10 @@ function computeNextAction(
     return { label: 'Finalisez le programme de travail.', ctaLabel: 'Planifier', tab: 'planning' }
   }
   if (status === 'fieldwork' && draftCount > 0) {
-    return { label: `${draftCount} contr\u00f4les restent \u00e0 r\u00e9diger.`, ctaLabel: 'Reprendre les travaux', tab: 'fieldwork' }
+    return { label: draftCount > 1 ? `${draftCount} contrôles restent à rédiger.` : '1 contrôle reste à rédiger.', ctaLabel: 'Reprendre les travaux', tab: 'fieldwork' }
   }
   if (status === 'internal_review' && submittedCount > 0) {
-    return { label: `${submittedCount} contr\u00f4les \u00e0 valider.`, ctaLabel: 'Revoir les travaux', tab: 'review' }
+    return { label: submittedCount > 1 ? `${submittedCount} contrôles à valider.` : '1 contrôle à valider.', ctaLabel: 'Revoir les travaux', tab: 'review' }
   }
   // Parcours sans validation client \u2192 la Revue m\u00e8ne directement \u00e0 la cl\u00f4ture.
   if (status === 'internal_review' && skipClientReview) {

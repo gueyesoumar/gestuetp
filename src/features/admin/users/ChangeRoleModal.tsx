@@ -91,7 +91,7 @@ export function ChangeRoleModal({ user, onClose, onDone }: { user: AdminUserRow;
               <p className="text-[11px] text-gray-400 mb-3">Distinct du type auditeur/client : ce rôle porte les permissions dans l&apos;organisation. Effet à la prochaine reconnexion.</p>
               <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Motif <span className="text-red-500">*</span></label>
               <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Pourquoi ce changement ? (obligatoire)" className="w-full" disabled={submitting} />
-              <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé dans l&apos;audit log.</p>
+              <p className="mt-2 text-[11px] text-gray-400">Le motif est tracé dans le journal d&apos;audit.</p>
             </>
           )}
         </div>

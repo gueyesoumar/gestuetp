@@ -87,7 +87,7 @@ export function CrossCabinetBanner(): JSX.Element | null {
           rel="noopener noreferrer"
           className="font-semibold underline hover:text-blue-700 inline-flex items-center gap-0.5"
         >
-          le portail Gestu <ExternalLink size={11} />
+          le portail Gëstu <ExternalLink size={11} />
         </a>.
       </div>
       <button

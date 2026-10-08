@@ -35,7 +35,7 @@ export function FeatureDeleteModal({ feature, onClose, onConfirm }: FeatureDelet
               Supprimer &laquo;&nbsp;{feature.name}&nbsp;&raquo; ?
             </h3>
             <p className="text-[12px] text-gray-600 mt-0.5 leading-relaxed">
-              Action irréversible. La suppression est <b>refusée</b> si la fonctionnalité est encore référencée dans un plan ou par un override cabinet — il faut d&apos;abord la retirer partout via la matrice et les onglets cabinet.
+              Action irréversible. La suppression est <b>refusée</b> si la fonctionnalité est encore référencée dans un plan ou par une dérogation de cabinet — il faut d&apos;abord la retirer partout via la matrice et les onglets cabinet.
             </p>
             <p className="text-[10.5px] font-mono text-gray-400 mt-1.5">{feature.slug}</p>
           </div>
@@ -48,7 +48,7 @@ export function FeatureDeleteModal({ feature, onClose, onConfirm }: FeatureDelet
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Pourquoi supprimer cette fonctionnalité ? (tracé dans l'audit log)"
+            placeholder="Pourquoi supprimer cette fonctionnalité ? (tracé dans le journal d'audit)"
             rows={3}
             className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300"
             disabled={submitting}

@@ -128,15 +128,15 @@ function MetadataEditor({ framework, onSaved, toast }: {
     })
     setSaving(false)
     if (error || data?.error) { toast.error('Mise à jour impossible'); return }
-    toast.success('Métadonnées sauvegardées')
+    toast.success('Métadonnées enregistrées')
     onSaved()
   }
 
   const toggleActive = async () => {
     const { data, error } = await supabase.functions.invoke('admin-framework', {
-      body: { action: 'update_framework', id: framework.id, is_active: !framework.is_active, reason: `Bascule statut depuis admin` },
+      body: { action: 'update_framework', id: framework.id, is_active: !framework.is_active, reason: `Changement de statut depuis l’administration` },
     })
-    if (error || data?.error) { toast.error('Bascule impossible'); return }
+    if (error || data?.error) { toast.error('Changement impossible'); return }
     toast.success(framework.is_active ? 'Référentiel désactivé' : 'Référentiel activé')
     onSaved()
   }
@@ -172,7 +172,7 @@ function MetadataEditor({ framework, onSaved, toast }: {
           <input type="text" value={version} onChange={(e) => setVersion(e.target.value)} disabled={saving} />
         </div>
         <div>
-          <Lab>Publisher</Lab>
+          <Lab>Éditeur</Lab>
           <input type="text" value={publisher} onChange={(e) => setPublisher(e.target.value)} disabled={saving} />
         </div>
       </div>
@@ -183,7 +183,7 @@ function MetadataEditor({ framework, onSaved, toast }: {
       <div className="flex items-center gap-2 pt-1">
         {dirty && (
           <button onClick={save} disabled={saving} className="px-3.5 py-2 text-[12px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50 inline-flex items-center gap-1.5">
-            <Save size={13} /> {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+            <Save size={13} /> {saving ? 'Enregistrement…' : 'Sauvegarder'}
           </button>
         )}
         {framework.was_ai_generated && (
@@ -219,7 +219,7 @@ function DomainEditor({ domain, onChanged, toast, allDomainIds, currentIndex }: 
     const { data, error } = await supabase.functions.invoke('admin-framework', {
       body: { action: 'update_domain', id: domain.id, code, name, description },
     })
-    if (error || data?.error) { toast.error('Sauvegarde impossible'); return }
+    if (error || data?.error) { toast.error('Enregistrement impossible'); return }
     setEditing(false)
     toast.success('Domaine mis à jour')
     onChanged()
@@ -332,7 +332,7 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
     const { data, error } = await supabase.functions.invoke('admin-framework', {
       body: { action: 'update_control', id: control.id, code, name, description, guidance, dimension: dimension || null },
     })
-    if (error || data?.error) { toast.error('Sauvegarde impossible'); return }
+    if (error || data?.error) { toast.error('Enregistrement impossible'); return }
     setEditing(false)
     toast.success('Contrôle mis à jour')
     onChanged()
@@ -371,7 +371,7 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du contrôle" />
         </div>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Description" />
-        <textarea value={guidance} onChange={(e) => setGuidance(e.target.value)} rows={2} placeholder="Guidance / conseils de mise en œuvre" />
+        <textarea value={guidance} onChange={(e) => setGuidance(e.target.value)} rows={2} placeholder="Conseils de mise en œuvre" />
         <div>
           <Lab>Dimension du score</Lab>
           <select value={dimension} onChange={(e) => setDimension(e.target.value)}>

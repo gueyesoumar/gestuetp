@@ -74,7 +74,7 @@ export function CARVerificationDialog({ car, canVerify, onClose, onChanged, user
             </button>
             <button onClick={() => setRequireComment('request_precision')} disabled={busy}
               className="px-3 py-2 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-300 rounded-lg hover:bg-amber-100 disabled:opacity-50">
-              Demander pr&eacute;cision
+              Demander une précision
             </button>
             <button onClick={() => setRequireComment('reject')} disabled={busy}
               className="px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-300 rounded-lg hover:bg-red-100 disabled:opacity-50">

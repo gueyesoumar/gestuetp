@@ -34,12 +34,12 @@ export function WorkflowTemplatesTab(): JSX.Element {
   const handleSubmit = async (): Promise<void> => {
     const input = { name, is_default: isDefault, disabled_steps: ALL_DESELECTABLE_KEYS.filter((k) => !included.has(k)) }
     const ok = editingId ? await update(editingId, input) : await create(input)
-    if (ok) { toast.success(editingId ? 'Template mis à jour' : 'Template créé', { description: name }); setView('list') }
+    if (ok) { toast.success(editingId ? 'Modèle mis à jour' : 'Modèle créé', { description: name }); setView('list') }
   }
   const confirmDelete = async (): Promise<void> => {
     if (!deleteTarget) return
     const ok = await remove(deleteTarget.id)
-    if (ok) toast.success('Template supprimé', { description: deleteTarget.name })
+    if (ok) toast.success('Modèle supprimé', { description: deleteTarget.name })
     setDeleteTarget(null)
   }
 
@@ -49,7 +49,7 @@ export function WorkflowTemplatesTab(): JSX.Element {
     return (
       <div>
         {crudError && <div className="mb-3"><ErrorAlert message={crudError} /></div>}
-        <h3 className="text-[15px] font-bold text-gray-900 mb-4">{editingId ? 'Modifier le template' : 'Nouveau template de parcours'}</h3>
+        <h3 className="text-[15px] font-bold text-gray-900 mb-4">{editingId ? 'Modifier le modèle' : 'Nouveau modèle de parcours'}</h3>
         <WorkflowTemplateForm
           name={name} onChangeName={setName} isDefault={isDefault} onChangeDefault={setIsDefault}
           included={included} onToggleStep={toggleStep} saving={saving} isEditing={!!editingId}
@@ -62,7 +62,7 @@ export function WorkflowTemplatesTab(): JSX.Element {
   return (
     <div className="max-w-2xl">
       <p className="text-[12.5px] text-gray-500 mb-4">
-        Cr&eacute;ez des <b>parcours de mission</b> r&eacute;utilisables en d&eacute;s&eacute;lectionnant des &eacute;tapes. &Agrave; la cr&eacute;ation d&rsquo;une mission, vous choisirez le template &agrave; appliquer&nbsp;; les missions en cours ne changent pas.
+        Cr&eacute;ez des <b>parcours de mission</b> r&eacute;utilisables en d&eacute;s&eacute;lectionnant des &eacute;tapes. &Agrave; la cr&eacute;ation d&rsquo;une mission, vous choisirez le mod&egrave;le &agrave; appliquer&nbsp;; les missions en cours ne changent pas.
       </p>
       {error && <div className="mb-3"><ErrorAlert message={error} /></div>}
       {crudError && <div className="mb-3"><ErrorAlert message={crudError} /></div>}
@@ -86,11 +86,11 @@ export function WorkflowTemplatesTab(): JSX.Element {
             ><Trash2 size={13} /></button>
           </div>
         ))}
-        {templates.length === 0 && <p className="text-[12.5px] text-gray-300 py-6 text-center">Aucun template. Créez-en un pour commencer.</p>}
+        {templates.length === 0 && <p className="text-[12.5px] text-gray-300 py-6 text-center">Aucun modèle. Créez-en un pour commencer.</p>}
       </div>
 
       <button onClick={startCreate} className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 py-2.5 text-[12.5px] font-semibold text-forest-700 hover:bg-page-bg">
-        <Plus size={14} /> Créer un template
+        <Plus size={14} /> Créer un modèle
       </button>
 
       {deleteTarget && (
@@ -98,7 +98,7 @@ export function WorkflowTemplatesTab(): JSX.Element {
           <div className="bg-white rounded-xl max-w-sm w-full overflow-hidden shadow-xl">
             <div className="px-5 py-4">
               <h3 className="text-[14px] font-bold text-gray-900">Supprimer &laquo;&nbsp;{deleteTarget.name}&nbsp;&raquo; ?</h3>
-              <p className="mt-1.5 text-[12px] text-gray-500">Les missions déjà créées avec ce template ne sont pas affectées (leur parcours est figé).</p>
+              <p className="mt-1.5 text-[12px] text-gray-500">Les missions déjà créées avec ce modèle ne sont pas affectées (leur parcours est figé).</p>
             </div>
             <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
               <button onClick={() => setDeleteTarget(null)} disabled={deleting} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>

@@ -306,7 +306,7 @@ function FileAnswer({ value, onChange, readOnly }: { value: string; onChange: (v
         )}
       </label>
       <p className="text-[10px] text-gray-400 mt-2 italic">
-        L'envoi du fichier au stockage Supabase est prévu en Sprint 4.5 — pour l'instant le nom du fichier est enregistré comme référence.
+        Seul le nom du fichier est enregistré pour le moment.
       </p>
     </div>
   )
@@ -327,7 +327,7 @@ function OrganigrammeAnswer({ value, onChange, readOnly }: { value: string; onCh
           }}
         />
         <p className="text-[13px] text-purple-700 font-semibold">
-          🏢 {value ? value : "Uploadez votre organigramme"}
+          🏢 {value ? value : "Téléversez votre organigramme"}
         </p>
         <p className="text-[11px] text-gray-500 mt-1">PDF, PNG, JPG · L'IA extraira automatiquement les acteurs SI</p>
         {value && (
@@ -335,7 +335,7 @@ function OrganigrammeAnswer({ value, onChange, readOnly }: { value: string; onCh
         )}
       </label>
       <p className="text-[10px] text-gray-400 mt-2 italic">
-        Extraction IA des acteurs (Nom · Fonction · Direction) prévue dans la refonte Entretiens.
+        Les acteurs identifiés (Nom · Fonction · Direction) pourront être extraits automatiquement.
       </p>
     </div>
   )

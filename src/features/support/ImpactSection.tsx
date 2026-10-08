@@ -58,7 +58,7 @@ export function ImpactSection({ requestId, feasibilityRunId, feasibilityReport }
     setError(null)
     const res = await invokeEdgeFunction('dispatch-impact', { request_id: requestId, parent_run_id: feasibilityRunId })
     setBusy(false)
-    if (!res.ok) { setError(res.error ?? 'Declenchement impossible.'); return }
+    if (!res.ok) { setError(res.error ?? 'Déclenchement impossible.'); return }
     await load()
   }
 
@@ -72,7 +72,7 @@ export function ImpactSection({ requestId, feasibilityRunId, feasibilityReport }
     if (report.verdict !== 'go') draftReasons.push('verdict non « go »')
     if (!['S', 'M'].includes(feasibilityReport.effort_estimate)) draftReasons.push('effort > M')
     if (report.migrations?.needed === true) draftReasons.push('migration requise')
-    if (Array.isArray(report.backend?.edges) && report.backend.edges.length > 0) draftReasons.push('modifie un edge')
+    if (Array.isArray(report.backend?.edges) && report.backend.edges.length > 0) draftReasons.push('modifie une fonction edge')
     if (report.rls_impact?.verdict === 'bloquant') draftReasons.push('bloquant RLS')
     if (report.securite?.verdict === 'bloquant') draftReasons.push('bloquant sécurité')
   }

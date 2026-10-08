@@ -45,7 +45,7 @@ export function PolicyBoardPage(): JSX.Element {
               ? <>Alimentera les axes <b>gouvernance / vérifiabilité</b> dès qu&apos;une <b>posture</b> existera.</>
               : score.policyImpactActive
                 ? <>Intégrée aux axes → confiance <b>{score.composite}</b> ({pm.deltaPts >= 0 ? '+' : ''}{pm.deltaPts} pts).</>
-                : <>Mode <b>shadow</b>&nbsp;: {pm.deltaPts >= 0 ? '+' : ''}{pm.deltaPts} pts <i>si activ&eacute;</i> (score actuel <b>{score.composite}</b>, inchang&eacute;).</>}
+                : <>Mode <b>observation</b>&nbsp;: {pm.deltaPts >= 0 ? '+' : ''}{pm.deltaPts} pts <i>si activ&eacute;</i> (score actuel <b>{score.composite}</b>, inchang&eacute;).</>}
           </p>
         </div>
       )}

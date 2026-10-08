@@ -61,10 +61,10 @@ export function EntitlementEditModal({ entry, onClose, onSubmit, busy }: Props) 
             </select>
           </div>
           <div>
-            <label className={label}>Enforcement</label>
+            <label className={label}>Application</label>
             <select className={field} value={enforcement} onChange={(e) => setEnforcement(e.target.value)}>
-              <option value="soft">soft (UX)</option>
-              <option value="hard">hard (serveur)</option>
+              <option value="soft">souple (interface)</option>
+              <option value="hard">strict (serveur)</option>
             </select>
           </div>
           <div>

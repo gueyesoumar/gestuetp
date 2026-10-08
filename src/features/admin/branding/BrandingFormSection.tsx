@@ -105,7 +105,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
     if (primary && !HEX_COLOR_RE.test(primary)) return 'Couleur primaire au format #RRGGBB'
     if (accent && !HEX_COLOR_RE.test(accent)) return 'Couleur accent au format #RRGGBB'
     if (emailFromName && emailFromName.trim().length > 80) return 'Nom expéditeur limité à 80 caractères'
-    if (footerText && footerText.length > 280) return 'Footer limité à 280 caractères'
+    if (footerText && footerText.length > 280) return 'Pied de page limité à 280 caractères'
     return null
   }
 
@@ -193,7 +193,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">{SURFACE_OPTIONS.find((o) => o.value === surfaceMode)?.hint} — proposé auto à l&apos;upload.</p>
+          <p className="text-[11px] text-gray-400 mt-1">{SURFACE_OPTIONS.find((o) => o.value === surfaceMode)?.hint} — proposé automatiquement au téléversement.</p>
         </div>
         <div className="col-span-2">
           <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Logo sur fond sombre</label>
@@ -205,7 +205,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">{TREATMENT_OPTIONS.find((o) => o.value === darkLogoTreatment)?.hint} — proposé automatiquement à l&apos;upload du logo, ajustable.</p>
+          <p className="text-[11px] text-gray-400 mt-1">{TREATMENT_OPTIONS.find((o) => o.value === darkLogoTreatment)?.hint} — proposé automatiquement au téléversement du logo, ajustable.</p>
         </div>
         <PerScreenSurface
           login={loginSurface}
@@ -247,7 +247,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
           <div className="bg-white rounded-xl max-w-md w-full overflow-hidden shadow-xl">
             <div className="px-5 py-4 border-b border-gray-200">
               <h3 className="text-[14.5px] font-bold text-gray-900">Enregistrer le branding</h3>
-              <p className="text-[12px] text-gray-500 mt-1">Le motif est tracé dans l&apos;audit log.</p>
+              <p className="text-[12px] text-gray-500 mt-1">Le motif est tracé dans le journal d&apos;audit.</p>
             </div>
             <div className="px-5 py-4">
               <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Motif <span className="text-red-500">*</span></label>

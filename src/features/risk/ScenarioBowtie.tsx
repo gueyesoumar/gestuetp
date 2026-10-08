@@ -117,7 +117,7 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
         <div className="px-5 pb-5 border-t border-gray-100 pt-4">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle size={14} className="text-[#C0392B]" />
-            <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Incidents (aggravation vraisemblance)</h4>
+            <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Incidents (aggravation de la vraisemblance)</h4>
           </div>
           {incidents.length === 0
             ? <p className="text-[12px] text-gray-400 mb-3">Aucun incident récent n&apos;aggrave ce scénario.</p>

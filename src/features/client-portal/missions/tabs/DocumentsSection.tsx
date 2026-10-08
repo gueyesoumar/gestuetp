@@ -48,7 +48,7 @@ export function DocumentsSection({
           {uploading && !upload.pendingDocName ? (
             <div className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-forest-300 border-t-forest-700 rounded-full animate-spin" />
-              <span className="text-xs text-forest-700 font-medium">Upload en cours...</span>
+              <span className="text-xs text-forest-700 font-medium">Téléversement en cours…</span>
             </div>
           ) : (
             <>

@@ -26,18 +26,18 @@ const OTHER_FAMILY = { label: 'Autres', variant: 'gray' as Variant }
 const ACTION_LABELS: Record<string, string> = {
   create_cabinet: 'Création cabinet', suspend_cabinet: 'Suspension cabinet',
   reactivate_cabinet: 'Réactivation cabinet', delete_cabinet: 'Suppression cabinet',
-  export_cabinet_data: 'Export données cabinet', update_cabinet_branding: 'MàJ marque cabinet',
+  export_cabinet_data: 'Export données cabinet', update_cabinet_branding: 'Mise à jour marque cabinet',
   clear_cabinet_branding: 'Réinit. marque', upload_cabinet_logo: 'Logo cabinet',
   add_cabinet_domain: 'Ajout domaine', remove_cabinet_domain: 'Retrait domaine',
-  add_member: 'Ajout membre', reset_user_password: 'Reset mot de passe',
+  add_member: 'Ajout membre', reset_user_password: 'Réinit. mot de passe',
   change_user_role: 'Changement de rôle', activate_user: 'Activation compte',
   deactivate_user: 'Désactivation compte', reset_mfa: 'Réinitialisation MFA',
-  view_user: 'Aperçu utilisateur', create_plan: 'Création plan', update_plan: 'MàJ plan',
+  view_user: 'Aperçu utilisateur', create_plan: 'Création plan', update_plan: 'Mise à jour plan',
   delete_plan: 'Suppression plan', set_plan_features: 'Fonctions du plan',
-  create_feature_flag: 'Création feature flag', update_feature_flag: 'MàJ feature flag',
-  delete_feature_flag: 'Suppression feature flag', enable_feature_flag: 'Activation flag',
-  disable_feature_flag: 'Désactivation flag', set_feature_flag_override: 'Override flag',
-  reset_feature_flag_override: 'Reset override', create_framework: 'Création référentiel',
+  create_feature_flag: 'Création indicateur de fonctionnalité', update_feature_flag: 'Mise à jour indicateur de fonctionnalité',
+  delete_feature_flag: 'Suppression indicateur de fonctionnalité', enable_feature_flag: 'Activation indicateur',
+  disable_feature_flag: 'Désactivation indicateur', set_feature_flag_override: 'Dérogation indicateur',
+  reset_feature_flag_override: 'Réinit. dérogation', create_framework: 'Création référentiel',
   delete_framework: 'Suppression référentiel', deactivate_framework: 'Désactivation référentiel',
   reactivate_framework: 'Réactivation référentiel', delete_control: 'Suppression contrôle',
 }
@@ -121,7 +121,7 @@ export function AdminAuditLogPage() {
   return (
     <div className="px-7 py-6">
       <div className="flex items-baseline gap-3 mb-1">
-        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> &rsaquo; Audit log</span>
+        <span className="text-[11.5px] text-gray-500"><b className="text-forest-900 font-semibold">Admin</b> &rsaquo; Journal d’audit</span>
       </div>
       <h1 className="text-xl font-bold text-gray-900">Audit &amp; sécurité</h1>
       <p className="text-[12.5px] text-gray-500 mt-1 mb-5 max-w-2xl">
@@ -132,7 +132,7 @@ export function AdminAuditLogPage() {
         <KpiTile label="Actions 24 h" value={kpis.d1.toString()} accent="gold" />
         <KpiTile label="Actions 7 j" value={kpis.d7.toString()} accent="green" />
         <KpiTile label="Acteurs distincts" value={kpis.actors.toString()} accent="blue" />
-        <KpiTile label="Total fenêtre" value={kpis.total.toString()} sub={`${sinceDays} derniers jours`} accent="purple" />
+        <KpiTile label="Total sur la période" value={kpis.total.toString()} sub={`${sinceDays} derniers jours`} accent="purple" />
       </div>
 
       <div className="flex items-center gap-2 mb-3 flex-wrap">
