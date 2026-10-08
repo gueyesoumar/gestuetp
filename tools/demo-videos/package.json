@@ -1,0 +1,13 @@
+{
+  "name": "gestu-demo-videos",
+  "private": true,
+  "type": "module",
+  "description": "Kit Playwright pour enregistrer des vidéos de parcours Gëstu (voie B).",
+  "scripts": {
+    "auth": "node auth-setup.mjs",
+    "record:create-mission": "node record-create-mission.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

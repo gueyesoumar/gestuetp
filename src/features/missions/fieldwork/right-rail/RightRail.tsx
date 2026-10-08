@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { ChevronRight, ChevronLeft, Check, MessageSquare, Info, FileText } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check, MessageSquare, Info, FileText, Paperclip } from 'lucide-react'
 import { ValidationTab } from './ValidationTab'
 import { DiscussionTab } from './DiscussionTab'
 import { MissionInfoTab } from './MissionInfoTab'
 import { ControlContextTab } from './ControlContextTab'
+import { ControlEvidenceTab } from './ControlEvidenceTab'
 import { PolicyEvidencePanel } from '../../../policy/PolicyEvidencePanel'
 import { useControlComments } from './useControlComments'
 import type { AssessmentWithControl } from '../../useAuditorAssessments'
@@ -16,7 +17,7 @@ interface RightRailProps {
   onToggle: () => void
 }
 
-type TabKey = 'contexte' | 'validation' | 'discussion' | 'mission'
+type TabKey = 'contexte' | 'preuves' | 'validation' | 'discussion' | 'mission'
 
 export function RightRail({ mission, assessment, collapsed, onToggle }: RightRailProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('contexte')
@@ -47,6 +48,12 @@ export function RightRail({ mission, assessment, collapsed, onToggle }: RightRai
           onClick={() => setActiveTab('contexte')}
           icon={<FileText size={12} />}
           label="Contexte"
+        />
+        <TabButton
+          active={activeTab === 'preuves'}
+          onClick={() => setActiveTab('preuves')}
+          icon={<Paperclip size={12} />}
+          label="Preuves"
         />
         <TabButton
           active={activeTab === 'validation'}
@@ -83,6 +90,13 @@ export function RightRail({ mission, assessment, collapsed, onToggle }: RightRai
           <div className="flex-1 overflow-y-auto">
             {assessment
               ? <ControlContextTab assessment={assessment} missionId={mission.id} />
+              : <p className="text-[11px] text-gray-400 italic text-center py-6 px-3">S&eacute;lectionnez un contr&ocirc;le.</p>}
+          </div>
+        )}
+        {activeTab === 'preuves' && (
+          <div className="flex-1 overflow-y-auto">
+            {assessment
+              ? <ControlEvidenceTab assessment={assessment} missionId={mission.id} />
               : <p className="text-[11px] text-gray-400 italic text-center py-6 px-3">S&eacute;lectionnez un contr&ocirc;le.</p>}
           </div>
         )}

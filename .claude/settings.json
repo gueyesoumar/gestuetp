@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p iso-grp iso-fnd iso-ev)",
+      "Bash(node -e ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/iso-fnd/A5.json'\\)\\);print\\(len\\(d\\)\\)\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/iso-ev/A67.json'\\)\\);print\\(len\\(d\\),min\\(len\\(x['evidence']\\) for x in d\\)\\)\")",
+      "Bash(python3 -c \"import json;print\\(len\\(json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/iso-fnd/A8.json'\\)\\)\\)\\)\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/iso-ev/A8.json'\\)\\);print\\(len\\(d\\),all\\(2<=len\\(x['evidence']\\)<=4 for x in d\\)\\)\")",
+      "Bash(node \"/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/assemble-iso-fnd.mjs\")",
+      "Bash(node \"/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/assemble-iso-ev.mjs\")",
+      "Bash(node \"/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/assemble-iso-deps.mjs\")",
+      "Bash(echo \"Deploy: $\\(gh run view 37623277983 --json conclusion -q .conclusion\\)\")",
+      "Bash(echo \"CI: $\\(gh run view 37623277938 --json conclusion -q .conclusion\\)\")",
+      "Bash(mkdir -p multi-grp)",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/multi-ev/NIST.json'\\)\\);print\\(len\\(d\\)\\)\")",
+      "Bash(python3 -c \"import json;print\\(len\\(json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/multi-deps/NIST.json'\\)\\)['pairs']\\)\\)\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/multi-fnd/AUDIT1.json'\\)\\);print\\(len\\(d\\)\\)\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/multi-fnd/DUEDIL.json'\\)\\);print\\(len\\(d\\),len\\(set\\(x['code'] for x in d\\)\\)\\)\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('/private/tmp/claude-501/-Users-seydinaoumargueye-Documents-Gestu-ETP/81bd6d01-bc20-4900-a563-9313ffa7d68f/scratchpad/multi-fnd/AUDIT2.json'\\)\\);print\\(len\\(d\\)\\)\")",
+      "Bash(echo \"Deploy: $\\(gh run view 37625222779 --json conclusion -q .conclusion\\)\")",
+      "Bash(echo \"CI: $\\(gh run view 37625222846 --json conclusion -q .conclusion\\)\")",
+      "Bash(grep -vE \"\\\\]\\\\\\),?$\")",
+      "Bash(awk '/^<script>/{f=1;next}/^<\\\\/script>/{f=0}f' comply-controle-optim.html)",
+      "Bash(node --check /tmp/co.js)",
+      "Bash(awk '/^<script>/{f=1;next}/^<\\\\/script>/{f=0}f' comply-controle-essentiel.html)",
+      "Bash(node --check /tmp/ce.js)",
+      "Bash(grep -oE \"\\(set-state-in-effect|no-unused-vars|react-refresh|[a-z-]+/[a-z-]+\\)$\")",
+      "Bash(perl -i -pe 's/D\\\\\\\\u00e9poser/Déposer/g' src/features/missions/fieldwork/steps/DocumenterStep.tsx)",
+      "Bash(awk '/^<script>/{f=1;next}/^<\\\\/script>/{f=0}f' comply-preuves-optim.html)",
+      "Bash(node --check /tmp/po.js)",
+      "Bash(perl -ni -e 'print unless /^import \\\\{ FieldworkPhaseRibbon \\\\}/' src/features/missions/fieldwork/MissionFieldworkTab.tsx)"
+    ]
+  }
+}

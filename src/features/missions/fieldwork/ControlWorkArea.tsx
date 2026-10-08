@@ -53,7 +53,9 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
   const readOnly = isSubmittedOrAbove
   const canReview = isReviewer && isSubmittedOrAbove && assessment.status !== 'approved'
 
-  const { documents, uploading: docUploading, uploadError: docUploadError, uploadDocument, deleteDocument } = useMissionDocuments(assessment.mission_id, canReview ? undefined : assessment.control_id)
+  // Les documents ne servent plus qu'à la vue de revue ; le dépôt de preuves est
+  // désormais géré dans l'onglet Preuves du rail (ControlEvidenceTab).
+  const { documents } = useMissionDocuments(assessment.mission_id, canReview ? undefined : assessment.control_id)
 
   useEffect(() => {
     setObservations(assessment.observations ?? '')
@@ -224,16 +226,8 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
           evidenceNotes={evidenceNotes}
           conformityLevel={conformityLevel}
           onConformityChange={setConformityLevel}
-          documents={documents}
-          uploading={docUploading}
-          uploadError={docUploadError}
-          onUpload={uploadDocument}
-          onDeleteDoc={deleteDocument}
           findingsHook={findingsHook}
-          onObservationsChange={setObservations}
-          onEvidenceNotesChange={setEvidenceNotes}
           readOnly={readOnly}
-          saving={saving}
         />
       )}
 

@@ -1,0 +1,6 @@
+node_modules/
+.auth/
+videos/
+chrome-cft/
+chrome-cft.zip
+.env
