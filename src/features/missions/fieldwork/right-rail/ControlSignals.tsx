@@ -1,6 +1,7 @@
-import { AlertTriangle, HelpCircle, MessageSquare, Clock, ChevronRight } from 'lucide-react'
+import { AlertTriangle, HelpCircle, MessageSquare, Clock, ChevronRight, ScanSearch } from 'lucide-react'
 import { useControlExpectedEvidence } from '../useControlExpectedEvidence'
 import { useControlContext } from './useControlContext'
+import { getCadrageHint } from './cadrageHint'
 
 interface ControlSignalsProps {
   missionId: string
@@ -39,6 +40,16 @@ export function ControlSignals({ missionId, controlId, unreadCount, missionEndDa
   const ctx = useControlContext(missionId, controlId)
 
   const signals: Signal[] = []
+
+  // Pré-suggestion de verdict : le cadrage contient une réponse défavorable sur ce contrôle.
+  const hint = getCadrageHint(ctx.cadrageAnswers)
+  if (hint && status !== 'approved') {
+    signals.push({
+      key: 'cadrage-gap', jump: 'contexte', tone: 'bg-red-50 text-red-600',
+      icon: <ScanSearch size={11} />,
+      node: <>Le cadrage signale un <b className="font-semibold text-gray-800">écart probable</b>{hint.worstWeight >= 3 ? ' (preuve forte)' : ''} — suggestion : Non conforme</>,
+    })
+  }
 
   const missing = items.length - items.filter((i) => i.fulfilled).length
   if (missing > 0) {

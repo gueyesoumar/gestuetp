@@ -8,6 +8,7 @@ export interface CadrageAnswer {
   question_text: string
   weight: number  // 1=context, 2=partial, 3=strong evidence
   response_value: unknown
+  expected_answer: string | null  // réponse conforme attendue (polarité) — null = non définie
 }
 
 export interface ControlContext {
@@ -74,14 +75,14 @@ export function useControlContext(missionId: string | null, controlId: string | 
 
       // 3. Get question_controls for this control + linked questions
       const linksRes = await supabase.from('question_controls')
-        .select('question_id, weight, question:questions(code, text)')
+        .select('question_id, weight, question:questions(code, text, expected_answer)')
         .eq('control_id', controlId)
         .abortSignal(controller.signal)
       if (controller.signal.aborted) return
       const links = (linksRes?.data ?? []) as unknown as Array<{
         question_id: string
         weight: number
-        question: { code: string; text: string } | null
+        question: { code: string; text: string; expected_answer: string | null } | null
       }>
       if (links.length === 0) {
         setCadrageAnswers([])
@@ -119,6 +120,7 @@ export function useControlContext(missionId: string | null, controlId: string | 
           question_text: l.question?.text ?? '',
           weight: l.weight,
           response_value: responseMap.get(l.question?.code ?? '') ?? null,
+          expected_answer: l.question?.expected_answer ?? null,
         }))
         .sort((a, b) => b.weight - a.weight)
 

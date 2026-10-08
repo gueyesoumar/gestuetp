@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ClipboardCheck, ChevronDown, ChevronRight } from 'lucide-react'
 import type { CadrageAnswer } from './useControlContext'
+import { isUnfavorable } from './cadrageHint'
 
 interface CadrageInlineProps {
   answers: CadrageAnswer[]
@@ -58,6 +59,9 @@ export function CadrageInline({ answers }: CadrageInlineProps) {
                     <span className="text-gray-600">{' '}&middot; {ans.question_text}</span>
                   )}
                   {' '}&mdash; <strong className="text-gray-900">{formatted}</strong>
+                  {isUnfavorable(ans) && (
+                    <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">&Eacute;cart</span>
+                  )}
                 </span>
               </li>
             )

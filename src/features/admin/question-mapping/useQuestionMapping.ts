@@ -9,6 +9,7 @@ export interface MappingQuestion {
   description: string | null
   question_type: string
   is_required: boolean
+  expected_answer: string | null
 }
 export interface MappingControl {
   id: string
@@ -58,7 +59,7 @@ export function useQuestionMapping(frameworkId: string | undefined) {
 
     const [qRes, cRes] = await Promise.all([
       tpl
-        ? supabase.from('questions').select('id, code, text, description, question_type, is_required').eq('template_id', tpl.id as string).order('sort_order')
+        ? supabase.from('questions').select('id, code, text, description, question_type, is_required, expected_answer').eq('template_id', tpl.id as string).order('sort_order')
         : Promise.resolve({ data: [], error: null }),
       domainIds.length > 0
         ? supabase.from('controls').select('id, code, name, risk_level, domain_id').in('domain_id', domainIds).order('code')
@@ -109,6 +110,15 @@ export function useQuestionMapping(frameworkId: string | undefined) {
     return true
   }, [])
 
+  const setExpected = useCallback(async (questionId: string, expected: string | null): Promise<boolean> => {
+    const { data, error: e } = await supabase.functions.invoke('admin-question-controls', {
+      body: { action: 'set_expected', question_id: questionId, expected_answer: expected },
+    })
+    if (e || data?.error) { console.error('[mapping] set_expected:', await readInvokeError(e, data, 'Écriture impossible')); return false }
+    setQuestions((prev) => prev.map((q) => (q.id === questionId ? { ...q, expected_answer: expected } : q)))
+    return true
+  }, [])
+
   const generateSuggestions = useCallback(async (): Promise<{ suggestions: AiSuggestion[]; error?: string }> => {
     const { data, error: e } = await supabase.functions.invoke('admin-mapping-ai', { body: { framework_id: frameworkId } })
     if (e || data?.error) return { suggestions: [], error: await readInvokeError(e, data, 'Génération IA impossible') }
@@ -140,5 +150,5 @@ export function useQuestionMapping(frameworkId: string | undefined) {
     }
   }, [controls, questions, links])
 
-  return { questions, controls, links, coverage, loading, error, setLink, removeLink, generateSuggestions, reload: load }
+  return { questions, controls, links, coverage, loading, error, setLink, removeLink, setExpected, generateSuggestions, reload: load }
 }

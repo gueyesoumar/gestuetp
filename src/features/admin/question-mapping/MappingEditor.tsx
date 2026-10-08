@@ -11,12 +11,43 @@ interface MappingEditorProps {
   onSelect: (id: string) => void
   onSetWeight: (questionId: string, controlId: string, weight: number) => void
   onRemove: (questionId: string, controlId: string) => void
+  onSetExpected: (questionId: string, value: string | null) => void
   onAccept: (s: AiSuggestion) => void
 }
 
 const W_LABEL: Record<number, string> = { 1: 'Ctx', 2: 'Part.', 3: 'Preuve' }
 
-export function MappingEditor({ questions, controls, links, suggestions, selectedId, onSelect, onSetWeight, onRemove, onAccept }: MappingEditorProps) {
+/** Réponse attendue (conforme) d'une question — pilote la pré-suggestion de verdict. */
+function ExpectedAnswerField({ question, onSave }: { question?: MappingQuestion; onSave: (v: string | null) => void }) {
+  const [text, setText] = useState(question?.expected_answer ?? '')
+  if (!question) return null
+  const current = question.expected_answer ?? ''
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1.5">Réponse attendue (conforme)</p>
+      {question.question_type === 'boolean' ? (
+        <div className="inline-flex border border-gray-200 rounded-lg overflow-hidden bg-white">
+          {([['oui', 'Oui'], ['non', 'Non'], ['', 'Non défini']] as const).map(([v, label]) => (
+            <button key={label} type="button" onClick={() => onSave(v || null)}
+              className={`text-[11.5px] font-semibold px-3 py-1.5 border-l first:border-l-0 border-gray-200 ${current === v ? 'bg-forest-50 text-forest-700' : 'text-gray-500 hover:bg-gray-50'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Valeur conforme (ex. une option)…"
+            className="flex-1 text-[12px] border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white" />
+          <button type="button" onClick={() => onSave(text.trim() || null)} className="text-[11.5px] font-semibold text-forest-700 px-2 shrink-0">Définir</button>
+        </div>
+      )}
+      <p className="text-[10px] text-gray-400 mt-1.5">Une réponse différente de l&rsquo;attendu, sur un contrôle lié, signalera un écart probable en phase Travaux.</p>
+    </div>
+  )
+}
+
+export function MappingEditor({ questions, controls, links, suggestions, selectedId, onSelect, onSetWeight, onRemove, onSetExpected, onAccept }: MappingEditorProps) {
   const [search, setSearch] = useState('')
   const controlById = useMemo(() => new Map(controls.map((c) => [c.id, c])), [controls])
   const linkCount = useMemo(() => {
@@ -57,9 +88,15 @@ export function MappingEditor({ questions, controls, links, suggestions, selecte
           <p className="text-[12px] text-gray-400 italic">Sélectionnez une question.</p>
         ) : (
           <>
-            <p className="text-[13px] font-semibold text-gray-900 mb-3">{questions.find((x) => x.id === selectedId)?.text}</p>
+            <p className="text-[13px] font-semibold text-gray-900 mb-2">{questions.find((x) => x.id === selectedId)?.text}</p>
 
-            <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-2">Contrôles liés ({selectedLinks.length})</p>
+            <ExpectedAnswerField
+              key={selectedId}
+              question={questions.find((x) => x.id === selectedId)}
+              onSave={(v) => onSetExpected(selectedId, v)}
+            />
+
+            <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-2 mt-4">Contrôles liés ({selectedLinks.length})</p>
             {selectedLinks.length === 0 && <p className="text-[11px] text-gray-400 italic mb-2">Aucun contrôle lié.</p>}
             {selectedLinks.map((l) => {
               const c = controlById.get(l.control_id)

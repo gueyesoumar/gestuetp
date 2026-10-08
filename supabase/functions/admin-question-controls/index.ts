@@ -27,6 +27,17 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}))
     const action = String(body.action ?? '')
     const questionId = String(body.question_id ?? '')
+
+    // Réponse attendue (conforme) d'une question — pilote la pré-suggestion de verdict.
+    if (action === 'set_expected') {
+      if (!questionId) return jsonResponse({ error: 'question_id requis' }, 400)
+      const raw = body.expected_answer
+      const expected = raw == null || String(raw).trim() === '' ? null : String(raw).trim()
+      const { error } = await admin.from('questions').update({ expected_answer: expected }).eq('id', questionId)
+      if (error) { console.error('[admin-question-controls] set_expected:', error.message); return jsonResponse({ error: 'Écriture impossible' }, 500) }
+      return jsonResponse({ ok: true })
+    }
+
     const controlId = String(body.control_id ?? '')
     if (!questionId || !controlId) return jsonResponse({ error: 'question_id et control_id requis' }, 400)
 

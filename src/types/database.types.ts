@@ -492,6 +492,8 @@ export interface Question {
   sort_order: number
   prefill_source?: string | null
   show_if?: ShowIfCondition | null
+  /** Réponse qui indique la conformité (pré-suggestion de verdict). Null = pas de polarité. */
+  expected_answer?: string | null
   created_at: string
   updated_at: string
 }
