@@ -107,7 +107,7 @@ Une mission **réflexive** (`client_id === cabinet_id` — le sujet audité est 
 | C2 | Vocab N-preset data-driven + 3ᵉ preset | `lib/product.ts`, `lib/vocab-keys.ts`, `useVocab.ts` | **S/M** | — |
 | C3 | ↪️ **Replié dans C6** (décision §9.h) — capacité `client_portal` câblée via la chaîne entitlements (pas un insert direct), au moment de bâtir l'édition Entreprise | `org_entitlements` / produit→capacité, migration enum `org_capability` | **M** | C6 |
 | C4 | `review_depth` configurable (cascade full/short/none) | `mission-constants.ts`, cascade de validation, `MissionInternalReviewTab` | **M/L** | RFC 0003 |
-| C5 | `logo_tag` / route base configurables par org | `useVocab.ts`, `Sidebar.tsx`, `GestuLogo.tsx` | **S** | C2 |
+| C5 | ✅ **Fait (logo_tag)** — `logo_tag` surchargable par org (clé vocab éditable, validée, défaut = preset d'édition). **Route base laissée structurelle** (chemins en dur du registre ; l'édition Entreprise hérite des route bases audit-core — pas besoin de les rendre dynamiques) | `useVocab.ts`, `vocab-keys.ts` | **S** | C2 |
 | C6 | Kit/preset Entreprise + provisioning — **inclut** la capacité `client_portal` (ex-C3) câblée via les entitlements, le preset vocab Entreprise, et la dérivation réflexive par engagement | `editions` / produits-entitlements, enum `org_capability`, vocab preset, doc de provisioning | **M** | C1, C2, C4 |
 | C7 | Parcours auto-diagnostic (cadrage interne, sans invitation) | scoping (masquage portail/invite) | **M** | C3 |
 | C8 | ~~Hard gating~~ **différé (décision §9.e)** — masquage par capacité + RLS suffisent en v1 | — | — | RFC 0008 |

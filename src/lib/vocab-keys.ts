@@ -52,4 +52,5 @@ export const EDITABLE_VOCAB_KEYS: VocabKeyDef[] = [
   { key: 'portal_label', label: 'Libellé du portail', field: 'portalLabel', group: 'portal' },
   { key: 'context_banner', label: 'Bandeau de contexte', field: 'contextBanner', group: 'portal', hint: 'vide = pas de bandeau' },
   { key: 'context_banner_sub', label: 'Bandeau — sous-titre', field: 'contextBannerSub', group: 'portal' },
+  { key: 'logo_tag', label: 'Marque du logo', field: 'logoTag', group: 'portal', hint: 'variante de marque affichée (comply / regul) — vide = défaut de l’édition' },
 ]

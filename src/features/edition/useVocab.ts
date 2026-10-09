@@ -29,6 +29,12 @@ export function useVocab(): ProductVocab {
     entityWithDem: vocab.get('entity_with_dem') ?? base.entityWithDem,
     entityGender: gender('entity_gender', base.entityGender),
     portalLabel: vocab.get('portal_label') ?? base.portalLabel,
+    // logo_tag : surcharge white-label par org (RFC 0013 C5), validée sur les marques
+    // connues ; sinon on garde le défaut de l'édition (preset). Les route bases restent
+    // structurelles (chemins du registre) — volontairement non surchargeables ici.
+    logoTag: vocab.get('logo_tag') === 'comply' || vocab.get('logo_tag') === 'regul'
+      ? (vocab.get('logo_tag') as ProductVocab['logoTag'])
+      : base.logoTag,
     missionTerm: vocab.get('mission_term') ?? base.missionTerm,
     findingTerm: vocab.get('finding_term') ?? base.findingTerm,
     findingPlural: vocab.get('finding_plural') ?? base.findingPlural,
