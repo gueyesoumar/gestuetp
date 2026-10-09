@@ -28,6 +28,8 @@ export interface AppModule {
   key: string
   /** Activation basée UNIQUEMENT sur les capacités → utilisable par la nav ET le routing. */
   enabled: (has: (cap: Capability) => boolean) => boolean
+  /** Nom du produit « édition » correspondant dans le catalogue du Hub (tuile primaire). */
+  product?: string
   /** Items de nav principaux apportés par ce module. */
   nav?: (ctx: ModuleCtx) => NavItem[]
   /** Items de nav du bloc « Groupe ». */
@@ -41,6 +43,7 @@ export const APP_MODULES: AppModule[] = [
     // Monde « superviseur d'autrui » (Regul, et tout org avec la capacité supervision).
     key: 'supervision-core',
     enabled: (has) => has('supervision'),
+    product: 'Regul',
     nav: (c) => {
       const items: NavItem[] = [
         { to: '/assujettis', label: c.vocab.entitiesTitle, icon: <Building2 {...sz} /> },
@@ -56,6 +59,7 @@ export const APP_MODULES: AppModule[] = [
     // Monde « audit / conformité » (Cabinet, Entreprise) — absence de supervision.
     key: 'audit-core',
     enabled: (has) => !has('supervision'),
+    product: 'Comply',
     nav: (c) => {
       const items: NavItem[] = []
       if (c.canViewSupervision) items.push({ to: '/supervision', label: 'Supervision', icon: <ShieldCheck {...sz} /> })

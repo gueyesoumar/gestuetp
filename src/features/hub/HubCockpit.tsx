@@ -4,6 +4,7 @@ import type { User } from '../../types/database.types'
 import type { HubProduct } from '../../lib/hubProducts'
 import { useHubProducts } from './useHubProducts'
 import { useEdition } from '../edition/EditionContext'
+import { APP_MODULES } from '../edition/moduleRegistry'
 import { useHubPerspectives } from './useHubPerspectives'
 import type { HubPerspective } from './useHubPerspectives'
 import { HubTopBar } from './HubTopBar'
@@ -46,17 +47,25 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
   const navigate = useNavigate()
   const { hasCapability } = useEdition()
 
-  const primaryProduct = hasCapability('supervision') ? 'Regul' : 'Comply'
+  // Produit primaire + noms d'édition dérivés du REGISTRE de modules (RFC 0013 C1) —
+  // plus de binaire `supervision ? 'Regul' : 'Comply'`.
+  const primaryProduct = APP_MODULES.find((m) => m.enabled(hasCapability))?.product ?? 'Comply'
+  const editionProducts = useMemo(() => new Set(APP_MODULES.map((m) => m.product).filter(Boolean) as string[]), [])
   const hasRisk = hasCapability('risk')
   const hasPolicy = hasCapability('policy')
 
   const products = useMemo(
-    () => catalog.products.map((p) => {
-      if (p.name === 'Risk') return { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge }
-      if (p.name === 'Policy') return { ...p, active: hasPolicy, badge: hasPolicy ? 'Actif' : p.badge }
-      return p
-    }),
-    [catalog.products, hasRisk, hasPolicy],
+    () => catalog.products
+      // On ne montre PAS l'édition de l'autre monde (ex. tuile « Regul » pour une org
+      // Comply) : une édition n'est pas un produit à souscrire depuis le Hub. Seuls le
+      // monde primaire de l'org + les modules (Risk/Policy) restent.
+      .filter((p) => !editionProducts.has(p.name) || p.name === primaryProduct)
+      .map((p) => {
+        if (p.name === 'Risk') return { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge }
+        if (p.name === 'Policy') return { ...p, active: hasPolicy, badge: hasPolicy ? 'Actif' : p.badge }
+        return p
+      }),
+    [catalog.products, editionProducts, primaryProduct, hasRisk, hasPolicy],
   )
 
   const isEnterable = useCallback(
