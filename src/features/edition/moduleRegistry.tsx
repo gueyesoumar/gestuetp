@@ -59,9 +59,9 @@ export const APP_MODULES: AppModule[] = [
     },
   },
   {
-    // Monde « audit / conformité » (Cabinet, Entreprise) — absence de supervision.
+    // Monde « cabinet / audit » — audite des clients externes (a un portail tiers).
     key: 'audit-core',
-    enabled: (has) => !has('supervision'),
+    enabled: (has) => !has('supervision') && has('client_portal'),
     product: 'Comply',
     vocabPreset: 'comply',
     nav: (c) => {
@@ -72,12 +72,25 @@ export const APP_MODULES: AppModule[] = [
       items.push({ to: '/missions', label: c.vocab.missionTerm, icon: <ClipboardCheck {...sz} /> })
       return items
     },
-    group: (c) => c.isGroup
-      ? [
-          { to: '/filiales', label: 'Filiales', icon: <Building2 {...sz} /> },
-          { to: '/revues', label: 'Revues continues', icon: <RefreshCw {...sz} /> },
-          { to: '/plans-transverses', label: "Plans d'action", icon: <ListChecks {...sz} /> },
-        ]
-      : [],
+    group: (c) => c.isGroup ? GROUP_NAV : [],
   },
+  {
+    // Monde « entreprise » — gère sa PROPRE conformité : pas de supervision tierce,
+    // PAS de portail client (c'est ce qui le distingue du cabinet, RFC 0013 §11).
+    key: 'enterprise-core',
+    enabled: (has) => !has('supervision') && !has('client_portal'),
+    product: 'Comply',           // sous marque Comply (décision §9.a)
+    vocabPreset: 'entreprise',
+    nav: (c) => [
+      { to: '/referentiels', label: 'Référentiels', icon: <BookMarked {...sz} /> },
+      { to: '/missions', label: c.vocab.missionTerm, icon: <ClipboardCheck {...sz} /> }, // « Campagnes »
+    ],
+    group: (c) => c.isGroup ? GROUP_NAV : [],
+  },
+]
+
+const GROUP_NAV: NavItem[] = [
+  { to: '/filiales', label: 'Filiales', icon: <Building2 {...sz} /> },
+  { to: '/revues', label: 'Revues continues', icon: <RefreshCw {...sz} /> },
+  { to: '/plans-transverses', label: "Plans d'action", icon: <ListChecks {...sz} /> },
 ]
