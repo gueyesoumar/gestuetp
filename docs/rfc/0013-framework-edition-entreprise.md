@@ -105,10 +105,10 @@ Une mission **réflexive** (`client_id === cabinet_id` — le sujet audité est 
 |---|---|---|---|---|
 | C1 | ✅ **Fait** — Registre de modules + itération par capacités (remplace `isRegul`) | `features/edition/moduleRegistry.tsx` (nouv.), `App.tsx`, `useSidebarNav.tsx`, `HubCockpit.tsx` | **M** | — |
 | C2 | Vocab N-preset data-driven + 3ᵉ preset | `lib/product.ts`, `lib/vocab-keys.ts`, `useVocab.ts` | **S/M** | — |
-| C3 | Capacité `client_portal` + enum (relation externe dérivée, pas de `external_relationship`) | migration enum `org_capability`, `editions` seeds, points de consommation | **M** | C1 |
+| C3 | ↪️ **Replié dans C6** (décision §9.h) — capacité `client_portal` câblée via la chaîne entitlements (pas un insert direct), au moment de bâtir l'édition Entreprise | `org_entitlements` / produit→capacité, migration enum `org_capability` | **M** | C6 |
 | C4 | `review_depth` configurable (cascade full/short/none) | `mission-constants.ts`, cascade de validation, `MissionInternalReviewTab` | **M/L** | RFC 0003 |
 | C5 | `logo_tag` / route base configurables par org | `useVocab.ts`, `Sidebar.tsx`, `GestuLogo.tsx` | **S** | C2 |
-| C6 | Kit/preset Entreprise (données, sous marque Comply) + provisioning | `editions` (ligne), vocab preset, doc de provisioning | **S** | C1–C4 |
+| C6 | Kit/preset Entreprise + provisioning — **inclut** la capacité `client_portal` (ex-C3) câblée via les entitlements, le preset vocab Entreprise, et la dérivation réflexive par engagement | `editions` / produits-entitlements, enum `org_capability`, vocab preset, doc de provisioning | **M** | C1, C2, C4 |
 | C7 | Parcours auto-diagnostic (cadrage interne, sans invitation) | scoping (masquage portail/invite) | **M** | C3 |
 | C8 | ~~Hard gating~~ **différé (décision §9.e)** — masquage par capacité + RLS suffisent en v1 | — | — | RFC 0008 |
 
@@ -133,6 +133,7 @@ Complexité indicative : **S** ≈ 0,5–1 j, **M** ≈ 2–3 j, **L** ≈ 4–5
 | e | Hard gating | **Différé** — masquage par capacité + gardes de route + RLS suffisent en v1 ; le `hard` (RFC 0008) reste en réserve pour l'enforcement commercial. |
 | f | `external_relationship` | **Abandonnée** — redondante avec `client_portal` + `cabinet_id ≠ client_id`. On ne garde que `client_portal`. |
 | g | Org hybride (cabinet + sa propre conformité) | **Option A** : engagement **réflexif** dans la coquille Cabinet (`client_id === cabinet_id` → sans portail, revue courte), **pas de 2ᵉ édition**. `client_portal`/`review_depth` résolus **par engagement** (cf. §4.5). Org Entreprise distincte (option B) réservée aux séparations franches. |
+| h | Capacité `client_portal` (ex-C3) | **Repliée dans C6.** Diagnostic : `organization_capabilities` est une **projection destructive** de `org_entitlements` (`refresh_org_capabilities` supprime toute capacité non adossée à un entitlement actif). Un seed direct serait donc effacé → `client_portal` doit transiter par la chaîne entitlements (produit→capacité), ce qui ne se justifie qu'avec un vrai consommateur : l'édition Entreprise. On ne fait **pas** C3 en standalone. |
 
 ## 10. Hors scope
 - Le moteur de conformité (référentiels, contrôles, constats, preuves mutualisées, cadrage↔contrôles) — **inchangé**, partagé par les 3 éditions.
