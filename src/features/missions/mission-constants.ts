@@ -68,6 +68,9 @@ type MissionEngineInput = {
   kind?: MissionKindShort | null
   /** Snapshot des étapes désélectionnées, figé à la création (RFC 0009, INC 1). */
   workflow_disabled_steps?: string[] | null
+  /** Org auditée / org cabinet : si égales, mission réflexive → pas de validation client (RFC 0013 F3). */
+  client_id?: string | null
+  cabinet_id?: string | null
 } | null | undefined
 
 // Étapes désactivées IMPLICITEMENT par le moteur. Préserve le comportement
@@ -102,7 +105,11 @@ export function getMissionPhases(mission: MissionEngineInput): MissionPhase[] {
   const base = mission?.workflow_version === 'controle'
     ? CONTROLE_PHASES
     : mission?.kind === 'continuous_supervision' ? CONTINUOUS_SUPERVISION_PHASES : MISSION_PHASES
-  const disabled = missionDisabledSteps(mission)
+  // Mission réflexive (org qui s'audite : client = cabinet, cf missionPortal.isReflexiveMission)
+  // → retrait de « Validation client » comme le moteur Contrôle. Le reste du workflow saute
+  // l'étape via skipClientReview (useMissionProgress), menant la revue droit à la clôture (RFC 0013 F3).
+  const reflexive = mission?.client_id != null && mission.client_id === mission.cabinet_id
+  const disabled = reflexive ? [...missionDisabledSteps(mission), 'client_review'] : missionDisabledSteps(mission)
   return disabled.length === 0 ? base : base.filter((p) => !disabled.includes(p.key))
 }
 
