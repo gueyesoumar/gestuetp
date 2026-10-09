@@ -103,7 +103,7 @@ Une mission **réflexive** (`client_id === cabinet_id` — le sujet audité est 
 
 | # | Chantier | Fichiers principaux | Complexité | Dépend de |
 |---|---|---|---|---|
-| C1 | Registre de modules + itération par capacités (remplace `isRegul`) | `features/edition/moduleRegistry.ts` (nouv.), `App.tsx`, `useSidebarNav.tsx`, `HubCockpit.tsx` | **M** | — |
+| C1 | ✅ **Fait** — Registre de modules + itération par capacités (remplace `isRegul`) | `features/edition/moduleRegistry.tsx` (nouv.), `App.tsx`, `useSidebarNav.tsx`, `HubCockpit.tsx` | **M** | — |
 | C2 | Vocab N-preset data-driven + 3ᵉ preset | `lib/product.ts`, `lib/vocab-keys.ts`, `useVocab.ts` | **S/M** | — |
 | C3 | Capacité `client_portal` + enum (relation externe dérivée, pas de `external_relationship`) | migration enum `org_capability`, `editions` seeds, points de consommation | **M** | C1 |
 | C4 | `review_depth` configurable (cascade full/short/none) | `mission-constants.ts`, cascade de validation, `MissionInternalReviewTab` | **M/L** | RFC 0003 |
@@ -111,6 +111,8 @@ Une mission **réflexive** (`client_id === cabinet_id` — le sujet audité est 
 | C6 | Kit/preset Entreprise (données, sous marque Comply) + provisioning | `editions` (ligne), vocab preset, doc de provisioning | **S** | C1–C4 |
 | C7 | Parcours auto-diagnostic (cadrage interne, sans invitation) | scoping (masquage portail/invite) | **M** | C3 |
 | C8 | ~~Hard gating~~ **différé (décision §9.e)** — masquage par capacité + RLS suffisent en v1 | — | — | RFC 0008 |
+
+**Avancement** : **C1 livré** en 3 incréments validés sur staging — C1.1 nav (registre + `useSidebarNav`), C1.2 routes (`App.tsx`, modules actifs dérivés du registre), C1.3 Hub (produit primaire + filtrage de l'édition non-primaire → fin de la tuile cross-édition). `moduleRegistry.tsx` porte `enabled` (capacités), `nav`/`group` et `product`. Bonus : correctif du garde-fou de chargement (edLoading inclut l'auth) qui empêchait un refresh sur route gated de rediriger vers l'accueil. Les binaires `isRegul`/`primaryProduct` ont disparu du code.
 
 Complexité indicative : **S** ≈ 0,5–1 j, **M** ≈ 2–3 j, **L** ≈ 4–5 j. Le **cœur du framework = C1 + C2 + C3** (le reste est incrémental). `group_scope` (option) = ligne de capacité, le module existant est réutilisé. Aucun chantier ne touche le moteur de conformité (référentiels, contrôles, constats, preuves).
 
