@@ -35,8 +35,10 @@ export function MissionCreatePage() {
   const associateError = !f.associateId ? 'Associé requis.' : sameError
   const leadError = !f.leadAuditorId ? 'Chef de mission requis.' : sameError
 
-  const targetLabel = f.isSupervision ? 'Filiale' : 'Client'
-  const targetValue = f.isSupervision
+  const targetLabel = f.isReflexive ? 'Entité auditée' : f.isSupervision ? 'Filiale' : 'Client'
+  const targetValue = f.isReflexive
+    ? (f.selfOrgName || '—')
+    : f.isSupervision
     ? (f.selectedSubsidiary ? [f.selectedSubsidiary.name, f.selectedSubsidiary.sector].filter(Boolean).join(' · ') : '—')
     : (f.selectedClient ? `${f.selectedClient.client_name}${f.selectedClient.client_sector ? ` · ${f.selectedClient.client_sector}` : ''}` : '—')
 
@@ -71,27 +73,29 @@ export function MissionCreatePage() {
     content: <MissionTypeStep frameworks={f.frameworks} selectedFrameworkId={f.frameworkId} onSelect={f.setFrameworkId} />,
   })
 
-  // Cible : filiale (supervision continue) ou client (audit).
-  steps.push({
-    key: 'target',
-    label: targetLabel,
-    validate: () => f.targetSelected,
-    content: f.isSupervision ? (
-      <MissionSubsidiaryStep
-        subsidiaries={f.subsidiaries}
-        loading={f.subsLoading}
-        selectedSubsidiaryId={f.subsidiaryId}
-        onSelect={f.setSubsidiaryId}
-      />
-    ) : (
-      <MissionClientStep
-        clients={f.clients}
-        selectedClientId={f.clientId}
-        onSelect={f.setClientId}
-        onNewClient={() => setShowClientModal(true)}
-      />
-    ),
-  })
+  // Cible : self (Entreprise = pas d'étape), filiale (supervision continue) ou client (audit).
+  if (!f.isReflexive) {
+    steps.push({
+      key: 'target',
+      label: targetLabel,
+      validate: () => f.targetSelected,
+      content: f.isSupervision ? (
+        <MissionSubsidiaryStep
+          subsidiaries={f.subsidiaries}
+          loading={f.subsLoading}
+          selectedSubsidiaryId={f.subsidiaryId}
+          onSelect={f.setSubsidiaryId}
+        />
+      ) : (
+        <MissionClientStep
+          clients={f.clients}
+          selectedClientId={f.clientId}
+          onSelect={f.setClientId}
+          onNewClient={() => setShowClientModal(true)}
+        />
+      ),
+    })
+  }
 
   steps.push({
     key: 'scope',
@@ -183,7 +187,7 @@ export function MissionCreatePage() {
         totalDomains={f.domains.length}
         workflowTemplateId={f.workflowTemplateId}
         onChangeTemplate={f.setWorkflowTemplateId}
-        showConsent={!f.isSupervision}
+        showConsent={!f.isSupervision && !f.isReflexive}
         clientConsent={f.selectedClient?.ai_consent ?? null}
         aiConsentOverride={f.aiConsentOverride}
         onChangeConsentOverride={f.setAiConsentOverride}

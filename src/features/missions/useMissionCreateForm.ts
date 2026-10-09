@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useOrgRoles } from '../../hooks/useOrgRoles'
 import { isGroupOrg } from '../../lib/organization-utils'
+import { useEdition } from '../edition/EditionContext'
 import { useFrameworks } from '../frameworks/useFrameworks'
 import { useCabinetClients } from '../clients/useCabinetClients'
 import { useMembers } from '../members/useMembers'
@@ -18,6 +19,7 @@ import type { MissionKind } from '../../types/database.types'
  */
 export function useMissionCreateForm() {
   const { profile } = useAuth()
+  const { hasCapability } = useEdition()
   const { frameworks, loading: fwLoading } = useFrameworks()
   const { clients, loading: clientsLoading, refetch: refetchClients } = useCabinetClients()
   const { members, loading: membersLoading } = useMembers()
@@ -27,6 +29,7 @@ export function useMissionCreateForm() {
   const [kind, setKind] = useState<MissionKind>('audit')
   const [groupAvailable, setGroupAvailable] = useState(false)
   const [groupResolved, setGroupResolved] = useState(false)
+  const [selfOrgName, setSelfOrgName] = useState('')
   const [frameworkId, setFrameworkId] = useState('')
   const [clientId, setClientId] = useState('')
   const [subsidiaryId, setSubsidiaryId] = useState('')
@@ -43,6 +46,9 @@ export function useMissionCreateForm() {
   const [aiAnonymizeOverride, setAiAnonymizeOverride] = useState<boolean | null>(null)
 
   const isSupervision = kind === 'continuous_supervision'
+  // Édition Entreprise (RFC 0013 B5) : pas de portail client → l'org s'audite
+  // elle-même. Mission réflexive (client = cabinet), sans sélection de cible.
+  const isReflexive = !hasCapability('client_portal') && !isSupervision
 
   const startDate = useFieldValidation('', required('Date de début requise.'))
   const endDate = useFieldValidation('', (v) => {
@@ -72,13 +78,14 @@ export function useMissionCreateForm() {
     const ac = new AbortController()
     supabase
       .from('organizations')
-      .select('types')
+      .select('types, name')
       .eq('id', profile.organization_id)
       .abortSignal(ac.signal)
       .single()
       .then(({ data }) => {
         if (ac.signal.aborted) return
         if (data?.types && isGroupOrg({ types: data.types as string[] })) setGroupAvailable(true)
+        if (data?.name) setSelfOrgName(data.name as string)
         setGroupResolved(true)
       })
     return () => ac.abort()
@@ -87,9 +94,9 @@ export function useMissionCreateForm() {
   const selectedFramework = useMemo(() => frameworks.find((f) => f.id === frameworkId) ?? null, [frameworks, frameworkId])
   const selectedClient = useMemo(() => clients.find((c) => c.id === clientId) ?? null, [clients, clientId])
   const selectedSubsidiary = useMemo(() => subsidiaries.find((s) => s.id === subsidiaryId) ?? null, [subsidiaries, subsidiaryId])
-  // Cible de la mission : client (audit) ou filiale (supervision continue).
-  const targetName = isSupervision ? selectedSubsidiary?.name : selectedClient?.client_name
-  const targetSelected = isSupervision ? !!subsidiaryId : !!clientId
+  // Cible de la mission : self (Entreprise), filiale (supervision continue) ou client (audit).
+  const targetName = isReflexive ? selfOrgName : isSupervision ? selectedSubsidiary?.name : selectedClient?.client_name
+  const targetSelected = isReflexive ? true : isSupervision ? !!subsidiaryId : !!clientId
 
   const allControlIds = useMemo(() => domains.flatMap((d) => d.controls.map((c) => c.id)), [domains])
   const totalFrameworkControls = allControlIds.length
@@ -158,7 +165,7 @@ export function useMissionCreateForm() {
       createMission({
         name: missionName,
         description: '',
-        ...(isSupervision ? { assujetti_org_id: subsidiaryId } : { cabinet_client_id: clientId }),
+        ...(isReflexive ? { reflexive: true } : isSupervision ? { assujetti_org_id: subsidiaryId } : { cabinet_client_id: clientId }),
         framework_id: frameworkId,
         lead_auditor_id: leadAuditorId,
         associate_id: associateId,
@@ -171,12 +178,12 @@ export function useMissionCreateForm() {
         ai_consent_override: aiConsentOverride,
         ai_anonymize_override: aiAnonymizeOverride,
       }),
-    [missionName, isSupervision, subsidiaryId, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, workflowTemplateId, aiConsentOverride, aiAnonymizeOverride, createMission],
+    [missionName, isReflexive, isSupervision, subsidiaryId, clientId, frameworkId, leadAuditorId, associateId, startDate.value, endDate.value, allMemberIds, kind, scopeControlIds, workflowTemplateId, aiConsentOverride, aiAnonymizeOverride, createMission],
   )
 
   return {
     frameworks, clients, members, subsidiaries, subsLoading, domains, domainsLoading, loading, creating, refetchClients,
-    kind, setKind, groupAvailable, isSupervision, frameworkId, setFrameworkId,
+    kind, setKind, groupAvailable, isSupervision, isReflexive, selfOrgName, frameworkId, setFrameworkId,
     clientId, setClientId, subsidiaryId, setSubsidiaryId,
     missionName, onMissionName, associateId, setAssociateId, leadAuditorId, setLeadAuditorId,
     memberIds, toggleMember, scopeControlIds, toggleControl, toggleDomain, startDate, endDate,

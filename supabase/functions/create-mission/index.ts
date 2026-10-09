@@ -12,6 +12,8 @@ interface CreateMissionPayload {
   cabinet_client_id?: string
   /** Chemin Regul : organisation assujettie (entité du sous-arbre régulateur). */
   assujetti_org_id?: string
+  /** Chemin Entreprise / auto-évaluation : l'org s'audite elle-même (client = cabinet). */
+  reflexive?: boolean
   framework_id: string
   lead_auditor_id: string
   associate_id: string
@@ -100,7 +102,7 @@ Deno.serve(async (req) => {
     } = body
     const kind: MissionKind = body.kind === 'continuous_supervision' ? 'continuous_supervision' : 'audit'
 
-    if (!name || !framework_id || !lead_auditor_id || !associate_id || !start_date || !end_date || (!cabinet_client_id && !body.assujetti_org_id)) {
+    if (!name || !framework_id || !lead_auditor_id || !associate_id || !start_date || !end_date || (!cabinet_client_id && !body.assujetti_org_id && !body.reflexive)) {
       return new Response(
         JSON.stringify({ error: 'Champs requis manquants' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -159,7 +161,14 @@ Deno.serve(async (req) => {
     // 4-5. Résoudre l'organisation cible (client audité).
     let clientOrgId: string | null = null
 
-    if (body.assujetti_org_id) {
+    if (body.reflexive) {
+      // Chemin Entreprise / auto-évaluation (RFC 0013 B5) : l'org s'audite elle-même.
+      // client_id = cabinet_id = org de l'appelant → mission réflexive (pas de portail,
+      // pas de validation client). Aucun risque cross-tenant : la cible EST l'org de
+      // l'appelant, déjà porteuse de can_create_mission. Le trigger de graphe (00213)
+      // saute l'arête cabinet↔client quand les deux sont égaux.
+      clientOrgId = callerProfile.organization_id
+    } else if (body.assujetti_org_id) {
       // Chemin Regul : l'assujetti est une organisation entité. Cloisonnement —
       // il doit appartenir au sous-arbre du régulateur appelant (get_subsidiary_ids
       // récursif, SECURITY DEFINER). Pas de fiche cabinet_clients requise.
