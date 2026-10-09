@@ -1706,6 +1706,7 @@ type Rec = Record<string, unknown>
 export type Capability =
   | 'comply' | 'risk' | 'policy' | 'privacy'
   | 'awareness' | 'incidents' | 'measures' | 'supervision'
+  | 'client_portal'
 export type CapabilityStatus = 'active' | 'trial' | 'disabled'
 
 // Catalogue produits (RFC 0006, migration 00198). Lecture seule côté front
