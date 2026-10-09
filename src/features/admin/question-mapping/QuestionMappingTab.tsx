@@ -80,6 +80,7 @@ export function QuestionMappingTab({ frameworkId }: { frameworkId: string }) {
           onSetWeight={setWeight}
           onRemove={remove}
           onSetExpected={(q, v) => { void m.setExpected(q, v) }}
+          onSetScopeExclude={(q, v) => { void m.setScopeExclude(q, v) }}
           onAccept={accept}
         />
       ) : (

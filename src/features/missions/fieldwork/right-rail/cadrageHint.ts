@@ -1,6 +1,9 @@
 import type { CadrageAnswer } from './useControlContext'
 
 /** Normalise une réponse pour comparer attendu vs obtenu (booléens, oui/non, texte). */
+export function normalizeAnswer(v: unknown): string {
+  return normalize(v)
+}
 function normalize(v: unknown): string {
   if (typeof v === 'boolean') return v ? 'oui' : 'non'
   let s = String(v ?? '').trim().toLowerCase()

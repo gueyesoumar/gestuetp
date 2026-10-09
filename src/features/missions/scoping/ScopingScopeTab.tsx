@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Target } from 'lucide-react'
+import { Target, AlertTriangle } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
+import { useCadrageScopeSuggestions } from './useCadrageScopeSuggestions'
 import type { MissionDetail } from '../useMissionDetail'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { MissionExclusion, CabinetClient } from '../../../types/database.types'
@@ -20,6 +21,16 @@ export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExc
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
   const excludedCount = excludedControlIds.size
   const includedCount = totalControls - excludedCount
+
+  const controlById = useMemo(() => {
+    const m = new Map<string, { code: string; name: string }>()
+    for (const d of domains) for (const c of d.controls) m.set(c.id, { code: c.code, name: c.name })
+    return m
+  }, [domains])
+  const { suggestions: scopeSuggestions } = useCadrageScopeSuggestions(mission.id)
+  const pendingScope = scopeSuggestions.filter((s) => !excludedControlIds.has(s.control_id) && controlById.has(s.control_id))
+  const excludeFor = (s: { control_id: string; question_text: string }): void =>
+    onAddExclusion(s.control_id, `Suggéré par le cadrage : ${s.question_text}`.slice(0, 200))
 
   const objectives = useMemo(() => generateObjectives(mission, client), [mission, client])
 
@@ -46,6 +57,34 @@ export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExc
           ))}
         </div>
       </div>
+
+      {/* L4 : exclusions suggérées par le cadrage */}
+      {pendingScope.length > 0 && (
+        <div className="bg-gold-50 border border-gold-300 rounded-xl p-4">
+          <p className="text-[13px] font-semibold text-gold-800 mb-1 flex items-center gap-2">
+            <AlertTriangle size={15} /> Le cadrage sugg&egrave;re d&rsquo;exclure {pendingScope.length} contr&ocirc;le{pendingScope.length > 1 ? 's' : ''}
+          </p>
+          <p className="text-[11px] text-gold-700 mb-3">D&rsquo;apr&egrave;s les r&eacute;ponses du client, ces contr&ocirc;les semblent hors p&eacute;rim&egrave;tre. Validez l&rsquo;exclusion.</p>
+          <div className="space-y-1.5">
+            {pendingScope.map((s) => {
+              const c = controlById.get(s.control_id)!
+              return (
+                <div key={s.control_id} className="flex items-center gap-2 bg-white border border-gold-200 rounded-lg px-3 py-2">
+                  <span className="font-mono text-[11px] font-bold text-forest-700 shrink-0">{c.code}</span>
+                  <span className="text-[12px] text-gray-700 flex-1 min-w-0 truncate" title={c.name}>{c.name}</span>
+                  <span className="text-[10px] text-gray-400 shrink-0 hidden sm:inline" title={s.question_text}>cadrage : {s.question_code}</span>
+                  <button type="button" disabled={saving} onClick={() => excludeFor(s)}
+                    className="text-[11px] font-semibold text-gold-700 hover:text-gold-900 shrink-0 disabled:opacity-50">Exclure</button>
+                </div>
+              )
+            })}
+          </div>
+          {pendingScope.length > 1 && (
+            <button type="button" disabled={saving} onClick={() => pendingScope.forEach(excludeFor)}
+              className="mt-2.5 text-[11px] font-semibold text-gold-800 underline disabled:opacity-50">Tout exclure</button>
+          )}
+        </div>
+      )}
 
       {/* Scope: controls by domain */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">

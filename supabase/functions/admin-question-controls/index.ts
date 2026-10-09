@@ -38,6 +38,16 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true })
     }
 
+    // Valeur de réponse qui place les contrôles liés hors périmètre (cadrage → périmètre).
+    if (action === 'set_scope_exclude') {
+      if (!questionId) return jsonResponse({ error: 'question_id requis' }, 400)
+      const raw = body.scope_exclude_value
+      const val = raw == null || String(raw).trim() === '' ? null : String(raw).trim()
+      const { error } = await admin.from('questions').update({ scope_exclude_value: val }).eq('id', questionId)
+      if (error) { console.error('[admin-question-controls] set_scope_exclude:', error.message); return jsonResponse({ error: 'Écriture impossible' }, 500) }
+      return jsonResponse({ ok: true })
+    }
+
     const controlId = String(body.control_id ?? '')
     if (!questionId || !controlId) return jsonResponse({ error: 'question_id et control_id requis' }, 400)
 
