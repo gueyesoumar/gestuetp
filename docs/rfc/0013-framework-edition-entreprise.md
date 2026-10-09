@@ -165,11 +165,11 @@ Complexité indicative : **S** ≈ 0,5–1 j, **M** ≈ 2–3 j, **L** ≈ 4–5
 ### 11.3 Ordre & vérification
 `B1→B2→B3→B4` (le portail devient une capacité, **zéro régression**, à tester) → `B5` + `F1→F2→F3→F4→F5` → **org pilote Entreprise** (grant) testée sur snayz : elle voit le monde Entreprise, pas de portail, revue courte ; une org Comply reste inchangée.
 
-### 11.4 Décisions ouvertes (à trancher au démarrage de C6)
-- **i.** `client_portal` = baseline gratuite (attachée Comply/Regul) **ou** entitlement payant ? *(reco : baseline).*
-- **j.** Entreprise = nouveau plan catalogue **ou** grant manuel d'un bundle pour les pilotes ? *(reco : grant manuel d'abord).*
-- **k.** « Campagnes » = missions réflexives (`moteur contrôle`, sujet = soi) **ou** nouveau type d'unité de travail ? *(reco : réutiliser les missions).*
-- **l.** `review_depth` : nouvelle colonne org + résolution par mission (comme `workflow_version`) — confirmer.
+### 11.4 Décisions actées (C6)
+- **i.** `client_portal` = **baseline gratuite**, attachée aux produits Comply/Regul (propriété du monde superviseur, **pas** un module vendu).
+- **j.** Entreprise (pilotes) = **grant manuel** d'un bundle (`comply + risk + policy`) via `admin-entitlement` ; un plan catalogue « Entreprise » viendra plus tard.
+- **k.** « Campagnes » = **missions réflexives** (moteur `controle`, sujet = soi) — on **réutilise les missions**, aucun nouveau type d'unité de travail.
+- **l.** `review_depth` = **nouvelle colonne org** (`full | short | none`) + **résolution par mission** (comme `workflow_version`) ; Entreprise = `short` (pas d'étape `client_review`).
 
 ---
 
