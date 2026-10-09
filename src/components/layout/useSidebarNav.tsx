@@ -1,25 +1,18 @@
-import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ShieldCheck, Building2, RefreshCw, ListChecks, ClipboardCheck, AlertTriangle, Siren, LayoutDashboard, FileText, Users, BookMarked } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
+import { APP_MODULES, type ModuleCtx, type NavItem } from '../../features/edition/moduleRegistry'
 
-export interface NavItem {
-  to: string
-  label: string
-  icon: ReactNode
-  /** Force une correspondance exacte pour l'état actif (index d'un workspace). */
-  end?: boolean
-}
+export type { NavItem }
 
 /**
- * Nav du shell unifié dérivée AU RUNTIME de l'édition + des capacités (RFC 0001).
- * - Comply : Supervision (perm groupe) / Clients / Référentiels / Missions — inchangé.
- * - Regul  : Assujettis / Contrôles / Constats & mesures / Incidents / Référentiels,
- *   chaque module gated par sa capacité (`measures`, `incidents`).
- * Le module Groupe (filiales/revues/plans) reste réservé à Comply-groupe.
+ * Nav du shell unifié, dérivée AU RUNTIME des capacités via le registre de modules
+ * (`moduleRegistry`, RFC 0013 C1) — plus de binaire `isRegul`. Le dashboard d'accueil
+ * et les items de nav de chaque monde sont fournis par les modules activés.
+ * Les workspaces dédiés Risk / Policy gardent leur sous-nav propre (ci-dessous).
  */
 export function useSidebarNavItems(
   organizationId: string | null | undefined,
@@ -28,7 +21,6 @@ export function useSidebarNavItems(
   const vocab = useVocab()
   const { canViewSupervision } = useGroupPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
-  const isRegul = hasCapability('supervision')
   const { pathname } = useLocation()
 
   // Workspace dédié Gëstu Risk : sous /risque, la barre latérale bascule sur la
@@ -54,45 +46,14 @@ export function useSidebarNavItems(
     }
   }
 
+  const ctx: ModuleCtx = { has: hasCapability, vocab, canViewSupervision, isGroup }
+  const active = APP_MODULES.filter((m) => m.enabled(ctx))
+
   const mainItems: NavItem[] = [
     { to: '/', label: 'Tableau de bord', icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
+    ...active.flatMap((m) => m.nav?.(ctx) ?? []),
   ]
-
-  if (isRegul) {
-    mainItems.push({ to: '/assujettis', label: vocab.entitiesTitle, icon: <Building2 size={20} strokeWidth={1.5} /> })
-    mainItems.push({ to: '/controles', label: vocab.missionTerm, icon: <ClipboardCheck size={20} strokeWidth={1.5} /> })
-    if (hasCapability('measures')) {
-      mainItems.push({ to: '/constats', label: 'Constats & mesures', icon: <AlertTriangle size={20} strokeWidth={1.5} /> })
-    }
-    if (hasCapability('incidents')) {
-      mainItems.push({ to: '/incidents', label: 'Incidents', icon: <Siren size={20} strokeWidth={1.5} /> })
-    }
-    mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={20} strokeWidth={1.5} /> })
-  } else {
-    if (canViewSupervision) {
-      mainItems.push({ to: '/supervision', label: 'Supervision', icon: <ShieldCheck size={20} strokeWidth={1.5} /> })
-    }
-    mainItems.push({ to: '/clients', label: 'Clients', icon: <Users size={20} strokeWidth={1.5} /> })
-    mainItems.push({ to: '/referentiels', label: 'Référentiels', icon: <BookMarked size={20} strokeWidth={1.5} /> })
-    mainItems.push({ to: '/missions', label: vocab.missionTerm, icon: <ClipboardCheck size={20} strokeWidth={1.5} /> })
-  }
-
-  // Gëstu Risk (RFC 0004) et Policy (RFC 0005) sont des PRODUITS du Hub à part
-  // entière (comme Comply/Regul), avec leur propre interface (workspace dédié sous
-  // /risque et /politiques). On y accède UNIQUEMENT depuis le Hub (cockpit) après
-  // souscription (capacité `risk`/`policy`) — jamais comme un item de nav à
-  // l'intérieur d'un autre produit. Donc aucune entrée in-produit ici.
-
-  // Piste d'audit : plus d'entrée dédiée ici — elle vit dans le hub Organisation
-  // (onglet Piste d'audit). /piste-audit redirige vers cet onglet.
-
-  const groupItems: NavItem[] = !isRegul && isGroup
-    ? [
-        { to: '/filiales', label: 'Filiales', icon: <Building2 size={20} strokeWidth={1.5} /> },
-        { to: '/revues', label: 'Revues continues', icon: <RefreshCw size={20} strokeWidth={1.5} /> },
-        { to: '/plans-transverses', label: "Plans d'action", icon: <ListChecks size={20} strokeWidth={1.5} /> },
-      ]
-    : []
+  const groupItems: NavItem[] = active.flatMap((m) => m.group?.(ctx) ?? [])
 
   return { mainItems, groupItems }
 }
