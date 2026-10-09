@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
+import { APP_MODULES } from './features/edition/moduleRegistry'
 import { MfaGate } from './features/auth/mfa/MfaGate'
 import { PasswordExpiryGate } from './features/auth/PasswordExpiryGate'
 import { OnboardingWelcome } from './features/onboarding/OnboardingWelcome'
@@ -84,7 +85,9 @@ import { AssujettiIncidentsPage } from './features/regul/incidents/AssujettiInci
 // est partagé. Pré-auth : capacités vides → Comply (comme le déploiement principal).
 function AppRoutes(): JSX.Element {
   const { hasCapability, loading: edLoading } = useEdition()
-  const isRegul = hasCapability('supervision')
+  // Modules actifs dérivés des CAPACITÉS via le registre (RFC 0013 C1) — plus de binaire isRegul.
+  const activeKeys = new Set(APP_MODULES.filter((m) => m.enabled(hasCapability)).map((m) => m.key))
+  const isSupervision = activeKeys.has('supervision-core')
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -102,7 +105,7 @@ function AppRoutes(): JSX.Element {
           </ProtectedRoute>
         }
       >
-        <Route index element={edLoading ? <FullscreenLoader /> : isRegul ? <RegulDashboard /> : <DashboardPage />} />
+        <Route index element={edLoading ? <FullscreenLoader /> : isSupervision ? <RegulDashboard /> : <DashboardPage />} />
         <Route path="compte" element={<AccountPage />} />
         <Route path="profil" element={<Navigate to="/compte" replace />} />
         <Route path="notifications" element={<NotificationsPage />} />
@@ -114,7 +117,7 @@ function AppRoutes(): JSX.Element {
         <Route path="politiques" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />
         <Route path="politiques/couverture" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyCoveragePage /> : <Navigate to="/" replace />} />
         <Route path="aide" element={<SupportCenterPage />} />
-        {isRegul ? (
+        {isSupervision && (
           <>
             <Route path="referentiels" element={<RegulReferentielsPage />} />
             <Route path="assujettis" element={<SubsidiariesPage />} />
@@ -125,7 +128,8 @@ function AppRoutes(): JSX.Element {
             <Route path="constats" element={<RegulMeasuresPage />} />
             <Route path="incidents" element={<RegulIncidentsPage />} />
           </>
-        ) : (
+        )}
+        {!isSupervision && (
           <>
             <Route path="referentiels" element={<FrameworksPage />} />
             <Route path="referentiels/comparer" element={<FrameworkComparisonPage />} />
@@ -187,7 +191,7 @@ function AppRoutes(): JSX.Element {
         <Route index element={<ClientDashboardPage />} />
         <Route path="missions" element={<ClientMissionsPage />} />
         <Route path="missions/:id" element={<ClientMissionDetailPage />} />
-        {isRegul && <Route path="incidents" element={<AssujettiIncidentsPage />} />}
+        {isSupervision && <Route path="incidents" element={<AssujettiIncidentsPage />} />}
         <Route path="documents" element={<ClientDocumentsPage />} />
         <Route path="notifications" element={<ClientNotificationsPage />} />
         <Route path="aide" element={<ClientSupportCenterPage />} />

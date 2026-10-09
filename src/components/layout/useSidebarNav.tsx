@@ -47,7 +47,7 @@ export function useSidebarNavItems(
   }
 
   const ctx: ModuleCtx = { has: hasCapability, vocab, canViewSupervision, isGroup }
-  const active = APP_MODULES.filter((m) => m.enabled(ctx))
+  const active = APP_MODULES.filter((m) => m.enabled(hasCapability))
 
   const mainItems: NavItem[] = [
     { to: '/', label: 'Tableau de bord', icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
