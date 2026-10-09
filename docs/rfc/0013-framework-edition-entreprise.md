@@ -142,4 +142,35 @@ Complexité indicative : **S** ≈ 0,5–1 j, **M** ≈ 2–3 j, **L** ≈ 4–5
 
 ---
 
+## 11. Plan d'exécution C6 (édition Entreprise)
+
+**Pré-requis acquis** : C1 (registre), C2 (vocab N-preset), C5 (logo_tag). **Réalité du modèle** : les capacités ne sont plus provisionnées par « édition » (legacy 00160) mais **projetées depuis `org_entitlements`** — `refresh_org_capabilities` est **destructif** (supprime toute capacité sans entitlement actif adossé). Il n'existe **aucun setter d'édition admin** ; le levier réel = catalogue produits (`product_capability`) + grant (`admin-entitlement`).
+
+**Principe** : Entreprise = **un bundle de capacités** (`comply + risk + policy`, **sans** `supervision` **ni** `client_portal`). Ce qui **distingue Cabinet d'Entreprise** (tous deux `!supervision`) = la **présence/absence de `client_portal`**.
+
+### 11.1 Backend (testé sur snayz à chaque étape)
+- **B1 — enum** : migration *seule* `alter type org_capability add value if not exists 'client_portal'` (contrainte PG : usage impossible dans la txn d'ajout).
+- **B2 — type front** : `Capability += 'client_portal'` (database.types.ts).
+- **B3 — câblage catalogue** : attacher `client_portal` aux **produits du monde superviseur** (Comply + Regul) via `product_capability`. `client_portal` est une capacité **baseline** (propriété du monde, pas un module vendu).
+- **B4 — backfill (anti-régression)** : donner à **toutes les orgs actuelles** (comply/regul) un entitlement `client_portal` (`source='manual'` pour survivre à la projection), puis `refresh_org_capabilities`. **Idempotent.** Sans B4 → le portail disparaît partout. ⚠️ étape critique à vérifier : une org Comply garde `hasCapability('client_portal') = true`.
+- **B5 — bundle Entreprise** : définir l'offre (plan/produit = `comply + risk + policy`, **sans** `supervision`/`client_portal`). Pour les pilotes : **grant manuel** du bundle via `admin-entitlement` (un plan catalogue « Entreprise » plus tard).
+
+### 11.2 Frontend (dépend de B3/B4/B5)
+- **F1 — module registre `enterprise-core`** : `enabled = !has('supervision') && !has('client_portal')`, placé **avant** `audit-core` ; et `audit-core.enabled` devient `!has('supervision') && has('client_portal')`. Chaque monde reste mutuellement exclusif. `enterprise-core` porte `vocabPreset:'entreprise'`, `product:'Comply'` (marque §9.a), sa nav (Campagnes/Risque/Politiques), ses routes (campagnes = engagements réflexifs sur soi).
+- **F2 — 3ᵉ preset vocab** `entreprise` dans `VOCAB_PRESETS` (entité/service, campagne, contrôleur interne, plan d'action, portail ∅).
+- **F3 — `review_depth`** (C4) : réglage org `full|short|none` (colonne org + résolution par mission, comme `workflow_version`) ; Entreprise = `short` → masquer l'étape `client_review`.
+- **F4 — cadrage auto-diagnostic** : masquer l'invitation portail quand `!client_portal` **ou** engagement réflexif ; le questionnaire se remplit en interne.
+- **F5 — garde-fou réflexif** par engagement (`client_id === cabinet_id` → sans portail), sert aussi le cas hybride cabinet (§9.g).
+
+### 11.3 Ordre & vérification
+`B1→B2→B3→B4` (le portail devient une capacité, **zéro régression**, à tester) → `B5` + `F1→F2→F3→F4→F5` → **org pilote Entreprise** (grant) testée sur snayz : elle voit le monde Entreprise, pas de portail, revue courte ; une org Comply reste inchangée.
+
+### 11.4 Décisions ouvertes (à trancher au démarrage de C6)
+- **i.** `client_portal` = baseline gratuite (attachée Comply/Regul) **ou** entitlement payant ? *(reco : baseline).*
+- **j.** Entreprise = nouveau plan catalogue **ou** grant manuel d'un bundle pour les pilotes ? *(reco : grant manuel d'abord).*
+- **k.** « Campagnes » = missions réflexives (`moteur contrôle`, sujet = soi) **ou** nouveau type d'unité de travail ? *(reco : réutiliser les missions).*
+- **l.** `review_depth` : nouvelle colonne org + résolution par mission (comme `workflow_version`) — confirmer.
+
+---
+
 **En une phrase** : on **finit la généralisation amorcée par RFC 0002** (binaire→registre, vocab N-preset, capacités de delta), ce qui transforme « édition » en pur **preset de provisioning** ; l'édition **Entreprise** devient alors une **configuration**, pas un produit à part — et chaque utilisateur n'entre que dans le monde de son org.
