@@ -2136,7 +2136,7 @@ export interface Database {
       documents: {
         Row: Document & Rec
         Insert: DocumentInsert & Rec
-        Update: never & Rec
+        Update: Partial<DocumentInsert> & Rec
         Relationships: []
       }
       comments: {

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
-import { FileCheck2, FileWarning, Share2, FilePlus2, Upload } from 'lucide-react'
+import { FileCheck2, FileWarning, Share2, FilePlus2, Upload, Paperclip } from 'lucide-react'
 import { useControlExpectedEvidence, type ExpectedEvidence } from './useControlExpectedEvidence'
+import { useCadrageDocumentsForControl } from './useCadrageDocumentsForControl'
 
 interface ExpectedEvidenceSectionProps {
   missionId: string
@@ -18,11 +19,19 @@ interface ExpectedEvidenceSectionProps {
  */
 export function ExpectedEvidenceSection({ missionId, controlId, onCreateFinding, onUpload, uploading }: ExpectedEvidenceSectionProps) {
   const { items, loading, refetch } = useControlExpectedEvidence(missionId, controlId)
+  const cadrage = useCadrageDocumentsForControl(missionId, controlId)
   const fileRef = useRef<HTMLInputElement>(null)
   const [pending, setPending] = useState<ExpectedEvidence | null>(null)
 
   if (loading || items.length === 0) return null
   const covered = items.filter((i) => i.fulfilled).length
+
+  // L3 : rattacher un document déjà fourni au cadrage comme preuve de ce contrôle.
+  const useFromCadrage = async (item: ExpectedEvidence, docId: string): Promise<void> => {
+    if (!item.evidenceItemId) return
+    const ok = await cadrage.attach(docId, item.evidenceItemId)
+    if (ok) { cadrage.refetch(); setTimeout(() => refetch(), 300) }
+  }
 
   const pickFor = (item: ExpectedEvidence): void => {
     setPending(item)
@@ -79,6 +88,23 @@ export function ExpectedEvidenceSection({ missionId, controlId, onCreateFinding,
                   </button>
                 )}
               </div>
+              {/* L3 : documents déjà fournis au cadrage, réutilisables comme preuve. */}
+              {!it.fulfilled && it.evidenceItemId && cadrage.docs.length > 0 && (
+                <div className="mt-1.5 rounded-md bg-forest-50/60 border border-forest-100 px-2 py-1.5">
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-forest-700 mb-1">Depuis le cadrage</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cadrage.docs.map((d) => (
+                      <button key={d.id} type="button" onClick={() => void useFromCadrage(it, d.id)}
+                        title={`Fourni au cadrage (${d.question_code}) — utiliser comme preuve`}
+                        className="inline-flex items-center gap-1 text-[10px] font-medium text-forest-700 bg-white border border-forest-200 rounded px-1.5 py-0.5 hover:bg-forest-100 max-w-full">
+                        <Paperclip size={9} className="shrink-0" />
+                        <span className="truncate max-w-[140px]">{d.file_name}</span>
+                        <span className="font-semibold shrink-0">&middot; Utiliser</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </li>
         ))}
