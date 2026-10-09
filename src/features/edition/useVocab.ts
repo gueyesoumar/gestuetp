@@ -1,5 +1,6 @@
 import { useEdition } from './EditionContext'
-import { vocabForPersona, type ProductVocab } from '../../lib/product'
+import { APP_MODULES } from './moduleRegistry'
+import { vocabForPreset, type ProductVocab } from '../../lib/product'
 
 // Vocabulaire résolu par l'ÉDITION au runtime (Phase 2 — incrément 2).
 //
@@ -8,7 +9,9 @@ import { vocabForPersona, type ProductVocab } from '../../lib/product'
 // la résolution superviseur). Le produit n'est plus un fork de build.
 export function useVocab(): ProductVocab {
   const { hasCapability, vocab } = useEdition()
-  const base = vocabForPersona(hasCapability('supervision'))
+  // Preset de base choisi par le module-cœur actif (RFC 0013 C2), repli « comply ».
+  const preset = APP_MODULES.find((m) => m.enabled(hasCapability))?.vocabPreset ?? 'comply'
+  const base = vocabForPreset(preset)
   // Overrides par org (RFC 0002, P1) : seuls les LIBELLÉS sont personnalisables ;
   // entityRouteBase et logoTag restent structurels (issus de l'édition). Vide au
   // départ → base inchangée (iso-fonctionnel).

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { readInvokeError } from '../../lib/edgeError'
-import { vocabForPersona } from '../../lib/product'
+import { vocabForPreset } from '../../lib/product'
 import { EDITABLE_VOCAB_KEYS, VOCAB_GROUPS, type VocabKeyDef, type VocabGroupId } from '../../lib/vocab-keys'
 import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -39,7 +39,7 @@ export function TerminologyEditor({ orgId }: TerminologyEditorProps): JSX.Elemen
     return () => { on = false }
   }, [orgId])
 
-  const defaults = vocabForPersona(persona === 'regul')
+  const defaults = vocabForPreset(persona)
   const byKey = useMemo(() => new Map(EDITABLE_VOCAB_KEYS.map((k) => [k.key, k])), [])
   const get = (key: string): string => (values[key]?.trim() || String(defaults[byKey.get(key)!.field]))
   const customCount = (g: VocabGroupId) => EDITABLE_VOCAB_KEYS.filter((k) => k.group === g && (values[k.key] ?? '').trim() !== '').length

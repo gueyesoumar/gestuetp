@@ -67,7 +67,10 @@ export interface ProductVocab {
   clientViewerTerm: string
 }
 
-const VOCAB: Record<ProductMode, ProductVocab> = {
+// Presets de vocabulaire, nommés et data-driven (RFC 0013 C2) : ajouter une édition
+// (ex. « entreprise ») = une entrée ici, plus un booléen de persona. La résolution
+// choisit le preset via le module-cœur actif (moduleRegistry.vocabPreset).
+export const VOCAB_PRESETS: Record<string, ProductVocab> = {
   comply: {
     entitySingular: 'entité',
     entityPlural: 'entités',
@@ -130,6 +133,7 @@ const VOCAB: Record<ProductMode, ProductVocab> = {
 
 /** Défauts de vocab résolus par la PERSONA (capacité supervision) — RFC 0002/0006.
  *  Le front ne lit plus l'édition (supprimée en C+P3). */
-export function vocabForPersona(hasSupervision: boolean): ProductVocab {
-  return hasSupervision ? VOCAB.regul : VOCAB.comply
+/** Vocabulaire de base d'un preset nommé (repli sur « comply » si inconnu). */
+export function vocabForPreset(preset: string): ProductVocab {
+  return VOCAB_PRESETS[preset] ?? VOCAB_PRESETS.comply
 }

@@ -30,6 +30,8 @@ export interface AppModule {
   enabled: (has: (cap: Capability) => boolean) => boolean
   /** Nom du produit « édition » correspondant dans le catalogue du Hub (tuile primaire). */
   product?: string
+  /** Clé du preset de vocabulaire de ce monde (RFC 0013 C2), repli « comply ». */
+  vocabPreset?: string
   /** Items de nav principaux apportés par ce module. */
   nav?: (ctx: ModuleCtx) => NavItem[]
   /** Items de nav du bloc « Groupe ». */
@@ -44,6 +46,7 @@ export const APP_MODULES: AppModule[] = [
     key: 'supervision-core',
     enabled: (has) => has('supervision'),
     product: 'Regul',
+    vocabPreset: 'regul',
     nav: (c) => {
       const items: NavItem[] = [
         { to: '/assujettis', label: c.vocab.entitiesTitle, icon: <Building2 {...sz} /> },
@@ -60,6 +63,7 @@ export const APP_MODULES: AppModule[] = [
     key: 'audit-core',
     enabled: (has) => !has('supervision'),
     product: 'Comply',
+    vocabPreset: 'comply',
     nav: (c) => {
       const items: NavItem[] = []
       if (c.canViewSupervision) items.push({ to: '/supervision', label: 'Supervision', icon: <ShieldCheck {...sz} /> })
