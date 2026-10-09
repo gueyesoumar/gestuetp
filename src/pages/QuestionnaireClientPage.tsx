@@ -55,6 +55,7 @@ export function QuestionnaireClientPage() {
         <QuestionnaireWizard
           questions={filteredQuestions}
           instanceId={instance.id}
+          missionId={missionId!}
           userId={profile?.id ?? null}
           initialRows={responses}
           dueDate={instance.due_date ?? null}

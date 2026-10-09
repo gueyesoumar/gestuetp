@@ -12,6 +12,8 @@ import type { QuestionnaireResponseData } from '../missions/useMissionQuestionna
 interface QuestionnaireWizardProps {
   questions: Question[]
   instanceId: string | null
+  /** Mission cible — nécessaire au téléversement réel des pièces jointes de cadrage. */
+  missionId: string
   userId: string | null
   missionName?: string
   initialRows?: QuestionnaireResponseData[]
@@ -26,7 +28,7 @@ function daysUntilDue(iso: string): number {
   return Math.round((target.getTime() - today.getTime()) / 86400000)
 }
 
-export function QuestionnaireWizard({ questions, instanceId, userId, missionName, initialRows, dueDate, readOnly, onComplete }: QuestionnaireWizardProps) {
+export function QuestionnaireWizard({ questions, instanceId, missionId, userId, missionName, initialRows, dueDate, readOnly, onComplete }: QuestionnaireWizardProps) {
   const state = useWizardState(questions, instanceId, userId, initialRows)
   const commentsHook = useResponseComments(instanceId)
   const [completed, setCompleted] = useState(false)
@@ -123,6 +125,7 @@ export function QuestionnaireWizard({ questions, instanceId, userId, missionName
           <WizardQuestionCard
             question={state.currentQuestion}
             sectionLabel={state.sectionLabel}
+            missionId={missionId}
             value={state.responses.get(state.currentQuestion.code) ?? null}
             skipReason={state.skipReasons.get(state.currentQuestion.code) ?? null}
             isPrefilled={state.prefilled.has(state.currentQuestion.code)}

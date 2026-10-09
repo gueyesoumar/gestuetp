@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { CircleCheck, CircleX } from 'lucide-react'
+import { CircleCheck, CircleX, FileText, Download, X } from 'lucide-react'
+import { useQuestionnaireFileUpload } from './useQuestionnaireFileUpload'
 import type { Question, QuestionnaireSkipReason } from '../../types/database.types'
 
 interface WizardQuestionCardProps {
   question: Question
   sectionLabel: string
+  /** Mission cible — pour le téléversement réel des pièces jointes. */
+  missionId: string
   value: unknown
   skipReason?: QuestionnaireSkipReason | null
   isPrefilled?: boolean
@@ -27,7 +30,7 @@ const SECTION_ICONS: Record<string, string> = {
   ATT: '\uD83C\uDFAF',
 }
 
-export function WizardQuestionCard({ question, sectionLabel, value, skipReason, isPrefilled, onChange, onSkip, readOnly }: WizardQuestionCardProps) {
+export function WizardQuestionCard({ question, sectionLabel, missionId, value, skipReason, isPrefilled, onChange, onSkip, readOnly }: WizardQuestionCardProps) {
   const sectionCode = question.code.split('-')[0]
   const icon = SECTION_ICONS[sectionCode] ?? '\u2753'
   const skipped = skipReason !== null && skipReason !== undefined
@@ -93,10 +96,10 @@ export function WizardQuestionCard({ question, sectionLabel, value, skipReason, 
         <ScalePercentAnswer value={(value ?? null) as number | null} onChange={onChange} readOnly={readOnly} />
       )}
       {question.question_type === 'file' && (
-        <FileAnswer value={(value ?? '') as string} onChange={onChange} readOnly={readOnly} />
+        <FileUploadAnswer value={value} onChange={onChange} readOnly={readOnly} missionId={missionId} questionCode={question.code} accent="forest" />
       )}
       {question.question_type === 'organigramme' && (
-        <OrganigrammeAnswer value={(value ?? '') as string} onChange={onChange} readOnly={readOnly} />
+        <FileUploadAnswer value={value} onChange={onChange} readOnly={readOnly} missionId={missionId} questionCode={question.code} accent="purple" prompt="🏢 Téléversez votre organigramme" hint="L'IA pourra extraire automatiquement les acteurs SI (Nom · Fonction · Direction) de l'organigramme déposé." />
       )}
 
       {/* Follow-up for boolean YES */}
@@ -284,59 +287,75 @@ function ScalePercentAnswer({ value, onChange, readOnly }: { value: number | nul
   )
 }
 
-function FileAnswer({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) {
-  return (
-    <div>
-      <label className="block border-2 border-dashed border-forest-300 bg-forest-50/50 rounded-xl p-6 text-center cursor-pointer hover:bg-forest-50 transition-colors">
-        <input
-          type="file"
-          className="sr-only"
-          disabled={readOnly}
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) onChange(file.name)
-          }}
-        />
-        <p className="text-[13px] text-forest-700 font-medium">
-          📎 {value ? value : 'Glissez votre document ici'}
-        </p>
-        <p className="text-[11px] text-gray-400 mt-1">PDF, DOCX, XLSX · max 25 Mo</p>
-        {value && (
-          <button type="button" onClick={(e) => { e.preventDefault(); onChange('') }} className="text-[10px] text-red-600 mt-2">Retirer</button>
-        )}
-      </label>
-      <p className="text-[10px] text-gray-400 mt-2 italic">
-        Seul le nom du fichier est enregistré pour le moment.
-      </p>
-    </div>
-  )
+interface FileAnswerValue { document_id?: string; file_name: string; file_path?: string }
+
+/** Normalise la valeur d'une question fichier : objet récent {document_id,…} ou,
+ *  rétro-compat, ancienne chaîne = simple nom (fichier jamais téléversé). */
+function asFileValue(v: unknown): FileAnswerValue | null {
+  if (!v) return null
+  if (typeof v === 'string') return v.trim() ? { file_name: v } : null
+  if (typeof v === 'object' && v !== null && 'file_name' in v) return v as FileAnswerValue
+  return null
 }
 
-function OrganigrammeAnswer({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) {
+/** Dépôt RÉEL d'une pièce jointe (question « file » / « organigramme ») : téléverse
+ *  dans le bucket documents et stocke la référence du document créé. */
+function FileUploadAnswer({ value, onChange, readOnly, missionId, questionCode, accent, prompt, hint }: {
+  value: unknown
+  onChange: (v: unknown) => void
+  readOnly?: boolean
+  missionId: string
+  questionCode: string
+  accent: 'forest' | 'purple'
+  prompt?: string
+  hint?: string
+}) {
+  const { upload, uploading, error, getSignedUrl } = useQuestionnaireFileUpload(missionId)
+  const stored = asFileValue(value)
+
+  const handleFile = async (file?: File): Promise<void> => {
+    if (!file) return
+    const res = await upload(file, questionCode)
+    if (res) onChange(res)
+  }
+  const openFile = async (): Promise<void> => {
+    if (!stored?.file_path) return
+    const url = await getSignedUrl(stored.file_path)
+    if (url) window.open(url, '_blank', 'noopener')
+  }
+
+  if (stored) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3.5">
+        <FileText size={18} className="text-forest-700 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-medium text-gray-800 truncate">{stored.file_name}</p>
+          <p className="text-[11px] text-forest-600">{stored.document_id ? 'Document déposé ✓' : 'Nom enregistré (fichier non téléversé)'}</p>
+        </div>
+        {stored.file_path && (
+          <button type="button" onClick={() => void openFile()} className="text-[11px] font-semibold text-forest-700 inline-flex items-center gap-1 shrink-0"><Download size={13} /> Télécharger</button>
+        )}
+        {!readOnly && (
+          <button type="button" onClick={() => onChange('')} className="text-gray-300 hover:text-red-500 shrink-0" aria-label="Retirer le document"><X size={15} /></button>
+        )}
+      </div>
+    )
+  }
+
+  const border = accent === 'purple'
+    ? 'border-purple-300 bg-purple-50/30 hover:bg-purple-50/60'
+    : 'border-forest-300 bg-forest-50/50 hover:bg-forest-50'
   return (
     <div>
-      <label className="block border-2 border-dashed border-purple-300 bg-purple-50/30 rounded-xl p-6 text-center cursor-pointer hover:bg-purple-50/60 transition-colors">
-        <input
-          type="file"
-          className="sr-only"
-          disabled={readOnly}
-          accept=".pdf,.png,.jpg,.jpeg"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) onChange(file.name)
-          }}
-        />
-        <p className="text-[13px] text-purple-700 font-semibold">
-          🏢 {value ? value : "Téléversez votre organigramme"}
-        </p>
-        <p className="text-[11px] text-gray-500 mt-1">PDF, PNG, JPG · L'IA extraira automatiquement les acteurs SI</p>
-        {value && (
-          <button type="button" onClick={(e) => { e.preventDefault(); onChange('') }} className="text-[10px] text-red-600 mt-2">Retirer</button>
-        )}
+      <label className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${border} ${uploading ? 'opacity-60 pointer-events-none' : ''}`}>
+        <input type="file" className="sr-only" disabled={readOnly || uploading}
+          accept={accent === 'purple' ? '.pdf,.png,.jpg,.jpeg' : undefined}
+          onChange={(e) => void handleFile(e.target.files?.[0])} />
+        <p className="text-[13px] font-medium text-gray-700">{uploading ? 'Téléversement…' : (prompt ?? '📎 Glissez votre document ici')}</p>
+        <p className="text-[11px] text-gray-400 mt-1">PDF, DOCX, XLSX · max 25 Mo</p>
       </label>
-      <p className="text-[10px] text-gray-400 mt-2 italic">
-        Les acteurs identifiés (Nom · Fonction · Direction) pourront être extraits automatiquement.
-      </p>
+      {hint && <p className="text-[11px] text-gray-400 mt-2 italic">{hint}</p>}
+      {error && <p className="text-[11px] text-red-600 mt-2">{error}</p>}
     </div>
   )
 }
