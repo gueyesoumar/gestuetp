@@ -49,15 +49,15 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
     ]
     if (questionnaireRequired) {
       items.push(
-        { label: 'Questionnaire envoy\u00e9', done: questSent, active: hasScope && !questSent, tab: 'questionnaire' },
+        { label: showPortal ? 'Questionnaire envoy\u00e9' : 'Questionnaire lanc\u00e9', done: questSent, active: hasScope && !questSent, tab: 'questionnaire' },
         { label: `Questionnaire compl\u00e9t\u00e9 (${questionnaireProgress}%)`, done: questDone, active: questSent && !questDone, tab: 'questionnaire' },
       )
     }
     if (showDocuments) {
       items.push({
         label: documentsExpected === 0
-          ? 'Documents demand\u00e9s au client'
-          : `Documents re\u00e7us (${documentsReceived}/${documentsExpected})`,
+          ? (showPortal ? 'Documents demand\u00e9s au client' : 'Documents \u00e0 rassembler')
+          : `Documents ${showPortal ? 're\u00e7us' : 'rassembl\u00e9s'} (${documentsReceived}/${documentsExpected})`,
         done: docsDone,
         active: (questionnaireRequired ? questSent : hasScope) && !docsDone,
         tab: 'documents',
@@ -68,7 +68,7 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
     }
     items.push({ label: 'Note de cadrage valid\u00e9e', done: false, active: false })
     return items
-  }, [mission, questionnaireProgress, documentsReceived, documentsExpected, risks, isControle])
+  }, [mission, questionnaireProgress, documentsReceived, documentsExpected, risks, isControle, showPortal])
 
   const doneCount = checklist.filter((c) => c.done).length
   const pct = Math.round((doneCount / checklist.length) * 100)

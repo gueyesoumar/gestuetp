@@ -14,6 +14,8 @@ interface LaunchQuestionnairePanelProps {
   frameworkId: string
   clientOrgId: string | null
   onLaunched: () => void
+  /** Portail côté partie auditée disponible : faux → libellés d'auto-évaluation interne (RFC 0013 F4). */
+  showPortal?: boolean
 }
 
 type QuestionTypeLite = 'boolean' | 'text' | 'textarea' | 'date' | 'number' | 'scale_percent' | 'file' | 'organigramme'
@@ -63,7 +65,7 @@ function groupBySection(questions: Question[]): Map<string, Question[]> {
   return groups
 }
 
-export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, onLaunched }: LaunchQuestionnairePanelProps) {
+export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, onLaunched, showPortal = true }: LaunchQuestionnairePanelProps) {
   const { questions, templateName, loading, error } = useTemplateQuestions(frameworkId)
   const { contacts } = useClientContacts(clientOrgId)
   const [includedCodes, setIncludedCodes] = useState<Set<string>>(new Set())
@@ -208,8 +210,8 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
         <div className="px-5 py-3 border-b border-gray-200 bg-[#FAFAFA] flex items-center gap-3">
           <Sparkles size={15} className="text-gold-500" />
           <div className="flex-1">
-            <p className="text-[13px] font-semibold text-gray-900">Personnaliser et envoyer le questionnaire</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">{templateName} &middot; sélectionnez les questions à envoyer au client.</p>
+            <p className="text-[13px] font-semibold text-gray-900">{showPortal ? 'Personnaliser et envoyer le questionnaire' : "Personnaliser le questionnaire d'auto-évaluation"}</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">{templateName} &middot; {showPortal ? 'sélectionnez les questions à envoyer au client.' : 'sélectionnez les questions à renseigner en interne.'}</p>
           </div>
           <div className="text-[11px] font-mono font-bold text-forest-700 bg-forest-50 px-2 py-1 rounded">
             {totalIncluded}/{questions.length + customQuestions.length}
@@ -438,7 +440,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
             disabled={launching || totalIncluded === 0}
             className="ml-auto bg-forest-700 text-white px-5 py-2 rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors inline-flex items-center gap-1.5"
           >
-            <Send size={13} /> {launching ? 'Envoi...' : `Envoyer (${totalIncluded} questions)`}
+            <Send size={13} /> {launching ? 'Envoi...' : `${showPortal ? 'Envoyer' : 'Lancer'} (${totalIncluded} questions)`}
           </button>
         </div>
       </div>

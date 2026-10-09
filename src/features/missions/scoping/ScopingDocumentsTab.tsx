@@ -11,11 +11,13 @@ import type { MissionExclusion } from '../../../types/database.types'
 
 interface ScopingDocumentsTabProps {
   missionId: string
+  /** Portail côté partie auditée disponible : faux → libellés de collecte interne (RFC 0013 F4). */
+  showPortal?: boolean
   domains: DomainWithControls[]
   exclusions: MissionExclusion[]
 }
 
-export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingDocumentsTabProps): JSX.Element {
+export function ScopingDocumentsTab({ missionId, domains, exclusions, showPortal = true }: ScopingDocumentsTabProps): JSX.Element {
   const { evidenceByControl, loading: catLoading } = useEvidenceCatalog(domains)
   const { requests, requestedIds, requestEvidence, requesting, refetch } = useMissionEvidenceRequests(missionId)
   const { documents } = useMissionDocuments(missionId)
@@ -213,8 +215,10 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
       <div className="flex items-center gap-3 px-4 py-3 bg-forest-50 border border-forest-100 rounded-xl">
         <Sparkles size={16} className="text-forest-700 shrink-0" />
         <p className="text-[12px] text-forest-700 leading-relaxed">
-          Demandez les premiers documents au client pour pr{'é'}parer les travaux d{'\''}audit.
-          Les demandes faites ici alimentent le suivi des preuves dans la Vue d{'\''}ensemble.
+          {showPortal
+            ? "Demandez les premiers documents au client pour préparer les travaux d'audit."
+            : 'Rassemblez les premiers documents pour préparer les travaux.'}
+          {' '}Les éléments listés ici alimentent le suivi des preuves dans la Vue d&apos;ensemble.
         </p>
       </div>
 
@@ -430,7 +434,7 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions }: ScopingD
               className="flex items-center gap-1.5 px-4 py-2 bg-forest-700 text-white rounded-lg text-[12px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors"
             >
               <Send size={12} />
-              {requesting ? 'Envoi...' : 'Demander au client'}
+              {requesting ? 'Envoi...' : showPortal ? 'Demander au client' : 'Demander le document'}
             </button>
           </div>
         </div>

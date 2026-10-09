@@ -14,9 +14,11 @@ interface ScopingScopeTabProps {
   onAddExclusion: (controlId: string, reason: string) => void
   onRemoveExclusion: (id: string) => void
   saving: boolean
+  /** Portail côté partie auditée disponible : faux → libellés d'auto-évaluation interne (RFC 0013 F4). */
+  showPortal?: boolean
 }
 
-export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExclusion, onRemoveExclusion, saving }: ScopingScopeTabProps) {
+export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExclusion, onRemoveExclusion, saving, showPortal = true }: ScopingScopeTabProps) {
   const excludedControlIds = useMemo(() => new Set(exclusions.map((e) => e.control_id)), [exclusions])
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
   const excludedCount = excludedControlIds.size
@@ -32,7 +34,7 @@ export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExc
   const excludeFor = (s: { control_id: string; question_text: string }): void =>
     onAddExclusion(s.control_id, `Suggéré par le cadrage : ${s.question_text}`.slice(0, 200))
 
-  const objectives = useMemo(() => generateObjectives(mission, client), [mission, client])
+  const objectives = useMemo(() => generateObjectives(mission, client, showPortal), [mission, client, showPortal])
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -64,7 +66,7 @@ export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExc
           <p className="text-[13px] font-semibold text-gold-800 mb-1 flex items-center gap-2">
             <AlertTriangle size={15} /> Le cadrage sugg&egrave;re d&rsquo;exclure {pendingScope.length} contr&ocirc;le{pendingScope.length > 1 ? 's' : ''}
           </p>
-          <p className="text-[11px] text-gold-700 mb-3">D&rsquo;apr&egrave;s les r&eacute;ponses du client, ces contr&ocirc;les semblent hors p&eacute;rim&egrave;tre. Validez l&rsquo;exclusion.</p>
+          <p className="text-[11px] text-gold-700 mb-3">{showPortal ? "D'après les réponses du client" : "D'après les réponses"}, ces contrôles semblent hors périmètre. Validez l&rsquo;exclusion.</p>
           <div className="space-y-1.5">
             {pendingScope.map((s) => {
               const c = controlById.get(s.control_id)!
@@ -113,7 +115,7 @@ interface ObjectiveItem {
   source: string
 }
 
-function generateObjectives(mission: MissionDetail, client: CabinetClient | null): ObjectiveItem[] {
+function generateObjectives(mission: MissionDetail, client: CabinetClient | null, showPortal: boolean): ObjectiveItem[] {
   const fw = mission.framework
   const regs = client?.exigences_reglementaires ?? []
   const items: ObjectiveItem[] = []
@@ -144,7 +146,7 @@ function generateObjectives(mission: MissionDetail, client: CabinetClient | null
       icon: '\u2696', iconBg: 'bg-gold-50 text-gold-600',
       title: 'V\u00e9rifier la conformit\u00e9 r\u00e9glementaire',
       description: `S\u2019assurer du respect des exigences de ${regNames}${extra}.`,
-      source: `D\u00e9duit des ${regs.length} r\u00e9glementation${regs.length > 1 ? 's' : ''} du client`,
+      source: `D\u00e9duit des ${regs.length} r\u00e9glementation${regs.length > 1 ? 's' : ''} ${showPortal ? 'du client' : 'applicables'}`,
     })
   }
 

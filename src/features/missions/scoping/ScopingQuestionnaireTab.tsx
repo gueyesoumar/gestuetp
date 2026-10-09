@@ -35,6 +35,8 @@ function EvidenceBadge({ type }: { type: EvidenceType }): JSX.Element {
 interface ScopingQuestionnaireTabProps {
   mission: MissionDetail
   onRefetch: () => void
+  /** Portail côté partie auditée disponible : faux → libellés d'auto-évaluation interne (RFC 0013 F4). */
+  showPortal?: boolean
 }
 
 // Group questions by section prefix (GOV, MAT, OPS, INC, ATT, etc.)
@@ -57,7 +59,7 @@ const SECTION_LABELS: Record<string, string> = {
   ATT: 'Attentes & contraintes',
 }
 
-export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionnaireTabProps): JSX.Element {
+export function ScopingQuestionnaireTab({ mission, onRefetch, showPortal = true }: ScopingQuestionnaireTabProps): JSX.Element {
   const { profile } = useAuth()
   const { instance, questions, responses, loading, answeredCount, totalCount, refetch: qRefetch } = useMissionQuestionnaire(mission.id)
   const commentsHook = useResponseComments(instance?.id ?? null)
@@ -139,7 +141,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
           {/* Status header */}
           <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-5 py-3.5">
             <div>
-              <span className="text-[13px] font-semibold text-gray-900">Suivi du questionnaire client</span>
+              <span className="text-[13px] font-semibold text-gray-900">{showPortal ? 'Suivi du questionnaire client' : "Suivi du questionnaire d'auto-évaluation"}</span>
               <span className="text-[11px] text-gray-300 ml-2">{totalCount} questions &middot; {sections.size} sections</span>
             </div>
             <div className="flex items-center gap-3">
@@ -155,7 +157,11 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
           <div className="flex items-center gap-3 bg-forest-50 border border-forest-200 rounded-xl px-4 py-3">
             <User size={15} className="text-forest-700" />
             <p className="text-xs text-forest-700 flex-1">
-              Le client r&eacute;pond via le <b>portail client</b>. Les r&eacute;ponses apparaissent automatiquement ici.
+              {showPortal ? (
+                <>Le client répond via le <b>portail client</b>. Les réponses apparaissent automatiquement ici.</>
+              ) : (
+                <>Questionnaire renseigné en interne. Saisissez ou éditez chaque réponse directement ci-dessous.</>
+              )}
             </p>
           </div>
 
@@ -257,7 +263,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                             <button
                               type="button"
                               onClick={() => handleStartEdit(q.code, resp?.value ?? '')}
-                              title="Saisir / éditer la réponse (mode entretien)"
+                              title={showPortal ? 'Saisir / éditer la réponse (mode entretien)' : 'Saisir / éditer la réponse'}
                               className="w-6 h-6 inline-flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gold-50 hover:border-gold-300 hover:text-gold-700 transition-colors"
                             >
                               <Pencil size={11} />
@@ -295,7 +301,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
                         <div className="px-4 pb-3 ml-[76px]">
                           <div className="bg-gold-50 border border-gold-300 rounded-lg p-2.5">
                             <div className="text-[10px] font-bold uppercase tracking-wide text-gold-700 mb-1.5 inline-flex items-center gap-1">
-                              <Pencil size={10} /> Saisir à la place du client (mode entretien)
+                              <Pencil size={10} /> {showPortal ? 'Saisir à la place du client (mode entretien)' : 'Saisir la réponse'}
                             </div>
                             <textarea
                               value={editDraft}
@@ -338,6 +344,7 @@ export function ScopingQuestionnaireTab({ mission, onRefetch }: ScopingQuestionn
           frameworkId={mission.framework_id}
           clientOrgId={mission.client_id}
           onLaunched={() => { onRefetch(); qRefetch() }}
+          showPortal={showPortal}
         />
       )}
     </div>

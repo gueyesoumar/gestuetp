@@ -253,12 +253,12 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
 
         {/* Tab content */}
         {activeTab === 'scope' && (
-          <ScopingScopeTab mission={mission} domains={domains} exclusions={exclusions} client={client} onAddExclusion={handleAddExclusion} onRemoveExclusion={removeExclusion} saving={saving} />
+          <ScopingScopeTab mission={mission} domains={domains} exclusions={exclusions} client={client} onAddExclusion={handleAddExclusion} onRemoveExclusion={removeExclusion} saving={saving} showPortal={showPortal} />
         )}
-        {showQuestionnaire && activeTab === 'questionnaire' && <ScopingQuestionnaireTab mission={mission} onRefetch={onRefetch} />}
+        {showQuestionnaire && activeTab === 'questionnaire' && <ScopingQuestionnaireTab mission={mission} onRefetch={onRefetch} showPortal={showPortal} />}
         {showDocuments && activeTab === 'documents' && (
           <div className="flex-1 overflow-y-auto p-4">
-            <ScopingDocumentsTab missionId={mission.id} domains={domains} exclusions={exclusions} />
+            <ScopingDocumentsTab missionId={mission.id} domains={domains} exclusions={exclusions} showPortal={showPortal} />
           </div>
         )}
         {showRisks && activeTab === 'risks' && (
