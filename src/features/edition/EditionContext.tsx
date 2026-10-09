@@ -27,7 +27,7 @@ interface EditionState {
 const EditionContext = createContext<EditionState | null>(null)
 
 export function EditionProvider({ children }: { children: ReactNode }): JSX.Element {
-  const { profile } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const [capabilities, setCapabilities] = useState<Set<Capability>>(new Set())
   const [vocab, setVocab] = useState<Map<string, string>>(new Map())
   // Org pour laquelle les capacités ont été RÉSOLUES. `undefined` = pas encore tenté.
@@ -62,11 +62,14 @@ export function EditionProvider({ children }: { children: ReactNode }): JSX.Elem
     return () => ctrl.abort()
   }, [profile?.organization_id])
 
-  // `loading` DÉRIVÉ au rendu (race-free) : un profil avec une org non encore résolue
-  // compte comme « en chargement » dès le premier rendu, sans attendre l'effet — évite
-  // la fenêtre où `hasCapability` renvoie false et déclenche une redirection prématurée.
+  // `loading` DÉRIVÉ au rendu (race-free). On compte comme « en chargement » :
+  //  - tant que l'AUTH n'a pas résolu le profil (sinon orgId=null → edLoading=false alors
+  //    que les capacités ne sont pas connues → au refresh d'une route dépendant d'une
+  //    capacité, le catch-all `*` redirigeait vers l'accueil) ;
+  //  - puis tant que les capacités de l'org ne sont pas résolues.
+  // Évite toute redirection prématurée avant de connaître l'édition de l'org.
   const orgId = profile?.organization_id ?? null
-  const loading = orgId ? resolvedOrg !== orgId : false
+  const loading = authLoading || (orgId ? resolvedOrg !== orgId : false)
 
   const hasCapability = (cap: Capability): boolean => capabilities.has(cap)
 
