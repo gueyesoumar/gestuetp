@@ -17,6 +17,8 @@ import { useMissionActors } from './useMissionActors'
 import { isStepEnabled } from '../mission-constants'
 import { ScopingProgressSidebar } from './ScopingProgressSidebar'
 import { PortalInviteModal } from './PortalInviteModal'
+import { useEdition } from '../../edition/EditionContext'
+import { missionHasClientPortal } from '../missionPortal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { MissionDetail, MissionMemberRow } from '../useMissionDetail'
@@ -35,6 +37,10 @@ type ScopingTab = 'scope' | 'questionnaire' | 'documents' | 'risks' | 'actors'
 
 export function MissionScopingTab({ mission, members, domains, client, onRefetch }: MissionScopingTabProps) {
   const { profile } = useAuth()
+  const { hasCapability } = useEdition()
+  // Portail côté partie auditée : masqué en édition Entreprise (!client_portal) ou
+  // mission réflexive (org qui s'audite elle-même) — RFC 0013 F5.
+  const showPortal = missionHasClientPortal(mission, hasCapability)
   const { lead, associate } = useReviewLabels()
   const { exclusions, risks, loading, error, refetch: refetchScoping } = useScopingData(mission.id)
   const { addExclusion, removeExclusion, addRisk, removeRisk, saving, error: saveError } = useSaveScoping(refetchScoping)
@@ -280,11 +286,12 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           actionLoading={actionLoading}
           actionSuccess={actionSuccess}
           isControle={isControle}
+          showPortal={showPortal}
         />
       </div>
 
       {/* Portal invite modal */}
-      {showPortalModal && client && (
+      {showPortal && showPortalModal && client && (
         <PortalInviteModal
           missionId={mission.id}
           cabinetClientId={client.id}

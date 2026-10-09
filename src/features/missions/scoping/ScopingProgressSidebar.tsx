@@ -23,12 +23,14 @@ interface ScopingProgressSidebarProps {
   actionSuccess: string | null
   /** Moteur Contr\u00f4le (RFC 0003) : Cadrage all\u00e9g\u00e9 \u2014 Questionnaire optionnel, Risques retir\u00e9. */
   isControle?: boolean
+  /** Portail c\u00f4t\u00e9 partie audit\u00e9e disponible (faux en \u00e9dition Entreprise ou mission r\u00e9flexive, RFC 0013 F5). */
+  showPortal?: boolean
 }
 
 type ChecklistTab = 'scope' | 'questionnaire' | 'documents' | 'risks'
 interface CheckItem { label: string; done: boolean; active: boolean; tab?: ChecklistTab }
 
-export function ScopingProgressSidebar({ mission, client, risks, questionnaireProgress, documentsReceived, documentsExpected, onRemindClient, onGenerateNote, onValidateScoping, onInvitePortal, onNavigate, actionLoading, actionSuccess, isControle = false }: ScopingProgressSidebarProps) {
+export function ScopingProgressSidebar({ mission, client, risks, questionnaireProgress, documentsReceived, documentsExpected, onRemindClient, onGenerateNote, onValidateScoping, onInvitePortal, onNavigate, actionLoading, actionSuccess, isControle = false, showPortal = true }: ScopingProgressSidebarProps) {
   const checklist = useMemo((): CheckItem[] => {
     // Sous-\u00e9tapes d\u00e9s\u00e9lectionnables via le template (RFC 0009). isStepEnabled
     // int\u00e8gre l'implicite moteur (controle masque Risques).
@@ -130,14 +132,18 @@ export function ScopingProgressSidebar({ mission, client, risks, questionnairePr
       <div className="p-4">
         <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-3">Actions</h4>
         <div className="flex flex-col gap-2">
-          <button onClick={onInvitePortal} disabled={actionLoading}
-            className="flex items-center gap-2 px-3.5 py-2.5 border border-forest-200 rounded-lg text-xs text-forest-700 bg-forest-50 hover:bg-forest-100 hover:border-forest-300 transition-colors text-left disabled:opacity-50 font-medium">
-            <Users size={15} className="w-5 text-center" /> Inviter au portail
-          </button>
-          <button onClick={onRemindClient} disabled={actionLoading}
-            className="flex items-center gap-2 px-3.5 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 transition-colors text-left disabled:opacity-50">
-            <Mail size={15} className="w-5 text-center" /> Relancer le client
-          </button>
+          {showPortal && (
+            <>
+              <button onClick={onInvitePortal} disabled={actionLoading}
+                className="flex items-center gap-2 px-3.5 py-2.5 border border-forest-200 rounded-lg text-xs text-forest-700 bg-forest-50 hover:bg-forest-100 hover:border-forest-300 transition-colors text-left disabled:opacity-50 font-medium">
+                <Users size={15} className="w-5 text-center" /> Inviter au portail
+              </button>
+              <button onClick={onRemindClient} disabled={actionLoading}
+                className="flex items-center gap-2 px-3.5 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 transition-colors text-left disabled:opacity-50">
+                <Mail size={15} className="w-5 text-center" /> Relancer le client
+              </button>
+            </>
+          )}
           <button onClick={onGenerateNote} disabled={actionLoading}
             className="flex items-center gap-2 px-3.5 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white hover:bg-forest-50 hover:border-forest-300 transition-colors text-left disabled:opacity-50">
             <FileText size={15} className="w-5 text-center" /> G&eacute;n&eacute;rer la note de cadrage
