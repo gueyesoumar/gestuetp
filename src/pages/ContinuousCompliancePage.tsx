@@ -1,5 +1,6 @@
 import { useContinuousCompliance } from '../features/continuous-compliance/useContinuousCompliance'
 import { TenableConnectCard } from '../features/continuous-compliance/TenableConnectCard'
+import { ContinuousAlertSummary } from '../features/continuous-compliance/ContinuousAlertSummary'
 import { EvidenceList } from '../features/continuous-compliance/EvidenceList'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
@@ -21,7 +22,12 @@ export function ContinuousCompliancePage(): JSX.Element {
 
       <div className="mt-6 space-y-5">
         <TenableConnectCard integration={integration} onChanged={refetch} />
-        {integration?.status === 'active' && <EvidenceList checks={checks} />}
+        {integration?.status === 'active' && (
+          <>
+            <ContinuousAlertSummary checks={checks} />
+            <EvidenceList checks={checks} />
+          </>
+        )}
       </div>
     </div>
   )
