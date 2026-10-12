@@ -1,0 +1,12 @@
+-- P1.1 (RFC 0014 §8, §10.f) : capacité `continuous_compliance` — gate du module de
+-- conformité continue (connecteurs de preuve en lecture seule).
+--
+-- Opt-in STRICT : AUCUN backfill. Accordée seulement par un entitlement explicite
+-- (org_entitlements.capability = 'continuous_compliance'), donc inerte pour toutes
+-- les orgs tant que non accordée.
+--
+-- SEULE dans sa migration : une valeur d'enum PostgreSQL ne peut être UTILISÉE dans
+-- la transaction qui l'ajoute (migrate.sh applique chaque fichier en --single-transaction).
+-- Elle est consommée plus tard, au grant d'un entitlement
+-- (org_entitlements.capability = 'continuous_compliance'), pas par 00299.
+alter type public.org_capability add value if not exists 'continuous_compliance';
