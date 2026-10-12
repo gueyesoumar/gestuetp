@@ -22,6 +22,7 @@ import { ClientLayout } from './features/client-portal/layout/ClientLayout'
 import { LoginPage } from './pages/LoginPage'
 import { HubPage } from './pages/HubPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ContinuousCompliancePage } from './pages/ContinuousCompliancePage'
 import { OrganizationPage } from './pages/OrganizationPage'
 import { FrameworksPage } from './pages/FrameworksPage'
 import { FrameworkDetailPage } from './pages/FrameworkDetailPage'
@@ -116,6 +117,7 @@ function AppRoutes(): JSX.Element {
         <Route path="risque/registre" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
         <Route path="politiques" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />
         <Route path="politiques/couverture" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyCoveragePage /> : <Navigate to="/" replace />} />
+        <Route path="conformite-continue" element={edLoading ? <FullscreenLoader /> : hasCapability('continuous_compliance') ? <ContinuousCompliancePage /> : <Navigate to="/" replace />} />
         <Route path="aide" element={<SupportCenterPage />} />
         {isSupervision && (
           <>

@@ -1709,6 +1709,51 @@ export type Capability =
   | 'client_portal' | 'continuous_compliance'
 export type CapabilityStatus = 'active' | 'trial' | 'disabled'
 
+// ── RFC 0014 — Conformité continue (connecteurs de preuve) ────────────────────
+export type ConnectorProvider = 'entra' | 'google' | 'github' | 'aws' | 'azure' | 'gcp' | 'tenable'
+export type EvidenceVerdict = 'pass' | 'fail' | 'warn' | 'na'
+export type CheckSeverity = 'faible' | 'moyen' | 'fort' | 'critique'
+
+export interface ControlCheck {
+  id: string
+  provider: ConnectorProvider
+  check_key: string
+  title: string
+  description: string | null
+  default_params: Record<string, unknown>
+  dimension: ScoreDimension | null
+  severity_on_fail: CheckSeverity
+  created_at: string
+}
+
+export interface ConnectorIntegration {
+  id: string
+  organization_id: string
+  provider: ConnectorProvider
+  status: 'active' | 'revoked' | 'error'
+  scopes: string[]
+  secret_ref: string | null
+  external_account: string | null
+  connected_by: string | null
+  connected_at: string
+  last_sync_at: string | null
+  last_error: string | null
+}
+
+export interface EvidenceResult {
+  id: string
+  organization_id: string
+  check_id: string
+  control_id: string | null
+  mission_id: string | null
+  verdict: EvidenceVerdict
+  value: Record<string, unknown>
+  raw_ref: string | null
+  collected_at: string
+  expires_at: string | null
+  hash: string | null
+}
+
 // Catalogue produits (RFC 0006, migration 00198). Lecture seule côté front
 // (écritures service_role) → Insert/Update = never dans Database.Tables.
 export interface Product {
@@ -2038,6 +2083,24 @@ export interface Database {
         Row: CabinetClient & Rec
         Insert: CabinetClientInsert & Rec
         Update: CabinetClientUpdate & Rec
+        Relationships: []
+      }
+      control_checks: {
+        Row: ControlCheck & Rec
+        Insert: Partial<ControlCheck> & Rec
+        Update: Partial<ControlCheck> & Rec
+        Relationships: []
+      }
+      connector_integrations: {
+        Row: ConnectorIntegration & Rec
+        Insert: Partial<ConnectorIntegration> & Rec
+        Update: Partial<ConnectorIntegration> & Rec
+        Relationships: []
+      }
+      evidence_results: {
+        Row: EvidenceResult & Rec
+        Insert: Partial<EvidenceResult> & Rec
+        Update: Partial<EvidenceResult> & Rec
         Relationships: []
       }
       support_requests: {

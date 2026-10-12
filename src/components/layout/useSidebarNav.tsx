@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { ClipboardCheck, LayoutDashboard, FileText } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText, Activity } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
@@ -53,6 +53,10 @@ export function useSidebarNavItems(
     { to: '/', label: 'Tableau de bord', icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
     ...active.flatMap((m) => m.nav?.(ctx) ?? []),
   ]
+  // Module transverse (toute édition) activé par capacité (RFC 0014).
+  if (hasCapability('continuous_compliance')) {
+    mainItems.push({ to: '/conformite-continue', label: 'Conformité continue', icon: <Activity size={20} strokeWidth={1.5} /> })
+  }
   const groupItems: NavItem[] = active.flatMap((m) => m.group?.(ctx) ?? [])
 
   return { mainItems, groupItems }
