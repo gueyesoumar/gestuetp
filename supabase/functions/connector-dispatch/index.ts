@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { collectTenableForOrg } from '../_shared/tenable-collect.ts'
+import { collectGithubForOrg } from '../_shared/github-collect.ts'
 
 // Dispatcher de collecte planifiée (RFC 0014 P2). Appelé par pg_cron (hebdo) avec
 // un en-tête x-cron-secret. Tourne en service_role, SANS utilisateur : il itère les
@@ -36,12 +37,14 @@ Deno.serve(async (req) => {
     const failures: Array<{ org: string; provider: string; error: string }> = []
     for (const integ of (integs ?? []) as Array<{ organization_id: string; provider: string }>) {
       try {
-        if (integ.provider === 'tenable') {
-          const outcome = await collectTenableForOrg(admin, integ.organization_id, null)
+        let outcome: { collected: number; error?: string } | null = null
+        if (integ.provider === 'tenable') outcome = await collectTenableForOrg(admin, integ.organization_id, null)
+        else if (integ.provider === 'github') outcome = await collectGithubForOrg(admin, integ.organization_id, null)
+        // autres providers : ajoutés ici au fil des connecteurs (RFC 0014 P4).
+        if (outcome) {
           totalCollected += outcome.collected
           if (outcome.error) failures.push({ org: integ.organization_id, provider: integ.provider, error: outcome.error })
         }
-        // autres providers : ajoutés ici au fil des connecteurs (RFC 0014 P3/P4).
       } catch (e) {
         failures.push({ org: integ.organization_id, provider: integ.provider, error: e instanceof Error ? e.message : String(e) })
       }
