@@ -1,6 +1,6 @@
 # RFC 0014 — Conformité continue & framework de connecteurs de preuve
 
-**Statut** : proposition — décisions ouvertes à trancher (voir §10)
+**Statut** : décisions actées (voir §10) — prêt à chiffrer / implémenter
 **Prolonge** : RFC 0003 (moteurs de mission), RFC 0004 (Risk), RFC 0008 (entitlement unique), RFC 0012 (sécurité d'usage IA — consentement par client), RFC 0013 (framework d'édition). Piste d'audit : migrations 00178-00180.
 **Objectif** : faire passer la conformité de **point-in-time** (une mission = une photo) à un **état vivant**, en **collectant automatiquement la preuve** depuis les outils de l'organisation auditée (Microsoft, Google, cloud, etc.) via des connecteurs en lecture seule. C'est la ligne qui sépare un **outil d'audit** d'un **vrai GRC**.
 
@@ -135,19 +135,21 @@ Flux end-to-end : connexion → collecte → verdict → constat auto → trust 
 
 P1 → P2 → P3 → P4, chaque lot testé sur snayz, promu staging→prod par le flux habituel. Gate entitlement `continuous_compliance` posé dès P1 (soft), durci plus tard.
 
-## 10. Décisions ouvertes (à trancher)
+## 10. Décisions actées
 
-**a. Granularité du mapping check↔contrôle.** Check attaché directement au contrôle (par référentiel) **vs** bibliothèque de checks réutilisable liée via une table (comme `question_controls`). *Reco : bibliothèque réutilisable + liaison — un même check sert plusieurs référentiels.*
+Tranchées le 2026-10-12.
 
-**b. Stockage de la preuve brute.** Tout conserver (riche pour l'auditeur, mais sensible) **vs** verdict + valeur minimale + brut caviardé (souverain). *Reco : verdict+valeur par défaut, brut optionnel selon consentement.*
+**a. Granularité du mapping check↔contrôle → BIBLIOTHÈQUE RÉUTILISABLE.** Les checks sont une bibliothèque plateforme (`control_checks`), liés aux contrôles via `control_check_links` (patron `question_controls`). Un même check sert N référentiels sans duplication.
 
-**c. Qui connecte.** L'org auditée elle-même (self, édition Entreprise) **et/ou** le cabinet au nom du client (délégué) ? *Reco : les deux, mais self d'abord (plus simple, aligné Entreprise).*
+**b. Stockage de la preuve brute → VERDICT + VALEUR, BRUT OPTIONNEL.** On conserve verdict + valeur par défaut ; la réponse API brute (`raw_ref`) n'est archivée que si le client y consent (aligné RFC 0012, souveraineté).
 
-**d. Fréquence par défaut + modèle de coût** des jobs (hebdo ? quotidien ? par entitlement ?).
+**c. Qui connecte → LES DEUX, SELF D'ABORD.** On livre d'abord l'auto-connexion par l'org auditée (édition Entreprise), puis la connexion déléguée par le cabinet au nom du client.
 
-**e. Fournisseur pilote.** Entra seul d'abord **vs** Entra + Google en parallèle. *Reco : Entra seul.*
+**d. Fréquence → HEBDOMADAIRE, SURCHARGEABLE.** Re-check hebdo par défaut, ajustable par contrôle/entitlement. Pas de palier tarifaire sur la fréquence au départ.
 
-**f. Gate entitlement.** Nouvelle capacité `continuous_compliance` **vs** rattachement à une capacité existante. *Reco : nouvelle capacité dédiée (vendable à la carte).*
+**e. Fournisseur pilote → ENTRA ID SEUL.** On démarre avec Microsoft Entra seul (3 checks d'accès, §5). Google/autres en P3+.
+
+**f. Gate entitlement → NOUVELLE CAPACITÉ DÉDIÉE.** Capacité `continuous_compliance` distincte (RFC 0008), activable à la carte, gate soft dès P1 puis durci. Module autonome vendable.
 
 ## 11. Hors scope
 
