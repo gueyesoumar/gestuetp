@@ -84,7 +84,7 @@ function ClientCard({ group }: { group: ClientGroup }): JSX.Element {
 
   const lastActivity = latestUpdate
     ? new Date(latestUpdate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-    : '\u2014'
+    : '-'
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow group cursor-pointer">

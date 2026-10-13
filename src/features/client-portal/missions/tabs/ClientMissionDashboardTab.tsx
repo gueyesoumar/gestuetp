@@ -67,7 +67,7 @@ export function ClientMissionDashboardTab({ mission, onTabChange }: Props): JSX.
         <KpiCard
           icon={<div className="w-6 h-6 rounded-lg bg-forest-50 flex items-center justify-center"><CalendarDays size={13} className="text-forest-700" /></div>}
           label="Jours restants"
-          value={data.daysRemaining !== null ? `${data.daysRemaining}` : '\u2014'}
+          value={data.daysRemaining !== null ? `${data.daysRemaining}` : '-'}
           color="var(--color-forest-700)"
           sub={mission.end_date ? `Fin pr\u00e9vue le ${formatDate(mission.end_date)}` : undefined}
         />

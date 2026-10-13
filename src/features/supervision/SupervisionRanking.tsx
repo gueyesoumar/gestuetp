@@ -25,7 +25,7 @@ function barColor(score: number): string {
 }
 
 function formatDate(iso: string | null): string {
-  if (!iso) return '\u2014'
+  if (!iso) return '-'
   return new Date(iso).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
 }
 
@@ -65,7 +65,7 @@ export function SupervisionRanking({ entities }: SupervisionRankingProps) {
                       {entity.clientName}
                     </Link>
                   </td>
-                  <td className="px-3 py-3 text-gray-500">{entity.sector || '\u2014'}</td>
+                  <td className="px-3 py-3 text-gray-500">{entity.sector || '-'}</td>
                   <td className={`px-3 py-3 font-bold ${scoreColor(entity.globalScore)}`}>{entity.globalScore}%</td>
                   <td className="px-3 py-3">
                     <div className="h-2 rounded-full bg-gray-200 overflow-hidden">

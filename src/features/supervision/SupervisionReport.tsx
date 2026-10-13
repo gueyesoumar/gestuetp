@@ -75,7 +75,7 @@ export function SupervisionReport({ entities, frameworkName, frameworkPublisher 
         <div className="text-center border-b border-gray-200 pb-6 mb-6">
           <div className="text-[12px] font-semibold text-gray-500 mt-1">{emetteur}</div>
           <div className="mt-4 text-[18px] font-extrabold text-forest-700">
-            Rapport de synth&egrave;se {'\u2014'} Conformit&eacute; {frameworkName}
+            Rapport de synth&egrave;se {'-'} Conformit&eacute; {frameworkName}
           </div>
           <div className="text-[13px] text-gray-500 mt-1">&Agrave; l&rsquo;attention du {destinataire}</div>
         </div>

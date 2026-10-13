@@ -121,7 +121,7 @@ export function SmartPrefilledAnswers({
         processed: data.backfill_processed ?? 0,
         total: data.backfill_total ?? data.backfill_remaining ?? 0,
       })
-      // pause courte avant de rappeler \u2014 laisse aussi les rate-limits Anthropic respirer
+      // pause courte avant de rappeler - laisse aussi les rate-limits Anthropic respirer
       await new Promise((r) => setTimeout(r, 2000))
     }
 

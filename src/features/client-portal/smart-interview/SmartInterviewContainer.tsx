@@ -92,7 +92,7 @@ export function SmartInterviewContainer({
         </div>
       </div>
 
-      {/* Analysis status \u2014 visible after first analysis */}
+      {/* Analysis status - visible after first analysis */}
       {analysisStatus && (analysisStatus.docsSkipped.length > 0 || analysisStatus.docsFailed.length > 0 || analysisStatus.batches > 1) && (
         <div className="p-3 mb-4 bg-gold-50 border border-gold-200 rounded-xl">
           <div className="flex items-center gap-2 mb-2">

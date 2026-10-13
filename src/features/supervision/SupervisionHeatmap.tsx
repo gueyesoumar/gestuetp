@@ -72,7 +72,7 @@ export function SupervisionHeatmap({ entities, domains, frameworkName }: Supervi
                   return (
                     <td key={d.code} className="px-1 py-1">
                       <div className={`w-[52px] h-9 mx-auto flex items-center justify-center rounded-md text-[11px] font-semibold ${cellClass(score)}`}>
-                        {score !== undefined ? score : '\u2014'}
+                        {score !== undefined ? score : '-'}
                       </div>
                     </td>
                   )
@@ -113,7 +113,7 @@ export function SupervisionHeatmap({ entities, domains, frameworkName }: Supervi
                 {i === 0 ? 'Domaine le plus faible' : `${i + 1}e domaine faible`}
               </div>
               <div className={`mt-1 text-[14px] font-bold ${i === 0 ? 'text-red-700' : 'text-amber-700'}`}>
-                {d.code} {'\u2014'} {d.name}
+                {d.code} {'-'} {d.name}
               </div>
               <div className={`mt-1 text-[12px] ${i === 0 ? 'text-red-600' : 'text-amber-600'}`}>
                 {d.avg}% de conformit&eacute; moyenne

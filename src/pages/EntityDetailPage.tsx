@@ -65,7 +65,7 @@ export function EntityDetailPage(): JSX.Element {
         />
         <KpiCard
           label="Derni&egrave;re mission"
-          value={data.lastAuditDate ? formatDate(data.lastAuditDate) : '\u2014'}
+          value={data.lastAuditDate ? formatDate(data.lastAuditDate) : '-'}
           valueClass="text-forest-700"
           smallValue
           sub={data.missions[0]?.frameworkName}
@@ -122,9 +122,9 @@ export function EntityDetailPage(): JSX.Element {
                       <td className="px-3 py-3 text-gray-500">{m.frameworkName}</td>
                       <td className="px-3 py-3 text-gray-500">{m.cabinetName}</td>
                       <td className="px-3 py-3 text-center">
-                        <span className={`font-bold ${sc}`}>{m.totalControls > 0 ? `${m.score}%` : '\u2014'}</span>
+                        <span className={`font-bold ${sc}`}>{m.totalControls > 0 ? `${m.score}%` : '-'}</span>
                       </td>
-                      <td className="px-3 py-3 text-gray-400">{m.endDate ? formatDate(m.endDate) : m.startDate ? formatDate(m.startDate) : '\u2014'}</td>
+                      <td className="px-3 py-3 text-gray-400">{m.endDate ? formatDate(m.endDate) : m.startDate ? formatDate(m.startDate) : '-'}</td>
                       <td className="px-3 py-3">
                         <StatusBadge status={m.status} />
                       </td>

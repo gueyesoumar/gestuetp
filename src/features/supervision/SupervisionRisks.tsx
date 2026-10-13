@@ -59,7 +59,7 @@ export function SupervisionRisks({ entities, domains }: SupervisionRisksProps) {
 
       {risks.length === 0 && highNcEntities.length === 0 ? (
         <div className="bg-white rounded-xl border border-emerald-200 p-8 text-center">
-          <p className="text-sm text-emerald-600 font-medium">Aucun risque syst&eacute;mique identifi&eacute; {'\u2014'} tous les domaines sont au-dessus du seuil.</p>
+          <p className="text-sm text-emerald-600 font-medium">Aucun risque syst&eacute;mique identifi&eacute; {'-'} tous les domaines sont au-dessus du seuil.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4">
@@ -104,10 +104,10 @@ function RiskCard({ risk }: { risk: SystemicRisk }) {
             {isCrit ? 'Risque critique' : 'Risque \u00e9lev\u00e9'}
           </div>
           <div className="text-[14px] font-bold text-gray-900 mt-0.5">
-            {risk.domain} {'\u2014'} {risk.domainName}
+            {risk.domain} {'-'} {risk.domainName}
           </div>
           <div className="text-[12px] text-gray-600 mt-1">
-            {risk.avgScore}% de conformit&eacute; moyenne {'\u2014'} {risk.failingEntities}/{risk.totalEntities} {risk.totalEntities > 1 ? 'entités' : 'entité'} sous le seuil
+            {risk.avgScore}% de conformit&eacute; moyenne {'-'} {risk.failingEntities}/{risk.totalEntities} {risk.totalEntities > 1 ? 'entités' : 'entité'} sous le seuil
           </div>
           <div className="mt-2 flex gap-2">
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${isCrit ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>

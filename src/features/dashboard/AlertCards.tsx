@@ -37,7 +37,7 @@ export function AlertCardsRow({ pendingReviews, clientRejections, questionnaireP
         <AlertCard variant="info" label="Aucun rejet" value="0" sub="Tous les contr&ocirc;les valid&eacute;s" />
       )}
       <AlertCard variant="warn" label="&Agrave; revoir" value={pendingReviews} sub="Contr&ocirc;les soumis en attente" />
-      <AlertCard variant="info" label="R&eacute;ponses client" value={questionnaireProgress ?? '\u2014'} sub="Questionnaires en cours" />
+      <AlertCard variant="info" label="R&eacute;ponses client" value={questionnaireProgress ?? '-'} sub="Questionnaires en cours" />
     </div>
   )
 }

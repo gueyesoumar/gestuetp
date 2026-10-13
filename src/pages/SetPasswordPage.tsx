@@ -138,7 +138,7 @@ export function SetPasswordPage(): JSX.Element {
 
     // Le changement de mot de passe (Admin API) r\u00e9voque la session \u00ab recovery \u00bb :
     // on r\u00e9-authentifie avec le nouveau mot de passe pour repartir sur une session
-    // propre \u2014 sinon l'app se d\u00e9connecte au 1er rafra\u00eechissement de token.
+    // propre - sinon l'app se d\u00e9connecte au 1er rafra\u00eechissement de token.
     if (email) {
       const { error: reSignError } = await supabase.auth.signInWithPassword({ email, password })
       if (reSignError) console.error('SetPasswordPage re-signin:', reSignError.message)

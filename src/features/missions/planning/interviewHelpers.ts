@@ -23,7 +23,7 @@ export function generateCompteRendu(
   lines.push(`Dur\u00e9e : ${interview.duration_minutes} minutes`)
   if (interview.location) lines.push(`Lieu : ${interview.location}`)
   lines.push(`Auditeur : ${auditorName}`)
-  if (contact) lines.push(`Interlocuteur : ${contact.name}${contact.job_title ? ` (${contact.job_title})` : ''}${contact.department ? ` \u2014 ${contact.department}` : ''}`)
+  if (contact) lines.push(`Interlocuteur : ${contact.name}${contact.job_title ? ` (${contact.job_title})` : ''}${contact.department ? ` - ${contact.department}` : ''}`)
   lines.push('')
 
   // Objet
@@ -67,7 +67,7 @@ export function generateCompteRendu(
   if (sections.actions.length > 0) {
     sections.actions.forEach((a, i) => lines.push(`${i + 1}. ${a}`))
   } else {
-    lines.push('(Aucune action identifi\u00e9e \u2014 \u00e0 compl\u00e9ter)')
+    lines.push('(Aucune action identifi\u00e9e - \u00e0 compl\u00e9ter)')
   }
   lines.push('')
 

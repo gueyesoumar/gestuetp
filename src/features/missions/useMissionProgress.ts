@@ -145,7 +145,7 @@ function computeNextAction(
   }
   // Parcours sans validation client \u2192 la Revue m\u00e8ne directement \u00e0 la cl\u00f4ture.
   if (status === 'internal_review' && skipClientReview) {
-    return { label: 'Revue termin\u00e9e \u2014 pr\u00eat \u00e0 cl\u00f4turer la mission.', ctaLabel: 'Cl\u00f4turer la mission', tab: 'closure' }
+    return { label: 'Revue termin\u00e9e - pr\u00eat \u00e0 cl\u00f4turer la mission.', ctaLabel: 'Cl\u00f4turer la mission', tab: 'closure' }
   }
   if (status === 'client_review') {
     return { label: 'En attente de validation client.', ctaLabel: 'Voir le suivi', tab: 'client_review' }

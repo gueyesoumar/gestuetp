@@ -182,7 +182,8 @@ function ScaleAnswer({ options, value, onChange, readOnly }: { options: string[]
     <div className="flex gap-2">
       {options.map((opt, i) => {
         const num = i + 1
-        const label = opt.split(' \u2014 ')[1] ?? opt.split(':')[0] ?? opt
+        // Tolère l'ancien séparateur cadratin (données déjà en base) et le nouveau tiret.
+        const label = opt.split(/ [-—] /)[1] ?? opt.split(':')[0] ?? opt
         return (
           <button key={opt} onClick={() => !readOnly && onChange(opt)} disabled={readOnly}
             className={`flex-1 py-3 px-2 border-2 rounded-xl text-center transition-all ${
@@ -373,5 +374,5 @@ function FollowUp({ label, type = 'text', readOnly }: { label: string; type?: st
 
 function isScale(options: string[] | null): boolean {
   if (!options || options.length < 3 || options.length > 6) return false
-  return options[0].includes('\u2014') || options[0].match(/^\d/) !== null
+  return options[0].includes('-') || options[0].match(/^\d/) !== null
 }

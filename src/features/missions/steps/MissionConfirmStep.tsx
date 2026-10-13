@@ -44,13 +44,13 @@ export function MissionConfirmStep({
   const lead = members.find((m) => m.id === leadAuditorId)
 
   const rows: { label: string; value: string }[] = [
-    { label: 'Mission', value: missionName || '\u2014' },
+    { label: 'Mission', value: missionName || '-' },
     { label: targetLabel, value: targetValue },
-    { label: 'R\u00e9f\u00e9rentiel', value: framework ? `${framework.name} ${framework.version ? `v${framework.version}` : ''}` : '\u2014' },
+    { label: 'R\u00e9f\u00e9rentiel', value: framework ? `${framework.name} ${framework.version ? `v${framework.version}` : ''}` : '-' },
     { label: 'P\u00e9rim\u00e8tre', value: `${selectedDomains}/${totalDomains} domaines \u00b7 ${totalControls} contr\u00f4les` },
-    { label: 'P\u00e9riode', value: startDate && endDate ? `${formatDate(startDate)} \u2192 ${formatDate(endDate)}` : '\u2014' },
-    { label: 'Associ\u00e9', value: associate ? `${associate.first_name} ${associate.last_name}` : '\u2014' },
-    { label: 'Chef de mission', value: lead ? `${lead.first_name} ${lead.last_name}` : '\u2014' },
+    { label: 'P\u00e9riode', value: startDate && endDate ? `${formatDate(startDate)} \u2192 ${formatDate(endDate)}` : '-' },
+    { label: 'Associ\u00e9', value: associate ? `${associate.first_name} ${associate.last_name}` : '-' },
+    { label: 'Chef de mission', value: lead ? `${lead.first_name} ${lead.last_name}` : '-' },
     { label: '\u00c9quipe', value: `${teamSize} membre${teamSize > 1 ? 's' : ''}` },
   ]
 
@@ -60,9 +60,9 @@ export function MissionConfirmStep({
       <p className="mt-1 text-[13px] text-gray-500">V&eacute;rifiez les informations avant de cr&eacute;er la mission</p>
 
       <div className="mt-4 grid grid-cols-3 gap-3">
-        <StatBox label="R&eacute;f&eacute;rentiel" value={framework?.name ?? '\u2014'} />
+        <StatBox label="R&eacute;f&eacute;rentiel" value={framework?.name ?? '-'} />
         <StatBox label="Auditeurs" value={String(teamSize)} />
-        <StatBox label="P&eacute;riode" value={startDate && endDate ? `${daysBetween(startDate, endDate)}j` : '\u2014'} />
+        <StatBox label="P&eacute;riode" value={startDate && endDate ? `${daysBetween(startDate, endDate)}j` : '-'} />
       </div>
 
       <div className="mt-3 rounded-lg border border-forest-200 bg-forest-50 px-4 py-2.5">

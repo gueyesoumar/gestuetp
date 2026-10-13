@@ -21,7 +21,7 @@ interface ScopingProgressSidebarProps {
   onNavigate: (tab: 'scope' | 'questionnaire' | 'documents' | 'risks') => void
   actionLoading: boolean
   actionSuccess: string | null
-  /** Moteur Contr\u00f4le (RFC 0003) : Cadrage all\u00e9g\u00e9 \u2014 Questionnaire optionnel, Risques retir\u00e9. */
+  /** Moteur Contr\u00f4le (RFC 0003) : Cadrage all\u00e9g\u00e9 - Questionnaire optionnel, Risques retir\u00e9. */
   isControle?: boolean
   /** Portail c\u00f4t\u00e9 partie audit\u00e9e disponible (faux en \u00e9dition Entreprise ou mission r\u00e9flexive, RFC 0013 F5). */
   showPortal?: boolean

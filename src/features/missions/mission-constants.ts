@@ -36,7 +36,7 @@ export const MISSION_PHASES: MissionPhase[] = [
 
 /**
  * En mode supervision continue, la phase "Validation client" est retir\u00e9e
- * (supervision interne) et "Cl\u00f4ture" devient "Cl\u00f4ture revue" \u2014 elle ne
+ * (supervision interne) et "Cl\u00f4ture" devient "Cl\u00f4ture revue" - elle ne
  * termine pas la mission mais le cycle trimestriel courant.
  */
 export const CONTINUOUS_SUPERVISION_PHASES: MissionPhase[] = [

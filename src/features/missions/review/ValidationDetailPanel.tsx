@@ -58,7 +58,7 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
   }, [assessment.id, comment, onReviewed, onClose])
 
   return (
-    <Modal open onClose={onClose} title={`${assessment.control.code} \u2014 ${assessment.control.name}`}>
+    <Modal open onClose={onClose} title={`${assessment.control.code} - ${assessment.control.name}`}>
       <div className="space-y-4">
         {/* Validation timeline */}
         <div className="flex items-center gap-0 py-3 bg-[#FAFAF8] -mx-5 px-5 rounded-lg">

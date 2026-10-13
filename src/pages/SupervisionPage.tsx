@@ -181,7 +181,7 @@ export function SupervisionPage(): JSX.Element {
         {selectedFramework && (
           <div className="mt-3 flex items-center gap-3">
             <span className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-forest-100 text-forest-700">
-              {selectedFramework.name} {'\u2014'} {domains.length} domaines
+              {selectedFramework.name} {'-'} {domains.length} domaines
             </span>
             {selectedFramework.publisher && (
               <span className="text-[11px] text-gray-400">{selectedFramework.publisher}</span>

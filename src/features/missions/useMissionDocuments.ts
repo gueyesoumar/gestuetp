@@ -123,7 +123,7 @@ export function useMissionDocuments(missionId: string | undefined, controlId?: s
 
     const promise = upload()
     toast.promise(promise, {
-      loading: `Envoi de ${file.name}\u2026`,
+      loading: `Envoi de ${file.name}...`,
       success: (name) => `${name} ajout\u00e9 \u00b7 indexation IA en cours`,
       error: 'Impossible d\'envoyer le document',
     })

@@ -52,7 +52,7 @@ export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatus
           <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${statusCfg.cls}`}>{statusCfg.label}</span>
         </div>
         <p className="text-[10px] text-gray-300 mt-0.5">
-          {time} {'\u2014'} {endTime} ({interview.duration_minutes}min)
+          {time} {'-'} {endTime} ({interview.duration_minutes}min)
           {interview.location && <>{' \u00b7 '}{interview.location}</>}
           {actors.length > 0 && (
             <>{' \u00b7 '}<strong>{actors.map((a) => a.name).join(', ')}</strong></>

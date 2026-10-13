@@ -30,7 +30,7 @@ export function WizardCompletedSummary({ questions, responses, currentIndex, onG
 }
 
 function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return '\u2014'
+  if (value === null || value === undefined) return '-'
   if (typeof value === 'boolean') return value ? 'Oui' : 'Non'
   if (Array.isArray(value)) return value.join(', ')
   return String(value)

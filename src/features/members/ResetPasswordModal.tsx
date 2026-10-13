@@ -71,7 +71,7 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title={`Mot de passe \u2014 ${member.first_name} ${member.last_name}`}>
+    <Modal open={open} onClose={handleClose} title={`Mot de passe - ${member.first_name} ${member.last_name}`}>
       {error && <ErrorAlert message={error} />}
       {mismatch && <ErrorAlert message="Les mots de passe ne correspondent pas." />}
       {success && (

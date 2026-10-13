@@ -68,7 +68,7 @@ export function CampaignDetailPage(): JSX.Element {
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <KpiCard label="Entit&eacute;s audit&eacute;es" value={`${data.completedEntities}/${data.totalEntities}`} valueClass="text-forest-700" bar={pct} barColor="#40916C" />
-        <KpiCard label="Score moyen" value={data.avgScore > 0 ? `${data.avgScore}%` : '\u2014'} valueClass={scoreColor} />
+        <KpiCard label="Score moyen" value={data.avgScore > 0 ? `${data.avgScore}%` : '-'} valueClass={scoreColor} />
         <KpiCard label="Progression" value={`${pct}%`} valueClass="text-forest-700" />
         <KpiCard label="NC majeures ouvertes" value={`${data.totalMajorNcs}`} valueClass={data.totalMajorNcs > 0 ? 'text-red-500' : 'text-green-600'} />
       </div>
@@ -108,9 +108,9 @@ export function CampaignDetailPage(): JSX.Element {
                         {e.entityName}
                       </Link>
                     </td>
-                    <td className="px-3 py-3 text-gray-500">{e.sector ?? '\u2014'}</td>
+                    <td className="px-3 py-3 text-gray-500">{e.sector ?? '-'}</td>
                     <td className="px-3 py-3 text-center">
-                      <span className={`font-bold ${sc}`}>{e.totalControls > 0 ? `${e.score}%` : '\u2014'}</span>
+                      <span className={`font-bold ${sc}`}>{e.totalControls > 0 ? `${e.score}%` : '-'}</span>
                     </td>
                     <td className="px-3 py-3">
                       <div className="h-2 rounded-full bg-gray-200 overflow-hidden">

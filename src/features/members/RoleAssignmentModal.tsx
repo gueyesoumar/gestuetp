@@ -71,7 +71,7 @@ export function RoleAssignmentModal({ member, open, onClose, onSuccess }: RoleAs
   const previewedRole = roles.find((r) => selectedIds.has(r.id) && !currentRoleIds.has(r.id))
 
   return (
-    <Modal open={open} onClose={handleClose} title={`R\u00f4les \u2014 ${member.first_name} ${member.last_name}`}>
+    <Modal open={open} onClose={handleClose} title={`R\u00f4les - ${member.first_name} ${member.last_name}`}>
       {error && <ErrorAlert message={error} />}
 
       <form onSubmit={handleSubmit} className="space-y-5">
