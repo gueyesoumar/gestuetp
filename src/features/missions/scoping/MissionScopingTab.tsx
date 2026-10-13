@@ -290,11 +290,13 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         />
       </div>
 
-      {/* Portal invite modal */}
-      {showPortal && showPortalModal && client && (
+      {/* Portal invite modal : la modale r\u00e9sout elle-m\u00eame la fiche depuis la mission
+          (plus de d\u00e9pendance \u00e0 `client`, qui pouvait \u00eatre null \u2192 bouton muet). */}
+      {showPortal && showPortalModal && (
         <PortalInviteModal
           missionId={mission.id}
-          cabinetClientId={client.id}
+          cabinetId={mission.cabinet_id}
+          clientOrgId={mission.client_id}
           onClose={() => setShowPortalModal(false)}
           onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
         />

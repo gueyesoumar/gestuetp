@@ -7,13 +7,16 @@ import type { ClientPortalContact, ClientPermission } from '../../../types/datab
 
 interface PortalInviteModalProps {
   missionId: string
-  cabinetClientId: string
+  cabinetId: string
+  clientOrgId: string
   onClose: () => void
   onSuccess: () => void
 }
 
-export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSuccess }: PortalInviteModalProps): JSX.Element {
+export function PortalInviteModal({ missionId, cabinetId, clientOrgId, onClose, onSuccess }: PortalInviteModalProps): JSX.Element {
   const { profile } = useAuth()
+  const [cabinetClientId, setCabinetClientId] = useState<string | null>(null)
+  const [ficheMissing, setFicheMissing] = useState(false)
   const [contacts, setContacts] = useState<ClientPortalContact[]>([])
   const [accessList, setAccessList] = useState<{ contact_id: string; permission: string }[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,31 +34,34 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
 
   const fetchData = useCallback(async (signal?: AbortSignal): Promise<void> => {
     setLoading(true)
+    const sig = signal ?? new AbortController().signal
 
-    // Fetch existing portal contacts for the audited org (RFC 0007 P2 : cpc.client_org_id).
+    // Résout la fiche client directement depuis la mission (cabinet + org auditée),
+    // au lieu de dépendre d'un état parent qui peut être null (sinon le bouton restait
+    // muet). Si aucune fiche ne correspond, on le signale explicitement (ficheMissing).
     const { data: fiche } = await supabase
-      .from('cabinet_clients').select('client_org_id').eq('id', cabinetClientId).maybeSingle()
-    const clientOrgId = (fiche as { client_org_id: string | null } | null)?.client_org_id ?? null
-    const { data: contactsData } = clientOrgId
-      ? await supabase
-          .from('client_portal_contacts')
-          .select('*')
-          .eq('client_org_id', clientOrgId)
-          .order('created_at')
-          .abortSignal(signal ?? new AbortController().signal)
-      : { data: [] }
+      .from('cabinet_clients')
+      .select('id')
+      .eq('cabinet_id', cabinetId)
+      .eq('client_org_id', clientOrgId)
+      .limit(1)
+      .abortSignal(sig)
+      .maybeSingle()
+    if (sig.aborted) return
+    const ficheId = (fiche as { id: string } | null)?.id ?? null
+    setCabinetClientId(ficheId)
+    if (!ficheId) { setFicheMissing(true); setLoading(false); return }
 
-    // Fetch existing access for this mission
+    const { data: contactsData } = await supabase
+      .from('client_portal_contacts').select('*').eq('client_org_id', clientOrgId).order('created_at').abortSignal(sig)
     const { data: accessData } = await supabase
-      .from('client_mission_access')
-      .select('contact_id, permission')
-      .eq('mission_id', missionId)
-      .abortSignal(signal ?? new AbortController().signal)
+      .from('client_mission_access').select('contact_id, permission').eq('mission_id', missionId).abortSignal(sig)
+    if (sig.aborted) return
 
     setContacts((contactsData ?? []) as unknown as ClientPortalContact[])
     setAccessList((accessData ?? []) as { contact_id: string; permission: string }[])
     setLoading(false)
-  }, [cabinetClientId, missionId])
+  }, [cabinetId, clientOrgId, missionId])
 
   useEffect(() => {
     const ac = new AbortController()
@@ -64,7 +70,7 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
   }, [fetchData])
 
   const handleInvite = async (_contactId: string, contactName: string, contactEmail: string): Promise<void> => {
-    if (!profile) return
+    if (!profile || !cabinetClientId) return
     setInviting(true)
     setError(null)
 
@@ -102,7 +108,7 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
     const result = await res.json() as { email_sent?: boolean }
     setSuccess(result.email_sent
       ? `${contactName} invit\u00e9(e) avec succ\u00e8s. Un email de d\u00e9finition de mot de passe a \u00e9t\u00e9 envoy\u00e9.`
-      : `${contactName} invit\u00e9(e). L'email n'a pas pu \u00eatre envoy\u00e9 \u2014 le contact peut utiliser \u00ab Mot de passe oubli\u00e9 \u00bb depuis la page de connexion.`)
+      : `${contactName} invit\u00e9(e). L'email n'a pas pu \u00eatre envoy\u00e9 : le contact peut utiliser \u00ab Mot de passe oubli\u00e9 \u00bb depuis la page de connexion.`)
     setInviting(false)
     fetchData()
     onSuccess()
@@ -141,6 +147,10 @@ export function PortalInviteModal({ missionId, cabinetClientId, onClose, onSucce
           {/* Existing contacts */}
           {loading ? (
             <p className="text-xs text-gray-400 text-center py-8">Chargement...</p>
+          ) : ficheMissing ? (
+            <div className="p-3 bg-gold-50 border border-gold-200 rounded-lg text-xs text-gold-800">
+              Fiche client introuvable pour cette mission. Vérifiez que ce client dispose d&apos;une fiche (menu Clients) avant d&apos;inviter un contact au portail.
+            </div>
           ) : (
             <>
               {contacts.length > 0 && (
