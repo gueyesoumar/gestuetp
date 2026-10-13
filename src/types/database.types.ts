@@ -2241,6 +2241,12 @@ export interface Database {
         Update: ClientContactUpdate & Rec
         Relationships: []
       }
+      client_mission_access: {
+        Row: ClientMissionAccess & Rec
+        Insert: Partial<ClientMissionAccess> & Rec
+        Update: Partial<ClientMissionAccess> & Rec
+        Relationships: []
+      }
       interview_schedules: {
         Row: InterviewSchedule & Rec
         Insert: InterviewScheduleInsert & Rec

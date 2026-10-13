@@ -23,6 +23,7 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
   const [accessList, setAccessList] = useState<{ contact_id: string; permission: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [inviting, setInviting] = useState(false)
+  const [savingPerm, setSavingPerm] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -130,6 +131,17 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
   }
 
   const hasAccess = (contactId: string): boolean => accessList.some((a) => a.contact_id === contactId)
+  const permFor = (contactId: string): string => accessList.find((a) => a.contact_id === contactId)?.permission ?? 'contributor'
+
+  // Modifie le rôle d'un contact déjà invité (update direct, RLS cma_update_team).
+  const updatePermission = async (contactId: string, perm: ClientPermission): Promise<void> => {
+    setSavingPerm(contactId); setError(null)
+    const { error: upErr } = await supabase
+      .from('client_mission_access').update({ permission: perm }).eq('contact_id', contactId).eq('mission_id', missionId)
+    setSavingPerm(null)
+    if (upErr) { console.error('[PortalInviteModal] update permission:', upErr.message); setError('Impossible de modifier le rôle.'); return }
+    setAccessList((prev) => prev.map((a) => (a.contact_id === contactId ? { ...a, permission: perm } : a)))
+  }
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
@@ -171,7 +183,17 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
                             <p className="text-[10px] text-gray-300 truncate">{c.email}{c.job_title ? ` \u2022 ${c.job_title}` : ''}</p>
                           </div>
                           {alreadyInvited ? (
-                            <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full shrink-0">{'\u2713'} Acc{'\u00e8'}s</span>
+                            <select
+                              value={permFor(c.id)}
+                              onChange={(e) => void updatePermission(c.id, e.target.value as ClientPermission)}
+                              disabled={savingPerm === c.id}
+                              title="R\u00f4le sur cette mission"
+                              className="text-[10px] border border-gray-200 rounded-lg px-2 py-1 bg-white outline-none focus:border-forest-500 shrink-0 disabled:opacity-50"
+                            >
+                              <option value="approver">{PERMISSION_LABELS.approver}</option>
+                              <option value="contributor">{PERMISSION_LABELS.contributor}</option>
+                              <option value="viewer">{PERMISSION_LABELS.viewer}</option>
+                            </select>
                           ) : (
                             <button
                               onClick={() => handleInvite(c.id, c.contact_name, c.email)}

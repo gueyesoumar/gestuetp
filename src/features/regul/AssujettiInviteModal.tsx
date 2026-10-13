@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { PERMISSION_LABELS } from '../client-portal/client-constants'
+import type { ClientPermission } from '../../types/database.types'
 
 interface EntityContact { id: string; contact_name: string; email: string; job_title: string | null }
 interface MissionOption { id: string; name: string }
@@ -20,9 +21,10 @@ interface Props {
 export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefill, onClose, onSuccess }: Props): JSX.Element {
   const { profile } = useAuth()
   const [contacts, setContacts] = useState<EntityContact[]>([])
-  const [access, setAccess] = useState<{ contact_id: string; mission_id: string }[]>([])
+  const [access, setAccess] = useState<{ contact_id: string; mission_id: string; permission: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [inviting, setInviting] = useState(false)
+  const [savingPerm, setSavingPerm] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [name, setName] = useState(prefill?.name ?? '')
@@ -41,10 +43,10 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefil
       .abortSignal(signal ?? new AbortController().signal)
     const missionIds = missions.map((m) => m.id)
     const { data: aData } = missionIds.length > 0
-      ? await supabase.from('client_mission_access').select('contact_id, mission_id').in('mission_id', missionIds)
+      ? await supabase.from('client_mission_access').select('contact_id, mission_id, permission').in('mission_id', missionIds)
       : { data: [] }
     setContacts((cData ?? []) as EntityContact[])
-    setAccess((aData ?? []) as { contact_id: string; mission_id: string }[])
+    setAccess((aData ?? []) as { contact_id: string; mission_id: string; permission: string }[])
     setLoading(false)
   }, [entityOrgId, missions])
 
@@ -77,6 +79,20 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefil
   }
 
   const missionsFor = (contactId: string): number => access.filter((a) => a.contact_id === contactId).length
+  // Mono-mission (contexte cadrage d'un contrôle) : on peut éditer le rôle de l'accès.
+  const singleMissionId = missions.length === 1 ? missions[0].id : null
+  const accessPerm = (contactId: string): string | null =>
+    singleMissionId ? access.find((a) => a.contact_id === contactId && a.mission_id === singleMissionId)?.permission ?? null : null
+
+  const updatePermission = async (contactId: string, perm: ClientPermission): Promise<void> => {
+    if (!singleMissionId) return
+    setSavingPerm(contactId); setError(null)
+    const { error: upErr } = await supabase
+      .from('client_mission_access').update({ permission: perm }).eq('contact_id', contactId).eq('mission_id', singleMissionId)
+    setSavingPerm(null)
+    if (upErr) { console.error('[AssujettiInviteModal] update permission:', upErr.message); setError('Impossible de modifier le rôle.'); return }
+    setAccess((prev) => prev.map((a) => (a.contact_id === contactId && a.mission_id === singleMissionId ? { ...a, permission: perm } : a)))
+  }
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
@@ -104,7 +120,20 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefil
                           <p className="text-xs font-semibold truncate">{c.contact_name}</p>
                           <p className="text-[10px] text-gray-400 truncate">{c.email}{c.job_title ? ` • ${c.job_title}` : ''}</p>
                         </div>
-                        <span className="text-[10px] font-medium text-forest-600 bg-forest-50 px-2 py-0.5 rounded-full shrink-0">{missionsFor(c.id)} mission{missionsFor(c.id) > 1 ? 's' : ''}</span>
+                        {singleMissionId && accessPerm(c.id) ? (
+                          <select
+                            value={accessPerm(c.id) ?? 'viewer'}
+                            onChange={(e) => void updatePermission(c.id, e.target.value as ClientPermission)}
+                            disabled={savingPerm === c.id}
+                            title="Rôle sur ce contrôle"
+                            className="text-[10px] border border-gray-200 rounded-lg px-2 py-1 bg-white outline-none focus:border-forest-500 shrink-0 disabled:opacity-50"
+                          >
+                            <option value="viewer">{PERMISSION_LABELS.viewer}</option>
+                            <option value="contributor">{PERMISSION_LABELS.contributor}</option>
+                          </select>
+                        ) : (
+                          <span className="text-[10px] font-medium text-forest-600 bg-forest-50 px-2 py-0.5 rounded-full shrink-0">{missionsFor(c.id)} mission{missionsFor(c.id) > 1 ? 's' : ''}</span>
+                        )}
                       </div>
                     ))}
                   </div>
