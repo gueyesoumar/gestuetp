@@ -39,7 +39,7 @@ export function generateInterviewCRPDF(data: CRData): void {
   function addFooter(): void {
     doc.setFontSize(7.5)
     doc.setTextColor(...TEXT_300)
-    doc.text(`Gëstu Comply — Compte-rendu d'entretien`, mL, pageH - 10)
+    doc.text(`Gëstu Comply : Compte-rendu d'entretien`, mL, pageH - 10)
     doc.text(`Page ${doc.getNumberOfPages()}`, pageW - mR, pageH - 10, { align: 'right' })
     doc.setDrawColor(...BORDER)
     doc.setLineWidth(0.3)
@@ -47,7 +47,7 @@ export function generateInterviewCRPDF(data: CRData): void {
   }
 
   // ============================================================
-  // PAGE 1 — COUVERTURE
+  // PAGE 1 - COUVERTURE
   // ============================================================
 
   // Bandeau forest
@@ -89,7 +89,7 @@ export function generateInterviewCRPDF(data: CRData): void {
 
   const infoY = y + 8
   infoField(doc, mL + 8, infoY, 'DATE', dateStr)
-  infoField(doc, mL + 8, infoY + 12, 'HORAIRE', `${time} — ${endTime} (${interview.duration_minutes} min)`)
+  infoField(doc, mL + 8, infoY + 12, 'HORAIRE', `${time} - ${endTime} (${interview.duration_minutes} min)`)
   infoField(doc, mL + 8, infoY + 24, 'LIEU', interview.location ?? 'Non précisé')
 
   infoField(doc, mL + 90, infoY, 'AUDITEUR', auditorName)
@@ -115,7 +115,7 @@ export function generateInterviewCRPDF(data: CRData): void {
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...GOLD_500)
-  doc.text('CONFIDENTIEL — Document de travail d’audit, usage interne uniquement.', mL + 5, y + 6)
+  doc.text('CONFIDENTIEL : Document de travail d’audit, usage interne uniquement.', mL + 5, y + 6)
   y += 16
 
   // ============================================================
@@ -177,7 +177,7 @@ export function generateInterviewCRPDF(data: CRData): void {
     doc.setFontSize(8.5)
     doc.setFont('helvetica', 'italic')
     doc.setTextColor(...TEXT_300)
-    doc.text('Aucune action identifiée — à compléter.', mL + 4, y)
+    doc.text('Aucune action identifiée : à compléter.', mL + 4, y)
     y += 6
   }
   y += 4

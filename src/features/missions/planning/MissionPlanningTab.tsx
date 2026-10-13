@@ -100,7 +100,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
       return
     }
 
-    // Server rejected the transition — show the missing items
+    // Server rejected the transition - show the missing items
     if (result?.missing && result.missing.length > 0) {
       setServerMissing(result.missing)
       setGenSuccess('Validation refusée par le serveur. Vérifiez les prérequis ci-dessus.')
@@ -184,7 +184,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
       return
     }
 
-    // 2. Open preview modal — user decides what to apply
+    // 2. Open preview modal - user decides what to apply
     const aiControls = (data.controls ?? []) as { id: string; risk_level: string; audit_techniques: string[]; estimated_hours: number; sampling_population: number | null; sampling_size: number | null; notes: string | null; reasoning?: string | null }[]
     const aiAssignments = (data.assignments ?? []) as { control_id: string; auditor_id: string }[]
 

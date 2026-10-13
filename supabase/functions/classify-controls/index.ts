@@ -37,7 +37,7 @@ interface ControlRow {
 
 function buildPrompt(controls: ControlRow[]): string {
   const list = controls
-    .map((c) => `${c.code} | ${c.name}${c.description ? ' — ' + c.description.slice(0, 160) : ''}`)
+    .map((c) => `${c.code} | ${c.name}${c.description ? ' : ' + c.description.slice(0, 160) : ''}`)
     .join('\n')
   return `Tu classes des contrôles de conformité SI dans UNE dimension du score de confiance.
 
@@ -51,7 +51,7 @@ Dimensions disponibles (renvoie exactement l'une de ces valeurs) :
 - human_factor : sensibilisation, formation, RH, screening, culture
 - third_party : fournisseurs, sous-traitants, chaîne d'approvisionnement, cloud, tiers
 
-CONTRÔLES (un par ligne : code | nom — description) :
+CONTRÔLES (un par ligne : code | nom : description) :
 ${list}
 
 Réponds UNIQUEMENT avec un tableau JSON, sans texte autour, de la forme :

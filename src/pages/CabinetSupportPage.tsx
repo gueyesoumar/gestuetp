@@ -59,7 +59,7 @@ export function CabinetSupportPage(): JSX.Element {
               {demandes.map((r) => (
                 <tr key={r.id} onClick={() => setSelectedId(r.id)} className="border-b border-gray-50 cursor-pointer hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-900">{r.title}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{r.role_at_submit ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{r.role_at_submit ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{SUPPORT_STATUS_LABELS[r.status]}</td>
                 </tr>
               ))}

@@ -1,4 +1,4 @@
--- Migration 00214 (UP) — P1a (RFC 0007) : éagérisation de la « partie auditée ».
+-- Migration 00214 (UP) - P1a (RFC 0007) : éagérisation de la « partie auditée ».
 -- Backfill idempotent : matérialise les fiches cabinet_clients encore orphelines
 -- (client_org_id NULL, jamais lancées en mission) en organisations-nœuds, puis
 -- pose l'arête audit_engagement pour TOUTES les fiches. Aucune modification de
@@ -6,7 +6,7 @@
 --
 -- Coordination : la matérialisation paresseuse de create-mission reste en place
 -- (filet de sécurité, retirée en P1c) et le trigger sync_mission_engagement_edge
--- (00213) réutilise l'arête via on conflict do nothing — aucun doublon possible
+-- (00213) réutilise l'arête via on conflict do nothing - aucun doublon possible
 -- (index unique uq_org_rel_active).
 
 -- 1) Matérialisation des fiches orphelines.

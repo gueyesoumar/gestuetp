@@ -10,7 +10,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 // Alors : niveau de conformité = 'c', on joint une observation standard
 // « Conforme, aucun écart identifié. », puis on soumet (mêmes règles que
 // submit-assessment, y compris le saut de revue lead). Tout le reste est
-// ignoré avec un motif — jamais de contrôle porteur de constats touché, donc
+// ignoré avec un motif - jamais de contrôle porteur de constats touché, donc
 // aucune incohérence NC/matrice possible. La transition de mission est calculée
 // une seule fois par mission concernée, à la fin.
 
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
         assessment_id: id,
         stage: 'auditor_submitted',
         decision: 'approved',
-        comment: isLead ? 'Soumis par le chef de mission — revue lead sautée' : null,
+        comment: isLead ? 'Soumis par le chef de mission (revue lead sautée)' : null,
         validated_by: callerProfile.id,
       })
       if (isLead && hasAssociate) {
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
           assessment_id: id,
           stage: 'lead_review',
           decision: 'approved',
-          comment: 'Validation automatique — constat soumis par le chef de mission lui-même',
+          comment: 'Validation automatique : constat soumis par le chef de mission lui-même',
           validated_by: callerProfile.id,
         })
       }

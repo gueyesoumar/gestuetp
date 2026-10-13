@@ -12,7 +12,7 @@ export const MAX_FILE_SIZE_BYTES = 32 * 1024 * 1024 // 32 Mo (limite Anthropic F
 export const MAX_FILE_SIZE_LABEL = '32 Mo'
 
 /**
- * Extensions acceptées sur l'input HTML <input accept="…">.
+ * Extensions acceptées sur l'input HTML <input accept="...">.
  * Doit rester synchro avec ACCEPTED_FORMATS.
  */
 export const ACCEPT_ATTR = '.pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.html,.htm,.png,.jpg,.jpeg,.webp'

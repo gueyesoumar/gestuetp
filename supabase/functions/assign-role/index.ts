@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 3.bis Permission cabinet — can_manage_roles obligatoire
+    // 3.bis Permission cabinet - can_manage_roles obligatoire
     if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_manage_roles'))) {
       return new Response(
         JSON.stringify({ error: 'Permission can_manage_roles requise' }),

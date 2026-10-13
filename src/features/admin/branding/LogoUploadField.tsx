@@ -85,7 +85,7 @@ export function LogoUploadField({ cabinetId, variant, currentUrl, onUploaded }: 
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <div>
           <div className="text-[12.5px] font-bold text-gray-900">
-            {isDark ? 'Logo variante fond sombre' : 'Logo principal — fond clair'}
+            {isDark ? 'Logo variante fond sombre' : 'Logo principal (fond clair)'}
             {isDark && <span className="ml-2 text-[10px] font-medium text-gray-400 normal-case tracking-normal">optionnel</span>}
             {!isDark && <span className="ml-1 text-red-500">*</span>}
           </div>
@@ -150,7 +150,7 @@ export function LogoUploadField({ cabinetId, variant, currentUrl, onUploaded }: 
               onClick={submit}
               disabled={submitting || !reason.trim()}
               className="px-3 py-1.5 text-[11.5px] font-semibold bg-forest-700 text-white rounded hover:bg-forest-900 disabled:opacity-50"
-            >{submitting ? 'Téléversement…' : 'Téléverser'}</button>
+            >{submitting ? 'Téléversement...' : 'Téléverser'}</button>
           </div>
         </div>
       )}

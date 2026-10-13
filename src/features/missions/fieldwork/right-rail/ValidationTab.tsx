@@ -18,7 +18,7 @@ const STAGE_LABELS: Record<ValidationStage, string> = {
 const STAGE_ORDER: ValidationStage[] = ['auditor_submitted', 'lead_review', 'associate_review', 'client_review']
 
 function fullName(v: ValidatorInfo | undefined): string {
-  if (!v) return '—'
+  if (!v) return '-'
   const parts = [v.first_name, v.last_name].filter(Boolean)
   return parts.length > 0 ? parts.join(' ') : v.email
 }

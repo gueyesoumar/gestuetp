@@ -29,7 +29,7 @@ const TREATMENT_OPTIONS: { value: DarkLogoTreatment; label: string; hint: string
 
 const SURFACE_OPTIONS: { value: BrandSurfaceMode; label: string; hint: string }[] = [
   { value: 'dark', label: 'Sombre', hint: 'Fond sombre + texte clair (logos à traits clairs)' },
-  { value: 'light', label: 'Clair', hint: 'Fond clair + texte foncé (logos à traits foncés) — logo posé tel quel, sans pastille' },
+  { value: 'light', label: 'Clair', hint: 'Fond clair + texte foncé (logos à traits foncés) : logo posé tel quel, sans pastille' },
 ]
 
 interface Props {
@@ -193,7 +193,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">{SURFACE_OPTIONS.find((o) => o.value === surfaceMode)?.hint} — proposé automatiquement au téléversement.</p>
+          <p className="text-[11px] text-gray-400 mt-1">{SURFACE_OPTIONS.find((o) => o.value === surfaceMode)?.hint}, proposé automatiquement au téléversement.</p>
         </div>
         <div className="col-span-2">
           <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Logo sur fond sombre</label>
@@ -205,7 +205,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">{TREATMENT_OPTIONS.find((o) => o.value === darkLogoTreatment)?.hint} — proposé automatiquement au téléversement du logo, ajustable.</p>
+          <p className="text-[11px] text-gray-400 mt-1">{TREATMENT_OPTIONS.find((o) => o.value === darkLogoTreatment)?.hint}, proposé automatiquement au téléversement du logo, ajustable.</p>
         </div>
         <PerScreenSurface
           login={loginSurface}
@@ -256,7 +256,7 @@ export function BrandingFormSection({ cabinetId, branding, suggestedColors, onDr
             <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
               <button onClick={() => { setShowReason(false); setReason('') }} disabled={submitting} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>
               <button onClick={submit} disabled={submitting || !reason.trim()} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50">
-                {submitting ? 'En cours…' : 'Enregistrer'}
+                {submitting ? 'En cours...' : 'Enregistrer'}
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
--- Migration 00127: Durcissement get_subsidiary_ids — SET search_path (DOWN)
+-- Migration 00127: Durcissement get_subsidiary_ids - SET search_path (DOWN)
 -- Restaure la définition d'origine (00057), sans la clause SET search_path.
 
 CREATE OR REPLACE FUNCTION public.get_subsidiary_ids(parent_id uuid)

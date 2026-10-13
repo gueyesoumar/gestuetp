@@ -5,11 +5,11 @@
 -- Cible (scope agressif b) :
 --   1. pv_template IS NULL
 --   2. OU pv_template -> 'sections' n'est pas un array, ou est un array vide
---      (cas où l'entretien n'a aucun sujet rattaché — légitime, on laisse [])
+--      (cas où l'entretien n'a aucun sujet rattaché - légitime, on laisse [])
 --   3. OU toutes les sections ont questions vide
 --      (cas créé entre 00114 et 00115 : structure correcte mais pas de questions)
 --
--- pv_notes n'est PAS touché — la saisie utilisateur est préservée.
+-- pv_notes n'est PAS touché - la saisie utilisateur est préservée.
 -- pv_template est recomposé depuis l'état actuel de :
 --   - interview_topics (sujets rattachés à l'entretien)
 --   - audit_topics (name + default_questions)

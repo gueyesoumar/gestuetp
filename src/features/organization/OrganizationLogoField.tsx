@@ -54,7 +54,7 @@ export function OrganizationLogoField({ currentUrl, canEdit, onUploaded }: Props
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-[12px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               <Upload size={13} />
-              {uploading ? 'Téléversement…' : preview ? 'Remplacer le logo' : 'Téléverser un logo'}
+              {uploading ? 'Téléversement...' : preview ? 'Remplacer le logo' : 'Téléverser un logo'}
             </button>
           </div>
         )}

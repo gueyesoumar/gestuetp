@@ -30,7 +30,7 @@ export function PolicyBoardPage(): JSX.Element {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><FileText size={20} className="text-[#6D5AE6]" /> Registre des politiques</h1>
-          <p className="mt-1 text-[13px] text-gray-500">Chaque politique suit son cycle de vie — brouillon → publiée → révision → retirée.</p>
+          <p className="mt-1 text-[13px] text-gray-500">Chaque politique suit son cycle de vie : brouillon → publiée → révision → retirée.</p>
         </div>
         <button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-[#6D5AE6] rounded-lg hover:brightness-110">
           <Plus size={16} /> Nouvelle politique
@@ -41,7 +41,7 @@ export function PolicyBoardPage(): JSX.Element {
         <div className="rounded-xl border border-[#6D5AE6]/30 bg-[#6D5AE6]/[0.06] px-4 py-3 flex items-center gap-3 flex-wrap">
           <Info size={15} className="text-[#4B3BC4] shrink-0" />
           <p className="text-[13px] text-gray-700">
-            Maturité de gouvernance&nbsp;: <b>{pm.score}/100</b> <span className="text-gray-500">(gouvernance {pm.governance ?? '—'} · adoption {pm.adoption ?? '—'} · vérifiabilité {pm.verifiability ?? '—'})</span>. {score.composite === null
+            Maturité de gouvernance&nbsp;: <b>{pm.score}/100</b> <span className="text-gray-500">(gouvernance {pm.governance ?? '-'} · adoption {pm.adoption ?? '-'} · vérifiabilité {pm.verifiability ?? '-'})</span>. {score.composite === null
               ? <>Alimentera les axes <b>gouvernance / vérifiabilité</b> dès qu&apos;une <b>posture</b> existera.</>
               : score.policyImpactActive
                 ? <>Intégrée aux axes → confiance <b>{score.composite}</b> ({pm.deltaPts >= 0 ? '+' : ''}{pm.deltaPts} pts).</>

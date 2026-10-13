@@ -11,7 +11,7 @@ import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-brand
  *
  * Flux « mot de passe oublié » depuis la page de connexion. Envoie un email de
  * réinitialisation via Resend (lien brandé sur le domaine cabinet, token_hash),
- * comme tous les autres flux — et NON via le SMTP natif de Supabase (rate-limité,
+ * comme tous les autres flux - et NON via le SMTP natif de Supabase (rate-limité,
  * lien non brandé).
  *
  * Sécurité :
@@ -53,7 +53,7 @@ async function processReset(email: string): Promise<void> {
     const u = user as { id: string; first_name: string; email: string; organization_id: string; is_active: boolean } | null
     if (!u || !u.is_active) return
 
-    // Jeton maison (reset, 1 h) — lien brandé, consommé uniquement à la soumission.
+    // Jeton maison (reset, 1 h) - lien brandé, consommé uniquement à la soumission.
     const siteUrl = await resolveCabinetSiteUrl(admin, u.organization_id)
     const tokenRes = await createSetupToken(admin, { userId: u.id, purpose: 'reset', ttlHours: 1 })
     if ('error' in tokenRes) {
@@ -65,7 +65,7 @@ async function processReset(email: string): Promise<void> {
     const branding = await loadCabinetEmailBranding(admin, u.organization_id)
     const sendResult = await sendEmail({
       to: u.email,
-      subject: `Réinitialisation de votre mot de passe — ${branding?.cabinetName ?? 'Gëstu ETP'}`,
+      subject: `Réinitialisation de votre mot de passe (${branding?.cabinetName ?? 'Gëstu ETP'})`,
       html: passwordResetTemplate({ firstName: u.first_name || u.email, link, branding }),
       from: buildEmailFrom(branding),
       replyTo: branding?.supportEmail ?? undefined,

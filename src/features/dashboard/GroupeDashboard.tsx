@@ -11,8 +11,8 @@ export function GroupeDashboard(): JSX.Element {
 
   if (loading) return <LoadingSpinner />
 
-  const fmt = (n: number | null): string => n === null ? '—' : `${n}`
-  const fmtPct = (n: number | null): string => n === null ? '—' : `${n}%`
+  const fmt = (n: number | null): string => n === null ? '-' : `${n}`
+  const fmtPct = (n: number | null): string => n === null ? '-' : `${n}%`
 
   return (
     <div>

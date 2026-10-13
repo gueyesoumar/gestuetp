@@ -1,6 +1,6 @@
--- Migration 00128: Bucket Storage client-branding — UP
+-- Migration 00128: Bucket Storage client-branding - UP
 -- Description: Bucket public dédié aux logos des clients (affichés dans les
--- rapports d'audit et le portail client — donnée non sensible). Le bucket
+-- rapports d'audit et le portail client - donnée non sensible). Le bucket
 -- cabinet-branding (00079) ne convient pas : MIME limité à png/svg, aucune
 -- policy d'écriture authenticated (écritures via Edge Function service-role).
 --

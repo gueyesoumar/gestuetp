@@ -1,4 +1,4 @@
--- Migration 00235: Bac à sable / données de démonstration (E4) — socle (UP)
+-- Migration 00235: Bac à sable / données de démonstration (E4) - socle (UP)
 -- Description: marque les missions et fiches clients de démonstration, par
 -- utilisateur (demo_owner_id). Ces données sont exclues des indicateurs (score
 -- de confiance, dashboards, quota) et supprimables en un clic par leur

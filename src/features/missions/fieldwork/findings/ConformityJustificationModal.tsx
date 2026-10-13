@@ -38,7 +38,7 @@ export function ConformityJustificationModal({
 
         <div>
           <label htmlFor="conformity-justification" className="block text-[13px] font-medium text-gray-700 mb-1.5">
-            Justification <span className="font-normal text-gray-400">— facultative, visible par le chef de mission et l&apos;associ&eacute;</span>
+            Justification <span className="font-normal text-gray-400">: facultative, visible par le chef de mission et l&apos;associ&eacute;</span>
           </label>
           <textarea
             id="conformity-justification"

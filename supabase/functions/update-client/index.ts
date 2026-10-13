@@ -3,14 +3,14 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
-// P1b (RFC 0007) — mise à jour d'un client.
+// P1b (RFC 0007) - mise à jour d'un client.
 // Écrit la fiche cabinet_clients (miroir lu jusqu'à P1c) ET le profil d'engagement
 // (engagement_profiles, source de vérité du contexte de mission). Passe par le
 // service_role : en P1c cabinet_clients deviendra une vue non directement modifiable
 // et l'écriture du profil doit rester serveur. Remplace le PATCH REST direct.
 
 // Champs de CONTEXTE (miroir dans engagement_profiles). L'identité (client_name,
-// secteur, adresse…) et le branding restent hors profil (→ nœud en P1c).
+// secteur, adresse...) et le branding restent hors profil (→ nœud en P1c).
 const CONTEXT_FIELDS = [
   'effectifs', 'chiffre_affaires', 'nombre_sites', 'activites_principales',
   'structure_hierarchique', 'parties_interessees', 'exigences_reglementaires',
@@ -84,8 +84,8 @@ Deno.serve(async (req) => {
     }
 
     // Cloisonnement : la fiche doit appartenir au cabinet de l'appelant.
-    // Note : l'identité (client_name…) a migré sur le nœud organizations (mig 00222) ;
-    // ne PAS la sélectionner ici — la colonne n'existe plus sur cabinet_clients.
+    // Note : l'identité (client_name...) a migré sur le nœud organizations (mig 00222) ;
+    // ne PAS la sélectionner ici - la colonne n'existe plus sur cabinet_clients.
     const { data: fiche, error: ficheErr } = await supabaseAdmin
       .from('cabinet_clients')
       .select('id, cabinet_id, client_org_id')

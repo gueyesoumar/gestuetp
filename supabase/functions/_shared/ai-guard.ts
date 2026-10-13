@@ -1,7 +1,7 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 
 /**
- * Garde IA centralisé — à appeler AVANT tout envoi de données à un modèle externe.
+ * Garde IA centralisé - à appeler AVANT tout envoi de données à un modèle externe.
  *
  * Renvoie false si le cabinet a coupé l'IA (organizations.ai_analysis_enabled = false).
  * Défaut true (valeur par défaut de la colonne). Centralise le court-circuit qui était

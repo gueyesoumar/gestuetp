@@ -35,7 +35,7 @@ export function FeatureDeleteModal({ feature, onClose, onConfirm }: FeatureDelet
               Supprimer &laquo;&nbsp;{feature.name}&nbsp;&raquo; ?
             </h3>
             <p className="text-[12px] text-gray-600 mt-0.5 leading-relaxed">
-              Action irréversible. La suppression est <b>refusée</b> si la fonctionnalité est encore référencée dans un plan ou par une dérogation de cabinet — il faut d&apos;abord la retirer partout via la matrice et les onglets cabinet.
+              Action irréversible. La suppression est <b>refusée</b> si la fonctionnalité est encore référencée dans un plan ou par une dérogation de cabinet : il faut d&apos;abord la retirer partout via la matrice et les onglets cabinet.
             </p>
             <p className="text-[10.5px] font-mono text-gray-400 mt-1.5">{feature.slug}</p>
           </div>
@@ -63,7 +63,7 @@ export function FeatureDeleteModal({ feature, onClose, onConfirm }: FeatureDelet
           </button>
           <button type="button" onClick={handleConfirm} disabled={submitting || !reason.trim()}
             className="px-3.5 py-2 text-[12.5px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
-            {submitting ? 'Suppression…' : 'Supprimer définitivement'}
+            {submitting ? 'Suppression...' : 'Supprimer définitivement'}
           </button>
         </div>
       </div>

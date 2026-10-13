@@ -19,7 +19,7 @@ CREATE INDEX idx_email_log_user ON public.email_log(user_id);
 CREATE INDEX idx_email_log_type_related ON public.email_log(type, related_id);
 CREATE INDEX idx_email_log_sent_at ON public.email_log(sent_at DESC);
 
--- RLS — lecture interdite côté client. Les Edge Functions opèrent via service_role
+-- RLS - lecture interdite côté client. Les Edge Functions opèrent via service_role
 -- et bypassent les policies. Aucune policy ne permet aux utilisateurs authentifiés
 -- de lire ou écrire dans cette table.
 ALTER TABLE public.email_log ENABLE ROW LEVEL SECURITY;

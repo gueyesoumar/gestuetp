@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
       stage = 'auditor_submitted'
       console.log(`[submit-assessment] Lead auditor submitted → skipping lead_review, going to associate_review`)
     } else if (isLead && !hasAssociate) {
-      // Lead is alone — no one to review. Flag but allow submission.
+      // Lead is alone - no one to review. Flag but allow submission.
       newStatus = 'submitted'
       console.warn(`[submit-assessment] Lead auditor submitted but no associate assigned. Review will require self-validation.`)
     }
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
         assessment_id,
         stage,
         decision: 'approved',
-        comment: isLead ? 'Soumis par le chef de mission — revue lead saut\u00e9e' : null,
+        comment: isLead ? 'Soumis par le chef de mission (revue lead saut\u00e9e)' : null,
         validated_by: callerProfile.id,
       })
 
@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
           assessment_id,
           stage: 'lead_review',
           decision: 'approved',
-          comment: 'Validation automatique — constat soumis par le chef de mission lui-m\u00eame',
+          comment: 'Validation automatique : constat soumis par le chef de mission lui-m\u00eame',
           validated_by: callerProfile.id,
         })
     }

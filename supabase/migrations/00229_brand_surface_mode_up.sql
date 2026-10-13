@@ -1,8 +1,8 @@
--- Migration 00229 (UP) — polarité de la surface de marque (marque blanche).
+-- Migration 00229 (UP) - polarité de la surface de marque (marque blanche).
 -- Permet que le logo soit posé tel quel (transparent, couleurs d'origine, sans
 -- pastille) : la plateforme adapte ses surfaces brandées en CLAIR ou en SOMBRE
 -- selon le logo. light = fond clair + texte foncé (logos à traits foncés) ;
--- dark = fond sombre + texte clair (logos à traits clairs) — comportement actuel.
+-- dark = fond sombre + texte clair (logos à traits clairs) - comportement actuel.
 
 alter table public.organization_branding
   add column if not exists brand_surface_mode text not null default 'dark'

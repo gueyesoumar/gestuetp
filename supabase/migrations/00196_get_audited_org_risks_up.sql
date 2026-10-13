@@ -1,4 +1,4 @@
--- 00196 — Vue cross-tenant du registre de RISQUE de l'organisation auditée (#1).
+-- 00196 - Vue cross-tenant du registre de RISQUE de l'organisation auditée (#1).
 --
 -- Même patron que get_control_policies : frontière SECURITY DEFINER unique, lecture
 -- seule, need-to-know PAR MISSION d'emblée. Renvoie les scénarios de risque du

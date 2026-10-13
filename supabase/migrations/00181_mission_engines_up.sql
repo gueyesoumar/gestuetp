@@ -1,7 +1,7 @@
--- 00181 — RFC 0003 : moteurs de mission (workflow_version) — Phase 1 (fondation).
+-- 00181 - RFC 0003 : moteurs de mission (workflow_version) - Phase 1 (fondation).
 --
 -- Deux moteurs : 'audit' (Audit complet, défaut historique) et 'controle' (Contrôle).
--- Attribution SYMÉTRIQUE et LIBRE par org (posée par le superadmin) — aucune
+-- Attribution SYMÉTRIQUE et LIBRE par org (posée par le superadmin) - aucune
 -- dérivation de l'édition. La mission FIGE (snapshot) le moteur de son org à la
 -- création → un changement de moteur d'org n'impacte jamais les missions en cours.
 -- Backfill : la valeur par défaut 'audit' couvre tout l'existant (orgs + missions).

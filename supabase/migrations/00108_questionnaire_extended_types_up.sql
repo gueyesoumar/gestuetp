@@ -1,5 +1,5 @@
 -- Migration: questionnaire_extended_types (UP)
--- Description: Sprint 4 — etend les types de questions du questionnaire.
+-- Description: Sprint 4 - etend les types de questions du questionnaire.
 --
 -- Avant : text, textarea, single_choice, multiple_choice, boolean, file_upload
 -- Apres : ajoute 'date', 'number', 'scale_percent', 'file', 'organigramme'.

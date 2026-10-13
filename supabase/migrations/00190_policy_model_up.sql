@@ -1,4 +1,4 @@
--- 00190 — Gëstu Policy (RFC 0005) : registre de gouvernance vivant.
+-- 00190 - Gëstu Policy (RFC 0005) : registre de gouvernance vivant.
 --
 -- policies (cycle de vie 6 états, 3 provenances) → policy_versions (contenu OU
 -- fichier joint, sceau d'approbation) ; connexions écosystème : policy_control_links

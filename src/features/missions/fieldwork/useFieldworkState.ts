@@ -111,7 +111,7 @@ export function useFieldworkState(
 
   // Validation routee via l'Edge Function review-assessment : c'est le serveur
   // qui determine le stage (lead/associate) et le newStatus selon le role du
-  // reviewer et le statut courant — le client ne decide plus rien. Le parametre
+  // reviewer et le statut courant - le client ne decide plus rien. Le parametre
   // `stage` est conserve pour compat de signature mais ignore (decide serveur).
   const approveAssessment = useCallback(async (id: string, comment: string, _stage?: string): Promise<boolean> => {
     setSaving(true)

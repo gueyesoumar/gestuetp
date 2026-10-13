@@ -86,7 +86,7 @@ function FunctionsTable({ stats }: { stats: AdminMonitoringStats }) {
                 <td className="px-4 py-2 border-b border-gray-100 text-right">
                   <span className={f.success_rate < 90 ? 'text-red-600 font-bold' : 'text-gray-700'}>{f.success_rate}%</span>
                 </td>
-                <td className="px-4 py-2 border-b border-gray-100 text-right text-[11.5px] text-gray-500">{f.avg_duration_ms ? `${(f.avg_duration_ms / 1000).toFixed(1)}s` : '—'}</td>
+                <td className="px-4 py-2 border-b border-gray-100 text-right text-[11.5px] text-gray-500">{f.avg_duration_ms ? `${(f.avg_duration_ms / 1000).toFixed(1)}s` : '-'}</td>
                 <td className="px-4 py-2 border-b border-gray-100 text-right font-mono text-[12px]">{formatUsd(f.cost_usd)}</td>
               </tr>
             ))}
@@ -190,9 +190,9 @@ function FailuresList({ stats }: { stats: AdminMonitoringStats }) {
             <tr key={f.id} className="hover:bg-page-bg">
               <td className="px-4 py-2 border-b border-gray-100 font-mono text-[11px] text-gray-500 whitespace-nowrap">{formatDateTime(f.created_at)}</td>
               <td className="px-4 py-2 border-b border-gray-100 font-mono text-[11.5px] text-forest-900 font-semibold">{f.function_name}</td>
-              <td className="px-4 py-2 border-b border-gray-100 text-[11.5px] text-gray-500 font-mono">{f.model ?? '—'}</td>
-              <td className="px-4 py-2 border-b border-gray-100 text-[12px] text-gray-700">{f.cabinet_name ?? <span className="text-gray-300">—</span>}</td>
-              <td className="px-4 py-2 border-b border-gray-100 text-[12px] text-red-600 max-w-md truncate" title={f.error_message ?? ''}>{f.error_message ?? '—'}</td>
+              <td className="px-4 py-2 border-b border-gray-100 text-[11.5px] text-gray-500 font-mono">{f.model ?? '-'}</td>
+              <td className="px-4 py-2 border-b border-gray-100 text-[12px] text-gray-700">{f.cabinet_name ?? <span className="text-gray-300">-</span>}</td>
+              <td className="px-4 py-2 border-b border-gray-100 text-[12px] text-red-600 max-w-md truncate" title={f.error_message ?? ''}>{f.error_message ?? '-'}</td>
             </tr>
           ))}
         </tbody>

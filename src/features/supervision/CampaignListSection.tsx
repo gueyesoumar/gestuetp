@@ -101,7 +101,7 @@ export function CampaignListSection({ frameworks, isGroup, canCreate = true }: C
                 </div>
                 </Link>
 
-                {/* Delete button — bottom-right, absolute */}
+                {/* Delete button - bottom-right, absolute */}
                 {isGroup && canCreate && (
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCampaignToDelete(c) }}

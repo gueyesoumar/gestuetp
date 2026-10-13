@@ -49,7 +49,7 @@ export function RemoveAuthenticatorDialog({ open, onClose, factor, onRemoved }: 
         <div className="flex justify-end gap-3">
           <button type="button" onClick={onClose} className="rounded-lg border border-gray-200 px-5 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-forest-50">Annuler</button>
           <button type="submit" disabled={busy || code.length < 6} className="rounded-lg bg-red-600 px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-red-700 disabled:opacity-50">
-            {busy ? 'Retrait…' : 'Retirer'}
+            {busy ? 'Retrait...' : 'Retirer'}
           </button>
         </div>
       </form>

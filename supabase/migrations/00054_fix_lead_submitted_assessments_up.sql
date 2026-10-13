@@ -6,7 +6,7 @@
 -- Étape 1 : Créer les entrées lead_review automatiques pour ces contrôles
 INSERT INTO public.assessment_validations (assessment_id, stage, decision, comment, validated_by)
 SELECT ca.id, 'lead_review', 'approved',
-       'Validation automatique — constat soumis par le chef de mission lui-même (migration)',
+       'Validation automatique - constat soumis par le chef de mission lui-même (migration)',
        m.lead_auditor_id
 FROM public.control_assessments ca
 JOIN public.missions m ON ca.mission_id = m.id

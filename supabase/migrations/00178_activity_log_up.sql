@@ -1,4 +1,4 @@
--- 00178 — Piste d'audit (F6) : journal d'activité opérationnel, org-scoped.
+-- 00178 - Piste d'audit (F6) : journal d'activité opérationnel, org-scoped.
 --
 -- Journal APPEND-ONLY chaîné par hash (SHA-256), CHAÎNE PAR ORGANISATION :
 -- chaque entrée intègre le hash de la précédente de LA MÊME org (prev_hash).

@@ -1,11 +1,11 @@
--- Seed: Référentiel PSSI-ES — 11 domaines, 155 contrôles
+-- Seed: Référentiel PSSI-ES - 11 domaines, 155 contrôles
 -- Source : Instruction présidentielle N° 003/PR du 03 janvier 2017
--- Commission Nationale de Cryptologie — Présidence de la République du Sénégal
+-- Commission Nationale de Cryptologie - Présidence de la République du Sénégal
 
 INSERT INTO public.frameworks (id, name, slug, description, version, publisher, category)
 VALUES (
   '00000000-0000-0000-0000-000000000017',
-  'PSSI-ES — Sénégal',
+  'PSSI-ES - Sénégal',
   'pssi-es',
   'Politique de Sécurité des Systèmes d''Information de l''État du Sénégal. Instruction présidentielle N° 003/PR du 03 janvier 2017. Définit les principes, règles et mesures de sécurité applicables à tous les SI des entités étatiques. Structurée en 11 chapitres, 30 objectifs et 155 règles couvrant l''organisation, le personnel, l''acquisition, les actifs, les fournisseurs, la sécurité physique, logique, l''exploitation, le cloud/mobile, les incidents et l''audit.',
   '2017',
@@ -38,8 +38,8 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0008-000000000011', '00000000-0000-0000-0000-000000000017', 'AUD', 'Audit et conformité', 'Objectif 30 : Éviter toute violation des dispositions législatives et réglementaires relatives à la sécurité des systèmes d''information.', 11);
 
 -- ============================================================
--- ORG — Organisation de la sécurité des SI (6 contrôles)
--- Chapitre I — Objectif 1
+-- ORG - Organisation de la sécurité des SI (6 contrôles)
+-- Chapitre I - Objectif 1
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -51,8 +51,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000001', 'REG 1-6', 'Formalisation et tenue à jour des documents validés', 'Le Responsable de la sécurité des systèmes d''information doit formaliser et tenir à jour les documents validés par le Chef de département (sur son périmètre).', 'Mapping ISO 27001 : A.5.1', 6);
 
 -- ============================================================
--- PER — Sécurité du personnel (13 contrôles)
--- Chapitre II — Objectifs 2, 3, 4
+-- PER - Sécurité du personnel (13 contrôles)
+-- Chapitre II - Objectifs 2, 3, 4
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -76,8 +76,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000002', 'REG 4-6', 'Formation continue et veille technologique', 'Un programme de formation continue doit être mis en place pour les agents chargés de veiller à l''application effective de la politique de sécurité, afin qu''ils soient informés sur les menaces et vulnérabilités les plus récentes (veille technologique).', 'Mapping ISO 27001 : A.5.7, A.6.3', 13);
 
 -- ============================================================
--- ACQ — Acquisition et développement des SI (4 contrôles)
--- Chapitre III — Objectif 5
+-- ACQ - Acquisition et développement des SI (4 contrôles)
+-- Chapitre III - Objectif 5
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -87,8 +87,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000003', 'REG 5-4', 'Externalisation du développement', 'En cas d''externalisation du développement de logiciels, le maître d''œuvre doit se conformer aux exigences de sécurité citées supra mais aussi considérer les problèmes relatifs aux licences d''utilisation, à la qualité du développement et aux tests de sécurité à réaliser pendant le développement.', 'Mapping ISO 27001 : A.8.30', 4);
 
 -- ============================================================
--- ACT — Gestion des actifs (7 contrôles)
--- Chapitre IV — Objectif 6
+-- ACT - Gestion des actifs (7 contrôles)
+-- Chapitre IV - Objectif 6
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -101,12 +101,12 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000004', 'REG 6-7', 'Effacement sécurisé des matériels mis au rebut', 'Pour les matériels qui doivent être mis au rebut, il faut procéder à un effacement sécurisé des données qui y sont stockées tel que défini par l''Instruction présidentielle n° 0303/PR du 16 juillet 2003.', 'Mapping ISO 27001 : A.7.14, A.8.10', 7);
 
 -- ============================================================
--- FRN — Relation avec les fournisseurs (9 contrôles)
--- Chapitre V — Objectif 7
+-- FRN - Relation avec les fournisseurs (9 contrôles)
+-- Chapitre V - Objectif 7
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
-('00000000-0000-0000-0008-000000000005', 'REG 7-1', 'Politique de sécurité applicable aux fournisseurs', 'Mettre en place une politique de sécurité applicable aux différents fournisseurs (logistique, finance, informatique, …).', 'Mapping ISO 27001 : A.5.19', 1),
+('00000000-0000-0000-0008-000000000005', 'REG 7-1', 'Politique de sécurité applicable aux fournisseurs', 'Mettre en place une politique de sécurité applicable aux différents fournisseurs (logistique, finance, informatique, ...).', 'Mapping ISO 27001 : A.5.19', 1),
 ('00000000-0000-0000-0008-000000000005', 'REG 7-2', 'Procédures de surveillance de la conformité fournisseurs', 'Mettre en œuvre des procédures permettant de surveiller la conformité aux exigences de sécurité de l''information pour chaque fournisseur.', 'Mapping ISO 27001 : A.5.22', 2),
 ('00000000-0000-0000-0008-000000000005', 'REG 7-3', 'Programme de sensibilisation des fournisseurs', 'Mettre en place un programme de sensibilisation du personnel en contact avec les fournisseurs sur les règles de sécurité applicables à ces derniers ainsi que sur le niveau d''accès aux systèmes d''information.', 'Mapping ISO 27001 : A.5.19, A.5.20', 3),
 ('00000000-0000-0000-0008-000000000005', 'REG 7-4', 'Charte de sécurité signée par les fournisseurs', 'Mettre en place une charte de sécurité signée par les différentes parties qui doivent s''engager à en respecter scrupuleusement les clauses.', 'Mapping ISO 27001 : A.5.20', 4),
@@ -117,8 +117,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000005', 'REG 7-9', 'Procédures d''audit des prestations fournisseurs', 'Mettre en place des procédures d''audit sur les prestations effectuées par les fournisseurs ainsi que sur la qualité de ces services.', 'Mapping ISO 27001 : A.5.22', 9);
 
 -- ============================================================
--- PHY — Sécurité physique (48 contrôles)
--- Chapitre VI — Objectifs 8 à 16
+-- PHY - Sécurité physique (48 contrôles)
+-- Chapitre VI - Objectifs 8 à 16
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -127,7 +127,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000006', 'REG 8-2', 'Contrôle d''accès par autorisation écrite ou badge', 'L''accès à ces zones ne doit être permis qu''au personnel muni d''une autorisation écrite ou d''un badge délivré par le responsable désigné.', 'Mapping ISO 27001 : A.7.2', 2),
 ('00000000-0000-0000-0008-000000000006', 'REG 8-3', 'Registre d''accès aux zones sécurisées', 'Un registre d''accès doit être tenu à l''entrée de chaque zone sécurisée. Il doit contenir l''identité, le but, la signature, l''heure d''entrée et de sortie de toute personne accédant au site.', 'Mapping ISO 27001 : A.7.2', 3),
 ('00000000-0000-0000-0008-000000000006', 'REG 8-4', 'Agent de sécurité à l''entrée des sites sensibles', 'Un agent de sécurité doit être placé à l''entrée de chaque site sensible, chargé de : interdiction d''accès au personnel non autorisé, inscription au registre d''accès, contrôle des bagages, gestion des alarmes et appels d''urgence.', 'Mapping ISO 27001 : A.7.2', 4),
-('00000000-0000-0000-0008-000000000006', 'REG 8-5', 'Fermeture et verrouillage hors heures de service', 'Les zones sécurisées doivent être fermées en dehors des heures de service. Toutes les fenêtres, portes, et issues de secours doivent être verrouillées. Tous les conduits (climatisation, élévateurs…) doivent être munis de grilles métalliques.', 'Mapping ISO 27001 : A.7.1, A.7.3', 5),
+('00000000-0000-0000-0008-000000000006', 'REG 8-5', 'Fermeture et verrouillage hors heures de service', 'Les zones sécurisées doivent être fermées en dehors des heures de service. Toutes les fenêtres, portes, et issues de secours doivent être verrouillées. Tous les conduits (climatisation, élévateurs...) doivent être munis de grilles métalliques.', 'Mapping ISO 27001 : A.7.1, A.7.3', 5),
 ('00000000-0000-0000-0008-000000000006', 'REG 8-6', 'Révocation immédiate des droits d''accès', 'Tous les droits d''accès doivent être immédiatement révoqués en cas de départ à la retraite de l''agent, de démission, de suspension, de mutation ou de congé de longue durée.', 'Mapping ISO 27001 : A.5.11, A.7.2', 6),
 ('00000000-0000-0000-0008-000000000006', 'REG 8-7', 'Sauvegarde des enregistrements d''accès', 'Les enregistrements d''accès doivent être régulièrement sauvegardés et conservés pendant une période déterminée.', 'Mapping ISO 27001 : A.7.2, A.7.4', 7),
 ('00000000-0000-0000-0008-000000000006', 'REG 8-8', 'Choix des équipements par l''ASSI selon analyse de risque', 'Chaque ASSI doit choisir les techniques et les équipements appropriés sur la base des résultats d''une évaluation de risque physique et d''une analyse des coûts de contre-mesures ou des avantages associés.', 'Mapping ISO 27001 : A.7.1', 8),
@@ -161,7 +161,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000006', 'REG 13-3', 'Détection et lutte contre l''incendie', 'Dans tous les sites sensibles, des dispositifs de détection et de lutte contre l''incendie tels que les détecteurs de fumée et les extincteurs, doivent être installés, contrôlés et testés régulièrement.', 'Mapping ISO 27001 : A.7.5', 26),
 ('00000000-0000-0000-0008-000000000006', 'REG 13-4', 'Sites en briques réfractaires, sans matériel inflammable', 'Les sites sensibles doivent être en briques réfractaires et ne doivent contenir aucun matériel inflammable tel que des meubles en bois, des rideaux ou des tapis.', 'Mapping ISO 27001 : A.7.5', 27),
 ('00000000-0000-0000-0008-000000000006', 'REG 13-5', 'Conformité des installations électriques', 'Il faut utiliser les spécifications techniques des fabricants des matériels électriques et se conformer aux normes de sécurité électrique des sociétés locales prestataires d''électricité pour empêcher les incendies.', 'Mapping ISO 27001 : A.7.5', 28),
-('00000000-0000-0000-0008-000000000006', 'REG 13-6', 'Inspection et test régulier des installations électriques', 'Il faut faire inspecter et tester régulièrement les installations électriques pour s''assurer de leur bon fonctionnement (systèmes d''éclairage, interrupteurs, câbles électriques, générateur de secours, …).', 'Mapping ISO 27001 : A.7.5', 29),
+('00000000-0000-0000-0008-000000000006', 'REG 13-6', 'Inspection et test régulier des installations électriques', 'Il faut faire inspecter et tester régulièrement les installations électriques pour s''assurer de leur bon fonctionnement (systèmes d''éclairage, interrupteurs, câbles électriques, générateur de secours, ...).', 'Mapping ISO 27001 : A.7.5', 29),
 ('00000000-0000-0000-0008-000000000006', 'REG 13-7', 'Alimentation électrique d''urgence par générateur de secours', 'Une alimentation électrique d''urgence doit être sauvegardée par un générateur de secours.', 'Mapping ISO 27001 : A.7.11', 30),
 ('00000000-0000-0000-0008-000000000006', 'REG 13-8', 'Alimentation électrique permanente pour équipements sensibles', 'Tous les équipements sensibles doivent disposer d''une alimentation électrique permanente.', 'Mapping ISO 27001 : A.7.11', 31),
 ('00000000-0000-0000-0008-000000000006', 'REG 13-9', 'Matériel sur support surélevé avec détection de fuite d''eau', 'Le matériel doit être installé sur un support surélevé. Des systèmes de détection de fuite d''eau doivent être installés dans les sites sensibles.', 'Mapping ISO 27001 : A.7.5', 32),
@@ -193,7 +193,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000006', 'REG 15-8', 'Sauvegarde des données avant remise en réparation', 'En cas de remise d''un équipement pour réparation, les données qui y sont contenues doivent être sauvegardées dans d''autres supports et être supprimées de manière sécurisée.', 'Mapping ISO 27001 : A.7.14, A.8.10', 54),
 
 -- Obj. 16 : Bureau propre et écran vide
-('00000000-0000-0000-0008-000000000006', 'REG 16-1', 'Supports amovibles sensibles en coffre ou armoire', 'Les supports amovibles de stockage de données sensibles (disques durs, disquettes, bandes magnétiques, CDROM, DVD, Blu-ray, clés USB, cartes SD, cartes à puces …) doivent être conservés dans un coffre ou une armoire au même titre que les documents et correspondances sensibles sur support papier.', 'Mapping ISO 27001 : A.7.7', 55),
+('00000000-0000-0000-0008-000000000006', 'REG 16-1', 'Supports amovibles sensibles en coffre ou armoire', 'Les supports amovibles de stockage de données sensibles (disques durs, disquettes, bandes magnétiques, CDROM, DVD, Blu-ray, clés USB, cartes SD, cartes à puces ...) doivent être conservés dans un coffre ou une armoire au même titre que les documents et correspondances sensibles sur support papier.', 'Mapping ISO 27001 : A.7.7', 55),
 ('00000000-0000-0000-0008-000000000006', 'REG 16-2', 'Clés des locaux en endroit sûr hors heures de travail', 'Après les heures de travail ou en l''absence des utilisateurs, les clefs des locaux, des coffres et des armoires doivent être gardées dans un endroit sûr accessible aux seules personnes autorisées.', 'Mapping ISO 27001 : A.7.7', 56),
 ('00000000-0000-0000-0008-000000000006', 'REG 16-3', 'Effacement logique et physique des fichiers classifiés périmés', 'Les fichiers contenant des informations classifiées et qui sont périmées doivent être effacés. Cette destruction ne doit pas être uniquement logique mais doit être accompagnée d''un effacement physique pour prévenir toute possibilité de lecture.', 'Mapping ISO 27001 : A.8.10', 57),
 ('00000000-0000-0000-0008-000000000006', 'REG 16-4', 'Retrait immédiat des documents sensibles des imprimantes', 'Les documents contenant des informations sensibles ou classifiées doivent être immédiatement retirés des imprimantes, des photocopieuses, des scanneurs, des appareils de télécopie après leur utilisation.', 'Mapping ISO 27001 : A.7.7', 58),
@@ -202,8 +202,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000006', 'REG 16-7', 'Impression sécurisée par identification', 'Il faut utiliser des imprimantes dotées d''une fonction d''identification par code personnel, afin que seules les personnes ayant initié une tâche d''impression puissent récupérer leurs documents imprimés et uniquement lorsqu''elles se trouvent à proximité de l''imprimante.', 'Mapping ISO 27001 : A.7.7', 61);
 
 -- ============================================================
--- LOG — Sécurité logique (31 contrôles)
--- Chapitre VII — Objectifs 17, 18, 19
+-- LOG - Sécurité logique (31 contrôles)
+-- Chapitre VII - Objectifs 17, 18, 19
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -217,7 +217,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 
 -- Obj. 18 : Sécurité des applicatifs
 ('00000000-0000-0000-0008-000000000007', 'REG 18-1', 'Mécanisme de contrôle d''accès aux fonctions applicatives', 'Un mécanisme permettant de contrôler l''accès aux fonctions d''application système doit être mis en place.', 'Mapping ISO 27001 : A.8.2, A.8.3', 7),
-('00000000-0000-0000-0008-000000000007', 'REG 18-2', 'Contrôle des droits d''accès utilisateurs (lecture, écriture, suppression)', 'Les droits d''accès des utilisateurs doivent être contrôlés (lecture, écriture, suppression, …).', 'Mapping ISO 27001 : A.8.3', 8),
+('00000000-0000-0000-0008-000000000007', 'REG 18-2', 'Contrôle des droits d''accès utilisateurs (lecture, écriture, suppression)', 'Les droits d''accès des utilisateurs doivent être contrôlés (lecture, écriture, suppression, ...).', 'Mapping ISO 27001 : A.8.3', 8),
 ('00000000-0000-0000-0008-000000000007', 'REG 18-3', 'Accès aux applications par mécanisme de connexion sécurisée', 'Il faut restreindre l''accès aux applications par un mécanisme de connexion sécurisée.', 'Mapping ISO 27001 : A.8.5', 9),
 ('00000000-0000-0000-0008-000000000007', 'REG 18-4', 'Authentification forte pour données classifiées', 'Une technologie d''authentification forte doit être utilisée lorsque les données sont classifiées.', 'Mapping ISO 27001 : A.8.5', 10),
 ('00000000-0000-0000-0008-000000000007', 'REG 18-5', 'Limitation des tentatives de connexion non autorisées', 'Il faut limiter le nombre de connexions non autorisées aux applications.', 'Mapping ISO 27001 : A.8.5', 11),
@@ -245,8 +245,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000007', 'REG 19-9-12', 'Politique rigoureuse de gestion des clés de chiffrement', 'Il faut mettre en œuvre une politique rigoureuse de gestion des clefs de chiffrement afin d''en assurer la protection, sans faille, durant tout leur cycle de vie.', 'Mapping ISO 27001 : A.8.24', 31);
 
 -- ============================================================
--- EXP — Sécurité de l'exploitation (37 contrôles)
--- Chapitre VIII — Objectifs 20 à 27
+-- EXP - Sécurité de l'exploitation (37 contrôles)
+-- Chapitre VIII - Objectifs 20 à 27
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -321,8 +321,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000008', 'REG 27-9', 'Restauration en cas d''impact négatif', 'Si l''application automatique d''un correctif ou d''une mise à jour affecte négativement les systèmes, il faut rétablir les systèmes originaux à partir des sauvegardes.', 'Mapping ISO 27001 : A.8.8, A.8.13', 54);
 
 -- ============================================================
--- CLM — Cloud, appareils mobiles et télétravail (10 contrôles)
--- Chapitre IX — Objectif 28
+-- CLM - Cloud, appareils mobiles et télétravail (10 contrôles)
+-- Chapitre IX - Objectif 28
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -338,14 +338,14 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000009', 'REG 28-10', 'Contrôle des appareils mobiles tout au long de leur cycle de vie', 'Procéder au contrôle des appareils mobiles durant tout leur cycle de vie.', 'Mapping ISO 27001 : A.8.1', 10);
 
 -- ============================================================
--- INC — Gestion des incidents (11 contrôles)
--- Chapitre X — Objectif 29
+-- INC - Gestion des incidents (11 contrôles)
+-- Chapitre X - Objectif 29
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
 ('00000000-0000-0000-0008-000000000010', 'REG 29-1', 'Procédures de surveillance, détection, analyse et signalement', 'Mettre en œuvre des procédures de surveillance, de détection, d''analyse et de signalement des événements et des incidents concernant les activités des réseaux.', 'Mapping ISO 27001 : A.5.24, A.5.25', 1),
 ('00000000-0000-0000-0008-000000000010', 'REG 29-2', 'Structure d''alerte et de réaction rapide avec point focal', 'Mettre en place, au sein de l''entité, une structure d''alerte et de réaction rapide à tout incident relatif à la sécurité des systèmes d''information, composée d''un personnel qualifié avec un point focal qui sert d''interlocuteur entre l''entité et les autres centres de gestion des incidents.', 'Organismes compétents : ADIE, STCC-SSI, ARTP. Mapping ISO 27001 : A.5.24', 2),
-('00000000-0000-0000-0008-000000000010', 'REG 29-3', 'Remontée rapide et coordination des incidents', 'Les structures d''alerte et de réaction rapide doivent remonter tout incident lié à la sécurité des systèmes d''information de l''entité et les signaler aux organismes compétents (ADIE, STCC-SSI, ARTP…). Les actions à mener doivent être coordonnées.', 'Mapping ISO 27001 : A.5.24, A.5.26', 3),
+('00000000-0000-0000-0008-000000000010', 'REG 29-3', 'Remontée rapide et coordination des incidents', 'Les structures d''alerte et de réaction rapide doivent remonter tout incident lié à la sécurité des systèmes d''information de l''entité et les signaler aux organismes compétents (ADIE, STCC-SSI, ARTP...). Les actions à mener doivent être coordonnées.', 'Mapping ISO 27001 : A.5.24, A.5.26', 3),
 ('00000000-0000-0000-0008-000000000010', 'REG 29-4', 'Système de redondance pour garantir la disponibilité', 'Un système de redondance des moyens de traitement de l''information doit être mis en place en vue d''en garantir la disponibilité.', 'Mapping ISO 27001 : A.8.14', 4),
 ('00000000-0000-0000-0008-000000000010', 'REG 29-5', 'Revue périodique du plan de continuité d''activité', 'Il faut revoir régulièrement le plan de continuité d''activités pour prendre en compte les changements intervenus dans le système d''information afin d''en maintenir la validité et l''efficacité.', 'Mapping ISO 27001 : A.5.29, A.5.30', 5),
 ('00000000-0000-0000-0008-000000000010', 'REG 29-6', 'Test périodique du plan de continuité', 'Il faut tester périodiquement le plan afin de s''assurer de sa fiabilité.', 'Mapping ISO 27001 : A.5.29', 6),
@@ -356,8 +356,8 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0008-000000000010', 'REG 29-11', 'Typologie des incidents et retours d''expérience', 'Il faut déterminer la typologie des incidents de sécurité, et en tirer tous les enseignements nécessaires.', 'Mapping ISO 27001 : A.5.27', 11);
 
 -- ============================================================
--- AUD — Audit et conformité (7 contrôles)
--- Chapitre XI — Objectif 30
+-- AUD - Audit et conformité (7 contrôles)
+-- Chapitre XI - Objectif 30
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values

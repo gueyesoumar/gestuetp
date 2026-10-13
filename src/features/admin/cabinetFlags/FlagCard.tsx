@@ -48,7 +48,7 @@ export function FlagCard({ flag, onAction }: FlagCardProps): JSX.Element {
         <div className={`mt-3 rounded-lg p-2.5 ${isOverrideOn ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
           <div className="flex items-center justify-between mb-1">
             <span className={`text-[10px] uppercase tracking-wider font-bold ${isOverrideOn ? 'text-emerald-700' : 'text-red-700'}`}>
-              Dérogation active — {isOverrideOn ? 'Forcé ON' : 'Forcé OFF'}
+              Dérogation active : {isOverrideOn ? 'Forcé ON' : 'Forcé OFF'}
             </span>
             <span className="text-[10px] text-gray-500">{formatRelative(flag.override_updated_at)}</span>
           </div>

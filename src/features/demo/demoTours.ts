@@ -48,7 +48,7 @@ export const DEMO_TOUR_DEFS: Record<string, TourDef> = {
   'demo-create': {
     route: '/missions',
     steps: [
-      { element: '[data-tour="new-mission"]', popover: { title: 'À vous de jouer', description: "Prêt ? Lancez votre propre mission avec « Nouvelle mission » — l'assistant vous guide en 6 étapes. Vous pourrez supprimer la démo quand vous voulez.", side: 'bottom', align: 'end' } },
+      { element: '[data-tour="new-mission"]', popover: { title: 'À vous de jouer', description: "Prêt ? Lancez votre propre mission avec « Nouvelle mission » : l'assistant vous guide en 6 étapes. Vous pourrez supprimer la démo quand vous voulez.", side: 'bottom', align: 'end' } },
     ],
   },
 }

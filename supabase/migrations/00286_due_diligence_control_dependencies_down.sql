@@ -1,4 +1,4 @@
--- Rollback 00286 — retire les dépendances DUEDIL.
+-- Rollback 00286 - retire les dépendances DUEDIL.
 delete from public.control_mappings cm using public.controls cs, public.controls ct, (values
     ('PT.01', 'PT.02', 'partial'),
     ('PT.01', 'PT.06', 'related'),

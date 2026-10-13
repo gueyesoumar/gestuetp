@@ -104,7 +104,7 @@ export function drawPriorityMatrix(ctx: DocContext, x: number, y: number, w: num
   doc.text('Faible enjeu', ix + 2, iy + ih - 2)
   doc.text('Coûteux', ix + iw - 2, iy + ih - 2, { align: 'right' })
 
-  // Items dots — heuristique enrichie pour mieux étaler la nuée :
+  // Items dots - heuristique enrichie pour mieux étaler la nuée :
   //   IMPACT = base par classification + bonus si NC sur domaine bas score
   //   EFFORT = longueur de la reco + hash control_id pour étaler horizontalement
   // Bornes [0.08 ; 0.92] pour éviter les bords. Ajout de jitter déterministe

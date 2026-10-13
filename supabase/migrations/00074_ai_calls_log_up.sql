@@ -3,7 +3,7 @@
 -- pour permettre la page /admin/monitoring de calculer tokens consommés,
 -- coûts estimés et taux d'échec par fonction et par cabinet.
 --
--- Aucun contenu utilisateur (prompt, réponse) n'est stocké — uniquement
+-- Aucun contenu utilisateur (prompt, réponse) n'est stocké - uniquement
 -- des métadonnées techniques.
 
 CREATE TABLE public.ai_calls_log (
@@ -31,7 +31,7 @@ CREATE INDEX idx_aic_created ON public.ai_calls_log(created_at DESC);
 CREATE INDEX idx_aic_org ON public.ai_calls_log(organization_id);
 CREATE INDEX idx_aic_function_success ON public.ai_calls_log(function_name, success);
 
--- RLS — lecture pour les platform owners uniquement, insert via service-role only
+-- RLS - lecture pour les platform owners uniquement, insert via service-role only
 ALTER TABLE public.ai_calls_log ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "aic_owner_read"

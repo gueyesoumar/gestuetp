@@ -9,7 +9,7 @@ import { corsHeaders } from '../_shared/cors.ts'
  * status='declined_by_client' avec motif et justification.
  *
  * Permet aussi d'annuler la déclaration tant que l'auditeur n'a pas tranché
- * (action='cancel') — repasse à 'pending'.
+ * (action='cancel') - repasse à 'pending'.
  *
  * Sécurité :
  *  - caller dans le cabinet client de la mission

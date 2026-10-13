@@ -1,4 +1,4 @@
--- Migration 00077: Domaines custom des cabinets (marque blanche niveau 3) — UP
+-- Migration 00077: Domaines custom des cabinets (marque blanche niveau 3) - UP
 -- Description: Stocke les hostnames custom (ex. audit.auditco.sn) qui doivent
 -- résoudre vers un cabinet précis. Le middleware Vercel lit cette table en
 -- service-role (via Edge Function resolve-tenant-by-hostname) pour brander

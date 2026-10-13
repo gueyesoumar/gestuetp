@@ -67,7 +67,7 @@ export function TerminologyEditor({ orgId }: TerminologyEditorProps): JSX.Elemen
       <div className="grid grid-cols-1 lg:grid-cols-[210px_minmax(0,1fr)_290px]">
         {/* Nav familles */}
         <aside className="border-b lg:border-b-0 lg:border-r border-gray-200 bg-page-bg p-3">
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍 Rechercher un terme…"
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍 Rechercher un terme..."
             className="w-full mb-2.5 text-[12.5px] rounded-lg border border-gray-300 px-3 py-2" />
           {VOCAB_GROUPS.map((g) => {
             const n = customCount(g.id); const on = !q && g.id === active
@@ -99,7 +99,7 @@ export function TerminologyEditor({ orgId }: TerminologyEditorProps): JSX.Elemen
       </div>
 
       <div className="flex items-center gap-3 px-5 py-3 border-t border-gray-200 bg-gray-50">
-        <button onClick={save} disabled={saving} className="rounded-lg bg-forest-700 px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-forest-800 disabled:opacity-50">{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+        <button onClick={save} disabled={saving} className="rounded-lg bg-forest-700 px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-forest-800 disabled:opacity-50">{saving ? 'Enregistrement...' : 'Enregistrer'}</button>
         <button onClick={reset} disabled={saving} className="rounded-lg border border-gray-300 px-4 py-2 text-[12.5px] font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">Réinitialiser</button>
         {dirtyTotal > 0 && <span className="ml-auto text-[12px] text-gray-500">{dirtyTotal} libellé{dirtyTotal > 1 ? 's' : ''} personnalisé{dirtyTotal > 1 ? 's' : ''}</span>}
       </div>

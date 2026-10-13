@@ -5,7 +5,7 @@ import { authenticateCaller } from '../_shared/auth.ts'
 import { CLAUDE_SONNET } from '../_shared/models.ts'
 
 /**
- * ai-policy-draft — rédige le brouillon d'une politique de sécurité (Gëstu Policy,
+ * ai-policy-draft - rédige le brouillon d'une politique de sécurité (Gëstu Policy,
  * provenance `ai`) depuis un intitulé + une dimension de gouvernance (+ référentiel
  * optionnel). Renvoie { content } en Markdown. Clé Anthropic serveur uniquement.
  */

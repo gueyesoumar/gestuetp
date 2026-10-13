@@ -31,7 +31,7 @@ export function AdminDashboardPage() {
       <div className="flex items-end justify-between gap-4 mb-6 flex-wrap">
         <div>
           <div className="text-[11.5px] text-gray-500 mb-1"><b className="text-forest-900 font-semibold">Admin</b> › Centre de commande</div>
-          <h1 className="text-xl font-bold text-gray-900">Bonjour {profile?.first_name ?? ''} — voici ce qui compte aujourd&apos;hui</h1>
+          <h1 className="text-xl font-bold text-gray-900">Bonjour {profile?.first_name ?? ''}, voici ce qui compte aujourd&apos;hui</h1>
           <p className="text-[12.5px] text-gray-500 mt-1">{today} · {crit} signal(aux) critique(s), {warn} à surveiller.</p>
         </div>
       </div>

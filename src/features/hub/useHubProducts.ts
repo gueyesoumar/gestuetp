@@ -8,7 +8,7 @@ interface HubProductsState {
 }
 
 /**
- * Catalogue produits du Hub (RFC 0006, couche ① — table `products`, migration 00198).
+ * Catalogue produits du Hub (RFC 0006, couche ① - table `products`, migration 00198).
  * Remplace le tableau HUB_PRODUCTS en dur. L'état `active` de base vient de
  * `active_default` ; la surcharge dynamique (souscription Risk/Policy) et les stats
  * live restent calculées par l'appelant (HubCockpit).

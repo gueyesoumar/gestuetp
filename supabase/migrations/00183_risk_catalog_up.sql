@@ -1,7 +1,7 @@
--- 00183 — Gëstu Risk (RFC 0004) : bibliothèque normalisée EBIOS RM + ISO 27005.
+-- 00183 - Gëstu Risk (RFC 0004) : bibliothèque normalisée EBIOS RM + ISO 27005.
 --
 -- Référentiel PARTAGÉ (lecture pour tout compte authentifié ; écriture réservée
--- au super-admin / service_role — aucune policy d'écriture pour authenticated).
+-- au super-admin / service_role - aucune policy d'écriture pour authenticated).
 -- Alimente le nœud papillon : sources de risque, événements redoutés, menaces types.
 
 create table public.risk_catalog (
@@ -34,21 +34,21 @@ create policy "risk_catalog_aal2" on public.risk_catalog
 
 -- ---- SEED : EBIOS RM (sources de risque, événements redoutés) + ISO 27005 (menaces) ----
 insert into public.risk_catalog (kind, code, label, framework, description) values
-  -- Sources de risque (EBIOS RM — atelier 1)
+  -- Sources de risque (EBIOS RM - atelier 1)
   ('source_de_risque', 'SR-ETAT', 'État / attaquant étatique', 'ebios_rm', 'Acteur étatique visant espionnage ou sabotage.'),
   ('source_de_risque', 'SR-CRIME', 'Cybercriminel', 'ebios_rm', 'Motivation financière : rançongiciel, fraude.'),
   ('source_de_risque', 'SR-HACKT', 'Hacktiviste', 'ebios_rm', 'Motivation idéologique.'),
   ('source_de_risque', 'SR-INT-MAL', 'Interne malveillant', 'ebios_rm', 'Employé ou prestataire malveillant.'),
   ('source_de_risque', 'SR-INT-NEG', 'Interne négligent', 'ebios_rm', 'Erreur ou négligence humaine.'),
   ('source_de_risque', 'SR-CONC', 'Concurrent', 'ebios_rm', 'Espionnage économique.'),
-  -- Événements redoutés (EBIOS RM — atelier 1)
+  -- Événements redoutés (EBIOS RM - atelier 1)
   ('evenement_redoute', 'ER-CONF', 'Atteinte à la confidentialité', 'ebios_rm', 'Divulgation de données sensibles.'),
   ('evenement_redoute', 'ER-INTEG', 'Atteinte à l''intégrité', 'ebios_rm', 'Altération de données ou de traitements.'),
   ('evenement_redoute', 'ER-DISPO', 'Indisponibilité', 'ebios_rm', 'Interruption d''un service essentiel.'),
   ('evenement_redoute', 'ER-TRACA', 'Perte de traçabilité', 'ebios_rm', 'Impossibilité de prouver ou d''auditer.'),
   ('evenement_redoute', 'ER-CONFORM', 'Non-conformité réglementaire', 'ebios_rm', 'Sanction, mise en demeure.'),
   ('evenement_redoute', 'ER-REPUT', 'Atteinte à la réputation', 'ebios_rm', 'Perte de confiance des parties prenantes.'),
-  -- Menaces types (ISO/IEC 27005 — annexe)
+  -- Menaces types (ISO/IEC 27005 - annexe)
   ('menace_type', 'MN-MALWARE', 'Code malveillant', 'iso_27005', 'Virus, ver, cheval de Troie, rançongiciel.'),
   ('menace_type', 'MN-PHISH', 'Hameçonnage / ingénierie sociale', 'iso_27005', 'Manipulation pour obtenir un accès.'),
   ('menace_type', 'MN-INTRUS', 'Intrusion / accès non autorisé', 'iso_27005', 'Compromission d''un système.'),

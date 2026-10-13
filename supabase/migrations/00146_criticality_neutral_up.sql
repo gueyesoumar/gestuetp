@@ -1,4 +1,4 @@
--- 00146 — Gëstu Regul : criticité neutre (dé-OIV-isation).
+-- 00146 - Gëstu Regul : criticité neutre (dé-OIV-isation).
 --
 -- « OIV » est un terme franco-français (LPM/ANSSI) pas nécessairement retenu au
 -- Sénégal. On passe à une échelle de criticité NEUTRE et configurable (le libellé

@@ -1,4 +1,4 @@
--- Migration 00215 (UP) — P1b.1 (RFC 0007) : profil d'engagement.
+-- Migration 00215 (UP) - P1b.1 (RFC 0007) : profil d'engagement.
 -- Source de vérité du CONTEXTE DE MISSION (décision §8.1 = SPLIT), porté par
 -- l'arête audit_engagement (décision D2 : table dédiée 1-1). L'identité durable
 -- reste sur le nœud organizations. Les lecteurs continuent de lire cabinet_clients

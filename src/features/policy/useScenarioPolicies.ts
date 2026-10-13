@@ -11,7 +11,7 @@ export interface PolicyBarrier {
   title: string
   status: PolicyStatus
   kind: BarrierKind
-  effectiveness: number // 0..1 (forte=1, faible=0.5, nulle=0) — comme Policy-as-Evidence
+  effectiveness: number // 0..1 (forte=1, faible=0.5, nulle=0) - comme Policy-as-Evidence
 }
 export interface PolicyOption { id: string; title: string; status: PolicyStatus }
 
@@ -50,7 +50,7 @@ export function useScenarioPolicies(scenarioId: string): {
       setBarriers(rows.map((r) => {
         const status = r.policy?.status ?? 'draft'
         const strength = policyEvidenceStrength(status, applied.has(r.policy_id))
-        return { linkId: r.id, policy_id: r.policy_id, title: r.policy?.title ?? '—', status, kind: r.kind, effectiveness: POLICY_EVIDENCE_WEIGHT[strength] }
+        return { linkId: r.id, policy_id: r.policy_id, title: r.policy?.title ?? '-', status, kind: r.kind, effectiveness: POLICY_EVIDENCE_WEIGHT[strength] }
       }))
       setLoading(false)
     })()

@@ -5,12 +5,12 @@ import { useOnboardingTasks } from './useOnboardingTasks'
 import { useDismissedTips } from '../../hooks/useDismissedTips'
 
 /**
- * Barre « Prise en main » (onboarding — placement P2). Remplace l'ancienne carte
+ * Barre « Prise en main » (onboarding - placement P2). Remplace l'ancienne carte
  * centrale : une barre fine et discrète qui vit sous la top-bar sans encombrer le
  * lanceur, et se déplie en panneau détaillé à la demande.
  *
  * Réutilise useOnboardingTasks (tâches composées par profil + complétion DÉRIVÉE
- * des données — jamais un booléen « fait ») et useDismissedTips (clé
+ * des données - jamais un booléen « fait ») et useDismissedTips (clé
  * onboarding.checklist). Auto-masquée quand tout est fait ou refermée.
  * `tone` : « dark » sur le Hub, « light » sur le portail.
  */

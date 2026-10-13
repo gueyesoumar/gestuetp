@@ -196,15 +196,15 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
                           {d.techsChanged && (
                             <DiffField
                               label="Techniques"
-                              before={<span className="text-gray-500">{d.currentTechs.join(', ') || '—'}</span>}
-                              after={<span className="text-forest-700 font-medium">{d.proposedTechs.join(', ') || '—'}</span>}
+                              before={<span className="text-gray-500">{d.currentTechs.join(', ') || '-'}</span>}
+                              after={<span className="text-forest-700 font-medium">{d.proposedTechs.join(', ') || '-'}</span>}
                             />
                           )}
                           {d.auditorChanged && (
                             <DiffField
                               label="Auditeur"
-                              before={<span className="text-gray-500">{d.currentAuditor ? auditorMap.get(d.currentAuditor) ?? '?' : '—'}</span>}
-                              after={<span className="text-forest-700 font-medium">{d.proposedAuditor ? auditorMap.get(d.proposedAuditor) ?? '?' : '—'}</span>}
+                              before={<span className="text-gray-500">{d.currentAuditor ? auditorMap.get(d.currentAuditor) ?? '?' : '-'}</span>}
+                              after={<span className="text-forest-700 font-medium">{d.proposedAuditor ? auditorMap.get(d.proposedAuditor) ?? '?' : '-'}</span>}
                             />
                           )}
                         </div>

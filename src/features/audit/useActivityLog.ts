@@ -33,7 +33,7 @@ export function actorName(r: ActivityRow): string {
 
 /**
  * Piste d'audit de l'organisation courante. La RLS de activity_log cloisonne
- * automatiquement (org + can_view_audit_trail) — aucun filtre org côté client.
+ * automatiquement (org + can_view_audit_trail) - aucun filtre org côté client.
  */
 export function useActivityLog(filters: ActivityFilters): {
   rows: ActivityRow[]; loading: boolean; error: string | null

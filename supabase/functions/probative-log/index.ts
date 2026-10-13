@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
 
 /**
- * probative-log — journal à valeur probante (Gëstu Regul / S1).
+ * probative-log - journal à valeur probante (Gëstu Regul / S1).
  *
  * Actions : append | verify
  *  - append : ajoute une entrée (le hash/seq/prev_hash sont calculés par le

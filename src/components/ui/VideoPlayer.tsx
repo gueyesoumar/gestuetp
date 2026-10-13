@@ -1,5 +1,5 @@
 /**
- * Lecteur vidéo réutilisable (tutoriels / démos). Rendu via l'élément <video> natif —
+ * Lecteur vidéo réutilisable (tutoriels / démos). Rendu via l'élément <video> natif -
  * jamais de dangerouslySetInnerHTML. Ratio 16:9, contrôles natifs, chargement paresseux
  * des métadonnées. `src` est une URL publique (bucket help-media).
  */

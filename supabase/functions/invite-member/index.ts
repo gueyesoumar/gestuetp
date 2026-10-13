@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
 
       const sendResult = await sendEmail({
         to: cleanEmail,
-        subject: `Invitation ${branding?.cabinetName ?? 'Gëstu Comply'} — ${cabinetName}`,
+        subject: `Invitation ${branding?.cabinetName ?? 'Gëstu Comply'} (${cabinetName})`,
         html: memberInviteTemplate({
           firstName: cleanFirstName,
           cabinetName,
@@ -195,7 +195,7 @@ Deno.serve(async (req) => {
 
     if (roleAssignError) {
       console.error('[invite-member] assign role:', roleAssignError.message)
-      // Le user est créé sans rôle — non bloquant, l'admin pourra le rattraper
+      // Le user est créé sans rôle - non bloquant, l'admin pourra le rattraper
     }
 
     // Générer le lien et envoyer l'email d'invitation
@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
     } else {
       const sendResult = await sendEmail({
         to: cleanEmail,
-        subject: `Invitation ${branding?.cabinetName ?? 'Gëstu Comply'} — ${cabinetName}`,
+        subject: `Invitation ${branding?.cabinetName ?? 'Gëstu Comply'} (${cabinetName})`,
         html: memberInviteTemplate({
           firstName: cleanFirstName,
           cabinetName,

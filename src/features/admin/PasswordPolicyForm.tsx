@@ -59,7 +59,7 @@ export function PasswordPolicyForm({ policy, saving, onSave }: Props): JSX.Eleme
         </div>
       </Card>
 
-      <Card title="Expiration &amp; historique" desc="Déconseillés par NIST — à activer seulement si un référentiel l’impose.">
+      <Card title="Expiration &amp; historique" desc="Déconseillés par NIST : à activer seulement si un référentiel l’impose.">
         <div className="grid grid-cols-2 gap-4">
           <NumberField label="Expiration (jours, 0 = désactivée)" value={form.rotation_days ?? 0} min={0} max={3650}
             onChange={(v) => setForm((f) => ({ ...f, rotation_days: v > 0 ? v : null }))} />
@@ -73,7 +73,7 @@ export function PasswordPolicyForm({ policy, saving, onSave }: Props): JSX.Eleme
 
       <button type="button" onClick={submit} disabled={saving}
         className="rounded-lg bg-forest-700 hover:bg-forest-900 px-5 py-2 text-[12.5px] font-semibold text-white disabled:opacity-50">
-        {saving ? 'Enregistrement…' : 'Enregistrer'}
+        {saving ? 'Enregistrement...' : 'Enregistrer'}
       </button>
     </div>
   )

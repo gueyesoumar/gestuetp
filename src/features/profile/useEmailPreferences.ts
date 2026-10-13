@@ -41,7 +41,7 @@ export function useEmailPreferences(userId: string | undefined): UseEmailPrefere
         } else if (data) {
           setPreferences(data as EmailPreferences)
         } else {
-          // Pas de ligne — fallback aux valeurs par défaut
+          // Pas de ligne - fallback aux valeurs par défaut
           setPreferences({ reminders_enabled: true, digest_enabled: false })
         }
         setLoading(false)

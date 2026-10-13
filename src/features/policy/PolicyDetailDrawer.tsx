@@ -9,7 +9,7 @@ import {
 import type { Policy } from '../../types/database.types'
 
 const label = (arr: ReadonlyArray<{ value: string; label: string }>, v: string): string => arr.find((x) => x.value === v)?.label ?? v
-const fmt = (iso: string | null): string => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'
+const fmt = (iso: string | null): string => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'
 
 export function PolicyDetailDrawer({ policy, onClose, onChanged }: { policy: Policy; onClose: () => void; onChanged: () => void }): JSX.Element {
   const { versions, loading, signedUrl, approveVersion } = usePolicyDetail(policy.id)
@@ -49,7 +49,7 @@ export function PolicyDetailDrawer({ policy, onClose, onChanged }: { policy: Pol
           {/* Contenu de la version courante */}
           <div className="rounded-xl border border-gray-200 p-4">
             <div className="text-[10px] font-mono uppercase tracking-wide text-gray-400 mb-2">Version courante {current ? `· ${current.version_label}` : ''}</div>
-            {loading ? <p className="text-[12px] text-gray-400">Chargement…</p>
+            {loading ? <p className="text-[12px] text-gray-400">Chargement...</p>
               : !current ? <p className="text-[12px] text-gray-400">Aucune version.</p>
               : current.file_path ? (
                 <button onClick={() => void openFile(current.file_path as string)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#6D5AE6] hover:brightness-110">
@@ -120,7 +120,7 @@ function ControlLinker({ existing, onSearch, onLink }: {
   const run = async (v: string): Promise<void> => { setQ(v); setResults(await onSearch(v)) }
   return (
     <div className="rounded-lg border border-gray-200 p-2.5">
-      <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher un contrôle (code ou nom)…"
+      <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher un contrôle (code ou nom)..."
         className="w-full px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-[#6D5AE6] focus:ring-1 focus:ring-[#6D5AE6]" />
       {results.length > 0 && (
         <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-gray-50">

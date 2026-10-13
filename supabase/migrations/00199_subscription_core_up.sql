@@ -1,4 +1,4 @@
--- Migration 00199 (UP) : couche ② abonnement — cœur + backfill (RFC 0006, Phase 2)
+-- Migration 00199 (UP) : couche ② abonnement - cœur + backfill (RFC 0006, Phase 2)
 --
 -- Crée les tables d'abonnement (org × produit) et de features à la carte, + les
 -- colonnes commerciales sur organizations (remise globale, produit d'accueil), puis
@@ -75,7 +75,7 @@ drop policy if exists "osf_aal2" on public.org_subscription_features;
 create policy "osf_aal2" on public.org_subscription_features as restrictive for all to authenticated using (public.is_aal2());
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- 6. BACKFILL (idempotent) — mapping Annexe A via les ponts de 00198
+-- 6. BACKFILL (idempotent) - mapping Annexe A via les ponts de 00198
 -- ══════════════════════════════════════════════════════════════════════════════
 
 -- 6a. Produits : chaque capacité produit (product_capability) → un abonnement.

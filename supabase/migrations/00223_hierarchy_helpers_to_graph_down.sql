@@ -1,4 +1,4 @@
--- Migration 00223 (DOWN) — restaure les helpers lisant parent_org_id (00136/00135).
+-- Migration 00223 (DOWN) - restaure les helpers lisant parent_org_id (00136/00135).
 create or replace function public.get_subsidiary_ids(parent_id uuid)
 returns setof uuid language sql stable security definer set search_path = public as $$
   with recursive tree as (

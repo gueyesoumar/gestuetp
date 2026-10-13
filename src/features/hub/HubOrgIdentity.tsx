@@ -4,7 +4,7 @@ import { useOrganization } from '../organization/useOrganization'
  * Co-branding de la top-bar du Hub : filet dégradé + avatar de l'organisation
  * d'appartenance (logo si disponible, sinon initiales) + micro-label
  * « Organisation » et nom. Traité en SECONDAIRE par rapport à la marque
- * plateforme (hiérarchie — direction P1). Rien tant que l'org n'est pas chargée.
+ * plateforme (hiérarchie - direction P1). Rien tant que l'org n'est pas chargée.
  */
 
 function initialsOf(name: string): string {

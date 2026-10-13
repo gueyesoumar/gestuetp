@@ -11,7 +11,7 @@ alter table public.corrective_action_requests
   drop column if exists finding_id;
 
 -- 2. NE PAS vider assessment_findings (correctif revue pré-audit).
--- ANCIENNE version : `truncate table public.assessment_findings cascade;` — DANGEREUX.
+-- ANCIENNE version : `truncate table public.assessment_findings cascade;` - DANGEREUX.
 -- Depuis 00100, la table est alimentée par le flux applicatif normal (N findings par
 -- évaluation) : un truncate ici détruirait TOUTES les données réelles, pas seulement
 -- le backfill initial. Rollback rendu volontairement NO-OP sur les données (cf. 00140_down)

@@ -1,4 +1,4 @@
--- 00283 — Dépendances inter-contrôles (NIST, propagation des constats).
+-- 00283 - Dépendances inter-contrôles (NIST, propagation des constats).
 with pairs(src, tgt, rel) as (values
     ('GV.OC', 'GV.RM', 'related'),
     ('GV.OC', 'GV.SC', 'related'),

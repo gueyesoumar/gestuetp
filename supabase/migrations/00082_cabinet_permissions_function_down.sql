@@ -1,4 +1,4 @@
--- Migration 00082: Système de permissions cabinet — DOWN
+-- Migration 00082: Système de permissions cabinet - DOWN
 --
 -- Retire les fonctions has_cabinet_permission/user_has_cabinet_permission
 -- et restaure les permissions existantes en supprimant les 5 nouveaux flags
@@ -19,6 +19,6 @@ SET permissions = permissions
   - 'can_manage_roles'
 WHERE permissions ? 'can_delete_mission';
 
--- 3. Restaurer le commentaire d'origine (vide ou approximatif — sans historique)
+-- 3. Restaurer le commentaire d'origine (vide ou approximatif - sans historique)
 COMMENT ON COLUMN public.platform_roles.permissions IS
   'Ex: {"can_create_mission": true, "can_assign_team": true, "can_be_lead": true, "can_designate_lead": false}';

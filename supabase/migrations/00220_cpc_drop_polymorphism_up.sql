@@ -1,4 +1,4 @@
--- Migration 00220 (UP) — P2.2b (RFC 0007) : retrait du polymorphisme cpc.
+-- Migration 00220 (UP) - P2.2b (RFC 0007) : retrait du polymorphisme cpc.
 -- La RLS (00219) et tous les lecteurs (edge + front) sont passés sur client_org_id.
 -- On retire les anciennes colonnes + le CHECK XOR + les anciens uniques, et on pose
 -- l'unicité sur la colonne unifiée. Purement soustractif.

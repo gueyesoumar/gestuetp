@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase'
  * et affiche le logo cabinet + mention « Powered by Gestu » dans le bas de la
  * sidebar quand un logo est configuré.
  *
- * Différent de useBranding() qui résout via hostname — ici on regarde l'identité
+ * Différent de useBranding() qui résout via hostname - ici on regarde l'identité
  * authentifiée. Les deux peuvent coexister sans conflit.
  */
 

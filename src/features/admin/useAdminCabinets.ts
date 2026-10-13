@@ -67,7 +67,7 @@ export function useAdminCabinets(): Result {
         const memberCounts = countBy((usersData ?? []) as Array<{ organization_id: string }>, 'organization_id')
 
         // Compter les missions où l'organisation est CABINET et trouver la dernière activité
-        // Pour les organisations clients, on n'a pas de count missions en tant que cabinet — c'est OK
+        // Pour les organisations clients, on n'a pas de count missions en tant que cabinet - c'est OK
         const { data: missionsData, error: missionsError } = await supabase
           .from('missions')
           .select('cabinet_id, updated_at')
@@ -88,7 +88,7 @@ export function useAdminCabinets(): Result {
         if (supError) console.error('[useAdminCabinets] supervision caps:', supError.message)
         const regulators = new Set(((supRows ?? []) as Array<{ org_id: string }>).map((r) => r.org_id))
 
-        // Posture de conformité par org (moyenne des %/axe mesuré) — RPC réservée
+        // Posture de conformité par org (moyenne des %/axe mesuré) - RPC réservée
         // au propriétaire plateforme. Enrichissement secondaire : on journalise en
         // cas d'échec mais on n'interrompt pas le chargement de la liste.
         const { data: scoreRows, error: scoreError } = await supabase.rpc('admin_org_scores')

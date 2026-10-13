@@ -1,4 +1,4 @@
--- 00267 — Crosswalk intra-ISO 27001 (Lot 2, cohérence inter-contrôles + constat systémique).
+-- 00267 - Crosswalk intra-ISO 27001 (Lot 2, cohérence inter-contrôles + constat systémique).
 --
 -- control_mappings existe (00025) mais n'est alimentée que par des fichiers seed/ (NIST/COBIT/
 -- ITIL) QUE LE DÉPLOIEMENT NE JOUE PAS (migrate.sh ne traite que migrations/). Aucun mapping

@@ -1,4 +1,4 @@
--- Migration 00222 (DOWN) — P1c.2 (RFC 0007).
+-- Migration 00222 (DOWN) - P1c.2 (RFC 0007).
 -- Ré-ajoute les colonnes d'identité et les repeuple depuis le nœud organizations.
 
 drop index if exists public.uq_cabinet_client_org;

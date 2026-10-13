@@ -7,7 +7,7 @@ import { effectiveSurface } from './surface'
  * (audit.auditco.sn, etc.). Affiche le logo cabinet en variante fond sombre,
  * son nom, et un sous-titre court.
  *
- * Sur le domaine Gëstu (app.gestugroup.com), useBranding retourne null —
+ * Sur le domaine Gëstu (app.gestugroup.com), useBranding retourne null -
  * dans ce cas le composant renvoie null et le caller utilise les composants
  * Vault standards.
  */
@@ -43,7 +43,7 @@ export function BrandedAuthHeader({ layout = 'login' }: BrandedAuthHeaderProps):
 }
 
 /**
- * Pied de page "Powered by Gëstu" — obligatoire sur les écrans brandés.
+ * Pied de page "Powered by Gëstu" - obligatoire sur les écrans brandés.
  * Caché sur le domaine Gëstu (où branding est null).
  */
 export function PoweredByGestu({ className = '' }: { className?: string }): JSX.Element | null {

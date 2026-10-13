@@ -1,4 +1,4 @@
--- Migration 00079: Bucket Storage cabinet-branding — UP
+-- Migration 00079: Bucket Storage cabinet-branding - UP
 -- Description: Bucket public dédié pour les logos de marque blanche
 -- (logo_light + logo_dark). Lecture publique car la page de login
 -- non-authentifiée doit pouvoir afficher le logo cabinet selon le hostname.

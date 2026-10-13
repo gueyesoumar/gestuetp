@@ -1,4 +1,4 @@
--- 00182 — Assouplissement du gate planning → fieldwork (les 2 moteurs).
+-- 00182 - Assouplissement du gate planning → fieldwork (les 2 moteurs).
 --
 -- Décision 2026-08-14 : seul « Tous les contrôles affectés à un auditeur » reste
 -- BLOQUANT. Les autres prérequis (technique d'audit par contrôle, acteur SI,
@@ -59,7 +59,7 @@ begin
     );
   end if;
 
-  -- (technique d'audit / acteurs SI / entretiens : NON bloquants — retirés du gate.)
+  -- (technique d'audit / acteurs SI / entretiens : NON bloquants - retirés du gate.)
 
   -- 4. Decision
   if jsonb_array_length(v_missing) > 0 then
@@ -76,4 +76,4 @@ end;
 $$;
 
 comment on function public.transition_mission_to_fieldwork(uuid) is
-  'SECURITY DEFINER — bascule planning→fieldwork. Seul bloquant : contrôles tous affectés (mig 00182). Retourne {ok, missing[]?, error?}.';
+  'SECURITY DEFINER - bascule planning→fieldwork. Seul bloquant : contrôles tous affectés (mig 00182). Retourne {ok, missing[]?, error?}.';

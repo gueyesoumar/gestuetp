@@ -1,4 +1,4 @@
--- Rollback 00270 — retire les starters PSSI-ES (bibliothèque, checklist, crosswalk).
+-- Rollback 00270 - retire les starters PSSI-ES (bibliothèque, checklist, crosswalk).
 
 -- Sous-ensemble des contrôles PSSI-ES.
 -- (1) Bibliothèque : retire les constats-types plateforme rattachés à des contrôles PSSI-ES.

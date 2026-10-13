@@ -78,7 +78,7 @@ export async function generateActionPlanXLSX(data: ActionPlanXLSXData): Promise<
   // En-tête mission
   ws.mergeCells('A1:J1')
   const titleCell = ws.getCell('A1')
-  titleCell.value = `Plan d'action — ${data.missionName}`
+  titleCell.value = `Plan d'action : ${data.missionName}`
   titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }
   titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: primary } }
   titleCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }
@@ -123,7 +123,7 @@ export async function generateActionPlanXLSX(data: ActionPlanXLSXData): Promise<
   // Lignes
   for (const car of data.cars) {
     const ctrl = car.control_code && car.control_name
-      ? `${car.control_code} — ${car.control_name}`
+      ? `${car.control_code} : ${car.control_name}`
       : (car.control_code ?? car.control_name ?? '')
     const classKey = getEffectiveClassification(car) ?? car.finding_classification
     const row = ws.addRow([

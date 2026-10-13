@@ -3,12 +3,12 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 
 /**
- * Edge Function : seed-demo-data (E4 — bac à sable)
+ * Edge Function : seed-demo-data (E4 - bac à sable)
  *
  * Crée un espace de démonstration JETABLE, PAR UTILISATEUR (demo_owner_id).
  *  - variant 'guided'    : une fiche « Client Démo » + une mission de cadrage à
  *                          construire pas à pas (accompagné d'un tour).
- *  - variant 'prefilled' : un scénario RICHE — 3 missions à des stades variés,
+ *  - variant 'prefilled' : un scénario RICHE - 3 missions à des stades variés,
  *                          évaluations réparties sur plusieurs dimensions (radar),
  *                          constats par gravité. Allume le score + les dashboards
  *                          via la « lentille » démo, côté propriétaire.
@@ -17,7 +17,7 @@ import { logActivity } from '../_shared/audit-log.ts'
  * seul jeu par utilisateur. Le contenu reste Comply (contrôles/constats) : on
  * n'injecte PAS de Risk/Policy, dont les tables sont rattachées à l'org RÉELLE du
  * cabinet et pollueraient le registre réel. is_demo n'est PAS une frontière de
- * sécurité — la donnée est cloisonnée par demo_owner_id et exclue des agrégats réels.
+ * sécurité - la donnée est cloisonnée par demo_owner_id et exclue des agrégats réels.
  */
 
 interface SeedPayload {
@@ -120,7 +120,7 @@ const HOURS_POOL = [2, 4, 6, 8, 3, 5]
  *  - évaluations : 100 % approuvées en clôture, mélange réaliste en terrain ;
  *  - chaîne de validations (assessment_validations) pour chaque évaluation approuvée ;
  *  - constats + plans d'action (CAR).
- * Best-effort — ne fait jamais échouer le seed. Renvoie les contrôles évalués
+ * Best-effort - ne fait jamais échouer le seed. Renvoie les contrôles évalués
  * (id + dimension) pour le registre de risques.
  */
 // deno-lint-ignore no-explicit-any
@@ -265,7 +265,7 @@ async function seedInterview(admin: any, missionId: string, ownerId: string, com
     if (!contactId) return
     await admin.from('interview_schedules').insert({
       mission_id: missionId, contact_id: contactId, auditor_id: ownerId,
-      title: 'Entretien de cadrage — RSSI', scheduled_date: isoDate(completed ? -30 : 3),
+      title: 'Entretien de cadrage (RSSI)', scheduled_date: isoDate(completed ? -30 : 3),
       duration_minutes: 60, location: 'Visioconférence',
       status: completed ? 'completed' : 'scheduled',
     })
@@ -274,7 +274,7 @@ async function seedInterview(admin: any, missionId: string, ownerId: string, com
   }
 }
 
-/** Discussion sur un contrôle (onglet Discussion) — commentaire auditeur. */
+/** Discussion sur un contrôle (onglet Discussion) - commentaire auditeur. */
 // deno-lint-ignore no-explicit-any
 async function seedDiscussion(admin: any, missionId: string, controlId: string, ownerId: string): Promise<void> {
   try {
@@ -326,7 +326,7 @@ async function seedObservations(admin: any, missionId: string, clientUserId: str
 
 /**
  * Registre de risques de démo (Gëstu Risk) : 2 scénarios rattachés au cabinet,
- * marqués is_demo + demo_owner_id (migration 00239) — exclus du registre/score
+ * marqués is_demo + demo_owner_id (migration 00239) - exclus du registre/score
  * réels, inclus sous la lentille. Chaque scénario est maîtrisé par une barrière
  * (contrôle réellement évalué), pour un radar renseigné côté propriétaire.
  */
@@ -408,7 +408,7 @@ Deno.serve(async (req) => {
     const body = (await req.json().catch(() => ({}))) as SeedPayload
     const variant = body.variant === 'prefilled' ? 'prefilled' : 'guided'
 
-    // 2. Plafond : un seul bac à sable par utilisateur — on renvoie l'existant.
+    // 2. Plafond : un seul bac à sable par utilisateur - on renvoie l'existant.
     const { data: existing } = await admin
       .from('cabinet_clients')
       .select('id')
@@ -494,7 +494,7 @@ Deno.serve(async (req) => {
           p_cabinet_id: cabinetId,
           p_client_id: clientOrgId,
           p_framework_id: fw.id,
-          p_name: `${spec.namePrefix} ${fw.name} — Démo`,
+          p_name: `${spec.namePrefix} ${fw.name} (Démo)`,
           p_description: 'Mission de démonstration (bac à sable).',
           p_kind: 'audit',
           p_lead_auditor_id: ownerId,
@@ -532,7 +532,7 @@ Deno.serve(async (req) => {
           if (spec.status === 'closure') await seedObservations(admin, missionId, clientUserId, ownerId, 'responded')
           else if (spec.status === 'fieldwork') await seedObservations(admin, missionId, clientUserId, ownerId, 'pending')
         }
-        // Rapport généré (clôture) — file_path null : le PDF est régénéré côté client.
+        // Rapport généré (clôture) - file_path null : le PDF est régénéré côté client.
         if (spec.status === 'closure') {
           await admin.from('reports').insert({
             mission_id: missionId, format: 'pdf', status: 'ready', version: 1,
@@ -541,7 +541,7 @@ Deno.serve(async (req) => {
         }
 
         // Activité récente (piste d'audit) rattachée à la mission → panneau « Activité récente ».
-        const missionName = `${spec.namePrefix} ${fw.name} — Démo`
+        const missionName = `${spec.namePrefix} ${fw.name} (Démo)`
         await logActivity(admin, {
           organizationId: cabinetId, actorUserId: ownerId,
           action: 'mission.created', targetType: 'mission', targetId: missionId,

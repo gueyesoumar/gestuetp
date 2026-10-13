@@ -28,7 +28,7 @@ export function MissionActionPlanTab({ mission }: MissionActionPlanTabProps): JS
   const filtered = useMemo(() => applyFilters(actionPlan.cars, filters), [actionPlan.cars, filters])
 
   if (actionPlan.loading) {
-    return <p className="text-sm text-gray-400 text-center py-12">Chargement du plan d&apos;action…</p>
+    return <p className="text-sm text-gray-400 text-center py-12">Chargement du plan d&apos;action...</p>
   }
 
   // État vide (aucune CAR) → CTA générer

@@ -1,4 +1,4 @@
--- 00184 — Gëstu Risk (RFC 0004) : modèle EBIOS RM 2 couches + registre de scénarios.
+-- 00184 - Gëstu Risk (RFC 0004) : modèle EBIOS RM 2 couches + registre de scénarios.
 --
 -- business_values (valeurs métier) → risk_assets (biens supports) → risk_scenarios
 -- (registre, cotation 4×4) → risk_control_links (barrières = contrôles Comply).

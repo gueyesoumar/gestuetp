@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-/** État des tâches planifiées (pg_cron) — watchdog super-admin (RPC admin_cron_status). */
+/** État des tâches planifiées (pg_cron) - watchdog super-admin (RPC admin_cron_status). */
 export interface CronJob {
   jobname: string
   schedule: string

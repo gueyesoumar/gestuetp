@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: ACCESS_DENIED }, 403)
     }
 
-    // 2. Documents + métadonnées Passe 1 — chargés AVANT le check de cache
+    // 2. Documents + métadonnées Passe 1 - chargés AVANT le check de cache
     // pour pouvoir détecter les docs en attente de Passe 1 et invalider le
     // cache obsolète automatiquement.
     const { data: docsData } = await admin
@@ -264,7 +264,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4. Cache check (TTL 24h) — uniquement si AUCUN doc n'était en attente
+    // 4. Cache check (TTL 24h) - uniquement si AUCUN doc n'était en attente
     //    ET si le cache contient au moins une réponse. Un cache vide vient
     //    forcément d'un run raté et doit être recompilé.
     if (
@@ -355,7 +355,7 @@ Deno.serve(async (req) => {
 
     console.log(`[smart-questionnaire] Synthesis returned ${result.answers.length} answer(s), ${result.docs_failed.length} failure(s)`)
 
-    // 7. Cache — uniquement si la synthèse a produit au moins une réponse.
+    // 7. Cache - uniquement si la synthèse a produit au moins une réponse.
     //    Sinon on laisse le cache existant (au pire l'ancien, au mieux NULL)
     //    pour ne pas bloquer un retry ultérieur sur un cache vide.
     if (result.answers.length > 0) {
@@ -439,15 +439,15 @@ RÈGLES STRICTES :
    - 'declared_with_doc' : un document traite le sujet mais ne remplit PAS toutes les conditions ci-dessus (ex: document non signé, ou formalité < 70, ou signature mentionnée sans preuve visuelle).
    - 'declared_only' : aucun document du corpus ne traite directement le sujet, ta réponse repose uniquement sur des mentions textuelles indirectes ou sur la synthèse générale d'un doc.
 
-3. Une SIMPLE MENTION (« le RSSI a signé la PSSI ») dans un document non dédié au sujet NE compte PAS comme 'declared_with_signed_doc' — c'est 'declared_only'. Seule la présence d'un document dédié + signé (preuve visuelle) compte.
+3. Une SIMPLE MENTION (« le RSSI a signé la PSSI ») dans un document non dédié au sujet NE compte PAS comme 'declared_with_signed_doc' : c'est 'declared_only'. Seule la présence d'un document dédié + signé (preuve visuelle) compte.
 
-4. PREUVE TANGIBLE D'EXISTENCE — règle critique pour un audit. Quand un document AFFIRME l'existence d'une personne, d'une instance ou d'un mécanisme, tu DOIS chercher dans le corpus une PREUVE TANGIBLE DISTINCTE de cette affirmation, sinon tu rétrogrades l'evidence_type :
+4. PREUVE TANGIBLE D'EXISTENCE : règle critique pour un audit. Quand un document AFFIRME l'existence d'une personne, d'une instance ou d'un mécanisme, tu DOIS chercher dans le corpus une PREUVE TANGIBLE DISTINCTE de cette affirmation, sinon tu rétrogrades l'evidence_type :
    - Personne (RSSI, DPO, RSIO, etc.) : preuve tangible = fiche de poste signée, lettre de mission, organigramme nominatif, contrat de travail, mail signé du nommé. La seule mention « le RSSI fait X » dans la PSSI NE prouve PAS l'existence effective d'un RSSI.
    - Instance / Comité (Comité de Sécurité, COSEC, COPIL) : preuve tangible = note de création signée, charte du comité, compte-rendu de séance (avec date + participants). La seule mention dans une procédure NE prouve PAS l'existence effective.
    - Mécanisme récurrent (revue annuelle, audit interne périodique) : preuve tangible = au moins un livrable historique daté (CR, rapport, attestation). La seule mention dans une politique NE prouve PAS la réalisation effective.
 
    Si la mention est présente mais la preuve tangible ABSENTE du corpus :
-   - evidence_type ne peut PAS être 'declared_with_signed_doc' — au mieux 'declared_with_doc' ou 'declared_only'
+   - evidence_type ne peut PAS être 'declared_with_signed_doc' : au mieux 'declared_with_doc' ou 'declared_only'
    - confidence plafonné à 50
    - ta réponse DOIT mentionner explicitement le manque ("mention de [X] dans [doc] mais aucune preuve tangible (fiche de poste / note de création / livrable daté) n'a été fournie pour confirmer l'existence effective")
 
@@ -506,7 +506,7 @@ function formatMetadataBlock(d: DocRow): string {
   const sigSummary = m.signatures.length === 0
     ? 'aucune signature détectée'
     : `${signedSigs.length}/${m.signatures.length} signées avec preuve visuelle`
-  // Détail des signatures signées (preuve concrète) — décisif pour evidence_type
+  // Détail des signatures signées (preuve concrète) - décisif pour evidence_type
   const sigDetail = signedSigs.length === 0
     ? ''
     : '\n- Signatures avec preuve : ' + signedSigs
@@ -542,7 +542,7 @@ async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[], callerAuthHead
   // Auth : on forwarde le JWT utilisateur reçu du frontend (callerAuthHeader)
   // au lieu de fabriquer un Bearer service-role. Ainsi la passerelle Supabase
   // de extract-document-metadata accepte l'appel sans avoir à désactiver
-  // verify_jwt — solution résiliente aux re-déploiements.
+  // verify_jwt - solution résiliente aux re-déploiements.
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
   const targetUrl = `${supabaseUrl}/functions/v1/extract-document-metadata`
@@ -996,22 +996,22 @@ function formatEvidenceSection(ctx: EvidenceContext): string {
   const parts: string[] = ['']
 
   if (ctx.dedicatedDocs.length > 0) {
-    parts.push(`PIÈCES DÉDIÉES (le client les a fournies en réponse à une demande de preuve précise — à utiliser EN PRIORITÉ pour les questions du sujet correspondant) :`)
+    parts.push(`PIÈCES DÉDIÉES (le client les a fournies en réponse à une demande de preuve précise, à utiliser EN PRIORITÉ pour les questions du sujet correspondant) :`)
     for (const d of ctx.dedicatedDocs) {
-      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' — ' + d.control_name : ''}]` : ''
-      const desc = d.evidence_description ? ` — ${d.evidence_description}` : ''
+      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' (' + d.control_name + ')' : ''}]` : ''
+      const desc = d.evidence_description ? ` (${d.evidence_description})` : ''
       parts.push(`- ${d.file_name} → preuve attendue : "${d.evidence_name}"${desc}${ctrl}`)
     }
     parts.push('')
   }
 
   if (ctx.declinedRequests.length > 0) {
-    parts.push(`PIÈCES DÉCLARÉES INDISPONIBLES (le client a explicitement déclaré ne pas avoir ces preuves — pour ces sujets ta réponse DOIT mentionner cette indisponibilité, evidence_type='declared_only', confidence ≤ 30, source_documents vide) :`)
+    parts.push(`PIÈCES DÉCLARÉES INDISPONIBLES (le client a explicitement déclaré ne pas avoir ces preuves, pour ces sujets ta réponse DOIT mentionner cette indisponibilité, evidence_type='declared_only', confidence ≤ 30, source_documents vide) :`)
     for (const d of ctx.declinedRequests) {
-      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' — ' + d.control_name : ''}]` : ''
+      const ctrl = d.control_code ? ` [${d.control_code}${d.control_name ? ' (' + d.control_name + ')' : ''}]` : ''
       const reason = d.decline_reason ?? '?'
-      const justif = d.decline_justification ? ` — Justification : "${d.decline_justification}"` : ''
-      parts.push(`- "${d.evidence_name}"${ctrl} — Motif : ${reason}${justif}`)
+      const justif = d.decline_justification ? ` (Justification : "${d.decline_justification}")` : ''
+      parts.push(`- "${d.evidence_name}"${ctrl}, Motif : ${reason}${justif}`)
     }
     parts.push('')
   }

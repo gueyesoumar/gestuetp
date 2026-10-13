@@ -19,7 +19,7 @@ const CLASS_BADGES: Record<string, { label: string; color: string }> = {
 }
 
 function formatShortDate(d: string | null): string {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' })
 }
 
@@ -101,11 +101,11 @@ export function TransversalPlansPage(): JSX.Element {
                         <Link to={`/filiales/${c.subsidiary_id}`} className="hover:text-forest-700 hover:underline">
                           {c.subsidiary_name}
                         </Link>
-                      ) : (c.subsidiary_name ?? '—')}
+                      ) : (c.subsidiary_name ?? '-')}
                     </td>
                     <td className="px-4 py-3 text-[12px]">
                       <Link to={`/missions/${c.mission_id}`} className="text-gray-700 hover:text-forest-700 hover:underline">
-                        {c.mission_name ?? '—'}
+                        {c.mission_name ?? '-'}
                       </Link>
                       {c.mission_kind === 'continuous_supervision' && (
                         <span className="ml-1.5 text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">↻</span>

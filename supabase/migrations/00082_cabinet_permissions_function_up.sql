@@ -1,4 +1,4 @@
--- Migration 00082: Système de permissions cabinet — UP
+-- Migration 00082: Système de permissions cabinet - UP
 --
 -- Introduit deux fonctions SECURITY DEFINER pour interroger les permissions
 -- agrégées d'un utilisateur sur son cabinet, en OR-aggregant ses platform_roles.
@@ -12,10 +12,10 @@
 --   - can_be_lead            (existant)
 --   - can_designate_lead     (existant)
 --   - can_delete_mission     (NOUVEAU)
---   - can_manage_members     (NOUVEAU) — invite, suspend, reactivate, remove
---   - can_manage_clients     (NOUVEAU) — CRUD cabinet_clients
---   - can_edit_organization  (NOUVEAU) — UPDATE organizations + libellés revue
---   - can_manage_roles       (NOUVEAU) — CRUD platform_roles + assign-role
+--   - can_manage_members     (NOUVEAU) - invite, suspend, reactivate, remove
+--   - can_manage_clients     (NOUVEAU) - CRUD cabinet_clients
+--   - can_edit_organization  (NOUVEAU) - UPDATE organizations + libellés revue
+--   - can_manage_roles       (NOUVEAU) - CRUD platform_roles + assign-role
 --
 -- Stratégie de migration des cabinets existants (Stratégie B) :
 --   Tous les rôles existants ayant can_create_mission=true reçoivent les
@@ -26,7 +26,7 @@
 -- permissions sur tous les cabinets (back-door super-admin Gëstu).
 
 -- ============================================================
--- 1. Fonction RLS — utilise auth.uid()
+-- 1. Fonction RLS - utilise auth.uid()
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.has_cabinet_permission(p_perm text)
@@ -65,7 +65,7 @@ COMMENT ON FUNCTION public.has_cabinet_permission(text) IS
 GRANT EXECUTE ON FUNCTION public.has_cabinet_permission(text) TO authenticated;
 
 -- ============================================================
--- 2. Fonction edge functions — caller fournit user_id explicitement
+-- 2. Fonction edge functions - caller fournit user_id explicitement
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.user_has_cabinet_permission(p_user_id uuid, p_perm text)

@@ -1,4 +1,4 @@
--- 00193 — rollback : bucket policy-documents
+-- 00193 - rollback : bucket policy-documents
 
 DROP POLICY IF EXISTS "pold_read_org" ON storage.objects;
 DROP POLICY IF EXISTS "pold_insert_org" ON storage.objects;

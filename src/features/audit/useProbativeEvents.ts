@@ -28,7 +28,7 @@ interface ProbativeDbRow {
 /**
  * Événements du registre probant (probative_log) mappés au format timeline, en
  * LECTURE SEULE, pour agrégation dans la piste d'audit. La RLS de probative_log
- * (staff régulateur + sous-arbre) cloisonne déjà — aucun filtre org côté client.
+ * (staff régulateur + sous-arbre) cloisonne déjà - aucun filtre org côté client.
  * Vide pour une org sans actes réglementaires (Comply). Faible volumétrie → un
  * seul lot plafonné, mergé côté page avec les entrées activity_log.
  */

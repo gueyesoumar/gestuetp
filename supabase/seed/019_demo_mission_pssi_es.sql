@@ -67,7 +67,7 @@ BEGIN
     v_cabinet_id,
     v_client_id,
     v_framework_id,
-    'Audit PSSI-ES — Démo complète',
+    'Audit PSSI-ES - Démo complète',
     'Mission de démonstration avec toutes les phases terminées et des résultats variés pour illustrer les fonctionnalités de la plateforme.',
     'closure',
     v_lead_id,

@@ -8,12 +8,12 @@ const CRIT_ROWS: { key: string; label: string }[] = [
 // Bandes de conformité, de la pire à la meilleure.
 const BANDS: { key: string; label: string; test: (s: number | null) => boolean; tone: string }[] = [
   { key: 'crit', label: 'Critique\n< 40%', test: (s) => s !== null && s < 40, tone: 'bg-red-50 text-red-700' },
-  { key: 'part', label: 'Partielle\n40–79%', test: (s) => s !== null && s >= 40 && s < 80, tone: 'bg-amber-50 text-amber-700' },
+  { key: 'part', label: 'Partielle\n40-79%', test: (s) => s !== null && s >= 40 && s < 80, tone: 'bg-amber-50 text-amber-700' },
   { key: 'ok', label: 'Conforme\n≥ 80%', test: (s) => s !== null && s >= 80, tone: 'bg-green-50 text-green-700' },
   { key: 'na', label: 'Non évalué', test: (s) => s === null, tone: 'bg-gray-50 text-gray-500' },
 ]
 
-/** Matrice criticité × conformité — les entités très critiques peu conformes ressortent. */
+/** Matrice criticité × conformité - les entités très critiques peu conformes ressortent. */
 export function PilotageRiskMap({ items }: { items: RiskItem[] }): JSX.Element {
   const count = (crit: string, bandTest: (s: number | null) => boolean): number =>
     items.filter((i) => i.criticality === crit && bandTest(i.score)).length

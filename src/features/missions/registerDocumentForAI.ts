@@ -26,11 +26,11 @@ export function registerDocumentForAI(documentId: string, fileName: string, onDo
     return
   }
 
-  // Fire-and-forget — don't await. `onDone` est appelé quand l'edge a répondu
+  // Fire-and-forget - don't await. `onDone` est appelé quand l'edge a répondu
   // (la sensibilité est alors persistée) pour rafraîchir la liste et afficher la pastille.
   void (async () => {
     try {
-      // P3a : OCR navigateur des images AVANT envoi — l'edge inspecte ce texte (il ne
+      // P3a : OCR navigateur des images AVANT envoi - l'edge inspecte ce texte (il ne
       // sait pas lire une image). Les PDF sont extraits côté edge (P2c).
       let ocrText: string | undefined
       if (file && IMAGE_EXTS.has(ext)) {

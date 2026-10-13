@@ -3,7 +3,7 @@ import { LogoPreview } from './LogoPreview'
 
 // Aperçu fidèle du Hub adaptatif : top bar (logo + nom + onglets + avatar),
 // pastille de confiance, titre, carte produit. Clair pour une surface claire,
-// sombre (vault brand) sinon — comme HubPage réel.
+// sombre (vault brand) sinon - comme HubPage réel.
 export function PreviewHub(p: PreviewCtx): JSX.Element {
   const isLight = p.surfaceMode === 'light'
   const bg = isLight
@@ -23,7 +23,7 @@ export function PreviewHub(p: PreviewCtx): JSX.Element {
           <LogoPreview ctx={p} variant={isLight ? 'light' : 'dark'} height={22} maxWidth={90} />
           <div style={{ width: 1, height: 20, background: faint }} />
           <div>
-            <div style={{ color: ink, fontSize: 11, fontWeight: 800, lineHeight: 1 }}>{p.cabinetName.length > 16 ? `${p.cabinetName.slice(0, 15)}…` : p.cabinetName}</div>
+            <div style={{ color: ink, fontSize: 11, fontWeight: 800, lineHeight: 1 }}>{p.cabinetName.length > 16 ? `${p.cabinetName.slice(0, 15)}...` : p.cabinetName}</div>
             <div style={{ color: muted, fontSize: 7, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', marginTop: 2 }}>Plateforme d&apos;audit</div>
           </div>
         </div>

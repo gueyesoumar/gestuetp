@@ -67,7 +67,7 @@ function FeatureActivation({ request, onResolved }: Props): JSX.Element {
             disabled={!slug || busy}
             className="px-3.5 py-2 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 disabled:opacity-40"
           >
-            {busy ? 'Activation…' : 'Activer pour le cabinet'}
+            {busy ? 'Activation...' : 'Activer pour le cabinet'}
           </button>
         </div>
       )}

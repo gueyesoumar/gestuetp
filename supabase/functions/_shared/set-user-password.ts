@@ -8,7 +8,7 @@ import { validatePassword, hashPassword, isPasswordReused, type PasswordPolicy }
  *
  * `validateUserPassword` / `applyUserPassword` sont exposées séparément pour
  * permettre au flux jeton de VALIDER avant de consommer le jeton atomiquement,
- * puis d'APPLIQUER — sans qu'un mot de passe refusé « brûle » le lien, et sans
+ * puis d'APPLIQUER - sans qu'un mot de passe refusé « brûle » le lien, et sans
  * fenêtre de rejeu. Ne fait AUCUNE vérification d'identité.
  */
 export interface SetPasswordResult {

@@ -79,7 +79,7 @@ export function passwordResetTemplate({ firstName, link, branding }: PasswordRes
   return baseTemplate({
     title: 'Réinitialisation de votre mot de passe',
     intro: `Bonjour ${safeFirst},`,
-    body: `Une demande de réinitialisation de mot de passe a été initiée pour ${account}. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — votre mot de passe actuel reste inchangé.`,
+    body: `Une demande de réinitialisation de mot de passe a été initiée pour ${account}. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : votre mot de passe actuel reste inchangé.`,
     ctaLabel: 'Réinitialiser mon mot de passe',
     ctaLink: link,
     expiry: 'Ce lien est valable 1 heure.',

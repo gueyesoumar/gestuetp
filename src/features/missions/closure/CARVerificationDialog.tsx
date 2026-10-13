@@ -37,13 +37,13 @@ export function CARVerificationDialog({ car, canVerify, onClose, onChanged, user
   }
 
   return (
-    <Modal open={!!car} onClose={onClose} title={`${car.code} — ${CLASS_LABEL[car.finding_classification] ?? car.finding_classification}`}>
+    <Modal open={!!car} onClose={onClose} title={`${car.code} : ${CLASS_LABEL[car.finding_classification] ?? car.finding_classification}`}>
       <div className="space-y-4">
         <CARTimeline car={car} userNames={userNames} contactNames={contactNames} />
 
         <Section title="Constat de l'auditeur">
           {car.control_code && (
-            <p className="text-xs font-semibold text-forest-700 mb-1">{car.control_code} — {car.control_name ?? ''}</p>
+            <p className="text-xs font-semibold text-forest-700 mb-1">{car.control_code} : {car.control_name ?? ''}</p>
           )}
           <p className="text-sm text-gray-700 whitespace-pre-line">{car.description}</p>
           {car.deadline && (

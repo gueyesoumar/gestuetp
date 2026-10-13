@@ -4,7 +4,7 @@
 // Au lieu d'envoyer le `action_link` brut de `generateLink` (qui pointe sur
 // `<projet>.supabase.co/auth/v1/verify?...`), on met le `hashed_token` (aussi
 // renvoyé par `generateLink`) dans NOTRE propre URL. La page /set-password
-// échange ce token via `supabase.auth.verifyOtp({ token_hash, type })` — c'est
+// échange ce token via `supabase.auth.verifyOtp({ token_hash, type })` - c'est
 // le mécanisme supporté par Supabase pour les liens de confirmation custom.
 //
 // `type` est toujours 'recovery' : tous nos flux (invitation owner/membre,

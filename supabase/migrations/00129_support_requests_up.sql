@@ -1,4 +1,4 @@
--- 00129 — Module Centre d'aide : table unifiee des demandes de support (Phase 0).
+-- 00129 - Module Centre d'aide : table unifiee des demandes de support (Phase 0).
 -- Modele STI : une table, un discriminateur `nature`, colonnes typees pour le commun
 -- + `context` JSONB pour le variable (trace de repro, params de demande, contexte auto-capte).
 -- La table enfant `agent_runs` (Phases 3-4) sera ajoutee dans une migration ulterieure.
@@ -46,7 +46,7 @@ as $$
   select coalesce((select is_platform_owner from public.users where id = public.get_my_user_id()), false)
 $$;
 
--- 5. RLS — cloisonnement cabinet, sans recursion (aucune sous-requete sur support_requests)
+-- 5. RLS - cloisonnement cabinet, sans recursion (aucune sous-requete sur support_requests)
 alter table public.support_requests enable row level security;
 
 -- Lecture : platform owner, OU membre du cabinet, OU client de la mission concernee

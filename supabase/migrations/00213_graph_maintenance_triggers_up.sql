@@ -1,4 +1,4 @@
--- Migration: maintien courant du graphe de relations (P0.2, RFC 0007) — UP
+-- Migration: maintien courant du graphe de relations (P0.2, RFC 0007) - UP
 -- Comble deux trous de synchro : (1) arete audit_engagement sur missions,
 -- (2) re-parentage (UPDATE parent_org_id). + backfill idempotent.
 -- Triggers SECURITY DEFINER (ecriture organization_relationships reservee au

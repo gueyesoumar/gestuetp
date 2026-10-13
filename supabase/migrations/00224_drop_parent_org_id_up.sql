@@ -1,4 +1,4 @@
--- Migration 00224 (UP) — P4b (RFC 0007) : retrait de organizations.parent_org_id.
+-- Migration 00224 (UP) - P4b (RFC 0007) : retrait de organizations.parent_org_id.
 -- La hiérarchie vit désormais dans le graphe (arêtes group_ownership/regulatory_supervision).
 -- Helpers RLS déjà bascule (00223) ; get_entity_descendants basculé ici ; le writer
 -- manage-entity écrit les arêtes directement ; le trigger de sync devient inutile.

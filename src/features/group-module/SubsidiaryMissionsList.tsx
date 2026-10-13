@@ -19,7 +19,7 @@ const STATUS_COLOR: Record<string, string> = {
 }
 
 function formatShortDate(d: string | null): string {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
@@ -58,7 +58,7 @@ export function SubsidiaryMissionsList({ missions }: SubsidiaryMissionsListProps
                     <p className="text-[11px] text-gray-500 mt-0.5">Lead : {m.leadAuditorName}</p>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-700">{m.framework_name ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-700">{m.framework_name ?? '-'}</td>
                 <td className="px-4 py-3">
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
                     m.kind === 'continuous_supervision' ? 'bg-amber-50 text-amber-700' : 'bg-forest-50 text-forest-700'
@@ -70,7 +70,7 @@ export function SubsidiaryMissionsList({ missions }: SubsidiaryMissionsListProps
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${color}`}>{label}</span>
                 </td>
                 <td className="px-4 py-3 font-semibold text-gray-900">
-                  {m.conformityScore !== null ? `${m.conformityScore}%` : '—'}
+                  {m.conformityScore !== null ? `${m.conformityScore}%` : '-'}
                 </td>
                 <td className="px-4 py-3">
                   <span className={m.overdueCarsCount > 0 ? 'text-red-700 font-semibold' : 'text-gray-700'}>

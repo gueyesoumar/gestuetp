@@ -16,7 +16,7 @@ interface EvidenceTrackerProps {
 type FilterKey = 'requested' | 'all' | 'received' | 'pending'
 
 interface CatalogRow {
-  /** All evidence_catalog IDs that share this (domain, name) — for bulk operations */
+  /** All evidence_catalog IDs that share this (domain, name) - for bulk operations */
   evidenceIds: string[]
   name: string
   description: string | null
@@ -58,7 +58,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
     return map
   }, [documents])
 
-  // Build flat rows — deduplicated by (domainCode, name) to avoid showing
+  // Build flat rows - deduplicated by (domainCode, name) to avoid showing
   // the same evidence multiple times when it's referenced by several controls.
   const allRows: CatalogRow[] = useMemo(() => {
     const groups = new Map<string, CatalogRow>()
@@ -76,7 +76,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
             evidenceIds: [ev.id],
             name: ev.name,
             description: ev.description,
-            isRequired: ev.is_required, // catalog default — overrides applied at render time
+            isRequired: ev.is_required, // catalog default - overrides applied at render time
             controlCodes: [item.control.code],
             domainCode: item.domainCode,
             domainName: item.domainName,
@@ -162,7 +162,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
     })
   }
 
-  /** Toggle selection for a deduplicated row — adds/removes all underlying evidence IDs together */
+  /** Toggle selection for a deduplicated row - adds/removes all underlying evidence IDs together */
   const toggleSelect = (evidenceIds: string[]): void => {
     setSelected((prev) => {
       const next = new Set(prev)

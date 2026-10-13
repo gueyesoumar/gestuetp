@@ -1,5 +1,5 @@
 /**
- * VaultBranding — "GESTU" title with gold trema + subtitles.
+ * VaultBranding - "GESTU" title with gold trema + subtitles.
  * Used on login and hub pages.
  */
 

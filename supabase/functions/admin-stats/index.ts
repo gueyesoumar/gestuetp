@@ -9,7 +9,7 @@ import { requirePlatformOwner } from '../_shared/auth-platform-owner.ts'
  *
  * Le MRR est la SEULE source de vérité : platform_mrr() (RFC 0008 P0), qui somme
  * org_mrr() sur toutes les orgs (abonnements actifs + remises produit puis org).
- * Montant en FCFA (XOF). Pas d'intégration paiement — Stripe en Phase 2.
+ * Montant en FCFA (XOF). Pas d'intégration paiement - Stripe en Phase 2.
  */
 
 interface StatsResponse {

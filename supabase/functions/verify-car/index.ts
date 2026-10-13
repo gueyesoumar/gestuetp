@@ -224,7 +224,7 @@ Deno.serve(async (req) => {
           missionName: mission.name,
           clientName,
           carCode: car.code,
-          controlLabel: car.control_code && car.control_name ? `${car.control_code} — ${car.control_name}` : (car.control_code ?? car.control_name ?? ''),
+          controlLabel: car.control_code && car.control_name ? `${car.control_code} (${car.control_name})` : (car.control_code ?? car.control_name ?? ''),
           classification: car.finding_classification,
           description: car.description,
           deadline: formatDate(car.deadline),

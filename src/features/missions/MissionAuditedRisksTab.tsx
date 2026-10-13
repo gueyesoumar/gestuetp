@@ -42,7 +42,7 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Registre de risque de l&apos;assujetti</h2>
-        <p className="text-[13px] text-gray-500 mt-1">Les risques identifiés par l&apos;organisation auditée dans Gëstu Risk — <b>lecture seule</b>, contexte de votre mission.</p>
+        <p className="text-[13px] text-gray-500 mt-1">Les risques identifiés par l&apos;organisation auditée dans Gëstu Risk : <b>lecture seule</b>, contexte de votre mission.</p>
       </div>
 
       {rows.length === 0 ? (

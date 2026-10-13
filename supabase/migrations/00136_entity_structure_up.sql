@@ -1,8 +1,8 @@
--- 00136 — Axe 1 refonte module Groupe : structuration des entités internes.
+-- 00136 - Axe 1 refonte module Groupe : structuration des entités internes.
 --
 -- 1) organizations.entity_type : classe la nature d'une entité interne d'un
 --    groupe (filiale juridique / site / direction / business unit). NULL pour
---    les cabinets, groupes et clients — aucune régression sur l'existant.
+--    les cabinets, groupes et clients - aucune régression sur l'existant.
 -- 2) get_subsidiary_ids devient RÉCURSIF (multi-niveaux) : un groupe voit
 --    désormais aussi les petits-enfants. Aujourd'hui la hiérarchie est
 --    mono-niveau -> 0 changement sur les données actuelles, mais débloque
@@ -10,7 +10,7 @@
 --    cycle accidentel dans parent_org_id.
 -- 3) get_entity_descendants : variante RÉCURSIVE incluant les entités
 --    DÉSACTIVÉES, réservée au service_role (Edge Function manage-entity) pour
---    lister/gérer l'arbre complet — la RLS (via get_subsidiary_ids) reste
+--    lister/gérer l'arbre complet - la RLS (via get_subsidiary_ids) reste
 --    active-only, donc une entité désactivée n'expose aucune donnée métier.
 
 -- 1) Typage des entités internes -------------------------------------------
@@ -45,7 +45,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_subsidiary_ids(uuid) TO authenticated;
 
--- 3) get_entity_descendants (incl. désactivées) — service_role uniquement ---
+-- 3) get_entity_descendants (incl. désactivées) - service_role uniquement ---
 CREATE OR REPLACE FUNCTION public.get_entity_descendants(parent_id uuid)
 RETURNS SETOF uuid
 LANGUAGE sql

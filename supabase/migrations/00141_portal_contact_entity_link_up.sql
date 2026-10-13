@@ -21,7 +21,7 @@ ALTER TABLE public.client_portal_contacts
 COMMENT ON COLUMN public.client_portal_contacts.entity_org_id IS
   'Regul : org assujettie à laquelle le contact est rattaché. Exclusif avec cabinet_client_id.';
 
--- 3. Exactement une des deux références (XOR) — les lignes Comply existantes
+-- 3. Exactement une des deux références (XOR) - les lignes Comply existantes
 --    (cabinet_client_id renseigné, entity_org_id NULL) satisfont le CHECK.
 ALTER TABLE public.client_portal_contacts
   ADD CONSTRAINT chk_portal_contact_scope

@@ -1,4 +1,4 @@
--- Migration 00201 (UP) : plans en bundles (RFC 0006, Phase 2, chantier D) — additif/dormant
+-- Migration 00201 (UP) : plans en bundles (RFC 0006, Phase 2, chantier D) - additif/dormant
 --
 -- Ajoute la SÉMANTIQUE de bundle à un plan : quels PRODUITS et quelles FEATURES il
 -- octroie, + son produit d'accueil. Sert à la console P4 pour créer les abonnements
@@ -6,7 +6,7 @@
 --
 -- IMPORTANT : n'affecte PAS le système existant `plan_features(plan_id, flag_id)` +
 -- `feature_flags`, qui reste le mécanisme de BASCULES TECHNIQUES (kill-switch, A/B)
--- via useFeatureFlag — orthogonal à l'abonnement commercial (RFC 0006 Annexe B). Les
+-- via useFeatureFlag - orthogonal à l'abonnement commercial (RFC 0006 Annexe B). Les
 -- nouvelles tables portent donc un nom distinct (`plan_bundle_features`).
 --
 -- DORMANT : rien ne lit ces tables avant la console P4. L'UI /admin/plans existante

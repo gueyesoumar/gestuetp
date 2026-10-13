@@ -10,7 +10,7 @@ export function PreviewPortal(p: PreviewCtx): JSX.Element {
       <div style={{ background: p.primaryDeep, width: 128, padding: '12px 10px', display: 'flex', flexDirection: 'column', color: 'white' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingBottom: 9, borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
           <LogoPreview ctx={p} variant="dark" height={20} maxWidth={34} />
-          <div style={{ fontWeight: 800, fontSize: 9.5, lineHeight: 1.1 }}>{p.cabinetName.length > 12 ? `${p.cabinetName.slice(0, 11)}…` : p.cabinetName}</div>
+          <div style={{ fontWeight: 800, fontSize: 9.5, lineHeight: 1.1 }}>{p.cabinetName.length > 12 ? `${p.cabinetName.slice(0, 11)}...` : p.cabinetName}</div>
         </div>
         <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
           {nav.map((label, i) => (

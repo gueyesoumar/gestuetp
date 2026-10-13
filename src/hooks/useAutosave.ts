@@ -40,7 +40,7 @@ const defaultEquals = <T,>(a: T, b: T): boolean => JSON.stringify(a) === JSON.st
  *   assessment switch).
  * - `disabled=true` blocks any new save and immediately flushes the pending one.
  *
- * Server-side persistence remains the source of truth — the autosave is a UX
+ * Server-side persistence remains the source of truth - the autosave is a UX
  * comfort, not a security guarantee (CLAUDE.md §3).
  */
 export function useAutosave<T>({
@@ -100,7 +100,7 @@ export function useAutosave<T>({
     void performSave(debouncedValue)
   }, [debouncedValue, disabled, performSave])
 
-  // Imperative flush — used on manual save, submit, or assessment switch.
+  // Imperative flush - used on manual save, submit, or assessment switch.
   const flush = useCallback(async (): Promise<boolean> => {
     return performSave(value)
   }, [value, performSave])

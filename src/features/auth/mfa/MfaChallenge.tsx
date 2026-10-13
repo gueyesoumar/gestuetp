@@ -57,7 +57,7 @@ export function MfaChallenge(): JSX.Element {
           className="w-full rounded-lg py-3 font-semibold text-white transition-opacity disabled:opacity-50"
           style={{ backgroundColor: 'var(--color-forest-900)' }}
         >
-          {busy ? 'Vérification…' : 'Vérifier'}
+          {busy ? 'Vérification...' : 'Vérifier'}
         </button>
       </form>
       <button onClick={() => { void signOut() }} className="mt-5 w-full text-center text-xs text-gray-400 hover:text-gray-600">

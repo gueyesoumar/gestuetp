@@ -12,7 +12,7 @@ export interface AssessmentWithControl extends ControlAssessment {
   /**
    * Champs synthetises a partir de assessment_findings par loadAuditReportData
    * pour le rendu du PDF (findings concatenes, classification top-severite).
-   * Ne PAS utiliser ces champs hors du generateur PDF — preferer findings_list.
+   * Ne PAS utiliser ces champs hors du generateur PDF - preferer findings_list.
    */
   findings: string | null
   recommendations: string | null

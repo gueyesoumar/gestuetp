@@ -3,11 +3,11 @@
  * `supabase.functions.invoke`.
  *
  * Règle plateforme : afficher le message contrôlé renvoyé par l'edge function
- * (toujours en français, jamais une stack trace — la protection anti-fuite est
+ * (toujours en français, jamais une stack trace - la protection anti-fuite est
  * côté serveur, cf CLAUDE.md #3) plutôt qu'une chaîne générique.
  *
  * supabase-js range le corps d'un 4xx/5xx dans `error.context` (une Response),
- * pas dans `data.error` — d'où la lecture asynchrone du corps ici.
+ * pas dans `data.error` - d'où la lecture asynchrone du corps ici.
  */
 
 interface InvokeErrorLike {
@@ -17,7 +17,7 @@ interface InvokeErrorLike {
 
 /**
  * Enrichit le message avec le détail `rules` quand l'edge en renvoie un (ex :
- * politique de mot de passe — règles non satisfaites côté serveur comme HIBP, que
+ * politique de mot de passe - règles non satisfaites côté serveur comme HIBP, que
  * le contrôle client ne peut pas pré-tester). Sans effet pour les edges sans `rules`.
  */
 function appendRules(message: string, obj: unknown): string {

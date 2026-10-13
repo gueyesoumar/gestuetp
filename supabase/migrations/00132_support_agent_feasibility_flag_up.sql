@@ -1,4 +1,4 @@
--- 00132 — Phase 4 : garde-fou DPA pour l'agent de faisabilite (code-facing).
+-- 00132 - Phase 4 : garde-fou DPA pour l'agent de faisabilite (code-facing).
 -- Meme principe que support_agent_triage (00131) : flag OFF par defaut.
 -- Tant qu'il est false, dispatch-feasibility refuse (aucune donnee tenant ne part
 -- vers GitHub Actions ni Anthropic). A activer APRES feu vert DPA.

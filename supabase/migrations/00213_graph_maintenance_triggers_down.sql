@@ -1,4 +1,4 @@
--- Migration: maintien courant du graphe de relations (P0.2, RFC 0007) — DOWN
+-- Migration: maintien courant du graphe de relations (P0.2, RFC 0007) - DOWN
 -- Restaure sync_org_parent_edge en INSERT-only (etat 00206) et retire le trigger
 -- mission. Les aretes deja creees sont conservees (additives).
 

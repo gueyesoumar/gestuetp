@@ -29,7 +29,7 @@ $$;
 comment on function public.org_mrr(uuid) is
   'MRR net d''une org (RFC 0006 §4.2) : abonnements actifs, remises produit puis org. SECURITY DEFINER.';
 
--- MRR agrégé du portefeuille — SUPERADMIN uniquement (aucune fuite cross-org).
+-- MRR agrégé du portefeuille - SUPERADMIN uniquement (aucune fuite cross-org).
 create or replace function public.platform_mrr()
 returns numeric language plpgsql stable security definer set search_path = public as $$
 declare v_owner boolean; v_total numeric;

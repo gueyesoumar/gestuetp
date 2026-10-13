@@ -1,4 +1,4 @@
--- Rollback 00263 — ne supprime le bucket `documents` QUE s'il est vide
+-- Rollback 00263 - ne supprime le bucket `documents` QUE s'il est vide
 -- (ne jamais détruire des preuves réelles au rollback). No-op s'il contient des objets.
 delete from storage.buckets b
 where b.id = 'documents'

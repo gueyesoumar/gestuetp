@@ -20,7 +20,7 @@ interface PlanningValidationGateProps {
   showInterviewChecks?: boolean
 }
 
-// Checks liés aux entretiens — masqués si la sous-étape Entretiens est désélectionnée.
+// Checks liés aux entretiens - masqués si la sous-étape Entretiens est désélectionnée.
 const INTERVIEW_CHECK_KEYS = ['interviews', 'critical-coverage', 'domains-topics']
 
 interface CheckItem {
@@ -118,7 +118,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
         detail: 'Chaque contrôle classé Critique devrait être abordé en entretien.',
         blocker: false,
         ok: criticalControls.length === 0 || criticalCovered === criticalControls.length,
-        countLabel: criticalControls.length === 0 ? '—' : `${criticalCovered}/${criticalControls.length}`,
+        countLabel: criticalControls.length === 0 ? '-' : `${criticalCovered}/${criticalControls.length}`,
       },
       {
         key: 'domains-topics',

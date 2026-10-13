@@ -5,7 +5,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { OnboardingPanel } from './OnboardingPanel'
 import { GestuFingerprint } from './GestuFingerprint'
 
-// Widget flottant d'onboarding — « Doudou de Gëstu » (RFC 0011). Monté une fois dans
+// Widget flottant d'onboarding - « Doudou de Gëstu » (RFC 0011). Monté une fois dans
 // AppLayout (shell cabinet = staff). Visibilité : kill-switch global
 // support_agent_onboarding (même gate que l'Edge Function) + rôle non-client.
 

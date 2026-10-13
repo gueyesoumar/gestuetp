@@ -1,4 +1,4 @@
--- 00193 — Gëstu Policy : bucket Storage PRIVÉ des politiques importées (documents
+-- 00193 - Gëstu Policy : bucket Storage PRIVÉ des politiques importées (documents
 -- de gouvernance sensibles). Convention de chemin : <org_id>/<timestamp>_<nom>.
 -- RLS org-scopée sur le premier segment du chemin ; jamais public, jamais client.
 

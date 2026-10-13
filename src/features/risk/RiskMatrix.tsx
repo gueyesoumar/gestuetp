@@ -27,7 +27,7 @@ export function RiskMatrix({ scenarios }: { scenarios: ScenarioRow[] }): JSX.Ele
                 const size = 16 + (s.exposure / 100) * 20
                 const color = s.dimension ? SCORE_DIMENSION_COLORS[s.dimension] : '#94A3B8'
                 return (
-                  <div key={s.id} title={`${s.title} — exposition ${s.exposure}`}
+                  <div key={s.id} title={`${s.title} (exposition ${s.exposure})`}
                     className="absolute rounded-full grid place-items-center text-[9px] font-bold text-white pointer-events-auto"
                     style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, transform: 'translate(-50%,-50%)', background: color, border: '1.5px solid rgba(255,255,255,.7)' }}>
                     {s.title.charAt(0).toUpperCase()}

@@ -7,7 +7,7 @@
 -- 3. Cache CTX-05 (score audit précédent) sauf si CTX-04 = oui.
 -- 4. Cache ACT-02 (classification) sauf si ACT-01 = oui (un inventaire existe).
 --
--- ISO 27001 v2 (template 020) : aucune configuration — toutes les questions sont
+-- ISO 27001 v2 (template 020) : aucune configuration - toutes les questions sont
 -- top-level sans dépendances naturelles entre elles.
 
 -- 1. Aligner CTX-02 sur EFFECTIFS_OPTIONS

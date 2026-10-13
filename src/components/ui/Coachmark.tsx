@@ -5,7 +5,7 @@ import { useDismissedTips } from '../../hooks/useDismissedTips'
 /**
  * Coach-mark contextuel (onboarding E5) : une astuce affichée la PREMIÈRE fois
  * qu'un utilisateur atteint un écran clé, refermée définitivement via « Compris »
- * (mémorisé par utilisateur, cross-appareil — voir useDismissedTips).
+ * (mémorisé par utilisateur, cross-appareil - voir useDismissedTips).
  *
  * Rendu inline (le parent gère le placement via `className`). Reprend le langage
  * visuel des « points d'attention » (bordure dorée pointillée + ampoule).

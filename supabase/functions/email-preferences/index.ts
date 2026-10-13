@@ -7,7 +7,7 @@ import { corsHeaders } from '../_shared/cors.ts'
  * Gère la lecture et la mise à jour des préférences email d'un utilisateur,
  * sans nécessiter d'authentification, via le token de désabonnement.
  *
- * Le token est un secret partagé par lien email — sa connaissance fait foi.
+ * Le token est un secret partagé par lien email - sa connaissance fait foi.
  * Le service-role bypass RLS pour lire/écrire `email_preferences`.
  *
  * Actions :

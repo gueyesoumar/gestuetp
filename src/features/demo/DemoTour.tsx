@@ -3,10 +3,10 @@ import { Compass, Eye, FolderOpen, LogOut } from 'lucide-react'
 import { useDemoSandbox } from './useDemoSandbox'
 
 /**
- * Tour guidé du mode démo (E4 — Vague 1). S'affiche UNE fois, sur le Hub, quand
+ * Tour guidé du mode démo (E4 - Vague 1). S'affiche UNE fois, sur le Hub, quand
  * l'utilisateur vient de créer un bac à sable. Explique pas à pas la lentille, le
  * score qui prend vie, l'exploration d'une mission et la sortie. « Vu » persiste
- * en localStorage (par navigateur) — non bloquant, refermable à tout moment.
+ * en localStorage (par navigateur) - non bloquant, refermable à tout moment.
  */
 const KEY = 'gestu.demo.tour'
 
@@ -18,8 +18,8 @@ interface Step { icon: typeof Compass; title: string; body: string }
 const STEPS: Step[] = [
   { icon: Compass, title: 'Bienvenue dans le mode démo', body: 'Vous explorez un espace jetable et cloisonné. Vos vrais indicateurs (facturation, quotas, statistiques du cabinet) n’en tiennent jamais compte.' },
   { icon: Eye, title: 'Votre score prend vie', body: 'La « lentille » affiche vos données de démo dans le score de confiance et les dashboards. Vous l’allumez ou l’éteignez depuis le bandeau « Mode découverte ».' },
-  { icon: FolderOpen, title: 'Explorez une vraie mission', body: 'Ouvrez le module Comply : missions à différents stades, contrôles évalués, constats par gravité — tout est là pour parcourir un terrain réaliste.' },
-  { icon: LogOut, title: 'Quand vous voulez', body: 'Depuis le bandeau, terminez et nettoyez en un clic — ou basculez vers la configuration réelle de votre cabinet.' },
+  { icon: FolderOpen, title: 'Explorez une vraie mission', body: 'Ouvrez le module Comply : missions à différents stades, contrôles évalués, constats par gravité : tout est là pour parcourir un terrain réaliste.' },
+  { icon: LogOut, title: 'Quand vous voulez', body: 'Depuis le bandeau, terminez et nettoyez en un clic, ou basculez vers la configuration réelle de votre cabinet.' },
 ]
 
 export function DemoTour(): JSX.Element | null {

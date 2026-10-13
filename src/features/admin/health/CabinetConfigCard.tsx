@@ -79,6 +79,6 @@ function computeStyles(status: ConfigItem['status']): { iconBg: string; iconColo
       return { iconBg: 'bg-forest-100', iconColor: 'text-forest-700', iconChar: '•', valueColor: 'text-forest-700' }
     case 'neutral':
     default:
-      return { iconBg: 'bg-gray-100', iconColor: 'text-gray-400', iconChar: '—', valueColor: 'text-gray-400' }
+      return { iconBg: 'bg-gray-100', iconColor: 'text-gray-400', iconChar: '-', valueColor: 'text-gray-400' }
   }
 }

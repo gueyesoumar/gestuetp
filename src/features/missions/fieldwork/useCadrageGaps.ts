@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { isUnfavorablePair } from './right-rail/cadrageHint'
 
 /**
- * Écarts probables issus du cadrage, pour TOUTE la mission (levier étage 2 — L2).
+ * Écarts probables issus du cadrage, pour TOUTE la mission (levier étage 2 - L2).
  * Renvoie l'ensemble des control_id dont au moins une réponse de cadrage liée est
  * défavorable (réponse du client ≠ réponse attendue). Vide si le référentiel n'est
  * pas mappé ou si aucune polarité n'est définie.

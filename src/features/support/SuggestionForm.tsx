@@ -86,7 +86,7 @@ export function SuggestionForm({ profile, cabinetId, missionId, onBack }: Props)
           disabled={!idea.trim() || busy}
           className="px-5 py-2.5 bg-forest-700 text-white rounded-lg text-sm font-semibold hover:bg-forest-900 disabled:opacity-50"
         >
-          {busy ? 'Envoi…' : 'Envoyer la suggestion'}
+          {busy ? 'Envoi...' : 'Envoyer la suggestion'}
         </button>
       </div>
     </div>

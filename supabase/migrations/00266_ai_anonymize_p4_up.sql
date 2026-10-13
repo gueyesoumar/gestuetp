@@ -1,5 +1,5 @@
--- 00266 — Anonymisation réversible avant envoi IA (P4.1 · RFC 0012).
--- Opt-in par CLIENT (fiche cabinet_clients), surchargeable par mission — même modèle
+-- 00266 - Anonymisation réversible avant envoi IA (P4.1 · RFC 0012).
+-- Opt-in par CLIENT (fiche cabinet_clients), surchargeable par mission - même modèle
 -- que le consentement (mig 00262). Quand il est actif, le texte envoyé au modèle est
 -- pseudonymisé (jetons cohérents) et la réponse est ré-hydratée côté serveur ; la table
 -- de correspondance n'est jamais transmise au modèle ni persistée en clair.

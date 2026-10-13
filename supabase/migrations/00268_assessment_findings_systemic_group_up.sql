@@ -1,4 +1,4 @@
--- 00268 — Constat systémique transverse (Lot 2, architecture « groupe de miroirs »).
+-- 00268 - Constat systémique transverse (Lot 2, architecture « groupe de miroirs »).
 --
 -- Un constat systémique = un même constat répliqué sur plusieurs contrôles liés (crosswalk).
 -- Chaque réplique reste un finding normal rattaché à SON assessment (donc à SON contrôle) :

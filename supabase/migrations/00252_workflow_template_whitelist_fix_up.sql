@@ -1,4 +1,4 @@
--- Migration 00252 (UP) — RFC 0009 : correction de la liste blanche des templates.
+-- Migration 00252 (UP) - RFC 0009 : correction de la liste blanche des templates.
 --
 -- Les étapes guidées des Travaux (fieldwork.*) sont retirées du scope : « Analyser »
 -- (conformité + constats) et « Validation » (soumission) sont le NOYAU obligatoire

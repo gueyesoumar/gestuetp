@@ -45,7 +45,7 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl border border-gray-200 bg-white overflow-hidden">
-        <Stat label="Accueil" value={state.home_product ?? '—'} />
+        <Stat label="Accueil" value={state.home_product ?? '-'} />
         <Stat label="Remise organisation" value={`${state.discount_pct ?? 0} %`} />
         <Stat label="MRR net" value={format(state.mrr)} />
         <Stat label="Statuts" value={`${counts.active ?? 0} actifs · ${counts.trial ?? 0} essais · ${counts.suspended ?? 0} suspendus`} />

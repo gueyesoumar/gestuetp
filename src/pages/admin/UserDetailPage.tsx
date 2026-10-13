@@ -11,7 +11,7 @@ import { useToast } from '../../hooks/useToast'
 /**
  * Aperçu détaillé d'un utilisateur en mode super-admin.
  *
- * Lecture seule par construction — aucune mutation possible depuis cette page.
+ * Lecture seule par construction - aucune mutation possible depuis cette page.
  * À l'arrivée sur la page, déclenche admin-view-user qui crée une session
  * d'audit et notifie le target (RGPD).
  */
@@ -70,7 +70,7 @@ export function UserDetailPage() {
       {sessionStarted && (
         <div className="mt-4 mb-4 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2.5">
           <Eye size={14} className="text-amber-700 flex-shrink-0" />
-          <span className="text-[12px] text-amber-700"><b className="font-bold">Aperçu actif</b> — vous consultez cette fiche en lecture seule. L&apos;utilisateur a été notifié.</span>
+          <span className="text-[12px] text-amber-700"><b className="font-bold">Aperçu actif</b> : vous consultez cette fiche en lecture seule. L&apos;utilisateur a été notifié.</span>
         </div>
       )}
 
@@ -97,8 +97,8 @@ export function UserDetailPage() {
           <Card title="Profil">
             <dl className="grid grid-cols-[140px_1fr] gap-y-2.5 gap-x-5 text-[13px]">
               <Row k="Email">{user.email}</Row>
-              <Row k="Téléphone">{user.phone ?? <Em>—</Em>}</Row>
-              <Row k="Poste">{user.job_title ?? <Em>—</Em>}</Row>
+              <Row k="Téléphone">{user.phone ?? <Em>-</Em>}</Row>
+              <Row k="Poste">{user.job_title ?? <Em>-</Em>}</Row>
               <Row k="Type">{user.role === 'auditor' ? 'Auditeur' : 'Référent client'}</Row>
               <Row k="Créé le">{new Date(user.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</Row>
               <Row k="Dernière connexion">{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('fr-FR') : <Em>jamais</Em>}</Row>
@@ -180,7 +180,7 @@ export function UserDetailPage() {
             <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
               <button onClick={() => navigate(-1)} disabled={registering} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>
               <button onClick={startSession} disabled={registering || !reason.trim()} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50">
-                {registering ? 'En cours…' : 'Voir la fiche'}
+                {registering ? 'En cours...' : 'Voir la fiche'}
               </button>
             </div>
           </div>

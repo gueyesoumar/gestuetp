@@ -2,7 +2,7 @@
 -- Corps complets et structures (titres + etapes). Les images sont ajoutees
 -- ensuite via l'editeur admin (bucket help-media).
 
-update public.help_articles set body = $b$Le **Hub ETP** est votre point de départ : il réunit tous vos modules (Comply, Risk, Policy…) et affiche l'état de chacun.
+update public.help_articles set body = $b$Le **Hub ETP** est votre point de départ : il réunit tous vos modules (Comply, Risk, Policy...) et affiche l'état de chacun.
 
 ## Accéder au Hub
 1. Cliquez sur **Retour au Hub ETP** en haut de la barre latérale, à gauche.
@@ -33,7 +33,7 @@ update public.help_articles set body = $b$L'authentification à deux facteurs (2
 ## Ajouter un authentificateur
 1. Ouvrez **Mon compte → Sécurité**.
 2. Cliquez sur **Ajouter un authentificateur** et donnez-lui un nom (ex : « iPhone perso »).
-3. Scannez le QR code affiché avec votre application (Google Authenticator, Microsoft Authenticator, Authy…).
+3. Scannez le QR code affiché avec votre application (Google Authenticator, Microsoft Authenticator, Authy...).
 4. Saisissez le code à 6 chiffres généré pour confirmer.
 
 ## Bon à savoir
@@ -64,14 +64,14 @@ update public.help_articles set body = $b$Ajoutez vos collègues à l'organisati
 
 ## Bon à savoir
 - Nécessite la permission **Gérer les membres**.
-- Le rôle détermine les permissions — voir « Gérer les rôles et les permissions ».$b$ where slug = 'invite-member';
+- Le rôle détermine les permissions - voir « Gérer les rôles et les permissions ».$b$ where slug = 'invite-member';
 
 update public.help_articles set body = $b$Les rôles regroupent des permissions que vous attribuez ensuite aux membres.
 
 ## Créer ou modifier un rôle
 1. Ouvrez **Organisation → Rôles & permissions**.
 2. Cliquez sur **Créer un rôle** (ou l'icône crayon pour en modifier un).
-3. Cochez les permissions voulues (créer des missions, gérer les membres, modifier les paramètres…).
+3. Cochez les permissions voulues (créer des missions, gérer les membres, modifier les paramètres...).
 4. Enregistrez.
 
 ## Attribuer un rôle
@@ -118,7 +118,7 @@ update public.help_articles set body = $b$La piste d'audit journalise les action
 - Réservée aux profils disposant de la permission **Voir la piste d'audit**.
 - Les entrées sont **append-only** (non modifiables) et chaînées par hash.$b$ where slug = 'audit-trail-access';
 
-update public.help_articles set body = $b$Besoin d'un module supplémentaire (Risk, Policy…) ou d'un changement de plan ? Faites-en la demande depuis l'application.
+update public.help_articles set body = $b$Besoin d'un module supplémentaire (Risk, Policy...) ou d'un changement de plan ? Faites-en la demande depuis l'application.
 
 ## Faire une demande
 1. Ouvrez le **Centre d'aide → Faire une demande**.

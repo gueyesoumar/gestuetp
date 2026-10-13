@@ -1,5 +1,5 @@
 -- Migration: questionnaire_collab (UP)
--- Description: Sprint 2 du questionnaire — collaboration auditeur/client.
+-- Description: Sprint 2 du questionnaire - collaboration auditeur/client.
 --
 -- 1. Table questionnaire_response_comments : thread de commentaires par
 --    question (auditeur peut demander une clarification, client peut repondre).

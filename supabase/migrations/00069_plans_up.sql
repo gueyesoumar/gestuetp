@@ -1,6 +1,6 @@
 -- Migration 00069: Plans tarifaires + plan_id sur organizations (UP)
 -- Description: Référentiel statique des plans pour le calcul placeholder du MRR
--- (Σ cabinets actifs × tarif). Pas d'intégration paiement — Stripe en Phase 2.
+-- (Σ cabinets actifs × tarif). Pas d'intégration paiement - Stripe en Phase 2.
 
 CREATE TABLE public.plans (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),

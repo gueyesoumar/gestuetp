@@ -1,9 +1,9 @@
--- Seed: Catalogue des preuves PSSI-ES — 155 contrôles
--- Référentiel: PSSI-ES — Sénégal (framework_id = 00000000-0000-0000-0000-000000000017)
+-- Seed: Catalogue des preuves PSSI-ES - 155 contrôles
+-- Référentiel: PSSI-ES - Sénégal (framework_id = 00000000-0000-0000-0000-000000000017)
 -- Chaque contrôle reçoit 1 à 3 preuves documentaires attendues
 
 -- ============================================================
--- ORG — Organisation de la sécurité des SI (REG 1-1 à 1-6)
+-- ORG - Organisation de la sécurité des SI (REG 1-1 à 1-6)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)
@@ -59,7 +59,7 @@ cross join (values
 where c.code = 'REG 1-6' and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- PER — Sécurité du personnel (REG 2-1 à 4-6)
+-- PER - Sécurité du personnel (REG 2-1 à 4-6)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)
@@ -171,7 +171,7 @@ cross join (values
 where c.code = 'REG 4-6' and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- ACQ — Acquisition et développement des SI (REG 5-1 à 5-4)
+-- ACQ - Acquisition et développement des SI (REG 5-1 à 5-4)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)
@@ -208,7 +208,7 @@ cross join (values
 where c.code = 'REG 5-4' and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- ACT — Gestion des actifs (REG 6-1 à 6-7)
+-- ACT - Gestion des actifs (REG 6-1 à 6-7)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)
@@ -270,7 +270,7 @@ cross join (values
 where c.code = 'REG 6-7' and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- FRN — Relation avec les fournisseurs (REG 7-1 à 7-9)
+-- FRN - Relation avec les fournisseurs (REG 7-1 à 7-9)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)
@@ -346,7 +346,7 @@ cross join (values
 where c.code = 'REG 7-9' and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- PHY — Sécurité physique (REG 8-1 à 16-7)
+-- PHY - Sécurité physique (REG 8-1 à 16-7)
 -- Regroupement par objectif pour limiter la volumétrie
 -- ============================================================
 
@@ -528,7 +528,7 @@ cross join (values
 where c.code in ('REG 16-1', 'REG 16-2', 'REG 16-3', 'REG 16-4', 'REG 16-5', 'REG 16-6', 'REG 16-7') and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- LOG — Sécurité logique (REG 17-1 à 19-9-12)
+-- LOG - Sécurité logique (REG 17-1 à 19-9-12)
 -- ============================================================
 
 -- Obj 17 : Sécurité des accès (REG 17-1 à 17-6)
@@ -585,7 +585,7 @@ cross join (values
 where c.code in ('REG 19-9-1', 'REG 19-9-5', 'REG 19-9-7', 'REG 19-9-11', 'REG 19-9-12') and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- EXP — Sécurité de l'exploitation (REG 20-1 à 27-9)
+-- EXP - Sécurité de l'exploitation (REG 20-1 à 27-9)
 -- ============================================================
 
 -- Obj 20 : Procédures d'exploitation (REG 20-1 à 20-8)
@@ -674,7 +674,7 @@ cross join (values
 where c.code in ('REG 27-1', 'REG 27-2', 'REG 27-3', 'REG 27-5', 'REG 27-7', 'REG 27-8', 'REG 27-9') and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- CLM — Cloud, appareils mobiles et télétravail (REG 28-1 à 28-10)
+-- CLM - Cloud, appareils mobiles et télétravail (REG 28-1 à 28-10)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)
@@ -694,7 +694,7 @@ cross join (values
 where c.code in ('REG 28-3', 'REG 28-4', 'REG 28-5', 'REG 28-6', 'REG 28-7', 'REG 28-8', 'REG 28-9', 'REG 28-10') and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- INC — Gestion des incidents (REG 29-1 à 29-11)
+-- INC - Gestion des incidents (REG 29-1 à 29-11)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)
@@ -723,7 +723,7 @@ cross join (values
 where c.code in ('REG 29-7', 'REG 29-8') and d.framework_id = '00000000-0000-0000-0000-000000000017';
 
 -- ============================================================
--- AUD — Audit et conformité (REG 30-1 à 30-7)
+-- AUD - Audit et conformité (REG 30-1 à 30-7)
 -- ============================================================
 
 insert into public.evidence_catalog (control_id, name, description, is_required, sort_order)

@@ -57,7 +57,7 @@ insert into public.help_articles (slug, category, title, excerpt, body, keywords
 
 ('setup-2fa', 'Compte & sécurité', $t$Comment configurer l'authentification à deux facteurs (2FA) ?$t$,
  $t$Dans Mon compte → Sécurité, ajoutez un authentificateur et scannez le QR code.$t$,
- $t$Le 2FA est requis pour tous les comptes. Dans Mon compte → Sécurité, ajoutez un authentificateur : nommez l'appareil, scannez le QR code avec votre application (Google/Microsoft Authenticator…) puis saisissez le code à 6 chiffres.$t$,
+ $t$Le 2FA est requis pour tous les comptes. Dans Mon compte → Sécurité, ajoutez un authentificateur : nommez l'appareil, scannez le QR code avec votre application (Google/Microsoft Authenticator...) puis saisissez le code à 6 chiffres.$t$,
  array['2fa','double authentification','totp','authentificateur','qr'], 30),
 
 ('lost-authenticator', 'Compte & sécurité', $t$J'ai perdu mon téléphone d'authentification, que faire ?$t$,
@@ -72,7 +72,7 @@ insert into public.help_articles (slug, category, title, excerpt, body, keywords
 
 ('manage-roles', 'Membres & rôles', $t$Comment gérer les rôles et les permissions ?$t$,
  $t$Dans Organisation → Rôles & permissions, créez ou modifiez un rôle.$t$,
- $t$Dans Organisation → Rôles & permissions, créez ou modifiez un rôle et cochez les permissions (missions, membres, paramètres…). Assignez ensuite le rôle à un membre depuis l'onglet Membres.$t$,
+ $t$Dans Organisation → Rôles & permissions, créez ou modifiez un rôle et cochez les permissions (missions, membres, paramètres...). Assignez ensuite le rôle à un membre depuis l'onglet Membres.$t$,
  array['rôle','permission','droits','accès'], 60),
 
 ('create-mission', 'Missions', $t$Comment créer une mission ?$t$,

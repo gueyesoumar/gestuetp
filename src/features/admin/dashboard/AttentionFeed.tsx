@@ -10,7 +10,7 @@ const DOT: Record<FeedItem['severity'], string> = {
   info: 'bg-blue-500',
 }
 
-/** Feed d'attention — alertes + signaux réels (admin-stats), priorisés par sévérité. */
+/** Feed d'attention - alertes + signaux réels (admin-stats), priorisés par sévérité. */
 export function AttentionFeed({ items }: { items: FeedItem[] }) {
   const ordered = [...items].sort((a, b) => rank(a.severity) - rank(b.severity))
   return (
@@ -20,7 +20,7 @@ export function AttentionFeed({ items }: { items: FeedItem[] }) {
         <span className="ml-auto text-[10px] uppercase tracking-wider text-gray-400 font-semibold">priorisé par impact</span>
       </header>
       {ordered.length === 0 ? (
-        <div className="px-4 py-8 text-center text-[12px] text-gray-400">Aucun signal — tout est en ordre.</div>
+        <div className="px-4 py-8 text-center text-[12px] text-gray-400">Aucun signal : tout est en ordre.</div>
       ) : (
         <div>
           {ordered.map((it, i) => (

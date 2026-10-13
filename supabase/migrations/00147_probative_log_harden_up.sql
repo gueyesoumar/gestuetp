@@ -1,4 +1,4 @@
--- 00147 — Durcissement du journal probant (revue pré-audit).
+-- 00147 - Durcissement du journal probant (revue pré-audit).
 --
 -- (1) SÉCURITÉ (bloquant) : la policy SELECT probative_log_select_staff était
 --     `not is_client_role()` SANS borne de tenant → tout staff lisait le journal

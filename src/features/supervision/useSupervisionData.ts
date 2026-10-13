@@ -107,7 +107,7 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         controlToDomain.set(c.id, c.domain_id)
       }
 
-      // 3. Fetch missions — different query depending on mode
+      // 3. Fetch missions - different query depending on mode
       let missionQuery = supabase
         .from('missions')
         .select('id, name, status, client_id, cabinet_id, end_date, framework_id')
@@ -149,7 +149,7 @@ export function useSupervisionData(frameworkId: string, mode: SupervisionMode = 
         return
       }
 
-      // 4. Fetch client info (entity names) — RFC 0007 P1c.2 : identité sur le nœud organizations.
+      // 4. Fetch client info (entity names) - RFC 0007 P1c.2 : identité sur le nœud organizations.
       const clientOrgIds = [...new Set(missionData.map((m) => m.client_id))]
       const clientMap = new Map<string, { nom: string; secteur: string }>()
       if (clientOrgIds.length > 0) {

@@ -1,4 +1,4 @@
-// Politique de mot de passe — modèle partagé + validation synchrone (UX).
+// Politique de mot de passe - modèle partagé + validation synchrone (UX).
 // L'enforcement fait autorité côté serveur (edge `set-password`, qui ajoute la
 // vérification HIBP). Ce module reflète les règles synchrones pour un feedback
 // immédiat dans les formulaires. Garder aligné avec
@@ -17,7 +17,7 @@ export interface PasswordPolicy {
   history_count: number
 }
 
-// Défauts alignés sur la ligne seed (migration 00225) — utilisés tant que la
+// Défauts alignés sur la ligne seed (migration 00225) - utilisés tant que la
 // politique n'est pas chargée depuis la base.
 export const DEFAULT_PASSWORD_POLICY: PasswordPolicy = {
   min_length: 12,

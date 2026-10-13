@@ -28,7 +28,7 @@ export function WorkflowTemplateForm(props: Props): JSX.Element {
         <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Nom du modèle</label>
         <input
           type="text" value={name} onChange={(e) => onChangeName(e.target.value)} disabled={saving}
-          placeholder="Ex. Mission allégée, Contrôle rapide…"
+          placeholder="Ex. Mission allégée, Contrôle rapide..."
           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px]"
         />
       </div>
@@ -76,7 +76,7 @@ export function WorkflowTemplateForm(props: Props): JSX.Element {
       <div className="flex items-center gap-2 pt-1">
         <button type="button" onClick={onCancel} disabled={saving} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Retour</button>
         <button type="submit" disabled={saving || !name.trim()} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg text-white bg-forest-700 hover:bg-forest-900 disabled:opacity-50 disabled:cursor-not-allowed">
-          {saving ? 'Enregistrement…' : isEditing ? 'Modifier' : 'Créer'}
+          {saving ? 'Enregistrement...' : isEditing ? 'Modifier' : 'Créer'}
         </button>
       </div>
     </form>

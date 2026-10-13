@@ -71,7 +71,7 @@ export function AdminSupportPage(): JSX.Element {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-900">{r.title}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{r.role_at_submit ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{r.role_at_submit ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{SUPPORT_STATUS_LABELS[r.status]}</td>
                 </tr>
               ))}

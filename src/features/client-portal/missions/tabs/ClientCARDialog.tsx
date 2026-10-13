@@ -57,14 +57,14 @@ export function ClientCARDialog({ car, canContribute, contacts, userNames, conta
   }
 
   return (
-    <Modal open={!!car} onClose={onClose} title={`${car.code} — ${CLASS_LABEL[car.finding_classification] ?? car.finding_classification}`}>
+    <Modal open={!!car} onClose={onClose} title={`${car.code} : ${CLASS_LABEL[car.finding_classification] ?? car.finding_classification}`}>
       <div className="space-y-4">
         <CARTimeline car={car} userNames={userNames} contactNames={contactNames} />
 
         <div className="border border-gray-200 rounded-lg p-3">
           <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-2">Constat de l&apos;auditeur</p>
           {car.control_code && (
-            <p className="text-xs font-semibold text-forest-700 mb-1">{car.control_code} — {car.control_name ?? ''}</p>
+            <p className="text-xs font-semibold text-forest-700 mb-1">{car.control_code} : {car.control_name ?? ''}</p>
           )}
           <p className="text-sm text-gray-700 whitespace-pre-line">{car.description}</p>
         </div>
@@ -72,7 +72,7 @@ export function ClientCARDialog({ car, canContribute, contacts, userNames, conta
         {car.verification_comment && car.verification_status !== 'accepted' && (
           <div className="bg-amber-50 border-l-4 border-amber-400 rounded p-3">
             <p className="text-xs font-bold text-amber-800 mb-1">
-              {car.verification_status === 'rejected' ? 'Action rejetée — motif' : 'Précision demandée'}
+              {car.verification_status === 'rejected' ? 'Action rejetée : motif' : 'Précision demandée'}
             </p>
             <p className="text-sm text-amber-900 whitespace-pre-line">{car.verification_comment}</p>
           </div>
@@ -99,7 +99,7 @@ export function ClientCARDialog({ car, canContribute, contacts, userNames, conta
               <Field label="Responsable interne">
                 <select value={responsibleId} onChange={(e) => setResponsibleId(e.target.value)}
                   className="w-full text-sm border border-gray-300 rounded-lg p-2 focus:border-forest-700 focus:ring-1 focus:ring-forest-700">
-                  <option value="">— Optionnel —</option>
+                  <option value="">(Optionnel)</option>
                   {contacts.map((c) => (
                     <option key={c.id} value={c.id}>{c.contact_name ?? c.email}</option>
                   ))}

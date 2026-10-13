@@ -1,4 +1,4 @@
--- Migration 00095: Verrou trigger sur organizations.types — UP
+-- Migration 00095: Verrou trigger sur organizations.types - UP
 --
 -- Empêche tout user authenticated de modifier la colonne types via une
 -- requête directe (côté client Supabase ou via une RLS UPDATE qui le

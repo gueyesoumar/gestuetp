@@ -1,4 +1,4 @@
--- Migration 00127: Durcissement get_subsidiary_ids — SET search_path (UP)
+-- Migration 00127: Durcissement get_subsidiary_ids - SET search_path (UP)
 -- Description: La fonction SECURITY DEFINER get_subsidiary_ids (00057) ne pinnait
 -- pas search_path, contrairement à tous les autres helpers DEFINER du projet.
 -- Comme elle est appelée dans des policies RLS (missions_select_group,

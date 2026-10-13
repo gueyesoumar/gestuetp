@@ -24,7 +24,7 @@ export function RiskRegisterPage(): JSX.Element {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><ClipboardList size={20} className="text-[#E07A5F]" /> Registre des risques</h1>
-          <p className="mt-1 text-[13px] text-gray-500">Scénarios EBIOS RM — cliquez un scénario pour ouvrir son nœud papillon.</p>
+          <p className="mt-1 text-[13px] text-gray-500">Scénarios EBIOS RM : cliquez un scénario pour ouvrir son nœud papillon.</p>
         </div>
         <button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
           <Plus size={16} /> Nouveau scénario

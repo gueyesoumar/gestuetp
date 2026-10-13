@@ -10,7 +10,7 @@ import { MfaLoader } from './MfaShell'
 // avec facteur doit passer le challenge (AAL2) avant tout accès.
 //
 // Exemptions : pages d'authentification publiques (login, définition de mot de
-// passe, désinscription) — sinon on bloquerait le parcours avant même l'enrôlement.
+// passe, désinscription) - sinon on bloquerait le parcours avant même l'enrôlement.
 
 const EXEMPT_PREFIXES = ['/login', '/set-password', '/unsubscribe']
 

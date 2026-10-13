@@ -18,7 +18,7 @@ import { createSetupToken, buildSetupLink } from '../_shared/setup-token.ts'
  *  - toggle_active  : passe is_active true/false sur public.users (suspendre/réactiver
  *                     un compte sans suspendre tout le cabinet).
  *
- * Le flag is_platform_owner est volontairement immuable depuis cette function —
+ * Le flag is_platform_owner est volontairement immuable depuis cette function -
  * il ne peut être modifié que via SQL Editor (sécurité critique).
  */
 
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
     if (body.action === 'reset_password') {
       const siteUrl = await resolveCabinetSiteUrl(admin, u.organization_id)
-      // Jeton maison (reset, 1 h) — consommé uniquement à la soumission (anti-scanner).
+      // Jeton maison (reset, 1 h) - consommé uniquement à la soumission (anti-scanner).
       const tokenRes = await createSetupToken(admin, { userId: u.id, purpose: 'reset', ttlHours: 1, createdBy: owner.id })
       if ('error' in tokenRes) {
         console.error('[admin-user] reset_password token error:', tokenRes.error)
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       const branding = await loadCabinetEmailBranding(admin, u.organization_id)
       const result = await sendEmail({
         to: u.email,
-        subject: `Réinitialisation de votre mot de passe — ${branding?.cabinetName ?? 'Gëstu ETP'}`,
+        subject: `Réinitialisation de votre mot de passe (${branding?.cabinetName ?? 'Gëstu ETP'})`,
         html: passwordResetTemplate({ firstName: u.first_name || u.email, link, branding }),
         from: buildEmailFrom(branding),
         replyTo: branding?.supportEmail ?? undefined,

@@ -11,7 +11,7 @@ const MAX_TURNS = 8
 const TOOLS = [
   {
     name: 'get_mission',
-    description: 'Metadonnees d\'une mission par id (statut, framework, cabinet) — sans nom.',
+    description: 'Metadonnees d\'une mission par id (statut, framework, cabinet), sans nom.',
     input_schema: { type: 'object', properties: { mission_id: { type: 'string' } }, required: ['mission_id'] },
   },
   {
@@ -92,7 +92,7 @@ Deno.serve(async (req: Request) => {
     // deno-lint-ignore no-explicit-any
     const messages: any[] = [{
       role: 'user',
-      content: `Ticket #${String(ticket.id).slice(0, 8)} — ${ticket.title}\nCommentaire: ${ticket.body ?? '(aucun)'}\nMission: ${ticket.mission_id ?? '(aucune)'}\nTrace de reproduction:\n${JSON.stringify(ticket.context?.steps ?? [], null, 1)}`,
+      content: `Ticket #${String(ticket.id).slice(0, 8)} : ${ticket.title}\nCommentaire: ${ticket.body ?? '(aucun)'}\nMission: ${ticket.mission_id ?? '(aucune)'}\nTrace de reproduction:\n${JSON.stringify(ticket.context?.steps ?? [], null, 1)}`,
     }]
 
     let triage: Record<string, unknown> | null = null

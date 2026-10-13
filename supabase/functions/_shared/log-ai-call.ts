@@ -1,19 +1,19 @@
 // Helper pour logguer les appels Anthropic dans ai_calls_log.
 // Sécurité : un échec d'écriture ne casse JAMAIS la réponse principale.
 //
-// Prix Anthropic (USD per 1M tokens) au 2026-04-26 — mettre à jour ici
+// Prix Anthropic (USD per 1M tokens) au 2026-04-26 - mettre à jour ici
 // si Anthropic ajuste ses tarifs. Sources tarifaires officielles.
 
 interface ModelPrice { input_per_million_usd: number; output_per_million_usd: number }
 
 const PRICING: Record<string, ModelPrice> = {
-  // Sonnet 4 / 4.5 — tarifs Sonnet
+  // Sonnet 4 / 4.5 - tarifs Sonnet
   'claude-sonnet-4-20250514': { input_per_million_usd: 3, output_per_million_usd: 15 },
   'claude-sonnet-4-5': { input_per_million_usd: 3, output_per_million_usd: 15 },
   'claude-sonnet-4-6': { input_per_million_usd: 3, output_per_million_usd: 15 },
-  // Haiku 4.5 — tarifs Haiku
+  // Haiku 4.5 - tarifs Haiku
   'claude-haiku-4-5-20251001': { input_per_million_usd: 1, output_per_million_usd: 5 },
-  // Opus 4 — tarifs Opus
+  // Opus 4 - tarifs Opus
   'claude-opus-4': { input_per_million_usd: 15, output_per_million_usd: 75 },
   'claude-opus-4-7': { input_per_million_usd: 15, output_per_million_usd: 75 },
 }
@@ -31,7 +31,7 @@ export interface LogAiCallParams {
   mission_id?: string | null
   user_id?: string | null
   duration_ms: number
-  // Score d'exposition déterministe (P1) — optionnel, observe-only.
+  // Score d'exposition déterministe (P1) - optionnel, observe-only.
   exposure?: { score: number; level: string; pii: number; financial: number; secret: number } | null
   // deno-lint-ignore no-explicit-any
   admin: any  // ReturnType<typeof createClient> with service-role

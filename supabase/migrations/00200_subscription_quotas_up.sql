@@ -10,7 +10,7 @@
 -- 1. Quota par défaut d'un plan (catalogue) ------------------------------------
 create table if not exists public.plan_quotas (
   plan_slug   text not null,
-  quota_key   text not null,           -- 'users' | 'missions' | … (extensible)
+  quota_key   text not null,           -- 'users' | 'missions' | ... (extensible)
   limit_value int,                      -- NULL = illimité
   primary key (plan_slug, quota_key)
 );

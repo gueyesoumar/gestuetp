@@ -69,7 +69,7 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, onClos
     const result = await res.json() as { email_sent?: boolean }
     setSuccess(result.email_sent
       ? `${name.trim()} invité(e). Un email de définition de mot de passe a été envoyé.`
-      : `${name.trim()} invité(e). L'email n'a pas pu être envoyé — le contact peut utiliser « Mot de passe oublié » depuis la page de connexion.`)
+      : `${name.trim()} invité(e). L'email n'a pas pu être envoyé : le contact peut utiliser « Mot de passe oublié » depuis la page de connexion.`)
     setName(''); setEmail(''); setJobTitle('')
     setInviting(false); void fetchData(); onSuccess()
   }

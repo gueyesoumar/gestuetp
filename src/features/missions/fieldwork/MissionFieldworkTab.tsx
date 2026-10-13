@@ -77,7 +77,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
   const [confirmLaunch, setConfirmLaunch] = useState(false)
   const [launching, setLaunching] = useState(false)
-  // Sélection de masse (RFC UX Lot 3) — par control_id.
+  // Sélection de masse (RFC UX Lot 3) - par control_id.
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [confirmBulk, setConfirmBulk] = useState(false)
   const [bulkSaving, setBulkSaving] = useState(false)

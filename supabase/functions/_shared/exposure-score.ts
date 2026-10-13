@@ -1,4 +1,4 @@
-// Score d'exposition IA (P1) — agrège la détection déterministe en un indicateur
+// Score d'exposition IA (P1) - agrège la détection déterministe en un indicateur
 // lisible (0-100 + niveau) de ce qu'un envoi au modèle exposerait. Observe-only :
 // ne bloque rien (le blocage/caviardage = P2).
 
@@ -10,7 +10,7 @@ export interface ExposureScore {
   score: number // 0-100
   level: SensitivityLevel
   counts: Record<PiiGroup, number>
-  categories: Record<string, number> // détail par catégorie (email, iban, …), comptes only
+  categories: Record<string, number> // détail par catégorie (email, iban, ...), comptes only
   pct_flagged: number // part des caractères couverts par une détection (0-100)
   total_chars: number
 }
@@ -20,7 +20,7 @@ const WEIGHT: Record<PiiGroup, number> = { secret: 40, financial: 10, pii: 3 }
 
 /**
  * Calcule le score d'exposition sur un ou plusieurs fragments de texte (identité
- * client, réponses de questionnaire, observations, texte de document extrait…).
+ * client, réponses de questionnaire, observations, texte de document extrait...).
  */
 export function computeExposure(texts: Array<string | null | undefined>): ExposureScore {
   const joined = texts.filter(Boolean).join('\n')

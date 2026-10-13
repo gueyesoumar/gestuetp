@@ -100,9 +100,9 @@ export function ResetPasswordModal({ member, open, onClose }: ResetPasswordModal
           {policy.check_hibp && (
             <p className={`mt-2 text-xs ${pwned === 'pwned' ? 'text-red-600' : pwned === 'ok' ? 'text-green-600' : 'text-gray-400'}`}>
               {pwned === 'checking'
-                ? 'Vérification des fuites connues…'
+                ? 'Vérification des fuites connues...'
                 : pwned === 'pwned'
-                  ? '⚠ Ce mot de passe figure dans une fuite de données connue — choisissez-en un autre.'
+                  ? '⚠ Ce mot de passe figure dans une fuite de données connue : choisissez-en un autre.'
                   : pwned === 'ok'
                     ? '✓ Absent des fuites de données connues.'
                     : 'L’absence du mot de passe dans une fuite connue est vérifiée en direct.'}

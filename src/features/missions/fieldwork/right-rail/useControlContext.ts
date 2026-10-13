@@ -8,7 +8,7 @@ export interface CadrageAnswer {
   question_text: string
   weight: number  // 1=context, 2=partial, 3=strong evidence
   response_value: unknown
-  expected_answer: string | null  // réponse conforme attendue (polarité) — null = non définie
+  expected_answer: string | null  // réponse conforme attendue (polarité) - null = non définie
 }
 
 export interface ControlContext {
@@ -98,7 +98,7 @@ export function useControlContext(missionId: string | null, controlId: string | 
         return
       }
 
-      // 4. Get responses for these questions in this instance — note: questionnaire_responses keys by question_code, not question_id
+      // 4. Get responses for these questions in this instance - note: questionnaire_responses keys by question_code, not question_id
       const respRes = await supabase.from('questionnaire_responses')
         .select('question_code, response')
         .eq('instance_id', instanceId)

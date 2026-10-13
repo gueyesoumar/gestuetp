@@ -1,4 +1,4 @@
--- Rollback 00280 — retire les dépendances ISO ajoutées par cette migration.
+-- Rollback 00280 - retire les dépendances ISO ajoutées par cette migration.
 delete from public.control_mappings cm
 using public.controls cs, public.controls ct, (values
     ('A.5.1', 'A.5.4', 'related'),

@@ -47,7 +47,7 @@ export function FrameworksAdminListPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrer par nom ou slug…"
+            placeholder="Filtrer par nom ou slug..."
             className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-72 bg-page-bg"
           />
         </div>

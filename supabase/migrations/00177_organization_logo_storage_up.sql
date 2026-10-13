@@ -1,4 +1,4 @@
--- Migration 00177: Bucket Storage organization-logos — UP
+-- Migration 00177: Bucket Storage organization-logos - UP
 -- Description: Bucket public dédié au logo d'IDENTITÉ d'une organisation
 -- (organizations.logo_url), affiché dans le Hub. Distinct du bucket
 -- cabinet-branding (marque blanche, super-admin). En self-service : écrit par

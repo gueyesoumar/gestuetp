@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const isClient = caller.role === 'client'
 
     // Périmètre autorisé : assujetti = org(s) de son contact portail (entity_org_id,
-    // scope canonique M7 — PAS organization_id, ambigu côté client) ; staff = sous-arbre.
+    // scope canonique M7 - PAS organization_id, ambigu côté client) ; staff = sous-arbre.
     let allowed: Set<string>
     if (isClient) {
       const { data: cpc } = await admin

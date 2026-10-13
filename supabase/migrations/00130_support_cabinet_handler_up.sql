@@ -1,4 +1,4 @@
--- 00130 — File support cote cabinet : un gestionnaire du cabinet (can_manage_members)
+-- 00130 - File support cote cabinet : un gestionnaire du cabinet (can_manage_members)
 -- peut traiter (changer le statut) les demandes de SON cabinet, pas seulement le
 -- demandeur ou le platform owner. Reutilise has_cabinet_permission() (mig. 00082).
 -- Aucune sous-requete sur support_requests -> pas de recursion.

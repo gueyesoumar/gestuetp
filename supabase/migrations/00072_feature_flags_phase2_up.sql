@@ -1,4 +1,4 @@
--- Migration 00072: Feature flags Phase 2 — renommage + insertion des kill-switches IA (UP)
+-- Migration 00072: Feature flags Phase 2 - renommage + insertion des kill-switches IA (UP)
 -- Description: Aligne les slugs des flags existants sur la nomenclature de l'audit
 -- (smart_questionnaire_v2 → smart_questionnaire_ai, weekly_digest_email → evidence_reminders_digest)
 -- et ajoute 8 nouveaux flags pour gater les features IA, beta et pricing tier identifiés.
@@ -36,7 +36,7 @@ INSERT INTO public.feature_flags (slug, name, description, is_globally_enabled) 
    true),
   ('smart_interview_portal',
    'Smart Interview côté portail client',
-   'Conteneur conversationnel IA dans l''espace client (3 onglets). Beta — soft-launch sur cabinets pilotes.',
+   'Conteneur conversationnel IA dans l''espace client (3 onglets). Beta - soft-launch sur cabinets pilotes.',
    true),
   ('supervision_group_mode',
    'Mode supervision groupe (DCSSI)',

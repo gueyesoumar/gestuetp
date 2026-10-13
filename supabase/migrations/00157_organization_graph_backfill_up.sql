@@ -1,4 +1,4 @@
--- Migration 00157 (UP) : backfill du graphe — RFC 0001, étape 2
+-- Migration 00157 (UP) : backfill du graphe - RFC 0001, étape 2
 -- Peuple organization_relationships depuis l'existant, SANS perte et sans changer
 -- le comportement (aucun code ne lit encore ces tables).
 -- Idempotent (gardes WHERE NOT EXISTS). Capacités : différées (décision C).

@@ -1,4 +1,4 @@
--- 00194 — Policy-as-Evidence cross-tenant (raffinement A, RFC 0005).
+-- 00194 - Policy-as-Evidence cross-tenant (raffinement A, RFC 0005).
 --
 -- Surface les politiques liées à un contrôle comme preuve candidate, y compris
 -- celles de l'organisation AUDITÉE quand un cabinet ≠ audité travaille sur une
@@ -32,7 +32,7 @@ as $$
       -- Orgs auditées : uniquement via une mission ACTIVE dont je suis membre et
       -- dont mon org est le cabinet (m.is_active → coupe l'accès résiduel à la
       -- clôture, moindre privilège). La visibilité est org-relationnelle par
-      -- design (une politique est un actif org-scoped) — pas de granularité par
+      -- design (une politique est un actif org-scoped) - pas de granularité par
       -- contrôle/mission ici ; c'est intra-cabinet, sans fuite de tenant.
       or pcl.organization_id in (
         select m.client_id

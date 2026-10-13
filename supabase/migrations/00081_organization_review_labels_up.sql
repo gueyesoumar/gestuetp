@@ -1,11 +1,11 @@
--- Migration 00081: Libellés personnalisables des étapes de revue par cabinet — UP
+-- Migration 00081: Libellés personnalisables des étapes de revue par cabinet - UP
 -- Description: Permet à chaque cabinet de renommer les 2 niveaux de revue
 -- (par défaut "Chef de mission" et "Associé") avec ses propres libellés
 -- (ex: "Manager" / "Partner", "Senior" / "Director", etc.).
 --
 -- NULL = utilise les libellés par défaut Gëstu côté frontend.
 -- La logique du workflow reste à 2 niveaux (lead_review → associate_review)
--- — seuls les libellés affichés changent.
+-- - seuls les libellés affichés changent.
 
 ALTER TABLE public.organizations
   ADD COLUMN review_lead_label text

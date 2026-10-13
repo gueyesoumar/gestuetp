@@ -14,9 +14,9 @@ const ACTIONS: Action[] = [
 ]
 
 interface ClosureActionCardsProps {
-  /** État de chargement par action — affiche "En cours…" et désactive le bouton. */
+  /** État de chargement par action - affiche "En cours..." et désactive le bouton. */
   busy?: { pdf?: boolean; pptx?: boolean; archive?: boolean }
-  /** Handlers — si non fourni, l'action est désactivée et marquée "Bientôt". */
+  /** Handlers - si non fourni, l'action est désactivée et marquée "Bientôt". */
   onGenerateAuditReport?: () => void | Promise<void>
   onGenerateExecutivePPT?: () => void | Promise<void>
   onArchiveMission?: () => void | Promise<void>
@@ -54,7 +54,7 @@ export function ClosureActionCards({
             <div>
               <p className="text-sm font-semibold text-gray-900">{action.title}</p>
               <p className="text-xs text-gray-500 mt-0.5">
-                {isBusy ? 'En cours…' : !handler ? 'Bientôt disponible' : action.desc}
+                {isBusy ? 'En cours...' : !handler ? 'Bientôt disponible' : action.desc}
               </p>
             </div>
           </button>

@@ -1,5 +1,5 @@
 // Paliers du Trust Score (mêmes seuils que healthDotClass du dashboard).
-// Couleurs plates issues de la charte (BRAND.md) — pas de dégradé.
+// Couleurs plates issues de la charte (BRAND.md) - pas de dégradé.
 
 export function bandColor(score: number | null): string {
   if (score === null) return 'rgba(255,255,255,0.45)'

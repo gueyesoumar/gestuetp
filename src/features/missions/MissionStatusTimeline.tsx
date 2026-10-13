@@ -17,7 +17,7 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-/** Frise des événements de mission (envoi client, renvoi, décisions client) — RFC UX Lot 5. */
+/** Frise des événements de mission (envoi client, renvoi, décisions client) - RFC UX Lot 5. */
 export function MissionStatusTimeline({ events, title = 'Suivi de la mission' }: MissionStatusTimelineProps): JSX.Element | null {
   if (events.length === 0) return null
   // Plus récent en haut.

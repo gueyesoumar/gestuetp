@@ -47,7 +47,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
   const navigate = useNavigate()
   const { hasCapability } = useEdition()
 
-  // Produit primaire + noms d'édition dérivés du REGISTRE de modules (RFC 0013 C1) —
+  // Produit primaire + noms d'édition dérivés du REGISTRE de modules (RFC 0013 C1) -
   // plus de binaire `supervision ? 'Regul' : 'Comply'`.
   const primaryProduct = APP_MODULES.find((m) => m.enabled(hasCapability))?.product ?? 'Comply'
   const editionProducts = useMemo(() => new Set(APP_MODULES.map((m) => m.product).filter(Boolean) as string[]), [])
@@ -115,7 +115,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
     return (
       <div className="flex h-full w-full flex-col px-6 py-3">
         {topBar}
-        {/* Onboarding — placement P2 : barre fine épinglée sous la top-bar, qui
+        {/* Onboarding - placement P2 : barre fine épinglée sous la top-bar, qui
             n'empiète pas sur le lanceur (le centre reste au produit). */}
         <OnboardingProgress tone="dark" className="mt-1 shrink-0" />
         {/* Conteneur défilant : le lanceur est centré quand il tient dans l'écran
@@ -148,7 +148,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
   const panelTitle = view === 'clients' ? 'Détail par client · plus exposé → plus solide'
     : view === 'group' ? 'Détail par filiale · plus exposé → plus solide'
       : view === 'assujettis' ? 'Détail par assujetti · plus exposé → plus solide'
-        : 'Profil de confiance — 6 dimensions'
+        : 'Profil de confiance : 6 dimensions'
 
   return (
     <div className="flex h-full w-full flex-col px-6 py-3">

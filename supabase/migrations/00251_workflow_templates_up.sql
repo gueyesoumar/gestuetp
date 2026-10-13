@@ -1,4 +1,4 @@
--- Migration 00251 (UP) — RFC 0009 : templates de parcours (INC 1, fondation).
+-- Migration 00251 (UP) - RFC 0009 : templates de parcours (INC 1, fondation).
 --
 -- Permet à un CABINET de désélectionner des étapes/sous-étapes du parcours de
 -- mission, via un template dont la mission FIGE un snapshot à la création (comme

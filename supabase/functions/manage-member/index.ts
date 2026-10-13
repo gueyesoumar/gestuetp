@@ -11,7 +11,7 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
  *   - 'reactivate' → réactiver un membre (is_active = true)
  *
  * Corrige le bug historique où useToggleMemberStatus appelait directement
- * supabase.from('users').update() — RLS users_update_self bloque silencieusement
+ * supabase.from('users').update() - RLS users_update_self bloque silencieusement
  * les UPDATE cross-user, donc l'opération paraissait réussir mais ne faisait rien.
  *
  * Sécurité :

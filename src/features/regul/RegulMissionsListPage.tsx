@@ -47,7 +47,7 @@ export function RegulMissionsListPage(): JSX.Element {
       )}
 
       {visible.length === 0 ? (
-        <EmptyState title="Aucune mission de contrôle" description={activesOnly ? 'Aucune mission active — toutes vos missions sont clôturées.' : 'Planifiez votre premier audit sur un assujetti avec le bouton ci-dessus.'} />
+        <EmptyState title="Aucune mission de contrôle" description={activesOnly ? 'Aucune mission active : toutes vos missions sont clôturées.' : 'Planifiez votre premier audit sur un assujetti avec le bouton ci-dessus.'} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
           <table className="w-full text-[13px]">
@@ -68,8 +68,8 @@ export function RegulMissionsListPage(): JSX.Element {
                       <ClipboardCheck size={15} className="text-forest-600" /> {m.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-gray-700">{m.client?.name ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{m.framework?.name ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-700">{m.client?.name ?? '-'}</td>
+                  <td className="px-4 py-3 text-gray-500">{m.framework?.name ?? '-'}</td>
                   <td className="px-4 py-3"><span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{MISSION_STATUS_LABELS[m.status] ?? m.status}</span></td>
                   <td className="px-4 py-3 text-gray-700">{m.progressPct}%</td>
                 </tr>

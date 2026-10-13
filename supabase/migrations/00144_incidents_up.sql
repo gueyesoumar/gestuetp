@@ -1,4 +1,4 @@
--- 00144 — Gëstu Regul (M5) : incidents cyber déclarés par les assujettis.
+-- 00144 - Gëstu Regul (M5) : incidents cyber déclarés par les assujettis.
 --
 -- Cycle : déclaré -> qualification -> notifié -> résolu -> clôturé. Chaque acte
 -- est ancré dans le journal probant (S1) par l'Edge Function declare-incident.
@@ -18,7 +18,7 @@ create table if not exists public.incident_notification_rules (
 comment on table public.incident_notification_rules is
   'Gëstu Regul (M5) : délais/seuils de notification paramétrables. Valeurs par défaut, à ajuster selon l''ancrage juridique.';
 
--- Valeurs par défaut (placeholders, ajustables) — inspirées des régimes usuels.
+-- Valeurs par défaut (placeholders, ajustables) - inspirées des régimes usuels.
 insert into public.incident_notification_rules (severity, initial_hours, final_days, requires_cdp) values
   ('faible',   72, 30, false),
   ('moyen',    48, 30, false),
@@ -71,7 +71,7 @@ create policy "inr_select_staff"
   to authenticated
   using (not public.is_client_role());
 
--- Incidents — lecture staff régulateur (sous-arbre)
+-- Incidents - lecture staff régulateur (sous-arbre)
 create policy "inc_select_regulator"
   on public.incidents for select
   to authenticated
@@ -80,7 +80,7 @@ create policy "inc_select_regulator"
     and entity_id in (select public.get_subsidiary_ids(public.get_my_organization_id()))
   );
 
--- Incidents — lecture assujetti (sa propre organisation)
+-- Incidents - lecture assujetti (sa propre organisation)
 create policy "inc_select_assujetti"
   on public.incidents for select
   to authenticated

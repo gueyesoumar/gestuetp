@@ -1,7 +1,7 @@
 /**
- * VaultBrandPanel — panneau de marque (récit) du login « Split souverain ».
+ * VaultBrandPanel - panneau de marque (récit) du login « Split souverain ».
  * Colonne gauche : lockup Gëstu ETP, accroche et badges de confiance souverains.
- * Statique (aucune animation) — cf. audit UX/UI.
+ * Statique (aucune animation) - cf. audit UX/UI.
  */
 
 import { ShieldCheck, Lock, KeyRound } from 'lucide-react'
@@ -83,7 +83,7 @@ export function VaultBrandPanel(): JSX.Element {
         </h2>
         <p className="max-w-[400px] text-[15px] leading-[1.65] text-white/[0.62]">
           Audits multi-référentiels, supervision des assujettis, gestion des risques et des
-          incidents — sur une plateforme souveraine, cloisonnée et probante.
+          incidents : sur une plateforme souveraine, cloisonnée et probante.
         </p>
       </div>
 

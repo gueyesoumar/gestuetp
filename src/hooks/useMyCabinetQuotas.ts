@@ -8,7 +8,7 @@ import { useAuth } from './useAuth'
  * La limite affichée provient de la RPC `org_effective_quota()` : la MÊME source
  * que les triggers d'enforcement DB (org_quota_limits, repli plans.max_*, RFC 0008
  * P0). La jauge reflète donc exactement ce que la plateforme bloque, y compris une
- * surcharge par org — contrairement à l'ancienne lecture directe de plans.max_*.
+ * surcharge par org - contrairement à l'ancienne lecture directe de plans.max_*.
  *
  * Retourne `null` (pas de quota) si :
  *  - aucun cabinet rattaché
@@ -56,7 +56,7 @@ export function useMyCabinetQuotas(): Result {
             .eq('id', orgId)
             .abortSignal(abort.signal)
             .single(),
-          // Limite EFFECTIVE (org_quota_limits, repli plans.max_*) — même source que
+          // Limite EFFECTIVE (org_quota_limits, repli plans.max_*) - même source que
           // les triggers d'enforcement. RPC own-org, sans paramètre.
           supabase.rpc('org_effective_quota').abortSignal(abort.signal),
           supabase

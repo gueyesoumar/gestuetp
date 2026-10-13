@@ -142,7 +142,7 @@ export function HelpArticleEditor({ article, saving, error, onSave, onCancel }: 
       <div className="flex justify-end gap-3 pt-1">
         <button type="button" onClick={onCancel} className="rounded-lg border border-gray-200 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50">Annuler</button>
         <button type="submit" disabled={saving} className="rounded-lg bg-forest-700 px-5 py-2 text-[13px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50">
-          {saving ? 'Enregistrement…' : 'Enregistrer'}
+          {saving ? 'Enregistrement...' : 'Enregistrer'}
         </button>
       </div>
     </form>

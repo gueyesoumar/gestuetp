@@ -1,5 +1,5 @@
 /**
- * SetPasswordForm — dark-themed password set form for the vault.
+ * SetPasswordForm - dark-themed password set form for the vault.
  */
 
 import type { FormEvent } from 'react'

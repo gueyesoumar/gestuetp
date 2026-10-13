@@ -1,4 +1,4 @@
--- Migration 00220 (DOWN) — P2.2b (RFC 0007).
+-- Migration 00220 (DOWN) - P2.2b (RFC 0007).
 -- Ré-ajoute les colonnes polymorphes (nullable) + backfill depuis client_org_id.
 -- Comply : cabinet_client_id = la fiche du cabinet auditeur (best-effort, une fiche
 -- si le client est audité par plusieurs cabinets). Regul : entity_org_id = client_org_id.

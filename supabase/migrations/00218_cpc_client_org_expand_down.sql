@@ -1,4 +1,4 @@
--- Migration 00218 (DOWN) — P2.1 (RFC 0007).
+-- Migration 00218 (DOWN) - P2.1 (RFC 0007).
 -- Colonne additive ; sa suppression ne perd rien tant que P2.2 n'a pas basculé la
 -- RLS dessus. À NE PAS jouer après P2.2.
 

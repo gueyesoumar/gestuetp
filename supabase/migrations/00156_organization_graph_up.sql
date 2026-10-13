@@ -1,4 +1,4 @@
--- Migration 00156 (UP) : graphe relationnel des organisations — RFC 0001, étape 1
+-- Migration 00156 (UP) : graphe relationnel des organisations - RFC 0001, étape 1
 -- PUREMENT ADDITIF. Aucune donnée modifiée, aucune policy existante touchée.
 -- Le backfill (étape 2 : cabinet_clients/parent_org_id/Regul → arêtes, capacités)
 -- et la primitive visible_target_ids() (étape 3) font l'objet de migrations séparées.

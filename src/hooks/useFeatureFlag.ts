@@ -47,11 +47,11 @@ export function useFeatureFlag(slug: string): FeatureFlagState {
       try {
         const parsed = JSON.parse(cached) as CachedValue
         // Stale-while-revalidate : on affiche le cache tout de suite (zéro flicker)
-        // MAIS on ne s'arrête pas là — on réinterroge en arrière-plan ci-dessous pour
+        // MAIS on ne s'arrête pas là - on réinterroge en arrière-plan ci-dessous pour
         // propager tout changement de flag sans attendre la fermeture de l'onglet.
         setState({ enabled: parsed.enabled, loading: false, source: parsed.source })
       } catch {
-        // cache corrompu — on ré-interroge (sessionStorage sera réécrit par commit()).
+        // cache corrompu - on ré-interroge (sessionStorage sera réécrit par commit()).
       }
     }
 
@@ -127,7 +127,7 @@ function commit(cacheKey: string, value: CachedValue, setState: (s: FeatureFlagS
   try {
     sessionStorage.setItem(cacheKey, JSON.stringify(value))
   } catch {
-    // quota dépassé — on continue sans cache
+    // quota dépassé - on continue sans cache
   }
   setState({ enabled: value.enabled, loading: false, source: value.source })
 }

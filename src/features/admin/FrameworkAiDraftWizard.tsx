@@ -206,7 +206,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
           {step === 2 && (
             <div className="px-5 py-4 space-y-3">
               <p className="text-[12px] text-gray-500">
-                Joignez 0 à 5 PDF (norme officielle, document métier, brouillon interne…). L&apos;IA s&apos;appuiera dessus
+                Joignez 0 à 5 PDF (norme officielle, document métier, brouillon interne...). L&apos;IA s&apos;appuiera dessus
                 pour produire la structure. Sans fichier, elle propose un squelette à partir du nom et des instructions.
               </p>
               <Field label="Instructions (optionnel)">
@@ -234,7 +234,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
                   <label htmlFor="ai-draft-files" className="cursor-pointer text-[12.5px] text-forest-700 font-semibold">
                     Cliquez pour ajouter des PDF
                   </label>
-                  <p className="text-[11px] text-gray-400 mt-1">PDF, TXT, HTML — max 32 Mo / fichier</p>
+                  <p className="text-[11px] text-gray-400 mt-1">PDF, TXT, HTML (max 32 Mo / fichier)</p>
                 </div>
                 {files.length > 0 && (
                   <div className="mt-2 space-y-1">
@@ -252,7 +252,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
               </div>
 
               <div className="bg-gold-50 border border-gold-200 rounded-lg px-3 py-2.5 text-[11.5px] text-gold-700">
-                <b>Coût estimé :</b> ~${estimatedCost.toFixed(2)} (Sonnet 4) — visible dans <code className="font-mono">/admin/monitoring</code> après génération
+                <b>Coût estimé :</b> ~${estimatedCost.toFixed(2)} (Sonnet 4), visible dans <code className="font-mono">/admin/monitoring</code> après génération
               </div>
             </div>
           )}
@@ -260,7 +260,7 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
           {step === 3 && draft && (
             <div className="px-5 py-4 space-y-3">
               <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-[12px] text-green-700">
-                <b>✓ Brouillon généré</b> — {draft.domains.length} domaines, {draft.domains.reduce((s, d) => s + d.controls.length, 0)} contrôles
+                <b>✓ Brouillon généré</b> : {draft.domains.length} domaines, {draft.domains.reduce((s, d) => s + d.controls.length, 0)} contrôles
                 {tokens && <> · {tokens.input.toLocaleString('fr-FR')} input tokens, {tokens.output.toLocaleString('fr-FR')} output</>}
               </div>
               <p className="text-[12px] text-gray-500">Aperçu du brouillon. Vous pourrez tout éditer après création.</p>
@@ -306,12 +306,12 @@ export function FrameworkAiDraftWizard({ onClose, onCreated }: Props) {
             )}
             {step === 2 && (
               <button onClick={generate} disabled={generating} className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-gold-500 text-forest-900 hover:bg-gold-600 disabled:opacity-50">
-                {generating ? <><Loader2 size={13} className="animate-spin" /> Génération…</> : <><Sparkles size={13} /> Générer le brouillon</>}
+                {generating ? <><Loader2 size={13} className="animate-spin" /> Génération...</> : <><Sparkles size={13} /> Générer le brouillon</>}
               </button>
             )}
             {step === 3 && (
               <button onClick={persist} disabled={persisting} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50">
-                {persisting ? 'Création…' : 'Créer le référentiel'}
+                {persisting ? 'Création...' : 'Créer le référentiel'}
               </button>
             )}
           </div>

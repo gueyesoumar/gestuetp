@@ -221,7 +221,7 @@ Deno.serve(async (req) => {
       const recipient = Deno.env.get('PROBATIVE_SEAL_RECIPIENT')
       if (recipient) {
         const from = Deno.env.get('PROBATIVE_SEAL_FROM') ?? 'Gëstu Regul <no-reply@gestugroup.com>'
-        const html = `<h2>Sceau du journal probant — Gëstu Regul</h2>
+        const html = `<h2>Sceau du journal probant (Gëstu Regul)</h2>
           <p>Ancrage externe périodique. Conservez cet e-mail : il atteste l'état de la chaîne à cette date.</p>
           <ul>
             <li><b>Scellé le</b> : ${inserted.sealed_at}</li>
@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
             <li><b>Réf. sceau</b> : ${inserted.id}</li>
           </ul>
           <p>Pour contrôler ultérieurement : action <code>verify-seal</code> avec ce seq et ce hash de tête.</p>`
-        const r = await sendEmail({ to: recipient, subject: `Sceau journal probant — seq ${seal.seq_head} — ${inserted.sealed_at}`, html, from })
+        const r = await sendEmail({ to: recipient, subject: `Sceau journal probant : seq ${seal.seq_head}, ${inserted.sealed_at}`, html, from })
         if (r.error) console.error('[probative-seal] email:', r.error)
       } else {
         console.warn('[probative-seal] PROBATIVE_SEAL_RECIPIENT non défini : sceau enregistré sans émission externe')

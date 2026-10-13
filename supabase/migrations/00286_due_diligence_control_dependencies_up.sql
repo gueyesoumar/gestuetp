@@ -1,4 +1,4 @@
--- 00286 — Dépendances inter-contrôles (DUEDIL, propagation des constats).
+-- 00286 - Dépendances inter-contrôles (DUEDIL, propagation des constats).
 with pairs(src, tgt, rel) as (values
     ('PT.01', 'PT.02', 'partial'),
     ('PT.01', 'PT.06', 'related'),

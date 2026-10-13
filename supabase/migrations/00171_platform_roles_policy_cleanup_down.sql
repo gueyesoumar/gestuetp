@@ -1,6 +1,6 @@
 -- Migration: platform_roles_policy_cleanup (DOWN)
 -- Recrée les policies redondantes `*_can_manage_roles` (gatées) supprimées en UP.
--- Elles font doublon avec `*_org_members` (00170) — recréation à l'identique
+-- Elles font doublon avec `*_org_members` (00170) - recréation à l'identique
 -- (org + can_manage_roles) pour réversibilité, sans changement de sécurité.
 
 create policy "platform_roles_insert_can_manage_roles"

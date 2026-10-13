@@ -1,4 +1,4 @@
--- Rollback 00289 — retire les dépendances AUDIT.
+-- Rollback 00289 - retire les dépendances AUDIT.
 delete from public.control_mappings cm using public.controls cs, public.controls ct, (values
     ('GO.01', 'GO.04', 'related'),
     ('GO.01', 'GO.03', 'related'),

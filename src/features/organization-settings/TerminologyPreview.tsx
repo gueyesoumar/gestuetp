@@ -30,7 +30,7 @@ export function TerminologyPreview({ group, get }: { group: VocabGroupId; get: (
     portal: [
       <>En-tête du portail : <T>{get('portal_label')}</T></>,
       get('context_banner').trim()
-        ? <>Bandeau : <T>{get('context_banner')}</T> — {get('context_banner_sub')}</>
+        ? <>Bandeau : <T>{get('context_banner')}</T> ({get('context_banner_sub')})</>
         : <span className="text-gray-400">Aucun bandeau de contexte (champ vide)</span>,
     ],
   }

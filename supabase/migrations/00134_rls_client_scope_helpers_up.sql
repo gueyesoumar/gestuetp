@@ -1,4 +1,4 @@
--- 00134 — Cloisonnement client (passe 2/2, hors organizations) : neutralise pour
+-- 00134 - Cloisonnement client (passe 2/2, hors organizations) : neutralise pour
 -- les clients les 2 helpers staff utilises par ~toutes les policies SELECT/write.
 --
 -- Constat : un user role=client (organization_id = org du cabinet) declenchait les

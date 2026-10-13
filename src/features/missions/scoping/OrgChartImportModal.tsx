@@ -169,7 +169,7 @@ export function OrgChartImportModal({ missionId, onAdd, onClose }: OrgChartImpor
                   disabled={!file || extracting}
                   className="bg-forest-700 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-forest-900 disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
-                  {extracting ? <><Loader2 size={12} className="animate-spin" /> Extraction…</> : <><Sparkles size={12} /> Extraire les acteurs</>}
+                  {extracting ? <><Loader2 size={12} className="animate-spin" /> Extraction...</> : <><Sparkles size={12} /> Extraire les acteurs</>}
                 </button>
               </div>
             </div>
@@ -275,7 +275,7 @@ export function OrgChartImportModal({ missionId, onAdd, onClose }: OrgChartImpor
               disabled={picked.size === 0 || adding}
               className="ml-auto bg-gold-500 text-forest-900 px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-gold-600 disabled:opacity-50 inline-flex items-center gap-1.5"
             >
-              {adding ? <><Loader2 size={12} className="animate-spin" /> Ajout…</> : <><Check size={12} /> Ajouter {picked.size} acteur{picked.size > 1 ? 's' : ''}</>}
+              {adding ? <><Loader2 size={12} className="animate-spin" /> Ajout...</> : <><Check size={12} /> Ajouter {picked.size} acteur{picked.size > 1 ? 's' : ''}</>}
             </button>
           )}
         </div>

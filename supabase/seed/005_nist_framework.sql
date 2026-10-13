@@ -23,7 +23,7 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0002-000000000006', '00000000-0000-0000-0000-000000000011', 'RC', 'Rétablir (Recover)', 'Restauration des capacités et services après un incident', 6);
 
 -- ============================================================
--- Contrôles — GV Gouverner
+-- Contrôles - GV Gouverner
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -35,7 +35,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0002-000000000001', 'GV.SC', 'Gestion de la chaîne d''approvisionnement cyber', 'Risques de la supply chain identifiés et gérés', 6);
 
 -- ============================================================
--- Contrôles — ID Identifier
+-- Contrôles - ID Identifier
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -44,7 +44,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0002-000000000002', 'ID.IM', 'Amélioration', 'Améliorations identifiées à partir des évaluations et exercices', 3);
 
 -- ============================================================
--- Contrôles — PR Protéger
+-- Contrôles - PR Protéger
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -55,7 +55,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0002-000000000003', 'PR.IR', 'Résilience de l''infrastructure technologique', 'Architectures de sécurité pour protéger les actifs', 5);
 
 -- ============================================================
--- Contrôles — DE Détecter
+-- Contrôles - DE Détecter
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -63,7 +63,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0002-000000000004', 'DE.AE', 'Analyse des événements', 'Anomalies, indicateurs de compromission et autres événements analysés', 2);
 
 -- ============================================================
--- Contrôles — RS Répondre
+-- Contrôles - RS Répondre
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -73,7 +73,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0002-000000000005', 'RS.MI', 'Atténuation des incidents', 'Activités pour prévenir l''expansion et atténuer les effets', 4);
 
 -- ============================================================
--- Contrôles — RC Rétablir
+-- Contrôles - RC Rétablir
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values

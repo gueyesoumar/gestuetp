@@ -242,7 +242,7 @@ function ScoringLoader({ missionId, actionsBusy, onGenerateAuditReport }: Scorin
       })
   }, [missionId])
 
-  if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du score…</p>
+  if (!scoring) return <p className="text-sm text-gray-400 text-center py-8">Chargement du score...</p>
 
   return (
     <>

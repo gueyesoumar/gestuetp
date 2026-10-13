@@ -33,7 +33,7 @@ export function MissionSubsidiaryStep({ subsidiaries, loading, selectedSubsidiar
       {loading ? (
         <p className="mt-4 text-[13px] text-gray-400">Chargement des filiales...</p>
       ) : subsidiaries.length === 0 ? (
-        <p className="mt-4 text-[13px] text-amber-600">Aucune filiale recensée — créez-en une dans le module Groupe.</p>
+        <p className="mt-4 text-[13px] text-amber-600">Aucune filiale recensée : créez-en une dans le module Groupe.</p>
       ) : (
         <div className="mt-3 space-y-2 max-h-[340px] overflow-y-auto">
           {filtered.map((sub) => {

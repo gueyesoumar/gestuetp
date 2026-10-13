@@ -5,7 +5,7 @@ import { INCIDENT_CATEGORY_LABELS, INCIDENT_SEVERITY_LABELS, INCIDENT_STATUS_LAB
 interface Props { incident: Incident; entityName: string; onClose: () => void; onChanged: () => void; readOnly?: boolean }
 
 function fmt(d: string | null): string {
-  return d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
+  return d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'
 }
 
 function DeadlineChip({ deadline, done, label }: { deadline: string | null; done: string | null; label: string }): JSX.Element {

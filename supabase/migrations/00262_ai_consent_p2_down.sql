@@ -1,4 +1,4 @@
--- Rollback 00262 — retrait du consentement IA par client + surcharge mission.
+-- Rollback 00262 - retrait du consentement IA par client + surcharge mission.
 
 alter table public.missions
   drop column if exists ai_consent_override;

@@ -105,7 +105,7 @@ export const ENTITY_TYPE_OPTIONS = [
 ] as const
 
 // Types d'assujetti pour Gëstu Regul (entités publiques sénégalaises). Distincts
-// des types Comply (filiale/site…). Valeurs = clés stables ; libellés éditables.
+// des types Comply (filiale/site...). Valeurs = clés stables ; libellés éditables.
 export const REGUL_ENTITY_TYPE_OPTIONS = [
   { value: 'ministere', label: 'Ministère' },
   { value: 'direction_generale', label: 'Direction Générale' },
@@ -289,7 +289,7 @@ export const SUPPORT_STATUS_LABELS: Record<SupportStatus, string> = {
   closed: 'Fermé',
 }
 
-// Gëstu Regul (M5) — incidents cyber
+// Gëstu Regul (M5) - incidents cyber
 export const INCIDENT_CATEGORY_OPTIONS = [
   { value: 'intrusion', label: 'Intrusion' },
   { value: 'ransomware', label: 'Rançongiciel' },
@@ -401,7 +401,7 @@ export const SCORE_FACTOR_COLORS: Record<ScoreFactorKey, string> = {
   assurance: '#B8860B',
 }
 
-// ===== Gëstu Risk (RFC 0004) — cotation 4×4 + typologies =====
+// ===== Gëstu Risk (RFC 0004) - cotation 4×4 + typologies =====
 export const RISK_LIKELIHOOD_LEVELS = [
   { value: 1, label: 'Rare' },
   { value: 2, label: 'Possible' },

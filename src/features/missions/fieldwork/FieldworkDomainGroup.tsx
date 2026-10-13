@@ -157,7 +157,7 @@ function StatusDot({ status }: { status: string }): JSX.Element {
   return <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${colors[status] ?? 'bg-gray-200'}`} />
 }
 
-// Niveau de conformité déduit/choisi du contrôle (lecture seule) — complète le statut workflow.
+// Niveau de conformité déduit/choisi du contrôle (lecture seule) - complète le statut workflow.
 function ConformityBadge({ level }: { level: string | null }): JSX.Element | null {
   if (!level) return null
   const map: Record<string, { short: string; cls: string }> = {

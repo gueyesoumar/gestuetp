@@ -1,4 +1,4 @@
--- Migration 00085: Ajout du rôle 'approver' au portail client — UP
+-- Migration 00085: Ajout du rôle 'approver' au portail client - UP
 --
 -- Élargit la check constraint sur client_mission_access.permission pour inclure
 -- 'approver'. Sémantique : approver = contributor + droit de signer (valider

@@ -12,7 +12,7 @@ interface Props {
 
 /**
  * Centre de contrôle de la démo (popover). Regroupe la bascule LENTILLE (démo
- * visible/masquée dans le score) et les actions — chacune confirmée côté parent.
+ * visible/masquée dans le score) et les actions - chacune confirmée côté parent.
  * Présentation only : l'état et les confirmations vivent dans DemoModeBanner.
  */
 export function DemoControlPopover({ lensOn, busy, onDiscover, onToggleLens, onRegenerate, onConfigure, onCleanup }: Props): JSX.Element {

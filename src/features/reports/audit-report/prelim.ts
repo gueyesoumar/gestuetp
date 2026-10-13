@@ -26,7 +26,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabi
     doc.text(data.cabinetName.toUpperCase(), marginL, 30)
   }
 
-  // Référence rapport — coin haut droit
+  // Référence rapport - coin haut droit
   setText(doc, GOLD_500, 8.5, 'bold')
   doc.text(ctx.reportRef, pageW - marginL, 30, { align: 'right' })
   setText(doc, [200, 220, 210], 7.5, 'normal')
@@ -52,7 +52,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabi
   setText(doc, [220, 230, 225], 14, 'normal')
   doc.text(clientLabel(data), marginL, ty + 4)
 
-  // Bandeau infos clés — colonnes calibrées (largeur dispo 174 mm)
+  // Bandeau infos clés - colonnes calibrées (largeur dispo 174 mm)
   // Colonnes : période 78mm | version 38mm | date 58mm
   const COL1_X = marginL
   const COL2_X = marginL + 78
@@ -63,7 +63,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabi
   doc.text('DATE D’ÉMISSION', COL3_X, 152)
   setText(doc, WHITE, 9.5, 'normal')
   doc.text(formatPeriodShort(data.mission.start_date, data.mission.end_date), COL1_X, 159)
-  doc.text('Définitive — V1.0', COL2_X, 159)
+  doc.text('Définitive (V1.0)', COL2_X, 159)
   doc.text(formatDate(new Date().toISOString()), COL3_X, 159)
 
   // Zone basse blanche : équipe + logo client
@@ -172,8 +172,8 @@ export function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData 
   setText(doc, TEXT_700, 10, 'normal')
   const fwForObjet = frameworkLabel(ctx.data)
   const objetText = fwForObjet === 'le référentiel applicable'
-    ? `Rapport d’audit de conformité — Réf. ${ctx.reportRef}`
-    : `Rapport d’audit ${fwForObjet} — Réf. ${ctx.reportRef}`
+    ? `Rapport d’audit de conformité, Réf. ${ctx.reportRef}`
+    : `Rapport d’audit ${fwForObjet}, Réf. ${ctx.reportRef}`
   doc.text(objetText, marginL + 14, ctx.y)
   ctx.y += 8
 
@@ -193,11 +193,11 @@ export function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData 
   const signer = associate ?? lead
   const signerRole = associate ? 'Associé signataire' : 'Chef de mission'
   setText(doc, TEXT_500, 8, 'bold')
-  doc.text(`Signature — ${signerRole}`, pageW - marginL, sigY, { align: 'right' })
+  doc.text(`Signature : ${signerRole}`, pageW - marginL, sigY, { align: 'right' })
   doc.setDrawColor(...BORDER); doc.setLineWidth(0.4)
   doc.line(pageW - marginL - 60, sigY + 18, pageW - marginL, sigY + 18)
   setText(doc, FOREST_900, 10.5, 'bold')
-  doc.text(signer ? memberName(signer) : '—', pageW - marginL, sigY + 24, { align: 'right' })
+  doc.text(signer ? memberName(signer) : '-', pageW - marginL, sigY + 24, { align: 'right' })
   setText(doc, TEXT_500, 8, 'normal')
   doc.text(signerRole, pageW - marginL, sigY + 28, { align: 'right' })
   doc.text(ctx.data.cabinetName, pageW - marginL, sigY + 32, { align: 'right' })
@@ -222,18 +222,18 @@ export function drawTOC(ctx: DocContext): void {
   // le numéro précis dans finalizeTOC.
   const items: { label: string; anchorKey: string }[] = [
     { label: 'Lettre au comité d’audit', anchorKey: 'letter' },
-    { label: '01 — Contexte et mandat', anchorKey: '01' },
-    { label: '02 — Méthodologie d’audit', anchorKey: '02' },
-    { label: '03 — Synthèse exécutive', anchorKey: '03' },
-    { label: '04 — Détail par domaine', anchorKey: '04' },
-    { label: '05 — Fiches de non-conformités majeures', anchorKey: '05' },
-    { label: '06 — Recommandations et matrice de priorisation', anchorKey: '06' },
-    { label: '07 — Plan d’action de remédiation', anchorKey: '07' },
-    { label: '08 — Conclusion et opinion d’audit', anchorKey: '08' },
-    { label: 'Annexe A — Glossaire', anchorKey: 'A' },
-    { label: 'Annexe B — Preuves examinées', anchorKey: 'B' },
-    { label: 'Annexe C — Références normatives', anchorKey: 'C' },
-    { label: 'Annexe D — Liste de diffusion', anchorKey: 'D' },
+    { label: '01 : Contexte et mandat', anchorKey: '01' },
+    { label: '02 : Méthodologie d’audit', anchorKey: '02' },
+    { label: '03 : Synthèse exécutive', anchorKey: '03' },
+    { label: '04 : Détail par domaine', anchorKey: '04' },
+    { label: '05 : Fiches de non-conformités majeures', anchorKey: '05' },
+    { label: '06 : Recommandations et matrice de priorisation', anchorKey: '06' },
+    { label: '07 : Plan d’action de remédiation', anchorKey: '07' },
+    { label: '08 : Conclusion et opinion d’audit', anchorKey: '08' },
+    { label: 'Annexe A : Glossaire', anchorKey: 'A' },
+    { label: 'Annexe B : Preuves examinées', anchorKey: 'B' },
+    { label: 'Annexe C : Références normatives', anchorKey: 'C' },
+    { label: 'Annexe D : Liste de diffusion', anchorKey: 'D' },
   ]
 
   for (const item of items) {
@@ -265,7 +265,7 @@ export function finalizeTOC(ctx: DocContext): void {
       const a = ctx.tocAnchors.find((x) => x.num === line.anchorKey)
       pageNum = a?.page ?? null
     }
-    const text = pageNum !== null ? String(pageNum) : '—'
+    const text = pageNum !== null ? String(pageNum) : '-'
     ctx.doc.text(text, ctx.marginL + ctx.contentW, line.y, { align: 'right' })
   }
 }

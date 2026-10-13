@@ -8,7 +8,7 @@ interface CycleTimelineProps {
 }
 
 function formatDate(d: string | null): string {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
 }
 
@@ -60,7 +60,7 @@ export function CycleTimeline({ cycles, onClose, busy }: CycleTimelineProps): JS
                     disabled={busy}
                     className="mt-2 w-full text-[11px] font-semibold bg-amber-500 text-forest-900 rounded px-2 py-1.5 hover:bg-amber-400 disabled:opacity-50"
                   >
-                    {busy ? 'Clôture…' : 'Clôturer cette revue'}
+                    {busy ? 'Clôture...' : 'Clôturer cette revue'}
                   </button>
                 )}
               </div>

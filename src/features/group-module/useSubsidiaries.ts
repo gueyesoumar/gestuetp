@@ -11,7 +11,7 @@ export interface SubsidiaryRow {
   city: string | null
   entityType: 'filiale' | 'site' | 'direction' | 'business_unit' | null
   parentOrgId: string | null
-  /** Profil réglementaire (Regul) — null si absent (cas Comply). */
+  /** Profil réglementaire (Regul) - null si absent (cas Comply). */
   regulatoryProfile: RegulatoryProfile | null
   /** Score moyen pondéré (sur missions clôturées). Null si aucune. */
   conformityScore: number | null
@@ -110,7 +110,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
       const parentMap = await fetchParentMap(subIds, ac.signal)
       if (ac.signal.aborted) return
 
-      // Profils réglementaires (Regul) — table vide côté Comply, donc no-op.
+      // Profils réglementaires (Regul) - table vide côté Comply, donc no-op.
       const profileMap = new Map<string, RegulatoryProfile>()
       const { data: profRows } = await supabase
         .from('entity_regulatory_profile')

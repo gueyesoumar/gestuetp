@@ -61,7 +61,7 @@ export function AdminFrameworkDetailPage() {
         <div className="mb-4 px-4 py-2.5 bg-gold-50 border border-gold-200 rounded-lg flex items-start gap-2.5 text-[12px] text-gold-700">
           <Sparkles size={14} className="text-gold-600 mt-0.5 flex-shrink-0" />
           <div>
-            <b>Brouillon IA</b> — relisez et corrigez les contrôles avant publication. Une fois validé, désactivez le badge dans les métadonnées.
+            <b>Brouillon IA</b> : relisez et corrigez les contrôles avant publication. Une fois validé, désactivez le badge dans les métadonnées.
           </div>
         </div>
       )}
@@ -161,7 +161,7 @@ function MetadataEditor({ framework, onSaved, toast }: {
       body: { action: 'update_framework', id: framework.id, was_ai_generated: false },
     })
     if (error || data?.error) { toast.error('Mise à jour impossible'); return }
-    toast.success('Badge IA retiré — référentiel publié')
+    toast.success('Badge IA retiré, référentiel publié')
     onSaved()
   }
 
@@ -198,7 +198,7 @@ function MetadataEditor({ framework, onSaved, toast }: {
       <div className="flex items-center gap-2 pt-1">
         {dirty && (
           <button onClick={save} disabled={saving} className="px-3.5 py-2 text-[12px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50 inline-flex items-center gap-1.5">
-            <Save size={13} /> {saving ? 'Enregistrement…' : 'Sauvegarder'}
+            <Save size={13} /> {saving ? 'Enregistrement...' : 'Sauvegarder'}
           </button>
         )}
         {framework.was_ai_generated && (
@@ -354,7 +354,7 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
   }
 
   const remove = async () => {
-    if (!confirm(`Supprimer le contrôle "${control.code} — ${control.name}" ?`)) return
+    if (!confirm(`Supprimer le contrôle "${control.code} : ${control.name}" ?`)) return
     const reason = prompt('Motif (obligatoire) :') ?? ''
     if (!reason.trim()) return
     const { data, error } = await supabase.functions.invoke('admin-framework', {
@@ -390,7 +390,7 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
         <div>
           <Lab>Dimension du score</Lab>
           <select value={dimension} onChange={(e) => setDimension(e.target.value)}>
-            <option value="">— Non class&eacute; —</option>
+            <option value="">- Non class&eacute; -</option>
             {SCORE_DIMENSION_KEYS.map((k) => <option key={k} value={k}>{SCORE_DIMENSION_LABELS[k]}</option>)}
           </select>
         </div>
@@ -473,7 +473,7 @@ function AddDomainButton({ frameworkId, onCreated, toast }: { frameworkId: strin
     <div className="flex items-center gap-2 bg-white border border-forest-300 rounded-lg p-2">
       <input type="text" value={code} onChange={(e) => setCode(e.target.value)} placeholder="A.5" className="font-mono w-20" disabled={submitting} />
       <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du domaine" className="flex-1" disabled={submitting} />
-      <button onClick={submit} disabled={!code || !name || submitting} className="text-[11.5px] bg-forest-700 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">{submitting ? '…' : 'Ajouter'}</button>
+      <button onClick={submit} disabled={!code || !name || submitting} className="text-[11.5px] bg-forest-700 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">{submitting ? '...' : 'Ajouter'}</button>
       <button onClick={() => { setOpen(false); setCode(''); setName('') }} className="text-[11.5px] text-gray-500 px-2">Annuler</button>
     </div>
   )
@@ -510,7 +510,7 @@ function AddControlButton({ domainId, onCreated, toast }: { domainId: string; on
     <div className="flex items-center gap-2 bg-page-bg border border-gray-200 rounded-lg p-2">
       <input type="text" value={code} onChange={(e) => setCode(e.target.value)} placeholder="A.5.1" className="font-mono w-24" disabled={submitting} />
       <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du contrôle" className="flex-1" disabled={submitting} />
-      <button onClick={submit} disabled={!code || !name || submitting} className="text-[11.5px] bg-forest-700 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">{submitting ? '…' : 'Ajouter'}</button>
+      <button onClick={submit} disabled={!code || !name || submitting} className="text-[11.5px] bg-forest-700 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">{submitting ? '...' : 'Ajouter'}</button>
       <button onClick={() => { setOpen(false); setCode(''); setName('') }} className="text-[11.5px] text-gray-500 px-2">Annuler</button>
     </div>
   )
@@ -537,7 +537,7 @@ function ClassifyControlsButton({ frameworkId, unmapped, onDone, toast }: {
       toast.error(msg, error)
       return
     }
-    const rest = data.remaining > 0 ? `, ${data.remaining} restant(s) — relancez` : ''
+    const rest = data.remaining > 0 ? `, ${data.remaining} restant(s) : relancez` : ''
     toast.success(`${data.classified} contrôle(s) classé(s)${rest}`)
     onDone()
   }
@@ -547,7 +547,7 @@ function ClassifyControlsButton({ frameworkId, unmapped, onDone, toast }: {
       disabled={busy}
       className="px-3.5 py-2 text-[12px] font-semibold rounded-lg bg-gold-500 text-forest-900 hover:bg-gold-600 disabled:opacity-50 inline-flex items-center gap-1.5"
     >
-      <Sparkles size={13} /> {busy ? 'Classement…' : 'Classer les contrôles (IA)'}
+      <Sparkles size={13} /> {busy ? 'Classement...' : 'Classer les contrôles (IA)'}
     </button>
   )
 }

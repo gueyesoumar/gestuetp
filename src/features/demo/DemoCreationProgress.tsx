@@ -36,8 +36,8 @@ export function DemoCreationProgress({ variant }: { variant: DemoVariant | null 
         <div className="flex items-center gap-3 bg-gradient-to-br from-forest-900 to-forest-700 px-5 py-4 text-white">
           <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-forest-900"><GestuFingerprint size={22} /></span>
           <div>
-            <p className="text-[14px] font-bold leading-tight">Préparation de votre espace…</p>
-            <p className="text-[11.5px] text-forest-100">Quelques secondes — vous pourrez tout supprimer ensuite.</p>
+            <p className="text-[14px] font-bold leading-tight">Préparation de votre espace...</p>
+            <p className="text-[11.5px] text-forest-100">Quelques secondes, vous pourrez tout supprimer ensuite.</p>
           </div>
         </div>
 

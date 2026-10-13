@@ -15,7 +15,7 @@ export function PlanningActionsSection() {
 }
 
 function ActionButton({ icon, label }: { icon: ReactNode; label: string }) {
-  // Fonctionnalités non encore implémentées — désactivées honnêtement plutôt que
+  // Fonctionnalités non encore implémentées - désactivées honnêtement plutôt que
   // décoratives (elles ne faisaient rien au clic).
   return (
     <button

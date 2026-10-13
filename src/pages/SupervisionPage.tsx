@@ -29,7 +29,7 @@ export function SupervisionPage(): JSX.Element {
   const groupModeFlag = useFeatureFlag('supervision_group_mode')
 
   // Determine available modes based on organization type
-  // Le mode groupe est gated par le feature flag — si désactivé, on tombe sur cabinet
+  // Le mode groupe est gated par le feature flag - si désactivé, on tombe sur cabinet
   const hasGroupMode = isGroup && !groupModeFlag.loading && groupModeFlag.enabled
   const hasBothModes = hasGroupMode && isCabinet
 
@@ -97,7 +97,7 @@ export function SupervisionPage(): JSX.Element {
         </div>
       </div>
 
-      {/* Mode switch — only if org is both group + cabinet */}
+      {/* Mode switch - only if org is both group + cabinet */}
       {hasBothModes && (
         <div className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
           <button

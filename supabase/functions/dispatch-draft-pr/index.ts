@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
       effort = String(fr.effort_estimate ?? '')
     }
 
-    // ÉLIGIBILITÉ (déc. C) — multi-facteur, périmètre frontend-only / additif.
+    // ÉLIGIBILITÉ (déc. C) - multi-facteur, périmètre frontend-only / additif.
     // L'owner peut FORCER (déc. C amendée) sur tous les motifs SAUF un bloquant
     // sécurité/RLS (garde-fou dur, jamais forçable). Le write-path reste sûr quoi
     // qu'il arrive (staging-only, diff limité à src/, gates).
@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
     // Un override (forced) est explicitement journalisé avec les critères contournés.
     try {
       const reason = forced
-        ? `Génération FORCÉE d un brouillon de PR (owner) — override : ${reasons.join(', ')}`
+        ? `Génération FORCÉE d un brouillon de PR (owner), override : ${reasons.join(', ')}`
         : 'Génération d un brouillon de PR (agent, staging)'
       await logAdminAction(admin, auth.profile.id, forced ? 'agent.draft_pr.force' : 'agent.draft_pr.dispatch',
         'support_request', request_id, reason, { run_id: run.id, impact_run_id, forced, bypassed: reasons })

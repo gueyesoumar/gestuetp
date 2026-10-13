@@ -1,4 +1,4 @@
--- Seed: Questionnaire ISO 27001 v2 — Wizard conversationnel
+-- Seed: Questionnaire ISO 27001 v2 - Wizard conversationnel
 -- Remplace les 15 anciennes questions par 14 revisees (0 textarea obligatoire)
 -- Groupees par section : GOV, MAT, OPS, INC, ATT
 
@@ -44,8 +44,8 @@ insert into public.questions (template_id, code, text, description, question_typ
 
 ('00000000-0000-0000-0000-000000000020', 'MAT-02',
   'Comment evaluez-vous la maturite SSI de votre organisation ?',
-  'Auto-evaluation globale. Il n''y a pas de mauvaise reponse — cela nous aide a calibrer la mission.',
-  'single_choice', '["1 — Inexistant : pas de pratique formalisee", "2 — Initial : pratiques ad hoc, non documentees", "3 — Defini : politiques et procedures documentees", "4 — Gere : mesure et suivi des indicateurs", "5 — Optimise : amelioration continue"]', true, 6),
+  'Auto-evaluation globale. Il n''y a pas de mauvaise reponse - cela nous aide a calibrer la mission.',
+  'single_choice', '["1 - Inexistant : pas de pratique formalisee", "2 - Initial : pratiques ad hoc, non documentees", "3 - Defini : politiques et procedures documentees", "4 - Gere : mesure et suivi des indicateurs", "5 - Optimise : amelioration continue"]', true, 6),
 
 ('00000000-0000-0000-0000-000000000020', 'MAT-03',
   'Votre organisation a-t-elle connu des changements majeurs recemment ?',
@@ -102,5 +102,5 @@ insert into public.questions (template_id, code, text, description, question_typ
 -- Mettre a jour le template pour reflechir la v2
 update public.questionnaire_templates
 set version = '2.0',
-    description = 'Questionnaire de prise de connaissance — format wizard conversationnel (14 questions, 5 sections)'
+    description = 'Questionnaire de prise de connaissance - format wizard conversationnel (14 questions, 5 sections)'
 where id = '00000000-0000-0000-0000-000000000020';

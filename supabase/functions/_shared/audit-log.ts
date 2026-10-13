@@ -2,12 +2,12 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 
 /**
- * Helper d'écriture de la piste d'audit (activity_log) depuis les Edge Functions —
+ * Helper d'écriture de la piste d'audit (activity_log) depuis les Edge Functions -
  * événements SÉMANTIQUES des actions passant par service_role (que les triggers DB
  * ne captent pas, faute d'auth.uid). Le trigger BEFORE INSERT de activity_log
  * calcule seq/prev_hash/hash (chaîne par organisation).
  *
- * FAIL-OPEN strict : ne jette jamais, ne renvoie rien — un échec de journalisation
+ * FAIL-OPEN strict : ne jette jamais, ne renvoie rien - un échec de journalisation
  * ne doit jamais casser l'action métier appelante. Les erreurs sont loggées.
  *
  * actor_label est laissé nul : l'UI résout le nom courant via actor_user_id → users

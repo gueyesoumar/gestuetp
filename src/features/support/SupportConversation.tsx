@@ -60,7 +60,7 @@ export function SupportConversation({ requestId, requesterId }: Props): JSX.Elem
           onChange={(e) => setDraft(e.target.value)}
           rows={2}
           maxLength={4000}
-          placeholder="Écrire une réponse…"
+          placeholder="Écrire une réponse..."
           className="flex-1 resize-none rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100"
         />
         <button
@@ -68,7 +68,7 @@ export function SupportConversation({ requestId, requesterId }: Props): JSX.Elem
           disabled={posting || !draft.trim()}
           className="rounded-lg bg-forest-700 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50"
         >
-          {posting ? 'Envoi…' : 'Envoyer'}
+          {posting ? 'Envoi...' : 'Envoyer'}
         </button>
       </form>
       {error && <p className="mt-2 text-[12px]" style={{ color: 'var(--color-error)' }}>{error}</p>}

@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../hooks/useAuth'
 import type { AssessmentFinding } from './findings/useAssessmentFindings'
 
-// Lot 2 — intelligence inter-contrôles : cohérence (contrôles équivalents divergents) et
+// Lot 2 - intelligence inter-contrôles : cohérence (contrôles équivalents divergents) et
 // constat systémique (réplique d'un constat sur plusieurs contrôles liés via control_mappings).
 // Les comparaisons se limitent aux assessments DE L'AUDITEUR courant (ce que la RLS lui laisse lire).
 

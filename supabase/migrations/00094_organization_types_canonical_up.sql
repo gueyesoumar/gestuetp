@@ -1,4 +1,4 @@
--- Migration 00094: Canonicalisation de organizations.types — UP
+-- Migration 00094: Canonicalisation de organizations.types - UP
 --
 -- Contexte : la colonne organizations.types était libre (text[]) et avait
 -- accumulé des valeurs incohérentes ('groupe' en français vs 'group' en

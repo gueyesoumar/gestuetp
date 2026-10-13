@@ -9,7 +9,7 @@ const MAX_BYTES = 25 * 1024 * 1024
 /**
  * Téléversement RÉEL d'une pièce jointe de cadrage : envoie le fichier dans le
  * bucket Storage `documents` et crée une ligne `documents` (mission-scopée, taguée
- * [CADRAGE:<code>]) — réutilise le pipeline existant (policies client déjà en place).
+ * [CADRAGE:<code>]) - réutilise le pipeline existant (policies client déjà en place).
  * Le fichier devient une vraie preuve de mission, téléchargeable par l'auditeur.
  */
 export function useQuestionnaireFileUpload(missionId: string) {

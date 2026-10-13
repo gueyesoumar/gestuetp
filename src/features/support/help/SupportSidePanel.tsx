@@ -9,7 +9,7 @@ interface Props {
 
 const INTAKE: { mode: Action; icon: JSX.Element; title: string; desc: string }[] = [
   { mode: 'bug', icon: <Bug size={18} className="text-forest-700" />, title: 'Signaler un bug', desc: 'Quelque chose ne fonctionne pas.' },
-  { mode: 'demande', icon: <ClipboardList size={18} className="text-forest-700" />, title: 'Faire une demande', desc: 'Accès, fonctionnalité, plan…' },
+  { mode: 'demande', icon: <ClipboardList size={18} className="text-forest-700" />, title: 'Faire une demande', desc: 'Accès, fonctionnalité, plan...' },
   { mode: 'suggestion', icon: <Lightbulb size={18} className="text-forest-700" />, title: 'Suggérer une amélioration', desc: 'Une idée pour le produit.' },
 ]
 

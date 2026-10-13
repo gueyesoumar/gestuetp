@@ -1,4 +1,4 @@
--- 00262 — Consentement IA par client + surcharge mission (P2 · RFC 0012, Décisions A & B).
+-- 00262 - Consentement IA par client + surcharge mission (P2 · RFC 0012, Décisions A & B).
 -- Le consentement à l'envoi de données vers un modèle externe se décide au niveau du CLIENT
 -- (fiche cabinet_clients), surchargeable par mission. Posture par défaut sûre : absence de
 -- consentement = non consenti → le sensible « élevé » est bloqué (résolveur de politique).

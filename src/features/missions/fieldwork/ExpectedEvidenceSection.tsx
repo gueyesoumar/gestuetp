@@ -95,7 +95,7 @@ export function ExpectedEvidenceSection({ missionId, controlId, onCreateFinding,
                   <div className="flex flex-wrap gap-1.5">
                     {cadrage.docs.map((d) => (
                       <button key={d.id} type="button" onClick={() => void useFromCadrage(it, d.id)}
-                        title={`Fourni au cadrage (${d.question_code}) — utiliser comme preuve`}
+                        title={`Fourni au cadrage (${d.question_code}) : utiliser comme preuve`}
                         className="inline-flex items-center gap-1 text-[10px] font-medium text-forest-700 bg-white border border-forest-200 rounded px-1.5 py-0.5 hover:bg-forest-100 max-w-full">
                         <Paperclip size={9} className="shrink-0" />
                         <span className="truncate max-w-[140px]">{d.file_name}</span>

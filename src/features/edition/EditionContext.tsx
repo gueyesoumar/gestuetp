@@ -4,14 +4,14 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import type { Capability } from '../../types/database.types'
 
-// Résolveur d'édition/capacités AU RUNTIME (RFC 0001, Phase 2 — incrément 1).
+// Résolveur d'édition/capacités AU RUNTIME (RFC 0001, Phase 2 - incrément 1).
 //
 // Remplace le fork de build `VITE_PRODUCT`/`isRegul` (retiré) :
 // une fois l'utilisateur authentifié, on résout ses capacités actives et ses
 // overrides de vocab via `my_capabilities()` / `my_vocab()`. RFC 0002 P4a : le
-// front ne lit PLUS l'édition — la persona (Comply/Regul) est déduite des
+// front ne lit PLUS l'édition - la persona (Comply/Regul) est déduite des
 // capacités (ex. `supervision`). L'édition ne subsiste que côté données
-// (seeding des capacités, défauts serveur) — P4b la retirera.
+// (seeding des capacités, défauts serveur) - P4b la retirera.
 //
 // Rôle=client (portail) : `get_my_organization_id()` est neutralisé côté RLS
 // (00134) → résolution via l'org superviseur (my_capabilities/my_vocab, 00161).
@@ -20,7 +20,7 @@ interface EditionState {
   loading: boolean
   capabilities: Set<Capability>
   hasCapability: (cap: Capability) => boolean
-  /** Overrides de vocabulaire de l'org (RFC 0002, P1) — vide si non personnalisé. */
+  /** Overrides de vocabulaire de l'org (RFC 0002, P1) - vide si non personnalisé. */
   vocab: Map<string, string>
 }
 

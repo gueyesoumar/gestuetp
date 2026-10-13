@@ -226,7 +226,7 @@ Deno.serve(async (req) => {
       const assess = assessmentMap.get(f.assessment_id)
       const ctrlCode = assess?.controls?.code ?? null
       const ctrlName = assess?.controls?.name ?? null
-      const normRef = ctrlCode && ctrlName ? `${ctrlCode} — ${ctrlName}` : (ctrlCode ?? ctrlName)
+      const normRef = ctrlCode && ctrlName ? `${ctrlCode} (${ctrlName})` : (ctrlCode ?? ctrlName)
 
       const { data: insRow, error: insErr } = await supabaseAdmin
         .from('corrective_action_requests')
@@ -297,7 +297,7 @@ Deno.serve(async (req) => {
               <td style="padding:8px 10px; border-bottom:1px solid #E5E7EB; font-family:monospace; font-weight:700; color:${escapeHtml(primary)};">${escapeHtml(c.code)}</td>
               <td style="padding:8px 10px; border-bottom:1px solid #E5E7EB;">${escapeHtml(c.control_code ?? '')}</td>
               <td style="padding:8px 10px; border-bottom:1px solid #E5E7EB;">${escapeHtml(CLASS_LABEL[c.finding_classification] ?? c.finding_classification)}</td>
-              <td style="padding:8px 10px; border-bottom:1px solid #E5E7EB;">${escapeHtml(c.deadline ?? '—')}</td>
+              <td style="padding:8px 10px; border-bottom:1px solid #E5E7EB;">${escapeHtml(c.deadline ?? '-')}</td>
             </tr>`).join('')
 
           const html = `<!DOCTYPE html><html><body style="margin:0; font-family:'Helvetica Neue',Arial,sans-serif; background:#F5F4F0;">
@@ -305,7 +305,7 @@ Deno.serve(async (req) => {
               <table role="presentation" width="640" style="max-width:640px; background:white; border-radius:12px; overflow:hidden;">
                 <tr><td style="background:${escapeHtml(primary)}; color:white; padding:22px 28px; font-weight:700; font-size:15px;">${escapeHtml(cabinetName)}</td></tr>
                 <tr><td style="padding:28px; font-size:14px; color:#1F2937; line-height:1.6;">
-                  <h1 style="margin:0 0 8px; font-size:18px; color:${escapeHtml(primary)};">Plan d'action — ${escapeHtml(mission.name)}</h1>
+                  <h1 style="margin:0 0 8px; font-size:18px; color:${escapeHtml(primary)};">Plan d'action : ${escapeHtml(mission.name)}</h1>
                   <p>Suite a la cloture de l'audit, ${created} action${created > 1 ? 's' : ''} corrective${created > 1 ? 's' : ''} vous ${created > 1 ? 'sont' : 'est'} adressee${created > 1 ? 's' : ''}. Merci de repondre dans le portail dans les delais indiques.</p>
                   <table role="presentation" width="100%" style="border-collapse:collapse; margin-top:16px; font-size:13px;">
                     <thead><tr style="background:#F9FAFB;">
@@ -330,7 +330,7 @@ Deno.serve(async (req) => {
           const emailBranding = await loadCabinetEmailBranding(supabaseAdmin, mission.cabinet_id)
           await sendEmail({
             to: recipientEmail,
-            subject: `[${cabinetName}] Plan d'action — ${mission.name}`,
+            subject: `[${cabinetName}] Plan d'action : ${mission.name}`,
             html,
             from: buildEmailFrom(emailBranding),
             replyTo: emailBranding?.supportEmail ?? undefined,

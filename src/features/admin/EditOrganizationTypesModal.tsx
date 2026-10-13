@@ -101,7 +101,7 @@ export function EditOrganizationTypesModal({ organizationId, organizationName, c
             disabled={!canSubmit}
             className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg text-white bg-forest-700 hover:bg-forest-900 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'En cours…' : 'Enregistrer'}
+            {submitting ? 'En cours...' : 'Enregistrer'}
           </button>
         </div>
       </div>

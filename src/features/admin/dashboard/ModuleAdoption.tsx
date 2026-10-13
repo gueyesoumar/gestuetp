@@ -9,7 +9,7 @@ const ROWS: Array<{ key: keyof Props['data']; label: string; color: string }> = 
   { key: 'policy', label: 'Policy', color: 'bg-[#7B68EE]' },
 ]
 
-/** Adoption des modules — nb d'organisations ayant la capacité active. */
+/** Adoption des modules - nb d'organisations ayant la capacité active. */
 export function ModuleAdoption({ data, totalOrgs }: Props) {
   const base = Math.max(totalOrgs, 1)
   return (

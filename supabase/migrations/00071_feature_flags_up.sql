@@ -22,7 +22,7 @@ CREATE TRIGGER trg_feature_flags_updated_at
   BEFORE UPDATE ON public.feature_flags
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- RLS — lecture libre pour les utilisateurs authentifiés, écriture via service-role
+-- RLS - lecture libre pour les utilisateurs authentifiés, écriture via service-role
 ALTER TABLE public.feature_flags ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "ff_read_all" ON public.feature_flags

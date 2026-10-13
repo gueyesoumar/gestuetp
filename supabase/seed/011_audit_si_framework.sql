@@ -1,4 +1,4 @@
--- Seed: Référentiel Audit SI — 6 domaines, 79 contrôles
+-- Seed: Référentiel Audit SI - 6 domaines, 79 contrôles
 -- Référentiel composite : COBIT + ITIL + ISO 27001 + RGPD
 
 insert into public.frameworks (id, name, slug, description, version, publisher)
@@ -24,7 +24,7 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0005-000000000006', '00000000-0000-0000-0000-000000000014', 'MS', 'Management de la Sécurité SI', 'Politique de sécurité, parties externes, ressources humaines, sécurité physique, gestion des accès, données et réseaux', 6);
 
 -- ============================================================
--- GO — Gouvernance & Organisation SI (12 contrôles)
+-- GO - Gouvernance & Organisation SI (12 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -42,7 +42,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0005-000000000001', 'GO.12', 'Programme d''audit interne SI et amélioration continue', 'Un programme d''audit interne SI est formalisé et alimente un processus d''amélioration continue', 'Mapping : COBIT MEA02 / ISO A.5.35 / ITIL GMP.02', 12);
 
 -- ============================================================
--- GR — Gestion des risques SI (7 contrôles)
+-- GR - Gestion des risques SI (7 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -55,7 +55,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0005-000000000002', 'GR.07', 'Intégration des risques SI dans la gestion des risques groupe', 'Les risques SI sont intégrés dans le dispositif global de gestion des risques de l''organisation', 'Mapping : COBIT EDM03', 7);
 
 -- ============================================================
--- AE — Architecture d'entreprise (8 contrôles)
+-- AE - Architecture d'entreprise (8 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -69,7 +69,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0005-000000000003', 'AE.08', 'Gestion du portefeuille de projets et services', 'Le portefeuille de projets et services est géré avec des critères de priorisation', 'Mapping : COBIT APO05 / ITIL GMP.07', 8);
 
 -- ============================================================
--- GD — Gouvernance & Gestion des données (10 contrôles)
+-- GD - Gouvernance & Gestion des données (10 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -85,7 +85,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0005-000000000004', 'GD.10', 'Gestion des licences et propriété intellectuelle', 'La conformité des licences logicielles est suivie et la propriété intellectuelle protégée', 'Mapping : ISO A.5.32', 10);
 
 -- ============================================================
--- GS — Gestion des services SI (22 contrôles)
+-- GS - Gestion des services SI (22 contrôles)
 -- ============================================================
 
 -- 5.1 Exploitation & support
@@ -135,7 +135,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0005-000000000005', 'GS.22', 'Séparation des environnements (dev/test/prod)', 'Les environnements de développement, test et production sont isolés', 'Mapping : ISO A.8.31. Sous-section : Développement', 22);
 
 -- ============================================================
--- MS — Management de la Sécurité SI (20 contrôles)
+-- MS - Management de la Sécurité SI (20 contrôles)
 -- ============================================================
 
 -- 6.1 Pratiques & cadre de gestion

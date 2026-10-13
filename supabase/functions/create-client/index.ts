@@ -3,12 +3,12 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 
-// P1a (RFC 0007) — Création EAGER d'un client.
+// P1a (RFC 0007) - Création EAGER d'un client.
 // Avant : `cabinet_clients` était inséré côté client (fiche orpheline), et
 // l'organisation n'était matérialisée que paresseusement au 1ᵉʳ lancement de
 // mission (create-mission). Désormais l'organisation-nœud existe DÈS la création
 // du client, et l'arête `audit_engagement` (cabinet → client) est posée
-// immédiatement — le rôle « client » émerge du graphe sans attendre une mission.
+// immédiatement - le rôle « client » émerge du graphe sans attendre une mission.
 //
 // La création d'une organisation et l'écriture du graphe sont des actes sensibles
 // réservés au service_role (aucune policy INSERT sur organizations /
@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
-    // 1. Identité de l'appelant — EXCLUSIVEMENT via le JWT vérifié (aucun fallback
+    // 1. Identité de l'appelant - EXCLUSIVEMENT via le JWT vérifié (aucun fallback
     //    sur un header client : on tourne en service_role, plus aucune RLS derrière).
     const authHeader = req.headers.get('Authorization') ?? req.headers.get('x-auth-token')
     let callerId: string | null = null
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 2.bis Permission cabinet — can_manage_clients obligatoire (CRUD cabinet_clients).
+    // 2.bis Permission cabinet - can_manage_clients obligatoire (CRUD cabinet_clients).
     if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_manage_clients'))) {
       return new Response(
         JSON.stringify({ error: 'Permission can_manage_clients requise' }),
@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
 
     // 4. Réconciliation / création du NŒUD organisation.
     //    Garde dure (risque n°1 P1a) : un numéro d'immatriculation VIDE ne
-    //    déclenche JAMAIS de déduplication — sinon deux organisations réelles
+    //    déclenche JAMAIS de déduplication - sinon deux organisations réelles
     //    distinctes fusionneraient (fuite inter-tenant). Sans n°, on crée toujours
     //    un nouveau nœud.
     let clientOrgId: string | null = null
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
 
     if (!clientOrgId) {
       // Identité durable positionnée sur le nœud (SPLIT §8.1). Le contexte de
-      // mission (effectifs, exigences, parties…) reste sur la fiche en P1a et
+      // mission (effectifs, exigences, parties...) reste sur la fiche en P1a et
       // migrera sur l'arête en P1b.
       const { data: newOrg, error: orgError } = await supabaseAdmin
         .from('organizations')
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
       engagementId = edge?.id ?? null
     }
 
-    // 6.bis Profil d'engagement (P1b) — contexte de mission porté par l'arête.
+    // 6.bis Profil d'engagement (P1b) - contexte de mission porté par l'arête.
     //       Double-écriture : cabinet_clients reste le miroir lu jusqu'à P1c.
     //       Non bloquant pour la création du client.
     if (engagementId) {

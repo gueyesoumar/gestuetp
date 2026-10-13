@@ -11,7 +11,7 @@ import { platformBrand } from './brand.ts'
  *   3. Tous les champs sont nullable : on tombe toujours en fallback Gëstu propre
  *
  * Sécurité : tous les champs branding sont escapés via escapeHtml() avant
- * inclusion dans le HTML email — la table organization_branding peut contenir
+ * inclusion dans le HTML email - la table organization_branding peut contenir
  * des chaînes saisies par le super-admin, donc on ne fait jamais confiance.
  */
 
@@ -125,7 +125,7 @@ export function buildEmailFrom(branding: CabinetEmailBranding | null): string | 
 
 /**
  * Render du header email selon le branding. Si logoLightUrl absent, on garde
- * un header textuel simple à la place de l'image — pas de carré blanc, pas
+ * un header textuel simple à la place de l'image - pas de carré blanc, pas
  * de fallback hasardeux.
  */
 function lightTint(hex: string): string {
@@ -181,7 +181,7 @@ export function renderEmailHeader(branding: CabinetEmailBranding): string {
       </tr>`
   }
 
-  // Fallback texte (sans logo) — utilise les couleurs du cabinet
+  // Fallback texte (sans logo) - utilise les couleurs du cabinet
   return `
     <tr>
       <td style="background:${safePrimary}; padding:22px 28px;">
@@ -202,7 +202,7 @@ export function renderEmailHeader(branding: CabinetEmailBranding): string {
  * personnalisés si fournis ; sinon, défaut Gëstu.
  *
  * La mention "Powered by Gëstu" est obligatoire dès qu'on est en branding
- * cabinet (cabinetName !== platformBrand()) — non négociable contractuellement.
+ * cabinet (cabinetName !== platformBrand()) - non négociable contractuellement.
  */
 export function renderEmailFooter(
   branding: CabinetEmailBranding,

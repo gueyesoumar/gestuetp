@@ -1,4 +1,4 @@
--- Migration 00088: Métadonnées IA structurées par document + kill switch cabinet — DOWN
+-- Migration 00088: Métadonnées IA structurées par document + kill switch cabinet - DOWN
 
 DROP INDEX IF EXISTS public.idx_documents_ai_pending;
 

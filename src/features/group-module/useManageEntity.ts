@@ -32,7 +32,7 @@ export interface EntityInput {
   sector?: string | null
   city?: string | null
   country?: string | null
-  // Profil réglementaire (Regul) — envoyé uniquement en mode produit 'regul'.
+  // Profil réglementaire (Regul) - envoyé uniquement en mode produit 'regul'.
   criticality?: 'eleve' | 'standard'
   obligation_regime?: string | null
   tier?: string | null
@@ -53,7 +53,7 @@ interface CreateResult extends MutationResult {
 
 /**
  * Mutations sur les entités internes d'un groupe, via l'Edge Function
- * manage-entity (service_role côté backend — aucune écriture directe sur
+ * manage-entity (service_role côté backend - aucune écriture directe sur
  * organizations côté client). Les erreurs métier sont remontées telles quelles
  * pour affichage; les détails techniques restent loggés côté fonction.
  */

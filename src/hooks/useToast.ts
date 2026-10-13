@@ -17,7 +17,7 @@ type PromiseMessages<T> = {
  * Gestu toast wrapper.
  *
  * Imposes the platform's UX rules on top of sonner:
- * - Error messages shown to the user are always generic — the technical
+ * - Error messages shown to the user are always generic - the technical
  *   detail (Supabase error, stack, etc.) is logged to console only. This
  *   prevents leaking internal schema info (CLAUDE.md §3).
  * - Default durations follow BRAND.md toast spec.

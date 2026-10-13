@@ -1,4 +1,4 @@
--- Migration 00083: RLS rewrites pour utiliser has_cabinet_permission — DOWN
+-- Migration 00083: RLS rewrites pour utiliser has_cabinet_permission - DOWN
 --
 -- Restaure les RLS d'origine (membership cabinet seulement) et retire le
 -- trigger anti-bricking.

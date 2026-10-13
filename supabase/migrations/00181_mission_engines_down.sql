@@ -1,4 +1,4 @@
--- 00181 — DOWN : retire les moteurs de mission (workflow_version).
+-- 00181 - DOWN : retire les moteurs de mission (workflow_version).
 
 drop trigger if exists trg_mission_snapshot_engine on public.missions;
 drop function if exists public.mission_snapshot_workflow_version();

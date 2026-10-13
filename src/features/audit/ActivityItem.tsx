@@ -38,7 +38,7 @@ export function ActivityItem({ row }: { row: ActivityRow }): JSX.Element {
       <div className="w-36 shrink-0 text-[11px] text-gray-400 tabular-nums">{formatDateTime(row.occurred_at)}</div>
       <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${fam.badge}`}>{fam.label}</span>
       {row.source === 'probative' && (
-        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-forest-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white" title="Acte scellé — registre à valeur probante (chaîné + horodaté)">
+        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-forest-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white" title="Acte scellé : registre à valeur probante (chaîné + horodaté)">
           <Lock size={9} /> Scellé
         </span>
       )}

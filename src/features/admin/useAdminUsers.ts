@@ -74,7 +74,7 @@ export function useAdminUsers(): Result {
         is_platform_owner: (r.is_platform_owner as boolean) ?? false,
         last_sign_in_at: r.last_sign_in_at as string | null,
         organization_id: r.organization_id as string,
-        organization_name: orgNames.get(r.organization_id as string) ?? '—',
+        organization_name: orgNames.get(r.organization_id as string) ?? '-',
       })))
       setLoading(false)
     })()

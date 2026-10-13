@@ -22,7 +22,7 @@ export function ClientActionPlanTab({ mission, canContribute }: ClientActionPlan
   const filtered = useMemo(() => applyFilters(ap.cars, filters), [ap.cars, filters])
 
   if (ap.loading) {
-    return <p className="text-sm text-gray-400 text-center py-12">Chargement du plan d&apos;action…</p>
+    return <p className="text-sm text-gray-400 text-center py-12">Chargement du plan d&apos;action...</p>
   }
 
   if (ap.cars.length === 0) {

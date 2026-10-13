@@ -1,4 +1,4 @@
--- Seed: Référentiel Maturité Digitale — 6 domaines, 46 contrôles
+-- Seed: Référentiel Maturité Digitale - 6 domaines, 46 contrôles
 -- Évaluation du niveau de maturité numérique d'une organisation
 
 insert into public.frameworks (id, name, slug, description, version, publisher)
@@ -24,7 +24,7 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0007-000000000006', '00000000-0000-0000-0000-000000000016', 'EC', 'Écosystème & Innovation', 'Partenariats, open innovation, veille, expérimentations et agilité organisationnelle', 6);
 
 -- ============================================================
--- SV — Stratégie & Vision digitale (8 contrôles)
+-- SV - Stratégie & Vision digitale (8 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -38,7 +38,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0007-000000000001', 'SV.08', 'Communication interne sur la vision digitale', 'La vision digitale est communiquée régulièrement aux collaborateurs', 'Évaluer : Les équipes comprennent-elles et adhèrent-elles à la vision ?', 8);
 
 -- ============================================================
--- EX — Expérience client & digitale (8 contrôles)
+-- EX - Expérience client & digitale (8 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -52,7 +52,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0007-000000000002', 'EX.08', 'Accessibilité numérique', 'Les services digitaux sont accessibles aux personnes en situation de handicap (RGAA, WCAG)', 'Évaluer : L''accessibilité numérique est-elle prise en compte ?', 8);
 
 -- ============================================================
--- PO — Processus & Opérations (8 contrôles)
+-- PO - Processus & Opérations (8 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -66,7 +66,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0007-000000000003', 'PO.08', 'Méthodologies agiles dans les opérations', 'Les méthodologies agiles sont adoptées au-delà de l''IT (métier, RH, finance)', 'Évaluer : L''agilité dépasse-t-elle le cadre de la DSI ?', 8);
 
 -- ============================================================
--- DT — Données & Technologies (9 contrôles)
+-- DT - Données & Technologies (9 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -81,7 +81,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0007-000000000004', 'DT.09', 'Dette technique et obsolescence du SI', 'La dette technique et l''obsolescence sont identifiées et un plan de modernisation existe', 'Évaluer : Le SI est-il un atout ou un boulet pour la transformation ?', 9);
 
 -- ============================================================
--- CH — Capital humain & Culture (7 contrôles)
+-- CH - Capital humain & Culture (7 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -94,7 +94,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0007-000000000005', 'CH.07', 'Champions digitaux et ambassadeurs identifiés', 'Des relais internes (champions digitaux) sont identifiés pour porter la transformation', 'Évaluer : Y a-t-il des ambassadeurs du digital dans les équipes métier ?', 7);
 
 -- ============================================================
--- EC — Écosystème & Innovation (6 contrôles)
+-- EC - Écosystème & Innovation (6 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values

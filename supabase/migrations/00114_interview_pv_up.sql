@@ -1,5 +1,5 @@
 -- Migration: interview_pv (UP)
--- Description: Phase D de la refonte des Entretiens — proces-verbal pre-rempli.
+-- Description: Phase D de la refonte des Entretiens - proces-verbal pre-rempli.
 --
 -- Trois ajouts :
 --   1. audit_topics.default_questions : tableau de questions-cle par sujet.

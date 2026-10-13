@@ -45,7 +45,7 @@ export function MissionEngagementStep({ kind, onChange, groupAvailable }: Missio
           title="Supervision continue"
           subtitle="Groupe → Filiale interne"
           badge={groupAvailable ? 'Module Groupe' : 'Réservé aux groupes'}
-          description="Suivi continu de conformité d'une filiale, organisé en cycles trimestriels. Pas de clôture définitive — la supervision se prolonge année après année."
+          description="Suivi continu de conformité d'une filiale, organisé en cycles trimestriels. Pas de clôture définitive : la supervision se prolonge année après année."
           features={[
             'Cycles trimestriels (Q1, Q2, Q3, Q4) renouvelés en continu',
             'Pas de validation client (supervision interne)',

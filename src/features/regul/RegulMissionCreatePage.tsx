@@ -34,7 +34,7 @@ export function RegulMissionCreatePage(): JSX.Element {
 
   const fw = useMemo(() => frameworks.find((f) => f.id === frameworkId) ?? null, [frameworks, frameworkId])
   const assujetti = useMemo(() => subsidiaries.find((s) => s.id === assujettiId) ?? null, [subsidiaries, assujettiId])
-  const autoName = fw && assujetti ? `${fw.name} — ${assujetti.name}` : ''
+  const autoName = fw && assujetti ? `${fw.name} - ${assujetti.name}` : ''
 
   if (fwLoading || mLoading || sLoading) return <LoadingSpinner />
 
@@ -76,19 +76,19 @@ export function RegulMissionCreatePage(): JSX.Element {
           <label className="block text-[12px] font-medium text-gray-600 mb-1">Assujetti *</label>
           <div className="flex items-center gap-2">
             <select value={assujettiId} onChange={(e) => setAssujettiId(e.target.value)} className={field}>
-              <option value="">Sélectionner un assujetti…</option>
+              <option value="">Sélectionner un assujetti...</option>
               {subsidiaries.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
             <button type="button" onClick={() => setShowEntityModal(true)} className="inline-flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[13px] font-semibold text-forest-700 border border-forest-200 rounded-lg hover:bg-forest-50">
               <Plus size={15} /> Nouvel assujetti
             </button>
           </div>
-          {subsidiaries.length === 0 && <p className="mt-1 text-[11px] text-amber-600">Aucun assujetti recensé — créez-en un avec le bouton ci-dessus.</p>}
+          {subsidiaries.length === 0 && <p className="mt-1 text-[11px] text-amber-600">Aucun assujetti recensé : créez-en un avec le bouton ci-dessus.</p>}
         </div>
         <div>
           <label className="block text-[12px] font-medium text-gray-600 mb-1">Référentiel *</label>
           <select value={frameworkId} onChange={(e) => setFrameworkId(e.target.value)} className={field}>
-            <option value="">Sélectionner un référentiel…</option>
+            <option value="">Sélectionner un référentiel...</option>
             {frameworks.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
         </div>
@@ -100,14 +100,14 @@ export function RegulMissionCreatePage(): JSX.Element {
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Chef de mission *</label>
             <select value={leadId} onChange={(e) => setLeadId(e.target.value)} className={field}>
-              <option value="">Sélectionner…</option>
+              <option value="">Sélectionner...</option>
               {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Auditeur associé *</label>
             <select value={associateId} onChange={(e) => setAssociateId(e.target.value)} className={field}>
-              <option value="">Sélectionner…</option>
+              <option value="">Sélectionner...</option>
               {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
             </select>
           </div>
@@ -129,7 +129,7 @@ export function RegulMissionCreatePage(): JSX.Element {
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => navigate('/controles')} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
           <button type="submit" disabled={creating} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-            {creating ? 'Création…' : 'Créer la mission'}
+            {creating ? 'Création...' : 'Créer la mission'}
           </button>
         </div>
       </form>

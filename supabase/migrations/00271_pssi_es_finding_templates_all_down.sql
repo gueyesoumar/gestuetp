@@ -1,4 +1,4 @@
--- Rollback 00271 — retire les constats-types PSSI-ES générés (couverture complète).
+-- Rollback 00271 - retire les constats-types PSSI-ES générés (couverture complète).
 delete from public.finding_templates ft
 using public.controls c
 where ft.control_id = c.id

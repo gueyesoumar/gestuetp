@@ -7,13 +7,13 @@ import { sanitizeSvg } from '../_shared/svg-sanitize.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 
 /**
- * upload-org-logo — téléversement du logo d'identité de l'organisation
+ * upload-org-logo - téléversement du logo d'identité de l'organisation
  * d'appartenance de l'appelant (affiché dans le Hub). Écrit organizations.logo_url.
  *
  * Sécurité (CLAUDE.md §3) :
  *  - JWT vérifié (authenticateCaller) ; opération sensible → service_role.
  *  - L'appelant doit détenir can_edit_organization ; la cible est TOUJOURS sa
- *    propre organisation (caller.organization_id) — aucun org_id n'est accepté du
+ *    propre organisation (caller.organization_id) - aucun org_id n'est accepté du
  *    client (anti-IDOR).
  *  - Validation MIME/taille stricte côté serveur, SVG sanitizé, ancien logo purgé.
  */

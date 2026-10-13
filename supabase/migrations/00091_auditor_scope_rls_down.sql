@@ -1,4 +1,4 @@
--- Migration 00091: Restriction d'accès auditeur — DOWN
+-- Migration 00091: Restriction d'accès auditeur - DOWN
 --
 -- Restaure les policies "tout membre voit tout" et supprime le helper.
 

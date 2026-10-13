@@ -1,4 +1,4 @@
--- Rollback 00279 — retire le contenu des preuves ISO et les preuves canoniques ISO.
+-- Rollback 00279 - retire le contenu des preuves ISO et les preuves canoniques ISO.
 delete from public.evidence_catalog ec
 using public.controls c
 where ec.control_id = c.id and ec.evidence_item_id is not null

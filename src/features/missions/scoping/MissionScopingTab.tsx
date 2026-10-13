@@ -39,7 +39,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const { profile } = useAuth()
   const { hasCapability } = useEdition()
   // Portail côté partie auditée : masqué en édition Entreprise (!client_portal) ou
-  // mission réflexive (org qui s'audite elle-même) — RFC 0013 F5.
+  // mission réflexive (org qui s'audite elle-même) - RFC 0013 F5.
   const showPortal = missionHasClientPortal(mission, hasCapability)
   const { lead, associate } = useReviewLabels()
   const { exclusions, risks, loading, error, refetch: refetchScoping } = useScopingData(mission.id)
@@ -49,7 +49,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const { requests } = useMissionEvidenceRequests(mission.id)
   const { actors } = useMissionActors(mission.id)
   const [activeTab, setActiveTab] = useState<ScopingTab>('scope')
-  // Moteur Contrôle (RFC 0003) : Cadrage allégé — sous-onglet Risques retiré,
+  // Moteur Contrôle (RFC 0003) : Cadrage allégé - sous-onglet Risques retiré,
   // Questionnaire optionnel (conservé mais hors checklist requise).
   const isControle = mission.workflow_version === 'controle'
   // Sous-étapes du Cadrage désélectionnables via le template du cabinet (RFC 0009).

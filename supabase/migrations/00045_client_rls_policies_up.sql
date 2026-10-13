@@ -4,7 +4,7 @@
 -- Chaque policy est gardée par is_client_role() pour ne PAS impacter les auditeurs
 
 -- ══════════════════════════════════════════════════════
--- MISSIONS — les clients portail peuvent voir leurs missions
+-- MISSIONS - les clients portail peuvent voir leurs missions
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_missions_select" ON public.missions;
 CREATE POLICY "cp_missions_select"
@@ -16,7 +16,7 @@ CREATE POLICY "cp_missions_select"
   );
 
 -- ══════════════════════════════════════════════════════
--- DOCUMENTS — les clients portail peuvent voir et déposer
+-- DOCUMENTS - les clients portail peuvent voir et déposer
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_documents_select" ON public.documents;
 CREATE POLICY "cp_documents_select"
@@ -42,7 +42,7 @@ CREATE POLICY "cp_documents_insert"
   );
 
 -- ══════════════════════════════════════════════════════
--- CONTROL_ASSESSMENTS — les clients voient les évaluations
+-- CONTROL_ASSESSMENTS - les clients voient les évaluations
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_assessments_select" ON public.control_assessments;
 CREATE POLICY "cp_assessments_select"
@@ -54,7 +54,7 @@ CREATE POLICY "cp_assessments_select"
   );
 
 -- ══════════════════════════════════════════════════════
--- ASSESSMENT_VALIDATIONS — les clients peuvent valider/contester
+-- ASSESSMENT_VALIDATIONS - les clients peuvent valider/contester
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_validations_select" ON public.assessment_validations;
 CREATE POLICY "cp_validations_select"
@@ -86,7 +86,7 @@ CREATE POLICY "cp_validations_insert"
   );
 
 -- ══════════════════════════════════════════════════════
--- QUESTIONNAIRE_INSTANCES — les clients voient leurs questionnaires
+-- QUESTIONNAIRE_INSTANCES - les clients voient leurs questionnaires
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_qi_select" ON public.questionnaire_instances;
 CREATE POLICY "cp_qi_select"
@@ -98,7 +98,7 @@ CREATE POLICY "cp_qi_select"
   );
 
 -- ══════════════════════════════════════════════════════
--- QUESTIONNAIRE_RESPONSES — les clients peuvent répondre
+-- QUESTIONNAIRE_RESPONSES - les clients peuvent répondre
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_qr_select" ON public.questionnaire_responses;
 CREATE POLICY "cp_qr_select"
@@ -130,7 +130,7 @@ CREATE POLICY "cp_qr_insert"
   );
 
 -- ══════════════════════════════════════════════════════
--- INTERVIEW_SCHEDULES — les clients voient et confirment
+-- INTERVIEW_SCHEDULES - les clients voient et confirment
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_interviews_select" ON public.interview_schedules;
 CREATE POLICY "cp_interviews_select"
@@ -156,7 +156,7 @@ CREATE POLICY "cp_interviews_update"
   );
 
 -- ══════════════════════════════════════════════════════
--- REPORTS — les clients téléchargent les rapports
+-- REPORTS - les clients téléchargent les rapports
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_reports_select" ON public.reports;
 CREATE POLICY "cp_reports_select"
@@ -168,7 +168,7 @@ CREATE POLICY "cp_reports_select"
   );
 
 -- ══════════════════════════════════════════════════════
--- AUDIT_HISTORY — les clients voient l'historique
+-- AUDIT_HISTORY - les clients voient l'historique
 -- ══════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cp_audit_history_select" ON public.audit_history;
 CREATE POLICY "cp_audit_history_select"

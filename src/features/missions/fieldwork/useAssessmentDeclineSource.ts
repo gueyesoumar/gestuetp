@@ -63,7 +63,7 @@ export function useAssessmentDeclineSource(assessmentId: string | null | undefin
 
       setSource({
         requestId: req.id,
-        evidenceName: (cat as { name: string } | null)?.name ?? '—',
+        evidenceName: (cat as { name: string } | null)?.name ?? '-',
         reason: req.decline_reason,
         justification: req.decline_justification,
         declinerName,

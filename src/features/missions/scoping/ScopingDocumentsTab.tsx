@@ -68,7 +68,7 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions, showPortal
       .sort((a, b) => a.name.localeCompare(b.name))
   }, [evidenceInScope, isEssential])
 
-  // Catalog grouped by domain — deduplicated by (domain, name) to avoid duplicates
+  // Catalog grouped by domain - deduplicated by (domain, name) to avoid duplicates
   // when the same evidence is referenced by multiple controls.
   interface DedupEvidence {
     ids: string[]
@@ -243,7 +243,7 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions, showPortal
         </div>
       </div>
 
-      {/* Section ND — décisions auditeur */}
+      {/* Section ND - décisions auditeur */}
       <DeclinedEvidenceSection missionId={missionId} />
 
       {/* Essentielles section */}

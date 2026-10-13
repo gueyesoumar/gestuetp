@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
     let userId: string | null = null
     let isNewUser = false
     // Lien de mot de passe (jeton maison) : sert UNIQUEMENT à composer l'email,
-    // jamais renvoyé dans la réponse HTTP (séparation des tâches — voir invite-client).
+    // jamais renvoyé dans la réponse HTTP (séparation des tâches - voir invite-client).
     let inviteLink: string | null = null
     let emailSent = false
 
@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
 
       const emailResult = await sendEmail({
         to: email,
-        subject: `Invitation au portail — ${mission.name}`,
+        subject: `Invitation au portail : ${mission.name}`,
         html: clientInviteTemplate({
           contactName: contact_name,
           cabinetName: regulatorName,

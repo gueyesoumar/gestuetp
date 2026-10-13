@@ -20,7 +20,7 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0004-000000000003', '00000000-0000-0000-0000-000000000013', 'TMP', 'Pratiques de management technique', 'Pratiques techniques pour le deploiement et la gestion de l''infrastructure', 3);
 
 -- ============================================================
--- Controles — GMP Pratiques generales de management
+-- Controles - GMP Pratiques generales de management
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -40,7 +40,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0004-000000000001', 'GMP.14', 'Gestion du personnel et des talents', 'S''assurer que l''organisation dispose des bonnes personnes avec les bonnes competences', 14);
 
 -- ============================================================
--- Controles — SMP Pratiques de management des services
+-- Controles - SMP Pratiques de management des services
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -63,7 +63,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0004-000000000002', 'SMP.17', 'Validation et test des services', 'S''assurer que les services repondent aux exigences definies', 17);
 
 -- ============================================================
--- Controles — TMP Pratiques de management technique
+-- Controles - TMP Pratiques de management technique
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values

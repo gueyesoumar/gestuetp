@@ -1,4 +1,4 @@
--- 00278 — Constats-types ISO 27001 personnalisés (remplace le générique 00272).
+-- 00278 - Constats-types ISO 27001 personnalisés (remplace le générique 00272).
 -- Par mesure : constat factuel + risques + recommandations (rédigés par analyse), variante
 -- « major » pour les mesures critiques. Les lignes génériques de 00272 sont d'abord retirées.
 

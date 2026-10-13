@@ -71,7 +71,7 @@ export function PromoteToRegisterModal({ subject, initial, dimensionOptional, no
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
             <button type="submit" disabled={busy} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-              {busy ? 'Promotion…' : 'Promouvoir'}
+              {busy ? 'Promotion...' : 'Promouvoir'}
             </button>
           </div>
         </form>

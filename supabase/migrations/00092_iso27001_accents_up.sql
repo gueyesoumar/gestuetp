@@ -1,9 +1,9 @@
--- Migration 00092: Restaure les accents français sur le seed ISO/IEC 27001 — UP
+-- Migration 00092: Restaure les accents français sur le seed ISO/IEC 27001 - UP
 --
 -- Le seed initial (supabase/seed/002_iso27001_framework.sql) avait été
 -- chargé sans accents (« Controle d'acces » au lieu de « Contrôle d'accès »,
 -- « Regles de securite » au lieu de « Règles de sécurité », etc.). La
--- migration met à jour les rows existantes via UPDATE FROM (VALUES …)
+-- migration met à jour les rows existantes via UPDATE FROM (VALUES ...)
 -- en filtrant strictement sur framework_id pour ne pas affecter d'autres
 -- référentiels qui pourraient utiliser des codes identiques.
 --
@@ -13,7 +13,7 @@
 -- 1. Framework
 -- ============================================================
 UPDATE public.frameworks
-SET description = 'Système de management de la sécurité de l''information (SMSI). Annexe A — contrôles de référence.'
+SET description = 'Système de management de la sécurité de l''information (SMSI). Annexe A - contrôles de référence.'
 WHERE id = '00000000-0000-0000-0000-000000000010';
 
 -- ============================================================
@@ -31,7 +31,7 @@ WHERE d.framework_id = '00000000-0000-0000-0000-000000000010'
   AND d.code = v.code;
 
 -- ============================================================
--- 3. Contrôles A.5 — Mesures organisationnelles (37)
+-- 3. Contrôles A.5 - Mesures organisationnelles (37)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -78,7 +78,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0001-000000000001';
 
 -- ============================================================
--- 4. Contrôles A.6 — Mesures liées aux personnes (8)
+-- 4. Contrôles A.6 - Mesures liées aux personnes (8)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -96,7 +96,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0001-000000000002';
 
 -- ============================================================
--- 5. Contrôles A.7 — Mesures physiques (14)
+-- 5. Contrôles A.7 - Mesures physiques (14)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -120,7 +120,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0001-000000000003';
 
 -- ============================================================
--- 6. Contrôles A.8 — Mesures technologiques (34)
+-- 6. Contrôles A.8 - Mesures technologiques (34)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description

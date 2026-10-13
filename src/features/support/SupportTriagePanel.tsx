@@ -24,7 +24,7 @@ const CAT_LABEL: Record<string, string> = {
 /** Triage IA (Phase 3, data-facing). Visible seulement pour un bug ET si le flag est ON. */
 export function SupportTriagePanel({ request }: Props): JSX.Element | null {
   // Gate sur le kill switch GLOBAL (is_globally_enabled), comme run-agent cote serveur
-  // — pas useFeatureFlag (plan-aware) : c'est un garde-fou plateforme, pas une feature de plan.
+  // - pas useFeatureFlag (plan-aware) : c'est un garde-fou plateforme, pas une feature de plan.
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
   const [triage, setTriage] = useState<Triage | null>(null)
@@ -60,7 +60,7 @@ export function SupportTriagePanel({ request }: Props): JSX.Element | null {
         </span>
         {!triage && (
           <button onClick={() => void run()} disabled={busy} className="px-3 py-1.5 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 disabled:opacity-50">
-            {busy ? 'Analyse…' : 'Lancer le triage'}
+            {busy ? 'Analyse...' : 'Lancer le triage'}
           </button>
         )}
       </div>

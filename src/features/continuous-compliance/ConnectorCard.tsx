@@ -57,7 +57,7 @@ export function ConnectorCard({ descriptor, integration, onChanged }: Props): JS
           </div>
           <button onClick={collect} disabled={busy}
             className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50">
-            <RefreshCw size={14} /> {busy ? 'Collecte…' : 'Collecter maintenant'}
+            <RefreshCw size={14} /> {busy ? 'Collecte...' : 'Collecter maintenant'}
           </button>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function ConnectorCard({ descriptor, integration, onChanged }: Props): JS
       </div>
       <button onClick={connect} disabled={busy}
         className="mt-3 flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50">
-        <Plug size={14} /> {busy ? 'Connexion…' : 'Connecter'}
+        <Plug size={14} /> {busy ? 'Connexion...' : 'Connecter'}
       </button>
     </div>
   )

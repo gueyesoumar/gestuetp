@@ -69,7 +69,7 @@ import { SubsidiariesPage } from './features/group-module/SubsidiariesPage'
 import { SubsidiaryDetailPage } from './features/group-module/SubsidiaryDetailPage'
 import { ContinuousReviewsPage } from './features/group-module/ContinuousReviewsPage'
 import { TransversalPlansPage } from './features/group-module/TransversalPlansPage'
-// Pages Regul — montées sous le shell unifié quand l'édition résolue est « regul ».
+// Pages Regul - montées sous le shell unifié quand l'édition résolue est « regul ».
 import { RegulDashboard } from './features/regul/RegulDashboard'
 import { RegulMissionsListPage } from './features/regul/RegulMissionsListPage'
 import { RegulMissionCreatePage } from './features/regul/RegulMissionCreatePage'
@@ -86,7 +86,7 @@ import { AssujettiIncidentsPage } from './features/regul/incidents/AssujettiInci
 // est partagé. Pré-auth : capacités vides → Comply (comme le déploiement principal).
 function AppRoutes(): JSX.Element {
   const { hasCapability, loading: edLoading } = useEdition()
-  // Modules actifs dérivés des CAPACITÉS via le registre (RFC 0013 C1) — plus de binaire isRegul.
+  // Modules actifs dérivés des CAPACITÉS via le registre (RFC 0013 C1) - plus de binaire isRegul.
   const activeKeys = new Set(APP_MODULES.filter((m) => m.enabled(hasCapability)).map((m) => m.key))
   const isSupervision = activeKeys.has('supervision-core')
   return (
@@ -95,10 +95,10 @@ function AppRoutes(): JSX.Element {
       <Route path="/set-password" element={<SetPasswordPage />} />
       <Route path="/unsubscribe" element={<UnsubscribePage />} />
 
-      {/* Hub — entrée unique pour tout le staff (RFC §5-6) */}
+      {/* Hub - entrée unique pour tout le staff (RFC §5-6) */}
       <Route path="/hub" element={<ProtectedRoute><HubPage /></ProtectedRoute>} />
 
-      {/* Routes-modules sous le shell unifié — l'édition résolue choisit le jeu monté */}
+      {/* Routes-modules sous le shell unifié - l'édition résolue choisit le jeu monté */}
       <Route
         element={
           <ProtectedRoute>
@@ -181,7 +181,7 @@ function AppRoutes(): JSX.Element {
         <Route path="securite" element={<AdminPasswordPolicyPage />} />
       </Route>
 
-      {/* Portail client / assujetti — cloisonné (RLS cp_*) */}
+      {/* Portail client / assujetti - cloisonné (RLS cp_*) */}
       <Route
         path="/client"
         element={

@@ -1,4 +1,4 @@
--- 00292 — Supprime les preuves attendues LEGACY (sans evidence_item_id) pour les
+-- 00292 - Supprime les preuves attendues LEGACY (sans evidence_item_id) pour les
 -- référentiels désormais couverts par le modèle mutualisé. Ces lignes provenaient des
 -- anciens seeds (ex. 018 PSSI-ES) et font doublon, par nom, avec les preuves canoniques
 -- insérées par 00276/00279/00282/00285/00288. Le contenu canonique couvrant tous les

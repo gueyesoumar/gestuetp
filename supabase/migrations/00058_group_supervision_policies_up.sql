@@ -4,7 +4,7 @@
 -- Utilise get_subsidiary_ids() (SECURITY DEFINER) pour éviter la récursion RLS.
 
 -- ══════════════════════════════════════════════════════
--- MISSIONS — le groupe voit les missions de ses entités
+-- MISSIONS - le groupe voit les missions de ses entités
 -- ══════════════════════════════════════════════════════
 CREATE POLICY "missions_select_group"
   ON public.missions FOR SELECT
@@ -16,7 +16,7 @@ CREATE POLICY "missions_select_group"
   );
 
 -- ══════════════════════════════════════════════════════
--- CONTROL_ASSESSMENTS — le groupe voit les évaluations
+-- CONTROL_ASSESSMENTS - le groupe voit les évaluations
 -- ══════════════════════════════════════════════════════
 CREATE POLICY "ca_select_group"
   ON public.control_assessments FOR SELECT
@@ -32,7 +32,7 @@ CREATE POLICY "ca_select_group"
   );
 
 -- ══════════════════════════════════════════════════════
--- CORRECTIVE_ACTION_REQUESTS — le groupe voit les CARs
+-- CORRECTIVE_ACTION_REQUESTS - le groupe voit les CARs
 -- ══════════════════════════════════════════════════════
 CREATE POLICY "car_select_group"
   ON public.corrective_action_requests FOR SELECT

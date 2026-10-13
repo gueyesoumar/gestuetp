@@ -1,4 +1,4 @@
-// OCR navigateur (tesseract.js, WASM) — extrait le texte d'une image AVANT de laisser
+// OCR navigateur (tesseract.js, WASM) - extrait le texte d'une image AVANT de laisser
 // l'edge décider de l'envoi au modèle. L'edge reste l'autorité (il re-score le texte OCR).
 //
 // Assets AUTO-HÉBERGÉS (public/tesseract/) → tout en same-origin : la CSP existante suffit
@@ -27,7 +27,7 @@ async function getWorker(): Promise<TesseractWorker> {
 
 /**
  * Extrait le texte d'une image. Renvoie '' en cas d'échec (OCR raté, format non géré) :
- * l'edge retombe alors sur « non inspecté » — aucune régression.
+ * l'edge retombe alors sur « non inspecté » - aucune régression.
  */
 export async function ocrImage(file: File | Blob): Promise<string> {
   try {

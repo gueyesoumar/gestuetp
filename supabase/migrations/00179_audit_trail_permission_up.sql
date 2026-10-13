@@ -1,4 +1,4 @@
--- 00179 — Piste d'audit (F6) : permission can_view_audit_trail.
+-- 00179 - Piste d'audit (F6) : permission can_view_audit_trail.
 --
 -- Contrôle l'accès à la piste d'audit (activity_log). Les permissions sont des
 -- clés jsonb dans platform_roles.permissions ; « exister » = être présente sur un

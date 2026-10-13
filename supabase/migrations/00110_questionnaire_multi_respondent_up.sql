@@ -1,5 +1,5 @@
 -- Migration: questionnaire_multi_respondent (UP)
--- Description: Sprint 6 — assignation des sections du questionnaire a des
+-- Description: Sprint 6 - assignation des sections du questionnaire a des
 -- respondents distincts cote client.
 --
 -- section_assignees est un objet jsonb : { [section_prefix]: user_id }

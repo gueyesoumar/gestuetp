@@ -83,7 +83,7 @@ export function PlanningRiskCallout({ domains, plannings, assignments, topics, i
         id: 'no-technique',
         severity: 'critical',
         label: `${noTechnique.length} contrôle${noTechnique.length > 1 ? 's' : ''} à risque sans technique d’audit`,
-        detail: 'Critique ou Élevé sans technique d’audit définie — risque de couverture insuffisante.',
+        detail: 'Critique ou Élevé sans technique d’audit définie : risque de couverture insuffisante.',
         controlIds: noTechnique,
       })
     }

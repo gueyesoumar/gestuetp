@@ -1,4 +1,4 @@
--- Migration 00128: Bucket Storage client-branding — DOWN
+-- Migration 00128: Bucket Storage client-branding - DOWN
 
 DROP POLICY IF EXISTS "clb_read_public" ON storage.objects;
 DROP POLICY IF EXISTS "clb_insert_auth" ON storage.objects;

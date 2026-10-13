@@ -1,4 +1,4 @@
--- 00291 — Nettoyage : supprime les doublons de evidence_catalog.
+-- 00291 - Nettoyage : supprime les doublons de evidence_catalog.
 -- La génération de contenu (00276/00279/00282/00285/00288) a pu créer, pour un même
 -- contrôle, plusieurs lignes pointant la même preuve canonique (même evidence_item_id)
 -- lorsque le rédacteur listait deux fois un document transverse sous des intitulés proches.

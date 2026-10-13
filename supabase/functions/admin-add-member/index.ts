@@ -12,7 +12,7 @@ import { buildEmailFrom, loadCabinetEmailBranding } from '../_shared/email-brand
  * Ajoute un membre à une organisation DÉJÀ EXISTANTE, par le super-admin.
  * Complète admin-create-cabinet (qui ne crée que le 1er owner à la création).
  * Par défaut, le membre reçoit le rôle « Associé » (toutes permissions cabinet)
- * — c.-à-d. un administrateur du cabinet. Si l'org n'a pas encore de rôle par
+ * - c.-à-d. un administrateur du cabinet. Si l'org n'a pas encore de rôle par
  * défaut, il est créé (identique à l'onboarding).
  *
  * 1. Vérifie l'org, résout/crée le rôle admin par défaut
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
       const branding = await loadCabinetEmailBranding(admin, orgId)
       const sendResult = await sendEmail({
         to: email,
-        subject: `Invitation ${branding?.cabinetName ?? orgName} — ${orgName}`,
+        subject: `Invitation ${branding?.cabinetName ?? orgName} (${orgName})`,
         html: memberInviteTemplate({ firstName, cabinetName: orgName, link, branding }),
         from: buildEmailFrom(branding),
         replyTo: branding?.supportEmail ?? undefined,

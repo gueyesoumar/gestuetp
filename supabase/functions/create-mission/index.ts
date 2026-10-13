@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 2.bis Permissions cabinet — can_create_mission obligatoire
+    // 2.bis Permissions cabinet - can_create_mission obligatoire
     if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_create_mission'))) {
       return new Response(
         JSON.stringify({ error: 'Permission can_create_mission requise' }),
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
       // saute l'arête cabinet↔client quand les deux sont égaux.
       clientOrgId = callerProfile.organization_id
     } else if (body.assujetti_org_id) {
-      // Chemin Regul : l'assujetti est une organisation entité. Cloisonnement —
+      // Chemin Regul : l'assujetti est une organisation entité. Cloisonnement -
       // il doit appartenir au sous-arbre du régulateur appelant (get_subsidiary_ids
       // récursif, SECURITY DEFINER). Pas de fiche cabinet_clients requise.
       const { data: descRows } = await supabaseAdmin.rpc('get_subsidiary_ids', { parent_id: callerProfile.organization_id })
@@ -353,7 +353,7 @@ Deno.serve(async (req) => {
       if (anonErr) console.error('create-mission ai_anonymize_override:', anonErr.message)
     }
 
-    // 7.bis Snapshot probant (P1b, RFC 0007 §8.1) — fige le contexte d'engagement
+    // 7.bis Snapshot probant (P1b, RFC 0007 §8.1) - fige le contexte d'engagement
     //       à l'ouverture de la mission, pour que le rapport reflète l'état au
     //       moment de l'audit (le profil vivant, lui, peut évoluer ensuite).
     //       Non bloquant : le trigger 00213 a posé engagement_id AVANT insert.

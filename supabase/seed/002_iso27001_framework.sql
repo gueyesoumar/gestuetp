@@ -1,4 +1,4 @@
--- Seed: Référentiel ISO/IEC 27001:2022 — Annexe A
+-- Seed: Référentiel ISO/IEC 27001:2022 - Annexe A
 -- Domaines et contrôles principaux
 
 insert into public.frameworks (id, name, slug, description, version, publisher)
@@ -6,13 +6,13 @@ values (
   '00000000-0000-0000-0000-000000000010',
   'ISO/IEC 27001',
   'iso-27001',
-  'Système de management de la sécurité de l''information (SMSI). Annexe A — contrôles de référence.',
+  'Système de management de la sécurité de l''information (SMSI). Annexe A - contrôles de référence.',
   '2022',
   'ISO/IEC'
 );
 
 -- ============================================================
--- Domaines (Annexe A — ISO 27001:2022, 4 thèmes)
+-- Domaines (Annexe A - ISO 27001:2022, 4 thèmes)
 -- ============================================================
 
 insert into public.domains (id, framework_id, code, name, description, sort_order) values
@@ -22,7 +22,7 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0001-000000000004', '00000000-0000-0000-0000-000000000010', 'A.8', 'Mesures technologiques', 'Contrôles liés aux technologies et systèmes d''information', 4);
 
 -- ============================================================
--- Contrôles — A.5 Mesures organisationnelles (37 contrôles)
+-- Contrôles - A.5 Mesures organisationnelles (37 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -65,7 +65,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0001-000000000001', 'A.5.37', 'Procédures d''exploitation documentées', 'Documentation des procédures opérationnelles', 37);
 
 -- ============================================================
--- Contrôles — A.6 Mesures liées aux personnes (8 contrôles)
+-- Contrôles - A.6 Mesures liées aux personnes (8 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -79,7 +79,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0001-000000000002', 'A.6.8', 'Signalement des événements de sécurité', 'Mécanismes de signalement des incidents', 8);
 
 -- ============================================================
--- Contrôles — A.7 Mesures physiques (14 contrôles)
+-- Contrôles - A.7 Mesures physiques (14 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -99,7 +99,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0001-000000000003', 'A.7.14', 'Mise au rebut ou réutilisation sécurisée du matériel', 'Effacement sécurisé avant mise au rebut', 14);
 
 -- ============================================================
--- Contrôles — A.8 Mesures technologiques (34 contrôles)
+-- Contrôles - A.8 Mesures technologiques (34 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values

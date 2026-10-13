@@ -1,5 +1,5 @@
 -- Migration: audit_topics (UP)
--- Description: Catalogue de "Sujets d'audit" — meta-themes qui regroupent N
+-- Description: Catalogue de "Sujets d'audit" - meta-themes qui regroupent N
 -- controles d'un referentiel (ex: "Gestion des acces" couvre A.5.15-18, A.8.2,
 -- A.8.3, A.8.5). Phase A de la refonte des Entretiens.
 --

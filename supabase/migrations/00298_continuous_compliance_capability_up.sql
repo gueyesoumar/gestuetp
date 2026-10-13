@@ -1,4 +1,4 @@
--- P1.1 (RFC 0014 §8, §10.f) : capacité `continuous_compliance` — gate du module de
+-- P1.1 (RFC 0014 §8, §10.f) : capacité `continuous_compliance` - gate du module de
 -- conformité continue (connecteurs de preuve en lecture seule).
 --
 -- Opt-in STRICT : AUCUN backfill. Accordée seulement par un entitlement explicite

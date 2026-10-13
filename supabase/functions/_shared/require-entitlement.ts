@@ -9,7 +9,7 @@ import { corsHeaders } from './cors.ts'
  *
  * Fail-open sur erreur RPC : l'entitlement est un droit d'USAGE, pas une frontière
  * de sécurité (la RLS reste la barrière de confidentialité). On préfère ne pas
- * casser un utilisateur légitime sur un incident RPC transitoire — l'échec est loggé.
+ * casser un utilisateur légitime sur un incident RPC transitoire - l'échec est loggé.
  */
 interface RpcClient {
   rpc(fn: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message: string } | null }>

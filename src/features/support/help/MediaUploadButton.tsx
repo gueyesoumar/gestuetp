@@ -20,7 +20,7 @@ export function MediaUploadButton({ icon: Icon, label, accept, uploading, onFile
         disabled={uploading}
         className="ml-auto flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1 text-[12px] text-gray-600 hover:bg-gray-50 disabled:opacity-50"
       >
-        <Icon size={14} /> {uploading ? 'Téléversement…' : label}
+        <Icon size={14} /> {uploading ? 'Téléversement...' : label}
       </button>
       <input
         ref={ref}

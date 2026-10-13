@@ -7,7 +7,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
  * Gère le branding de marque blanche d'un cabinet (couleurs, emails, footer).
  * Les logos passent par upload-cabinet-logo (multipart). La table
  * organization_branding peut exister avec logos null le temps que le cabinet
- * upload — l'activation effective côté frontend exige logo_light_url ET le
+ * upload - l'activation effective côté frontend exige logo_light_url ET le
  * flag white_label_branding ON pour ce cabinet.
  *
  * Actions :

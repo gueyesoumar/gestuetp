@@ -107,11 +107,11 @@ export function useMissionCreateForm() {
     setScopeControlIds(new Set(allControlIds))
   }, [allControlIds])
 
-  // Nom auto « Référentiel — Cible », tant que l'utilisateur ne l'a pas édité.
+  // Nom auto « Référentiel - Cible », tant que l'utilisateur ne l'a pas édité.
   useEffect(() => {
     if (nameDirty) return
     if (selectedFramework && targetName) {
-      setMissionName(`${selectedFramework.name} — ${targetName}`)
+      setMissionName(`${selectedFramework.name} - ${targetName}`)
     }
   }, [selectedFramework, targetName, nameDirty])
 

@@ -10,7 +10,7 @@ import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
  *  - portée cabinet (vérité partagée) : personnaliser, inviter, 1er client, 1re mission.
  *
  * Règle d'or : la complétion se lit sur l'ÉTAT réel (logo présent, comptes,
- * profil) — jamais un booléen « j'ai fait cette étape ». Un nouvel admin sur un
+ * profil) - jamais un booléen « j'ai fait cette étape ». Un nouvel admin sur un
  * cabinet déjà monté ne voit donc que ses tâches personnelles.
  */
 export interface OnboardingTask {

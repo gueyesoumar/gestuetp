@@ -1,4 +1,4 @@
--- Migration 00086: RLS portail client — élargissement à 'approver' — DOWN
+-- Migration 00086: RLS portail client - élargissement à 'approver' - DOWN
 --
 -- Restaure les policies pré-existantes (contributor-only, et bug de sécurité
 -- sur cp_validations_insert qui ne filtrait pas la permission au-delà du

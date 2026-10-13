@@ -6,7 +6,7 @@ import type { Policy, PolicyEffectivenessStatus } from '../../types/database.typ
 
 const EFF_COLOR: Record<PolicyEffectivenessStatus, string> = { applied: '#2E9E6B', partial: '#B8891F', not_verified: '#94A3B8' }
 const effLabel = (v: string): string => POLICY_EFFECTIVENESS_STATUS.find((s) => s.value === v)?.label ?? v
-const fmt = (iso: string | null): string => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const fmt = (iso: string | null): string => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
 
 export function PolicyAttestations({ policy, versionId, onChanged }: { policy: Policy; versionId: string | null; onChanged: () => void }): JSX.Element {
   const att = usePolicyAttestations(policy.id, versionId)
@@ -59,7 +59,7 @@ export function PolicyAttestations({ policy, versionId, onChanged }: { policy: P
           className="w-full text-[11px] text-gray-500 file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-2 file:py-1 file:text-gray-700 mb-2" />
         <button onClick={() => void submit()} disabled={busy}
           className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] font-semibold text-white bg-[#6D5AE6] rounded-lg hover:brightness-110 disabled:opacity-50">
-          <ShieldCheck size={14} /> {busy ? 'Attestation…' : "Attester l'application"}
+          <ShieldCheck size={14} /> {busy ? 'Attestation...' : "Attester l'application"}
         </button>
         <p className="text-[10px] text-gray-400 mt-2 leading-snug">« Appliquée » fait passer la politique en <b>preuve forte</b> pour les contrôles liés.</p>
       </div>

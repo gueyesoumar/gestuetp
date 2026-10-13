@@ -5,7 +5,7 @@
 -- pose en entretien. Servent de canevas pour le PV pré-rempli (interview_schedules.pv_template).
 
 -- ============================================================
--- ISO 27001 v2 — 10 sujets
+-- ISO 27001 v2 - 10 sujets
 -- ============================================================
 
 update public.audit_topics set default_questions = '[
@@ -89,7 +89,7 @@ update public.audit_topics set default_questions = '[
 ]'::jsonb where id = '20000010-0000-0000-0000-00000000000a';
 
 -- ============================================================
--- PSSI-ES — 11 sujets
+-- PSSI-ES - 11 sujets
 -- ============================================================
 
 update public.audit_topics set default_questions = '[

@@ -1,5 +1,5 @@
 -- 00159_control_dimension_up.sql
--- Phase A — Mécanisation du mapping contrôle -> dimension du score de confiance.
+-- Phase A - Mécanisation du mapping contrôle -> dimension du score de confiance.
 -- Chaque contrôle porte une dimension primaire ; héritage automatique via crosswalk.
 
 -- Enum : 6 dimensions du score + 2 facteurs transverses (human_factor, third_party).

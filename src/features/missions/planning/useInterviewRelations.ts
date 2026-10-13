@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 
 // Le client Supabase v2 type emet "never" pour les inserts sur les tables de
-// ce projet — on utilise des casts unknown comme dans le reste du codebase.
+// ce projet - on utilise des casts unknown comme dans le reste du codebase.
 
 type SupaResult = { error: { message: string } | null }
 

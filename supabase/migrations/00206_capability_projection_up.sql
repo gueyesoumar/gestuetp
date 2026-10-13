@@ -1,15 +1,15 @@
--- Migration 00206 (UP) : bascule — capacités dérivées des abonnements (RFC 0006, C+P3)
+-- Migration 00206 (UP) : bascule - capacités dérivées des abonnements (RFC 0006, C+P3)
 --
 -- organization_capabilities devient une PROJECTION de org_subscriptions. L'interface
 -- de lecture (org_has_capability / my_capabilities / hasCapability) est INCHANGÉE :
 -- seule la façon de peupler la table change. Le gating étant frontend (aucune policy
 -- RLS de données ne lit organization_capabilities), le blast radius = visibilité UI.
 --
--- Sécurité de bascule : (1) RÉCONCILIATION — on re-crée les abonnements depuis les
+-- Sécurité de bascule : (1) RÉCONCILIATION - on re-crée les abonnements depuis les
 -- capacités actives actuelles (idempotent) AVANT le refresh, donc la projection ⊇
 -- l'état actuel → aucune perte d'accès même si une capacité a dérivé depuis P2 ;
 -- (2) refresh global ; (3) triggers attachés EN DERNIER (pas de cascade pendant le
--- backfill). Les éditions restent en place (scaffolding mort) — DROP en 00207.
+-- backfill). Les éditions restent en place (scaffolding mort) - DROP en 00207.
 
 -- 1. Projection : capacités actives/essai dérivées des abonnements ---------------
 create or replace function public.refresh_org_capabilities(p_org uuid)
@@ -116,7 +116,7 @@ begin
 end; $$;
 
 -- 5. RÉCONCILIATION : abonnements depuis les capacités actives actuelles ---------
---    (idempotent — rattrape toute capacité activée depuis le backfill P2 sans
+--    (idempotent - rattrape toute capacité activée depuis le backfill P2 sans
 --     abonnement, pour que la projection ne retire aucun accès existant).
 insert into public.org_subscriptions (organization_id, product_key, status)
 select oc.org_id, pc.product_key,

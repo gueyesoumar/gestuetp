@@ -1,5 +1,5 @@
 -- P1.3 (RFC 0014 §6) : coffre des secrets de connecteur. Les identifiants d'un
--- connecteur (clés API Tenable, tokens OAuth…) vivent CHIFFRÉS dans Supabase Vault.
+-- connecteur (clés API Tenable, tokens OAuth...) vivent CHIFFRÉS dans Supabase Vault.
 -- Seules ces deux fonctions SECURITY DEFINER, réservées au service_role (edges), y
 -- accèdent. Aucun secret n'est jamais stocké en clair ni lisible par authenticated.
 -- Vault est déjà utilisé sur le projet (mig 00154).

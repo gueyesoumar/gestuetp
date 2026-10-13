@@ -1,4 +1,4 @@
--- Migration 00250 (UP) : posture de conformité par organisation (Phase B — option A)
+-- Migration 00250 (UP) : posture de conformité par organisation (Phase B - option A)
 --
 -- Expose au super-admin une « posture » de conformité agrégée PAR organisation,
 -- calculée à la lecture (aucune table persistée, toujours fraîche). Reproduit

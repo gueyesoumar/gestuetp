@@ -17,7 +17,7 @@ import { CLAUDE_SONNET } from '../_shared/models.ts'
  *  3. Appelle Claude Sonnet 4 avec les file references + brief + schema JSON strict
  *  4. Parse le JSON retourné
  *  5. Logue l'appel dans ai_calls_log + supprime les fichiers Anthropic après usage
- *  6. Renvoie le draft au client (pas de persistance — c'est un brouillon)
+ *  6. Renvoie le draft au client (pas de persistance - c'est un brouillon)
  *
  * Sécurité :
  *  - Aucun contenu utilisateur stocké en DB (juste métadonnées dans ai_calls_log)
@@ -212,7 +212,7 @@ CONSIGNES
 3. Pour chaque contrôle, fournis : code (ex: A.5.1), nom court, description claire en français, guidance (conseils de mise en œuvre), et "dimension" (voir ci-dessous).
 4. Reste fidèle aux documents : ne pas inventer de codes qui n'existent pas dans la source.
 5. Maximum 30 domaines, 200 contrôles au total. Si le référentiel est plus large, garde les plus essentiels et signale-le dans la description.
-6. CLASSEMENT — "dimension" : rattache chaque contrôle à UNE seule dimension du score de confiance parmi :
+6. CLASSEMENT, "dimension" : rattache chaque contrôle à UNE seule dimension du score de confiance parmi :
    - "security" : protection technique/physique, accès, identité, cryptographie, réseau, malware, vulnérabilités
    - "data_protection" : vie privée, données personnelles, classification, masquage, DLP, souveraineté
    - "resilience" : incidents, continuité, PCA/PRA, sauvegarde, redondance, disponibilité

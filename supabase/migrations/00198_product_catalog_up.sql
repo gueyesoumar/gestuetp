@@ -1,4 +1,4 @@
--- Migration 00198 (UP) : catalogue produits (RFC 0006, Phase 1 — couche ① Catalogue)
+-- Migration 00198 (UP) : catalogue produits (RFC 0006, Phase 1 - couche ① Catalogue)
 --
 -- Crée le catalogue de PRODUITS et de FONCTIONNALITÉS comme DONNÉE, source unique
 -- destinée à remplacer l'enum org_capability figé + le tableau HUB_PRODUCTS en dur
@@ -6,7 +6,7 @@
 --
 -- ADDITIF et DORMANT : aucun gating n'est branché ici. Les colonnes de « pont » vers
 -- l'enum (product_features.capability, product_capability) sont peuplées mais NON
--- consommées — elles serviront au résolveur d'entitlement en P3. ZÉRO changement de
+-- consommées - elles serviront au résolveur d'entitlement en P3. ZÉRO changement de
 -- comportement runtime : seul le Hub lit désormais ce catalogue (mêmes valeurs).
 --
 -- Écritures : service_role uniquement (aucune policy write). Lecture : authenticated
@@ -14,7 +14,7 @@
 
 -- 1. Produits ------------------------------------------------------------------
 create table if not exists public.products (
-  key              text primary key,          -- slug stable (comply, regul, risk, …)
+  key              text primary key,          -- slug stable (comply, regul, risk, ...)
   name             text not null,             -- nom d'affichage (identifiant Hub actuel)
   title            text not null,             -- baseline
   description      text not null,

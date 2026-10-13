@@ -42,7 +42,7 @@ as $$
 $$;
 
 comment on function public.can_access_document_object(text) is
-  'Autorise l''accès à un objet du bucket documents si son chemin missions/<missionId>/… correspond à une mission visible par l''appelant (staff, client ou platform owner). Constat C2 (OWASP A01).';
+  'Autorise l''accès à un objet du bucket documents si son chemin missions/<missionId>/... correspond à une mission visible par l''appelant (staff, client ou platform owner). Constat C2 (OWASP A01).';
 
 -- 3. Remplacer les policies bucket_id-seul par des policies scopées par mission.
 drop policy if exists "authenticated_read"   on storage.objects;

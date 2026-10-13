@@ -7,7 +7,7 @@ import { authenticateCaller } from '../_shared/auth.ts'
 // suggestion a GitHub : il cree un agent_runs(running) et passe seulement run_id
 // au workflow, qui recuperera le texte via feasibility-callback (action=fetch).
 // Minimisation : le texte ne transite donc ni par les inputs du dispatch ni par
-// l'UI publique des Actions — seulement en memoire du runner + Anthropic.
+// l'UI publique des Actions - seulement en memoire du runner + Anthropic.
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })

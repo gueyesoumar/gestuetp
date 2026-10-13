@@ -1,4 +1,4 @@
-// Vocabulaire & édition — un seul codebase ETP. Le produit/module N'EST PLUS un
+// Vocabulaire & édition - un seul codebase ETP. Le produit/module N'EST PLUS un
 // fork de build : il est résolu AU RUNTIME (édition post-auth, cf features/edition)
 // avec un simple indice pré-auth (`preAuthEdition`, ci-dessous). Regul = édition.
 
@@ -7,7 +7,7 @@ export type ProductMode = 'comply' | 'regul'
 // Édition résolue PRÉ-AUTHENTIFICATION (avant de connaître l'org connectée) : sert
 // d'indice de branding/coquille tant que l'édition runtime n'est pas résolue.
 // Priorité : override explicite `VITE_EDITION` > hostname (`/regul/`). N'est PLUS
-// un fork de domaine — juste une allure de login. Un domaine custom (ex. DCSSI)
+// un fork de domaine - juste une allure de login. Un domaine custom (ex. DCSSI)
 // pose `VITE_EDITION=regul`.
 export function preAuthEdition(): 'regul' | 'comply' {
   const env = import.meta.env.VITE_EDITION as string | undefined
@@ -163,7 +163,7 @@ export const VOCAB_PRESETS: Record<string, ProductVocab> = {
   },
 }
 
-/** Défauts de vocab résolus par la PERSONA (capacité supervision) — RFC 0002/0006.
+/** Défauts de vocab résolus par la PERSONA (capacité supervision) - RFC 0002/0006.
  *  Le front ne lit plus l'édition (supprimée en C+P3). */
 /** Vocabulaire de base d'un preset nommé (repli sur « comply » si inconnu). */
 export function vocabForPreset(preset: string): ProductVocab {

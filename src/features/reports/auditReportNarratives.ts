@@ -50,7 +50,7 @@ function topWeakControls(data: AuditReportData, n = 3, domainCode?: string): Ass
   return pool.sort((a, b) => order(a) - order(b) || a.control.code.localeCompare(b.control.code)).slice(0, n)
 }
 
-/** Liste lisible : "A.5.1 Politiques…, A.7.2 Contrôles physiques…, A.8.7 Anti-malware". */
+/** Liste lisible : "A.5.1 Politiques..., A.7.2 Contrôles physiques..., A.8.7 Anti-malware". */
 function listControls(items: AssessmentWithControl[], maxNameLen = 40): string {
   if (items.length === 0) return ''
   const names = items.map((a) => `${a.control.code} (${truncateName(a.control.name, maxNameLen)})`)
@@ -60,7 +60,7 @@ function listControls(items: AssessmentWithControl[], maxNameLen = 40): string {
 }
 
 function truncateName(s: string, max: number): string {
-  return s.length <= max ? s.toLowerCase().charAt(0) + s.slice(1) : s.slice(0, max - 1).toLowerCase().charAt(0) + s.slice(1, max - 1) + '…'
+  return s.length <= max ? s.toLowerCase().charAt(0) + s.slice(1) : s.slice(0, max - 1).toLowerCase().charAt(0) + s.slice(1, max - 1) + '...'
 }
 
 
@@ -176,14 +176,14 @@ export function generateExecutiveNarrative(data: AuditReportData): string[] {
   ]
 }
 
-// ── 04. Détail par domaine — narratif court par domaine ───────────────────
+// ── 04. Détail par domaine - narratif court par domaine ───────────────────
 
 export function generateDomainNarrative(domain: DomainStat, data: AuditReportData): string[] {
   const fw = frameworkLabel(data)
   const status = domain.score >= 85 ? 'maîtrisé' : domain.score >= 70 ? 'globalement maîtrisé' : domain.score >= 55 ? 'partiellement maîtrisé' : 'à renforcer'
   const ncTotal = domain.ncMajor + domain.ncMinor
 
-  // Paragraphe 1 — couverture & score
+  // Paragraphe 1 - couverture & score
   const coverageClause = domain.scored > 0 && domain.scored < domain.total
     ? `${domain.scored} contrôle${domain.scored > 1 ? 's' : ''} sur ${domain.total} ${domain.scored > 1 ? 'ont' : 'a'} fait l'objet d'une évaluation effective au cours de la mission`
     : domain.scored === domain.total && domain.total > 0
@@ -191,7 +191,7 @@ export function generateDomainNarrative(domain: DomainStat, data: AuditReportDat
     : `Les contrôles de ce domaine n'ont pas été évalués au cours de la mission`
   const p1 = `${coverageClause}, soit un score pondéré de ${domain.score}%. Au terme de l'évaluation, le domaine ${domain.code} (${domain.name}) est qualifié de « ${status} » au regard des exigences du référentiel ${fw}.`
 
-  // Paragraphe 2 — décomposition des résultats
+  // Paragraphe 2 - décomposition des résultats
   let p2: string
   if (domain.scored === 0) {
     p2 = `Aucune appréciation ne peut être formulée à ce stade : ce domaine devra faire l'objet d'une évaluation au cours d'une mission ultérieure.`
@@ -212,7 +212,7 @@ export function generateDomainNarrative(domain: DomainStat, data: AuditReportDat
     p2 = `${conformesClause} sur les ${domain.scored} évalués, ${ncClause}${obsClause}. Le détail des constats individuels est restitué dans les sections 5 (NC majeures) et 7 (plan d'action).`
   }
 
-  // Paragraphe 3 — lecture qualitative + contrôles cités concrètement
+  // Paragraphe 3 - lecture qualitative + contrôles cités concrètement
   const strengths = topConformingControls(data, 3, domain.code)
   const weakness = topWeakControls(data, 3, domain.code)
 
@@ -243,7 +243,7 @@ export function generateDomainNarrative(domain: DomainStat, data: AuditReportDat
   return [p1, p2, p3]
 }
 
-// ── 05. Fiches NC majeures — sous-paragraphes ─────────────────────────────
+// ── 05. Fiches NC majeures - sous-paragraphes ─────────────────────────────
 
 export interface NCFactSheetSections {
   requirement: string
@@ -366,9 +366,9 @@ export function generateExecutiveLetterBody(data: AuditReportData): string[] {
 
 export function generateGlossary(): { term: string; def: string }[] {
   return [
-    { term: 'CAR', def: 'Corrective Action Request — demande d\'action corrective émise à la clôture d\'une mission, opposable à l\'entité auditée pour traitement formalisé d\'une non-conformité ou d\'une observation.' },
-    { term: 'NC majeure', def: 'Non-conformité majeure — manquement substantiel à une exigence du référentiel, susceptible de compromettre l\'atteinte des objectifs du système de management ou la délivrance / le maintien d\'une attestation.' },
-    { term: 'NC mineure', def: 'Non-conformité mineure — écart ponctuel ou d\'application incomplète, n\'affectant pas la capacité d\'ensemble du dispositif à atteindre son objectif.' },
+    { term: 'CAR', def: 'Corrective Action Request : demande d\'action corrective émise à la clôture d\'une mission, opposable à l\'entité auditée pour traitement formalisé d\'une non-conformité ou d\'une observation.' },
+    { term: 'NC majeure', def: 'Non-conformité majeure : manquement substantiel à une exigence du référentiel, susceptible de compromettre l\'atteinte des objectifs du système de management ou la délivrance / le maintien d\'une attestation.' },
+    { term: 'NC mineure', def: 'Non-conformité mineure : écart ponctuel ou d\'application incomplète, n\'affectant pas la capacité d\'ensemble du dispositif à atteindre son objectif.' },
     { term: 'Observation', def: 'Opportunité d\'amélioration identifiée par l\'équipe d\'audit, sans qualification d\'écart formel.' },
     { term: 'Score pondéré', def: 'Score de conformité agrégé selon la pondération c=100 / lc=75 / pc=50 / nc=0, les contrôles non applicables étant exclus du calcul.' },
     { term: 'Fiche de travail', def: 'Fiche de travail documentant un test d\'audit : objectif, périmètre, technique mobilisée, échantillon retenu, résultats, conclusion.' },
@@ -376,8 +376,8 @@ export function generateGlossary(): { term: string; def: string }[] {
     { term: 'Matérialité', def: 'Seuil au-delà duquel un écart est jugé significatif au regard des objectifs de l\'audit.' },
     { term: 'Réexécution', def: 'Technique consistant à exécuter à nouveau un contrôle automatisé ou manuel afin d\'apprécier son efficacité opérationnelle.' },
     { term: 'Revue documentaire', def: 'Examen critique des politiques, procédures, comptes-rendus et enregistrements en vigueur dans l\'organisation.' },
-    { term: 'BIA', def: 'Business Impact Analysis — analyse d\'impact sur l\'activité, base de la priorisation des ressources critiques pour le plan de continuité.' },
-    { term: 'SoA', def: 'Statement of Applicability — déclaration d\'applicabilité justifiant les exclusions de contrôles dans une démarche ISO 27001.' },
+    { term: 'BIA', def: 'Business Impact Analysis : analyse d\'impact sur l\'activité, base de la priorisation des ressources critiques pour le plan de continuité.' },
+    { term: 'SoA', def: 'Statement of Applicability : déclaration d\'applicabilité justifiant les exclusions de contrôles dans une démarche ISO 27001.' },
   ]
 }
 
@@ -430,7 +430,7 @@ function formatPeriod(start: string | null | undefined, end: string | null | und
   if (!start && !end) return 'la période sous revue'
   const fmt = (iso: string | null | undefined): string => iso
     ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
-    : '—'
+    : '-'
   return `${fmt(start)} au ${fmt(end)}`
 }
 

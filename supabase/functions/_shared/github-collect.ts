@@ -3,7 +3,7 @@ import { logActivity } from './audit-log.ts'
 
 // Collecte GitHub réutilisable (RFC 0014 P3) : org-level, 3 checks dérivés d'un
 // seul GET /orgs/{org}. Appelable depuis l'edge utilisateur (connector-github) ET
-// le dispatcher planifié. Prend un org_id (interne) explicite — pas de JWT requis.
+// le dispatcher planifié. Prend un org_id (interne) explicite - pas de JWT requis.
 //
 // ⚠️ Les 3 flags org GitHub (two_factor_requirement_enabled, *_for_new_repositories)
 // ne sont renvoyés QUE si le token a les droits owner → sinon null => verdict 'na'.

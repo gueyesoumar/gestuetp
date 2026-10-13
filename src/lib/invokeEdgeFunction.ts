@@ -31,7 +31,7 @@ export async function invokeEdgeFunction<T = Record<string, unknown>>(
           const responseBody = await ctx.json() as { error?: string } | null
           if (responseBody?.error) msg = String(responseBody.error)
         } catch {
-          // body non-JSON ou déjà consommé — on garde le message générique
+          // body non-JSON ou déjà consommé - on garde le message générique
         }
       }
       return { ok: false, error: msg }

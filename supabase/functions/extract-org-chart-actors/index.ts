@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const auth = await authenticateCaller(admin, req)
     if (!auth.ok) return jsonResponse({ error: auth.message }, auth.status)
     const caller = auth.profile
-    // Fonctionnalite reservee aux auditeurs (jamais un compte portail client) —
+    // Fonctionnalite reservee aux auditeurs (jamais un compte portail client) -
     // sinon abus de cout Anthropic par un tiers non habilite.
     if (caller.role === 'client') return jsonResponse({ error: 'Acces refuse' }, 403)
 

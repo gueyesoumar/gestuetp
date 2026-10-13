@@ -1,5 +1,5 @@
 /**
- * LoginForm — dark-themed login form for the vault.
+ * LoginForm - dark-themed login form for the vault.
  */
 
 import { useState } from 'react'

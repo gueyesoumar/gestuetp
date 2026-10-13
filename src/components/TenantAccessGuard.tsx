@@ -8,7 +8,7 @@ import { setTenantDeniedFlag } from '../lib/tenantAccess'
 /**
  * Garde d'accès par domaine marque blanche. Sur un domaine cabinet (branding
  * résolu), coupe la session si le compte connecté n'appartient pas à ce cabinet
- * (staff, client, ou super-admin) — via le RPC serveur user_belongs_to_cabinet.
+ * (staff, client, ou super-admin) - via le RPC serveur user_belongs_to_cabinet.
  * Les données sont déjà cloisonnées par RLS ; ceci ajoute la cohérence d'accès.
  *
  * Non bloquant (rend les enfants) ; agit en effet de bord. Fail-open en cas

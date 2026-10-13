@@ -100,11 +100,11 @@ export function ValidationDetailPanel({ assessment, reviewStage, onClose, onRevi
               <div className="text-[11px] text-amber-800 mb-2 grid grid-cols-2 gap-2">
                 <div>
                   <span className="font-semibold">Conformit&eacute; choisie :</span>{' '}
-                  {chosen ? getConformityLabel(chosen) : '—'}
+                  {chosen ? getConformityLabel(chosen) : '-'}
                 </div>
                 <div>
                   <span className="font-semibold">Sugg&eacute;r&eacute;e :</span>{' '}
-                  {suggested ? getConformityLabel(suggested) : '—'}
+                  {suggested ? getConformityLabel(suggested) : '-'}
                 </div>
               </div>
               <div className="text-[12px] text-gray-700 bg-white rounded px-2 py-1.5 border border-amber-100 whitespace-pre-wrap leading-relaxed">

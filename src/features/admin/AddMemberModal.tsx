@@ -60,13 +60,13 @@ export function AddMemberModal({ organizationId, organizationName, open, onClose
   const inputCls = 'mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100'
 
   return (
-    <Modal open={open} onClose={close} title={`Ajouter un membre — ${organizationName}`}>
+    <Modal open={open} onClose={close} title={`Ajouter un membre (${organizationName})`}>
       {error && <ErrorAlert message={error} />}
       {sent !== null ? (
         <div className="space-y-4">
           <div className="rounded-lg bg-green-50 p-3 text-[13px] text-green-700">
             Membre ajouté avec le rôle <strong>Associé</strong> (administrateur).
-            {sent ? ' Un email de définition de mot de passe lui a été envoyé.' : ' ⚠️ L\'email n\'a pas pu être envoyé — communiquez-lui le lien autrement (RESEND_API_KEY ?).'}
+            {sent ? ' Un email de définition de mot de passe lui a été envoyé.' : ' ⚠️ L\'email n\'a pas pu être envoyé : communiquez-lui le lien autrement (RESEND_API_KEY ?).'}
           </div>
           <div className="flex justify-end">
             <button type="button" onClick={close} className="rounded-md bg-forest-700 px-4 py-2 text-sm font-medium text-white hover:bg-forest-900">Fermer</button>
@@ -95,7 +95,7 @@ export function AddMemberModal({ organizationId, organizationName, open, onClose
           <div className="flex justify-end gap-3 pt-1">
             <button type="button" onClick={close} disabled={submitting} className="rounded-lg border border-gray-200 px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 disabled:opacity-50">Annuler</button>
             <button type="submit" disabled={submitting || !firstName || !lastName || !email || !reason} className="rounded-md bg-forest-700 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50">
-              {submitting ? 'Ajout…' : 'Ajouter le membre'}
+              {submitting ? 'Ajout...' : 'Ajouter le membre'}
             </button>
           </div>
         </form>

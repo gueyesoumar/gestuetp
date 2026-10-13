@@ -1,6 +1,6 @@
 -- Migration 00162 (UP) : primitive de cloisonnement par ARÊTE (RFC 0001 §8-9, P3a étape « compat »).
 --
--- Crée `visible_target_ids()` À CÔTÉ des helpers existants — AUCUNE policy n'est
+-- Crée `visible_target_ids()` À CÔTÉ des helpers existants - AUCUNE policy n'est
 -- modifiée ici. Zéro changement de comportement : rien ne l'utilise encore.
 -- But : la vérifier STRICTEMENT ÉQUIVALENTE à get_subsidiary_ids(get_my_organization_id())
 -- avant de basculer les policies (vague suivante).
@@ -53,4 +53,4 @@ as $$
 $$;
 
 comment on function public.visible_target_ids() is
-  'RFC 0001 §8 : descendants actifs (récursif) de l''org staff courante via arêtes supervision/possession — équivalent graphe de get_subsidiary_ids(get_my_organization_id()). Auto-scopée (anti-IDOR), filtre client hérité. Destinée à remplacer get_subsidiary_ids dans les policies après vérif d''équivalence.';
+  'RFC 0001 §8 : descendants actifs (récursif) de l''org staff courante via arêtes supervision/possession - équivalent graphe de get_subsidiary_ids(get_my_organization_id()). Auto-scopée (anti-IDOR), filtre client hérité. Destinée à remplacer get_subsidiary_ids dans les policies après vérif d''équivalence.';

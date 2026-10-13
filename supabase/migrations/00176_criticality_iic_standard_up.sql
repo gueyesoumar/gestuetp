@@ -1,5 +1,5 @@
 -- Migration: criticality_iic_standard (UP)
--- Regul : la criticité d'un assujetti se réduit à DEUX niveaux —
+-- Regul : la criticité d'un assujetti se réduit à DEUX niveaux -
 --   'eleve'    = IIC (Infrastructure d'Information Critique), le plus haut
 --   'standard' = Standard
 -- On retire 'indetermine' (mig 00146). Les lignes existantes en 'indetermine'

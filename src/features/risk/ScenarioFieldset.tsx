@@ -33,14 +33,14 @@ export function ScenarioFieldset({ value, onChange, catalog }: {
         <div>
           <label className="block text-[12px] font-medium text-gray-600 mb-1">Dimension *</label>
           <select value={value.dimension} onChange={(e) => onChange({ dimension: e.target.value as ScoreDimension })} className={field}>
-            <option value="">Sélectionner…</option>
+            <option value="">Sélectionner...</option>
             {AXES.map((k) => <option key={k} value={k}>{SCORE_DIMENSION_LABELS[k]}</option>)}
           </select>
         </div>
         <div>
           <label className="block text-[12px] font-medium text-gray-600 mb-1">Menace (ISO 27005)</label>
           <select value={value.threat} onChange={(e) => onChange({ threat: e.target.value })} className={field}>
-            <option value="">—</option>
+            <option value="">-</option>
             {threats.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
         </div>
@@ -48,7 +48,7 @@ export function ScenarioFieldset({ value, onChange, catalog }: {
       <div>
         <label className="block text-[12px] font-medium text-gray-600 mb-1">Événement redouté (EBIOS RM)</label>
         <select value={value.feared} onChange={(e) => onChange({ feared: e.target.value })} className={field}>
-          <option value="">—</option>
+          <option value="">-</option>
           {fearedEvents.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
         </select>
       </div>

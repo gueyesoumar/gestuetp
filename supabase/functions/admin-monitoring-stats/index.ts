@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
     }
     const ai_per_cabinet: CabinetStat[] = Array.from(orgMap.entries()).map(([id, e]) => ({
       organization_id: id,
-      cabinet_name: cabinetNames.get(id) ?? '—',
+      cabinet_name: cabinetNames.get(id) ?? '-',
       calls: e.calls,
       cost_usd: Math.round(e.cost * 1_000_000) / 1_000_000,
     })).sort((a, b) => b.cost_usd - a.cost_usd).slice(0, 10)
@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
     }
     const storage_per_cabinet: CabinetStorage[] = Array.from(docsByCabinet.entries()).map(([id, e]) => ({
       organization_id: id,
-      cabinet_name: cabinetNames.get(id) ?? '—',
+      cabinet_name: cabinetNames.get(id) ?? '-',
       total_bytes: e.bytes,
       documents_count: e.count,
     })).sort((a, b) => b.total_bytes - a.total_bytes).slice(0, 10)

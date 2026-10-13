@@ -7,7 +7,7 @@
  * portail brandé (et non sur app.gestugroup.com).
  *
  * N'utilise le domaine cabinet que si le flag white_label_branding est actif ET
- * qu'un domaine cabinet_domains est vérifié — sinon le middleware redirigerait
+ * qu'un domaine cabinet_domains est vérifié - sinon le middleware redirigerait
  * ce domaine vers app.gestugroup.com. Toute erreur retombe sur le fallback.
  */
 

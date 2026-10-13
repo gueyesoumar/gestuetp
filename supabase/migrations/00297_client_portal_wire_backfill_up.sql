@@ -21,13 +21,13 @@ begin
   end if;
 end $$;
 
--- 1. B3 — catalogue : les produits à portail portent la capacité client_portal.
+-- 1. B3 - catalogue : les produits à portail portent la capacité client_portal.
 insert into public.product_capability (product_key, capability) values
   ('comply', 'client_portal'),
   ('regul',  'client_portal')
 on conflict do nothing;
 
--- 2. B4 — backfill : toutes les orgs actuelles (Cabinet / Regul) reçoivent un entitlement
+-- 2. B4 - backfill : toutes les orgs actuelles (Cabinet / Regul) reçoivent un entitlement
 --    client_portal 'manual' (survit à la sync d'abonnement). Le trigger projette en capacité.
 --    Les futures orgs Entreprise ne recevront pas ce grant → pas de portail.
 insert into public.org_entitlements

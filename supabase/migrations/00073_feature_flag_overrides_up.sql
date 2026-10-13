@@ -24,7 +24,7 @@ CREATE TRIGGER trg_ffo_updated_at
   BEFORE UPDATE ON public.feature_flag_overrides
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- RLS — lecture libre pour les utilisateurs authentifiés (le hook useFeatureFlag()
+-- RLS - lecture libre pour les utilisateurs authentifiés (le hook useFeatureFlag()
 -- doit pouvoir lire l'override de SON org). Écriture via Edge Function (service-role).
 ALTER TABLE public.feature_flag_overrides ENABLE ROW LEVEL SECURITY;
 

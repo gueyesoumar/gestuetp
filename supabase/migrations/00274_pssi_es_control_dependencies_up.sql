@@ -1,4 +1,4 @@
--- 00274 — Dépendances intra-PSSI-ES entre contrôles (propagation des constats + cohérence).
+-- 00274 - Dépendances intra-PSSI-ES entre contrôles (propagation des constats + cohérence).
 -- Dérivé du crosswalk ISO 27001 (champ guidance) : deux contrôles PSSI partageant une même
 -- mesure ISO traitent le même sujet → dépendance. equivalent (mesure ISO 1-1 identique) alimente
 -- la cohérence inter-contrôles ET la propagation ; partial/related alimentent la propagation

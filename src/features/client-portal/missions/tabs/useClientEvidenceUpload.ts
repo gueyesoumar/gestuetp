@@ -127,7 +127,7 @@ export function useClientEvidenceUpload({
 
     const promise = upload()
     toast.promise(promise, {
-      loading: `Envoi de ${file.name}…`,
+      loading: `Envoi de ${file.name}...`,
       success: (label) => `« ${label} » déposé`,
       error: 'Impossible d\'envoyer le document',
     })
@@ -214,7 +214,7 @@ export function useClientEvidenceUpload({
 
     const promise = link()
     toast.promise(promise, {
-      loading: 'Liaison du document…',
+      loading: 'Liaison du document...',
       success: (name) => `« ${name} » lié à « ${evidenceName} »`,
       error: 'Impossible de lier le document',
     })

@@ -33,14 +33,14 @@ export function CronWatchdog() {
   return (
     <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <header className="flex items-center px-4 py-3 border-b border-gray-200">
-        <span className="text-[13px] font-bold text-gray-900">Tâches planifiées — surveillance</span>
+        <span className="text-[13px] font-bold text-gray-900">Tâches planifiées : surveillance</span>
         <span className="ml-auto text-[10px] uppercase tracking-wider text-gray-400 font-semibold">dead-man&apos;s switch</span>
         {alerts > 0 && <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600 tabular-nums">{alerts}</span>}
       </header>
       {error ? (
         <div className="px-4 py-6 text-center text-[12px] text-gray-400">{error}</div>
       ) : loading ? (
-        <div className="px-4 py-6 text-center text-[12px] text-gray-400">Chargement…</div>
+        <div className="px-4 py-6 text-center text-[12px] text-gray-400">Chargement...</div>
       ) : jobs.length === 0 ? (
         <div className="px-4 py-6 text-center text-[12px] text-gray-400">Aucune tâche planifiée.</div>
       ) : (
@@ -61,7 +61,7 @@ export function CronWatchdog() {
                   <div className="text-[10.5px] text-gray-400 font-mono">{j.schedule}{j.active ? '' : ' · inactif'}</div>
                 </td>
                 <td className="px-4 py-2.5 border-b border-gray-100 text-[12px] text-gray-600 tabular-nums">{timeAgo(j.last_run_at)}</td>
-                <td className="px-4 py-2.5 border-b border-gray-100 text-right text-[11.5px] text-gray-500 tabular-nums">{j.last_duration_ms != null ? `${(j.last_duration_ms / 1000).toFixed(1)} s` : '—'}</td>
+                <td className="px-4 py-2.5 border-b border-gray-100 text-right text-[11.5px] text-gray-500 tabular-nums">{j.last_duration_ms != null ? `${(j.last_duration_ms / 1000).toFixed(1)} s` : '-'}</td>
                 <td className="px-4 py-2.5 border-b border-gray-100 text-right"><Pill job={j} /></td>
               </tr>
             ))}

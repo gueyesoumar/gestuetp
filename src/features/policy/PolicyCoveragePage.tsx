@@ -15,7 +15,7 @@ export function PolicyCoveragePage(): JSX.Element {
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><LayoutGrid size={20} className="text-[#6D5AE6]" /> Couverture des politiques</h1>
-        <p className="mt-1 text-[13px] text-gray-500">Le jeu de politiques requises par référentiel, confronté à votre registre — et les lacunes à combler.</p>
+        <p className="mt-1 text-[13px] text-gray-500">Le jeu de politiques requises par référentiel, confronté à votre registre, et les lacunes à combler.</p>
       </div>
 
       {cov.frameworks.length === 0 ? (

@@ -1,4 +1,4 @@
--- Seed: Catalogue complet des preuves ISO 27001:2022 — tous les 93 contrôles
+-- Seed: Catalogue complet des preuves ISO 27001:2022 - tous les 93 contrôles
 -- Exécuter APRÈS 009_fix (qui supprime les anciennes entrées)
 
 delete from public.evidence_catalog;

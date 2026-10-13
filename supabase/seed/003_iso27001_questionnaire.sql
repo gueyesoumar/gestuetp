@@ -4,7 +4,7 @@ insert into public.questionnaire_templates (id, framework_id, name, description,
 values (
   '00000000-0000-0000-0000-000000000020',
   '00000000-0000-0000-0000-000000000010',
-  'Questionnaire de prise de connaissance — ISO 27001',
+  'Questionnaire de prise de connaissance - ISO 27001',
   'Questionnaire initial envoye au client en debut de mission ISO 27001',
   '1.0'
 );

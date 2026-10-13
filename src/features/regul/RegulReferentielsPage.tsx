@@ -56,7 +56,7 @@ export function RegulReferentielsPage(): JSX.Element {
                   <button onClick={() => toggle(d.id)} className="w-full flex items-center gap-2.5 px-4 py-3 hover:bg-forest-50/40 text-left">
                     {open.has(d.id) ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronRight size={16} className="text-gray-400" />}
                     <BookMarked size={16} className="text-forest-600" />
-                    <span className="font-semibold text-[14px] text-gray-900">{d.code} — {d.name}</span>
+                    <span className="font-semibold text-[14px] text-gray-900">{d.code} : {d.name}</span>
                     <span className="ml-auto text-[11px] text-gray-400">{d.controls.length} contrôle{d.controls.length > 1 ? 's' : ''}</span>
                   </button>
                   {open.has(d.id) && (

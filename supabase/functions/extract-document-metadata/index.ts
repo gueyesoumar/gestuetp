@@ -18,12 +18,12 @@ import { guardAiExposure } from '../_shared/ai-gate.ts'
  *
  * Court-circuit :
  *   - Cabinet a coupé l'IA (organizations.ai_analysis_enabled=false)
- *   - Document déjà extrait (ai_extracted_at non NULL) — idempotent
+ *   - Document déjà extrait (ai_extracted_at non NULL) - idempotent
  *   - Pas de anthropic_file_id → erreur persistée
  *
  * Modèle : claude-sonnet-4-20250514 (Haiku 4.5 trop laxiste sur la
  * détection des signatures réelles vs blocs vides et sur le versionning).
- * Sonnet est exigé pour la qualité — Pass 1 ne tourne qu'une fois par doc
+ * Sonnet est exigé pour la qualité - Pass 1 ne tourne qu'une fois par doc
  * puis le résultat est mis en cache permanent dans documents.ai_metadata.
  */
 
@@ -108,7 +108,7 @@ const EXTRACT_TOOL = {
 
 const EXTRACT_PROMPT = `Tu es un auditeur SI senior. Analyse le document fourni et extrais ses métadonnées factuelles avec rigueur.
 
-RÈGLES STRICTES — la qualité de cette extraction est critique :
+RÈGLES STRICTES, la qualité de cette extraction est critique :
 
 1. SIGNATURES : signed=true UNIQUEMENT si tu observes une preuve visuelle :
    - paraphe manuscrit (trait, gribouillis distinctif)
@@ -324,7 +324,7 @@ async function persistError(
   if (error) console.warn('[extract-document-metadata] persistError failed:', error.message)
 }
 
-// Backoff sur erreurs transient Anthropic. 10s puis 30s — total wait 40s
+// Backoff sur erreurs transient Anthropic. 10s puis 30s - total wait 40s
 // + 3 attempts × 30s timeout = 130s max par doc. Calibré pour rester sous
 // le budget temps de smart-questionnaire (90s par doc cible).
 const RETRY_DELAYS_MS = [10_000, 30_000]

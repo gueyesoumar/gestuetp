@@ -18,7 +18,7 @@ interface UseFindingTemplatesResult {
   refetch: () => void
 }
 
-// Lot 3 — catalogue lié : constats-types (plateforme + cabinet) rattachés à un contrôle.
+// Lot 3 - catalogue lié : constats-types (plateforme + cabinet) rattachés à un contrôle.
 // La RLS renvoie les lignes 'platform' + celles du cabinet de l'utilisateur.
 export function useFindingTemplates(controlId: string | undefined): UseFindingTemplatesResult {
   const { profile } = useAuth()

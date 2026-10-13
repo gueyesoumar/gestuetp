@@ -1,4 +1,4 @@
--- 00282 — Contenu des preuves attendues (NIST, modèle mutualisé).
+-- 00282 - Contenu des preuves attendues (NIST, modèle mutualisé).
 insert into public.evidence_items (framework_id, name, description, kind)
 select '00000000-0000-0000-0000-000000000011', t.name, t.descr, t.kind from (values
   ('Cartographie du contexte et des parties prenantes', 'Démontre que la mission, les parties prenantes et leurs attentes cyber sont identifiées et documentées.', 'document'),

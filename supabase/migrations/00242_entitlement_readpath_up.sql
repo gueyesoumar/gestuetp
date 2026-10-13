@@ -3,7 +3,7 @@
 -- org_entitlements devient la SOURCE DE VÉRITÉ EN LECTURE pour capacités + quotas +
 -- MRR. Le write-path reste inchangé (admin-subscription écrit org_subscriptions /
 -- org_quota_limits) : un PONT reflète ces écritures dans org_entitlements en temps
--- réel. Le pont est transitoire — INC 4 (console écrivant org_entitlements) le
+-- réel. Le pont est transitoire - INC 4 (console écrivant org_entitlements) le
 -- supprimera.
 --
 -- Invariance : org_entitlements est un miroir fidèle du backfill (00241) ; les

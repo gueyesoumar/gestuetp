@@ -15,7 +15,7 @@ interface FindingsEditorProps {
   readOnly: boolean
   /** Suggestions de constats dérivées du référentiel (controls.audit_checklist). */
   checklistSuggestions?: string[]
-  /** Contrôle courant — active le constat systémique (propagation vers contrôles liés). */
+  /** Contrôle courant - active le constat systémique (propagation vers contrôles liés). */
   assessment?: AssessmentWithControl
 }
 

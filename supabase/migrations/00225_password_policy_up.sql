@@ -1,4 +1,4 @@
--- Migration 00225 (UP) — Politique de mot de passe pilotable depuis le super-admin.
+-- Migration 00225 (UP) - Politique de mot de passe pilotable depuis le super-admin.
 -- Source de vérité applicative (couche éditable) ; le socle dur (min length + HIBP)
 -- reste réglé côté GoTrue (Dashboard). Enforcement serveur : edge `set-password`.
 -- Phase 1 : longueur + complexité + interdits/HIBP. Phase 2 : rotation + historique

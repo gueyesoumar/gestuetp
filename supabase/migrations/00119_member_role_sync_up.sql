@@ -14,7 +14,7 @@
 -- Anti-récursion : pg_trigger_depth() > 1 court-circuite le cascade.
 
 -- ════════════════════════════════════════════════════════════════════════════
--- 1. BACKFILL — réconcilier les états existants (missions = autorité sur conflit)
+-- 1. BACKFILL - réconcilier les états existants (missions = autorité sur conflit)
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- 1a. Pour chaque mission avec lead_auditor_id défini, garantir mission_members
@@ -148,7 +148,7 @@ end;
 $$;
 
 comment on function public.sync_lead_associate_to_members() is
-  'Trigger AFTER missions INSERT/UPDATE — propage lead_auditor_id / associate_id vers mission_members.';
+  'Trigger AFTER missions INSERT/UPDATE - propage lead_auditor_id / associate_id vers mission_members.';
 
 drop trigger if exists trg_sync_lead_associate_to_members on public.missions;
 create trigger trg_sync_lead_associate_to_members
@@ -225,7 +225,7 @@ end;
 $$;
 
 comment on function public.sync_member_role_to_mission() is
-  'Trigger AFTER mission_members INSERT/UPDATE/DELETE — propage le rôle lead_auditor / associate vers missions.';
+  'Trigger AFTER mission_members INSERT/UPDATE/DELETE - propage le rôle lead_auditor / associate vers missions.';
 
 drop trigger if exists trg_sync_member_role_to_mission on public.mission_members;
 create trigger trg_sync_member_role_to_mission

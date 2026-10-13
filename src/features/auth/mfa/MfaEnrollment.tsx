@@ -90,7 +90,7 @@ export function MfaEnrollment(): JSX.Element {
               className="w-full text-white font-semibold rounded-lg py-3 disabled:opacity-50"
               style={{ backgroundColor: 'var(--color-forest-900)' }}
             >
-              {busy ? 'Vérification…' : 'Activer et continuer'}
+              {busy ? 'Vérification...' : 'Activer et continuer'}
             </button>
           </form>
         </>

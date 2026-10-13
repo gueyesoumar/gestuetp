@@ -63,7 +63,7 @@ export function useGroupPermissions(): GroupPermissions {
           return
         }
 
-        // Merge permissions from all roles (OR logic — any role granting = granted)
+        // Merge permissions from all roles (OR logic - any role granting = granted)
         let viewSupervision = false
         let createCampaign = false
         let manageSubsidiaries = false
@@ -83,7 +83,7 @@ export function useGroupPermissions(): GroupPermissions {
         }
 
         // If no roles have any group permissions set, default to all true
-        // (first-time setup — admin hasn't configured group permissions yet)
+        // (first-time setup - admin hasn't configured group permissions yet)
         const hasAnyGroupPerm = rows.some((row) => {
           const role = row.platform_roles
           if (!role?.permissions) return false
@@ -94,7 +94,7 @@ export function useGroupPermissions(): GroupPermissions {
         })
 
         if (!hasAnyGroupPerm) {
-          // No group permissions configured yet — allow all by default
+          // No group permissions configured yet - allow all by default
           viewSupervision = true
           createCampaign = true
           manageSubsidiaries = true

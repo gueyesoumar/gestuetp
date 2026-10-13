@@ -29,7 +29,7 @@ export function usePolicyControls(policyId: string): {
         if (ac.signal.aborted) return
         if (error) { console.error('[usePolicyControls]', error.message); setLoading(false); return }
         setControls(((data ?? []) as unknown as Array<{ id: string; control_id: string; control: { code: string; name: string } | null }>).map((r) => ({
-          linkId: r.id, control_id: r.control_id, code: r.control?.code ?? '—', name: r.control?.name ?? '',
+          linkId: r.id, control_id: r.control_id, code: r.control?.code ?? '-', name: r.control?.name ?? '',
         })))
         setLoading(false)
       })

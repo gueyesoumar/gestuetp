@@ -1,4 +1,4 @@
--- 00273 — Constats-types PSSI-ES personnalisés (couverture complète, remplace le générique 00271).
+-- 00273 - Constats-types PSSI-ES personnalisés (couverture complète, remplace le générique 00271).
 -- Pour chaque contrôle : constat factuel + risques + recommandations rédigés à partir de
 -- l'exigence réelle et de son équivalent ISO 27001. Variante « major » pour les contrôles
 -- critiques (risk_level >= 4). Les lignes génériques de 00271 sont d'abord supprimées.
@@ -11,7 +11,7 @@ where ft.control_id = c.id and ft.scope = 'platform' and ft.classification = 'mi
   and ft.description like 'Non-conformité à l''exigence %'
   and c.domain_id in (select id from public.domains where framework_id = '00000000-0000-0000-0000-000000000017');
 
--- (1) Constats-types personnalisés — NC mineure (tous les contrôles).
+-- (1) Constats-types personnalisés - NC mineure (tous les contrôles).
 insert into public.finding_templates (scope, control_id, classification, description, risks, recommendations)
 select 'platform', c.id, 'minor_nc', t.descr, t.risks, t.recos
 from (values
@@ -236,7 +236,7 @@ where not exists (
   where ft.control_id = c.id and ft.scope = 'platform' and ft.classification = 'minor_nc'
 );
 
--- (2) Constats-types personnalisés — NC majeure (contrôles critiques).
+-- (2) Constats-types personnalisés - NC majeure (contrôles critiques).
 insert into public.finding_templates (scope, control_id, classification, description, risks, recommendations)
 select 'platform', c.id, 'major_nc', t.descr, t.risks, t.recos
 from (values

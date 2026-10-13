@@ -25,7 +25,7 @@ export function setPageContext(ctx: DocContext, label: string): void {
   ctx.sectionByPage.set(ctx.doc.getCurrentPageInfo().pageNumber, label)
 }
 
-// ── Header / Footer / Watermark — appliqués à la fin ──────────────────────
+// ── Header / Footer / Watermark - appliqués à la fin ──────────────────────
 
 export function finalizeHeadersFooters(ctx: DocContext): void {
   const total = ctx.doc.getNumberOfPages()

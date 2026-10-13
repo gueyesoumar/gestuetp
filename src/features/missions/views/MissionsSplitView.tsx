@@ -111,7 +111,7 @@ export function MissionsSplitView({ missions }: MissionsSplitViewProps) {
                     ? selected.scorePct >= 80 ? 'text-success' : 'text-forest-700'
                     : 'text-gray-300'
                 }`}>
-                  {selected.scorePct !== null ? `${selected.scorePct}%` : '—'}
+                  {selected.scorePct !== null ? `${selected.scorePct}%` : '-'}
                 </div>
                 <div className="text-[10px] text-gray-400">Score</div>
               </div>
@@ -119,9 +119,9 @@ export function MissionsSplitView({ missions }: MissionsSplitViewProps) {
 
             {/* Quick info */}
             <div className="mt-5 space-y-2">
-              <InfoRow label="Chef de mission" value={selected.lead_auditor ? `${selected.lead_auditor.first_name} ${selected.lead_auditor.last_name}` : '—'} />
-              <InfoRow label="Période" value={selected.start_date && selected.end_date ? `${formatDate(selected.start_date)} → ${formatDate(selected.end_date)}` : '—'} />
-              <InfoRow label="Référentiel" value={`${selected.framework?.name ?? '—'} ${selected.framework?.version ? `v${selected.framework.version}` : ''}`} />
+              <InfoRow label="Chef de mission" value={selected.lead_auditor ? `${selected.lead_auditor.first_name} ${selected.lead_auditor.last_name}` : '-'} />
+              <InfoRow label="Période" value={selected.start_date && selected.end_date ? `${formatDate(selected.start_date)} → ${formatDate(selected.end_date)}` : '-'} />
+              <InfoRow label="Référentiel" value={`${selected.framework?.name ?? '-'} ${selected.framework?.version ? `v${selected.framework.version}` : ''}`} />
             </div>
           </div>
         ) : (

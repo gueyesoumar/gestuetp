@@ -1,7 +1,7 @@
--- Migration 00084: Catalogue des exigences réglementaires (seed → migration) — UP
+-- Migration 00084: Catalogue des exigences réglementaires (seed → migration) - UP
 --
 -- Le contenu venait à l'origine de supabase/seed/014_regulatory_catalog.sql
--- mais les seeds ne s'exécutent pas en prod — seule la migration 00050 a posé
+-- mais les seeds ne s'exécutent pas en prod - seule la migration 00050 a posé
 -- PSSI-ES, laissant les 21 autres entrées absentes en staging/prod.
 --
 -- Cette migration porte les 22 entrées (Sénégal, UEMOA, CIMA, CEDEAO,
@@ -146,7 +146,7 @@ ON CONFLICT (short_name) DO NOTHING;
 -- CIMA (Assurances)
 -- ============================================================
 INSERT INTO public.regulatory_catalog (short_name, name, type, jurisdiction, applicable_sectors, description, key_obligations, penalties, authority, impact) VALUES
-('CIMA-GOV', 'Code CIMA — Gouvernance et contrôle interne des sociétés d''assurance', 'reglementaire', 'CIMA',
+('CIMA-GOV', 'Code CIMA - Gouvernance et contrôle interne des sociétés d''assurance', 'reglementaire', 'CIMA',
   '{"Assurance"}',
   'Dispositions du Code CIMA relatives à la gouvernance, au contrôle interne et à la gestion des risques des compagnies d''assurance de la zone CIMA.',
   '[
@@ -207,7 +207,7 @@ INSERT INTO public.regulatory_catalog (short_name, name, type, jurisdiction, app
   ]',
   'Jusqu''à 20M€ ou 4% du CA mondial annuel',
   'Autorités de protection des données européennes (CNIL, etc.)', 'fort'),
-('PCI-DSS', 'PCI DSS — Payment Card Industry Data Security Standard', 'normative', 'International',
+('PCI-DSS', 'PCI DSS - Payment Card Industry Data Security Standard', 'normative', 'International',
   '{"Banque / Finance", "Commerce / Distribution", "Technologies / IT"}',
   'Norme de sécurité des données de l''industrie des cartes de paiement, obligatoire pour toute entité qui stocke, traite ou transmet des données de cartes.',
   '[
@@ -222,7 +222,7 @@ INSERT INTO public.regulatory_catalog (short_name, name, type, jurisdiction, app
   ]',
   'Amendes des réseaux de cartes (Visa, Mastercard), responsabilité en cas de fraude, perte du droit de traiter les cartes',
   'PCI Security Standards Council / Réseaux de cartes', 'fort'),
-('BALE-III', 'Accords de Bâle II/III — Exigences prudentielles bancaires', 'normative', 'International',
+('BALE-III', 'Accords de Bâle II/III - Exigences prudentielles bancaires', 'normative', 'International',
   '{"Banque / Finance"}',
   'Normes internationales du Comité de Bâle sur le contrôle bancaire, relatives aux fonds propres, à la gestion des risques et à la transparence.',
   '[
@@ -234,7 +234,7 @@ INSERT INTO public.regulatory_catalog (short_name, name, type, jurisdiction, app
   ]',
   'Sanctions de la Commission Bancaire selon le cadre UEMOA',
   'Comité de Bâle / BCEAO / Commission Bancaire', 'fort'),
-('ISO27001-REQ', 'ISO/IEC 27001 — Certification requise contractuellement', 'normative', 'International',
+('ISO27001-REQ', 'ISO/IEC 27001 - Certification requise contractuellement', 'normative', 'International',
   '{"Tous"}',
   'Lorsqu''un client, un partenaire ou un donneur d''ordre exige une certification ISO 27001 comme condition contractuelle.',
   '[
@@ -246,7 +246,7 @@ INSERT INTO public.regulatory_catalog (short_name, name, type, jurisdiction, app
   ]',
   'Non-conformité contractuelle, perte de marchés, résiliation de contrats',
   'Organismes de certification accrédités', 'fort'),
-('SOC2', 'SOC 2 — Service Organization Control 2', 'normative', 'International',
+('SOC2', 'SOC 2 - Service Organization Control 2', 'normative', 'International',
   '{"Technologies / IT", "Services aux entreprises"}',
   'Norme d''audit développée par l''AICPA, évaluant les contrôles de sécurité, disponibilité, intégrité, confidentialité et vie privée des fournisseurs de services.',
   '[

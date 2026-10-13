@@ -1,5 +1,5 @@
 /**
- * VaultBackground — fond dégradé sombre pour login / hub / set-password.
+ * VaultBackground - fond dégradé sombre pour login / hub / set-password.
  * Utilise les CSS variables --brand-primary et --brand-accent injectées
  * par BrandingProvider. Sur le domaine Gëstu ces variables valent
  * #1B4332 / #D4A843 ; sur un domaine cabinet personnalisé, elles prennent

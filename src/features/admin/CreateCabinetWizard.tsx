@@ -71,7 +71,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
       return
     }
     toast.success('Cabinet créé', {
-      description: data?.invitation_sent ? 'Le propriétaire a reçu un lien de définition de mot de passe.' : 'Compte créé sans email — renvoyer le lien depuis Utilisateurs.',
+      description: data?.invitation_sent ? 'Le propriétaire a reçu un lien de définition de mot de passe.' : 'Compte créé sans email : renvoyer le lien depuis Utilisateurs.',
     })
     onClose()
     onCreated?.(data.cabinet_id)
@@ -91,7 +91,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
             <Field label="Nom du cabinet *">
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Audit&Co Sénégal" disabled={submitting} />
             </Field>
-            <Field label="Slug *" hint="Identifiant URL-safe — généré automatiquement depuis le nom, modifiable">
+            <Field label="Slug *" hint="Identifiant URL-safe : généré automatiquement depuis le nom, modifiable">
               <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); setSlugTouched(true) }} placeholder="audit-co-senegal" disabled={submitting} />
             </Field>
             <Field label="Plan *">
@@ -129,7 +129,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
               <div><span className="text-gray-500">Propriétaire :</span> {ownerFirstName} {ownerLastName} &lt;{ownerEmail}&gt;</div>
             </div>
             <Field label="Motif * (audit)">
-              <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Contrat signé le… / contact entrant via…" disabled={submitting} />
+              <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Contrat signé le... / contact entrant via..." disabled={submitting} />
             </Field>
           </div>
         )}
@@ -154,7 +154,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
                 disabled={submitting || !step3Valid}
                 className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50"
               >
-                {submitting ? 'Création…' : 'Créer le cabinet'}
+                {submitting ? 'Création...' : 'Créer le cabinet'}
               </button>
             )}
           </div>

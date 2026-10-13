@@ -1,4 +1,4 @@
--- Migration 00216 (UP) — P1b.2 (RFC 0007) : snapshot probant du contexte
+-- Migration 00216 (UP) - P1b.2 (RFC 0007) : snapshot probant du contexte
 -- d'engagement, figé par mission. Le profil vivant (engagement_profiles) peut
 -- évoluer ; le snapshot conserve l'état au moment de l'audit pour le rapport.
 -- Additif. Dépend de 00215 (engagement_profiles) et de engagement_id (00213/00156).

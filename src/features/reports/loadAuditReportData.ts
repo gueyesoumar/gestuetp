@@ -12,7 +12,7 @@ import type { AssessmentWithControl, AuditReportData, ClientContact, EvidenceDoc
  * surcharger le chargement initial de la page Clôture.
  */
 export async function loadAuditReportData(mission: MissionDetail): Promise<AuditReportData> {
-  // 1. Membres de la mission (avec user) — non bloquant
+  // 1. Membres de la mission (avec user) - non bloquant
   const { data: membersRaw, error: membersErr } = await supabase
     .from('mission_members')
     .select('id, mission_id, user_id, role, user:users(id, first_name, last_name, email, job_title)')
@@ -21,7 +21,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
 
   const members = (membersRaw ?? []) as unknown as MissionMemberRow[]
 
-  // 2. Domaines + contrôles du framework (avec description) — CRITIQUE
+  // 2. Domaines + contrôles du framework (avec description) - CRITIQUE
   const { data: domainRows, error: domainsErr } = await supabase
     .from('domains')
     .select('id, code, name, description, sort_order, controls(id, code, name, description, sort_order, domain_id)')
@@ -40,7 +40,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     controls: [...(d.controls ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
   })) as unknown as DomainWithControls[]
 
-  // 3. Assessments avec contrôle joint (incl. description) — CRITIQUE
+  // 3. Assessments avec contrôle joint (incl. description) - CRITIQUE
   const { data: assessRaw, error: assessErr } = await supabase
     .from('control_assessments')
     .select('*, control:controls(id, code, name, description, domain_id)')
@@ -97,7 +97,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
       .maybeSingle()
     if (clientErr) console.error('[loadAuditReportData] client:', clientErr.message)
     // Contexte PROBANT (RFC 0007 §8.1 / P1b) : figé à l'ouverture de la mission
-    // (missions.engagement_snapshot), pas le profil vivant — le rapport reflète
+    // (missions.engagement_snapshot), pas le profil vivant - le rapport reflète
     // l'état au moment de l'audit. Repli : fiche telle quelle si pas de snapshot.
     const snapshot = (mission as { engagement_snapshot?: Record<string, unknown> | null }).engagement_snapshot
     // Identité (P1c.2) depuis le nœud ; contexte probant depuis le snapshot (§8.1).
@@ -106,7 +106,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     cabinetClientId = client?.id ?? null
   }
 
-  // 5. Contacts client (RSSI / approver — distribution list côté client)
+  // 5. Contacts client (RSSI / approver - distribution list côté client)
   let clientContacts: ClientContact[] = []
   if (cabinetClientId) {
     const { data: contactRows, error: contactsErr } = await supabase
@@ -127,7 +127,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   if (cabinetErr) console.error('[loadAuditReportData] cabinet:', cabinetErr.message)
   const cabRow = cabinetRow as { name: string; address: string | null; city: string | null; country: string | null; phone: string | null; website: string | null } | null
   const cabinetName = cabRow?.name ?? 'Cabinet'
-  const cabinetAddress = cabRow ? [cabRow.address, [cabRow.city, cabRow.country].filter(Boolean).join(' — ')].filter(Boolean).join('\n') : null
+  const cabinetAddress = cabRow ? [cabRow.address, [cabRow.city, cabRow.country].filter(Boolean).join(', ')].filter(Boolean).join('\n') : null
   const cabinetPhone = cabRow?.phone ?? null
   const cabinetWebsite = cabRow?.website ?? null
 
@@ -144,7 +144,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     support_email: string | null; footer_text: string | null
   } | null
 
-  // 8. Documents (preuves examinées) — annexe B
+  // 8. Documents (preuves examinées) - annexe B
   const { data: docRows, error: docsErr } = await supabase
     .from('documents')
     .select('id, file_name, document_type, created_at')

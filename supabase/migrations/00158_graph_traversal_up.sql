@@ -1,4 +1,4 @@
--- Migration 00158 (UP) : primitive de traversée du graphe — RFC 0001, étape 3
+-- Migration 00158 (UP) : primitive de traversée du graphe - RFC 0001, étape 3
 -- Fonction ADDITIVE et NON branchée (aucune policy ne l'utilise) → zéro
 -- changement de comportement. Deviendra l'API partagée du Hub puis des policies.
 --
@@ -30,7 +30,7 @@ as $$
 $$;
 
 comment on function public.my_related_org_ids(public.relationship_nature) is
-  'RFC 0001 — cibles des aretes actives sortantes de l''org courante, filtrables par nature. Auto-scopee (pas d''IDOR).';
+  'RFC 0001 - cibles des aretes actives sortantes de l''org courante, filtrables par nature. Auto-scopee (pas d''IDOR).';
 
 -- Hygiène : pas de grant PUBLIC par défaut ; execute réservé à authenticated.
 revoke execute on function public.my_related_org_ids(public.relationship_nature) from public;

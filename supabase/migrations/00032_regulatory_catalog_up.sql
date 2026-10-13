@@ -19,7 +19,7 @@ create table public.regulatory_catalog (
   updated_at timestamptz not null default now()
 );
 
-comment on table public.regulatory_catalog is 'Catalogue des exigences réglementaires internalisées — Sénégal, UEMOA, CEDEAO, International';
+comment on table public.regulatory_catalog is 'Catalogue des exigences réglementaires internalisées - Sénégal, UEMOA, CEDEAO, International';
 comment on column public.regulatory_catalog.type is 'legale, reglementaire, sectorielle, normative';
 comment on column public.regulatory_catalog.jurisdiction is 'Sénégal, UEMOA, CEDEAO, CIMA, International';
 comment on column public.regulatory_catalog.applicable_sectors is 'Secteurs concernés : Tous, Banque, Assurance, Télécoms, etc.';

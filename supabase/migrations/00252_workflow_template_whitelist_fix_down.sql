@@ -1,4 +1,4 @@
--- Migration 00252 (DOWN) — rétablit la liste blanche d'origine (avec fieldwork.*)
+-- Migration 00252 (DOWN) - rétablit la liste blanche d'origine (avec fieldwork.*)
 alter table public.organization_workflow_templates
   drop constraint chk_workflow_template_whitelist;
 

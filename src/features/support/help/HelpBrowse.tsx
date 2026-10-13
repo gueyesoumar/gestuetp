@@ -26,7 +26,7 @@ export function HelpBrowse(): JSX.Element {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher dans l'aide — ex : réinitialiser mon mot de passe…"
+            placeholder="Rechercher dans l'aide (ex : réinitialiser mon mot de passe...)"
             className="flex-1 bg-transparent text-[14px] text-gray-900 outline-none placeholder:text-gray-400"
             aria-label="Rechercher dans l'aide"
           />

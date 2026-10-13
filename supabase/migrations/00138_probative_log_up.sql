@@ -1,4 +1,4 @@
--- 00138 — Gëstu Regul (S1) : traçabilité à valeur probante.
+-- 00138 - Gëstu Regul (S1) : traçabilité à valeur probante.
 --
 -- Journal APPEND-ONLY chaîné par hash (SHA-256) : chaque entrée intègre le hash
 -- de la précédente (prev_hash). Toute altération/suppression casse la chaîne et

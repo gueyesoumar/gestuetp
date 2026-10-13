@@ -44,7 +44,7 @@ export function AutosaveIndicator({ status, lastSavedAt, onRetry }: AutosaveIndi
     return (
       <span className="inline-flex items-center gap-1.5 text-[11.5px] text-forest-700">
         <Loader2 size={12} className="animate-spin" />
-        Enregistrement…
+        Enregistrement...
       </span>
     )
   }

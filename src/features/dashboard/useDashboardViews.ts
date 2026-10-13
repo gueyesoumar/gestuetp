@@ -63,7 +63,7 @@ export function useDashboardViews(): UseDashboardViewsResult {
           setAllowedViews(sorted)
           setDefaultView(resolvedDefault && viewsSet.has(resolvedDefault) ? resolvedDefault : sorted[0])
         } else {
-          // No dashboard_views configured — allow all (backward compat)
+          // No dashboard_views configured - allow all (backward compat)
           setAllowedViews(ALL_VIEWS)
           setDefaultView(DEFAULT_VIEW)
         }

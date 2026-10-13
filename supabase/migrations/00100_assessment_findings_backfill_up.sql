@@ -82,7 +82,7 @@ insert into public.assessment_findings (
 select
   ca.id,
   coalesce(ca.finding_classification, 'observation'),
-  coalesce(nullif(trim(ca.findings), ''), '— Notes legacy migrées —'),
+  coalesce(nullif(trim(ca.findings), ''), '- Notes legacy migrées -'),
   nullif(trim(ca.risk_notes), ''),
   nullif(trim(ca.recommendations), ''),
   case coalesce(ca.finding_classification, 'observation')

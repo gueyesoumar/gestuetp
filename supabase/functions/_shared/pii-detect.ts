@@ -1,4 +1,4 @@
-// Détection déterministe de données sensibles (P1 — sécurité IA).
+// Détection déterministe de données sensibles (P1 - sécurité IA).
 // 100 % règles, aucun appel réseau, aucune valeur stockée (positions + catégories only).
 // Localisé Sénégal (téléphone +221, NINEA, CNI/NIN). Exécuté côté Deno AVANT tout
 // envoi à un modèle externe.
@@ -65,7 +65,7 @@ const DETECTORS: Detector[] = [
 
 /**
  * Renvoie toutes les correspondances (catégorie + groupe + positions), triées, sans
- * chevauchement (la 1re correspondance l'emporte — détecteurs ordonnés du + spécifique).
+ * chevauchement (la 1re correspondance l'emporte - détecteurs ordonnés du + spécifique).
  */
 export function detectPii(text: string): PiiMatch[] {
   if (!text) return []

@@ -27,7 +27,7 @@ export function BugRecapForm({ profile, cabinetId, missionId, onDone }: Props): 
     const firstError = steps.find((s) => s.kind === 'error')
     const res = await create({
       nature: 'bug',
-      title: firstError ? `Bug — ${(firstError.detail ?? 'erreur').slice(0, 60)}` : 'Signalement de bug',
+      title: firstError ? `Bug : ${(firstError.detail ?? 'erreur').slice(0, 60)}` : 'Signalement de bug',
       body: comment || null,
       requester_user_id: profile.id,
       cabinet_id: cabinetId,
@@ -85,7 +85,7 @@ export function BugRecapForm({ profile, cabinetId, missionId, onDone }: Props): 
             Recommencer
           </button>
           <button onClick={() => void submit()} disabled={busy || steps.length === 0} className="px-5 py-2.5 bg-forest-700 text-white rounded-lg text-sm font-semibold hover:bg-forest-900 disabled:opacity-50">
-            {busy ? 'Envoi…' : 'Envoyer le signalement'}
+            {busy ? 'Envoi...' : 'Envoyer le signalement'}
           </button>
         </div>
       </div>

@@ -73,7 +73,7 @@ export function ImpactReportView({ report }: { report: ImpactReport }): JSX.Elem
             {specialists.map((s) => (
               <div key={s.axis} className="flex gap-2.5">
                 <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${DOT[s.verdict] ?? 'bg-gray-300'}`} />
-                <p className="text-[12.5px] leading-snug"><span className="font-semibold text-gray-800">{s.axis}</span> <span className="text-gray-600">— {s.note}</span></p>
+                <p className="text-[12.5px] leading-snug"><span className="font-semibold text-gray-800">{s.axis}</span> <span className="text-gray-600">: {s.note}</span></p>
               </div>
             ))}
           </div>

@@ -18,10 +18,10 @@ interface PlanGeneralTabProps {
 }
 
 const TIERS: Array<{ value: PlanTier; label: string }> = [
-  { value: 'free', label: 'Gratuit — démo / découverte' },
-  { value: 'standard', label: 'Standard — payant, usage régulier' },
-  { value: 'enterprise', label: 'Entreprise — grands comptes' },
-  { value: 'custom', label: 'Sur mesure — sur devis / accord spécifique' },
+  { value: 'free', label: 'Gratuit : démo / découverte' },
+  { value: 'standard', label: 'Standard : payant, usage régulier' },
+  { value: 'enterprise', label: 'Entreprise : grands comptes' },
+  { value: 'custom', label: 'Sur mesure : sur devis / accord spécifique' },
 ]
 
 export function PlanGeneralTab(props: PlanGeneralTabProps): JSX.Element {
@@ -51,7 +51,7 @@ export function PlanGeneralTab(props: PlanGeneralTabProps): JSX.Element {
       <Field label="Description">
         <textarea
           value={description ?? ''} onChange={(e) => setDescription(e.target.value)}
-          rows={2} placeholder="Décrit le plan et son public cible…" disabled={disabled}
+          rows={2} placeholder="Décrit le plan et son public cible..." disabled={disabled}
           className="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-300 focus:border-gold-300"
         />
       </Field>

@@ -1,4 +1,4 @@
--- 00191 — Gëstu Policy : typer les preuves attendues pour dériver le jeu de
+-- 00191 - Gëstu Policy : typer les preuves attendues pour dériver le jeu de
 -- POLITIQUES requises par référentiel (carte de couverture). Une preuve attendue
 -- de type `policy` doit être satisfaite par une politique du registre Gëstu Policy.
 

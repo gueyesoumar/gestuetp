@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 import { collectTenableForOrg } from '../_shared/tenable-collect.ts'
 
-// Connecteur Tenable Vulnerability Management (cloud) — RFC 0014 P1.3.
+// Connecteur Tenable Vulnerability Management (cloud) - RFC 0014 P1.3.
 // Auth Tenable = clés d'API PAR ORG (header X-ApiKeys), stockées en Vault.
 // Actions : `connect` (valide + stocke) et `collect` (délègue au collecteur partagé,
 // aussi utilisé par le dispatcher planifié connector-dispatch).

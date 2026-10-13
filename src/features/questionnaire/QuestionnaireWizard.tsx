@@ -12,7 +12,7 @@ import type { QuestionnaireResponseData } from '../missions/useMissionQuestionna
 interface QuestionnaireWizardProps {
   questions: Question[]
   instanceId: string | null
-  /** Mission cible — nécessaire au téléversement réel des pièces jointes de cadrage. */
+  /** Mission cible - nécessaire au téléversement réel des pièces jointes de cadrage. */
   missionId: string
   userId: string | null
   missionName?: string

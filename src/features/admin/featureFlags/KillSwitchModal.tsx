@@ -68,7 +68,7 @@ export function KillSwitchModal({ flagSlug, flagName, nextEnabled, onClose, onCo
           </button>
           <button type="button" onClick={handleConfirm} disabled={submitting || !reason.trim()}
             className={`px-3.5 py-2 text-[12.5px] font-semibold rounded-lg text-white disabled:opacity-50 ${nextEnabled ? 'bg-forest-700 hover:bg-forest-900' : 'bg-red-600 hover:bg-red-700'}`}>
-            {submitting ? 'En cours…' : nextEnabled ? 'Activer' : 'Désactiver globalement'}
+            {submitting ? 'En cours...' : nextEnabled ? 'Activer' : 'Désactiver globalement'}
           </button>
         </div>
       </div>

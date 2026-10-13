@@ -1,4 +1,4 @@
--- 00276 — Contenu des preuves attendues PSSI-ES (Lot D) dans le modèle mutualisé.
+-- 00276 - Contenu des preuves attendues PSSI-ES (Lot D) dans le modèle mutualisé.
 -- (1) Preuves canoniques (evidence_items) : documents attendus distincts, certains partagés
 --     entre plusieurs contrôles. (2) Liens par contrôle (evidence_catalog.evidence_item_id).
 -- Généré par analyse des exigences + équivalents ISO. 2-4 preuves par contrôle.

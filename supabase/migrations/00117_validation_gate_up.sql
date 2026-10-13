@@ -134,7 +134,7 @@ end;
 $$;
 
 comment on function public.transition_mission_to_fieldwork(uuid) is
-  'SECURITY DEFINER — vérifie les 4 prérequis bloquants puis bascule mission.status de planning à fieldwork. Retourne {ok, missing[]?, error?}.';
+  'SECURITY DEFINER - vérifie les 4 prérequis bloquants puis bascule mission.status de planning à fieldwork. Retourne {ok, missing[]?, error?}.';
 
 revoke all on function public.transition_mission_to_fieldwork(uuid) from public, anon;
 grant execute on function public.transition_mission_to_fieldwork(uuid) to authenticated;

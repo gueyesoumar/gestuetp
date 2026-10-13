@@ -22,7 +22,7 @@ interface Props {
 }
 
 /**
- * Vue transverse (lecture seule) des mesures ouvertes de tout le parc régulé —
+ * Vue transverse (lecture seule) des mesures ouvertes de tout le parc régulé -
  * cible de la carte « Mesures ouvertes » du tableau de bord. La RLS de
  * regulatory_measures cloisonne déjà au sous-arbre du régulateur.
  */
@@ -49,7 +49,7 @@ export function ParkOpenMeasures({ entityNameById }: Props): JSX.Element {
               </div>
               <p className="mt-1 text-[12px] text-gray-500">
                 {m.deadline && <>Délai&nbsp;: {new Date(m.deadline).toLocaleDateString('fr-FR')} · </>}
-                Émise le {m.issued_at ? new Date(m.issued_at).toLocaleDateString('fr-FR') : '—'} · Statut&nbsp;: {MEASURE_STATUS_LABELS[m.status] ?? m.status}
+                Émise le {m.issued_at ? new Date(m.issued_at).toLocaleDateString('fr-FR') : '-'} · Statut&nbsp;: {MEASURE_STATUS_LABELS[m.status] ?? m.status}
               </p>
             </div>
           </div>

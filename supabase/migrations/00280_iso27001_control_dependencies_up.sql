@@ -1,4 +1,4 @@
--- 00280 — Dépendances inter-contrôles ISO 27001 (propagation des constats).
+-- 00280 - Dépendances inter-contrôles ISO 27001 (propagation des constats).
 -- Paires significatives (partial/related) entre mesures ISO, rédigées par analyse, plafonnées
 -- à 6 liens/mesure. Alimentent la propagation systémique (linkedTargets). Exclut 00267.
 with pairs(src, tgt, rel) as (

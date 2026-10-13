@@ -1,4 +1,4 @@
-// Résolveur de politique d'exposition IA (P2 — RFC 0012 §4.4, Décisions A & C).
+// Résolveur de politique d'exposition IA (P2 - RFC 0012 §4.4, Décisions A & C).
 // Data-driven, pur. Décide ce qu'on fait d'un contenu selon sa sensibilité et le
 // consentement client. Ne dépend d'aucune I/O.
 

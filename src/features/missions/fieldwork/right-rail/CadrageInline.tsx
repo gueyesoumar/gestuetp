@@ -14,10 +14,10 @@ const WEIGHT_CFG: Record<number, { label: string; color: string }> = {
 }
 
 function formatResponse(value: unknown): string {
-  if (value === null || value === undefined) return '—'
+  if (value === null || value === undefined) return '-'
   if (typeof value === 'boolean') return value ? 'Oui' : 'Non'
-  if (Array.isArray(value)) return value.length === 0 ? '—' : value.join(', ')
-  if (typeof value === 'string') return value.trim() || '—'
+  if (Array.isArray(value)) return value.length === 0 ? '-' : value.join(', ')
+  if (typeof value === 'string') return value.trim() || '-'
   if (typeof value === 'number') return String(value)
   return JSON.stringify(value)
 }

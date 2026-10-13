@@ -17,7 +17,7 @@ interface UseToggleMemberStatusResult {
  * + protection anti-bricking (refus si on suspend le dernier admin du cabinet).
  *
  * Erreurs possibles surfacées via le helper :
- *  - quota utilisateurs atteint (trigger trg_users_quota — migration 00125)
+ *  - quota utilisateurs atteint (trigger trg_users_quota - migration 00125)
  *  - dernier admin (refus de suspend)
  *  - permission insuffisante (RLS)
  */

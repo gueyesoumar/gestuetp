@@ -66,8 +66,8 @@ export function useAdminAuditLog(filters: Filters): Result {
           reason: r.reason as string,
           metadata: r.metadata as Record<string, unknown> | null,
           created_at: r.created_at as string,
-          actor_email: r.actor?.email ?? '—',
-          actor_first_name: r.actor?.first_name ?? '—',
+          actor_email: r.actor?.email ?? '-',
+          actor_first_name: r.actor?.first_name ?? '-',
           actor_last_name: r.actor?.last_name ?? '',
         })))
       }

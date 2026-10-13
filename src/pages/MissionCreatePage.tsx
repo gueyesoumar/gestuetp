@@ -28,7 +28,7 @@ export function MissionCreatePage() {
     ? 'Sélectionnez au moins un contrôle.'
     : (!f.missionName.trim() ? 'Nommez la mission.' : null)
   // Séparation des devoirs : l'associé (validateur ultime) et le chef doivent être
-  // deux personnes distinctes (le serveur le refuse aussi — cf. create-mission).
+  // deux personnes distinctes (le serveur le refuse aussi - cf. create-mission).
   const sameError = f.associateId && f.leadAuditorId && f.associateId === f.leadAuditorId
     ? 'L’associé et le chef de mission doivent être deux personnes différentes.'
     : null
@@ -37,10 +37,10 @@ export function MissionCreatePage() {
 
   const targetLabel = f.isReflexive ? 'Entité auditée' : f.isSupervision ? 'Filiale' : 'Client'
   const targetValue = f.isReflexive
-    ? (f.selfOrgName || '—')
+    ? (f.selfOrgName || '-')
     : f.isSupervision
-    ? (f.selectedSubsidiary ? [f.selectedSubsidiary.name, f.selectedSubsidiary.sector].filter(Boolean).join(' · ') : '—')
-    : (f.selectedClient ? `${f.selectedClient.client_name}${f.selectedClient.client_sector ? ` · ${f.selectedClient.client_sector}` : ''}` : '—')
+    ? (f.selectedSubsidiary ? [f.selectedSubsidiary.name, f.selectedSubsidiary.sector].filter(Boolean).join(' · ') : '-')
+    : (f.selectedClient ? `${f.selectedClient.client_name}${f.selectedClient.client_sector ? ` · ${f.selectedClient.client_sector}` : ''}` : '-')
 
   const handleSubmit = async () => {
     const res = await f.submit()

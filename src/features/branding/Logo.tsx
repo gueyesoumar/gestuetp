@@ -3,8 +3,8 @@ import { useBranding } from './useBranding'
 /**
  * Logo cabinet (Option D dual-logo).
  *
- *   variant = 'light' : surface claire — utilise logo_light_url tel quel
- *   variant = 'dark'  : surface sombre — préfère logo_dark_url, fallback en
+ *   variant = 'light' : surface claire - utilise logo_light_url tel quel
+ *   variant = 'dark'  : surface sombre - préfère logo_dark_url, fallback en
  *                       pastille blanche autour de logo_light_url si absent.
  *
  * Si aucun branding cabinet n'est résolu (mode Gëstu), on n'affiche rien :
@@ -37,7 +37,7 @@ export function Logo({ variant, height = 40, className }: LogoProps): JSX.Elemen
     )
   }
 
-  // variant === 'dark' — sur fond sombre / coloré
+  // variant === 'dark' - sur fond sombre / coloré
   if (darkUrl) {
     return (
       <img
@@ -61,7 +61,7 @@ export function Logo({ variant, height = 40, className }: LogoProps): JSX.Elemen
       )
     }
 
-    // 'whiten' : silhouette blanche (logo monochrome foncé) — sans pastille.
+    // 'whiten' : silhouette blanche (logo monochrome foncé) - sans pastille.
     if (treatment === 'whiten') {
       return (
         <img src={lightUrl} alt={branding.cabinet_name}

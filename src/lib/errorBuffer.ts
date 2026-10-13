@@ -1,9 +1,9 @@
 /**
- * Buffer d'erreurs global (Phase 0 — socle Centre d'aide).
+ * Buffer d'erreurs global (Phase 0 - socle Centre d'aide).
  * Conserve en memoire les N dernieres erreurs (console, rejets non geres, requetes 4xx/5xx)
  * pour les joindre a un ticket de support (« contexte auto-capte »).
  *
- * Securite : on n'enregistre JAMAIS d'en-tete, de token ou de corps de requete —
+ * Securite : on n'enregistre JAMAIS d'en-tete, de token ou de corps de requete -
  * uniquement le type, un message tronque et le chemin (sans query string).
  */
 

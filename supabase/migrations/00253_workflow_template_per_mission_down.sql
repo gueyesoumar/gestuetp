@@ -1,4 +1,4 @@
--- Migration 00253 (DOWN) — restaure l'état 00251 / 00167.
+-- Migration 00253 (DOWN) - restaure l'état 00251 / 00167.
 
 -- 1) Retirer le trigger + fonction d'auto-démotion
 drop trigger if exists trg_workflow_template_demote_default on public.organization_workflow_templates;

@@ -1,4 +1,4 @@
--- Migration 00083: RLS rewrites pour utiliser has_cabinet_permission — UP
+-- Migration 00083: RLS rewrites pour utiliser has_cabinet_permission - UP
 --
 -- Réécrit les RLS sur organizations / cabinet_clients / platform_roles pour
 -- consulter has_cabinet_permission() au lieu de la simple appartenance au
@@ -12,7 +12,7 @@
 -- sont gardées dans les edge functions correspondantes (cf. 00084 et fns).
 
 -- ============================================================
--- 1. organizations.UPDATE — gardé par can_edit_organization
+-- 1. organizations.UPDATE - gardé par can_edit_organization
 -- ============================================================
 
 DROP POLICY IF EXISTS "organizations_update_members" ON public.organizations;
@@ -30,7 +30,7 @@ CREATE POLICY "organizations_update_can_edit"
   );
 
 -- ============================================================
--- 2. cabinet_clients.INSERT/UPDATE/DELETE — gardé par can_manage_clients
+-- 2. cabinet_clients.INSERT/UPDATE/DELETE - gardé par can_manage_clients
 -- ============================================================
 
 DROP POLICY IF EXISTS "cabinet_clients_insert_cabinet" ON public.cabinet_clients;
@@ -66,7 +66,7 @@ CREATE POLICY "cabinet_clients_delete_can_manage"
   );
 
 -- ============================================================
--- 3. platform_roles.INSERT/UPDATE/DELETE — gardé par can_manage_roles
+-- 3. platform_roles.INSERT/UPDATE/DELETE - gardé par can_manage_roles
 -- ============================================================
 
 DROP POLICY IF EXISTS "platform_roles_insert_org_members" ON public.platform_roles;
@@ -102,7 +102,7 @@ CREATE POLICY "platform_roles_delete_can_manage_roles"
   );
 
 -- ============================================================
--- 4. Trigger anti-bricking — empêcher la dernière démotion can_manage_roles
+-- 4. Trigger anti-bricking - empêcher la dernière démotion can_manage_roles
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.prevent_last_admin_role_demotion()

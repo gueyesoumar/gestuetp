@@ -1,4 +1,4 @@
--- Migration: Évolution cabinet_clients — client_org_id nullable + champs identification (UP)
+-- Migration: Évolution cabinet_clients - client_org_id nullable + champs identification (UP)
 
 -- 1. Rendre client_org_id nullable (l'organisation sera créée au lancement de mission)
 alter table public.cabinet_clients
@@ -28,7 +28,7 @@ alter table public.cabinet_clients
 create index idx_cabinet_clients_registration on public.cabinet_clients(client_registration_number) where client_registration_number is not null;
 create index idx_cabinet_clients_email_domain on public.cabinet_clients(client_email_domain) where client_email_domain is not null;
 
-comment on column public.cabinet_clients.client_org_id is 'Nullable — rempli automatiquement au lancement de la première mission';
+comment on column public.cabinet_clients.client_org_id is 'Nullable - rempli automatiquement au lancement de la première mission';
 comment on column public.cabinet_clients.client_name is 'Nom du client (renseigné par le cabinet)';
-comment on column public.cabinet_clients.client_email_domain is 'Domaine email du client (ex: entreprise-x.com) — utilisé pour déduplication';
-comment on column public.cabinet_clients.client_registration_number is 'NINEA, SIRET — utilisé pour déduplication cross-cabinets';
+comment on column public.cabinet_clients.client_email_domain is 'Domaine email du client (ex: entreprise-x.com) - utilisé pour déduplication';
+comment on column public.cabinet_clients.client_registration_number is 'NINEA, SIRET - utilisé pour déduplication cross-cabinets';

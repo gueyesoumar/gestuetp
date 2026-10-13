@@ -87,7 +87,7 @@ export function AuditTrailPage(): JSX.Element {
       {hasMore && !search && (
         <div className="flex justify-center">
           <button onClick={loadMore} disabled={loading} className="px-4 py-2 text-sm font-medium text-forest-700 border border-forest-200 rounded-lg hover:bg-forest-50 disabled:opacity-50">
-            {loading ? 'Chargement…' : 'Charger plus'}
+            {loading ? 'Chargement...' : 'Charger plus'}
           </button>
         </div>
       )}

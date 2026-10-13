@@ -1,4 +1,4 @@
--- 00195 — rollback : restaure la version 00194 (accès cross-tenant par org, sans
+-- 00195 - rollback : restaure la version 00194 (accès cross-tenant par org, sans
 -- granularité par contrôle/référentiel).
 
 create or replace function public.get_control_policies(p_control_id uuid)

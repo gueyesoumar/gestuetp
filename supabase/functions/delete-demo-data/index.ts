@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 
 /**
- * Edge Function : delete-demo-data (E4 — bac à sable)
+ * Edge Function : delete-demo-data (E4 - bac à sable)
  *
  * Supprime le bac à sable de l'APPELANT en un clic. Strictement borné aux lignes
  * is_demo=true ET demo_owner_id=appelant → ne touche JAMAIS une vraie donnée,

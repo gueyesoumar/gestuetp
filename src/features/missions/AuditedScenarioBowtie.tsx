@@ -82,7 +82,7 @@ export function AuditedScenarioBowtie({ scenario, catalog, onClose }: { scenario
               {hasBarriers && <span className="text-gray-400">résiduel <b style={{ color: expColor(residual) }}>{residual}</b></span>}
             </div>
             {hasBarriers && (
-              <div className="mt-1 text-[9.5px] text-forest-700">préventif <b>{effPrev == null ? '—' : `${pct(effPrev)}%`}</b> · correctif <b>{effCorr == null ? '—' : `${pct(effCorr)}%`}</b></div>
+              <div className="mt-1 text-[9.5px] text-forest-700">préventif <b>{effPrev == null ? '-' : `${pct(effPrev)}%`}</b> · correctif <b>{effCorr == null ? '-' : `${pct(effCorr)}%`}</b></div>
             )}
           </div>
           <ArrowRight size={18} className="text-gray-300 mx-auto" />

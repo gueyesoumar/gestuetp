@@ -9,7 +9,7 @@ interface UseUpdateCabinetClientResult {
 }
 
 /**
- * P1b (RFC 0007) — la mise à jour d'un client passe par l'Edge Function
+ * P1b (RFC 0007) - la mise à jour d'un client passe par l'Edge Function
  * `update-client` (service_role) : elle écrit la fiche `cabinet_clients` (miroir)
  * ET le profil d'engagement (`engagement_profiles`, source de vérité du contexte).
  * Remplace le PATCH REST direct.

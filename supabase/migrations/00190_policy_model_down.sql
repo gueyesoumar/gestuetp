@@ -1,4 +1,4 @@
--- 00190 — rollback : modèle Gëstu Policy
+-- 00190 - rollback : modèle Gëstu Policy
 
 drop table if exists public.policy_effectiveness_attestations;
 drop table if exists public.policy_acknowledgements;

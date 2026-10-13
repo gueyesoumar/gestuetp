@@ -1,10 +1,10 @@
--- 00180 — Piste d'audit (F6) : trigger générique de journalisation des writes
+-- 00180 - Piste d'audit (F6) : trigger générique de journalisation des writes
 -- clients DIRECTS (colonne vertébrale hybride, vague 1).
 --
 -- Principe : la fonction ne journalise QUE si un utilisateur est authentifié
 -- (auth.uid présent). Les actions passant par une Edge Function en service_role
 -- (auth.uid null) sont journalisées par le helper edge logActivity() (événements
--- sémantiques) — on évite ainsi tout double comptage.
+-- sémantiques) - on évite ainsi tout double comptage.
 --
 -- organization_id du log = organisation de l'ACTEUR (il appartient exactement à
 -- l'org dont l'admin consulte la piste) → aucune jointure par-table nécessaire.

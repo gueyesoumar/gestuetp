@@ -1,4 +1,4 @@
--- 00187 — Promotion d'un constat (assessment_finding) vers le registre Gëstu Risk
+-- 00187 - Promotion d'un constat (assessment_finding) vers le registre Gëstu Risk
 -- de l'ORGANISATION AUDITÉE. Miroir de 00186 (mission_risk), mais côté contrôle :
 -- un constat est rattaché à une évaluation de contrôle → mission (client_id) ET
 -- contrôle (controls.dimension) ⇒ la DIMENSION du score est auto-déduite.

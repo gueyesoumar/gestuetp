@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
 /**
- * « Lentille » du mode démo (E4 — Vague 2). Bascule EXPLICITE : quand elle est active,
+ * « Lentille » du mode démo (E4 - Vague 2). Bascule EXPLICITE : quand elle est active,
  * les écrans à valeur du propriétaire (score de confiance, dashboards Comply) incluent
  * SES données de démonstration, clairement étiquetées.
  *

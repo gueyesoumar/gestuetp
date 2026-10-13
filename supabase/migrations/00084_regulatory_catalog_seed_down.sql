@@ -1,4 +1,4 @@
--- Migration 00084: Catalogue des exigences réglementaires (seed → migration) — DOWN
+-- Migration 00084: Catalogue des exigences réglementaires (seed → migration) - DOWN
 --
 -- Retire les 21 entrées ajoutées par la migration UP. PSSI-ES n'est pas
 -- supprimée ici (elle est posée par 00050 et son own _down s'en charge).

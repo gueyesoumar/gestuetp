@@ -22,7 +22,7 @@ interface FindingBodyProps {
 /**
  * Corps compact d'un constat : énoncé + (risque / recommandation côte à côte pour une NC),
  * chacun avec un sélecteur de propositions repliable (catalogue lié). Pas de barre markdown
- * ni d'étapes empilées — l'objectif est de minimiser la hauteur.
+ * ni d'étapes empilées - l'objectif est de minimiser la hauteur.
  */
 export function FindingBody({ finding, readOnly, onChange, templates, onSaveTemplate }: FindingBodyProps): JSX.Element {
   const [description, setDescription] = useState(finding.description)
@@ -134,7 +134,7 @@ export function FindingBody({ finding, readOnly, onChange, templates, onSaveTemp
         ) : (
           <button type="button" onClick={() => void handleSaveToLib()}
             className="inline-flex items-center gap-1.5 text-[11px] font-medium text-forest-700 hover:text-forest-900"
-            title="Réutilisable sur les prochaines missions — texte générique, sans données client">
+            title="Réutilisable sur les prochaines missions : texte générique, sans données client">
             <BookmarkPlus size={12} /> Enregistrer dans la bibliothèque
           </button>
         )

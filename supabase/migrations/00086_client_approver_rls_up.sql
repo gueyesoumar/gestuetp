@@ -1,4 +1,4 @@
--- Migration 00086: RLS portail client — élargissement à 'approver' — UP
+-- Migration 00086: RLS portail client - élargissement à 'approver' - UP
 --
 -- approver hérite de tous les droits contributor (logique inclusive). Toutes
 -- les policies portail client qui filtraient permission='contributor' filtrent
@@ -27,7 +27,7 @@ CREATE POLICY "cp_documents_insert"
   );
 
 -- ============================================================
--- assessment_validations.INSERT — APPROVER ONLY (client_review stage)
+-- assessment_validations.INSERT - APPROVER ONLY (client_review stage)
 -- ============================================================
 DROP POLICY IF EXISTS "cp_validations_insert" ON public.assessment_validations;
 CREATE POLICY "cp_validations_insert"

@@ -1,4 +1,4 @@
--- 00285 — Contenu des preuves attendues (DUEDIL, modèle mutualisé).
+-- 00285 - Contenu des preuves attendues (DUEDIL, modèle mutualisé).
 insert into public.evidence_items (framework_id, name, description, kind)
 select '00000000-0000-0000-0000-000000000015', t.name, t.descr, t.kind from (values
   ('Documentation d''architecture technique', 'Prouve les technologies retenues et leur justification.', 'document'),

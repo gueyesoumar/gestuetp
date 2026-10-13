@@ -115,9 +115,9 @@ export function DeclinedEvidenceSection({ missionId }: DeclinedEvidenceSectionPr
         const cat = catalogMap.get(r.evidence_catalog_id)
         return {
           ...r,
-          evidenceName: cat?.name ?? '—',
+          evidenceName: cat?.name ?? '-',
           controlId: cat?.control_id ?? '',
-          controlCode: cat?.control_id ? (controlMap.get(cat.control_id) ?? '—') : '—',
+          controlCode: cat?.control_id ? (controlMap.get(cat.control_id) ?? '-') : '-',
           declinerName: r.declined_by ? userMap.get(r.declined_by) ?? null : null,
           decidedByName: r.auditor_decided_by ? userMap.get(r.auditor_decided_by) ?? null : null,
         }

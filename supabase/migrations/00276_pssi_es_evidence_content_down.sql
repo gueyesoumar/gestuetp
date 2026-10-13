@@ -1,4 +1,4 @@
--- Rollback 00276 — retire le contenu des preuves PSSI-ES et les preuves canoniques.
+-- Rollback 00276 - retire le contenu des preuves PSSI-ES et les preuves canoniques.
 delete from public.evidence_catalog ec
 using public.controls c
 where ec.control_id = c.id and ec.evidence_item_id is not null

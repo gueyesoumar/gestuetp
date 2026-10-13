@@ -59,7 +59,7 @@ export const APP_MODULES: AppModule[] = [
     },
   },
   {
-    // Monde « cabinet / audit » — audite des clients externes (a un portail tiers).
+    // Monde « cabinet / audit » - audite des clients externes (a un portail tiers).
     key: 'audit-core',
     enabled: (has) => !has('supervision') && has('client_portal'),
     product: 'Comply',
@@ -75,7 +75,7 @@ export const APP_MODULES: AppModule[] = [
     group: (c) => c.isGroup ? GROUP_NAV : [],
   },
   {
-    // Monde « entreprise » — gère sa PROPRE conformité : pas de supervision tierce,
+    // Monde « entreprise » - gère sa PROPRE conformité : pas de supervision tierce,
     // PAS de portail client (c'est ce qui le distingue du cabinet, RFC 0013 §11).
     key: 'enterprise-core',
     enabled: (has) => !has('supervision') && !has('client_portal'),

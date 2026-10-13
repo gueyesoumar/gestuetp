@@ -5,10 +5,10 @@ import { Logo } from './Logo'
 import { effectiveSurface } from './surface'
 
 /**
- * BrandedBrandPanel — équivalent white-label de VaultBrandPanel : colonne gauche
+ * BrandedBrandPanel - équivalent white-label de VaultBrandPanel : colonne gauche
  * « récit » du login split, aux couleurs et au logo du cabinet. S'adapte à la
  * polarité de surface (light/dark) pour que le logo soit posé tel quel, sans
- * pastille. Rien sur le domaine Gëstu (branding null) — le login standard prend
+ * pastille. Rien sur le domaine Gëstu (branding null) - le login standard prend
  * le relais avec VaultBrandPanel.
  */
 function Badge({ icon, ink, children }: { icon: ReactNode; ink: string; children: ReactNode }): JSX.Element {
@@ -37,7 +37,7 @@ export function BrandedBrandPanel(): JSX.Element | null {
       className="relative hidden w-[56%] max-w-[720px] flex-col justify-between overflow-hidden px-16 py-14 lg:flex"
       style={{ background: panelBg }}
     >
-      {/* logo cabinet — posé tel quel selon la polarité */}
+      {/* logo cabinet - posé tel quel selon la polarité */}
       <div className="relative">
         <Logo variant={isLight ? 'light' : 'dark'} height={46} />
       </div>
@@ -57,7 +57,7 @@ export function BrandedBrandPanel(): JSX.Element | null {
           {branding.cabinet_name}
         </h2>
         <p className="max-w-[400px] text-[15px] leading-[1.65]" style={{ color: inkMuted }}>
-          Audits multi-référentiels, supervision et gestion des risques — sur une plateforme
+          Audits multi-référentiels, supervision et gestion des risques, sur une plateforme
           sécurisée, cloisonnée et probante.
         </p>
       </div>

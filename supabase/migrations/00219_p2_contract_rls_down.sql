@@ -1,4 +1,4 @@
--- Migration 00219 (DOWN) — P2.2a (RFC 0007).
+-- Migration 00219 (DOWN) - P2.2a (RFC 0007).
 -- Restaure les policies XOR (cabinet_client_id/entity_org_id) + la FK vers
 -- cabinet_clients + retire NOT NULL. Le remap users.client_org_id (org → fiche.id)
 -- est BEST-EFFORT : un client auditable par plusieurs cabinets a plusieurs fiches,

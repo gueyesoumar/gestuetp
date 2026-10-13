@@ -15,7 +15,7 @@ export interface EntityFormValue {
   sector: string | null
   city: string | null
   country: string | null
-  /** Profil réglementaire (Regul) — null en mode Comply. */
+  /** Profil réglementaire (Regul) - null en mode Comply. */
   regulatoryProfile?: RegulatoryProfile | null
 }
 
@@ -92,7 +92,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">{isEdit ? `Modifier — ${vocab.entitySingular}` : `Nouvel${vocab.entityGender === 'f' ? 'le' : ''} ${vocab.entitySingular}`}</h3>
+          <h3 className="font-semibold text-gray-900">{isEdit ? `Modifier : ${vocab.entitySingular}` : `Nouvel${vocab.entityGender === 'f' ? 'le' : ''} ${vocab.entitySingular}`}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
@@ -104,7 +104,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
             <div>
               <label className="block text-[12px] font-medium text-gray-600 mb-1">Type *</label>
               <select value={entityType} onChange={(e) => setEntityType(e.target.value as EntityType)} className={field}>
-                <option value="">Sélectionner…</option>
+                <option value="">Sélectionner...</option>
                 {(isRegul ? REGUL_ENTITY_TYPE_OPTIONS : ENTITY_TYPE_OPTIONS).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
@@ -170,7 +170,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
             <button type="submit" disabled={busy} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-              {busy ? 'Enregistrement…' : isEdit ? 'Enregistrer' : `Créer — ${vocab.entitySingular}`}
+              {busy ? 'Enregistrement...' : isEdit ? 'Enregistrer' : `Créer : ${vocab.entitySingular}`}
             </button>
           </div>
         </form>

@@ -1,4 +1,4 @@
--- Rollback 00268 — retire le marquage de constat systémique.
+-- Rollback 00268 - retire le marquage de constat systémique.
 
 drop index if exists public.idx_findings_systemic_group;
 

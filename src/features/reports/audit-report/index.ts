@@ -20,7 +20,7 @@ import {
   drawAnnexAGlossary, drawAnnexBEvidence, drawAnnexCReferences, drawAnnexDDistribution,
 } from './annexes'
 
-// Re-exports pour les modules externes (loadAuditReportData, auditReportNarratives, worker, …)
+// Re-exports pour les modules externes (loadAuditReportData, auditReportNarratives, worker, ...)
 export type AssessmentWithControl = _AssessmentWithControl
 export type AuditReportData = _AuditReportData
 export type AuditTotals = _AuditTotals
@@ -29,7 +29,7 @@ export type DomainStat = _DomainStat
 export type EvidenceDoc = _EvidenceDoc
 
 /**
- * Rapport d'audit V2 — Niveau B (style Deloitte adapté charte Gëstu).
+ * Rapport d'audit V2 - Niveau B (style Deloitte adapté charte Gëstu).
  * ~25-30 pages, narratif détaillé, fiches NC individuelles, radar
  * de maturité, matrice de priorisation impact × effort, annexes.
  *

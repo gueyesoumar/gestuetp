@@ -1,5 +1,5 @@
 /**
- * MorphingShield — animated shield logo that cycles through product colors.
+ * MorphingShield - animated shield logo that cycles through product colors.
  * Displays product name label synced with color transition.
  */
 

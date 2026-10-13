@@ -113,7 +113,7 @@ export function UsersSearchPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Rechercher un utilisateur…"
+              placeholder="Rechercher un utilisateur..."
               className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-64 bg-page-bg"
             />
           </div>
@@ -318,7 +318,7 @@ function ActionModal({ title, submitLabel, danger, reason, onChangeReason, submi
             disabled={submitting || !reason.trim()}
             className={`px-3.5 py-2 text-[12.5px] font-semibold rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-forest-700 hover:bg-forest-900'}`}
           >
-            {submitting ? 'En cours…' : submitLabel}
+            {submitting ? 'En cours...' : submitLabel}
           </button>
         </div>
       </div>

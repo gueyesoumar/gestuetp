@@ -1,5 +1,5 @@
 /**
- * FloatingOrbs — CSS-animated blurred circles for ambient effect.
+ * FloatingOrbs - CSS-animated blurred circles for ambient effect.
  */
 
 interface Orb {

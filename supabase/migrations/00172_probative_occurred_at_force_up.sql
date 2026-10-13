@@ -10,7 +10,7 @@
 --
 -- Correctif : forcer `new.occurred_at := now()` (ignorer toute valeur fournie).
 -- Le temps d'occurrence devient toujours le temps serveur de l'insert. Le sceau TSA
--- RFC-3161 périodique ancre déjà la tête de chaîne à une date vérifiable — cette
+-- RFC-3161 périodique ancre déjà la tête de chaîne à une date vérifiable - cette
 -- garde ferme le résiduel côté insert. Fonction redéfinie à l'identique de 00147
 -- hormis cette ligne.
 

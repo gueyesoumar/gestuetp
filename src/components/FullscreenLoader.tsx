@@ -3,8 +3,8 @@ import { VaultBackground } from './vault/VaultBackground'
 
 // Loader plein écran adaptatif. Par défaut (Gëstu ou cabinet à surface sombre) :
 // fond « vault » branché. Pour un cabinet à logo foncé (brand_surface_mode
-// 'light') : fond clair dégradé — évite tout flash de couleur avant le rendu de
-// la destination claire (hub, portail…).
+// 'light') : fond clair dégradé - évite tout flash de couleur avant le rendu de
+// la destination claire (hub, portail...).
 
 export function FullscreenLoader(): JSX.Element {
   const { branding } = useBranding()

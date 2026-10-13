@@ -42,7 +42,7 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
       return
     }
     if (data?.error) {
-      // Cas particulier : missions actives — propose force
+      // Cas particulier : missions actives - propose force
       if (typeof data.active_missions === 'number') {
         setActiveMissionsBlocking(data.active_missions)
         return
@@ -85,14 +85,14 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
           </div>
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Motif <span className="text-red-500">*</span></label>
-            <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Contrat résilié le… / demande RGPD…" disabled={submitting} />
+            <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Contrat résilié le... / demande RGPD..." disabled={submitting} />
           </div>
 
           {activeMissionsBlocking !== null && (
             <label className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer">
               <input type="checkbox" checked={forceDelete} onChange={(e) => setForceDelete(e.target.checked)} className="mt-0.5" disabled={submitting} style={{ width: 'auto' }} />
               <span className="text-[12px] text-amber-800">
-                Cette organisation a <b>{activeMissionsBlocking} mission(s) active(s) non clôturée(s)</b>. Cocher pour forcer la suppression — toutes ces missions seront détruites.
+                Cette organisation a <b>{activeMissionsBlocking} mission(s) active(s) non clôturée(s)</b>. Cocher pour forcer la suppression : toutes ces missions seront détruites.
               </span>
             </label>
           )}
@@ -105,7 +105,7 @@ export function DeleteCabinetModal({ cabinetId, cabinetName, onClose }: Props) {
             disabled={!ready || submitting || (activeMissionsBlocking !== null && !forceDelete)}
             className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Suppression…' : 'Supprimer définitivement'}
+            {submitting ? 'Suppression...' : 'Supprimer définitivement'}
           </button>
         </div>
       </div>

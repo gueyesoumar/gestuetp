@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const action = String(body.action ?? '')
     const questionId = String(body.question_id ?? '')
 
-    // Réponse attendue (conforme) d'une question — pilote la pré-suggestion de verdict.
+    // Réponse attendue (conforme) d'une question - pilote la pré-suggestion de verdict.
     if (action === 'set_expected') {
       if (!questionId) return jsonResponse({ error: 'question_id requis' }, 400)
       const raw = body.expected_answer

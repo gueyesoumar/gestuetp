@@ -1,9 +1,9 @@
--- Migration 00093: Restaure les accents français sur le seed NIST CSF 2.0 — UP
+-- Migration 00093: Restaure les accents français sur le seed NIST CSF 2.0 - UP
 --
 -- Même problème que pour ISO 27001 (cf. 00092) : le seed initial
 -- (supabase/seed/005_nist_framework.sql) avait été chargé sans accents
 -- (« Strategie », « Proteger », « Detecter », « Repondre », etc.). On
--- restaure les libellés via UPDATE FROM (VALUES …) en filtrant strictement
+-- restaure les libellés via UPDATE FROM (VALUES ...) en filtrant strictement
 -- sur framework_id / domain_id pour n'affecter que NIST CSF 2.0.
 --
 -- Le seed lui-même est mis à jour en parallèle pour les futurs db reset.
@@ -32,7 +32,7 @@ WHERE d.framework_id = '00000000-0000-0000-0000-000000000011'
   AND d.code = v.code;
 
 -- ============================================================
--- 3. Contrôles GV — Gouverner (6)
+-- 3. Contrôles GV - Gouverner (6)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -48,7 +48,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0002-000000000001';
 
 -- ============================================================
--- 4. Contrôles ID — Identifier (3)
+-- 4. Contrôles ID - Identifier (3)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -61,7 +61,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0002-000000000002';
 
 -- ============================================================
--- 5. Contrôles PR — Protéger (5)
+-- 5. Contrôles PR - Protéger (5)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -76,7 +76,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0002-000000000003';
 
 -- ============================================================
--- 6. Contrôles DE — Détecter (2)
+-- 6. Contrôles DE - Détecter (2)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -88,7 +88,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0002-000000000004';
 
 -- ============================================================
--- 7. Contrôles RS — Répondre (4)
+-- 7. Contrôles RS - Répondre (4)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description
@@ -102,7 +102,7 @@ WHERE c.code = v.code
   AND c.domain_id = '00000000-0000-0000-0002-000000000005';
 
 -- ============================================================
--- 8. Contrôles RC — Rétablir (2)
+-- 8. Contrôles RC - Rétablir (2)
 -- ============================================================
 UPDATE public.controls AS c
 SET name = v.name, description = v.description

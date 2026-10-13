@@ -58,7 +58,7 @@ export function WorkProgramControlRow({ control, planning, assignment, auditors,
           <span className="text-[13px] font-medium text-gray-900 leading-snug">{control.name}</span>
         </td>
 
-        {/* Risque — dot compact */}
+        {/* Risque - dot compact */}
         <td className="px-2 py-2.5 align-top">
           <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => {
             const levels: RiskLevel[] = ['critical', 'high', 'medium', 'low']

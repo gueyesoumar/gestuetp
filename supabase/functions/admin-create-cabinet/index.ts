@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
     } else {
       const sendResult = await sendEmail({
         to: body.owner_email.trim().toLowerCase(),
-        subject: `Bienvenue sur Gëstu ETP — ${body.name}`,
+        subject: `Bienvenue sur Gëstu ETP (${body.name})`,
         html: cabinetOwnerInviteTemplate({
           firstName: body.owner_first_name.trim(),
           cabinetName: body.name,

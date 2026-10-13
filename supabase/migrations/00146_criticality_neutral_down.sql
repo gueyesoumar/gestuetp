@@ -1,4 +1,4 @@
--- 00146 (DOWN) — restaure les valeurs OIV.
+-- 00146 (DOWN) - restaure les valeurs OIV.
 alter table public.entity_regulatory_profile alter column criticality drop default;
 
 update public.entity_regulatory_profile

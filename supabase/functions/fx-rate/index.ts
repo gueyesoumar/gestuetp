@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 /**
- * fx-rate — taux de change EUR↔USD avec cache 24 h (RFC 0006, devise).
+ * fx-rate - taux de change EUR↔USD avec cache 24 h (RFC 0006, devise).
  * XOF↔EUR est une parité fixe (655,957, côté front) ; seul EUR↔USD flotte.
  * Source : ECB via frankfurter.dev (gratuit, sans clé). Repli : dernier cache /
  * seed. Écrit fx_rates via service_role ; lecture par tout authenticated.

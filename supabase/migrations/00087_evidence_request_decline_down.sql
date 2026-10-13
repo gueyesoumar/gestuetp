@@ -1,4 +1,4 @@
--- Migration 00087: Déclaration de document non disponible — DOWN
+-- Migration 00087: Déclaration de document non disponible - DOWN
 --
 -- ATTENTION : avant rollback, normaliser les statuts pour qu'ils tiennent
 -- dans l'ancienne machine à états (sinon un check antérieur reposé pourrait

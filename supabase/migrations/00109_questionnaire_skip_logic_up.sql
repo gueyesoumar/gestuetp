@@ -1,5 +1,5 @@
 -- Migration: questionnaire_skip_logic (UP)
--- Description: Sprint 5 — logique conditionnelle sur les questions.
+-- Description: Sprint 5 - logique conditionnelle sur les questions.
 --
 -- Une question peut etre affichee conditionnellement selon une reponse
 -- precedente. Format show_if (jsonb) :

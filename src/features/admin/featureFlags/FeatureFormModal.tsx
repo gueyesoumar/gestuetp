@@ -20,9 +20,9 @@ const CATEGORIES: Array<{ value: FeatureCategory; label: string }> = [
 ]
 
 const MATURITIES: Array<{ value: FeatureMaturity; label: string }> = [
-  { value: 'stable', label: 'Stable — production' },
-  { value: 'beta', label: 'Bêta — utilisable mais en évolution' },
-  { value: 'new', label: 'Nouveau — récemment lancé' },
+  { value: 'stable', label: 'Stable : production' },
+  { value: 'beta', label: 'Bêta : utilisable mais en évolution' },
+  { value: 'new', label: 'Nouveau : récemment lancé' },
 ]
 
 export function FeatureFormModal({ feature, onClose, onSubmit, onRequestDelete }: FeatureFormModalProps): JSX.Element {
@@ -145,7 +145,7 @@ export function FeatureFormModal({ feature, onClose, onSubmit, onRequestDelete }
             </button>
             <button type="button" onClick={handleSubmit} disabled={submitting || !name.trim() || !reason.trim()}
               className="px-3.5 py-2 text-[12.5px] font-semibold bg-forest-700 hover:bg-forest-900 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
-              {submitting ? 'En cours…' : isEdit ? 'Enregistrer' : 'Créer'}
+              {submitting ? 'En cours...' : isEdit ? 'Enregistrer' : 'Créer'}
             </button>
           </div>
         </div>

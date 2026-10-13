@@ -1,4 +1,4 @@
--- 00257 (DOWN) — Phase 5b : retrait suivi PR + flag draft_pr.
+-- 00257 (DOWN) - Phase 5b : retrait suivi PR + flag draft_pr.
 
 delete from public.feature_flags where slug = 'support_agent_draft_pr';
 alter table public.agent_runs

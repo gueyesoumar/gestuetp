@@ -6,7 +6,7 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 
 /**
- * manage-entity — gestion des entités internes d'un groupe (Axe 1).
+ * manage-entity - gestion des entités internes d'un groupe (Axe 1).
  *
  * Actions : list | create | update | deactivate | reactivate
  *
@@ -42,7 +42,7 @@ interface Payload {
   city?: string | null
   country?: string | null
   include_inactive?: boolean
-  // Profil réglementaire (Gëstu Regul / M1) — optionnel, ignoré côté Comply.
+  // Profil réglementaire (Gëstu Regul / M1) - optionnel, ignoré côté Comply.
   criticality?: 'eleve' | 'standard' | 'indetermine'
   obligation_regime?: string | null
   tier?: string | null
@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
         console.error('[manage-entity] list:', error.message)
         return json({ error: 'Erreur de chargement' }, 500)
       }
-      // Profils réglementaires (Regul) — vide côté Comply.
+      // Profils réglementaires (Regul) - vide côté Comply.
       const { data: profs } = await admin
         .from('entity_regulatory_profile')
         .select('organization_id, criticality, obligation_regime, tier, status, entry_date, exit_date')
@@ -235,7 +235,7 @@ Deno.serve(async (req) => {
       }
       // RFC 0007 P4b : le rattachement est une ARÊTE du graphe (plus de parent_org_id).
       await setParentEdge(admin, parentId, created.id)
-      // Profil réglementaire (Regul) — best-effort, non bloquant pour la création.
+      // Profil réglementaire (Regul) - best-effort, non bloquant pour la création.
       const prof = profilePatch(body)
       if (prof) {
         const { error: perr } = await admin

@@ -90,7 +90,7 @@ export function OnboardingPanel({ route, module, onClose }: Props): JSX.Element 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(input) } }}
-            placeholder="Posez votre question…"
+            placeholder="Posez votre question..."
             className="flex-1 bg-transparent text-[13px] text-gray-800 outline-none placeholder:text-gray-400"
           />
           <button onClick={() => submit(input)} disabled={streaming || !input.trim()} aria-label="Envoyer" className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-xl bg-gradient-to-br from-forest-700 to-forest-900 text-white disabled:opacity-40">

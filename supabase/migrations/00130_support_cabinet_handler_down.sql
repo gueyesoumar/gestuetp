@@ -1,4 +1,4 @@
--- 00130 — Rollback : restaure la policy UPDATE d'origine (demandeur / platform owner).
+-- 00130 - Rollback : restaure la policy UPDATE d'origine (demandeur / platform owner).
 
 drop policy if exists support_requests_update on public.support_requests;
 

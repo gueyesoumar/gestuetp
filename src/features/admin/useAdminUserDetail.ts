@@ -64,7 +64,7 @@ export function useAdminUserDetail(userId: string | undefined): Result {
 
         const row = u as unknown as Record<string, unknown> & { organization_id: string }
 
-        // Organisation chargée séparément (best-effort) — fallback si non lisible.
+        // Organisation chargée séparément (best-effort) - fallback si non lisible.
         const { data: orgRow } = await supabase
           .from('organizations')
           .select('id, name, slug, types, is_active')
@@ -72,7 +72,7 @@ export function useAdminUserDetail(userId: string | undefined): Result {
           .abortSignal(abort.signal)
           .maybeSingle()
         const organization = (orgRow as { id: string; name: string; slug: string; types: string[]; is_active: boolean } | null) ?? {
-          id: row.organization_id, name: '—', slug: '', types: [] as string[], is_active: false,
+          id: row.organization_id, name: '-', slug: '', types: [] as string[], is_active: false,
         }
 
         const { data: roles } = await supabase
@@ -104,7 +104,7 @@ export function useAdminUserDetail(userId: string | undefined): Result {
         const recent = ((viewSessions ?? []) as Array<{ id: string; reason: string; started_at: string; admin: { email: string } | null }>)
           .map((v) => ({
             id: v.id,
-            admin_email: v.admin?.email ?? '—',
+            admin_email: v.admin?.email ?? '-',
             reason: v.reason,
             started_at: v.started_at,
           }))

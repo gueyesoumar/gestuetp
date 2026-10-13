@@ -42,7 +42,7 @@ export function SubsidiaryHero({ data }: SubsidiaryHeroProps): JSX.Element {
               )}
             </>
           ) : (
-            <p className="text-2xl font-bold text-white/60">—</p>
+            <p className="text-2xl font-bold text-white/60">-</p>
           )}
         </div>
       </div>

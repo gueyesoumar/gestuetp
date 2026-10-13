@@ -32,7 +32,7 @@ function daysUntil(iso: string | null): number | null {
 
 /**
  * Bloc « Signaux » (rail copilote, incrément 1) : fait remonter ce qui compte pour
- * CE contrôle — preuves manquantes, cadrage qui le justifie, discussion non lue,
+ * CE contrôle - preuves manquantes, cadrage qui le justifie, discussion non lue,
  * échéance de revue. Chaque signal déroule la section correspondante au clic.
  */
 export function ControlSignals({ missionId, controlId, unreadCount, missionEndDate, status, onJump }: ControlSignalsProps) {
@@ -47,7 +47,7 @@ export function ControlSignals({ missionId, controlId, unreadCount, missionEndDa
     signals.push({
       key: 'cadrage-gap', jump: 'contexte', tone: 'bg-red-50 text-red-600',
       icon: <ScanSearch size={11} />,
-      node: <>Le cadrage signale un <b className="font-semibold text-gray-800">écart probable</b>{hint.worstWeight >= 3 ? ' (preuve forte)' : ''} — suggestion : Non conforme</>,
+      node: <>Le cadrage signale un <b className="font-semibold text-gray-800">écart probable</b>{hint.worstWeight >= 3 ? ' (preuve forte)' : ''}, suggestion : Non conforme</>,
     })
   }
 

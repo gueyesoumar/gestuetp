@@ -16,7 +16,7 @@ export function ContinuousCompliancePage(): JSX.Element {
     <div className="max-w-3xl">
       <h2 className="text-xl font-semibold text-gray-900">Conformité continue</h2>
       <p className="mt-1 text-[13px] text-gray-500">
-        Collectez automatiquement la preuve de conformité depuis vos outils — vérifiée, horodatée et versée dans la piste d&apos;audit.
+        Collectez automatiquement la preuve de conformité depuis vos outils : vérifiée, horodatée et versée dans la piste d&apos;audit.
       </p>
 
       {error && <div className="mt-4"><ErrorAlert message={error} /></div>}

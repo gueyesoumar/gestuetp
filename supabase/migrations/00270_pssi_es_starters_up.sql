@@ -1,4 +1,4 @@
--- 00270 — Starters plateforme pour le référentiel PSSI-ES (framework 00000000-...-017).
+-- 00270 - Starters plateforme pour le référentiel PSSI-ES (framework 00000000-...-017).
 -- Met la PSSI-ES à parité avec ISO 27001 sur les aides prédéfinies par contrôle :
 --   (1) finding_templates : constats-types liés (catalogue lié, Lot 3) ;
 --   (2) controls.audit_checklist : points à vérifier (chips Lot 1) ;

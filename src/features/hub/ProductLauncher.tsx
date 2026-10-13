@@ -1,5 +1,5 @@
 /**
- * ProductLauncher — vue « Lanceur » du Hub (RFC Hub UX, direction D3).
+ * ProductLauncher - vue « Lanceur » du Hub (RFC Hub UX, direction D3).
  * Grille de produits abonnement-aware, entrée directe (1 clic, plus de popover).
  * Posture compacte + accès portefeuille discret. Skin vault sombre.
  */
@@ -34,7 +34,7 @@ export function ProductLauncher({
       <div className="flex flex-col items-center gap-4">
         <div className="inline-flex items-center gap-3 rounded-full border border-[rgb(var(--hub-fg)/0.12)] bg-[rgb(var(--hub-fg)/0.04)] px-[18px] py-[9px]">
           <span className="text-[10.5px] font-semibold uppercase tracking-[1.5px] text-[rgb(var(--hub-fg)/0.5)]">Confiance</span>
-          <span className="font-mono text-[20px] font-semibold leading-none text-[#D4A843]">{composite ?? '—'}</span>
+          <span className="font-mono text-[20px] font-semibold leading-none text-[#D4A843]">{composite ?? '-'}</span>
           <span className="rounded-full bg-[#D4A843] px-2.5 py-[3px] text-[11px] font-semibold text-[#1B4332]">{bandLabel}</span>
           <button type="button" onClick={onPosture} className="ml-0.5 text-[12px] font-semibold text-[#E2C26B] hover:text-[#F0D98A]">détail →</button>
         </div>

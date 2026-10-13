@@ -74,7 +74,7 @@ export function AdminFrameworkCreatePage() {
         <Field label="Nom *">
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="ISO 27001:2022" disabled={submitting} />
         </Field>
-        <Field label="Slug *" hint="Identifiant URL-safe — généré automatiquement, modifiable">
+        <Field label="Slug *" hint="Identifiant URL-safe : généré automatiquement, modifiable">
           <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); setSlugTouched(true) }} placeholder="iso-27001-2022" disabled={submitting} />
         </Field>
         <div className="grid grid-cols-2 gap-3">
@@ -98,7 +98,7 @@ export function AdminFrameworkCreatePage() {
       <div className="mt-4 flex justify-end gap-2">
         <Link to="/admin/frameworks" className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</Link>
         <button onClick={submit} disabled={!ready || submitting} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg bg-forest-700 text-white hover:bg-forest-900 disabled:opacity-50">
-          {submitting ? 'Création…' : 'Créer'}
+          {submitting ? 'Création...' : 'Créer'}
         </button>
       </div>
     </div>

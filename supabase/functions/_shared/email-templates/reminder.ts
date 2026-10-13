@@ -90,7 +90,7 @@ export function escapeHtml(value: string): string {
 
 export function reminderSubject(palier: Palier, ctx: ReminderContext): string {
   const cfg = PALIER_CONFIG[palier]
-  return `${cfg.subjectPrefix} — ${ctx.evidenceName}`
+  return `${cfg.subjectPrefix} : ${ctx.evidenceName}`
 }
 
 export interface ReminderRenderOptions {
@@ -140,7 +140,7 @@ export function reminderHtml(palier: Palier, ctx: ReminderContext, options: Remi
     ? `<a href="${safe.contactAuditorUrl}" style="margin-left:10px; font-size:13px; color:${safe.primaryColor}; text-decoration:underline">Contacter ${auditorLe(ctx)}</a>`
     : ''
 
-  // Header — branded ou défaut Gëstu
+  // Header - branded ou défaut Gëstu
   const header = branding ? renderHeaderForBranding(branding) : renderHeaderGestu()
 
   // Footer

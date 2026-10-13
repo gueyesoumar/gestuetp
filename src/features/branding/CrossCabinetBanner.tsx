@@ -79,7 +79,7 @@ export function CrossCabinetBanner(): JSX.Element | null {
       <Info size={14} className="text-blue-700 shrink-0" />
       <div className="flex-1 min-w-0 text-[12px] text-blue-900 leading-snug">
         Vous êtes audité par <strong>{otherCount} autre{otherCount > 1 ? 's' : ''} cabinet{otherCount > 1 ? 's' : ''}</strong>
-        {otherCabinets.length > 0 && <span className="text-blue-700"> ({otherCabinets.join(', ')}{otherCount > otherCabinets.length ? '…' : ''})</span>}.
+        {otherCabinets.length > 0 && <span className="text-blue-700"> ({otherCabinets.join(', ')}{otherCount > otherCabinets.length ? '...' : ''})</span>}.
         {' '}Voir toutes vos missions sur{' '}
         <a
           href="https://app.gestugroup.com/portal"

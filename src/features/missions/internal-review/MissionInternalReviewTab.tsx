@@ -119,7 +119,7 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
         </div>
       </div>
 
-      {/* Décision de revue — barre épinglée en tête (RFC UX Lot 4) */}
+      {/* Décision de revue - barre épinglée en tête (RFC UX Lot 4) */}
       {canDecide && (
         <div className="sticky top-0 z-20 -mx-6 mb-6 border-b-2 border-forest-700 bg-forest-50/95 backdrop-blur px-6 py-4 shadow-sm">
           <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -144,7 +144,7 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
             <div className="flex items-center gap-2 shrink-0">
               {skipClientReview ? (
                 <span className="text-[12px] text-gray-500 max-w-[220px]">
-                  Pas de validation client sur ce parcours — clôturez à l&rsquo;étape Cl&ocirc;ture.
+                  Pas de validation client sur ce parcours : clôturez à l&rsquo;étape Cl&ocirc;ture.
                 </span>
               ) : (
                 <button
@@ -174,13 +174,13 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
             onChange={(e) => setComment(e.target.value)}
             rows={2}
             className="mt-3 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100 resize-none"
-            placeholder="Commentaire — obligatoire pour renvoyer en correction, transmis au client en cas d'envoi..."
+            placeholder="Commentaire : obligatoire pour renvoyer en correction, transmis au client en cas d'envoi..."
             disabled={sending}
           />
         </div>
       )}
 
-      {/* Quality callout (B) — désélectionnable via template (RFC 0009) */}
+      {/* Quality callout (B) - désélectionnable via template (RFC 0009) */}
       {isStepEnabled(mission, 'review.quality') && (
         <div className="mb-5">
           <ReviewQualityCallout assessments={review.assessmentDetails} />
@@ -205,7 +205,7 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
 
         {/* Right column */}
         <div className="space-y-5">
-          {/* Discussion panel (C) — désélectionnable via template (RFC 0009) */}
+          {/* Discussion panel (C) - désélectionnable via template (RFC 0009) */}
           {isStepEnabled(mission, 'review.discussion') && <ReviewDiscussionPanel missionId={mission.id} />}
 
           {/* Checklist */}

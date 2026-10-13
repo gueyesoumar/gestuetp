@@ -6,7 +6,7 @@ interface SubsidiaryKPIsProps {
 }
 
 function formatShortDate(d: string | null): string {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 

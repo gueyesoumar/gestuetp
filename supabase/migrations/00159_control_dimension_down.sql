@@ -1,4 +1,4 @@
--- 00159_control_dimension_down.sql — rollback de la Phase A (mapping dimension).
+-- 00159_control_dimension_down.sql - rollback de la Phase A (mapping dimension).
 
 drop trigger if exists trg_inherit_control_dimension on public.control_mappings;
 drop function if exists public.inherit_control_dimension();

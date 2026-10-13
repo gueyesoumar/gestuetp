@@ -1,4 +1,4 @@
--- Migration 00089: Type d'asset Anthropic par document — UP
+-- Migration 00089: Type d'asset Anthropic par document - UP
 --
 -- Le pipeline IA accepte maintenant deux types d'assets côté Files API :
 --   - 'document' : PDF, TXT, CSV, HTML (et DOCX/XLSX convertis serveur)

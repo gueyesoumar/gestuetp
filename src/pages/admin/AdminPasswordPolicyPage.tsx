@@ -63,7 +63,7 @@ export function AdminPasswordPolicyPage(): JSX.Element {
       </div>
       <h1 className="text-xl font-bold text-gray-900">Sécurité</h1>
       <p className="text-[12.5px] text-gray-500 mt-1 mb-5 max-w-2xl">
-        Politique de mot de passe de la plateforme — appliquée côté serveur à toute définition ou changement. Ne réinitialise pas les mots de passe existants.
+        Politique de mot de passe de la plateforme, appliquée côté serveur à toute définition ou changement. Ne réinitialise pas les mots de passe existants.
       </p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
@@ -79,6 +79,6 @@ export function AdminPasswordPolicyPage(): JSX.Element {
 }
 
 function formatDate(iso: string | null): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }

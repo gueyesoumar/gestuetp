@@ -1,4 +1,4 @@
--- Migration 00224 (DOWN) — P4b (RFC 0007). Restaure parent_org_id depuis le graphe.
+-- Migration 00224 (DOWN) - P4b (RFC 0007). Restaure parent_org_id depuis le graphe.
 
 alter table public.organizations
   add column if not exists parent_org_id uuid references public.organizations(id) on delete set null;

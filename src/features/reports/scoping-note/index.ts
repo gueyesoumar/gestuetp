@@ -13,7 +13,7 @@ import {
 export type ScopingNoteData = _ScopingNoteData
 
 /**
- * Générateur PDF de la Note de Cadrage — visuel "Mockup B révisé".
+ * Générateur PDF de la Note de Cadrage - visuel "Mockup B révisé".
  *
  * Toutes les données sont tirées de la BDD existante (missions,
  * cabinet_clients, mission_members, mission_risks, mission_exclusions,
@@ -25,7 +25,7 @@ export async function generateScopingNotePDF(data: ScopingNoteData): Promise<voi
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const ctx = createContext(doc, data)
 
-  // Pré-charge le logo client (best effort — silencieux si KO)
+  // Pré-charge le logo client (best effort - silencieux si KO)
   const clientLogo = data.client?.logo_url ? await loadImageAsDataURL(data.client.logo_url) : null
 
   drawCoverPage(ctx, clientLogo)

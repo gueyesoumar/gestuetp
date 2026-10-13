@@ -1,6 +1,6 @@
 -- P1.1b (RFC 0014) : pivote le pilote vers Tenable Vulnerability Management (cloud,
 -- ex-Tenable.io). Additif : ajoute 'tenable' aux providers autorisés + seed 3 checks
--- de gestion des vulnérabilités (ISO 27001:2022 A.8.8 — vulnérabilités techniques).
+-- de gestion des vulnérabilités (ISO 27001:2022 A.8.8 - vulnérabilités techniques).
 -- Auth Tenable = clés d'API PAR ORG (accessKey/secretKey, stockées en Vault via
 -- connector_integrations.secret_ref) → aucune app OAuth plateforme requise.
 
@@ -27,7 +27,7 @@ insert into public.control_checks (provider, check_key, title, description, defa
    'security', 'fort'),
   ('tenable', 'tenable.scan_coverage',
    'Couverture et fraîcheur des scans',
-   'Vérifie que les actifs ont été scannés récemment (moins de 30 jours) — détecte un parc non surveillé.',
+   'Vérifie que les actifs ont été scannés récemment (moins de 30 jours) - détecte un parc non surveillé.',
    '{"max_scan_age_days": 30}'::jsonb,
    'security', 'moyen')
 on conflict (check_key) do nothing;

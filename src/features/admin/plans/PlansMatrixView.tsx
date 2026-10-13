@@ -203,7 +203,7 @@ function PlanHeaderCell({ plan, saving, format }: { plan: AdminPlan; saving: boo
         <span className="text-[10px] font-mono text-gray-400 normal-case tracking-normal">
           {format(plan.monthly_price)}
         </span>
-        {saving && <span className="text-[9.5px] text-gold-700 normal-case">Enregistrement…</span>}
+        {saving && <span className="text-[9.5px] text-gold-700 normal-case">Enregistrement...</span>}
       </div>
     </th>
   )
@@ -266,7 +266,7 @@ function FeatureRow({ item, plans, featuresByPlan, onPlanToggle, onKillToggle, o
           <td colSpan={plans.length + 1} className="px-5 py-1.5 text-[10.5px] font-bold text-red-700 uppercase tracking-wider">
             <span className="inline-flex items-center gap-1.5">
               <AlertCircle size={12} />
-              Kill switch actif — coupée pour tous les cabinets
+              Kill switch actif : coupée pour tous les cabinets
             </span>
           </td>
         </tr>
@@ -355,7 +355,7 @@ function Cell({ on, disabled, maturity, onClick }: { on: boolean; disabled: bool
       ? 'bg-gold-100 text-gold-700 hover:bg-gold-200'
       : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
     : 'bg-gray-50 text-gray-300 hover:bg-gray-100'
-  const char = on ? (maturity === 'beta' ? 'β' : '✓') : '—'
+  const char = on ? (maturity === 'beta' ? 'β' : '✓') : '-'
   return (
     <button
       type="button"
@@ -380,7 +380,7 @@ function Legend(): JSX.Element {
         Bêta incluse
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-50 text-gray-300 font-bold">—</span>
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-50 text-gray-300 font-bold">-</span>
         Non inclus
       </span>
       <span className="inline-flex items-center gap-1.5 ml-auto">

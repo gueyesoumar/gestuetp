@@ -22,7 +22,7 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0003-000000000005', '00000000-0000-0000-0000-000000000012', 'MEA', 'Surveiller, Evaluer et Apprecier', 'Performance, systeme de controle interne, conformite aux exigences externes', 5);
 
 -- ============================================================
--- Controles — EDM Evaluer, Diriger et Surveiller
+-- Controles - EDM Evaluer, Diriger et Surveiller
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -33,7 +33,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0003-000000000001', 'EDM05', 'Assurer la transparence envers les parties prenantes', 'S''assurer que la mesure et le reporting de performance sont transparents', 5);
 
 -- ============================================================
--- Controles — APO Aligner, Planifier et Organiser
+-- Controles - APO Aligner, Planifier et Organiser
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -53,7 +53,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0003-000000000002', 'APO14', 'Gerer les donnees', 'Obtenir une gestion efficace des actifs de donnees', 14);
 
 -- ============================================================
--- Controles — BAI Batir, Acquerir et Implementer
+-- Controles - BAI Batir, Acquerir et Implementer
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -70,7 +70,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0003-000000000003', 'BAI11', 'Gerer les projets', 'Gerer les projets du portefeuille d''investissements de maniere coordonnee', 11);
 
 -- ============================================================
--- Controles — DSS Delivrer, Servir et Supporter
+-- Controles - DSS Delivrer, Servir et Supporter
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
@@ -82,7 +82,7 @@ insert into public.controls (domain_id, code, name, description, sort_order) val
 ('00000000-0000-0000-0003-000000000004', 'DSS06', 'Gerer les controles des processus metier', 'Definir et maintenir les controles de processus metier et securite de l''information', 6);
 
 -- ============================================================
--- Controles — MEA Surveiller, Evaluer et Apprecier
+-- Controles - MEA Surveiller, Evaluer et Apprecier
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values

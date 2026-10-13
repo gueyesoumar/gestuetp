@@ -34,7 +34,7 @@ DELETE FROM auth.users      WHERE id::text       LIKE '00000000-0000-0000-0099-1
 -- 7. Filiales (en dernier : la FK parent_org_id pointe vers Gëstu Advisory, pas l'inverse)
 DELETE FROM public.organizations WHERE id::text LIKE '00000000-0000-0000-0099-000%';
 
--- 8. Branding démo (laisser, partagé avec le seed initial — on ne supprime QUE
+-- 8. Branding démo (laisser, partagé avec le seed initial - on ne supprime QUE
 --    si on veut purger complètement Gëstu Advisory ; ici on garde le row de
 --    branding cabinet car il survit aux re-seeds successifs).
 -- Note volontaire : on NE supprime PAS public.organization_branding pour

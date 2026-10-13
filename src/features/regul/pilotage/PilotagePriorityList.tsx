@@ -9,7 +9,7 @@ export function PilotagePriorityList({ items }: { items: Priority[] }): JSX.Elem
       <h3 className="text-sm font-bold text-gray-900 mb-1">À traiter en priorité</h3>
       <p className="text-[12px] text-gray-500 mb-4">Assujettis nécessitant une action du régulateur.</p>
       {items.length === 0 ? (
-        <p className="text-[13px] text-gray-400 py-6 text-center">Aucune action prioritaire — le parc est sous contrôle.</p>
+        <p className="text-[13px] text-gray-400 py-6 text-center">Aucune action prioritaire : le parc est sous contrôle.</p>
       ) : (
         <ul className="divide-y divide-gray-100">
           {items.slice(0, 12).map((p) => (
@@ -26,7 +26,7 @@ export function PilotagePriorityList({ items }: { items: Priority[] }): JSX.Elem
           ))}
         </ul>
       )}
-      {items.length > 12 && <p className="text-[11px] text-gray-400 mt-3">+ {items.length - 12} autre(s) — affinez par assujetti.</p>}
+      {items.length > 12 && <p className="text-[11px] text-gray-400 mt-3">+ {items.length - 12} autre(s) : affinez par assujetti.</p>}
     </div>
   )
 }

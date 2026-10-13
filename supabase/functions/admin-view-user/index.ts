@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     }
     const sessionId = (insertedSession as { id: string } | null)?.id
 
-    // 4. Notification au target (RGPD) — sauf anti-spam 24h
+    // 4. Notification au target (RGPD) - sauf anti-spam 24h
     if (!skipNotification) {
       // deno-lint-ignore no-explicit-any
       await (admin.from('notifications') as any).insert({

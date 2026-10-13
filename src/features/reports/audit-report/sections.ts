@@ -18,21 +18,21 @@ import {
   generateMethodologyNarrative, generateNCFactSheet, generateRecommendationNarrative,
 } from '../auditReportNarratives'
 
-// ── Section 01 — Contexte ─────────────────────────────────────────────────
+// ── Section 01 - Contexte ─────────────────────────────────────────────────
 
 export function drawSection01Context(ctx: DocContext): void {
   drawSectionBanner(ctx, '01', 'Contexte et mandat', 'Cadre de la mission, périmètre, équipe et destinataires du rapport')
   writeParagraphs(ctx, generateContextNarrative(ctx.data), { gap: 4 })
 }
 
-// ── Section 02 — Méthodologie ─────────────────────────────────────────────
+// ── Section 02 - Méthodologie ─────────────────────────────────────────────
 
 export function drawSection02Methodology(ctx: DocContext): void {
   drawSectionBanner(ctx, '02', 'Méthodologie d’audit', "Standards mobilisés, techniques d'audit, échantillonnage et matérialité")
   writeParagraphs(ctx, generateMethodologyNarrative(ctx.data), { gap: 4 })
 }
 
-// ── Section 03 — Synthèse exécutive ───────────────────────────────────────
+// ── Section 03 - Synthèse exécutive ───────────────────────────────────────
 
 export function drawSection03ExecutiveSummary(ctx: DocContext): void {
   drawSectionBanner(ctx, '03', 'Synthèse exécutive', "Score de conformité, verdict, lecture rapide, radar de maturité")
@@ -86,7 +86,7 @@ export function drawSection03ExecutiveSummary(ctx: DocContext): void {
   ctx.y += 100
 }
 
-// ── Section 04 — Détail par domaine ───────────────────────────────────────
+// ── Section 04 - Détail par domaine ───────────────────────────────────────
 
 export function drawSection04DomainDetails(ctx: DocContext): void {
   drawSectionBanner(ctx, '04', 'Détail par domaine', 'Score, maturité, faits saillants et statistiques de couverture')
@@ -102,7 +102,7 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   fillRounded(doc, marginL, ctx.y, contentW, 16, 2, ctx.palette.primaryLight)
   fillRect(doc, marginL, ctx.y, 4, 16, ctx.palette.accent)
   setText(doc, FOREST_900, 12, 'bold')
-  doc.text(`${d.code} — ${d.name}`, marginL + 8, ctx.y + 10)
+  doc.text(`${d.code} : ${d.name}`, marginL + 8, ctx.y + 10)
   // Score badge
   const sx = marginL + contentW - 26
   const sc = d.score >= 80 ? GREEN : d.score >= 60 ? GOLD_500 : RED
@@ -111,7 +111,7 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   doc.text(`${d.score}%`, sx + 11, ctx.y + 10, { align: 'center' })
   ctx.y += 18
 
-  // Stats inline — alignées avec le titre du bandeau au-dessus (marginL + 8)
+  // Stats inline - alignées avec le titre du bandeau au-dessus (marginL + 8)
   setText(doc, TEXT_500, 8.5, 'normal')
   doc.text(`${d.scored}/${d.total} contrôles évalués · ${d.conformes} strictement conformes · ${d.ncMajor} NC maj · ${d.ncMinor} NC min · ${d.observations} obs.`, marginL + 8, ctx.y)
   ctx.y += 6
@@ -126,12 +126,12 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   ctx.y += 5
 }
 
-// ── Section 05 — Fiches NC majeures ───────────────────────────────────────
+// ── Section 05 - Fiches NC majeures ───────────────────────────────────────
 
 export function drawSection05NCFactSheets(ctx: DocContext): void {
   const majors = ctx.data.assessments.filter((a) => a.finding_classification === 'major_nc')
   if (majors.length === 0) {
-    drawSectionBanner(ctx, '05', 'Fiches de non-conformités majeures', 'Aucune NC majeure caractérisée — synthèse')
+    drawSectionBanner(ctx, '05', 'Fiches de non-conformités majeures', 'Aucune NC majeure caractérisée (synthèse)')
     writeParagraphs(ctx, [
       `Au terme de l'audit, aucune non-conformité majeure n'a été caractérisée. L'organisation présente, sur l'intégralité du périmètre couvert, un dispositif de contrôle interne dont les éventuels écarts résiduels relèvent de non-conformités mineures ou d'observations dont le détail figure en section 4.`,
     ], { gap: 4 })
@@ -163,7 +163,7 @@ function drawNCFactSheet(ctx: DocContext, a: AssessmentWithControl, idx: number,
   setText(doc, WHITE, 8.5, 'bold')
   doc.text(`FICHE NC MAJEURE  ·  ${idx}/${total}`, marginL + 6, ctx.y + 7)
   setText(doc, WHITE, 13, 'bold')
-  doc.text(`${a.control.code} — ${truncate(a.control.name, 60)}`, marginL + 6, ctx.y + 14)
+  doc.text(`${a.control.code} : ${truncate(a.control.name, 60)}`, marginL + 6, ctx.y + 14)
   ctx.y += 22
 
   const sheet = generateNCFactSheet(a, ctx.data)
@@ -206,7 +206,7 @@ function drawNCBlock(ctx: DocContext, title: string, body: string, accent: RGB):
   ctx.y += blockH + 3
 }
 
-// ── Section 06 — Recommandations + matrice ────────────────────────────────
+// ── Section 06 - Recommandations + matrice ────────────────────────────────
 
 export function drawSection06Recommendations(ctx: DocContext): void {
   drawSectionBanner(ctx, '06', 'Recommandations et matrice de priorisation', "Hiérarchisation des recommandations selon l'axe impact × effort")
@@ -248,7 +248,7 @@ function drawRecoCard(ctx: DocContext, a: AssessmentWithControl, idx: number): v
 
   // Indent gauche du corps : aligné sous le titre (badge + chip = 32 mm)
   const BODY_X = 32
-  const text = a.recommendations ?? '—'
+  const text = a.recommendations ?? '-'
   const lines = doc.splitTextToSize(text, contentW - BODY_X - 4) as string[]
   const cardH = 14 + lines.length * 4.5 + 2
   checkPage(ctx, cardH + 3)
@@ -265,7 +265,7 @@ function drawRecoCard(ctx: DocContext, a: AssessmentWithControl, idx: number): v
   doc.text(priority, marginL + 21.5, ctx.y + 7.5, { align: 'center' })
 
   setText(doc, FOREST_900, 9, 'bold')
-  doc.text(`${a.control.code} — ${truncate(a.control.name, 55)}`, marginL + BODY_X, ctx.y + 8)
+  doc.text(`${a.control.code} : ${truncate(a.control.name, 55)}`, marginL + BODY_X, ctx.y + 8)
 
   setText(doc, TEXT_700, 9, 'normal')
   let ly = ctx.y + 14
@@ -274,7 +274,7 @@ function drawRecoCard(ctx: DocContext, a: AssessmentWithControl, idx: number): v
   ctx.y += cardH + 2
 }
 
-// ── Section 07 — Plan d'action ────────────────────────────────────────────
+// ── Section 07 - Plan d'action ────────────────────────────────────────────
 
 export function drawSection07ActionPlan(ctx: DocContext): void {
   drawSectionBanner(ctx, '07', 'Plan d’action de remédiation', "Cycle de vie des CAR, suivi sur la plateforme et tableau récapitulatif")
@@ -295,7 +295,7 @@ export function drawSection07ActionPlan(ctx: DocContext): void {
       a.control.code,
       a.finding_classification === 'major_nc' ? 'NC maj' : a.finding_classification === 'minor_nc' ? 'NC min' : 'Obs.',
       truncate(a.control.name, 38),
-      truncate(a.findings ?? '—', 60),
+      truncate(a.findings ?? '-', 60),
     ]),
     [22, 18, 60, 74],
   )
@@ -304,7 +304,7 @@ export function drawSection07ActionPlan(ctx: DocContext): void {
   }
 }
 
-// ── Section 08 — Conclusion + signataires ─────────────────────────────────
+// ── Section 08 - Conclusion + signataires ─────────────────────────────────
 
 export function drawSection08Conclusion(ctx: DocContext, _clientLogo: LogoData | null): void {
   drawSectionBanner(ctx, '08', 'Conclusion et opinion d’audit', 'Verdict argumenté, conditions de délivrance et signatures')
@@ -333,14 +333,14 @@ export function drawSection08Conclusion(ctx: DocContext, _clientLogo: LogoData |
   // pour ne pas avoir une case vide.
   if (associate) {
     drawSignatureCard(doc, marginL + 0 * (cardW + 4), ctx.y, cardW, cardH, 'Associé signataire', memberName(associate), ctx.data.cabinetName)
-    drawSignatureCard(doc, marginL + 1 * (cardW + 4), ctx.y, cardW, cardH, 'Chef de mission', lead ? memberName(lead) : '—', ctx.data.cabinetName)
+    drawSignatureCard(doc, marginL + 1 * (cardW + 4), ctx.y, cardW, cardH, 'Chef de mission', lead ? memberName(lead) : '-', ctx.data.cabinetName)
   } else {
-    drawSignatureCard(doc, marginL + 0 * (cardW + 4), ctx.y, cardW, cardH, 'Chef de mission', lead ? memberName(lead) : '—', ctx.data.cabinetName)
-    drawSignatureCard(doc, marginL + 1 * (cardW + 4), ctx.y, cardW, cardH, 'Cabinet d’audit', '—', ctx.data.cabinetName)
+    drawSignatureCard(doc, marginL + 0 * (cardW + 4), ctx.y, cardW, cardH, 'Chef de mission', lead ? memberName(lead) : '-', ctx.data.cabinetName)
+    drawSignatureCard(doc, marginL + 1 * (cardW + 4), ctx.y, cardW, cardH, 'Cabinet d’audit', '-', ctx.data.cabinetName)
   }
   drawSignatureCard(doc, marginL + 2 * (cardW + 4), ctx.y, cardW, cardH,
     'Pour l’entité auditée',
-    primaryClient ? primaryClient.contact_name : '—',
+    primaryClient ? primaryClient.contact_name : '-',
     primaryClient ? `${primaryClient.job_title ?? 'Contact'} · ${clientLabel(ctx.data)}` : clientLabel(ctx.data))
   ctx.y += cardH + 4
 }

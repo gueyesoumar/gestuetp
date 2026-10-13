@@ -1,4 +1,4 @@
--- 00197 — Nœud papillon complet cross-tenant du scénario de l'audité.
+-- 00197 - Nœud papillon complet cross-tenant du scénario de l'audité.
 --
 -- Même frontière SECURITY DEFINER unique (secure by default) : renvoie, pour un
 -- scénario de risque de l'organisation auditée, ses barrières (contrôles + politiques,

@@ -15,7 +15,7 @@ import { validateUserPassword, applyUserPassword } from '../_shared/set-user-pas
  *  3. SEULEMENT en cas de succès : consommation atomique (used_at) → anti-rejeu.
  *     Un mot de passe refusé (faible/HIBP) ne « brûle » donc pas le lien.
  *
- * Réponse : { ok, email } — l'email permet au front de faire signInWithPassword
+ * Réponse : { ok, email } - l'email permet au front de faire signInWithPassword
  * (session propre). Erreurs génériques (anti-énumération). Le jeton brut n'est
  * jamais journalisé.
  */
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     if (!tok) return json({ error: INVALID }, 400)
     const userId = (tok as { user_id: string }).user_id
 
-    // 2. Charger le compte cible (refuser si désactivé — F3).
+    // 2. Charger le compte cible (refuser si désactivé - F3).
     const { data: u } = await admin.from('users').select('auth_id, email, is_active').eq('id', userId).single()
     const user = u as { auth_id: string; email: string; is_active: boolean } | null
     if (!user || !user.is_active) return json({ error: INVALID }, 400)

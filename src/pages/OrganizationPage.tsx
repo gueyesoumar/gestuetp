@@ -14,7 +14,7 @@ type TabKey = 'general' | 'membres' | 'roles' | 'parametres' | 'parcours' | 'ter
 /**
  * Hub Organisation tout-en-onglets : Général, Membres, Rôles & permissions,
  * Paramètres, Terminologie et Piste d'audit. Les onglets sensibles sont masqués
- * selon la permission (le masquage reste cosmétique — la sécurité vient des RLS
+ * selon la permission (le masquage reste cosmétique - la sécurité vient des RLS
  * et des gardes internes de chaque surface). L'onglet actif est reflété dans
  * l'URL (?tab=) pour le lien direct et les redirections depuis /membres, /piste-audit.
  */

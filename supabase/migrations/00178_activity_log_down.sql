@@ -1,4 +1,4 @@
--- 00178 — DOWN : suppression de la piste d'audit activity_log.
+-- 00178 - DOWN : suppression de la piste d'audit activity_log.
 
 drop policy if exists "activity_log_require_aal2" on public.activity_log;
 drop policy if exists "activity_log_select_org" on public.activity_log;

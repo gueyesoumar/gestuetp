@@ -16,7 +16,7 @@ import { useDemoLens, demoLensFilter } from '../demo/DemoLensContext'
 export interface ComplyHubStats {
   activeMissions: number
   totalControls: number
-  /** null si aucun contrôle évalué — on affichera "—" plutôt que "0%" */
+  /** null si aucun contrôle évalué - on affichera "-" plutôt que "0%" */
   conformityScore: number | null
 }
 

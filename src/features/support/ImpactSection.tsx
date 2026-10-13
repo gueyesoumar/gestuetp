@@ -91,7 +91,7 @@ export function ImpactSection({ requestId, feasibilityRunId, feasibilityReport }
           </button>
         ) : (
           <button onClick={() => void launch()} disabled={busy} className="px-3 py-1.5 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 disabled:opacity-50">
-            {busy ? 'Lancement…' : report ? 'Relancer' : 'Analyser l’impact'}
+            {busy ? 'Lancement...' : report ? 'Relancer' : 'Analyser l’impact'}
           </button>
         )}
       </div>

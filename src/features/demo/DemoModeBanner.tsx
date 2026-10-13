@@ -17,7 +17,7 @@ const CONFIRMS: Record<ConfirmKind, { title: string; message: string; confirmLab
 }
 
 /**
- * Indicateur « Mode démo » — pastille compacte + popover de contrôle (remplace
+ * Indicateur « Mode démo » - pastille compacte + popover de contrôle (remplace
  * l'ancien bandeau pleine largeur). Un seul montage (AppLayout) couvre toutes les
  * pages. Regroupe la bascule LENTILLE et les actions ; toute action destructrice
  * passe par une confirmation + un toast. Ne rend rien sans bac à sable.

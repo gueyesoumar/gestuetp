@@ -20,7 +20,7 @@ delete from public.audit_topics where framework_id in (
 );
 
 -- ============================================================
--- ISO 27001 v2 — 10 sujets transverses
+-- ISO 27001 v2 - 10 sujets transverses
 -- ============================================================
 
 insert into public.audit_topics (id, framework_id, name, description, sort_order) values
@@ -168,7 +168,7 @@ join public.domains d on d.id = c.domain_id
 where d.framework_id = '00000000-0000-0000-0000-000000000010';
 
 -- ============================================================
--- PSSI-ES — 11 sujets (alignés sur les chapitres I-XI)
+-- PSSI-ES - 11 sujets (alignés sur les chapitres I-XI)
 -- ============================================================
 
 insert into public.audit_topics (id, framework_id, name, description, sort_order) values
@@ -230,7 +230,7 @@ join public.controls c on c.domain_id = tm.domain_id;
 -- pose en entretien. Servent de canevas pour le PV pré-rempli (interview_schedules.pv_template).
 
 -- ============================================================
--- ISO 27001 v2 — 10 sujets
+-- ISO 27001 v2 - 10 sujets
 -- ============================================================
 
 update public.audit_topics set default_questions = '[
@@ -314,7 +314,7 @@ update public.audit_topics set default_questions = '[
 ]'::jsonb where id = '20000010-0000-0000-0000-00000000000a';
 
 -- ============================================================
--- PSSI-ES — 11 sujets
+-- PSSI-ES - 11 sujets
 -- ============================================================
 
 update public.audit_topics set default_questions = '[

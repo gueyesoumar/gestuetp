@@ -39,7 +39,7 @@ export type AuthOutcome =
  */
 /**
  * Lit le claim `aal` du JWT (déjà validé cryptographiquement par getUser).
- * Décodage du payload uniquement — aucune vérification de signature ici.
+ * Décodage du payload uniquement - aucune vérification de signature ici.
  */
 function readAal(token: string): string | null {
   try {
@@ -61,7 +61,7 @@ export async function authenticateCaller(
   const { data: { user: caller }, error: authError } = await admin.auth.getUser(token)
   if (authError || !caller) return { ok: false, status: 401, message: 'Non autorisé' }
 
-  // MFA obligatoire (AAL2) — activé via l'interrupteur MFA_ENFORCE une fois les
+  // MFA obligatoire (AAL2) - activé via l'interrupteur MFA_ENFORCE une fois les
   // comptes enrôlés (sinon lockout massif). Couvre toute la surface d'écriture
   // edge, y compris un appel direct à l'API avec un jeton AAL1.
   if (Deno.env.get('MFA_ENFORCE') === 'on' && readAal(token) !== 'aal2') {

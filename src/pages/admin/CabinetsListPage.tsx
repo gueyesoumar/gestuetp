@@ -76,7 +76,7 @@ export function CabinetsListPage() {
           </div>
           <h1 className="text-xl font-bold text-gray-900">Organisations</h1>
           <p className="text-[12.5px] text-gray-500 mt-1 max-w-2xl">
-            Toutes natures — cabinets, régulateurs, clients, groupes. Triées par conformité, les organisations à risque en premier.
+            Toutes natures : cabinets, régulateurs, clients, groupes. Triées par conformité, les organisations à risque en premier.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export function CabinetsListPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher une organisation…"
+              placeholder="Rechercher une organisation..."
               className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-64 bg-page-bg"
             />
           </div>
@@ -178,12 +178,12 @@ function OrganizationRow({ org }: { org: AdminCabinet }) {
         </Link>
       </td>
       <td className="px-4 py-3 border-b border-gray-100">
-        {typeMeta ? <Pill text={typeMeta.label} variant={typeMeta.variant} /> : <span className="text-gray-300 text-[11px]">—</span>}
+        {typeMeta ? <Pill text={typeMeta.label} variant={typeMeta.variant} /> : <span className="text-gray-300 text-[11px]">-</span>}
       </td>
-      <td className="px-4 py-3 border-b border-gray-100">{org.plan_name ? <Pill text={org.plan_name} variant="gold" /> : <span className="text-gray-300 text-[11px]">—</span>}</td>
+      <td className="px-4 py-3 border-b border-gray-100">{org.plan_name ? <Pill text={org.plan_name} variant="gold" /> : <span className="text-gray-300 text-[11px]">-</span>}</td>
       <td className="px-4 py-3 border-b border-gray-100"><PostureCell score={org.posture} /></td>
       <td className="px-4 py-3 border-b border-gray-100">{org.members_count}</td>
-      <td className="px-4 py-3 border-b border-gray-100">{org.missions_count > 0 ? org.missions_count : <span className="text-gray-300">—</span>}</td>
+      <td className="px-4 py-3 border-b border-gray-100">{org.missions_count > 0 ? org.missions_count : <span className="text-gray-300">-</span>}</td>
       <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-500">{formatRelative(org.last_activity_at)}</td>
       <td className="px-4 py-3 border-b border-gray-100">{org.is_active ? <Pill text="Actif" variant="green" /> : <Pill text="Suspendu" variant="red" />}</td>
       <td className="px-4 py-3 border-b border-gray-100 text-right">
@@ -286,7 +286,7 @@ function PostureCell({ score }: { score: number | null }) {
 }
 
 function formatRelative(iso: string | null): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const ms = Date.now() - new Date(iso).getTime()
   const min = Math.floor(ms / 60_000)
   if (min < 60) return `il y a ${min} min`

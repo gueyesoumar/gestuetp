@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
 
 /**
- * admin-set-org-engine — fixe le MOTEUR de mission d'une organisation
+ * admin-set-org-engine - fixe le MOTEUR de mission d'une organisation
  * (organizations.workflow_version, RFC 0003). Réservé au super-admin.
  *
  * Attribution SYMÉTRIQUE et LIBRE : 'audit' ou 'controle', indépendamment de

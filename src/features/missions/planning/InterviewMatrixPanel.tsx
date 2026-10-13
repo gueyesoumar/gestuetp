@@ -239,7 +239,7 @@ export function InterviewMatrixPanel({
             <span>Auditeur affecté</span>
             <select value={auditorId} onChange={(e) => setAuditorId(e.target.value)}
               className="px-2 py-1 border border-gray-200 rounded text-[12px] outline-none focus:border-forest-500">
-              <option value="">—</option>
+              <option value="">-</option>
               {auditorMembers.map((m) => (
                 <option key={m.user_id} value={m.user_id}>{m.user.first_name} {m.user.last_name}</option>
               ))}
@@ -253,7 +253,7 @@ export function InterviewMatrixPanel({
             disabled={!canGenerate}
             className="bg-forest-700 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-forest-900 disabled:opacity-50 inline-flex items-center gap-1.5"
           >
-            {generating ? <><Loader2 size={12} className="animate-spin" /> Génération…</> : <><Sparkles size={12} /> Générer {previewSpecs.length} entretien{previewSpecs.length > 1 ? 's' : ''}</>}
+            {generating ? <><Loader2 size={12} className="animate-spin" /> Génération...</> : <><Sparkles size={12} /> Générer {previewSpecs.length} entretien{previewSpecs.length > 1 ? 's' : ''}</>}
           </button>
         </div>
       </div>

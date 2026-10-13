@@ -1,4 +1,4 @@
--- Migration 00087: Déclaration de document non disponible — UP
+-- Migration 00087: Déclaration de document non disponible - UP
 --
 -- Permet au client de déclarer qu'il n'a pas un document demandé, plutôt que
 -- de laisser la demande en silencieux. L'auditeur tranche ensuite (accepter,
@@ -6,11 +6,11 @@
 --
 -- Étend la machine à états sur mission_evidence_requests.status :
 --
---   pending             (existant — auditeur a demandé)
---   uploaded            (existant — au moins un document linké)
+--   pending             (existant - auditeur a demandé)
+--   uploaded            (existant - au moins un document linké)
 --   declined_by_client    NOUVEAU
 --   accepted              NOUVEAU (auditeur valide la déclaration, sort du périmètre)
---   reissued              NOUVEAU (auditeur insiste — reset à pending avec commentaire)
+--   reissued              NOUVEAU (auditeur insiste - reset à pending avec commentaire)
 --   escalated_to_finding  NOUVEAU (transformé en constat)
 --
 -- Retire 'validated' et 'rejected' du modèle (jamais utilisés depuis 5 ans).
@@ -69,7 +69,7 @@ CREATE INDEX IF NOT EXISTS idx_mer_status
   ON public.mission_evidence_requests(mission_id, status);
 
 -- ============================================================
--- 5. RLS — UPDATE pour le client (déclarer / annuler)
+-- 5. RLS - UPDATE pour le client (déclarer / annuler)
 -- ============================================================
 -- Permission : contributor + approver du portail client.
 -- Le client ne peut écrire QUE les colonnes decline_*.
@@ -100,7 +100,7 @@ CREATE POLICY "mer_update_client_decline"
   );
 
 -- ============================================================
--- 6. RLS — UPDATE pour l'auditeur (accepter / réémettre / escalader)
+-- 6. RLS - UPDATE pour l'auditeur (accepter / réémettre / escalader)
 -- ============================================================
 DROP POLICY IF EXISTS "mer_update_auditor_decision" ON public.mission_evidence_requests;
 CREATE POLICY "mer_update_auditor_decision"

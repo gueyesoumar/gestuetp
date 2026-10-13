@@ -1,4 +1,4 @@
--- 00288 — Contenu des preuves attendues (AUDIT, modèle mutualisé).
+-- 00288 - Contenu des preuves attendues (AUDIT, modèle mutualisé).
 insert into public.evidence_items (framework_id, name, description, kind)
 select '00000000-0000-0000-0000-000000000014', t.name, t.descr, t.kind from (values
   ('Cadre de gouvernance SI', 'Prouve l''existence d''un cadre de gouvernance SI approuvé par la direction.', 'policy'),

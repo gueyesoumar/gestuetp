@@ -90,7 +90,7 @@ export function getIncoherenceMessage(
 
   const c = countByClassification(findings)
   const suggested = deriveSuggestedConformity(findings)
-  const suggestedLabel = suggested ? CONFORMITY_LABELS[suggested] : '—'
+  const suggestedLabel = suggested ? CONFORMITY_LABELS[suggested] : '-'
   const chosenLabel = CONFORMITY_LABELS[level]
 
   if (c.major > 0) {

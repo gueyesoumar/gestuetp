@@ -1,5 +1,5 @@
 /**
- * BrandingPreview — aperçu WYSIWYG multi-pages de la marque blanche. Un
+ * BrandingPreview - aperçu WYSIWYG multi-pages de la marque blanche. Un
  * sélecteur d'onglets montre chaque page (login split, hub, e-mail, portail)
  * telle qu'elle rend RÉELLEMENT, à partir du draft du formulaire (live) et des
  * logos sauvegardés. Objectif : ce que tu vois ici = ce qui est en ligne.
@@ -84,7 +84,7 @@ export function BrandingPreview({ cabinetName, branding, draft }: Props): JSX.El
           {tab === 'portail' && <PreviewPortal {...ctx} surfaceMode={resolveOverride(draft.portalSurface, ctx.surfaceMode)} />}
         </div>
         <p className="mx-auto max-w-[760px] mt-2 text-[10.5px] text-gray-400">
-          Aperçu du brouillon en cours — <span className="font-semibold text-gray-500">Enregistrer</span> pour appliquer au domaine live.
+          Aperçu du brouillon en cours : <span className="font-semibold text-gray-500">Enregistrer</span> pour appliquer au domaine live.
         </p>
       </div>
     </div>

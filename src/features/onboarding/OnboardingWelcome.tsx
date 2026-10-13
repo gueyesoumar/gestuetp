@@ -6,7 +6,7 @@ import { useDismissedTips } from '../../hooks/useDismissedTips'
  * Écran de bienvenue plein écran, affiché UNE fois après la première connexion
  * (juste après l'enrôlement MFA). Nominatif + aux couleurs du cabinet en marque
  * blanche, sinon plateforme. « Compris » persiste via user_dismissed_tips
- * (clé onboarding.welcome) — les comptes existants sont exclus par le backfill
+ * (clé onboarding.welcome) - les comptes existants sont exclus par le backfill
  * 00236, donc seuls les nouveaux utilisateurs le voient.
  */
 const TIP_KEY = 'onboarding.welcome'

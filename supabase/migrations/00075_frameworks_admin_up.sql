@@ -12,8 +12,8 @@ ALTER TABLE public.controls
 ALTER TABLE public.frameworks
   ADD COLUMN was_ai_generated boolean NOT NULL DEFAULT false;
 
-COMMENT ON COLUMN public.domains.is_active IS 'Soft-delete flag — false = invisible côté cabinet, missions existantes intactes';
-COMMENT ON COLUMN public.controls.is_active IS 'Soft-delete flag — false = invisible côté cabinet, control_assessments intacts';
+COMMENT ON COLUMN public.domains.is_active IS 'Soft-delete flag - false = invisible côté cabinet, missions existantes intactes';
+COMMENT ON COLUMN public.controls.is_active IS 'Soft-delete flag - false = invisible côté cabinet, control_assessments intacts';
 COMMENT ON COLUMN public.frameworks.was_ai_generated IS 'true si le squelette a été généré par admin-framework-ai-draft (badge brouillon IA)';
 
 CREATE INDEX idx_domains_active ON public.domains(framework_id) WHERE is_active = true;

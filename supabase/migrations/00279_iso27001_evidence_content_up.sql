@@ -1,4 +1,4 @@
--- 00279 — Contenu des preuves attendues ISO 27001 (modèle mutualisé).
+-- 00279 - Contenu des preuves attendues ISO 27001 (modèle mutualisé).
 -- (1) Preuves canoniques (evidence_items) dédupliquées ; (2) liens par contrôle
 -- (evidence_catalog.evidence_item_id). 2-4 preuves par mesure.
 

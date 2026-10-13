@@ -161,7 +161,7 @@ export function SupervisionReport({ entities, frameworkName, frameworkPublisher 
           <div className="text-[13px] font-semibold text-gray-700 mt-2">{emetteur}</div>
         </div>
 
-        {/* Actions — export non encore implémenté : boutons désactivés pour ne pas
+        {/* Actions - export non encore implémenté : boutons désactivés pour ne pas
             laisser croire à une fonctionnalité opérationnelle (cf. revue F5). */}
         <div className="flex flex-col items-center gap-2 mt-6">
           <div className="flex justify-center gap-3">

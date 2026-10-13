@@ -49,7 +49,7 @@ export function QuickClientModal({ open, onClose, onCreated }: QuickClientModalP
           <div>
             <label className="block text-[12px] font-medium text-gray-700 mb-1">Secteur</label>
             <select value={sector} onChange={(e) => setSector(e.target.value)} className="w-full">
-              <option value="">—</option>
+              <option value="">-</option>
               {SECTEURS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -59,7 +59,7 @@ export function QuickClientModal({ open, onClose, onCreated }: QuickClientModalP
           </div>
         </div>
         <p className="text-[11px] text-gray-400">
-          Vous pourrez compléter la fiche (immatriculation, exigences, parties intéressées…) plus tard.
+          Vous pourrez compléter la fiche (immatriculation, exigences, parties intéressées...) plus tard.
         </p>
         {error && <p className="text-[12px] font-medium text-red-600">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">

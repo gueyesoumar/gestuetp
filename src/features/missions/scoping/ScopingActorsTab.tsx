@@ -65,7 +65,7 @@ export function ScopingActorsTab({ missionId }: ScopingActorsTabProps) {
         <div>
           <h3 className="text-[14px] font-bold text-gray-900 mb-1">Acteurs SI à rencontrer</h3>
           <p className="text-[12px] text-gray-500">
-            Identifiez les interlocuteurs côté client : RSSI, DSI, DPO, responsables métiers… Ils seront affectés aux entretiens en phase de planification.
+            Identifiez les interlocuteurs côté client : RSSI, DSI, DPO, responsables métiers... Ils seront affectés aux entretiens en phase de planification.
           </p>
         </div>
         {!draft && (
@@ -107,7 +107,7 @@ export function ScopingActorsTab({ missionId }: ScopingActorsTabProps) {
               type="text"
               value={draft.job_title}
               onChange={(e) => setDraft({ ...draft, job_title: e.target.value })}
-              placeholder="Fonction (RSSI, DPO…)"
+              placeholder="Fonction (RSSI, DPO...)"
               className="px-2.5 py-1.5 border border-gray-200 rounded text-[12px] outline-none focus:border-forest-500"
             />
             <input

@@ -47,7 +47,7 @@ export function RegulDashboard(): JSX.Element {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
         <Kpi icon={<Building2 size={18} />} value={posture.total} label="Assujettis" to="/assujettis" />
         <Kpi icon={<ShieldAlert size={18} />} value={posture.highCrit} label="IIC" tone="text-red-600" to="/assujettis?crit=eleve" />
-        <Kpi icon={<TrendingUp size={18} />} value={posture.avgScore !== null ? `${posture.avgScore}%` : '—'} label="Conformité moy." />
+        <Kpi icon={<TrendingUp size={18} />} value={posture.avgScore !== null ? `${posture.avgScore}%` : '-'} label="Conformité moy." />
         <Kpi icon={<ClipboardCheck size={18} />} value={posture.activeMissions} label="Missions actives" to="/controles?statut=actives" />
         <Kpi icon={<Gavel size={18} />} value={posture.openMeasures} label="Mesures ouvertes" to="/constats?vue=parc" />
         <Kpi icon={<Clock size={18} />} value={posture.overdue} label="Contrôles en retard" tone={posture.overdue > 0 ? 'text-red-600' : 'text-forest-700'} to="/assujettis?retard=1" />

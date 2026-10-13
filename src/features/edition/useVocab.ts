@@ -2,7 +2,7 @@ import { useEdition } from './EditionContext'
 import { APP_MODULES } from './moduleRegistry'
 import { vocabForPreset, type ProductVocab } from '../../lib/product'
 
-// Vocabulaire résolu par l'ÉDITION au runtime (Phase 2 — incrément 2).
+// Vocabulaire résolu par l'ÉDITION au runtime (Phase 2 - incrément 2).
 //
 // Repli sur `preAuthEdition()` (hostname/env) tant que l'édition n'est pas résolue
 // (edition null : en cours de chargement, ou role=client neutralisé côté RLS avant
@@ -31,7 +31,7 @@ export function useVocab(): ProductVocab {
     portalLabel: vocab.get('portal_label') ?? base.portalLabel,
     // logo_tag : surcharge white-label par org (RFC 0013 C5), validée sur les marques
     // connues ; sinon on garde le défaut de l'édition (preset). Les route bases restent
-    // structurelles (chemins du registre) — volontairement non surchargeables ici.
+    // structurelles (chemins du registre) - volontairement non surchargeables ici.
     logoTag: vocab.get('logo_tag') === 'comply' || vocab.get('logo_tag') === 'regul'
       ? (vocab.get('logo_tag') as ProductVocab['logoTag'])
       : base.logoTag,

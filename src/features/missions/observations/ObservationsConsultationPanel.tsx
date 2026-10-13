@@ -27,7 +27,7 @@ interface AssessmentContext {
  * Panneau contrôleur de consultation : liste les observations NON BLOQUANTES
  * (client audité / assujetti) sur les constats et permet d'y répondre en
  * décidant « modifié » ou « conservé ». Réutilisé par la Validation client
- * (moteur audit) et la Revue (moteur controle — remarques de l'assujetti).
+ * (moteur audit) et la Revue (moteur controle - remarques de l'assujetti).
  */
 export function ObservationsConsultationPanel({ missionId, heading, subheading, emptyLabel }: ObservationsConsultationPanelProps): JSX.Element {
   const { observations, loading, error, submitResponse, submitting, refetch } = useAssessmentObservations(missionId)

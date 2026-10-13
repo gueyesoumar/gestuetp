@@ -103,7 +103,7 @@ export function AdminPlansPage(): JSX.Element {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
         <KpiTile label="Plans actifs" value={String(plans.length)} accent="green" />
-        <KpiTile label="Plan par défaut" value={stats.defaultPlan?.name ?? '—'} accent="gold" />
+        <KpiTile label="Plan par défaut" value={stats.defaultPlan?.name ?? '-'} accent="gold" />
         <KpiTile label="Total cabinets" value={String(stats.totalCabinets)} sub="répartis sur les plans" accent="blue" />
         <KpiTile label="MRR estimé" value={format(stats.mrr)} sub="paiement non intégré" accent="purple" tooltip="Σ cabinets × prix mensuel du plan" />
       </div>
@@ -114,7 +114,7 @@ export function AdminPlansPage(): JSX.Element {
           <ViewBtn active={view === 'matrix'} onClick={() => setView('matrix')} icon={<Table2 size={13} />}>Matrice fonctionnalités</ViewBtn>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11.5px] text-gray-500">Montants en <b className="text-gray-700">FCFA</b> — affichage&nbsp;:</span>
+          <span className="text-[11.5px] text-gray-500">Montants en <b className="text-gray-700">FCFA</b>, affichage&nbsp;:</span>
           <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
             {CURRENCIES.map((c) => (
               <button key={c} type="button" onClick={() => setCurrency(c)}

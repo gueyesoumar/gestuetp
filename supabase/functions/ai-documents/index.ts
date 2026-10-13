@@ -23,7 +23,7 @@ import { extractText, getDocumentProxy } from 'npm:unpdf@0.12.1'
  *   - XLSX / XLS                    → SheetJS → CSV multi-feuilles → upload .csv (kind=document)
  *   - PNG / JPG / JPEG / WEBP       → upload natif (kind=image)
  *
- * La clé Anthropic reste serveur — jamais exposée au frontend.
+ * La clé Anthropic reste serveur - jamais exposée au frontend.
  */
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1'
@@ -610,7 +610,7 @@ async function buildMissionContext(
   if (cc) parts.push(`Client: ${cc.client_name}, Secteur: ${cc.client_sector ?? '?'}, Taille: ${cc.effectifs ?? '?'}`)
   const fw = m.framework as { name: string } | null
   if (fw) parts.push(`Référentiel: ${fw.name}`)
-  if (controlCode) parts.push(`Contrôle: ${controlCode}${controlName ? ` — ${controlName}` : ''}`)
+  if (controlCode) parts.push(`Contrôle: ${controlCode}${controlName ? ` (${controlName})` : ''}`)
   if (domain) parts.push(`Domaine: ${domain}`)
 
   return parts.length > 0 ? `CONTEXTE MISSION: ${parts.join(', ')}` : null

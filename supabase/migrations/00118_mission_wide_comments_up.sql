@@ -6,7 +6,7 @@
 --
 -- Changements :
 --   1. control_id devient nullable (au niveau colonne)
---   2. Les policies SELECT/INSERT/UPDATE existantes restent valides — elles filtrent
+--   2. Les policies SELECT/INSERT/UPDATE existantes restent valides - elles filtrent
 --      uniquement par mission_id, donc elles autorisent déjà control_id NULL
 --   3. Index supplémentaire pour les requêtes mission-wide
 

@@ -37,7 +37,7 @@ export const TOUR_DEFS: Record<string, TourDef> = {
   frameworks: {
     route: '/referentiels',
     steps: [
-      { element: '[data-tour="frameworks-header"]', popover: { title: 'Les référentiels', description: "Les cadres de conformité disponibles (ISO 27001, RGPD, PSSI-ES…). Ils structurent l'évaluation de vos missions." } },
+      { element: '[data-tour="frameworks-header"]', popover: { title: 'Les référentiels', description: "Les cadres de conformité disponibles (ISO 27001, RGPD, PSSI-ES...). Ils structurent l'évaluation de vos missions." } },
     ],
   },
   'setup-2fa': {

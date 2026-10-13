@@ -5,7 +5,7 @@ import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
  * Contexte de mission (RFC 0007 P1b) porté par l'arête `audit_engagement`
  * (cabinet → client). `engagement_profiles` en est la SOURCE DE VÉRITÉ depuis P1b.
  *
- * Renvoie `null` si l'arête ou le profil n'existe pas — l'appelant garde alors son
+ * Renvoie `null` si l'arête ou le profil n'existe pas - l'appelant garde alors son
  * repli sur les colonnes de `cabinet_clients` (tant que P1c.1 Pass D ne les a pas
  * retirées). Usage typique (fusion, engagement_profiles gagne) :
  *

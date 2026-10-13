@@ -54,7 +54,7 @@ export function QuestionMappingTab({ frameworkId }: { frameworkId: string }) {
         <span className="text-[12px] text-gray-400">{m.questions.length} questions · {m.controls.length} contrôles</span>
         <button type="button" onClick={() => void generate()} disabled={generating}
           className="ml-auto inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-lg bg-gold-50 border border-gold-300 text-gold-600 hover:bg-gold-100 disabled:opacity-50">
-          <Sparkles size={14} /> {generating ? 'Génération…' : 'Générer le mapping (IA)'}
+          <Sparkles size={14} /> {generating ? 'Génération...' : 'Générer le mapping (IA)'}
         </button>
       </div>
 

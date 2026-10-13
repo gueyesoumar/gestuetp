@@ -79,10 +79,10 @@ function assignByDomain(
     const controlIds = domain.controls.map((c) => c.id)
 
     if (controlIds.length <= idealPerAuditor) {
-      // Small domain — keep as one chunk
+      // Small domain - keep as one chunk
       chunks.push({ domainCode: domain.code, controlIds })
     } else {
-      // Large domain — split into sub-chunks of ~idealPerAuditor size
+      // Large domain - split into sub-chunks of ~idealPerAuditor size
       const subChunkSize = Math.max(5, Math.ceil(idealPerAuditor * 0.8))
       for (let i = 0; i < controlIds.length; i += subChunkSize) {
         chunks.push({

@@ -10,7 +10,7 @@ export type { NavItem }
 
 /**
  * Nav du shell unifié, dérivée AU RUNTIME des capacités via le registre de modules
- * (`moduleRegistry`, RFC 0013 C1) — plus de binaire `isRegul`. Le dashboard d'accueil
+ * (`moduleRegistry`, RFC 0013 C1) - plus de binaire `isRegul`. Le dashboard d'accueil
  * et les items de nav de chaque monde sont fournis par les modules activés.
  * Les workspaces dédiés Risk / Policy gardent leur sous-nav propre (ci-dessous).
  */

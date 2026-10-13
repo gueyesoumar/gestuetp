@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
     // 5. Log AVANT le DELETE (sinon FK actor sur cabinet supprimé pourrait poser souci)
     await logAdminAction(admin, owner.id, 'delete_cabinet', 'organization', c.id, body.reason, snapshot)
 
-    // 6. DELETE — les FK ON DELETE CASCADE font le reste
+    // 6. DELETE - les FK ON DELETE CASCADE font le reste
     // deno-lint-ignore no-explicit-any
     const { error: deleteError } = await (admin.from('organizations') as any).delete().eq('id', c.id)
     if (deleteError) {

@@ -26,7 +26,7 @@ export function PreviewEmail(p: PreviewCtx & { fromName: string; supportEmail: s
       </div>
       <div style={{ background: '#FAFAF8', padding: '9px 14px', borderTop: '1px solid #E5E7EB', fontSize: 9, color: '#6B7280', lineHeight: 1.5 }}>
         {p.supportEmail && <div>Support : <span style={{ color: p.primary }}>{p.supportEmail}</span></div>}
-        {p.footer && <div style={{ marginTop: 2 }}>{p.footer.length > 64 ? `${p.footer.slice(0, 64)}…` : p.footer}</div>}
+        {p.footer && <div style={{ marginTop: 2 }}>{p.footer.length > 64 ? `${p.footer.slice(0, 64)}...` : p.footer}</div>}
         <div style={{ marginTop: 2, color: '#9CA3AF' }}>{p.cabinetName} · Powered by Gëstu</div>
       </div>
     </div>

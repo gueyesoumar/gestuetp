@@ -1,4 +1,4 @@
--- Migration 00214 (DOWN) — P1a (RFC 0007).
+-- Migration 00214 (DOWN) - P1a (RFC 0007).
 -- Cette migration est un BACKFILL de données purement ADDITIF (nœuds
 -- organisations + arêtes audit_engagement). Elle n'est PAS proprement
 -- réversible : les organisations matérialisées peuvent depuis être référencées

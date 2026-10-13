@@ -1,4 +1,4 @@
--- Migration 00219 (UP) — P2.2a (RFC 0007) : bascule RLS sur client_org_id unifié.
+-- Migration 00219 (UP) - P2.2a (RFC 0007) : bascule RLS sur client_org_id unifié.
 -- users.client_org_id passe de cabinet_clients.id → organizations.id (partie auditée
 -- = nœud). Toutes les policies portail/audit qui reposaient sur l'ancien sens sont
 -- réécrites sur client_org_id. Les anciennes colonnes cpc (cabinet_client_id,
@@ -76,7 +76,7 @@ create policy "cpc_select_own_org" on public.client_portal_contacts for select t
     )
   );
 
--- Staff régulateur : contacts de ses assujettis (sous-arbre) — via client_org_id.
+-- Staff régulateur : contacts de ses assujettis (sous-arbre) - via client_org_id.
 drop policy if exists "cpc_select_regulator_subtree" on public.client_portal_contacts;
 create policy "cpc_select_regulator_subtree" on public.client_portal_contacts for select to authenticated
   using (client_org_id in (select public.get_subsidiary_ids(public.get_my_organization_id())));
@@ -96,7 +96,7 @@ create policy "cp_audit_history_select" on public.audit_history for select to au
     )
   );
 
--- Visibilité org côté portail (branding « audité par X » + sa propre org) — via client_org_id.
+-- Visibilité org côté portail (branding « audité par X » + sa propre org) - via client_org_id.
 create or replace function public.get_my_client_visible_org_ids()
 returns setof uuid language sql stable security definer set search_path = public as $$
   select cc.cabinet_id

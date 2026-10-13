@@ -1,4 +1,4 @@
--- 00131 — Agents (Phase 3) : runs de l'agent de triage + flag de garde-fou.
+-- 00131 - Agents (Phase 3) : runs de l'agent de triage + flag de garde-fou.
 -- agent_runs : un run par appel (N par ticket), reserve au platform owner.
 -- L'Edge Function run-agent ecrit via service_role (bypass RLS).
 

@@ -6,7 +6,7 @@ import type { Question, QuestionnaireSkipReason } from '../../types/database.typ
 interface WizardQuestionCardProps {
   question: Question
   sectionLabel: string
-  /** Mission cible — pour le téléversement réel des pièces jointes. */
+  /** Mission cible - pour le téléversement réel des pièces jointes. */
   missionId: string
   value: unknown
   skipReason?: QuestionnaireSkipReason | null
@@ -289,7 +289,7 @@ function ScalePercentAnswer({ value, onChange, readOnly }: { value: number | nul
 
 interface FileAnswerValue { document_id?: string; file_name: string; file_path?: string }
 
-/** Normalise la valeur d'une question fichier : objet récent {document_id,…} ou,
+/** Normalise la valeur d'une question fichier : objet récent {document_id,...} ou,
  *  rétro-compat, ancienne chaîne = simple nom (fichier jamais téléversé). */
 function asFileValue(v: unknown): FileAnswerValue | null {
   if (!v) return null
@@ -351,7 +351,7 @@ function FileUploadAnswer({ value, onChange, readOnly, missionId, questionCode, 
         <input type="file" className="sr-only" disabled={readOnly || uploading}
           accept={accent === 'purple' ? '.pdf,.png,.jpg,.jpeg' : undefined}
           onChange={(e) => void handleFile(e.target.files?.[0])} />
-        <p className="text-[13px] font-medium text-gray-700">{uploading ? 'Téléversement…' : (prompt ?? '📎 Glissez votre document ici')}</p>
+        <p className="text-[13px] font-medium text-gray-700">{uploading ? 'Téléversement...' : (prompt ?? '📎 Glissez votre document ici')}</p>
         <p className="text-[11px] text-gray-400 mt-1">PDF, DOCX, XLSX · max 25 Mo</p>
       </label>
       {hint && <p className="text-[11px] text-gray-400 mt-2 italic">{hint}</p>}

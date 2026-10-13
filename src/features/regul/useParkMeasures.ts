@@ -5,7 +5,7 @@ import type { Measure } from './useMeasures'
 /**
  * Toutes les mesures réglementaires du parc du régulateur courant (lecture seule).
  * La RLS de regulatory_measures (régulateur + sous-arbre) scope automatiquement
- * le résultat — aucun filtre côté client nécessaire.
+ * le résultat - aucun filtre côté client nécessaire.
  */
 export function useParkMeasures(): { measures: Measure[]; loading: boolean } {
   const [measures, setMeasures] = useState<Measure[]>([])

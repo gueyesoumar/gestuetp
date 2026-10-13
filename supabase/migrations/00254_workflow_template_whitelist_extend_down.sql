@@ -1,4 +1,4 @@
--- Migration 00254 (DOWN) — restaure la liste blanche 00252 (6 clés).
+-- Migration 00254 (DOWN) - restaure la liste blanche 00252 (6 clés).
 -- Purge d'abord les nouvelles clés d'un template existant, sinon l'ADD échoue.
 update public.organization_workflow_templates
 set disabled_steps = (

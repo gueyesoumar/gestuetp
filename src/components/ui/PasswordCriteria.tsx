@@ -3,7 +3,7 @@ import { evaluatePasswordCriteria, type PasswordPolicy } from '../../lib/passwor
 
 /**
  * Checklist des critères de la politique de mot de passe, réévaluée à chaque
- * frappe : ✓ quand le critère est rempli, puce neutre sinon. Purement UX —
+ * frappe : ✓ quand le critère est rempli, puce neutre sinon. Purement UX -
  * l'enforcement fait autorité côté serveur (edge `set-password` + HIBP).
  *
  * `tone` couvre les deux contextes visuels : « dark » (vault / panneau brandé

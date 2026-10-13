@@ -12,7 +12,7 @@ interface Counts {
 interface SensitivityBadgeProps {
   level: Sensitivity
   counts?: Counts
-  /** Détail par catégorie (comptes only) — RFC 0012 P2. */
+  /** Détail par catégorie (comptes only) - RFC 0012 P2. */
   categories?: Record<string, number> | null
 }
 
@@ -97,7 +97,7 @@ export function SensitivityBadge({ level, counts, categories }: SensitivityBadge
                   <p className="text-[11px] text-gray-400">Aucune donnée sensible détectée.</p>
                 )}
                 <p className="mt-2 text-[10px] text-gray-400">
-                  Comptes uniquement — aucune valeur n&rsquo;est conservée.
+                  Comptes uniquement : aucune valeur n&rsquo;est conservée.
                 </p>
               </div>
             )}

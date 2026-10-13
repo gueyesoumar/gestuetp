@@ -97,7 +97,7 @@ export function ReviewQualityCallout({ assessments }: ReviewQualityCalloutProps)
         key: 'conformity-no-obs',
         severity: 'medium',
         label: `${conformityNoObs.length} évaluation${conformityNoObs.length > 1 ? 's' : ''} sans observation`,
-        detail: 'Niveau de conformité décidé sans observation terrain — qualité du jugement à vérifier.',
+        detail: 'Niveau de conformité décidé sans observation terrain : qualité du jugement à vérifier.',
         controls: conformityNoObs,
       })
     }
@@ -125,7 +125,7 @@ export function ReviewQualityCallout({ assessments }: ReviewQualityCalloutProps)
         key: 'domain-skew',
         severity: 'medium',
         label: `${skewedDomains.length} domaine${skewedDomains.length > 1 ? 's' : ''} avec distribution NC suspecte`,
-        detail: 'Plus de 70% de NC majeures sur un domaine — vérifier la pondération du jugement.',
+        detail: 'Plus de 70% de NC majeures sur un domaine : vérifier la pondération du jugement.',
         controls: skewedDomains,
       })
     }
@@ -200,7 +200,7 @@ function IssueRow({ issue }: { issue: QualityIssue }) {
                 </li>
               ))}
               {issue.controls.length > 12 && (
-                <li className="text-[10px] text-gray-400 italic">… et {issue.controls.length - 12} autre{issue.controls.length - 12 > 1 ? 's' : ''}</li>
+                <li className="text-[10px] text-gray-400 italic">... et {issue.controls.length - 12} autre{issue.controls.length - 12 > 1 ? 's' : ''}</li>
               )}
             </ul>
           )}

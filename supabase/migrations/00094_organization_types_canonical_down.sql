@@ -1,4 +1,4 @@
--- Migration 00094: Canonicalisation de organizations.types — DOWN
+-- Migration 00094: Canonicalisation de organizations.types - DOWN
 --
 -- Retire les 3 CHECK ajoutés en UP. Les données restent inchangées :
 -- les valeurs canoniques ('cabinet', 'client', 'group', 'platform') sont

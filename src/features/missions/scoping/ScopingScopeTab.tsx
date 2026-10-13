@@ -38,7 +38,7 @@ export function ScopingScopeTab({ mission, domains, exclusions, client, onAddExc
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {/* Objectives — auto-generated structured cards */}
+      {/* Objectives - auto-generated structured cards */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200">
           <h4 className="text-[14px] font-bold text-gray-900 flex items-center gap-2">&#127919; Objectifs de la mission</h4>

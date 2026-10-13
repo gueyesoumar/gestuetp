@@ -30,7 +30,7 @@ export function RegulMeasuresPage(): JSX.Element {
   const { setStatus } = useIssueMeasure()
   const [modal, setModal] = useState<{ source: Measure | null } | null>(null)
 
-  // Vue parc (mesures ouvertes de tout le périmètre) — cible de la carte dashboard.
+  // Vue parc (mesures ouvertes de tout le périmètre) - cible de la carte dashboard.
   const [searchParams, setSearchParams] = useSearchParams()
   const parcMode = searchParams.get('vue') === 'parc' && !entityId
   const entityNameById = useMemo(() => new Map(subsidiaries.map((s) => [s.id, s.name])), [subsidiaries])
@@ -57,7 +57,7 @@ export function RegulMeasuresPage(): JSX.Element {
 
       <div className="flex items-center gap-3 flex-wrap">
         <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="px-3 py-2 text-sm border border-gray-300 rounded-lg w-72 focus:border-forest-700 focus:ring-1 focus:ring-forest-700">
-          <option value="">Sélectionner un assujetti…</option>
+          <option value="">Sélectionner un assujetti...</option>
           {subsidiaries.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
         {entityId && (
@@ -83,7 +83,7 @@ export function RegulMeasuresPage(): JSX.Element {
       ) : loading ? (
         <LoadingSpinner />
       ) : measures.length === 0 ? (
-        <EmptyState title={`Aucune ${vocab.measureTerm}`} description="Émettez une première mesure (recommandation, mise en demeure…) avec le bouton ci-dessus." />
+        <EmptyState title={`Aucune ${vocab.measureTerm}`} description="Émettez une première mesure (recommandation, mise en demeure...) avec le bouton ci-dessus." />
       ) : (
         <div className="space-y-3">
           {measures.map((m) => (
@@ -100,7 +100,7 @@ export function RegulMeasuresPage(): JSX.Element {
                     <p className="mt-1 text-[12px] text-gray-500">
                       {m.legal_basis && <>Base&nbsp;: {m.legal_basis} · </>}
                       {m.deadline && <>Délai&nbsp;: {new Date(m.deadline).toLocaleDateString('fr-FR')} · </>}
-                      Émise le {m.issued_at ? new Date(m.issued_at).toLocaleDateString('fr-FR') : '—'}
+                      Émise le {m.issued_at ? new Date(m.issued_at).toLocaleDateString('fr-FR') : '-'}
                     </p>
                     {m.body && <p className="mt-1.5 text-[12.5px] text-gray-700">{m.body}</p>}
                   </div>

@@ -1,7 +1,7 @@
 -- Migration: portal_contact_entity_link (DOWN)
 -- Rollback : retire le chemin entity_org_id et restaure la contrainte NOT NULL.
 -- NB : suppose qu'aucun contact Regul (entity_org_id renseigné, cabinet_client_id
--- NULL) ne subsiste — sinon le ALTER ... SET NOT NULL échouera, ce qui protège
+-- NULL) ne subsiste - sinon le ALTER ... SET NOT NULL échouera, ce qui protège
 -- contre une perte de données silencieuse.
 
 -- Restaurer la policy d'origine

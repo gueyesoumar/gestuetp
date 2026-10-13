@@ -1,4 +1,4 @@
--- 00275 — Modèle mutualisé de preuves (Lot C).
+-- 00275 - Modèle mutualisé de preuves (Lot C).
 -- Une preuve attendue peut couvrir plusieurs contrôles : on introduit une table
 -- canonique `evidence_items` (le document attendu distinct) et on rattache les
 -- liens par contrôle (`evidence_catalog`), les documents et les constats à cette

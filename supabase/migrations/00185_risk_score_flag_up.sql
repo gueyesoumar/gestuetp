@@ -1,4 +1,4 @@
--- 00185 — Gëstu Risk (RFC 0004) : flag d'activation de l'impact score.
+-- 00185 - Gëstu Risk (RFC 0004) : flag d'activation de l'impact score.
 --
 -- Off par défaut (mode « shadow ») : le facteur risk_mastery est calculé et affiché
 -- (radar résiduel, simulateur) mais ne pèse PAS sur le composite tant que le

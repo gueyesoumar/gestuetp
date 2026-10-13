@@ -1,5 +1,5 @@
 -- Migration: client_action_items (UP)
--- Description: Plan d'action post-audit — recommandations à suivre par le client
+-- Description: Plan d'action post-audit - recommandations à suivre par le client
 
 CREATE TABLE public.client_action_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

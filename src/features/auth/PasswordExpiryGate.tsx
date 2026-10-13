@@ -76,7 +76,7 @@ function ForcedPasswordChange(): JSX.Element {
         {error && <p className="mt-3 text-[12px] text-red-500">{error}</p>}
         <button type="submit" disabled={!canSubmit}
           className="mt-5 w-full rounded-lg bg-[#1B4332] py-2.5 text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
-          {submitting ? 'Mise à jour…' : 'Définir le nouveau mot de passe'}
+          {submitting ? 'Mise à jour...' : 'Définir le nouveau mot de passe'}
         </button>
       </form>
     </div>

@@ -1,7 +1,7 @@
 -- Migration 00070: Trace des consultations de compte par les super-admins (UP)
 -- Description: Quand un super-admin ouvre l'aperçu détaillé d'un utilisateur ou
 -- d'un cabinet, on enregistre la session pour audit + notification RGPD au target.
--- Lecture seule par construction — la table sert au log, pas à l'autorisation.
+-- Lecture seule par construction - la table sert au log, pas à l'autorisation.
 
 CREATE TABLE public.admin_view_sessions (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),

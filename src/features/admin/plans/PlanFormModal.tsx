@@ -154,7 +154,7 @@ export function PlanFormModal(props: PlanFormModalProps): JSX.Element {
             </button>
             <button type="button" onClick={handleSubmit} disabled={submitDisabled}
               className="px-3.5 py-2 text-[12.5px] font-semibold bg-forest-700 hover:bg-forest-900 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
-              {submitting ? 'En cours…' : isEdit ? 'Enregistrer' : 'Créer le plan'}
+              {submitting ? 'En cours...' : isEdit ? 'Enregistrer' : 'Créer le plan'}
             </button>
           </div>
         </div>

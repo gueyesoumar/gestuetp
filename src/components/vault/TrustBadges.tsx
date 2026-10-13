@@ -1,5 +1,5 @@
 /**
- * TrustBadges — security trust indicators shown at the bottom of the vault.
+ * TrustBadges - security trust indicators shown at the bottom of the vault.
  */
 
 import { Lock, Layers, Cpu, Globe } from 'lucide-react'

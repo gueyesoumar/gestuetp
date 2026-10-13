@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
     let userId: string | null = null
     let isNewUser = false
     // Le lien de mot de passe (jeton maison) sert UNIQUEMENT à composer l'email :
-    // il n'est jamais renvoyé dans la réponse HTTP (séparation des tâches — un
+    // il n'est jamais renvoyé dans la réponse HTTP (séparation des tâches - un
     // auditeur ne doit pas pouvoir récupérer le jeton du client et poser son mdp).
     let inviteLink: string | null = null
     let emailSent = false
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
       userId = existingContacts[0].user_id
 
       if (!userId) {
-        // Contact existe mais pas encore de compte Auth — le créer
+        // Contact existe mais pas encore de compte Auth - le créer
         isNewUser = true
       }
     } else {
@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
 
         userId = newUser.id
 
-        // Lien de définition de mot de passe (jeton maison, 24 h) — immunisé aux scanners.
+        // Lien de définition de mot de passe (jeton maison, 24 h) - immunisé aux scanners.
         const tokenRes = await createSetupToken(admin, { userId: newUser.id as string, purpose: 'invite', ttlHours: 24 })
         inviteLink = 'error' in tokenRes ? null : buildSetupLink(siteUrl, tokenRes.raw)
       }
@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
 
       const emailResult = await sendEmail({
         to: email,
-        subject: `Invitation au portail client — ${missionTitle}`,
+        subject: `Invitation au portail client : ${missionTitle}`,
         html: clientInviteTemplate({
           contactName: contact_name,
           cabinetName,

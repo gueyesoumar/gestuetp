@@ -32,7 +32,7 @@ export function aiSkipNotice(reason: AiSkipReason): AiSkipNotice {
       return {
         tone: 'blocked',
         title: 'Envoi bloqué',
-        message: 'Un secret (clé, mot de passe…) a été détecté dans le contenu. Il ne peut pas être transmis au modèle. Retirez-le du document avant de réessayer.',
+        message: 'Un secret (clé, mot de passe...) a été détecté dans le contenu. Il ne peut pas être transmis au modèle. Retirez-le du document avant de réessayer.',
       }
     default:
       return {

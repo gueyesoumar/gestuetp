@@ -43,7 +43,7 @@ export function RiskPage(): JSX.Element {
                 : <>Mode <b>observation</b>&nbsp;: −{mastery.penaltyPts} pts <i>si activ&eacute;</i> (score actuel <b>{score.composite}</b>, inchang&eacute;).</>}
           </p>
         ) : (
-          <p className="text-[13px] text-gray-600">Aucun scénario coté pour l&apos;instant — le score de confiance n&apos;est pas affecté.</p>
+          <p className="text-[13px] text-gray-600">Aucun scénario coté pour l&apos;instant : le score de confiance n&apos;est pas affecté.</p>
         )}
       </div>
 
@@ -51,8 +51,8 @@ export function RiskPage(): JSX.Element {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi value={reg.scenarios.length} label="Scénarios" />
         <Kpi value={`${avgExposure}/100`} label="Exposition moyenne" tone={avgExposure >= 60 ? 'text-red-600' : avgExposure >= 30 ? 'text-amber-600' : 'text-forest-700'} />
-        <Kpi value={mastery ? `${mastery.score}/100` : '—'} label="Maîtrise du risque" />
-        <Kpi value={score.composite ?? '—'} label="Confiance (composite)" />
+        <Kpi value={mastery ? `${mastery.score}/100` : '-'} label="Maîtrise du risque" />
+        <Kpi value={score.composite ?? '-'} label="Confiance (composite)" />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

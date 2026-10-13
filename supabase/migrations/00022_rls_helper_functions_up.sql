@@ -31,5 +31,5 @@ as $$
   limit 1;
 $$;
 
-comment on function public.get_my_organization_id() is 'SECURITY DEFINER — retourne l''organization_id du user courant sans declencher les policies RLS sur users';
-comment on function public.get_my_user_id() is 'SECURITY DEFINER — retourne l''id public.users du user courant sans declencher les policies RLS sur users';
+comment on function public.get_my_organization_id() is 'SECURITY DEFINER - retourne l''organization_id du user courant sans declencher les policies RLS sur users';
+comment on function public.get_my_user_id() is 'SECURITY DEFINER - retourne l''id public.users du user courant sans declencher les policies RLS sur users';

@@ -11,7 +11,7 @@ export type SvgResult = { ok: true; svg: string } | { ok: false; reason: string 
  *  - DOCTYPE / ENTITY supprimés (anti-XXE)
  *  - le résultat doit toujours contenir un tag <svg
  *
- * Ne couvre pas les SVG ultra-exotiques — pour ceux-là, refuser et demander un PNG.
+ * Ne couvre pas les SVG ultra-exotiques - pour ceux-là, refuser et demander un PNG.
  */
 export function sanitizeSvg(source: string): SvgResult {
   if (source.length > 200_000) {

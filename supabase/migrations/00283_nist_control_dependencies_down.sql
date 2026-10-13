@@ -1,4 +1,4 @@
--- Rollback 00283 — retire les dépendances NIST.
+-- Rollback 00283 - retire les dépendances NIST.
 delete from public.control_mappings cm using public.controls cs, public.controls ct, (values
     ('GV.OC', 'GV.RM', 'related'),
     ('GV.OC', 'GV.SC', 'related'),

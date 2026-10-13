@@ -1,4 +1,4 @@
--- Migration 00226 (UP) — Phase 2 politique mot de passe : rotation + historique.
+-- Migration 00226 (UP) - Phase 2 politique mot de passe : rotation + historique.
 -- rotation_days / history_count existent déjà (00225). Ici : la table d'historique
 -- (hashes bcrypt, surface sensible → service_role UNIQUEMENT) et le trigger de
 -- « grandfathering » qui démarre l'horloge de rotation à l'activation.
@@ -14,7 +14,7 @@ create index if not exists idx_password_history_user
   on public.password_history(user_id, created_at desc);
 
 comment on table public.password_history is
-  'Hashes bcrypt des N derniers mots de passe (non-réutilisation). Accès service_role UNIQUEMENT — RLS activé sans aucune policy, et grants révoqués pour anon/authenticated.';
+  'Hashes bcrypt des N derniers mots de passe (non-réutilisation). Accès service_role UNIQUEMENT - RLS activé sans aucune policy, et grants révoqués pour anon/authenticated.';
 
 -- Sécurité : RLS activé SANS aucune policy → deny total pour anon/authenticated.
 -- service_role contourne RLS (lecture/écriture par les edges). Révocation explicite

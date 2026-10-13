@@ -37,7 +37,7 @@ export function ActionPlanFilters({ state, onChange }: ActionPlanFiltersProps): 
           type="text"
           value={state.search}
           onChange={(e) => onChange({ ...state, search: e.target.value })}
-          placeholder="Rechercher (code, contrôle, description)…"
+          placeholder="Rechercher (code, contrôle, description)..."
           className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg w-80 focus:border-forest-700 focus:ring-1 focus:ring-forest-700"
         />
       </div>

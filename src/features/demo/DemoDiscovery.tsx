@@ -60,7 +60,7 @@ export function DemoDiscovery({ open, onClose }: { open: boolean; onClose: () =>
 
         <div className="flex items-center gap-2.5 border-t border-gray-100 bg-[#FBFAF6] px-5 py-3 text-[12px] text-gray-500">
           <span className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-md bg-forest-100 text-forest-700"><GestuFingerprint size={13} /></span>
-          Doudou vous accompagne à chaque étape — posez-lui une question quand vous voulez.
+          Doudou vous accompagne à chaque étape, posez-lui une question quand vous voulez.
         </div>
       </div>
     </div>

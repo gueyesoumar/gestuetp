@@ -1,7 +1,7 @@
 import type { ScopingNoteData } from './context'
 
 export function formatDate(date: string | null): string {
-  if (!date) return '—'
+  if (!date) return '-'
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
@@ -100,11 +100,11 @@ export function generateHypotheses(data: ScopingNoteData): string[] {
 export function computeMilestones(start: string | null, end: string | null): { code: string; label: string; date: string }[] {
   if (!start || !end) {
     return [
-      { code: 'J0', label: 'Validation du cadrage', date: '—' },
-      { code: 'J1', label: 'Clôture prise de connaissance', date: '—' },
-      { code: 'J2', label: 'Restitution intermédiaire', date: '—' },
-      { code: 'J3', label: 'Fin exécution terrain', date: '—' },
-      { code: 'J4', label: 'Restitution finale et rapport', date: '—' },
+      { code: 'J0', label: 'Validation du cadrage', date: '-' },
+      { code: 'J1', label: 'Clôture prise de connaissance', date: '-' },
+      { code: 'J2', label: 'Restitution intermédiaire', date: '-' },
+      { code: 'J3', label: 'Fin exécution terrain', date: '-' },
+      { code: 'J4', label: 'Restitution finale et rapport', date: '-' },
     ]
   }
   const s = new Date(start).getTime()

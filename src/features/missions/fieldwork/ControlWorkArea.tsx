@@ -249,7 +249,7 @@ export function ControlWorkArea({ assessment, autoAdvance, saving, saveError, is
           readOnly={readOnly}
           findingsCount={findingsCount}
           allowEmptySubmit={allowEmptySubmit}
-          emptySubmitLabel={isExpressNA ? 'Soumettre — non applicable' : 'Soumettre — conforme'}
+          emptySubmitLabel={isExpressNA ? 'Soumettre (non applicable)' : 'Soumettre (conforme)'}
           autosave={autosave}
           onToggleAutoAdvance={onToggleAutoAdvance}
           onSave={handleSave}

@@ -15,7 +15,7 @@ const TABS: { key: Tab; label: string }[] = [
 
 /**
  * Hub « Mon compte » à onglets (Profil · Sécurité · Notifications · Sessions),
- * monté dans le shell de l'espace de travail — même présentation que le hub
+ * monté dans le shell de l'espace de travail - même présentation que le hub
  * Organisation. Onglet actif reflété dans l'URL (?tab=) pour le lien direct.
  */
 export function AccountPage(): JSX.Element {
@@ -32,7 +32,7 @@ export function AccountPage(): JSX.Element {
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900">Mon compte</h2>
         <p className="mt-1 text-[13px] text-gray-500">
-          Vos informations personnelles et vos préférences — valables pour tous vos espaces.
+          Vos informations personnelles et vos préférences, valables pour tous vos espaces.
         </p>
       </div>
 

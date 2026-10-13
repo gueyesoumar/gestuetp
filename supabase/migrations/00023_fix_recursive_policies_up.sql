@@ -2,7 +2,7 @@
 -- Remplace les sous-requetes sur public.users par les fonctions SECURITY DEFINER
 
 -- ============================================================
--- 1. public.users — policy recursive
+-- 1. public.users - policy recursive
 -- ============================================================
 
 drop policy if exists "users_select_same_org" on public.users;
@@ -15,7 +15,7 @@ create policy "users_select_same_org"
 -- users_update_self reste inchangee
 
 -- ============================================================
--- 2. public.organizations — policy update
+-- 2. public.organizations - policy update
 -- ============================================================
 
 drop policy if exists "organizations_update_members" on public.organizations;
@@ -26,7 +26,7 @@ create policy "organizations_update_members"
   with check (id = public.get_my_organization_id());
 
 -- ============================================================
--- 3. public.tenant_configs — policy update
+-- 3. public.tenant_configs - policy update
 -- ============================================================
 
 drop policy if exists "tenant_configs_update_members" on public.tenant_configs;
@@ -37,7 +37,7 @@ create policy "tenant_configs_update_members"
   with check (organization_id = public.get_my_organization_id());
 
 -- ============================================================
--- 4. public.platform_roles — policy select
+-- 4. public.platform_roles - policy select
 -- ============================================================
 
 drop policy if exists "platform_roles_select_org_members" on public.platform_roles;
@@ -47,7 +47,7 @@ create policy "platform_roles_select_org_members"
   using (organization_id = public.get_my_organization_id());
 
 -- ============================================================
--- 5. public.user_platform_roles — policies select
+-- 5. public.user_platform_roles - policies select
 -- ============================================================
 
 drop policy if exists "user_platform_roles_select_self" on public.user_platform_roles;
@@ -69,7 +69,7 @@ create policy "user_platform_roles_select_same_org"
   );
 
 -- ============================================================
--- 6. public.missions — policies select et update
+-- 6. public.missions - policies select et update
 -- ============================================================
 
 drop policy if exists "missions_select_cabinet" on public.missions;
@@ -110,7 +110,7 @@ create policy "missions_update_lead_associate"
   );
 
 -- ============================================================
--- 7. public.mission_members — policies select
+-- 7. public.mission_members - policies select
 -- ============================================================
 
 drop policy if exists "mission_members_select_team" on public.mission_members;

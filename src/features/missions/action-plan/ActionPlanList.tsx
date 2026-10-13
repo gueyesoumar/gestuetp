@@ -20,7 +20,7 @@ const CLASS_BADGES: Record<string, { label: string; color: string }> = {
 }
 
 function formatDate(d: string | null): string {
-  if (!d) return '—'
+  if (!d) return '-'
   const date = new Date(d)
   if (Number.isNaN(date.getTime())) return d
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' })
@@ -58,9 +58,9 @@ export function ActionPlanList({ cars, onSelect }: ActionPlanListProps): JSX.Ele
             return (
               <tr key={car.id} onClick={() => onSelect(car)} className="cursor-pointer hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-mono text-xs font-bold text-forest-700">{car.code}</td>
-                <td className="px-4 py-3 text-xs text-gray-700">{car.domain_name ?? '—'}</td>
+                <td className="px-4 py-3 text-xs text-gray-700">{car.domain_name ?? '-'}</td>
                 <td className="px-4 py-3 text-xs text-gray-700">
-                  {car.control_code ? <span className="font-mono font-semibold">{car.control_code}</span> : '—'}
+                  {car.control_code ? <span className="font-mono font-semibold">{car.control_code}</span> : '-'}
                   {car.control_name && <p className="text-[11px] text-gray-500 mt-0.5 truncate max-w-[260px]">{car.control_name}</p>}
                 </td>
                 <td className="px-4 py-3"><span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${cls.color}`}>{cls.label}</span></td>

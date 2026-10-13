@@ -10,7 +10,7 @@ interface UseCreateCabinetClientResult {
 }
 
 /**
- * P1a (RFC 0007) — la création d'un client passe par l'Edge Function `create-client`
+ * P1a (RFC 0007) - la création d'un client passe par l'Edge Function `create-client`
  * (service_role) : elle crée/réconcilie l'organisation-nœud, insère la fiche
  * `cabinet_clients` (client_org_id renseigné dès maintenant) et pose l'arête
  * `audit_engagement`. Fin de la matérialisation paresseuse : l'organisation existe

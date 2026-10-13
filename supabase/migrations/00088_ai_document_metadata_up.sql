@@ -1,13 +1,13 @@
--- Migration 00088: Métadonnées IA structurées par document + kill switch cabinet — UP
+-- Migration 00088: Métadonnées IA structurées par document + kill switch cabinet - UP
 --
 -- Pose la fondation du nouveau pipeline d'analyse documentaire :
---   1) documents.ai_metadata jsonb — résultat de la "passe 1"
---      (extraction par doc : version, signatures, key_topics, formality_score…)
+--   1) documents.ai_metadata jsonb - résultat de la "passe 1"
+--      (extraction par doc : version, signatures, key_topics, formality_score...)
 --   2) documents.ai_extracted_at + documents.ai_extract_error
 --      pour distinguer "jamais analysé", "analysé OK" et "analysé en échec"
 --   3) missions.ai_synthesis_cache + missions.ai_synthesis_at
 --      pour cacher la "passe 2" (synthèse multi-doc) 24h
---   4) organizations.ai_analysis_enabled — kill switch cabinet
+--   4) organizations.ai_analysis_enabled - kill switch cabinet
 --      (cabinet sensible peut couper toute analyse IA pour ses missions)
 
 -- ============================================================

@@ -1,4 +1,4 @@
--- 00133 — Cloisonnement client (passe 1/2) : garde NOT is_client_role() sur les
+-- 00133 - Cloisonnement client (passe 1/2) : garde NOT is_client_role() sur les
 -- policies SELECT « staff » des tables SANS accès client légitime.
 --
 -- Contexte : un user role=client a organization_id = l'org du cabinet, donc il

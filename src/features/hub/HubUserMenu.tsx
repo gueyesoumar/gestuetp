@@ -4,7 +4,7 @@ import { ChevronDown, LogOut, ShieldCheck } from 'lucide-react'
 import type { User } from '../../types/database.types'
 
 // Menu utilisateur du header (avatar à droite). Regroupe l'identité, l'accès
-// super-admin (owner uniquement) et la déconnexion — remplace l'ancienne
+// super-admin (owner uniquement) et la déconnexion - remplace l'ancienne
 // HubUserBar du bas de page et le bouton super-admin.
 
 interface HubUserMenuProps {

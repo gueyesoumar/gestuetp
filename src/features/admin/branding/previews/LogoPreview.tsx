@@ -1,6 +1,6 @@
 import type { PreviewCtx } from './previewKit'
 
-// Logo adaptatif d'aperçu — reproduit la logique de src/features/branding/Logo.tsx :
+// Logo adaptatif d'aperçu - reproduit la logique de src/features/branding/Logo.tsx :
 // variant light → logo clair tel quel ; variant dark → logo sombre sinon
 // traitement (direct/blanchi/pastille) sur le logo clair.
 export function LogoPreview({ ctx, variant, height, maxWidth = 130 }: {

@@ -1,5 +1,5 @@
 /**
- * ParticleCanvas — animated gold constellation background using canvas.
+ * ParticleCanvas - animated gold constellation background using canvas.
  */
 
 import { useEffect, useRef } from 'react'

@@ -1,4 +1,4 @@
--- 00149 — Ancrage externe du journal probant (reco audit consultant #3).
+-- 00149 - Ancrage externe du journal probant (reco audit consultant #3).
 -- CIBLE: regul
 --
 -- Deux renforcements de la valeur probante :
@@ -8,7 +8,7 @@
 --     trigger ; mais service_role n'est pas propriétaire → protection réelle.)
 -- (B) Scellement externe : table probative_seals qui enregistre chaque « sceau »
 --     (tête de chaîne figée). L'Edge Function probative-seal émet ce sceau vers un
---     témoin externe (email/tiers) — hors de portée d'un admin DB → une réécriture
+--     témoin externe (email/tiers) - hors de portée d'un admin DB → une réécriture
 --     complète de la chaîne devient détectable en comparant DB ↔ sceau externe.
 
 -- (A) Interdire TRUNCATE sur le journal

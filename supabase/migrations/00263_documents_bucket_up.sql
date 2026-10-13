@@ -1,4 +1,4 @@
--- 00263 — Crée le bucket Storage `documents` s'il manque.
+-- 00263 - Crée le bucket Storage `documents` s'il manque.
 -- Ce bucket avait été créé manuellement en production, hors du système de migration :
 -- il est donc absent des environnements provisionnés par migrate.sh (staging/dev),
 -- d'où « Bucket not found » à l'upload d'une preuve. Les policies RLS associées

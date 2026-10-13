@@ -1,4 +1,4 @@
-// Orchestrateur unique de l'exposition IA (P2 — RFC 0012 §4).
+// Orchestrateur unique de l'exposition IA (P2 - RFC 0012 §4).
 // Point d'étranglement : TOUTE fonction edge qui envoie du texte client à un modèle
 // externe passe par guardAiExposure() AVANT son fetch Anthropic.
 //
@@ -25,9 +25,9 @@ export interface AiGateInput {
   admin: SupabaseClient
   /** organizations.id du cabinet (pour le kill-switch et le scoping d'audit). */
   cabinetId: string | null | undefined
-  /** missions.id — sert à résoudre la surcharge de consentement et l'org auditée. */
+  /** missions.id - sert à résoudre la surcharge de consentement et l'org auditée. */
   missionId?: string | null
-  /** missions.client_id (organisation auditée) si déjà connu — évite une requête. */
+  /** missions.client_id (organisation auditée) si déjà connu - évite une requête. */
   clientOrgId?: string | null
   /** Texte assemblé à envoyer au modèle (prompt + contexte client). */
   text: string
@@ -40,7 +40,7 @@ export interface AiGateInput {
   targetId?: string | null
   /**
    * L'appelant SAIT ré-hydrater la réponse du modèle (via rehydrate()). Requis pour que
-   * l'anonymisation réversible s'applique : sans cette garantie, les jetons [EMAIL_1]…
+   * l'anonymisation réversible s'applique : sans cette garantie, les jetons [EMAIL_1]...
    * fuiteraient tels quels dans la sortie affichée. P4.1 : seul smart-analyse le pose.
    */
   rehydrates?: boolean
@@ -149,7 +149,7 @@ export function resolveAiAnonymize(
 export async function guardAiExposure(input: AiGateInput): Promise<AiGateResult> {
   const { admin, cabinetId, text } = input
 
-  // [0] Kill-switch cabinet — court-circuit sans rien calculer ni envoyer.
+  // [0] Kill-switch cabinet - court-circuit sans rien calculer ni envoyer.
   const enabled = await isAiEnabled(admin, cabinetId)
   const exposure = computeExposure([text])
   if (!enabled) {
@@ -199,7 +199,7 @@ export async function guardAiExposure(input: AiGateInput): Promise<AiGateResult>
   const skipped_reason =
     action === 'consent_required' ? 'consent_required' : action === 'blocked' ? 'blocked' : null
 
-  // [5] Scellement F6 — score + politique + destination + hash (jamais le clair).
+  // [5] Scellement F6 - score + politique + destination + hash (jamais le clair).
   // Pour l'anonymisation : seul un condensé de la table est scellé (preuve sans fuite).
   if (cabinetId) {
     const payloadSha = willSend ? await sha256Hex(finalText) : null

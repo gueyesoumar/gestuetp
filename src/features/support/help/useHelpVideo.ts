@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../../lib/supabase'
 
 /**
- * Récupère l'URL vidéo (et le titre) d'un article d'aide publié, par slug — pour proposer
+ * Récupère l'URL vidéo (et le titre) d'un article d'aide publié, par slug - pour proposer
  * un CTA « Voir la vidéo » contextuel. Renvoie null tant qu'aucune vidéo n'est configurée.
  */
 export function useHelpVideo(slug: string): { videoUrl: string | null; title: string | null } {

@@ -1,4 +1,4 @@
--- Migration 00253 (UP) — RFC 0009 phase 2 : choix du template à la création (INC 5).
+-- Migration 00253 (UP) - RFC 0009 phase 2 : choix du template à la création (INC 5).
 --
 -- Permet de CHOISIR un template de parcours par mission (au lieu du seul is_default).
 -- Le choix est porté comme identifiant (missions.workflow_template_id), figé à la

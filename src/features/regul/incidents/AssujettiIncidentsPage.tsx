@@ -19,7 +19,7 @@ function late(inc: Incident): boolean {
     || (!inc.final_report_at && !!inc.final_deadline && new Date(inc.final_deadline) < now)
 }
 
-/** M5(2) — self-déclaration et suivi des incidents par l'assujetti (portail cloisonné). */
+/** M5(2) - self-déclaration et suivi des incidents par l'assujetti (portail cloisonné). */
 export function AssujettiIncidentsPage(): JSX.Element {
   const { profile } = useAuth()
   const { incidents, loading, refresh } = useIncidents()

@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
   const admin = createClient(supabaseUrl, serviceKey)
   const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? 'https://app.gestugroup.com'
 
-  // 1. Récupérer toutes les demandes en attente — y compris reissued (l'auditeur
+  // 1. Récupérer toutes les demandes en attente - y compris reissued (l'auditeur
   //    a re-poussé la demande après une déclaration). Les statuts terminaux
   //    (uploaded, accepted, escalated_to_finding, declined_by_client) sont
   //    explicitement exclus pour ne pas relancer pour rien.
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
     return brandingCache.get(cabinetId) ?? null
   }
 
-  // Cache du vocab (persona) par cabinet — même logique que le branding.
+  // Cache du vocab (persona) par cabinet - même logique que le branding.
   const DEFAULT_VOCAB: OrgVocab = { providerTerm: 'cabinet', auditorTerm: 'auditeur', missionTerm: 'mission' }
   const vocabCache = new Map<string, OrgVocab>()
   const getVocab = async (cabinetId: string | null): Promise<OrgVocab> => {

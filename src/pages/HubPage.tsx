@@ -1,5 +1,5 @@
 /**
- * HubPage — app-shell du Hub : barre du haut (marque + onglets de vue + user),
+ * HubPage - app-shell du Hub : barre du haut (marque + onglets de vue + user),
  * lanceur de produits (vue par défaut), vues posture / portefeuille. Fond vault
  * sombre, sans animation permanente (RFC Hub UX, direction D3).
  */

@@ -1,4 +1,4 @@
--- 00258 — RFC 0011 : assistant d'onboarding in-app (UP).
+-- 00258 - RFC 0011 : assistant d'onboarding in-app (UP).
 -- Additif : flag DPA (kill-switch) + persistance des conversations (RLS user-owned)
 -- + tours guidés déjà vus. Aucune donnée tenant sensible : le contenu métier ne
 -- transite pas ; on ne stocke que la conversation d'aide de l'utilisateur lui-même.

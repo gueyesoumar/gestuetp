@@ -1,4 +1,4 @@
--- Migration 00217 (UP) — P1c.1 Pass D (RFC 0007) : retrait des colonnes de CONTEXTE
+-- Migration 00217 (UP) - P1c.1 Pass D (RFC 0007) : retrait des colonnes de CONTEXTE
 -- de cabinet_clients. La source de vérité est désormais engagement_profiles (P1b) ;
 -- tous les lecteurs (7 edge + 4 front) ont été repointés (Pass B + D) et les écrivains
 -- (create-client/update-client) n'écrivent plus le contexte sur la fiche (Pass C).

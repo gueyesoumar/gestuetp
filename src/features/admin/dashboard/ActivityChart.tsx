@@ -3,7 +3,7 @@ interface Props {
 }
 
 /**
- * Activité plateforme sur 14 jours — barres verticales (flex, sans distorsion SVG).
+ * Activité plateforme sur 14 jours - barres verticales (flex, sans distorsion SVG).
  * Endpoint (aujourd'hui) mis en avant en or.
  */
 export function ActivityChart({ data }: Props) {

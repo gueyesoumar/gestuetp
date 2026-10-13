@@ -2,7 +2,7 @@ import type { Mission } from '../../types/database.types'
 
 /**
  * Mission réflexive : l'organisation s'audite elle-même (client = cabinet).
- * Cas édition Entreprise ou campagne d'auto-évaluation d'un cabinet — aucun tiers
+ * Cas édition Entreprise ou campagne d'auto-évaluation d'un cabinet - aucun tiers
  * audité, donc aucun portail ni relance « client » n'a de sens (RFC 0013 F5).
  */
 export function isReflexiveMission(mission: Pick<Mission, 'client_id' | 'cabinet_id'>): boolean {

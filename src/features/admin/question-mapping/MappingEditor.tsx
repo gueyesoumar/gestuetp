@@ -103,16 +103,16 @@ export function MappingEditor({ questions, controls, links, suggestions, selecte
                   key={`exp-${selectedId}`}
                   label="Réponse attendue (conforme)"
                   hint="Une réponse différente de l’attendu, sur un contrôle lié, signale un écart probable (Travaux)."
-                  placeholder="Valeur conforme (ex. une option)…"
+                  placeholder="Valeur conforme (ex. une option)..."
                   questionType={selectedQuestion.question_type}
                   current={selectedQuestion.expected_answer ?? ''}
                   onSave={(v) => onSetExpected(selectedId, v)}
                 />
                 <AnswerValueField
                   key={`scope-${selectedId}`}
-                  label="Hors périmètre si la réponse est…"
+                  label="Hors périmètre si la réponse est..."
                   hint="Si le client répond ainsi, les contrôles liés seront suggérés à l’exclusion du périmètre (Cadrage)."
-                  placeholder="Valeur qui exclut (ex. non)…"
+                  placeholder="Valeur qui exclut (ex. non)..."
                   questionType={selectedQuestion.question_type}
                   current={selectedQuestion.scope_exclude_value ?? ''}
                   onSave={(v) => onSetScopeExclude(selectedId, v)}
@@ -126,7 +126,7 @@ export function MappingEditor({ questions, controls, links, suggestions, selecte
               const c = controlById.get(l.control_id)
               return (
                 <div key={l.control_id} className="flex items-center gap-2 border border-gray-200 rounded-lg px-2.5 py-2 mb-1.5">
-                  <span className="font-mono text-[11px] font-bold text-forest-700 shrink-0">{c?.code ?? '—'}</span>
+                  <span className="font-mono text-[11px] font-bold text-forest-700 shrink-0">{c?.code ?? '-'}</span>
                   <span className="text-[12px] text-gray-700 flex-1 min-w-0 truncate">{c?.name}</span>
                   <span className="inline-flex border border-gray-200 rounded-lg overflow-hidden shrink-0">
                     {[1, 2, 3].map((w) => (
@@ -142,7 +142,7 @@ export function MappingEditor({ questions, controls, links, suggestions, selecte
             })}
 
             <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mt-4 mb-2">Ajouter un contrôle</p>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Code ou intitulé du contrôle…"
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Code ou intitulé du contrôle..."
               className="w-full text-[12px] border border-gray-200 rounded-lg px-3 py-2 bg-gray-50" />
             {addMatches.map((c) => (
               <button key={c.id} type="button" onClick={() => { onSetWeight(selectedId, c.id, 1); setSearch('') }}
@@ -160,7 +160,7 @@ export function MappingEditor({ questions, controls, links, suggestions, selecte
                   const c = controlById.get(s.control_id)
                   return (
                     <div key={s.control_id} className="flex items-center gap-2 py-1.5 border-t border-gold-200 first:border-t-0">
-                      <span className="font-mono text-[11px] font-bold text-forest-700 shrink-0">{c?.code ?? '—'}</span>
+                      <span className="font-mono text-[11px] font-bold text-forest-700 shrink-0">{c?.code ?? '-'}</span>
                       <span className="text-[11.5px] text-gray-700 flex-1 min-w-0 truncate">{c?.name}</span>
                       <span className="text-[9.5px] font-bold uppercase text-gray-500 shrink-0">{W_LABEL[s.weight]}</span>
                       <button type="button" onClick={() => onAccept(s)} className="text-[11px] font-bold text-forest-700 shrink-0">+ Accepter</button>

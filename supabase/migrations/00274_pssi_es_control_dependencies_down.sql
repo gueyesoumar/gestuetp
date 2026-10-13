@@ -1,4 +1,4 @@
--- Rollback 00274 — retire les dépendances intra-PSSI-ES ajoutées par cette migration.
+-- Rollback 00274 - retire les dépendances intra-PSSI-ES ajoutées par cette migration.
 delete from public.control_mappings cm
 using public.controls cs, public.controls ct, (values
     ('REG 12-3', 'REG 6-1', 'related'),

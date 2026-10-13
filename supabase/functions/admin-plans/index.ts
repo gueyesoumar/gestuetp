@@ -8,7 +8,7 @@ import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-o
  * Actions :
  *   - create        : crée un plan (slug auto-généré, immutable)
  *   - update        : met à jour les attributs modifiables (name, description, prix, tier, limites, default)
- *   - delete        : supprime un plan (bloqué si ≥1 organisation l'utilise — RESTRICT FK)
+ *   - delete        : supprime un plan (bloqué si ≥1 organisation l'utilise - RESTRICT FK)
  *   - set_features  : remplace la liste des feature_flags inclus dans un plan
  *
  * Toutes les actions sont gardées par requirePlatformOwner et tracées dans admin_audit_log

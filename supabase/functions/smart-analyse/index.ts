@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 2. Fetch documents — priority to those tied to this control ──────────
+    // ── 2. Fetch documents - priority to those tied to this control ──────────
     // deno-lint-ignore no-explicit-any
     type ContentBlock = any
     // deno-lint-ignore no-explicit-any
@@ -368,7 +368,7 @@ Deno.serve(async (req) => {
     if (clientContext) promptSections.push(`CONTEXTE CLIENT:\n${clientContext}`)
 
     promptSections.push(
-      `CONTROLE: ${control_code} — ${control_name}\n` +
+      `CONTROLE: ${control_code} (${control_name})\n` +
       `Domaine: ${domain ?? 'N/A'}\n` +
       `Description: ${control_description ?? 'N/A'}`
     )
@@ -384,7 +384,7 @@ Deno.serve(async (req) => {
     if (docDescriptions.length > 0) promptSections.push(`DOCUMENTS:\n${docDescriptions.join('\n')}`)
     if (dedicatedCount > 0) {
       promptSections.push(
-        `IMPORTANT — PIECES DEDIEES : ${dedicatedCount} document(s) marque(s) [DEDIE] correspondent ` +
+        `IMPORTANT, PIECES DEDIEES : ${dedicatedCount} document(s) marque(s) [DEDIE] correspondent ` +
         `a la preuve attendue par ce controle (uploades par le client en reponse a une demande de preuve precise). ` +
         `Tu DOIS les analyser EN PRIORITE comme source primaire. Les [CONTEXTE] sont des references generales, ` +
         `a n'utiliser qu'en complement.`
@@ -505,7 +505,7 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
     void logAiCall({ admin, function_name: 'smart-analyse', model: MODEL, input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null, success: true, duration_ms: Date.now() - startedAt, mission_id: mission_id ?? null, organization_id: cabinetIdForLog, user_id: null, exposure })
     // Ré-hydratation (P4) : si le texte envoyé a été pseudonymisé, on restaure les
     // vraies valeurs dans la réponse AVANT parsing. Les valeurs déterministes (email,
-    // IBAN, tél…) ne contiennent pas de guillemet → sûr dans le JSON brut.
+    // IBAN, tél...) ne contiennent pas de guillemet → sûr dans le JSON brut.
     const rawModelText = data.content?.[0]?.text ?? ''
     const rawText = gate.anonymized && gate.mapping ? rehydrate(rawModelText, gate.mapping) : rawModelText
     const clean = rawText.replace(/```json|```/g, '').trim()
@@ -573,7 +573,7 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
     const isAbort = err instanceof Error && err.name === 'AbortError'
     console.error('[smart-analyse] Error:', message)
     return new Response(
-      JSON.stringify({ error: isAbort ? 'Delai depasse — reessayez' : 'Erreur interne' }),
+      JSON.stringify({ error: isAbort ? 'Delai depasse : reessayez' : 'Erreur interne' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })

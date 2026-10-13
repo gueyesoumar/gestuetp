@@ -1,4 +1,4 @@
--- 00261 — Rollback : retrait des colonnes de score d'exposition IA.
+-- 00261 - Rollback : retrait des colonnes de score d'exposition IA.
 
 alter table public.documents
   drop column if exists ai_sensitivity,

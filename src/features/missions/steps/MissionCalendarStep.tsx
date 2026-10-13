@@ -102,10 +102,10 @@ export function MissionCalendarStep({ startDate, endDate, startDateError, endDat
           <div className="mb-3 rounded-lg border border-gold-200 bg-white/70 px-3 py-2.5 text-[11.5px] leading-relaxed text-gray-600">
             <p className="font-semibold text-gray-700 mb-1">Comment l&apos;estimation est calculée</p>
             <ul className="space-y-1">
-              <li><b>Cadrage</b> : contrôles ÷ 30 (min. 2 j) — préparation et revue documentaire.</li>
-              <li><b>Travaux</b> : contrôles ÷ (auditeurs × 5) (min. 3 j) — base ~5 contrôles / jour / auditeur.</li>
-              <li><b>Revue</b> : 30 % des travaux (min. 2 j) — revue interne et consolidation.</li>
-              <li><b>Client</b> : 50 % de la revue (min. 2 j) — validation par le client.</li>
+              <li><b>Cadrage</b> : contrôles ÷ 30 (min. 2 j), préparation et revue documentaire.</li>
+              <li><b>Travaux</b> : contrôles ÷ (auditeurs × 5) (min. 3 j), base ~5 contrôles / jour / auditeur.</li>
+              <li><b>Revue</b> : 30 % des travaux (min. 2 j), revue interne et consolidation.</li>
+              <li><b>Client</b> : 50 % de la revue (min. 2 j), validation par le client.</li>
             </ul>
             <p className="mt-1.5 text-gray-400">Indicatif : n&apos;impose pas les dates saisies ci-dessus.</p>
           </div>

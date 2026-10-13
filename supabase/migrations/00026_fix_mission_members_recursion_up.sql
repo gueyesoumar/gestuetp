@@ -13,7 +13,7 @@ as $$
   where user_id = public.get_my_user_id();
 $$;
 
-comment on function public.get_my_mission_ids() is 'SECURITY DEFINER — retourne les mission_ids du user courant sans declencher les policies RLS sur mission_members';
+comment on function public.get_my_mission_ids() is 'SECURITY DEFINER - retourne les mission_ids du user courant sans declencher les policies RLS sur mission_members';
 
 -- Remplacer la policy recursive sur mission_members
 drop policy if exists "mission_members_select_team" on public.mission_members;

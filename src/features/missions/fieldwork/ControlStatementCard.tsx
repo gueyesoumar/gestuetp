@@ -6,7 +6,7 @@ interface ControlStatementCardProps {
 /**
  * Énoncé du contrôle (rendu dans la section Contexte du rail) : la description de
  * l'exigence + l'objectif d'audit. L'identité (code, verdict, risque) et le pliage
- * sont déjà portés par la carte résumé et la section du rail — on ne les répète pas.
+ * sont déjà portés par la carte résumé et la section du rail - on ne les répète pas.
  */
 export function ControlStatementCard({ description, guidance }: ControlStatementCardProps) {
   if (!description && !guidance) return null

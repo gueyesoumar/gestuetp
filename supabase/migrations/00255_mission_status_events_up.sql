@@ -1,4 +1,4 @@
--- Migration 00255 (UP) — Journal d'événements de mission (RFC UX Lot 5)
+-- Migration 00255 (UP) - Journal d'événements de mission (RFC UX Lot 5)
 --
 -- Événements horodatés de la boucle Revue interne → Validation client → Correction :
 -- envoi au client, renvoi en correction, validation/rejet client. Alimente la

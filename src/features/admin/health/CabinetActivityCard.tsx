@@ -23,7 +23,7 @@ export function CabinetActivityCard({ data }: ActivityCardProps): JSX.Element {
           <Row
             icon={<Clock size={14} />}
             label="Dernière connexion d'un membre"
-            sub={data.lastSignInUserEmail ?? '—'}
+            sub={data.lastSignInUserEmail ?? '-'}
             value={formatRelative(data.lastSignInAt)}
             mono
           />

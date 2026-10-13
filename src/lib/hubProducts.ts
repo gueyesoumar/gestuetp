@@ -1,5 +1,5 @@
 /**
- * Types partagés des produits du Hub (RFC 0006 — couche ① catalogue).
+ * Types partagés des produits du Hub (RFC 0006 - couche ① catalogue).
  *
  * Les DONNÉES vivent désormais dans la table `products` (migration 00198) et sont
  * lues via useHubProducts() (src/features/hub/useHubProducts.ts). Ce fichier ne

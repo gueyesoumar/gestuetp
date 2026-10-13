@@ -51,7 +51,7 @@ export function MeasureFormModal({ entityId, source, onClose, onSaved }: Props):
         </div>
         <form onSubmit={submit} className="px-5 py-4 space-y-3">
           {isEscalate && (
-            <p className="text-[12px] text-gray-500">Depuis&nbsp;: <b>{MEASURE_TYPE_LABELS[source!.measure_type]}</b> — {source!.title}</p>
+            <p className="text-[12px] text-gray-500">Depuis&nbsp;: <b>{MEASURE_TYPE_LABELS[source!.measure_type]}</b>, {source!.title}</p>
           )}
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Type de mesure *</label>
@@ -80,7 +80,7 @@ export function MeasureFormModal({ entityId, source, onClose, onSaved }: Props):
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
             <button type="submit" disabled={busy} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-              {busy ? 'Enregistrement…' : isEscalate ? 'Escalader' : 'Émettre'}
+              {busy ? 'Enregistrement...' : isEscalate ? 'Escalader' : 'Émettre'}
             </button>
           </div>
         </form>

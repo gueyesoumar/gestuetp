@@ -1,4 +1,4 @@
--- 00137 — Gëstu Regul (M1) : profil réglementaire des assujettis.
+-- 00137 - Gëstu Regul (M1) : profil réglementaire des assujettis.
 --
 -- Table COMPAGNE d'organizations : porte les attributs propres au métier de
 -- régulateur (criticité OIV/non-OIV, régime d'obligations, tier, statut de

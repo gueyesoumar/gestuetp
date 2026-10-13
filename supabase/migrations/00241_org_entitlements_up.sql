@@ -156,7 +156,7 @@ where o.plan_id is not null
    or exists (select 1 from public.org_quota_limits ql where ql.organization_id = o.id)
 on conflict (organization_id, key) do nothing;
 
--- 6. Contrôle d'invariance (non fatal — table dormante ; bloquant AVANT INC 3) ---
+-- 6. Contrôle d'invariance (non fatal - table dormante ; bloquant AVANT INC 3) ---
 do $$
 declare v_diff int;
 begin

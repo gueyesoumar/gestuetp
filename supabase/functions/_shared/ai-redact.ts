@@ -1,4 +1,4 @@
-// Caviardage des données sensibles AVANT envoi au modèle externe (P2 — RFC 0012 §4.5).
+// Caviardage des données sensibles AVANT envoi au modèle externe (P2 - RFC 0012 §4.5).
 // Pur, sans réseau. Remplace chaque span détecté par un jeton neutre : le contenu
 // sensible ne quitte jamais l'edge, mais la structure du texte reste exploitable par l'IA.
 

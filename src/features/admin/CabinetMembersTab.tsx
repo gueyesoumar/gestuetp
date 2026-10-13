@@ -41,7 +41,7 @@ export function CabinetMembersTab({ cabinetId, cabinetName }: Props) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrer par nom ou email…"
+            placeholder="Filtrer par nom ou email..."
             className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-72 bg-page-bg"
           />
         </div>
@@ -106,7 +106,7 @@ function Row({ member }: { member: CabinetMember }) {
       </td>
       <td className="px-4 py-3 border-b border-gray-100">
         {member.platform_roles.length === 0 ? (
-          <span className="text-[11px] text-gray-300">—</span>
+          <span className="text-[11px] text-gray-300">-</span>
         ) : (
           <div className="flex flex-wrap gap-1">
             {member.platform_roles.map((r) => (

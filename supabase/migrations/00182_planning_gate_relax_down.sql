@@ -1,4 +1,4 @@
--- 00182 — DOWN : restaure le gate à 4 prérequis bloquants (état mig 00117).
+-- 00182 - DOWN : restaure le gate à 4 prérequis bloquants (état mig 00117).
 
 create or replace function public.transition_mission_to_fieldwork(p_mission_id uuid)
 returns jsonb

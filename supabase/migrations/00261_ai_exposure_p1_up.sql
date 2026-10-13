@@ -1,4 +1,4 @@
--- 00261 — Score d'exposition IA (P1 · détection déterministe).
+-- 00261 - Score d'exposition IA (P1 · détection déterministe).
 -- Stocke le résultat de la détection déterministe (pii-detect / exposure-score) exécutée
 -- AVANT envoi au modèle. Observe-only : aucune valeur sensible n'est stockée, seulement le
 -- niveau + les comptes par groupe. PDF/images = 'non_inspecte' (contenu non lisible côté edge).

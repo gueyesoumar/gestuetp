@@ -63,8 +63,8 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
             {bump > 0 && <div className="mt-1 text-[9.5px] text-[#C0392B]">vraisemblance aggravée par incident (+{bump})</div>}
             {hasBarriers && (
               <div className="mt-1 text-[9.5px] text-forest-700 space-y-0.5">
-                <div>préventif <b>{effPrev == null ? '—' : `${pct(effPrev)}%`}</b> · ↓ vraisemblance</div>
-                <div>correctif <b>{effCorr == null ? '—' : `${pct(effCorr)}%`}</b> · ↓ impact</div>
+                <div>préventif <b>{effPrev == null ? '-' : `${pct(effPrev)}%`}</b> · ↓ vraisemblance</div>
+                <div>correctif <b>{effCorr == null ? '-' : `${pct(effCorr)}%`}</b> · ↓ impact</div>
               </div>
             )}
           </div>
@@ -86,7 +86,7 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
                 <BarrierGroup title="Correctives / détectives · ↓ impact" items={corr} onUnlink={unlink} />
               </div>
             )}
-          <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel — c&apos;est ce lien qui fait vivre le score de confiance.</p>
+          <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel : c&apos;est ce lien qui fait vivre le score de confiance.</p>
           <ControlLinker existing={barriers} onSearch={search} onLink={link} />
         </div>
 
@@ -159,7 +159,7 @@ function IncidentLinker({ existing, onSearch, onLink }: {
 
   return (
     <div className="rounded-lg border border-gray-200 p-3">
-      <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher un incident à lier…" className="w-full px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
+      <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher un incident à lier..." className="w-full px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
       {results.length > 0 && (
         <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-gray-50">
           {results.map((i) => (
@@ -222,7 +222,7 @@ function PolicyBarrierLinker({ existing, onSearch, onLink }: {
   return (
     <div className="rounded-lg border border-gray-200 p-3">
       <div className="flex gap-2">
-        <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher une politique…" className="flex-1 px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-[#6D5AE6] focus:ring-1 focus:ring-[#6D5AE6]" />
+        <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher une politique..." className="flex-1 px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-[#6D5AE6] focus:ring-1 focus:ring-[#6D5AE6]" />
         <select value={kind} onChange={(e) => setKind(e.target.value as BarrierKind)} className="px-2 py-2 text-[12px] border border-gray-300 rounded-lg">
           {RISK_CONTROL_LINK_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
         </select>
@@ -258,7 +258,7 @@ function ControlLinker({ existing, onSearch, onLink }: {
   return (
     <div className="rounded-lg border border-gray-200 p-3">
       <div className="flex gap-2">
-        <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher un contrôle (code ou nom)…" className="flex-1 px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
+        <input value={q} onChange={(e) => void run(e.target.value)} placeholder="Rechercher un contrôle (code ou nom)..." className="flex-1 px-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
         <select value={kind} onChange={(e) => setKind(e.target.value as BarrierControl['kind'])} className="px-2 py-2 text-[12px] border border-gray-300 rounded-lg">
           {RISK_CONTROL_LINK_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
         </select>

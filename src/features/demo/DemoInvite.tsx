@@ -37,7 +37,7 @@ export function DemoInvite(): JSX.Element {
       <p className="mt-1 text-[11.5px] text-[rgb(var(--hub-fg)/0.55)]">Un espace jetable et cloisonné : explorez librement, vos vrais indicateurs n{'’'}en tiennent jamais compte.</p>
 
       <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        {/* Action 1 — espace d'exemple (recommandé) */}
+        {/* Action 1 - espace d'exemple (recommandé) */}
         <div className="relative flex flex-col rounded-xl border border-[#D4A843] bg-[#D4A843]/10 p-3.5">
           <span className="absolute -top-2 left-3 rounded-md bg-[#D4A843] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#0f2820]">Recommandé · prêt en ~15 s</span>
           <Zap size={17} className="text-[#D4A843]" />
@@ -54,11 +54,11 @@ export function DemoInvite(): JSX.Element {
             disabled={seeding}
             className="mt-3 rounded-[10px] bg-gradient-to-br from-[#D4A843] to-[#E2C26B] px-4 py-2 text-[11.5px] font-bold text-[#0f2820] transition-all disabled:opacity-60"
           >
-            {pending === 'prefilled' ? 'Création…' : 'Créer l’espace d’exemple →'}
+            {pending === 'prefilled' ? 'Création...' : 'Créer l’espace d’exemple →'}
           </button>
         </div>
 
-        {/* Action 2 — partir de zéro (guidé) */}
+        {/* Action 2 - partir de zéro (guidé) */}
         <div className="flex flex-col rounded-xl border border-[rgb(var(--hub-fg)/0.14)] bg-[rgb(var(--hub-fg)/0.03)] p-3.5">
           <Compass size={17} className="text-[#D4A843]" />
           <div className="mt-1.5 text-[12.5px] font-bold text-[rgb(var(--hub-fg)/0.92)]">Partir de zéro</div>
@@ -74,7 +74,7 @@ export function DemoInvite(): JSX.Element {
             disabled={seeding}
             className="mt-3 rounded-[10px] border border-[rgb(var(--hub-fg)/0.25)] px-4 py-2 text-[11.5px] font-bold text-[rgb(var(--hub-fg)/0.9)] transition-all hover:border-[rgb(var(--hub-fg)/0.4)] disabled:opacity-60"
           >
-            {pending === 'guided' ? 'Création…' : 'Commencer à vide'}
+            {pending === 'guided' ? 'Création...' : 'Commencer à vide'}
           </button>
         </div>
       </div>

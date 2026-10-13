@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
 
     if (!mission || mission.client_id !== callerProfile.organization_id) {
       return new Response(
-        JSON.stringify({ error: 'Accès interdit — réservé au client de la mission' }),
+        JSON.stringify({ error: 'Accès interdit : réservé au client de la mission' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
     }
 
     // Verifier que l'appelant est explicitement Approbateur sur cette mission
-    // (cf. migration 00086 — la signature client_review est approver-only)
+    // (cf. migration 00086 - la signature client_review est approver-only)
     // deno-lint-ignore no-explicit-any
     const { data: accessRows } = await (supabaseAdmin
       .from('client_mission_access') as any)

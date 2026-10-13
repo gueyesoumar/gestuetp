@@ -27,8 +27,8 @@ function jsonResponse(data: Record<string, unknown>, status = 200): Response {
 }
 
 function buildPrompt(questions: QRow[], controls: CRow[]): string {
-  const qList = questions.map((q) => `${q.code} | ${q.text}${q.description ? ' — ' + q.description.slice(0, 120) : ''}`).join('\n')
-  const cList = controls.map((c) => `${c.code} | ${c.name}${c.description ? ' — ' + c.description.slice(0, 120) : ''}`).join('\n')
+  const qList = questions.map((q) => `${q.code} | ${q.text}${q.description ? ' : ' + q.description.slice(0, 120) : ''}`).join('\n')
+  const cList = controls.map((c) => `${c.code} | ${c.name}${c.description ? ' : ' + c.description.slice(0, 120) : ''}`).join('\n')
   return `Tu relies des QUESTIONS d'un questionnaire de cadrage aux CONTRÔLES d'un référentiel d'audit SI qu'elles permettent d'évaluer.
 
 Pour CHAQUE question, choisis 0 à 4 contrôles RÉELLEMENT pertinents (pas de lien faible) et un poids :
@@ -39,7 +39,7 @@ Pour CHAQUE question, choisis 0 à 4 contrôles RÉELLEMENT pertinents (pas de l
 QUESTIONS (code | texte) :
 ${qList}
 
-CONTRÔLES (code | nom — description) :
+CONTRÔLES (code | nom : description) :
 ${cList}
 
 Réponds UNIQUEMENT avec un tableau JSON, sans texte autour, de la forme :

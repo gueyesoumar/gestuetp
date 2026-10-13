@@ -3,7 +3,7 @@
 // articles d'aide via l'outil search_help. Contenu global (aucune donnée tenant).
 
 // Tours guidés déclaratifs disponibles (implémentés côté front, Lot 3). L'agent ne
-// peut PROPOSER qu'un id de cette liste — il n'exécute jamais rien lui-même.
+// peut PROPOSER qu'un id de cette liste - il n'exécute jamais rien lui-même.
 export const TOURS: { id: string; label: string; when: string }[] = [
   { id: 'hub-overview', label: 'Découvrir le Hub ETP', when: "l'utilisateur découvre la navigation entre modules" },
   { id: 'create-mission', label: 'Créer une mission', when: "l'utilisateur veut lancer une nouvelle mission (assistant 6 étapes)" },

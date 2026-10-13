@@ -1,4 +1,4 @@
--- Migration 00218 (UP) — P2.1 (RFC 0007) : dé-polymorphisation de
+-- Migration 00218 (UP) - P2.1 (RFC 0007) : dé-polymorphisation de
 -- client_portal_contacts, phase EXPAND (purement additive).
 -- Ajoute une colonne unifiée client_org_id → organizations(id) (la partie auditée
 -- = un nœud, depuis P1a). Backfill depuis les deux anciens chemins. AUCUNE policy

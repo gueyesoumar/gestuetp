@@ -34,7 +34,7 @@ export function ControlVerdictCard({ conformityLevel, findings, readOnly, onChan
     <div className="border border-gray-200 rounded-xl p-3">
       <div className="flex items-center gap-3">
         <span className={`text-sm font-extrabold px-2.5 py-1 rounded-lg ${effective ? LEVEL_BADGE[effective] : 'bg-gray-100 text-gray-400'}`}>
-          {effective ? getConformityShort(effective) : '—'}
+          {effective ? getConformityShort(effective) : '-'}
         </span>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Niveau de conformit&eacute;</p>

@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { requirePlatformOwner, logAdminAction } from '../_shared/auth-platform-owner.ts'
 
 /**
- * admin-entitlement — écriture fine des entitlements (RFC 0008 / INC 5a).
+ * admin-entitlement - écriture fine des entitlements (RFC 0008 / INC 5a).
  * Réservé au super-admin. Écrit directement org_entitlements (service_role), pour
  * les attributs du nouveau modèle que admin-subscription ne sait pas exprimer, et
  * pour octroyer des droits MANUELS (source='manual', ex. ai_credits).
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     if (!target) return json({ error: 'Organisation introuvable' }, 404)
 
     // La projection des capacités est pilotée par le trigger trg_entitlement_refresh
-    // (00248) sur org_entitlements — pas d'appel refresh explicite ici.
+    // (00248) sur org_entitlements - pas d'appel refresh explicite ici.
     const log = (meta: Record<string, unknown>) =>
       logAdminAction(admin, owner.id, `entitlement.${body.action}`, 'organization', org, body.reason, { organization_name: target.name, key: key ?? null, ...meta })
 

@@ -50,7 +50,7 @@ CREATE TRIGGER trg_supervision_cycles_updated_at
   BEFORE UPDATE ON public.supervision_cycles
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- 3. RLS — accès pour les membres de la mission, mutations réservées au lead/associate
+-- 3. RLS - accès pour les membres de la mission, mutations réservées au lead/associate
 ALTER TABLE public.supervision_cycles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "supervision_cycles_select" ON public.supervision_cycles;

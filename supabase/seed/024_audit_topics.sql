@@ -21,7 +21,7 @@ delete from public.audit_topics where framework_id in (
 );
 
 -- ============================================================
--- ISO 27001 v2 — 10 sujets transverses
+-- ISO 27001 v2 - 10 sujets transverses
 -- ============================================================
 
 insert into public.audit_topics (id, framework_id, name, description, sort_order) values
@@ -169,7 +169,7 @@ join public.domains d on d.id = c.domain_id
 where d.framework_id = '00000000-0000-0000-0000-000000000010';
 
 -- ============================================================
--- PSSI-ES — 11 sujets (alignés sur les chapitres I-XI)
+-- PSSI-ES - 11 sujets (alignés sur les chapitres I-XI)
 -- ============================================================
 
 insert into public.audit_topics (id, framework_id, name, description, sort_order) values

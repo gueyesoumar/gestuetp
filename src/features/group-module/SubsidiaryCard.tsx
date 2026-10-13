@@ -28,7 +28,7 @@ function bandFor(score: number | null): {
 }
 
 function formatShortDate(d: string | null): string {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
 }
 
@@ -83,7 +83,7 @@ export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }:
               strokeDasharray={dasharray} transform="rotate(-90 18 18)" strokeLinecap="round"/>
           )}
           <text x="18" y="20" textAnchor="middle" fontSize="9" fontWeight="700" fill={band.donut}>
-            {conformityScore !== null ? `${conformityScore}%` : '—'}
+            {conformityScore !== null ? `${conformityScore}%` : '-'}
           </text>
         </svg>
         <div className="flex-1 text-[12px] text-gray-700 space-y-1">

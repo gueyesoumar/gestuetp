@@ -3,7 +3,7 @@ import { logActivity } from './audit-log.ts'
 
 // Collecte Tenable réutilisable (RFC 0014 P1.3/P2) : appelable depuis l'edge
 // utilisateur (connector-tenable) ET le dispatcher planifié (connector-dispatch).
-// Prend un org_id explicite — aucune dépendance au JWT appelant.
+// Prend un org_id explicite - aucune dépendance au JWT appelant.
 //
 // ⚠️ Le PARSING des réponses Tenable est à VALIDER sur un tenant réel ; chaque
 // collecteur est isolé et tombe en 'na' en cas d'erreur, jamais en verdict trompeur.

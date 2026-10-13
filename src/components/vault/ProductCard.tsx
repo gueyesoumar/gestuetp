@@ -1,5 +1,5 @@
 /**
- * ProductCard — a single product tile for the Hub grid.
+ * ProductCard - a single product tile for the Hub grid.
  */
 
 import { Shield, ChevronRight } from 'lucide-react'

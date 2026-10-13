@@ -1,4 +1,4 @@
--- 00269 — Bibliothèque de constats-types réutilisables (Lot 3, catalogue lié / mémoire du cabinet).
+-- 00269 - Bibliothèque de constats-types réutilisables (Lot 3, catalogue lié / mémoire du cabinet).
 --
 -- Un constat-type porte SES risques et SES recommandations associés (d'où le « lié » : choisir
 -- le constat adapte les risques/recos proposés). Deux portées :

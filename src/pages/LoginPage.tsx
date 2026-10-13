@@ -56,7 +56,7 @@ export function LoginPage(): JSX.Element {
   const handleReset = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
     setResetSubmitting(true)
-    // Envoi via l'edge Resend (lien brandé token_hash), comme les autres flux —
+    // Envoi via l'edge Resend (lien brandé token_hash), comme les autres flux -
     // et non le SMTP natif Supabase. Réponse toujours neutre (anti-énumération).
     const res = await invokeEdgeFunction('request-password-reset', { email: resetEmail.trim().toLowerCase() })
     if (!res.ok) console.error('request-password-reset:', res.error)
@@ -145,7 +145,7 @@ export function LoginPage(): JSX.Element {
           {deniedBanner}
           {formArea}
           <p className="mt-9 text-center text-[11px] text-white/30">
-            Plateforme Gëstu ETP — accès réservé aux comptes autorisés.
+            Plateforme Gëstu ETP : accès réservé aux comptes autorisés.
           </p>
         </div>
       </div>

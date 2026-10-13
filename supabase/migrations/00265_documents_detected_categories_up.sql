@@ -1,6 +1,6 @@
--- 00265 — Détail par catégorie de la détection déterministe (P2, affichage « raison du classement »).
+-- 00265 - Détail par catégorie de la détection déterministe (P2, affichage « raison du classement »).
 -- Comptes PAR CATÉGORIE (email, phone_sn, iban, card, ip, ninea, cni_nin_sn, api_key,
--- private_key, secret_assignment). JAMAIS les valeurs ni les positions — comptes only.
+-- private_key, secret_assignment). JAMAIS les valeurs ni les positions - comptes only.
 alter table public.documents
   add column if not exists ai_detected_categories jsonb;
 

@@ -1,4 +1,4 @@
--- 00290 — Correctif : les constats mineurs personnalisés PSSI-ES (00273) n'avaient pas
+-- 00290 - Correctif : les constats mineurs personnalisés PSSI-ES (00273) n'avaient pas
 -- remplacé le générique 00271 à cause d'un mismatch d'apostrophe (U+2019 stocké vs ' droit
 -- dans le LIKE). On retire le générique restant (wildcard sur l'apostrophe) puis on insère
 -- les constats mineurs personnalisés.

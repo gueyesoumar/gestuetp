@@ -44,6 +44,6 @@ AS $$
   LIMIT 1;
 $$;
 
-COMMENT ON FUNCTION public.get_my_client_mission_ids() IS 'SECURITY DEFINER — retourne les mission_ids accessibles au client courant via client_mission_access';
-COMMENT ON FUNCTION public.is_client_role() IS 'SECURITY DEFINER — vérifie si le user courant a le rôle client';
-COMMENT ON FUNCTION public.get_my_contact_id() IS 'SECURITY DEFINER — retourne le contact_id du client courant';
+COMMENT ON FUNCTION public.get_my_client_mission_ids() IS 'SECURITY DEFINER - retourne les mission_ids accessibles au client courant via client_mission_access';
+COMMENT ON FUNCTION public.is_client_role() IS 'SECURITY DEFINER - vérifie si le user courant a le rôle client';
+COMMENT ON FUNCTION public.get_my_contact_id() IS 'SECURITY DEFINER - retourne le contact_id du client courant';

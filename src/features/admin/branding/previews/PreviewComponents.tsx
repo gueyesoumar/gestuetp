@@ -1,7 +1,7 @@
 import { type PreviewCtx, accentTextColor } from './previewKit'
 
 // Aperçu des éléments d'interface affectés par la marque : boutons, badges,
-// liens, champ focus, barre de progression, onglet actif — tels qu'ils rendent
+// liens, champ focus, barre de progression, onglet actif - tels qu'ils rendent
 // dans l'app (surfaces claires) avec la couleur primaire et l'accent du cabinet.
 export function PreviewComponents(p: PreviewCtx): JSX.Element {
   const accentInk = accentTextColor(p.accent)
@@ -23,7 +23,7 @@ export function PreviewComponents(p: PreviewCtx): JSX.Element {
 
       <Group title="Champs &amp; navigation">
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input readOnly value="Saisie…" style={{ fontSize: 11, padding: '7px 10px', borderRadius: 7, border: `1.5px solid ${p.primary}`, outline: 'none', background: 'white', color: '#374151', boxShadow: `0 0 0 3px ${p.primary}22`, width: 150 }} />
+          <input readOnly value="Saisie..." style={{ fontSize: 11, padding: '7px 10px', borderRadius: 7, border: `1.5px solid ${p.primary}`, outline: 'none', background: 'white', color: '#374151', boxShadow: `0 0 0 3px ${p.primary}22`, width: 150 }} />
           <a href="#" onClick={(e) => e.preventDefault()} style={{ color: p.accent, fontSize: 11, fontWeight: 600, textDecoration: 'none' }}>Voir le détail →</a>
           <div style={{ display: 'flex', gap: 4 }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, color: p.primary, borderBottom: `2px solid ${p.primary}`, paddingBottom: 3 }}>Onglet actif</span>
@@ -37,7 +37,7 @@ export function PreviewComponents(p: PreviewCtx): JSX.Element {
           <div style={{ height: 7, background: '#E5E7EB', borderRadius: 999 }}>
             <div style={{ height: '100%', width: '68%', background: p.primary, borderRadius: 999 }} />
           </div>
-          <div style={{ fontSize: 9.5, color: '#6B7280', marginTop: 4 }}>Score de conformité — <span style={{ color: p.primary, fontWeight: 700 }}>68%</span></div>
+          <div style={{ fontSize: 9.5, color: '#6B7280', marginTop: 4 }}>Score de conformité : <span style={{ color: p.primary, fontWeight: 700 }}>68%</span></div>
         </div>
       </Group>
     </div>

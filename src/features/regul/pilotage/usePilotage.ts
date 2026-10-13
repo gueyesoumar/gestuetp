@@ -19,7 +19,7 @@ export interface PilotageData {
   priorities: Priority[]
 }
 
-/** Agrège le parc (posture, risques, mesures, priorisation) — M8, lecture seule. */
+/** Agrège le parc (posture, risques, mesures, priorisation) - M8, lecture seule. */
 export function usePilotage(): PilotageData {
   const { subsidiaries, loading: sLoading, averageScore, totalActiveMissions, totalOverdue, totalCount } = useSubsidiaries()
   const { measures, loading: mLoading } = useParkMeasures()
@@ -49,7 +49,7 @@ export function usePilotage(): PilotageData {
       score: s.conformityScore,
     }))
 
-    // Priorisation actionnable — criticité élevée non contrôlée, conformité critique, retards.
+    // Priorisation actionnable - criticité élevée non contrôlée, conformité critique, retards.
     const priorities: Priority[] = []
     for (const s of subsidiaries) {
       const controlled = s.activeMissions + s.closedMissions > 0

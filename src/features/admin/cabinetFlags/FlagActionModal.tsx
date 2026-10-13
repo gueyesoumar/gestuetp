@@ -14,13 +14,13 @@ interface FlagActionModalProps {
 const ACTION_LABELS: Record<FlagAction, { title: string; description: string; submit: string; danger: boolean }> = {
   lock: {
     title: 'Désactiver cette fonctionnalité pour ce cabinet ?',
-    description: 'Crée une dérogation « désactivée » — la fonctionnalité reste activée pour les autres cabinets sur le même plan.',
+    description: 'Crée une dérogation « désactivée » : la fonctionnalité reste activée pour les autres cabinets sur le même plan.',
     submit: 'Désactiver pour ce cabinet',
     danger: true,
   },
   unlock: {
     title: 'Débloquer cette fonctionnalité pour ce cabinet ?',
-    description: 'Crée une dérogation « activée » — la fonctionnalité sera disponible même si le plan ne l’inclut pas.',
+    description: 'Crée une dérogation « activée » : la fonctionnalité sera disponible même si le plan ne l’inclut pas.',
     submit: 'Débloquer',
     danger: false,
   },
@@ -84,7 +84,7 @@ export function FlagActionModal({ flag, action, onClose, onConfirm }: FlagAction
             className={`px-3.5 py-2 text-[12.5px] font-semibold text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed ${
               cfg.danger ? 'bg-red-600 hover:bg-red-700' : 'bg-forest-700 hover:bg-forest-900'
             }`}>
-            {submitting ? 'En cours…' : cfg.submit}
+            {submitting ? 'En cours...' : cfg.submit}
           </button>
         </div>
       </div>

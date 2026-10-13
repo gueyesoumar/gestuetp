@@ -1,4 +1,4 @@
--- Rollback 00267 — retire le crosswalk intra-ISO 27001 + la contrainte de valeurs.
+-- Rollback 00267 - retire le crosswalk intra-ISO 27001 + la contrainte de valeurs.
 
 -- Supprime uniquement les paires intra-ISO seedées par 00267 (les deux contrôles ISO 27001).
 delete from public.control_mappings cm

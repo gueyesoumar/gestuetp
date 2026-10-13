@@ -1,7 +1,7 @@
 -- Migration 00068: Audit log des actions super-admin (UP)
 -- Description: Trace inviolable de chaque geste effectué depuis /admin.
 -- Motif obligatoire (NOT NULL), insertion via service-role uniquement.
--- Pas de DELETE policy — la table est insertion-only.
+-- Pas de DELETE policy - la table est insertion-only.
 
 CREATE TABLE public.admin_audit_log (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,7 +24,7 @@ CREATE INDEX idx_aal_actor ON public.admin_audit_log(actor_id);
 CREATE INDEX idx_aal_target ON public.admin_audit_log(target_type, target_id);
 CREATE INDEX idx_aal_action ON public.admin_audit_log(action);
 
--- RLS — lecture pour les owners, INSERT via service-role uniquement
+-- RLS - lecture pour les owners, INSERT via service-role uniquement
 ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "aal_owner_select"

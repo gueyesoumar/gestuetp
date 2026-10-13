@@ -125,7 +125,7 @@ export function AdminAuditLogPage() {
       </div>
       <h1 className="text-xl font-bold text-gray-900">Audit &amp; sécurité</h1>
       <p className="text-[12.5px] text-gray-500 mt-1 mb-5 max-w-2xl">
-        Toutes les actions super-admin tracées — acteur, motif et horodatage. Journal en insertion seule, rétention indéfinie.
+        Toutes les actions super-admin tracées : acteur, motif et horodatage. Journal en insertion seule, rétention indéfinie.
       </p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
@@ -214,7 +214,7 @@ function Row({ row }: { row: AuditLogRow }) {
         <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold mr-1.5">{fam.label}</span>
         {row.metadata && row.metadata.name ? <span className="text-gray-700">{String(row.metadata.name)}</span>
           : row.metadata && row.metadata.email ? <span className="text-gray-700">{String(row.metadata.email)}</span>
-          : <span className="text-gray-300">—</span>}
+          : <span className="text-gray-300">-</span>}
       </td>
       <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700 max-w-md truncate" title={row.reason}>{row.reason}</td>
     </tr>

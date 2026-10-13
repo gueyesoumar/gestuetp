@@ -1,7 +1,7 @@
 -- Migration 00244 (UP) : correctif enforcement (RFC 0008 P3 / INC 4)
 --
 -- Bug 00243 : le gate comparait uniquement org_entitlements.key = clé_du_gate.
--- Or une feature peut avoir une clé (FR) distincte de sa capacité (EN) — ex.
+-- Or une feature peut avoir une clé (FR) distincte de sa capacité (EN) - ex.
 -- feature 'mesures' → capability 'measures' (seed 00198). Un gate 'measures'
 -- ne trouvait donc jamais le droit → faux positif de l'audit + blocage à tort.
 -- Correctif : matcher sur la CAPACITÉ *ou* la clé.

@@ -13,7 +13,7 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
  * Sécurité :
  *   - L'appelant doit appartenir au cabinet ciblé
  *   - ET avoir la permission can_edit_organization (OR-aggregée sur ses
- *     platform_roles) — platform_owner = override
+ *     platform_roles) - platform_owner = override
  *   - Validation longueur 1-40 chars sur les labels
  *   - Trim systématique
  *   - Audit log avec motif optionnel
@@ -22,7 +22,7 @@ import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
 interface UpdatePayload {
   review_lead_label?: string | null
   review_associate_label?: string | null
-  /** Kill switch IA cabinet (cf. migration 00088). Optional — undefined = pas de changement. */
+  /** Kill switch IA cabinet (cf. migration 00088). Optional - undefined = pas de changement. */
   ai_analysis_enabled?: boolean
   reason?: string  // optionnel
 }

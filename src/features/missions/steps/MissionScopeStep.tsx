@@ -31,7 +31,7 @@ export function MissionScopeStep({ framework, domains, loading, missionName, onM
           value={missionName}
           onChange={(e) => onMissionName(e.target.value)}
           className="mt-1 w-full"
-          placeholder="Ex : Audit ISO 27001 — Client Demo SA"
+          placeholder="Ex : Audit ISO 27001 - Client Demo SA"
         />
       </div>
 

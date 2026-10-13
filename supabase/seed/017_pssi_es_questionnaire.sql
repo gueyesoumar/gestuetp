@@ -1,5 +1,5 @@
 -- Seed: Template questionnaire de prise de connaissance PSSI-ES
--- Referentiel: PSSI-ES — Senegal (Instruction presidentielle N°003/PR du 03 janvier 2017)
+-- Referentiel: PSSI-ES - Senegal (Instruction presidentielle N°003/PR du 03 janvier 2017)
 -- Framework ID: 00000000-0000-0000-0000-000000000017
 -- 30 questions couvrant les 11 domaines + contexte general
 
@@ -7,7 +7,7 @@ insert into public.questionnaire_templates (id, framework_id, name, description,
 values (
   '00000000-0000-0000-0000-000000000025',
   '00000000-0000-0000-0000-000000000017',
-  'Questionnaire de prise de connaissance — PSSI-ES',
+  'Questionnaire de prise de connaissance - PSSI-ES',
   'Questionnaire initial envoye a l''entite en debut de mission PSSI-ES. Couvre les 11 domaines de l''instruction presidentielle.',
   '1.0'
 );
@@ -43,7 +43,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'text', null, false, 5),
 
 -- ═══════════════════════════════════════════
--- ORG — Organisation de la securite des SI
+-- ORG - Organisation de la securite des SI
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'ORG-01',
  'Existe-t-il un Responsable de la Securite des Systemes d''Information (RSSI) nomme ?',
@@ -61,7 +61,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'boolean', null, true, 8),
 
 -- ═══════════════════════════════════════════
--- PER — Securite du personnel
+-- PER - Securite du personnel
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'PER-01',
  'Des clauses de confidentialite sont-elles integrees dans les contrats de travail ?',
@@ -79,7 +79,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'boolean', null, true, 11),
 
 -- ═══════════════════════════════════════════
--- ACQ — Acquisition et developpement des SI
+-- ACQ - Acquisition et developpement des SI
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'ACQ-01',
  'Les exigences de securite sont-elles prises en compte dans les cahiers des charges d''acquisition de SI ?',
@@ -92,7 +92,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'boolean', null, true, 13),
 
 -- ═══════════════════════════════════════════
--- ACT — Gestion des actifs
+-- ACT - Gestion des actifs
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'ACT-01',
  'Disposez-vous d''un inventaire des actifs informationnels (materiel, logiciel, donnees) ?',
@@ -105,7 +105,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'single_choice', '["Pas de classification", "Classification partielle", "Classification formalisee et appliquee"]', true, 15),
 
 -- ═══════════════════════════════════════════
--- FRN — Relation avec les fournisseurs
+-- FRN - Relation avec les fournisseurs
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'FRN-01',
  'Les contrats avec les prestataires et fournisseurs incluent-ils des clauses de securite SI ?',
@@ -118,7 +118,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'boolean', null, true, 17),
 
 -- ═══════════════════════════════════════════
--- PHY — Securite physique
+-- PHY - Securite physique
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'PHY-01',
  'Les locaux hebergeant des equipements sensibles (salle serveur, baies reseau) sont-ils securises ?',
@@ -131,7 +131,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'boolean', null, true, 19),
 
 -- ═══════════════════════════════════════════
--- LOG — Securite logique
+-- LOG - Securite logique
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'LOG-01',
  'Comment est geree l''attribution des droits d''acces aux systemes d''information ?',
@@ -149,7 +149,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'single_choice', '["Aucun chiffrement", "Chiffrement partiel (transit uniquement)", "Chiffrement complet (transit + repos)"]', true, 22),
 
 -- ═══════════════════════════════════════════
--- EXP — Securite de l''exploitation
+-- EXP - Securite de l''exploitation
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'EXP-01',
  'Des procedures d''exploitation documentees existent-elles pour les operations SI courantes ?',
@@ -167,7 +167,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'boolean', null, true, 25),
 
 -- ═══════════════════════════════════════════
--- CLM — Cloud, appareils mobiles et teletravail
+-- CLM - Cloud, appareils mobiles et teletravail
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'CLM-01',
  'Votre entite utilise-t-elle des services cloud ? Si oui, lesquels ?',
@@ -180,7 +180,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'boolean', null, true, 27),
 
 -- ═══════════════════════════════════════════
--- INC — Gestion des incidents
+-- INC - Gestion des incidents
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'INC-01',
  'Disposez-vous d''une procedure de gestion des incidents de securite SI ?',
@@ -193,7 +193,7 @@ insert into public.questions (template_id, code, text, description, question_typ
  'single_choice', '["Aucun", "1 a 3", "4 a 10", "Plus de 10"]', true, 29),
 
 -- ═══════════════════════════════════════════
--- AUD — Audit et conformite
+-- AUD - Audit et conformite
 -- ═══════════════════════════════════════════
 ('00000000-0000-0000-0000-000000000025', 'AUD-01',
  'Quels sont vos principaux enjeux et attentes vis-a-vis de cette mission de conformite PSSI-ES ?',

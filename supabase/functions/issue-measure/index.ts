@@ -5,7 +5,7 @@ import { authenticateCaller } from '../_shared/auth.ts'
 import { requireEntitlement } from '../_shared/require-entitlement.ts'
 
 /**
- * issue-measure — mesures graduées du régulateur (Gëstu Regul / M4).
+ * issue-measure - mesures graduées du régulateur (Gëstu Regul / M4).
  *
  * Actions : issue | escalate | set-status
  * Chaque acte est ANCRÉ dans probative_log (S1) via une insertion service_role

@@ -22,7 +22,7 @@ const PHASE_TO_TAB: Record<string, string> = {
 export function MissionStepper({ phases, activeTab, onTabChange, showAuditedRisks }: MissionStepperProps) {
   return (
     <div className="flex items-center px-7 bg-white border-b border-gray-200 overflow-x-auto">
-      {/* Overview button — always accessible */}
+      {/* Overview button - always accessible */}
       <button
         onClick={() => onTabChange('overview')}
         className={`flex items-center gap-2 py-2.5 px-3 mr-3 shrink-0 relative text-xs font-medium whitespace-nowrap transition-colors ${

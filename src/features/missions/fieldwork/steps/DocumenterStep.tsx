@@ -40,7 +40,7 @@ export function DocumenterStep({ documents, uploading, uploadError, onUpload, on
               onChange={() => void handleFile()} />
             <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
               className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-forest-700 hover:text-forest-900 disabled:opacity-50">
-              <Plus size={12} /> {uploading ? 'Ajout…' : 'Ajouter un document'}
+              <Plus size={12} /> {uploading ? 'Ajout...' : 'Ajouter un document'}
             </button>
           </>
         )}

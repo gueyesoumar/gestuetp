@@ -23,7 +23,7 @@ export async function hashSetupToken(raw: string): Promise<string> {
 /**
  * Lien brandé de définition de mot de passe. Le jeton est placé dans le FRAGMENT
  * (#) : il n'est PAS envoyé au serveur (pas dans les logs d'accès) ni via l'en-tête
- * Referer vers des sous-ressources tierces — lu uniquement côté client.
+ * Referer vers des sous-ressources tierces - lu uniquement côté client.
  * (base64url → URL-safe, pas d'encodage requis.)
  */
 export function buildSetupLink(siteUrl: string, rawToken: string): string {

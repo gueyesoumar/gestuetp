@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 4b. Check if the reviewer is the one who submitted — prevent self-review
+    // 4b. Check if the reviewer is the one who submitted - prevent self-review
     const { data: assessmentFull } = await supabaseAdmin
       .from('control_assessments')
       .select('auditor_id')
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
     let newStatus: string
 
     if (isLead && assessment.status === 'submitted') {
-      // Lead reviews auditor's work (not his own — checked above)
+      // Lead reviews auditor's work (not his own - checked above)
       stage = 'lead_review'
       if (decision === 'approved') {
         newStatus = mission.associate_id ? 'in_review' : 'approved'

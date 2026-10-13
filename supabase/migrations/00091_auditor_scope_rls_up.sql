@@ -1,4 +1,4 @@
--- Migration 00091: Restriction d'accès auditeur — UP
+-- Migration 00091: Restriction d'accès auditeur - UP
 --
 -- Un auditeur (membre d'une mission qui n'est ni lead_auditor ni associate)
 -- ne doit voir que les contrôles qui lui sont assignés. Les policies RLS
@@ -38,7 +38,7 @@ COMMENT ON FUNCTION public.is_mission_lead_or_associate IS
 GRANT EXECUTE ON FUNCTION public.is_mission_lead_or_associate(uuid) TO authenticated;
 
 -- ============================================================
--- 2. mission_control_assignments — split team en 2 policies
+-- 2. mission_control_assignments - split team en 2 policies
 -- ============================================================
 DROP POLICY IF EXISTS "mca_select_team" ON public.mission_control_assignments;
 
@@ -53,7 +53,7 @@ CREATE POLICY "mca_select_own"
   USING (auditor_id = public.get_my_user_id());
 
 -- ============================================================
--- 3. control_assessments — restreindre la lecture team
+-- 3. control_assessments - restreindre la lecture team
 -- ============================================================
 -- ca_select_auditor (auditor_id = self) reste en place côté auditeur.
 -- ca_select_lead_associate devient strictement lead/asso.
@@ -64,7 +64,7 @@ CREATE POLICY "ca_select_lead_associate"
   USING (public.is_mission_lead_or_associate(mission_id));
 
 -- ============================================================
--- 4. assessment_validations — visibles si l'utilisateur peut voir
+-- 4. assessment_validations - visibles si l'utilisateur peut voir
 --    l'assessment associé (transitivité). Couvre auto le cas auditeur.
 -- ============================================================
 DROP POLICY IF EXISTS "av_select_mission_team" ON public.assessment_validations;
@@ -83,7 +83,7 @@ CREATE POLICY "av_select_mission_team"
   );
 
 -- ============================================================
--- 5. mission_evidence_requests — auditeur voit uniquement les
+-- 5. mission_evidence_requests - auditeur voit uniquement les
 --    requests liées à un contrôle qu'il a en assignation.
 -- ============================================================
 DROP POLICY IF EXISTS "mer_select_team" ON public.mission_evidence_requests;

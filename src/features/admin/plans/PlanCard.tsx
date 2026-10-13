@@ -99,7 +99,7 @@ export function PlanCard({ plan, totalFeatures, format, onEdit, onDuplicate, onD
             onClick={canDelete ? onDelete : undefined}
             disabled={!canDelete}
             className={`p-1.5 rounded transition-colors ${canDelete ? 'text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer' : 'text-gray-300 cursor-not-allowed'}`}
-            title={canDelete ? 'Supprimer ce plan' : `Suppression bloquée — ${plan.cabinets_count} cabinet(s) sur ce plan`}
+            title={canDelete ? 'Supprimer ce plan' : `Suppression bloquée : ${plan.cabinets_count} cabinet(s) sur ce plan`}
           >
             <Trash2 size={13} />
           </button>

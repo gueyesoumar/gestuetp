@@ -1,6 +1,6 @@
--- 00148 (DOWN) — restaure l'état antérieur.
+-- 00148 (DOWN) - restaure l'état antérieur.
 
--- B3 : restaurer ON DELETE CASCADE + NOT NULL (échoue si des auditor_id NULL existent — protège contre une perte silencieuse).
+-- B3 : restaurer ON DELETE CASCADE + NOT NULL (échoue si des auditor_id NULL existent - protège contre une perte silencieuse).
 alter table public.control_assessments drop constraint if exists control_assessments_auditor_id_fkey;
 alter table public.control_assessments alter column auditor_id set not null;
 alter table public.control_assessments

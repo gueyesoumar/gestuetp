@@ -1,6 +1,6 @@
 -- Migration: regul_entity_types (DOWN)
 -- Restaure le CHECK Comply-only. ATTENTION : échoue si des lignes portent déjà un
--- type Regul (ministere, agence…) — les remettre à NULL / un type Comply d'abord.
+-- type Regul (ministere, agence...) - les remettre à NULL / un type Comply d'abord.
 
 alter table public.organizations drop constraint if exists organizations_entity_type_check;
 

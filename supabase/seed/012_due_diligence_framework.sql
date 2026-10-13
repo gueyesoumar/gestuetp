@@ -1,4 +1,4 @@
--- Seed: Référentiel Due Diligence Technique — 5 domaines, 42 contrôles
+-- Seed: Référentiel Due Diligence Technique - 5 domaines, 42 contrôles
 -- Pour investisseurs évaluant la maturité technique de startups/PME
 
 insert into public.frameworks (id, name, slug, description, version, publisher)
@@ -23,7 +23,7 @@ insert into public.domains (id, framework_id, code, name, description, sort_orde
 ('00000000-0000-0000-0006-000000000005', '00000000-0000-0000-0000-000000000015', 'PI', 'Propriété Intellectuelle & Risques', 'IP, dépendances, licences, dette technique et lock-in', 5);
 
 -- ============================================================
--- PT — Produit & Technologie (10 contrôles)
+-- PT - Produit & Technologie (10 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -39,7 +39,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0006-000000000001', 'PT.10', 'Dette technique identifiée et gérée', 'La dette technique est connue, documentée et un plan de résorption existe', 'Question clé : La dette technique est-elle maîtrisée ou hors de contrôle ?', 10);
 
 -- ============================================================
--- ET — Équipe technique (8 contrôles)
+-- ET - Équipe technique (8 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -53,7 +53,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0006-000000000002', 'ET.08', 'Externalisation et freelances', 'La part du développement externalisé est connue, les risques associés sont évalués', 'Question clé : Quelle part du code a été écrite par des externes ? Quel contrôle ?', 8);
 
 -- ============================================================
--- SD — Sécurité & Données (9 contrôles)
+-- SD - Sécurité & Données (9 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -68,7 +68,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0006-000000000003', 'SD.09', 'Plan de réponse aux incidents', 'Un plan de réponse aux incidents existe, même basique, avec des contacts d''urgence', 'Question clé : Que se passe-t-il concrètement en cas de cyberattaque ?', 9);
 
 -- ============================================================
--- IO — Infrastructure & Opérations (8 contrôles)
+-- IO - Infrastructure & Opérations (8 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values
@@ -82,7 +82,7 @@ insert into public.controls (domain_id, code, name, description, guidance, sort_
 ('00000000-0000-0000-0006-000000000004', 'IO.08', 'Plan de reprise d''activité (PRA)', 'Un PRA existe pour les scénarios de perte du provider principal ou d''incident majeur', 'Question clé : Que se passe-t-il si le datacenter ou le provider cloud tombe ?', 8);
 
 -- ============================================================
--- PI — Propriété Intellectuelle & Risques (7 contrôles)
+-- PI - Propriété Intellectuelle & Risques (7 contrôles)
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, guidance, sort_order) values

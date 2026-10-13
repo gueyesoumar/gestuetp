@@ -7,7 +7,7 @@
  *
  * Fonctionne avec PNG et SVG (le browser rasterise le SVG dans le canvas).
  * Retourne null si l'image ne contient pas assez de pixels colorés (ex: logo
- * 100 % monochrome noir sur transparent — dans ce cas pas de suggestion).
+ * 100 % monochrome noir sur transparent - dans ce cas pas de suggestion).
  */
 
 export type DarkLogoTreatment = 'direct' | 'whiten' | 'chip'

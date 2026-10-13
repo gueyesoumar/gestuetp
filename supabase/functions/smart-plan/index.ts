@@ -13,7 +13,7 @@ Règles risque :
 - "medium" par défaut
 - "low" si le questionnaire client montre une bonne maturité sur ce sujet
 - Adapte au contexte client (secteur, taille, réglementations) ET aux réponses du questionnaire
-- Les réponses du questionnaire sont des DÉCLARATIONS du client, pas des preuves — elles orientent le risque
+- Les réponses du questionnaire sont des DÉCLARATIONS du client, pas des preuves : elles orientent le risque
 
 Règles techniques (parmi: inspection, entretien, observation, reexecution, echantillon, analytique) :
 - Minimum 1 technique par contrôle
@@ -206,14 +206,14 @@ Génère le JSON pour CHAQUE contrôle. Format: {"controls":[{"id":"uuid","risk_
     // Reconstruct JSON (we prefilled '{"controls":[')
     const fullJson = '{"controls":[' + rawContent
 
-    // Parse response — try multiple strategies
+    // Parse response - try multiple strategies
     let parsed: { controls: { id: string; risk_level: string; techniques: string[]; auditor_id: string; notes: string | null; reasoning?: string | null }[] }
     try {
       // Strategy 1: direct parse (ideal case)
       parsed = JSON.parse(fullJson)
     } catch {
       try {
-        // Strategy 2: response was truncated — close the JSON
+        // Strategy 2: response was truncated - close the JSON
         const fixed = fullJson.replace(/,?\s*$/, ']}')
         parsed = JSON.parse(fixed)
         console.log('[smart-plan] Fixed truncated JSON, got', parsed.controls?.length, 'controls')

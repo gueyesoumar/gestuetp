@@ -1,4 +1,4 @@
--- 00256 — Phase 5a (RFC 0010) : analyse d'impact spécialisée.
+-- 00256 - Phase 5a (RFC 0010) : analyse d'impact spécialisée.
 -- Additif : chaîne les runs (impact.parent = run de faisabilité) + flag DPA dédié.
 -- agent_runs (00131) supporte déjà kind='impact' (colonne text) → pas de table.
 -- Les colonnes pr_* et le flag support_agent_draft_pr seront posés au Lot 2 (5b).

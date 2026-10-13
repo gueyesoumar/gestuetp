@@ -1,4 +1,4 @@
--- 00192 — Gëstu Policy (RFC 0005) : flag d'activation de l'impact score.
+-- 00192 - Gëstu Policy (RFC 0005) : flag d'activation de l'impact score.
 --
 -- Off par défaut (mode « shadow ») : la contribution de Policy (gouvernance, facteur
 -- humain, vérifiabilité) est calculée et affichée mais ne pèse PAS sur le composite

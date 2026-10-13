@@ -3,7 +3,7 @@ import { LightMarkdown } from './lightMarkdown'
 import { GestuFingerprint } from './GestuFingerprint'
 
 // Rendu d'un message. L'assistant (Doudou) est rendu via LightMarkdown (éléments React,
-// pas de dangerouslySetInnerHTML — règle sécurité §3) avec un petit avatar empreinte ;
+// pas de dangerouslySetInnerHTML - règle sécurité §3) avec un petit avatar empreinte ;
 // le message utilisateur reste brut, aligné à droite.
 export function OnboardingMessage({ msg, streaming }: { msg: ChatMessage; streaming: boolean }): JSX.Element {
   if (msg.role === 'user') {
@@ -21,7 +21,7 @@ export function OnboardingMessage({ msg, streaming }: { msg: ChatMessage; stream
         <GestuFingerprint size={14} />
       </div>
       <div className="max-w-[82%] rounded-2xl rounded-bl-md bg-white px-3.5 py-2 text-[13px] leading-relaxed text-gray-800 ring-1 ring-gray-200">
-        {msg.text ? <LightMarkdown text={msg.text} /> : streaming ? <span className="text-gray-400">…</span> : null}
+        {msg.text ? <LightMarkdown text={msg.text} /> : streaming ? <span className="text-gray-400">...</span> : null}
       </div>
     </div>
   )

@@ -13,7 +13,7 @@ export interface FieldValidation {
   /** Underlying validation result regardless of touched state. */
   rawError: string | null
   isValid: boolean
-  /** Mark as touched, e.g. on submit attempt — surfaces the error if any. */
+  /** Mark as touched, e.g. on submit attempt - surfaces the error if any. */
   forceShow: () => void
   reset: (next?: string) => void
 }
@@ -25,7 +25,7 @@ export interface FieldValidation {
  * user has blurred the field or `forceShow()` is called (typically on a
  * submit attempt). This avoids harassing the user while they type.
  *
- * Server-side validation remains the source of truth for trust — this is
+ * Server-side validation remains the source of truth for trust - this is
  * a UX layer, not a security layer (CLAUDE.md §3).
  */
 export function useFieldValidation(

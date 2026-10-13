@@ -1,4 +1,4 @@
--- Migration 00217 (DOWN) — P1c.1 Pass D (RFC 0007).
+-- Migration 00217 (DOWN) - P1c.1 Pass D (RFC 0007).
 -- Ré-ajoute les colonnes de contexte et les repeuple depuis engagement_profiles
 -- (source de vérité). Réversible sans perte tant que engagement_profiles existe.
 

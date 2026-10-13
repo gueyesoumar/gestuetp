@@ -14,7 +14,7 @@ interface ControlAuthoringFooterProps {
   findingsCount: number
   /** Voies express (Conforme / Non applicable) : autorise la soumission sans constat saisi. */
   allowEmptySubmit?: boolean
-  /** Libellé du bouton en mode express (ex. « Soumettre — conforme »). */
+  /** Libellé du bouton en mode express (ex. « Soumettre - conforme »). */
   emptySubmitLabel?: string
   autosave: AutosaveState
   onToggleAutoAdvance: () => void

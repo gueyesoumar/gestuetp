@@ -45,7 +45,7 @@ export function DomainAccordion({ domain, defaultOpen = false, onSelectControl }
               {domain.controls.map((control) => (
                 <tr
                   key={control.id}
-                  onClick={() => onSelectControl(control, `${domain.code} — ${domain.name}`)}
+                  onClick={() => onSelectControl(control, `${domain.code} : ${domain.name}`)}
                   className="cursor-pointer border-t border-gray-50 hover:bg-forest-50"
                 >
                   <td className="py-2 pr-4 text-sm font-mono text-forest-700">{control.code}</td>

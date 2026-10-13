@@ -1,4 +1,4 @@
--- 00195 — Durcissement need-to-know de get_control_policies (audit sécu F2).
+-- 00195 - Durcissement need-to-know de get_control_policies (audit sécu F2).
 --
 -- Avant : être membre d'UNE mission chez le client ouvrait ses politiques pour
 -- N'IMPORTE quel control_id. Après : l'accès cross-tenant n'est accordé que si le

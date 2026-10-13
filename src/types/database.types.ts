@@ -534,7 +534,7 @@ export interface Mission {
   audit_criteria: string | null
   scoping_notes: string | null
   campaign_id: string | null
-  /** Bac à sable de démonstration (E4, migration 00235) — exclu des indicateurs. */
+  /** Bac à sable de démonstration (E4, migration 00235) - exclu des indicateurs. */
   is_demo: boolean
   demo_owner_id: string | null
   created_at: string
@@ -1020,7 +1020,7 @@ export interface Document {
   ai_pii_count: number | null
   ai_financial_count: number | null
   ai_secret_count: number | null
-  /** Détail par catégorie (comptes only, aucune valeur) — RFC 0012 P2, migration 00265. */
+  /** Détail par catégorie (comptes only, aucune valeur) - RFC 0012 P2, migration 00265. */
   ai_detected_categories: Record<string, number> | null
   ai_exposure_at: string | null
   created_at: string
@@ -1516,7 +1516,7 @@ export interface ControlCommentUpdate {
 }
 
 // ============================================================
-// Audit topics — meta-themes regroupant N controles d'un referentiel
+// Audit topics - meta-themes regroupant N controles d'un referentiel
 // (ex: "Gestion des acces" couvre A.5.15-18, A.8.2, A.8.3, A.8.5).
 // framework_id non null = template plateforme, mission_id non null = custom mission.
 // ============================================================
@@ -1709,7 +1709,7 @@ export type Capability =
   | 'client_portal' | 'continuous_compliance'
 export type CapabilityStatus = 'active' | 'trial' | 'disabled'
 
-// ── RFC 0014 — Conformité continue (connecteurs de preuve) ────────────────────
+// ── RFC 0014 - Conformité continue (connecteurs de preuve) ────────────────────
 export type ConnectorProvider = 'entra' | 'google' | 'github' | 'aws' | 'azure' | 'gcp' | 'tenable'
 export type EvidenceVerdict = 'pass' | 'fail' | 'warn' | 'na'
 export type CheckSeverity = 'faible' | 'moyen' | 'fort' | 'critique'

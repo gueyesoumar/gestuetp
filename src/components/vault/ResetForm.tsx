@@ -1,5 +1,5 @@
 /**
- * ResetForm — demande de réinitialisation de mot de passe (login « oublié »).
+ * ResetForm - demande de réinitialisation de mot de passe (login « oublié »).
  * Message NEUTRE quel que soit le résultat (anti-énumération de comptes).
  */
 
@@ -65,7 +65,7 @@ export function ResetForm({ email, submitting, sent, onEmailChange, onSubmit, on
         className="w-full rounded-xl py-3 text-[14px] font-bold text-[#1B4332] transition-all disabled:opacity-50"
         style={{ background: 'linear-gradient(135deg, #D4A843 0%, #E2C26B 100%)' }}
       >
-        {submitting ? 'Envoi…' : 'Envoyer le lien'}
+        {submitting ? 'Envoi...' : 'Envoyer le lien'}
       </button>
       <button
         type="button"

@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     const { data: controls } = await supabaseAdmin
       .from('controls').select('id, domain_id').in('domain_id', (domains ?? []).map((d) => d.id))
 
-    // Mission déjà clôturée : IDEMPOTENT — on recalcule et renvoie le scoring sans
+    // Mission déjà clôturée : IDEMPOTENT - on recalcule et renvoie le scoring sans
     // rien modifier (permet à l'onglet Clôture de recharger la carte de score, et
     // aux missions de démo en état « closure » de s'afficher pleinement).
     if (mission.status === 'closure') {

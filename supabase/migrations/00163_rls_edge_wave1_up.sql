@@ -3,7 +3,7 @@
 -- Prérequis : 00162 (visible_target_ids) appliquée + équivalence VÉRIFIÉE (0/0 sur
 -- les 2 instances : le jeu d'arêtes graphe == le jeu parent_org_id actif).
 --
--- Chaque policy : SEUL le sous-scope change —
+-- Chaque policy : SEUL le sous-scope change -
 --   `get_subsidiary_ids(get_my_organization_id())` -> `visible_target_ids()`.
 -- Tout le reste (colonnes, gardes is_client_role, EXISTS) est IDENTIQUE.
 -- Comportement préservé (équivalence prouvée). RLS -> tester avec compte non-admin.

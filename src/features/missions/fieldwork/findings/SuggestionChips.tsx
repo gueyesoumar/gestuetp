@@ -9,7 +9,7 @@ interface SuggestionChipsProps {
 
 /**
  * Chips de suggestion de constats, dérivées de l'existant (controls.audit_checklist).
- * Un clic crée un constat pré-rempli — aucune donnée nouvelle n'est stockée côté chip.
+ * Un clic crée un constat pré-rempli - aucune donnée nouvelle n'est stockée côté chip.
  */
 export function SuggestionChips({ suggestions, onPick }: SuggestionChipsProps): JSX.Element | null {
   if (suggestions.length === 0) return null
@@ -17,7 +17,7 @@ export function SuggestionChips({ suggestions, onPick }: SuggestionChipsProps): 
   return (
     <div className="rounded-lg border border-forest-100 bg-forest-50/60 px-3 py-2.5">
       <p className="text-[10px] font-bold uppercase tracking-wider text-forest-700 inline-flex items-center gap-1.5 mb-2">
-        <ListChecks size={11} /> Points à vérifier — cliquez pour créer un constat
+        <ListChecks size={11} /> Points à vérifier : cliquez pour créer un constat
       </p>
       <div className="flex flex-wrap gap-1.5">
         {suggestions.map((label) => (

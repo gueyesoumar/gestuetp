@@ -19,7 +19,7 @@ function deadlineLate(inc: Incident): boolean {
     || (!inc.final_report_at && !!inc.final_deadline && new Date(inc.final_deadline) < now)
 }
 
-/** M5 — Incidents cyber du parc (vue régulateur). */
+/** M5 - Incidents cyber du parc (vue régulateur). */
 export function RegulIncidentsPage(): JSX.Element {
   const { incidents, loading, refresh } = useIncidents()
   const { subsidiaries } = useSubsidiaries()

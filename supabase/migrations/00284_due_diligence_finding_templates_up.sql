@@ -1,4 +1,4 @@
--- 00284 — Constats-types personnalisés (DUEDIL).
+-- 00284 - Constats-types personnalisés (DUEDIL).
 insert into public.finding_templates (scope, control_id, classification, description, risks, recommendations)
 select 'platform', c.id, 'minor_nc', t.descr, t.risks, t.recos
 from (values

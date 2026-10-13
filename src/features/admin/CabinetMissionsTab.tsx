@@ -51,7 +51,7 @@ export function CabinetMissionsTab({ cabinetId }: Props) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrer par nom de mission ou client…"
+            placeholder="Filtrer par nom de mission ou client..."
             className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-[12.5px] w-80 bg-page-bg"
           />
         </div>
@@ -101,9 +101,9 @@ function Row({ mission }: { mission: CabinetMission }) {
       <td className="px-4 py-3 border-b border-gray-100">
         <div className="font-semibold text-gray-900 text-[13px] truncate max-w-xs" title={mission.name}>{mission.name}</div>
       </td>
-      <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700">{mission.client_name ?? '—'}</td>
-      <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700">{mission.framework_name ?? '—'}</td>
-      <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700">{mission.lead_first_name ? `${mission.lead_first_name} ${mission.lead_last_name}` : <span className="text-gray-300">—</span>}</td>
+      <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700">{mission.client_name ?? '-'}</td>
+      <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700">{mission.framework_name ?? '-'}</td>
+      <td className="px-4 py-3 border-b border-gray-100 text-[12px] text-gray-700">{mission.lead_first_name ? `${mission.lead_first_name} ${mission.lead_last_name}` : <span className="text-gray-300">-</span>}</td>
       <td className="px-4 py-3 border-b border-gray-100"><span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${variantClass}`}>{status.label}</span></td>
       <td className="px-4 py-3 border-b border-gray-100 text-[11.5px] text-gray-500">{new Date(mission.updated_at).toLocaleDateString('fr-FR')}</td>
       <td className="px-4 py-3 border-b border-gray-100 text-right">

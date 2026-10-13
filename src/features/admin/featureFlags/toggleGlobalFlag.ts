@@ -27,7 +27,7 @@ export async function toggleGlobalFlag(
     }
     keys.forEach((k) => sessionStorage.removeItem(k))
   } catch {
-    // sessionStorage indisponible — ignorer
+    // sessionStorage indisponible - ignorer
   }
 
   return { ok: true }

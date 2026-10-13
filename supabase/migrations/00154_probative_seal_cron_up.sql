@@ -4,7 +4,7 @@
 -- fige la tête de chaîne, sollicite la TSA RFC-3161 et émet le sceau au témoin
 -- externe (email).
 --
--- SÉCURITÉ — aucun secret dans ce fichier :
+-- SÉCURITÉ - aucun secret dans ce fichier :
 --   * l'anon key et le cron secret sont lus depuis Supabase Vault par leur NOM ;
 --   * tu dois créer ces 2 secrets AVANT le premier passage (voir instructions
 --     hors-migration : vault.create_secret('<valeur>', '<nom>')).

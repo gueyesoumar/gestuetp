@@ -1,4 +1,4 @@
--- Migration 00085: Ajout du rôle 'approver' au portail client — DOWN
+-- Migration 00085: Ajout du rôle 'approver' au portail client - DOWN
 --
 -- ATTENTION : il faut d'abord rétrograder les éventuels approvers en
 -- contributors sinon la check constraint refusera la restauration.

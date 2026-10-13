@@ -76,7 +76,7 @@ export function EntitlementEditModal({ entry, onClose, onSubmit, busy }: Props) 
           <div>
             <label className={label}>Unité</label>
             <select className={field} value={priceUnit} onChange={(e) => setPriceUnit(e.target.value)}>
-              <option value="">—</option>
+              <option value="">-</option>
               {PRICE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>

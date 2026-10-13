@@ -55,7 +55,7 @@ export function useScenarioControls(scenarioId: string): {
       }
       setBarriers(linkRows.map((r) => ({
         linkId: r.id, control_id: r.control_id, kind: r.kind,
-        code: r.control?.code ?? '—', name: r.control?.name ?? '',
+        code: r.control?.code ?? '-', name: r.control?.name ?? '',
         effectiveness: eff.get(r.control_id) ?? 0, assessed: eff.has(r.control_id),
       })))
       setLoading(false)

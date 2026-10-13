@@ -9,12 +9,12 @@ export interface ExpectedDocument {
   isRequired: boolean
   controlCodes: string[]
   controlIds: string[]
-  /** Preuve canonique mutualisée (migration 00275) — lien id-based preuve↔document. */
+  /** Preuve canonique mutualisée (migration 00275) - lien id-based preuve↔document. */
   evidenceItemId: string | null
   /** Statut combiné (toutes les demandes de la même evidence regroupées). */
   status: EvidenceRequestStatus
   uploadedFileName: string | null
-  /** IDs des mission_evidence_requests sous-jacentes — utilisé par l'edge function. */
+  /** IDs des mission_evidence_requests sous-jacentes - utilisé par l'edge function. */
   evidenceRequestIds: string[]
   /** Si déclaration en cours : motif, justification, auteur, date. */
   declineReason: EvidenceDeclineReason | null

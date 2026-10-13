@@ -71,5 +71,5 @@ create policy "control_comments_update_own"
   using (author_id = public.get_my_user_id())
   with check (author_id = public.get_my_user_id());
 
--- 4. Auteur peut delete (soft) son propre commentaire — passe par UPDATE deleted_at
+-- 4. Auteur peut delete (soft) son propre commentaire - passe par UPDATE deleted_at
 --    en pratique le UPDATE policy ci-dessus suffit. Pas de DELETE direct autorise.

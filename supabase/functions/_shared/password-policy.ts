@@ -1,4 +1,4 @@
-// Politique de mot de passe — validation serveur (fait autorité).
+// Politique de mot de passe - validation serveur (fait autorité).
 // Miroir des règles synchrones de src/lib/passwordPolicy.ts + vérification HIBP
 // (Have I Been Pwned) par k-anonymity + historique de non-réutilisation (bcrypt).
 // Utilisé par les edges `set-password` et `reset-user-password`.
@@ -25,7 +25,7 @@ const COMMON_PASSWORDS = new Set([
 
 const SYMBOL_RE = /[^A-Za-z0-9]/
 
-/** Règles synchrones — renvoie les messages FR des règles non satisfaites. */
+/** Règles synchrones - renvoie les messages FR des règles non satisfaites. */
 export function checkPasswordRules(password: string, policy: PasswordPolicy): string[] {
   const errors: string[] = []
   const pw = password ?? ''
@@ -55,7 +55,7 @@ async function sha1Hex(input: string): Promise<string> {
 
 /**
  * Vérifie via HIBP (k-anonymity) si le mot de passe apparaît dans une fuite connue.
- * On n'envoie JAMAIS le mot de passe ni son hash complet — seulement les 5 premiers
+ * On n'envoie JAMAIS le mot de passe ni son hash complet - seulement les 5 premiers
  * caractères du SHA-1. En cas d'indisponibilité du service, on n'échoue pas la
  * validation (fail-open : les autres règles s'appliquent déjà).
  */

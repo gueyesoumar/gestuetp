@@ -41,7 +41,7 @@ export function drawAnnexBEvidence(ctx: DocContext): void {
     ['Date', 'Type', 'Nom du fichier'],
     ctx.data.evidenceDocs.map((d) => [
       formatDate(d.created_at),
-      d.document_type ?? '—',
+      d.document_type ?? '-',
       truncate(d.file_name, 80),
     ]),
     [28, 32, 114],
@@ -54,9 +54,9 @@ export function drawAnnexCReferences(ctx: DocContext): void {
   const refs: { ref: string; title: string }[] = [
     { ref: fw || 'Référentiel d’audit', title: 'Cadre de référence principal de la mission' },
     { ref: 'ISO 19011:2018', title: 'Lignes directrices pour l’audit des systèmes de management' },
-    { ref: 'ISO/IEC 17021-1:2015', title: 'Évaluation de la conformité — Exigences pour les organismes procédant à l’audit et à la certification des systèmes de management' },
-    { ref: 'COSO Internal Control Framework (2013)', title: 'Cadre intégré de contrôle interne — Committee of Sponsoring Organizations of the Treadway Commission' },
-    { ref: 'IIA — IPPF', title: 'International Professional Practices Framework — Institute of Internal Auditors' },
+    { ref: 'ISO/IEC 17021-1:2015', title: 'Évaluation de la conformité : Exigences pour les organismes procédant à l’audit et à la certification des systèmes de management' },
+    { ref: 'COSO Internal Control Framework (2013)', title: 'Cadre intégré de contrôle interne (Committee of Sponsoring Organizations of the Treadway Commission)' },
+    { ref: 'IIA - IPPF', title: 'International Professional Practices Framework (Institute of Internal Auditors)' },
   ]
   for (const r of refs) {
     checkPage(ctx, 10)
@@ -72,7 +72,7 @@ export function drawAnnexCReferences(ctx: DocContext): void {
 }
 
 export function drawAnnexDDistribution(ctx: DocContext): void {
-  drawSectionBanner(ctx, 'D', 'Liste de diffusion', 'Destinataires autorisés du présent rapport — confidentialité')
+  drawSectionBanner(ctx, 'D', 'Liste de diffusion', 'Destinataires autorisés du présent rapport (confidentialité)')
 
   writeWrapped(ctx, 'Le présent rapport est confidentiel et sa diffusion est strictement restreinte aux personnes listées ci-dessous. Toute communication, reproduction ou exploitation en dehors de ce périmètre nécessite l’accord préalable et écrit du cabinet.', { size: 9.5, lineHeight: 4.8 })
   ctx.y += 4

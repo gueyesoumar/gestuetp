@@ -1,4 +1,4 @@
--- 00139 — Gëstu Regul (M4) : mesures graduées du régulateur.
+-- 00139 - Gëstu Regul (M4) : mesures graduées du régulateur.
 --
 -- Transforme les constats d'audit en actes de régulation, avec l'échelle
 -- graduée recommandation -> mise en demeure -> injonction -> sanction.

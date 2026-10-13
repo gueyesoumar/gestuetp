@@ -1,4 +1,4 @@
--- 00135 — Durcissement RLS organizations : remplace la policy SELECT ouverte
+-- 00135 - Durcissement RLS organizations : remplace la policy SELECT ouverte
 -- (USING is_active = true, lisible par tout authentifie -> enumeration des noms
 -- d'orgs cross-tenant) par une policy scopee au périmètre légitime de l'appelant.
 --
@@ -6,7 +6,7 @@
 --   * staff : sa propre org, le parent (groupe), ses filiales, et les orgs CLIENTES
 --     de son cabinet (pour afficher les noms clients dans les missions) ;
 --   * client portail : le(s) cabinet(s) qui le servent + sa propre org cliente
---     (pour le branding / "audité par X" du portail) — necessaire car depuis 00134
+--     (pour le branding / "audité par X" du portail) - necessaire car depuis 00134
 --     get_my_organization_id() est NULL pour un client ;
 --   * platform owner : tout (policy organizations_select_platform_owner, 00067).
 -- Helpers SECURITY DEFINER -> pas de recursion (ils n'appliquent pas la RLS de

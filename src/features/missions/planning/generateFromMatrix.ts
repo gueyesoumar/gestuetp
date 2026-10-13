@@ -61,7 +61,7 @@ export function generateFromMatrix(
 
     const titleTopics = linkedTopics.slice(0, 2).map((t) => t.name).join(' + ')
     const titleSuffix = linkedTopics.length > 2 ? ` (+${linkedTopics.length - 2})` : ''
-    const title = `${actor.name} — ${titleTopics}${titleSuffix}`
+    const title = `${actor.name} : ${titleTopics}${titleSuffix}`
 
     const pvTemplate = buildPvTemplate(topicIds, topics, controlIdToCode)
 

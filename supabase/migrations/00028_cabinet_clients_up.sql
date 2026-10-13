@@ -17,7 +17,7 @@ create table public.cabinet_clients (
   unique(cabinet_id, client_org_id)
 );
 
-comment on table public.cabinet_clients is 'Fiche client gérée par un cabinet — informations métier internes au cabinet';
+comment on table public.cabinet_clients is 'Fiche client gérée par un cabinet - informations métier internes au cabinet';
 comment on column public.cabinet_clients.effectifs is 'Ex: Moins de 50, 50-250, 250-1000, 1000-5000, Plus de 5000';
 comment on column public.cabinet_clients.chiffre_affaires is 'Tranche de CA ou montant';
 comment on column public.cabinet_clients.parties_interessees is 'Ex: [{"nom": "CNIL", "type": "regulateur", "attentes": "Conformité RGPD"}]';

@@ -35,7 +35,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): voi
     try {
       doc.addImage(clientLogo.dataUrl, clientLogo.format, boxX + padding, boxY + padding, lw, lh)
     } catch (err) {
-      // Format non supporté par jsPDF (ex: SVG) — on a déjà le carré blanc, tant pis pour le visuel
+      // Format non supporté par jsPDF (ex: SVG) - on a déjà le carré blanc, tant pis pour le visuel
       console.warn('[scoping-pdf] addImage failed:', err)
     }
   }
@@ -56,7 +56,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): voi
   doc.text('Note de cadrage', marginL, 58)
 
   // Subtitle
-  const fwName = `${data.mission.framework?.name ?? '—'}${data.mission.framework?.version ? ' v' + data.mission.framework.version : ''}`
+  const fwName = `${data.mission.framework?.name ?? '-'}${data.mission.framework?.version ? ' v' + data.mission.framework.version : ''}`
   const subtitle = doc.splitTextToSize(
     `Évaluation de la conformité aux exigences du référentiel ${fwName}.`,
     contentW,
@@ -69,7 +69,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): voi
   }
 
   // Client row
-  const clientName = data.client?.client_name ?? data.mission.client?.name ?? '—'
+  const clientName = data.client?.client_name ?? data.mission.client?.name ?? '-'
   const initial = (clientName[0] ?? '?').toUpperCase()
   // Avatar
   doc.setFillColor(...GOLD_500)
@@ -83,9 +83,9 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): voi
   if (data.client?.effectifs) clientMeta.push(`${data.client.effectifs} collaborateurs`)
   if (data.client?.client_country) clientMeta.push(data.client.client_country)
   setText(doc, [220, 220, 220], 8.5, 'normal')
-  doc.text(clientMeta.join(' · ') || '—', marginL + 13, 95)
+  doc.text(clientMeta.join(' · ') || '-', marginL + 13, 95)
 
-  // KPI strip — overlapping the hero
+  // KPI strip - overlapping the hero
   const kpiY = 110
   const kpiH = 28
   fillRoundedRect(doc, marginL, kpiY, contentW, kpiH, 2, WHITE)
@@ -117,19 +117,19 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): voi
     tagX += w + 2
   }
 
-  // Foot — cabinet + contexte
+  // Foot - cabinet + contexte
   const footY = 188
   fillRect(doc, marginL, footY, contentW, 0.3, BORDER)
   // Cabinet
   setText(doc, TEXT_500, 7.5, 'bold')
   doc.text('CABINET D\'AUDIT', marginL, footY + 7)
   setText(doc, TEXT_900, 11, 'bold')
-  doc.text(data.mission.cabinet?.name ?? '—', marginL, footY + 13)
+  doc.text(data.mission.cabinet?.name ?? '-', marginL, footY + 13)
   const lead = data.members.find((m) => m.role === 'lead_auditor')
   const associate = data.members.find((m) => m.role === 'associate')
   setText(doc, TEXT_500, 8.5, 'normal')
-  if (associate) doc.text(`${associate.user.first_name} ${associate.user.last_name} — ${ctx.roleLabel('associate')}`, marginL, footY + 19)
-  if (lead) doc.text(`${lead.user.first_name} ${lead.user.last_name} — ${ctx.roleLabel('lead_auditor')}`, marginL, footY + 24)
+  if (associate) doc.text(`${associate.user.first_name} ${associate.user.last_name}, ${ctx.roleLabel('associate')}`, marginL, footY + 19)
+  if (lead) doc.text(`${lead.user.first_name} ${lead.user.last_name}, ${ctx.roleLabel('lead_auditor')}`, marginL, footY + 24)
 
   // Contexte
   setText(doc, TEXT_500, 7.5, 'bold')

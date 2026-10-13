@@ -6,13 +6,13 @@ import type { DarkLogoTreatment, BrandSurfaceMode } from './extractColorsFromIma
 import { applyBrandingVars, writeBrandingCache, clearBrandingCache, getNeutralDefaults, readCachedBranding } from './brandingCache'
 
 /**
- * BrandingProvider — résolution du tenant par hostname AVANT auth.
+ * BrandingProvider - résolution du tenant par hostname AVANT auth.
  *
  * Charge le branding cabinet via l'Edge Function resolve-tenant-by-hostname
  * (publique, service-role côté backend). Si le hostname est neutre (Gëstu,
  * localhost) ou non-mappé, on tombe en branding par défaut Gëstu.
  *
- * Côté frontend, on n'a aucune logique sur le flag white_label_branding —
+ * Côté frontend, on n'a aucune logique sur le flag white_label_branding -
  * la résolution serveur retourne 404 si le flag est OFF pour le cabinet.
  *
  * Les CSS variables --brand-primary et --brand-accent sont injectées sur
@@ -61,7 +61,7 @@ function computeHostContext(): { hostname: string; isCustomDomain: boolean } {
 }
 
 // Garde de forme minimale sur le payload en cache (que nous avons nous-mêmes
-// sérialisé) — évite un cast non vérifié.
+// sérialisé) - évite un cast non vérifié.
 function isCabinetBranding(x: unknown): x is CabinetBranding {
   return typeof x === 'object' && x !== null && typeof (x as { cabinet_id?: unknown }).cabinet_id === 'string'
 }

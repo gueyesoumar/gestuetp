@@ -1,4 +1,4 @@
--- Migration 00076: Branding cabinet (marque blanche) — UP
+-- Migration 00076: Branding cabinet (marque blanche) - UP
 -- Description: Stocke le branding visuel d'un cabinet (logos, couleurs, emails)
 -- pour la marque blanche multi-tenant. 1 row par cabinet (PK = organization_id).
 -- Configuré par le super-admin via /admin/cabinets/:id onglet "Marque blanche".
@@ -18,9 +18,9 @@ CREATE TABLE public.organization_branding (
   updated_by        uuid REFERENCES public.users(id) ON DELETE SET NULL
 );
 
-COMMENT ON TABLE public.organization_branding IS 'Branding cabinet pour la marque blanche : logos (light/dark), couleurs, emails. 1 row par cabinet, configuré par super-admin uniquement (Edge Function admin-cabinet-branding). La présence d''un row n''active pas la marque blanche — le flag white_label_branding fait foi.';
+COMMENT ON TABLE public.organization_branding IS 'Branding cabinet pour la marque blanche : logos (light/dark), couleurs, emails. 1 row par cabinet, configuré par super-admin uniquement (Edge Function admin-cabinet-branding). La présence d''un row n''active pas la marque blanche - le flag white_label_branding fait foi.';
 COMMENT ON COLUMN public.organization_branding.logo_light_url IS 'Logo principal sur fond clair (emails, fiches mission). Requis avant activation effective.';
-COMMENT ON COLUMN public.organization_branding.logo_dark_url IS 'Variante fond sombre (login, hub, sidebar). Optionnelle — fallback en pastille blanche automatique si absente.';
+COMMENT ON COLUMN public.organization_branding.logo_dark_url IS 'Variante fond sombre (login, hub, sidebar). Optionnelle - fallback en pastille blanche automatique si absente.';
 
 CREATE INDEX idx_org_branding_updated_at ON public.organization_branding(updated_at DESC);
 

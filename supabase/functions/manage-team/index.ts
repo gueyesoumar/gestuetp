@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // Permission cabinet — can_assign_team requise pour add ET remove
+    // Permission cabinet - can_assign_team requise pour add ET remove
     if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_assign_team'))) {
       return new Response(JSON.stringify({ error: 'Permission can_assign_team requise' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })

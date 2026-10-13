@@ -1,4 +1,4 @@
--- 00188 — Boucle Regul → Risk : un incident aggrave la vraisemblance des scénarios.
+-- 00188 - Boucle Regul → Risk : un incident aggrave la vraisemblance des scénarios.
 --
 -- 1) Le staff d'une org (assujetti) doit pouvoir LIRE les incidents de sa propre
 --    organisation pour que le score de confiance intègre la sinistralité. Les

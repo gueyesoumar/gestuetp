@@ -1,4 +1,4 @@
--- Rollback 00272 — retire les constats-types ISO 27001 générés (couverture complète).
+-- Rollback 00272 - retire les constats-types ISO 27001 générés (couverture complète).
 delete from public.finding_templates ft
 using public.controls c
 where ft.control_id = c.id

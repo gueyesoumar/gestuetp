@@ -12,11 +12,11 @@ CREATE TABLE public.email_preferences (
 );
 
 COMMENT ON TABLE public.email_preferences IS 'Préférences email par utilisateur (relances, digest). Le token permet le désabonnement sans auth.';
-COMMENT ON COLUMN public.email_preferences.unsubscribe_token IS 'Token opaque base64 (24 bytes) — non devinable, identifie une préférence pour désabonnement public';
+COMMENT ON COLUMN public.email_preferences.unsubscribe_token IS 'Token opaque base64 (24 bytes) - non devinable, identifie une préférence pour désabonnement public';
 
 CREATE INDEX idx_email_preferences_token ON public.email_preferences(unsubscribe_token);
 
--- RLS — lecture self uniquement, mise à jour self uniquement
+-- RLS - lecture self uniquement, mise à jour self uniquement
 ALTER TABLE public.email_preferences ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "ep_self_select"

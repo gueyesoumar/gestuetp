@@ -72,7 +72,7 @@ export function PlanDeleteModal({ plan, onClose, onConfirm }: PlanDeleteModalPro
             disabled={submitting || !reason.trim()}
             className="px-3.5 py-2 text-[12.5px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Suppression…' : 'Supprimer définitivement'}
+            {submitting ? 'Suppression...' : 'Supprimer définitivement'}
           </button>
         </div>
       </div>

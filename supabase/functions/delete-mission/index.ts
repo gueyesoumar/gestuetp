@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Permission cabinet — can_delete_mission obligatoire
+    // Permission cabinet - can_delete_mission obligatoire
     if (!(await hasCabinetPerm(supabaseAdmin, callerProfile.id, 'can_delete_mission'))) {
       return new Response(
         JSON.stringify({ error: 'Permission can_delete_mission requise' }),

@@ -7,7 +7,7 @@ const POLICY_COLUMNS =
 
 /**
  * Charge la politique de mot de passe (singleton) pour la validation UX.
- * Retombe sur les défauts best-practice si indisponible — l'enforcement fait
+ * Retombe sur les défauts best-practice si indisponible - l'enforcement fait
  * autorité côté serveur (edge `set-password`).
  */
 export function usePasswordPolicy(): { policy: PasswordPolicy; loading: boolean } {

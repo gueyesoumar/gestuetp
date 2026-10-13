@@ -1,4 +1,4 @@
--- 00289 — Dépendances inter-contrôles (AUDIT, propagation des constats).
+-- 00289 - Dépendances inter-contrôles (AUDIT, propagation des constats).
 with pairs(src, tgt, rel) as (values
     ('GO.01', 'GO.04', 'related'),
     ('GO.01', 'GO.03', 'related'),

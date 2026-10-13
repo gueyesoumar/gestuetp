@@ -20,7 +20,7 @@ export function TrustTile({ tile }: { tile: TrustTileData }): JSX.Element {
           />
         )}
         <text x="28" y="32" textAnchor="middle" className="fill-[rgb(var(--hub-fg))]" style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-          {tile.score === null ? '—' : tile.score}
+          {tile.score === null ? '-' : tile.score}
         </text>
       </svg>
       <div className="min-w-0">

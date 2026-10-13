@@ -1,4 +1,4 @@
--- 00257 — Phase 5b (RFC 0010) : brouillon de PR (chemin d'écriture).
+-- 00257 - Phase 5b (RFC 0010) : brouillon de PR (chemin d'écriture).
 -- Additif : colonnes de suivi de la PR sur agent_runs (kind='draft_pr') + flag DPA.
 -- Le brouillon cible TOUJOURS staging (jamais main), périmètre frontend-only borné.
 

@@ -8,8 +8,8 @@ import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 
 /**
- * Onglet Paramètres — flux de travail. Depuis la consolidation RFC 0002, les
- * libellés des acteurs et étapes de revue (chef, associé, rôles client…) se
+ * Onglet Paramètres - flux de travail. Depuis la consolidation RFC 0002, les
+ * libellés des acteurs et étapes de revue (chef, associé, rôles client...) se
  * personnalisent dans l'onglet Terminologie (organization_vocab). Cet onglet ne
  * garde que le kill switch de l'analyse IA du cabinet.
  */
@@ -63,7 +63,7 @@ export function WorkflowSettingsTab(): JSX.Element {
       <div className="mb-6 flex items-start gap-2.5 rounded-lg bg-forest-50 border border-forest-100 px-3.5 py-2.5">
         <Sparkles size={14} className="mt-0.5 flex-shrink-0 text-gold-600" />
         <span className="text-[12.5px] text-forest-900">
-          Les libellés des acteurs et étapes de revue (chef de mission, associé, rôles client…) se personnalisent
+          Les libellés des acteurs et étapes de revue (chef de mission, associé, rôles client...) se personnalisent
           désormais dans l&rsquo;onglet <b>Terminologie</b>.
         </span>
       </div>

@@ -142,6 +142,6 @@ function purgeFeatureFlagCache(): void {
     }
     keys.forEach((k) => sessionStorage.removeItem(k))
   } catch {
-    // sessionStorage indisponible — ignorer
+    // sessionStorage indisponible - ignorer
   }
 }

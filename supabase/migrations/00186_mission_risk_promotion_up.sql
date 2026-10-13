@@ -1,4 +1,4 @@
--- 00186 — Promotion d'un mission_risk (Comply/Regul) vers le registre Gëstu Risk
+-- 00186 - Promotion d'un mission_risk (Comply/Regul) vers le registre Gëstu Risk
 -- de l'ORGANISATION AUDITÉE (missions.client_id).
 --
 -- Logique produit : une organisation auditée devient cliente de Gëstu et gère

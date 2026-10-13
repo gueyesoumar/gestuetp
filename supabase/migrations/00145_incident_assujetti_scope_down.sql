@@ -1,4 +1,4 @@
--- 00145 (DOWN) — restaure la policy 00144 et retire le helper.
+-- 00145 (DOWN) - restaure la policy 00144 et retire le helper.
 drop policy if exists "inc_select_assujetti" on public.incidents;
 create policy "inc_select_assujetti"
   on public.incidents for select

@@ -1,4 +1,4 @@
--- Migration 00080: Sync auth.users.last_sign_in_at vers public.users — UP
+-- Migration 00080: Sync auth.users.last_sign_in_at vers public.users - UP
 -- Description: La colonne public.users.last_sign_in_at existe depuis la
 -- migration 00003 mais rien ne la met à jour. Supabase Auth incrémente
 -- auth.users.last_sign_in_at à chaque login mais ne touche pas à public.users.

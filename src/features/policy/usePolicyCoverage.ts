@@ -34,7 +34,7 @@ export function usePolicyCoverage(): {
         if (ac.signal.aborted) return
         const map = new Map<string, string>()
         for (const m of (data ?? []) as unknown as Array<{ framework_id: string; framework: { name: string } | null }>) {
-          if (m.framework_id) map.set(m.framework_id, m.framework?.name ?? '—')
+          if (m.framework_id) map.set(m.framework_id, m.framework?.name ?? '-')
         }
         const list = [...map].map(([id, name]) => ({ id, name }))
         setFrameworks(list)
@@ -68,7 +68,7 @@ export function usePolicyCoverage(): {
         }
         setRequired(((ev ?? []) as unknown as Array<{ id: string; name: string; control_id: string; control: { code: string } | null }>).map((e) => ({
           evidenceId: e.id, name: e.name, controlId: e.control_id,
-          controlCode: e.control?.code ?? '—', covered: coveredCtrls.has(e.control_id),
+          controlCode: e.control?.code ?? '-', covered: coveredCtrls.has(e.control_id),
         })))
       } catch (err) {
         if (!ac.signal.aborted) console.error('[coverage]', err)

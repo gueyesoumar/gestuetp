@@ -1,4 +1,4 @@
--- Migration 00227 (UP) — plans.monthly_price en FCFA (XOF).
+-- Migration 00227 (UP) - plans.monthly_price en FCFA (XOF).
 -- La page /admin/plans (plans_v2) était restée en EUR (colonne monthly_price_eur),
 -- alors que la RFC 0006 a basculé le reste du catalogue en XOF (00203). On aligne :
 -- renommage + conversion des valeurs existantes EUR → FCFA (parité fixe 655,957).

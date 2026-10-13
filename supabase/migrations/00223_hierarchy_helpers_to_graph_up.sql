@@ -1,8 +1,8 @@
--- Migration 00223 (UP) — P4a (RFC 0007) : bascule des helpers de hiérarchie sur le
+-- Migration 00223 (UP) - P4a (RFC 0007) : bascule des helpers de hiérarchie sur le
 -- GRAPHE. get_subsidiary_ids / get_my_parent_org_id lisaient parent_org_id ; ils
 -- lisent désormais les arêtes group_ownership / regulatory_supervision (parité
 -- graphe ↔ parent_org_id VÉRIFIÉE : bijection exacte). Aucune policy ni edge function
--- n'est modifiée — elles appellent les mêmes fonctions, désormais graphe-natives.
+-- n'est modifiée - elles appellent les mêmes fonctions, désormais graphe-natives.
 -- parent_org_id reste écrit (manage-entity + trigger sync_org_parent_edge) et lu par
 -- le frontend jusqu'à P4b. Sémantique identique à visible_target_ids (00162).
 

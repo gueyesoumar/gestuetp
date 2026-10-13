@@ -72,7 +72,7 @@ export function SupportFeasibilityPanel({ request }: Props): JSX.Element | null 
           </button>
         ) : (
           <button onClick={() => void launch()} disabled={busy} className="px-3 py-1.5 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 disabled:opacity-50">
-            {busy ? 'Lancement…' : report ? 'Relancer' : 'Analyser la faisabilité'}
+            {busy ? 'Lancement...' : report ? 'Relancer' : 'Analyser la faisabilité'}
           </button>
         )}
       </div>

@@ -1,4 +1,4 @@
-// manage-org-vocab — lecture/écriture des overrides de vocabulaire d'une org
+// manage-org-vocab - lecture/écriture des overrides de vocabulaire d'une org
 // (RFC 0002, P3a). Écriture service_role, double autorisation :
 //   - platform owner  → n'importe quelle org
 //   - can_edit_organization → sa propre org uniquement
@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 
     // --- GET ------------------------------------------------------------------
     if (action === 'get') {
-      // Persona depuis la capacité supervision (RFC 0006 C+P3) — plus d'édition.
+      // Persona depuis la capacité supervision (RFC 0006 C+P3) - plus d'édition.
       const { data: cap } = await admin.from('organization_capabilities')
         .select('capability').eq('org_id', orgId).eq('capability', 'supervision').eq('status', 'active').maybeSingle()
       const { data: rows } = await admin.from('organization_vocab').select('key, value').eq('org_id', orgId)

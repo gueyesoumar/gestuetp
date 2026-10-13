@@ -1,6 +1,6 @@
 // Vérification côté client « mot de passe présent dans une fuite connue » via
 // Have I Been Pwned (k-anonymity : seuls les 5 premiers caractères du SHA-1 sont
-// envoyés — jamais le mot de passe). Miroir de la vérif serveur (_shared/password-policy.ts),
+// envoyés - jamais le mot de passe). Miroir de la vérif serveur (_shared/password-policy.ts),
 // pour un retour EN DIRECT dans le formulaire. Fail-open : en cas d'erreur réseau,
 // on ne bloque pas (la validation serveur reste l'autorité).
 

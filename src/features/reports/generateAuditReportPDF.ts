@@ -1,5 +1,5 @@
 // Façade : la génération du rapport d'audit a été éclatée dans ./audit-report/.
-// Ce fichier préserve les imports historiques (worker, loader, narratives, …).
+// Ce fichier préserve les imports historiques (worker, loader, narratives, ...).
 export {
   buildAuditReportPdfBlob,
   generateAuditReportPDF,

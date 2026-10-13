@@ -10,12 +10,12 @@ import {
   generateRiskMitigation, generateStructuralObjectives, computeMilestones,
 } from './narratives'
 
-// ── Section 01 — Préambule ─────────────────────────────────────────────────
+// ── Section 01 - Préambule ─────────────────────────────────────────────────
 
 export function drawSection01Preambule(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '01 — Préambule',
+    '01 : Préambule',
     'Contexte de la mission',
     "Présentation succincte du client, du déclencheur de l'audit et du cadre normatif applicable.",
   )
@@ -31,8 +31,8 @@ export function drawSection01Preambule(ctx: DocContext): void {
     writeWrapped(ctx, `Le client est soumis aux ${regs.length} réglementation(s) suivante(s), identifiées dans son dossier au moment du cadrage :`)
     drawTable(ctx, ['Réglementation', 'Type', 'Impact'], regs.map((r) => [
       r.nom,
-      r.type ?? '—',
-      (r.impact ?? '—').toUpperCase(),
+      r.type ?? '-',
+      (r.impact ?? '-').toUpperCase(),
     ]))
   }
 
@@ -43,12 +43,12 @@ export function drawSection01Preambule(ctx: DocContext): void {
   }
 }
 
-// ── Section 02 — Objectifs ─────────────────────────────────────────────────
+// ── Section 02 - Objectifs ─────────────────────────────────────────────────
 
 export function drawSection02Objectifs(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '02 — Objectifs',
+    '02 : Objectifs',
     'Que cherche-t-on à mesurer ?',
     "Texte libre du cadrage complété par des objectifs structurels générés à partir du référentiel et des réglementations applicables.",
   )
@@ -92,12 +92,12 @@ function drawObjectiveCard(ctx: DocContext, num: number, title: string, desc: st
   ctx.y += h + 3
 }
 
-// ── Section 03 — Périmètre 4D ──────────────────────────────────────────────
+// ── Section 03 - Périmètre 4D ──────────────────────────────────────────────
 
 export function drawSection03Perimetre(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '03 — Périmètre',
+    '03 : Périmètre',
     'Quatre dimensions du périmètre',
     "Périmètre fonctionnel et technique généré depuis les champs SI du dossier client, périmètre temporel depuis les dates de la mission. Détail des inclusions et exclusions issu des exclusions documentées de la mission.",
   )
@@ -106,7 +106,7 @@ export function drawSection03Perimetre(ctx: DocContext): void {
   const cardW = (ctx.contentW - 4) / 2
   const cardH = 38
   const startY = ctx.y
-  const fwName = `${ctx.data.mission.framework?.name ?? '—'}${ctx.data.mission.framework?.version ? ' v' + ctx.data.mission.framework.version : ''}`
+  const fwName = `${ctx.data.mission.framework?.name ?? '-'}${ctx.data.mission.framework?.version ? ' v' + ctx.data.mission.framework.version : ''}`
   drawPerimCard(ctx, ctx.marginL, startY, cardW, cardH, FOREST_700, 'Fonctionnel',
     `Intégralité du périmètre couvert par le référentiel ${fwName}, soit ${ctx.data.domains.length} domaine(s) couvrant la gouvernance et les contrôles applicables.`)
   drawPerimCard(ctx, ctx.marginL + cardW + 4, startY, cardW, cardH, GOLD_500, 'Organisationnel',
@@ -125,7 +125,7 @@ export function drawSection03Perimetre(ctx: DocContext): void {
       const total = d.controls.length
       const included = d.controls.filter((c) => !ctx.excludedIds.has(c.id)).length
       const pct = total > 0 ? Math.round((included / total) * 100) : 0
-      return [d.code ?? '—', d.name, `${included} / ${total}`, `${pct} %`]
+      return [d.code ?? '-', d.name, `${included} / ${total}`, `${pct} %`]
     }),
   )
 
@@ -156,12 +156,12 @@ function drawPerimCard(ctx: DocContext, x: number, y: number, w: number, h: numb
   }
 }
 
-// ── Section 04 — Méthodologie ──────────────────────────────────────────────
+// ── Section 04 - Méthodologie ──────────────────────────────────────────────
 
 export function drawSection04Methodologie(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '04 — Méthodologie',
+    '04 : Méthodologie',
     "Approche d'audit fondée sur les risques",
     "Méthodologie standardisée du cabinet, identique pour toutes les missions de ce type.",
   )
@@ -183,11 +183,11 @@ export function drawSection04Methodologie(ctx: DocContext): void {
     setText(ctx.doc, TEXT_900, 9, 'bold')
     ctx.doc.text(p.label, ctx.marginL + 6, ctx.y)
     setText(ctx.doc, TEXT_500, 9, 'normal')
-    ctx.doc.text(`— ${p.desc}`, ctx.marginL + 6 + ctx.doc.getTextWidth(p.label) + 2, ctx.y)
+    ctx.doc.text(`: ${p.desc}`, ctx.marginL + 6 + ctx.doc.getTextWidth(p.label) + 2, ctx.y)
     ctx.y += 6
   }
 
-  drawH3(ctx, 'Échelle de maturité — niveaux 0 à 5')
+  drawH3(ctx, 'Échelle de maturité : niveaux 0 à 5')
   drawTable(ctx, ['Niv.', 'Libellé', 'Critère'], [
     ['0', 'Inexistant', 'Aucun élément observable.'],
     ['1', 'Initial', 'Mise en œuvre informelle, ad hoc.'],
@@ -198,12 +198,12 @@ export function drawSection04Methodologie(ctx: DocContext): void {
   ])
 }
 
-// ── Section 05 — Risques ───────────────────────────────────────────────────
+// ── Section 05 - Risques ───────────────────────────────────────────────────
 
 export function drawSection05Risques(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '05 — Risques',
+    '05 : Risques',
     'Risques initiaux identifiés',
     "Risques saisis lors du cadrage. Les recommandations sont générées automatiquement selon le niveau.",
   )
@@ -275,12 +275,12 @@ function riskTheme(level: string): { accent: RGB; bg: RGB; label: string } {
   }
 }
 
-// ── Section 06 — Équipe + RACI ─────────────────────────────────────────────
+// ── Section 06 - Équipe + RACI ─────────────────────────────────────────────
 
 export function drawSection06Equipe(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '06 — Organisation',
+    '06 : Organisation',
     'Équipe & matrice RACI',
     "Composition de l'équipe extraite des affectations mission. La matrice RACI ci-dessous est un modèle standard du cabinet.",
   )
@@ -291,7 +291,7 @@ export function drawSection06Equipe(ctx: DocContext): void {
     ctx.data.members.map((m) => [
       `${m.user.first_name} ${m.user.last_name}`,
       ctx.roleLabel(m.role),
-      [m.user.email, m.user.job_title].filter(Boolean).join(' — ') || '—',
+      [m.user.email, m.user.job_title].filter(Boolean).join(', ') || '-',
     ]),
   )
 
@@ -311,12 +311,12 @@ export function drawSection06Equipe(ctx: DocContext): void {
   ctx.y += 5
 }
 
-// ── Section 07 — Planning ──────────────────────────────────────────────────
+// ── Section 07 - Planning ──────────────────────────────────────────────────
 
 export function drawSection07Planning(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '07 — Planning',
+    '07 : Planning',
     `${ctx.durationWeeks} semaines, 5 phases d'audit`,
     "Découpage en 5 phases proportionnelles à la durée de la mission, calculé à partir des dates de début et de fin de la mission.",
   )
@@ -377,18 +377,18 @@ function drawGantt(ctx: DocContext): void {
   ctx.y += 4
 }
 
-// ── Section 08 — Livrables + gouvernance ───────────────────────────────────
+// ── Section 08 - Livrables + gouvernance ───────────────────────────────────
 
 export function drawSection08LivrablesGouvernance(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '08 — Livrables & gouvernance',
+    '08 : Livrables & gouvernance',
     'Ce que vous recevez, comment on travaille',
     "Liste de livrables et instances de pilotage standardisées au niveau cabinet.",
   )
 
   drawH3(ctx, 'Livrables prévus')
-  const endDate = ctx.data.mission.end_date ? formatDate(ctx.data.mission.end_date) : '—'
+  const endDate = ctx.data.mission.end_date ? formatDate(ctx.data.mission.end_date) : '-'
   drawTable(ctx, ['Livrable', 'Format', 'Date prévue'], [
     ['Note de cadrage signée', 'PDF', '~ Semaine 1'],
     ['Rapport intermédiaire', 'PDF + restitution 90 min', '~ Semaine 6'],
@@ -415,12 +415,12 @@ export function drawSection08LivrablesGouvernance(ctx: DocContext): void {
   writeWrapped(ctx, "Tout point bloquant non levé sous 3 jours ouvrés est porté en COPIL. Les désaccords de qualification d'un écart sont arbitrés par l'associé en charge et le sponsor en bilatéral sous 5 jours ouvrés. Les conflits d'intérêts éventuels sont déclarés sans délai au comité d'éthique du cabinet et au sponsor.")
 }
 
-// ── Section 09 — Hypothèses + limitations ──────────────────────────────────
+// ── Section 09 - Hypothèses + limitations ──────────────────────────────────
 
 export function drawSection09Hypotheses(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '09 — Hypothèses & limitations',
+    '09 : Hypothèses & limitations',
     "Ce qui doit être vrai, ce qui ne l'est pas",
     "Hypothèses générées à partir du contexte mission ; limitations standardisées.",
   )
@@ -472,12 +472,12 @@ export function drawSection09Hypotheses(ctx: DocContext): void {
   )
 }
 
-// ── Section 10 — Signatures ────────────────────────────────────────────────
+// ── Section 10 - Signatures ────────────────────────────────────────────────
 
 export function drawSection10Signatures(ctx: DocContext): void {
   drawSectionBanner(
     ctx,
-    '10 — Validation',
+    '10 : Validation',
     'Signatures',
     "Pour bon accord sur le cadrage, le périmètre, le planning et les conditions de la mission.",
   )
@@ -493,12 +493,12 @@ export function drawSection10Signatures(ctx: DocContext): void {
   drawSignatureCard(ctx, ctx.marginL + cardW + 4, ctx.y, cardW, cardH,
     ctx.roleLabel('lead_auditor'),
     lead ? `${lead.user.first_name} ${lead.user.last_name}` : 'À désigner',
-    lead?.user.job_title ?? '—',
+    lead?.user.job_title ?? '-',
   )
   drawSignatureCard(ctx, ctx.marginL + (cardW + 4) * 2, ctx.y, cardW, cardH,
     ctx.roleLabel('associate'),
     associate ? `${associate.user.first_name} ${associate.user.last_name}` : 'À désigner',
-    associate?.user.job_title ?? '—',
+    associate?.user.job_title ?? '-',
   )
   ctx.y += cardH + 6
 

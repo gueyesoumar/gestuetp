@@ -2,7 +2,7 @@
 -- l'edge connector-dispatch une fois par semaine (lundi 03:00 UTC). Le dispatcher
 -- itère les intégrations actives et lance la collecte de chaque org.
 --
--- SÉCURITÉ — aucun secret dans ce fichier. Les valeurs sont lues depuis Supabase Vault
+-- SÉCURITÉ - aucun secret dans ce fichier. Les valeurs sont lues depuis Supabase Vault
 -- PAR NOM (comme mig 00154). À créer AVANT le premier passage, PAR ENVIRONNEMENT :
 --   vault.create_secret('<url projet>',  'functions_base_url')    -- ex. https://xxxx.supabase.co
 --   vault.create_secret('<anon key>',    'edge_anon_key')         -- passe la gateway (JWT valide)

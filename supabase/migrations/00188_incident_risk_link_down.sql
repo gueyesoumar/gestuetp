@@ -1,4 +1,4 @@
--- 00188 — rollback : boucle incident → vraisemblance
+-- 00188 - rollback : boucle incident → vraisemblance
 
 drop table if exists public.incident_risk_links;
 

@@ -1,4 +1,4 @@
--- 00259 — Préférences UI de démo (refonte démo · Lot F).
+-- 00259 - Préférences UI de démo (refonte démo · Lot F).
 -- Persiste la « lentille » démo PAR UTILISATEUR (au lieu du localStorage par-navigateur),
 -- pour une cohérence sur tous les appareils. RLS user-owned (get_my_user_id, SECURITY
 -- DEFINER, pas de récursion). Aucune donnée sensible.

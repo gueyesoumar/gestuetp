@@ -1,4 +1,4 @@
--- 00147 (DOWN) — restaure la policy non scopée et le trigger sans verrou.
+-- 00147 (DOWN) - restaure la policy non scopée et le trigger sans verrou.
 drop policy if exists "probative_log_select_scoped" on public.probative_log;
 create policy "probative_log_select_staff"
   on public.probative_log for select to authenticated

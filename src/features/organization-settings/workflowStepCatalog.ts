@@ -5,7 +5,7 @@ export interface StepGroup { title: string; steps: StepDef[] }
 
 export const WORKFLOW_STEP_GROUPS: StepGroup[] = [
   {
-    title: 'Cadrage — sous-étapes',
+    title: 'Cadrage : sous-étapes',
     steps: [
       { key: 'scoping.risks', label: 'Risques', hint: 'Déjà masqué en moteur Contrôle' },
       { key: 'scoping.questionnaire', label: 'Questionnaire' },
@@ -14,20 +14,20 @@ export const WORKFLOW_STEP_GROUPS: StepGroup[] = [
     ],
   },
   {
-    title: 'Planification — sous-étapes',
+    title: 'Planification : sous-étapes',
     steps: [
       { key: 'planning.interviews', label: 'Entretiens', hint: 'Onglet entretiens + matrice' },
     ],
   },
   {
-    title: 'Revue interne — sous-étapes',
+    title: 'Revue interne : sous-étapes',
     steps: [
       { key: 'review.quality', label: 'Synthèse qualité' },
       { key: 'review.discussion', label: 'Panneau de discussion' },
     ],
   },
   {
-    title: 'Clôture — sous-étapes',
+    title: 'Clôture : sous-étapes',
     steps: [
       { key: 'closure.report', label: 'Générateur de rapport avancé' },
     ],

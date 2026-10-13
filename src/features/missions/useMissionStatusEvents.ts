@@ -8,7 +8,7 @@ export interface UseMissionStatusEventsReturn {
   refetch: () => Promise<void>
 }
 
-/** Journal d'événements de mission (RFC UX Lot 5) — envoi client, renvoi, décisions client. */
+/** Journal d'événements de mission (RFC UX Lot 5) - envoi client, renvoi, décisions client. */
 export function useMissionStatusEvents(missionId: string | null): UseMissionStatusEventsReturn {
   const [events, setEvents] = useState<MissionStatusEvent[]>([])
   const [loading, setLoading] = useState(true)

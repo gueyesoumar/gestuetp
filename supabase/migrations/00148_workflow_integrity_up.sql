@@ -1,4 +1,4 @@
--- 00148 — Intégrité du workflow d'audit (revue pré-audit, Lot B).
+-- 00148 - Intégrité du workflow d'audit (revue pré-audit, Lot B).
 --
 -- B1 (bloquant) : le portail client voit/agit sur des évaluations encore en
 --   revue INTERNE. Cause : le statut `in_review` est réutilisé pour la revue

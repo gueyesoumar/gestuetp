@@ -6,8 +6,8 @@
  * sans cache, le premier rendu peint le thème par défaut, puis bascule.
  *
  * On mémorise donc les variables de thème calculées (couleurs + titre + favicon)
- * et on les applique de façon SYNCHRONE au boot — avant le premier rendu React
- * (voir main.tsx) — puis BrandingContext réécrit le cache après résolution.
+ * et on les applique de façon SYNCHRONE au boot - avant le premier rendu React
+ * (voir main.tsx) - puis BrandingContext réécrit le cache après résolution.
  *
  * Le cache est un simple bonus : toute erreur (quota, navigation privée) est
  * silencieuse et retombe sur le comportement asynchrone habituel.
@@ -70,7 +70,7 @@ export function writeBrandingCache(hostname: string, entry: BrandingCacheEntry):
   }
 }
 
-// Payload branding en cache pour ce hostname (non validé — le consommateur
+// Payload branding en cache pour ce hostname (non validé - le consommateur
 // doit vérifier la forme avant usage). null si absent.
 export function readCachedBranding(hostname: string): unknown {
   return readBrandingCache(hostname)?.branding ?? null

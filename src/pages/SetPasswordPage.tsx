@@ -24,7 +24,7 @@ function readUrlToken(): { tokenHash: string; type: EmailOtpType } | null {
   return tokenHash && type ? { tokenHash, type: type as EmailOtpType } : null
 }
 
-/** Lit le jeton d'invitation maison depuis le FRAGMENT (#setup_token=…). null si absent. */
+/** Lit le jeton d'invitation maison depuis le FRAGMENT (#setup_token=...). null si absent. */
 function readSetupToken(): string | null {
   return new URLSearchParams(window.location.hash.replace(/^#/, '')).get('setup_token')
 }
@@ -39,13 +39,13 @@ export function SetPasswordPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
-  // Flux brandé : le lien de l'email est `${domaine}/set-password?token_hash=…&type=recovery`.
+  // Flux brandé : le lien de l'email est `${domaine}/set-password?token_hash=...&type=recovery`.
   // IMPORTANT : on NE consomme PAS le token au chargement. Le jeton de récupération
   // est à usage unique, et les scanners de messagerie d'entreprise (Microsoft
-  // Defender / Safe Links…) pré-visitent le lien — un verifyOtp au chargement
+  // Defender / Safe Links...) pré-visitent le lien - un verifyOtp au chargement
   // l'invaliderait avant le clic humain (« lien invalide ou expiré »). On lit le
   // token ici (init) pour afficher le formulaire, et on l'échange seulement à la
-  // SOUMISSION (geste humain délibéré) — voir handleSubmit.
+  // SOUMISSION (geste humain délibéré) - voir handleSubmit.
   const [pendingToken, setPendingToken] = useState<{ tokenHash: string; type: EmailOtpType } | null>(readUrlToken)
   const [setupToken] = useState<string | null>(readSetupToken)
   const [sessionReady, setSessionReady] = useState<boolean>(() => readUrlToken() !== null || readSetupToken() !== null)

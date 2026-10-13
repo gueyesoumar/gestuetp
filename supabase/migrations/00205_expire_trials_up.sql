@@ -1,7 +1,7 @@
 -- Migration 00205 (UP) : expiration automatique des essais (RFC 0006, P4c, décision 10.5)
 --
 -- À l'expiration de trial_ends_at, l'abonnement passe en `suspended` (accès coupé,
--- historique conservé) — JAMAIS de bascule automatique en `active` (pas de
+-- historique conservé) - JAMAIS de bascule automatique en `active` (pas de
 -- facturation implicite). Chaque expiration est journalisée dans activity_log
 -- (source 'system') → visible dans la piste d'audit du superadmin = la notification.
 --

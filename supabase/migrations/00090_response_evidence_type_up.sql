@@ -1,4 +1,4 @@
--- Migration 00090: Persistance du type de preuve sur les réponses du questionnaire — UP
+-- Migration 00090: Persistance du type de preuve sur les réponses du questionnaire - UP
 --
 -- Quand le client valide une suggestion IA, on conserve désormais :
 --   - evidence_type : qualité de la preuve telle que classée par la Passe 2

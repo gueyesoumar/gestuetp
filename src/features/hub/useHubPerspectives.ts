@@ -5,7 +5,7 @@ import type { RelationshipNature } from '../../types/database.types'
 
 // Dérive les perspectives du Hub à partir du GRAPHE (arêtes sortantes actives de
 // l'org courante) et calcule un score de conformité par cible. Trust Score v1 =
-// conformité seule (approved / total) — les autres dimensions viendront des
+// conformité seule (approved / total) - les autres dimensions viendront des
 // modules Risk/Awareness/incidents (dégradation gracieuse côté cockpit).
 
 export type HubPerspective = 'self' | 'clients' | 'group' | 'assujettis'

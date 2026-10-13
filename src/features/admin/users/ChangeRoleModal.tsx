@@ -7,7 +7,7 @@ import type { AdminUserRow } from '../useAdminUsers'
 interface PlatformRole { id: string; name: string; is_default: boolean }
 
 /**
- * Change le rôle PLATEFORME (permissions) d'un utilisateur — distinct du type
+ * Change le rôle PLATEFORME (permissions) d'un utilisateur - distinct du type
  * auditeur/client de la liste. Charge le catalogue de rôles de l'organisation
  * cible (RLS owner-select, mig 00237) + l'attribution courante, puis délègue à
  * l'Edge Function admin-user (action change_role, motif obligatoire, audit log).
@@ -76,14 +76,14 @@ export function ChangeRoleModal({ user, onClose, onDone }: { user: AdminUserRow;
         </div>
         <div className="px-5 py-4">
           {loading ? (
-            <p className="text-[12.5px] text-gray-400">Chargement des rôles…</p>
+            <p className="text-[12.5px] text-gray-400">Chargement des rôles...</p>
           ) : roles.length === 0 ? (
             <p className="text-[12.5px] text-gray-500">Aucun rôle plateforme défini pour cette organisation.</p>
           ) : (
             <>
               <label className="block text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Rôle de permissions</label>
               <select value={selected} onChange={(e) => setSelected(e.target.value)} className="w-full mb-1" disabled={submitting}>
-                <option value="" disabled>Choisir un rôle…</option>
+                <option value="" disabled>Choisir un rôle...</option>
                 {roles.map((r) => (
                   <option key={r.id} value={r.id}>{r.name}{r.id === currentRoleId ? ' (actuel)' : ''}</option>
                 ))}
@@ -98,7 +98,7 @@ export function ChangeRoleModal({ user, onClose, onDone }: { user: AdminUserRow;
         <div className="px-5 py-3 bg-page-bg border-t border-gray-200 flex justify-end gap-2">
           <button onClick={onClose} disabled={submitting} className="px-3.5 py-2 text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">Annuler</button>
           <button onClick={submit} disabled={!canSubmit} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg text-white bg-forest-700 hover:bg-forest-900 disabled:opacity-50 disabled:cursor-not-allowed">
-            {submitting ? 'En cours…' : 'Changer le rôle'}
+            {submitting ? 'En cours...' : 'Changer le rôle'}
           </button>
         </div>
       </div>

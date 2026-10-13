@@ -45,13 +45,13 @@ export function TeamActivityPanel({ missionId, members, onRefetch }: TeamActivit
         </div>
       </div>
 
-      {/* Activité récente — piste d'audit de la mission (activity_log) */}
+      {/* Activité récente - piste d'audit de la mission (activity_log) */}
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="px-4 py-3 border-b border-gray-200">
           <span className="text-[13px] font-semibold text-gray-900">Activité récente</span>
         </div>
         {activityLoading ? (
-          <div className="px-4 py-6 text-center text-xs text-gray-300">Chargement…</div>
+          <div className="px-4 py-6 text-center text-xs text-gray-300">Chargement...</div>
         ) : activity.length === 0 ? (
           <div className="px-4 py-6 text-center text-xs text-gray-300">Aucune activité récente.</div>
         ) : (
