@@ -66,10 +66,11 @@ function groupBySection(questions: Question[]): Map<string, Question[]> {
 }
 
 export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, onLaunched, showPortal = true }: LaunchQuestionnairePanelProps) {
-  const { questions, templateName, loading, error } = useTemplateQuestions(frameworkId)
+  const [formulaId, setFormulaId] = useState('')
+  const { templates, selectedTemplateId, questions, templateName, loading, error } = useTemplateQuestions(frameworkId, formulaId || undefined)
   const { contacts } = useClientContacts(clientOrgId)
   const [includedCodes, setIncludedCodes] = useState<Set<string>>(new Set())
-  const [hydrated, setHydrated] = useState(false)
+  const [hydratedFor, setHydratedFor] = useState<string | null>(null)
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([])
   const [showCustomForm, setShowCustomForm] = useState(false)
   const [showAiPanel, setShowAiPanel] = useState(false)
@@ -81,10 +82,10 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
   const [launching, setLaunching] = useState(false)
   const [launchError, setLaunchError] = useState<string | null>(null)
 
-  // Hydrate "all included" by default once questions arrive
-  if (!hydrated && questions.length > 0) {
+  // Hydrate "tout inclus" par défaut à l'arrivée des questions ET à chaque changement de formule.
+  if (selectedTemplateId && hydratedFor !== selectedTemplateId && questions.length > 0) {
     setIncludedCodes(new Set(questions.map((q) => q.code)))
-    setHydrated(true)
+    setHydratedFor(selectedTemplateId)
   }
 
   const sections = useMemo(() => groupBySection(questions), [questions])
@@ -177,6 +178,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
     const { data, error: fnError } = await supabase.functions.invoke('launch-questionnaire', {
       body: {
         mission_id: missionId,
+        template_id: selectedTemplateId ?? undefined,
         included_codes: Array.from(includedCodes),
         custom_questions: customQuestions.length > 0 ? customQuestions : undefined,
         due_date: dueDate || null,
@@ -205,6 +207,29 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
   return (
     <div className="space-y-3">
       {launchError && <ErrorAlert message={launchError} />}
+
+      {templates.length > 1 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Formule à envoyer</p>
+          <div className="flex gap-2 flex-wrap">
+            {templates.map((t) => {
+              const on = selectedTemplateId === t.id
+              return (
+                <button key={t.id} type="button" onClick={() => setFormulaId(t.id)}
+                  className={`px-3 py-2 rounded-lg text-[12px] font-semibold border text-left transition-colors ${on ? 'bg-forest-700 text-white border-forest-700' : 'bg-white text-gray-600 border-gray-200 hover:border-forest-300'}`}>
+                  {t.kind === 'self_assessment' ? 'Auto-évaluation' : 'Prise de connaissance'}
+                  <span className="block text-[10px] font-normal opacity-80">{t.name}</span>
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2">
+            {(templates.find((t) => t.id === selectedTemplateId)?.kind) === 'self_assessment'
+              ? "Le client s'auto-note sur les contrôles ; vous confirmez les verdicts."
+              : 'Questions de contexte ; vous évaluez la conformité.'}
+          </p>
+        </div>
+      )}
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-200 bg-[#FAFAFA] flex items-center gap-3">

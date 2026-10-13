@@ -468,6 +468,8 @@ export interface QuestionnaireTemplate {
   description: string | null
   version: string | null
   is_active: boolean
+  /** Formule : 'context' (prise de connaissance) | 'self_assessment' (auto-évaluation) - RFC 0015. */
+  kind: 'context' | 'self_assessment'
   created_at: string
   updated_at: string
 }

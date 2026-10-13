@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
     // 2. Parser le payload
     const body = await req.json() as {
       mission_id?: string
+      template_id?: string
       included_codes?: string[]
       custom_questions?: Array<{
         code: string
@@ -69,7 +70,7 @@ Deno.serve(async (req) => {
       due_date?: string | null
       section_assignees?: Record<string, string>
     }
-    const { mission_id, included_codes, custom_questions, due_date, section_assignees } = body
+    const { mission_id, template_id, included_codes, custom_questions, due_date, section_assignees } = body
     if (!mission_id) {
       return new Response(
         JSON.stringify({ error: 'mission_id requis' }),
@@ -113,18 +114,19 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 5. Trouver le template questionnaire du referentiel
-    const { data: template, error: tErr } = await supabaseAdmin
+    // 5. Trouver le template : formule choisie (template_id) sinon 1er actif du référentiel.
+    //    template_id est validé comme appartenant au référentiel de la mission + actif.
+    let tq = supabaseAdmin
       .from('questionnaire_templates')
-      .select('id, name, description, version')
+      .select('id, name, description, version, kind')
       .eq('framework_id', mission.framework_id)
       .eq('is_active', true)
-      .limit(1)
-      .single()
+    tq = template_id ? tq.eq('id', template_id) : tq.limit(1)
+    const { data: template, error: tErr } = await tq.maybeSingle()
 
     if (tErr || !template) {
       return new Response(
-        JSON.stringify({ error: 'Aucun questionnaire disponible pour ce référentiel' }),
+        JSON.stringify({ error: template_id ? 'Formule de questionnaire introuvable pour ce référentiel' : 'Aucun questionnaire disponible pour ce référentiel' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -210,6 +212,7 @@ Deno.serve(async (req) => {
         name: template.name,
         description: template.description,
         version: template.version,
+        kind: (template as { kind?: string }).kind ?? 'context',
       },
       questions: finalQuestions,
       total_template: (questions ?? []).length,
