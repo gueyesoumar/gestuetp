@@ -17,6 +17,7 @@ import { useMissionActors } from './useMissionActors'
 import { isStepEnabled } from '../mission-constants'
 import { ScopingProgressSidebar } from './ScopingProgressSidebar'
 import { PortalInviteModal } from './PortalInviteModal'
+import { AssujettiInviteModal } from '../../regul/AssujettiInviteModal'
 import { useEdition } from '../../edition/EditionContext'
 import { missionHasClientPortal } from '../missionPortal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -41,6 +42,10 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   // Portail côté partie auditée : masqué en édition Entreprise (!client_portal) ou
   // mission réflexive (org qui s'audite elle-même) - RFC 0013 F5.
   const showPortal = missionHasClientPortal(mission, hasCapability)
+  // Regul (supervision) : l'assujetti est une organisation directe (pas de fiche
+  // cabinet_clients) → flux d'invitation dédié (invite-assujetti) plutôt que le
+  // portail client Comply, qui échouait avec « Fiche client introuvable ».
+  const isSupervision = hasCapability('supervision')
   const { lead, associate } = useReviewLabels()
   const { exclusions, risks, loading, error, refetch: refetchScoping } = useScopingData(mission.id)
   const { addExclusion, removeExclusion, addRisk, removeRisk, saving, error: saveError } = useSaveScoping(refetchScoping)
@@ -293,13 +298,23 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
       {/* Portal invite modal : la modale r\u00e9sout elle-m\u00eame la fiche depuis la mission
           (plus de d\u00e9pendance \u00e0 `client`, qui pouvait \u00eatre null \u2192 bouton muet). */}
       {showPortal && showPortalModal && (
-        <PortalInviteModal
-          missionId={mission.id}
-          cabinetId={mission.cabinet_id}
-          clientOrgId={mission.client_id}
-          onClose={() => setShowPortalModal(false)}
-          onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
-        />
+        isSupervision ? (
+          <AssujettiInviteModal
+            entityOrgId={mission.client_id}
+            entityName={mission.client?.name ?? ''}
+            missions={[{ id: mission.id, name: mission.name }]}
+            onClose={() => setShowPortalModal(false)}
+            onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
+          />
+        ) : (
+          <PortalInviteModal
+            missionId={mission.id}
+            cabinetId={mission.cabinet_id}
+            clientOrgId={mission.client_id}
+            onClose={() => setShowPortalModal(false)}
+            onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
+          />
+        )
       )}
     </div>
   )
