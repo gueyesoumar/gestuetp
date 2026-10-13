@@ -13,8 +13,9 @@ interface ScopingActorsTabProps {
   clientOrgId?: string
   /** Portail disponible pour cette mission (sinon pas d'invitation). */
   showPortal?: boolean
-  /** Ouvre l'invitation portail pré-remplie avec cet acteur. */
-  onInviteActor?: (prefill: { name: string; email: string; jobTitle?: string }) => void
+  /** Ouvre la modale portail. Avec un prefill pour inviter un acteur ; sans, pour
+   *  gérer/modifier le rôle d'un contact déjà invité. */
+  onInviteActor?: (prefill?: { name: string; email: string; jobTitle?: string }) => void
 }
 
 interface DraftActor {
@@ -205,6 +206,7 @@ export function ScopingActorsTab({ missionId, clientOrgId, showPortal = false, o
               canInvite={showPortal && !!a.email && !!onInviteActor}
               invited={!!a.email && invitedEmails.has(a.email.toLowerCase())}
               onInvite={() => a.email && onInviteActor?.({ name: a.name, email: a.email, jobTitle: a.job_title ?? undefined })}
+              onManage={() => onInviteActor?.()}
             />
           ))}
         </div>
@@ -234,9 +236,10 @@ interface ActorRowProps {
   canInvite: boolean
   invited: boolean
   onInvite: () => void
+  onManage: () => void
 }
 
-function ActorRow({ actor, onEdit, onRemove, disabled, canInvite, invited, onInvite }: ActorRowProps) {
+function ActorRow({ actor, onEdit, onRemove, disabled, canInvite, invited, onInvite, onManage }: ActorRowProps) {
   return (
     <div className="flex items-start gap-3 px-3 py-2.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/60">
       <div className="w-8 h-8 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center text-[11px] font-bold shrink-0">
@@ -260,9 +263,14 @@ function ActorRow({ actor, onEdit, onRemove, disabled, canInvite, invited, onInv
       </div>
       <div className="flex items-center gap-1 shrink-0">
         {invited ? (
-          <span className="text-[9px] font-semibold text-forest-700 bg-forest-50 border border-forest-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1" title="Cet acteur a déjà un accès au portail">
+          <button
+            onClick={onManage}
+            disabled={disabled}
+            title="Gérer l'accès et modifier le rôle au portail"
+            className="text-[9px] font-semibold text-forest-700 bg-forest-50 border border-forest-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1 hover:bg-forest-100 transition-colors disabled:opacity-40"
+          >
             <Check size={10} /> Portail
-          </span>
+          </button>
         ) : canInvite ? (
           <button onClick={onInvite} disabled={disabled} className="p-1.5 text-gray-400 hover:text-forest-700 disabled:opacity-30" title="Inviter au portail">
             <UserPlus size={13} />

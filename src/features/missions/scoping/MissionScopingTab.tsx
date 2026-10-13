@@ -277,7 +277,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
             missionId={mission.id}
             clientOrgId={mission.client_id}
             showPortal={showPortal}
-            onInviteActor={(p) => { setPortalPrefill(p); setShowPortalModal(true) }}
+            onInviteActor={(p) => { setPortalPrefill(p ?? null); setShowPortalModal(true) }}
           />
         )}
       </div>
