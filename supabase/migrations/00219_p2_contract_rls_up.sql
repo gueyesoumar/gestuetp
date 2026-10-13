@@ -5,7 +5,7 @@
 -- entity_org_id) RESTENT (retrait + repoint lecteurs = P2.2b). Isolation vérifiée
 -- au harness après déploiement.
 
--- ── Part A : users.client_org_id → organizations.id ─────────────────────────────
+-- -- Part A : users.client_org_id → organizations.id -----------------------------
 -- 1) D'ABORD retirer l'ancienne FK (→ cabinet_clients) : le backfill va écrire des
 --    org ids, incompatibles avec elle.
 do $$
@@ -38,7 +38,7 @@ alter table public.users
   add constraint users_client_org_id_fkey
   foreign key (client_org_id) references public.organizations(id) on delete set null;
 
--- ── Part B : cpc.client_org_id NOT NULL ─────────────────────────────────────────
+-- -- Part B : cpc.client_org_id NOT NULL -----------------------------------------
 -- Filet idempotent : re-backfill des lignes éventuellement créées entre P2.1 et ici
 -- (chaque cpc a cabinet_client_id OU entity_org_id → toutes se remplissent).
 update public.client_portal_contacts cpc
@@ -51,7 +51,7 @@ where entity_org_id is not null and client_org_id is null;
 
 alter table public.client_portal_contacts alter column client_org_id set not null;
 
--- ── Part C : réécriture des policies sur client_org_id ──────────────────────────
+-- -- Part C : réécriture des policies sur client_org_id --------------------------
 -- Staff cabinet : voit/gère les contacts des orgs clientes de son cabinet.
 drop policy if exists "cpc_select_cabinet" on public.client_portal_contacts;
 create policy "cpc_select_cabinet" on public.client_portal_contacts for select to authenticated
@@ -81,7 +81,7 @@ drop policy if exists "cpc_select_regulator_subtree" on public.client_portal_con
 create policy "cpc_select_regulator_subtree" on public.client_portal_contacts for select to authenticated
   using (client_org_id in (select public.get_subsidiary_ids(public.get_my_organization_id())));
 
--- ── Part D : dépendances hors cpc reposant sur users.client_org_id ──────────────
+-- -- Part D : dépendances hors cpc reposant sur users.client_org_id --------------
 -- Historique d'audit côté client : cabinet_client_id (fiche) → via son org.
 drop policy if exists "cp_audit_history_select" on public.audit_history;
 create policy "cp_audit_history_select" on public.audit_history for select to authenticated

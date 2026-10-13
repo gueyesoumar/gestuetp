@@ -1,14 +1,14 @@
-# RFC 0014 — Conformité continue & framework de connecteurs de preuve
+# RFC 0014 - Conformité continue & framework de connecteurs de preuve
 
-**Statut** : décisions actées (voir §10) — prêt à chiffrer / implémenter
-**Prolonge** : RFC 0003 (moteurs de mission), RFC 0004 (Risk), RFC 0008 (entitlement unique), RFC 0012 (sécurité d'usage IA — consentement par client), RFC 0013 (framework d'édition). Piste d'audit : migrations 00178-00180.
+**Statut** : décisions actées (voir §10) - prêt à chiffrer / implémenter
+**Prolonge** : RFC 0003 (moteurs de mission), RFC 0004 (Risk), RFC 0008 (entitlement unique), RFC 0012 (sécurité d'usage IA - consentement par client), RFC 0013 (framework d'édition). Piste d'audit : migrations 00178-00180.
 **Objectif** : faire passer la conformité de **point-in-time** (une mission = une photo) à un **état vivant**, en **collectant automatiquement la preuve** depuis les outils de l'organisation auditée (Microsoft, Google, cloud, etc.) via des connecteurs en lecture seule. C'est la ligne qui sépare un **outil d'audit** d'un **vrai GRC**.
 
 ---
 
 ## 1. Décision de principe
 
-1. **La preuve devient vérifiée, pas déclarée.** Au lieu que l'audité téléverse une capture d'écran, la plateforme **lit la configuration en direct** via l'API du fournisseur. La preuve est une réponse API **horodatée, attribuable, reproductible** — versée telle quelle dans la piste d'audit scellée.
+1. **La preuve devient vérifiée, pas déclarée.** Au lieu que l'audité téléverse une capture d'écran, la plateforme **lit la configuration en direct** via l'API du fournisseur. La preuve est une réponse API **horodatée, attribuable, reproductible** - versée telle quelle dans la piste d'audit scellée.
 2. **Le test d'un contrôle peut être programmatique.** Un contrôle porte, en plus de son évaluation manuelle, une ou plusieurs **règles de vérification** (ex. « MFA activé pour 100 % des comptes admin »). La règle produit un **verdict** (`pass` / `fail` / `warn` / `na`) + une **valeur** + la **preuve brute**.
 3. **Modèle hybride, assumé.** Les connecteurs couvrent les contrôles **techniques/configurables** (30-50 % d'un référentiel cyber). Les contrôles de **gouvernance, politiques, physique, contractuel** restent déclaratifs. On ne prétend pas tout automatiser (même Vanta/Drata ne le font pas).
 4. **Souveraineté d'abord.** On tire de la **métadonnée de configuration**, pas du contenu métier. Argument clé pour le marché (DCSSI Sénégal, souveraineté) et aligné RFC 0012.
@@ -18,13 +18,13 @@
 
 | Brique | État | Réutilisation |
 |---|---|---|
-| Constats centrés résultat | ✅ | `assessment_findings` — un verdict `fail` génère un **constat brouillon** |
-| Trust score multi-dimensions | ✅ | mapping contrôle→dimension (mig 00159) — un signal **alimente le score** |
-| Mapping question↔contrôle | ✅ | `question_controls` — modèle de liaison réutilisable pour check↔contrôle |
-| Piste d'audit scellée | ✅ | `activity_log` append-only, chaîne hash par org (00178-00180) — **probante** pour chaque lecture |
+| Constats centrés résultat | ✅ | `assessment_findings` - un verdict `fail` génère un **constat brouillon** |
+| Trust score multi-dimensions | ✅ | mapping contrôle→dimension (mig 00159) - un signal **alimente le score** |
+| Mapping question↔contrôle | ✅ | `question_controls` - modèle de liaison réutilisable pour check↔contrôle |
+| Piste d'audit scellée | ✅ | `activity_log` append-only, chaîne hash par org (00178-00180) - **probante** pour chaque lecture |
 | Capacités / entitlements | ✅ | `org_entitlements` → `organization_capabilities` : gate du module |
-| Consentement par client | ✅ | RFC 0012 — on **étend** le même mécanisme à l'autorisation connecteur |
-| Pattern edge functions | ✅ | `_shared/cors.ts`, `_shared/audit-log.ts`, permissions — base des workers connecteurs |
+| Consentement par client | ✅ | RFC 0012 - on **étend** le même mécanisme à l'autorisation connecteur |
+| Pattern edge functions | ✅ | `_shared/cors.ts`, `_shared/audit-log.ts`, permissions - base des workers connecteurs |
 | Faisabilité M365/Google | ✅ (indicatif) | des connecteurs claude.ai M365/Google existent déjà en session → **la forme des API est connue**. ⚠️ le produit a besoin de **sa propre app OAuth** par fournisseur, distincte du MCP de Claude |
 
 **Conclusion** : le moteur de constats, le score, la piste d'audit et le modèle d'entitlement existent. Il manque **la couche de collecte** et **le modèle de preuve commun** qui les relie à des sources externes.
@@ -42,7 +42,7 @@
 
 ```
 connector_integrations
-  id, organization_id, provider ('entra'|'google'|'github'|…),
+  id, organization_id, provider ('entra'|'google'|'github'|...),
   status ('active'|'revoked'|'error'),
   scopes text[],                 -- minimaux, lecture seule
   secret_ref uuid,              -- renvoi vers un secret chiffré (Vault/pgsodium), JAMAIS le token en clair
@@ -55,7 +55,7 @@ connector_integrations
 
 ```
 control_checks                   -- définitions, niveau PLATEFORME (réutilisables)
-  id, provider, check_key ('entra.mfa_admins'|…),
+  id, provider, check_key ('entra.mfa_admins'|...),
   title, description,
   default_params jsonb,          -- ex. { "threshold": 100, "roles": ["GlobalAdmin"] }
   dimension,                     -- alimente le trust score
@@ -82,7 +82,7 @@ Un résultat est **la preuve**. L'UI, le score et la piste d'audit le traitent u
 
 ### 4.4 Collecte & planification
 
-- **Edge worker par fournisseur** (`connector-entra`, `connector-google`…) : prend une intégration, exécute les checks dus, normalise vers `evidence_results`, verse chaque lecture dans `activity_log`.
+- **Edge worker par fournisseur** (`connector-entra`, `connector-google`...) : prend une intégration, exécute les checks dus, normalise vers `evidence_results`, verse chaque lecture dans `activity_log`.
 - **Dispatcher planifié** (`pg_cron` ou edge planifiée) : pour chaque intégration active, déclenche les checks arrivés à échéance. Fréquence par défaut hebdomadaire (décision §10.d).
 - **Déclenchement manuel** : bouton « Rafraîchir les preuves » sur une mission / un contrôle.
 
@@ -94,7 +94,7 @@ Un résultat est **la preuve**. L'UI, le score et la piste d'audit le traitent u
 4. `expires_at` dépassé → preuve **signalée périmée**, re-collecte planifiée.
 5. (Avec RFC Risk) `fail` sur un contrôle lié à un risque → remonte le **risque résiduel**.
 
-## 5. Pilote — Entra ID (le premier pas le moins cher)
+## 5. Pilote - Entra ID (le premier pas le moins cher)
 
 Un **seul connecteur Entra en lecture seule**, scopes minimaux (`Directory.Read.All`, `Policy.Read.All`, `AuditLog.Read.All`), 3 checks d'accès :
 
@@ -126,10 +126,10 @@ Flux end-to-end : connexion → collecte → verdict → constat auto → trust 
 
 | Lot | Contenu | Dépend de |
 |---|---|---|
-| **P1 — Socle** | `connector_integrations` + `evidence_results` + `control_checks`/`control_check_links` + edge `connector-entra` (3 checks) + déclenchement manuel + chiffrement tokens | — |
-| **P2 — Continu** | Dispatcher planifié (`pg_cron`) + TTL/péremption + constat brouillon auto sur `fail` | P1 |
-| **P3 — Valorisation** | Alimentation trust score en direct + cartographie couverture (UI) + 2e fournisseur (Google **ou** GitHub) | P1/P2 |
-| **P4 — Extension** | Catalogue élargi (cloud, ITSM, SIRH), lien risque résiduel, base d'un futur TPRM | P3 |
+| **P1 - Socle** | `connector_integrations` + `evidence_results` + `control_checks`/`control_check_links` + edge `connector-entra` (3 checks) + déclenchement manuel + chiffrement tokens | - |
+| **P2 - Continu** | Dispatcher planifié (`pg_cron`) + TTL/péremption + constat brouillon auto sur `fail` | P1 |
+| **P3 - Valorisation** | Alimentation trust score en direct + cartographie couverture (UI) + 2e fournisseur (Google **ou** GitHub) | P1/P2 |
+| **P4 - Extension** | Catalogue élargi (cloud, ITSM, SIRH), lien risque résiduel, base d'un futur TPRM | P3 |
 
 ## 9. Séquencement
 
@@ -153,7 +153,7 @@ Tranchées le 2026-10-12.
 
 ## 11. Hors scope
 
-- TPRM / risque tiers complet (RFC distincte — réutilisera ce framework).
-- Registre d'obligations & calendrier de conformité (RFC distincte — autre pilier GRC).
+- TPRM / risque tiers complet (RFC distincte - réutilisera ce framework).
+- Registre d'obligations & calendrier de conformité (RFC distincte - autre pilier GRC).
 - Écriture / remédiation automatique dans les outils connectés (lecture seule par principe).
 - Connecteurs au-delà du pilote (P3/P4).

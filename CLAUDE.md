@@ -1,4 +1,4 @@
-# CLAUDE.md — Instructions pour Claude Code
+# CLAUDE.md - Instructions pour Claude Code
 
 > Ce fichier est lu automatiquement par Claude Code au debut de chaque session.
 > Il definit les regles non negociables du projet Gestu ETP.
@@ -7,7 +7,7 @@
 
 ## Projet
 
-Gestu Comply — plateforme multi-referentiels de conformite et d'audit SI.
+Gestu Comply - plateforme multi-referentiels de conformite et d'audit SI.
 Stack : React 18 + Vite + TypeScript strict + Tailwind CSS v4 + Supabase (Auth, DB, Storage, RLS).
 
 **Charte graphique** : Toutes les decisions visuelles sont dans `BRAND.md` a la racine. Lire BRAND.md avant toute generation de code UI. Couleurs : vert foret (#1B4332) + or (#D4A843). Logo : bouclier + empreinte digitale + trema dore. Police : Inter + JetBrains Mono.
@@ -16,7 +16,7 @@ Stack : React 18 + Vite + TypeScript strict + Tailwind CSS v4 + Supabase (Auth, 
 
 ## 1. TypeScript strict
 
-- `strict: true` dans tsconfig.json — jamais de `any` implicite
+- `strict: true` dans tsconfig.json - jamais de `any` implicite
 - Pas de `as Type` non justifie. Si un cast est necessaire, ajouter un commentaire expliquant pourquoi
 - Typer toutes les fonctions : parametres ET retour
 - Utiliser les types de `src/types/database.types.ts` pour toute interaction Supabase
@@ -67,9 +67,9 @@ Stack : React 18 + Vite + TypeScript strict + Tailwind CSS v4 + Supabase (Auth, 
 
 ## 5. Strings francais dans le JSX
 
-- **Accents (é, è, à, ô, ç…) : caractères UTF-8 RÉELS partout.** Ils fonctionnent dans le texte JSX, les attributs ET les strings JS. NE JAMAIS écrire `&eacute;` & co.
-- **Entités HTML : uniquement pour les caractères refusés par `react/no-unescaped-entities`** (`'` → `&apos;`/`&rsquo;`, `"`, `<`, `>`, `}`) et **seulement dans le TEXTE JSX** (`>…<`).
-- **Piège récurrent** : une entité ne se décode QUE dans le texte JSX et les attributs `attr="…"`. Dans une **string JS** — ternaire `{x ? 'a' : 'b'}`, template `` `…` ``, `.join('…')`, valeur d'objet, fichier `.ts` — elle s'affiche EN CLAIR. Y mettre un caractère réel (é, —, •, …).
+- **Accents (é, è, à, ô, ç...) : caractères UTF-8 RÉELS partout.** Ils fonctionnent dans le texte JSX, les attributs ET les strings JS. NE JAMAIS écrire `&eacute;` & co.
+- **Entités HTML : uniquement pour les caractères refusés par `react/no-unescaped-entities`** (`'` → `&apos;`/`&rsquo;`, `"`, `<`, `>`, `}`) et **seulement dans le TEXTE JSX** (`>...<`).
+- **Piège récurrent** : une entité ne se décode QUE dans le texte JSX et les attributs `attr="..."`. Dans une **string JS** - ternaire `{x ? 'a' : 'b'}`, template `` `...` ``, `.join('...')`, valeur d'objet, fichier `.ts` - elle s'affiche EN CLAIR. Y mettre un caractère réel (é, -, •, ...).
 - **Garde-fou CI** : `scripts/check-html-entities.sh` (gate dur `ci.yml`) bloque toute entité en contexte string JS. Lancer en local : `npm run check:entities`.
 
 ## 6. Migrations SQL

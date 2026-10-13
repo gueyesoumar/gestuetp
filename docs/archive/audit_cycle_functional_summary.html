@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gëstu ETP — Cycle Audit Fonctionnel</title>
+  <title>Gëstu ETP - Cycle Audit Fonctionnel</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -195,7 +195,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Gëstu ETP — Cycle de Vie d'une Mission d'Audit</h1>
+    <h1>Gëstu ETP - Cycle de Vie d'une Mission d'Audit</h1>
     <p class="subtitle">Détail fonctionnel complet : statuts, workflows, artefacts, validations et livrables</p>
 
     <!-- ============ CYCLE GLOBAL ============ -->
@@ -330,7 +330,7 @@
         <li><strong>findings</strong> : constats détaillés (table <code>assessment_findings</code>, N findings par assessment)</li>
       </ul>
 
-      <h3>Modèle Constats (AssessmentFinding) — NEW</h3>
+      <h3>Modèle Constats (AssessmentFinding) - NEW</h3>
       <p>Chaque assessment peut contenir <strong>plusieurs constats indépendants</strong>, chacun avec:</p>
       <ul>
         <li><code>classification</code> : major_nc | minor_nc | observation | strength</li>
@@ -797,9 +797,9 @@ major_nc | minor_nc | observation | strength
 
     <h3>Séparation responsabilités</h3>
     <ul>
-      <li><strong>Hooks</strong> : <code>useMissionDetail</code>, <code>useReviewAssessments</code>, <code>useClientMissionDetail</code> — chargement données</li>
-      <li><strong>Tabs</strong> : <code>MissionScopingTab</code>, <code>MissionFieldworkTab</code>, etc. — vue d'ensemble phase</li>
-      <li><strong>Composants</strong> : sections, cards, modals — logique métier encapsulée</li>
+      <li><strong>Hooks</strong> : <code>useMissionDetail</code>, <code>useReviewAssessments</code>, <code>useClientMissionDetail</code> - chargement données</li>
+      <li><strong>Tabs</strong> : <code>MissionScopingTab</code>, <code>MissionFieldworkTab</code>, etc. - vue d'ensemble phase</li>
+      <li><strong>Composants</strong> : sections, cards, modals - logique métier encapsulée</li>
       <li><strong>Reports</strong> : génération PDF/Excel hors UI (Web Workers pour PDF)</li>
     </ul>
 
@@ -835,12 +835,12 @@ major_nc | minor_nc | observation | strength
     <div style="background: #fffef0; border: 1px solid #e8dcc4; padding: 1.5rem; border-radius: 0.5rem;">
       <p style="margin-bottom: 1rem;"><strong style="color: #1B4332;">Module rapports:</strong></p>
       <ul>
-        <li><code>src/features/reports/generateAuditReportPDF.ts</code> — Rapport audit complet (PDF pDFKit)</li>
-        <li><code>src/features/reports/generateActionPlanXLSX.ts</code> — Plan action avec progression CAR (Excel ExcelJS)</li>
-        <li><code>src/features/reports/generateScopingNotePDF.ts</code> — Note cadrage</li>
-        <li><code>src/features/reports/generateInterviewCRPDF.ts</code> — Compte-rendu entretiens</li>
-        <li><code>src/features/reports/loadAuditReportData.ts</code> — Agrégation données (assessments, findings, CAR, contacts)</li>
-        <li><code>src/features/reports/audit-report/</code> — Modules spécialisés (sections, charts, narratives)</li>
+        <li><code>src/features/reports/generateAuditReportPDF.ts</code> - Rapport audit complet (PDF pDFKit)</li>
+        <li><code>src/features/reports/generateActionPlanXLSX.ts</code> - Plan action avec progression CAR (Excel ExcelJS)</li>
+        <li><code>src/features/reports/generateScopingNotePDF.ts</code> - Note cadrage</li>
+        <li><code>src/features/reports/generateInterviewCRPDF.ts</code> - Compte-rendu entretiens</li>
+        <li><code>src/features/reports/loadAuditReportData.ts</code> - Agrégation données (assessments, findings, CAR, contacts)</li>
+        <li><code>src/features/reports/audit-report/</code> - Modules spécialisés (sections, charts, narratives)</li>
       </ul>
     </div>
 

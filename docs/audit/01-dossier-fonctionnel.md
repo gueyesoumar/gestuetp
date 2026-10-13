@@ -1,9 +1,9 @@
-# Dossier fonctionnel — Gëstu ETP
+# Dossier fonctionnel - Gëstu ETP
 
-> **⚠ Évolution post-audit — voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime — le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
+> **⚠ Évolution post-audit - voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime - le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
 
 > Document préparé pour l'audit externe (volet fonctionnel). Version du 2026-07-09.
-> Périmètre : plateforme **Gëstu ETP** — socle partagé + produits **Comply** et **Regul**.
+> Périmètre : plateforme **Gëstu ETP** - socle partagé + produits **Comply** et **Regul**.
 > Rédigé à partir d'un inventaire du code réel (routes, modules, permissions). Certains comportements dépendent de *feature flags* / du plan de l'organisation ; ils sont signalés.
 
 ---
@@ -28,7 +28,7 @@ Aiguillage racine (`src/App.tsx`) : `{isRegul ? <RegulApp/> : <ComplyRoutes/>}`.
 | Rôle | Champ | Portée |
 |---|---|---|
 | Super-admin plateforme | `is_platform_owner = true` | Console `/admin` ; override de toutes les permissions cabinet |
-| Membre cabinet / auditeur | `role = 'auditor'` | Back-office (missions, référentiels, clients…) |
+| Membre cabinet / auditeur | `role = 'auditor'` | Back-office (missions, référentiels, clients...) |
 | Client / assujetti | `role = 'client'` | Portail cloisonné `/client/*` |
 
 Le **régulateur** n'est pas un rôle distinct : c'est un membre `auditor` d'une organisation de type `group` (Regul). Le cloisonnement se fait par le type d'organisation et le sous-arbre.
@@ -78,7 +78,7 @@ Un rôle peut exposer des vues : `executive`, `pilotage`, `operationnel` (champ 
 
 ## 3. Cartographie des routes
 
-### 3.1 Comply — back-office cabinet
+### 3.1 Comply - back-office cabinet
 
 | Domaine | Routes | Rôle |
 |---|---|---|
@@ -93,7 +93,7 @@ Un rôle peut exposer des vues : `executive`, `pilotage`, `operationnel` (champ 
 | Supervision & groupe | dashboard supervision, campagnes, entités/`/filiales`, `/filiales/:id` | perms groupe |
 | Notifications / Support | `/notifications`, centre d'aide | authentifié |
 
-### 3.2 Comply — portail client (`/client/*`)
+### 3.2 Comply - portail client (`/client/*`)
 
 | Route | Contenu |
 |---|---|
@@ -103,11 +103,11 @@ Un rôle peut exposer des vues : `executive`, `pilotage`, `operationnel` (champ 
 | `/client/notifications` | Notifications |
 | `/client/aide` | Centre d'aide (bug / demande / suggestion) |
 
-### 3.3 Comply — super-admin (`/admin/*`)
+### 3.3 Comply - super-admin (`/admin/*`)
 
 Cabinets, utilisateurs, référentiels plateforme, plans/tarification, monitoring (usage IA, coûts), support, journal d'audit admin. Toutes gardées par `AdminProtectedRoute` + `requirePlatformOwner` côté backend.
 
-### 3.4 Regul — console régulateur
+### 3.4 Regul - console régulateur
 
 | Route | Module |
 |---|---|
@@ -119,7 +119,7 @@ Cabinets, utilisateurs, référentiels plateforme, plans/tarification, monitorin
 | `/referentiels` | M6 Référentiels |
 | `/compte` | Compte |
 
-### 3.5 Regul — portail assujetti (`/client/*`)
+### 3.5 Regul - portail assujetti (`/client/*`)
 
 Tableau de bord, mes missions, **incidents** (auto-déclaration, M5-2), documents, notifications, aide.
 
@@ -203,9 +203,9 @@ Pour les organisations `group` supervisant plusieurs entités :
 
 ---
 
-## 8. Produit Regul — modules M1–M8 (détail)
+## 8. Produit Regul - modules M1-M8 (détail)
 
-> **Note** : « M1–M8 » est une **taxonomie fonctionnelle documentaire** (issue du backlog DSI-REF-GREGUL) ; ces libellés « Mx » **n'apparaissent pas** tels quels dans l'interface ni le code (la navigation utilise des libellés métier : Assujettis, Missions de contrôle, Constats & mesures…). **M2 n'a pas de brique livrée distincte** (le profil réglementaire est intégré à M1) — d'où le saut de M1 à M3 ci-dessous.
+> **Note** : « M1-M8 » est une **taxonomie fonctionnelle documentaire** (issue du backlog DSI-REF-GREGUL) ; ces libellés « Mx » **n'apparaissent pas** tels quels dans l'interface ni le code (la navigation utilise des libellés métier : Assujettis, Missions de contrôle, Constats & mesures...). **M2 n'a pas de brique livrée distincte** (le profil réglementaire est intégré à M1) - d'où le saut de M1 à M3 ci-dessous.
 
 | Module | Fonction |
 |---|---|
@@ -234,7 +234,7 @@ Personnalisation par cabinet : logo (clair/sombre), couleurs, domaine custom (CN
 
 ## 11. Support & centre d'aide
 
-Tickets de trois natures : **bug**, **demande**, **suggestion**. Statuts : `open → in_progress → answered → escalated → resolved → closed`. Contexte capturé (mission, rôle, navigateur…). Triage IA optionnel pour les bugs (catégorisation + gravité + action proposée) selon feature flag. Portail client : formulaires abrégés, l'utilisateur ne voit que ses propres demandes.
+Tickets de trois natures : **bug**, **demande**, **suggestion**. Statuts : `open → in_progress → answered → escalated → resolved → closed`. Contexte capturé (mission, rôle, navigateur...). Triage IA optionnel pour les bugs (catégorisation + gravité + action proposée) selon feature flag. Portail client : formulaires abrégés, l'utilisateur ne voit que ses propres demandes.
 
 ---
 

@@ -1,6 +1,6 @@
-# Dossier d'architecture technique — Gëstu ETP
+# Dossier d'architecture technique - Gëstu ETP
 
-> **⚠ Évolution post-audit — voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime — le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
+> **⚠ Évolution post-audit - voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime - le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
 
 > Document préparé pour l'audit externe. Version du 2026-07-09.
 
@@ -14,8 +14,8 @@
 | Styles | Tailwind CSS | 4.2.x |
 | Backend / BaaS | Supabase (PostgreSQL, Auth, Storage, RLS, Edge Functions Deno) | client `@supabase/supabase-js` 2.103 |
 | Routing | React Router DOM | 7.14 |
-| Emails | Resend (via Edge Functions) | — |
-| IA | API Anthropic (Claude) via Edge Functions | — |
+| Emails | Resend (via Edge Functions) | - |
+| IA | API Anthropic (Claude) via Edge Functions | - |
 
 TypeScript est en mode **`strict: true`** (+ `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`). Aucune tolérance au `any` implicite.
 
@@ -26,10 +26,10 @@ src/
   App.tsx            aiguillage produit (Comply | Regul)
   lib/               clients & utilitaires techniques (supabase.ts, product.ts, constants.ts)
   components/        UI réutilisable (dont ProtectedRoute, ClientProtectedRoute)
-  hooks/             hooks partagés (useAuth…)
+  hooks/             hooks partagés (useAuth...)
   pages/             pages (assemblage)
-  features/<module>/ logique métier par module (missions, client-portal, group-module, admin…)
-  regul/             application Regul dédiée (RegulApp, incidents/, pilotage/…)
+  features/<module>/ logique métier par module (missions, client-portal, group-module, admin...)
+  regul/             application Regul dédiée (RegulApp, incidents/, pilotage/...)
   types/             database.types.ts (schéma typé Supabase)
 supabase/
   migrations/        NNNNN_nom_up.sql / _down.sql
@@ -80,6 +80,6 @@ Regul ne crée **pas** de nouvelle table de mission : l'organe régulateur est u
 
 ## 8. Points d'attention architecturaux (transparence)
 
-- **Absence de `.env.example`** — à créer pour l'onboarding.
-- **Génération de documents côté client** (`jspdf`, `html2canvas`, `exceljs`) — à vérifier qu'aucun contenu non échappé n'y transite (voir dossier sécurité).
-- **Lint non bloquant** (~243 erreurs préexistantes, surtout côté Edge Functions Deno) — la garde de qualité repose sur `typecheck` + `build`.
+- **Absence de `.env.example`** - à créer pour l'onboarding.
+- **Génération de documents côté client** (`jspdf`, `html2canvas`, `exceljs`) - à vérifier qu'aucun contenu non échappé n'y transite (voir dossier sécurité).
+- **Lint non bloquant** (~243 erreurs préexistantes, surtout côté Edge Functions Deno) - la garde de qualité repose sur `typecheck` + `build`.

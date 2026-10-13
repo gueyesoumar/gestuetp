@@ -13,9 +13,9 @@
 -- insertion sera bloquée jusqu'à ce qu'il revienne sous le quota. Un RAISE NOTICE
 -- en fin de migration liste les cabinets en surcapacité.
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- Fonctions SECURITY DEFINER
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.check_user_quota(p_org_id uuid)
 RETURNS jsonb
@@ -109,9 +109,9 @@ COMMENT ON FUNCTION public.check_mission_quota(uuid) IS
   'Vérifie si un cabinet peut accueillir une mission active supplémentaire selon son plan.';
 
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- Trigger functions
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.enforce_user_quota_trigger()
 RETURNS trigger
@@ -172,9 +172,9 @@ END;
 $$;
 
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- Triggers
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 DROP TRIGGER IF EXISTS trg_users_quota ON public.users;
 CREATE TRIGGER trg_users_quota
@@ -187,9 +187,9 @@ CREATE TRIGGER trg_missions_quota
   FOR EACH ROW EXECUTE FUNCTION public.enforce_mission_quota_trigger();
 
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- Diagnostic : signaler les cabinets en surcapacité
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 DO $$
 DECLARE

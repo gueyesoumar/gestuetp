@@ -1,4 +1,4 @@
-# Runbook — Activation de la MFA (authentification à deux facteurs)
+# Runbook - Activation de la MFA (authentification à deux facteurs)
 
 > Procédure d'activation, de vérification et d'exploitation de la MFA sur Gëstu
 > (Comply + Regul). À suivre lors du déploiement sur une instance et pour gérer
@@ -14,9 +14,9 @@
 - **Méthode** : TOTP (application d'authentification), **obligatoire pour tous** les comptes (staff, super-admin, assujettis/clients). Passkey/WebAuthn optionnel prévu en **phase 2**.
 - **Modèle** : Supabase Auth, niveaux d'assurance. Mot de passe → **AAL1** ; TOTP vérifié → **AAL2**. Le JWT porte le claim `aal`.
 - **Trois couches** (défense en profondeur) :
-  1. **Barrière client** (`src/features/auth/mfa/MfaGate`) — compte sans facteur → enrôlement forcé ; facteur en AAL1 → challenge. Exemptions : `/login`, `/set-password`, `/unsubscribe`.
-  2. **Enforcement serveur edge** (`_shared/auth.ts` → `authenticateCaller`) — refuse `aal ≠ aal2`, **piloté par l'env `MFA_ENFORCE`** (`on`/absent).
-  3. **RLS** (migration `00155`, Regul) — `is_aal2()` + policies **restrictives** en lecture sur `probative_log`, `regulatory_measures`, `incidents`.
+  1. **Barrière client** (`src/features/auth/mfa/MfaGate`) - compte sans facteur → enrôlement forcé ; facteur en AAL1 → challenge. Exemptions : `/login`, `/set-password`, `/unsubscribe`.
+  2. **Enforcement serveur edge** (`_shared/auth.ts` → `authenticateCaller`) - refuse `aal ≠ aal2`, **piloté par l'env `MFA_ENFORCE`** (`on`/absent).
+  3. **RLS** (migration `00155`, Regul) - `is_aal2()` + policies **restrictives** en lecture sur `probative_log`, `regulatory_measures`, `incidents`.
 
 **Auto-cicatrisation** : un compte non enrôlé est forcé par la barrière au login ; l'enrôlement passe par gotrue (pas par nos edge functions), donc **aucun risque de blocage** de l'enrôlement lui-même.
 
@@ -38,7 +38,7 @@ Sinon les comptes ne peuvent pas enrôler leur facteur → toutes les opération
 ## 3. Prérequis (par instance)
 
 1. **TOTP activé** : Dashboard Supabase → Authentication → Multi-Factor Authentication → TOTP activé, « max enrolled factors » ≥ 1.
-2. **Site URL correcte** : Authentication → URL Configuration → Site URL = l'URL de production (pas `localhost`). Ajouter aussi les Redirect URLs. (L'issuer MFA est de toute façon forcé côté code — « Gëstu Regul » / « Gëstu Comply » — mais la Site URL sert aux liens magiques/reset.)
+2. **Site URL correcte** : Authentication → URL Configuration → Site URL = l'URL de production (pas `localhost`). Ajouter aussi les Redirect URLs. (L'issuer MFA est de toute façon forcé côté code - « Gëstu Regul » / « Gëstu Comply » - mais la Site URL sert aux liens magiques/reset.)
 3. **Topologie de déploiement Vercel** (piège connu) :
    - **Regul** = `gestu-regul.vercel.app`. Pousser `feat/regul-lot1` ne suffit pas : **promouvoir le déploiement en Production** (Vercel → Deployments → ⋯ → Promote to Production), ou régler Production Branch = `feat/regul-lot1`.
    - **Comply** = `main` (app.gestugroup.com).
@@ -49,12 +49,12 @@ Sinon les comptes ne peuvent pas enrôler leur facteur → toutes les opération
 
 Exemple sur **Regul** (`--project-ref snayznxraupndrdmhbak`). Pour Comply, remplacer le ref et n'exécuter l'étape 5 (et 4 si tables présentes) qu'après la release `main`.
 
-**Étape 1 — Déployer d'abord le filet de secours** :
+**Étape 1 - Déployer d'abord le filet de secours** :
 ```bash
 supabase functions deploy admin-reset-mfa --project-ref snayznxraupndrdmhbak
 ```
 
-**Étape 2 — Redéployer les fonctions utilisant `authenticateCaller`** (embarque le nouveau code ; flag encore off → aucun effet) :
+**Étape 2 - Redéployer les fonctions utilisant `authenticateCaller`** (embarque le nouveau code ; flag encore off → aucun effet) :
 ```bash
 for fn in ai-documents assign-controls declare-incident dispatch-feasibility \
   extract-document-metadata extract-org-chart-actors invite-assujetti invite-client \
@@ -65,14 +65,14 @@ done
 # (ou, plus simple : supabase functions deploy --project-ref snayznxraupndrdmhbak)
 ```
 
-**Étape 3 — S'assurer que les comptes actifs ont enrôlé leur TOTP** (ils passent par la barrière au login).
+**Étape 3 - S'assurer que les comptes actifs ont enrôlé leur TOTP** (ils passent par la barrière au login).
 
-**Étape 4 — Appliquer la RLS (⚠️ enforce dès l'application, pas de flag)** — Regul uniquement :
+**Étape 4 - Appliquer la RLS (⚠️ enforce dès l'application, pas de flag)** - Regul uniquement :
 ```bash
 "$PSQL" "$REGUL_DB" -f "<repo>/supabase/migrations/00155_require_aal2_up.sql"
 ```
 
-**Étape 5 — Basculer l'interrupteur serveur** (active l'enforcement edge) :
+**Étape 5 - Basculer l'interrupteur serveur** (active l'enforcement edge) :
 ```bash
 supabase secrets set MFA_ENFORCE=on --project-ref snayznxraupndrdmhbak
 ```
@@ -90,7 +90,7 @@ supabase secrets list --project-ref snayznxraupndrdmhbak | grep MFA_ENFORCE
 
 **Positif (pas de faux-blocage)** : se connecter à l'app (mot de passe **+ MFA** = AAL2) → dashboard / incidents / mesures se chargent, déclaration d'incident possible.
 
-**Négatif (enforcement prouvé)** — script `/tmp/mfa_enforce_check.mjs` (voir dépôt de session) : se connecte avec **mot de passe seul** (AAL1) et vérifie :
+**Négatif (enforcement prouvé)** - script `/tmp/mfa_enforce_check.mjs` (voir dépôt de session) : se connecte avec **mot de passe seul** (AAL1) et vérifie :
 - edge `issue-measure` → `HTTP 401` (MFA requise) ;
 - lecture REST `probative_log` → `0 ligne`.
 
@@ -98,13 +98,13 @@ supabase secrets list --project-ref snayznxraupndrdmhbak | grep MFA_ENFORCE
 
 ## 6. Réinitialisation MFA (perte d'appareil)
 
-**Chemin recommandé — `admin-reset-mfa`** (super-admin, motif obligatoire, journalisé dans `admin_audit_log`) :
+**Chemin recommandé - `admin-reset-mfa`** (super-admin, motif obligatoire, journalisé dans `admin_audit_log`) :
 ```bash
 curl -s -X POST "https://snayznxraupndrdmhbak.supabase.co/functions/v1/admin-reset-mfa" \
   -H "Authorization: Bearer <JWT_SUPER_ADMIN_AAL2>" \
   -H "apikey: <ANON_KEY>" \
   -H "Content-Type: application/json" \
-  -d '{"email":"utilisateur@exemple.sn","reason":"Perte de téléphone — ticket #123"}'
+  -d '{"email":"utilisateur@exemple.sn","reason":"Perte de téléphone - ticket #123"}'
 ```
 Le super-admin doit être lui-même en **AAL2**. La fonction supprime les facteurs du compte cible → il ré-enrôle au login suivant.
 
@@ -127,7 +127,7 @@ La barrière client reste (enrôlement/challenge) ; pour la retirer complètemen
 
 ---
 
-## 8. Comply — checklist du jour de la release `main`
+## 8. Comply - checklist du jour de la release `main`
 
 1. La MFA frontend est buildée sur `main` (app.gestugroup.com sert la barrière).
 2. TOTP activé + Site URL correcte sur l'instance Comply.

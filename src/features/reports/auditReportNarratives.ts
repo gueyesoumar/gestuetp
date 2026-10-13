@@ -9,7 +9,7 @@
 
 import type { AuditReportData, DomainStat, AssessmentWithControl } from './generateAuditReportPDF'
 
-// ── Extraction de contrôles spécifiques ───────────────────────────────────
+// -- Extraction de contrôles spécifiques -----------------------------------
 
 /**
  * Renvoie les N premiers contrôles strictement conformes (level=c), triés
@@ -64,7 +64,7 @@ function truncateName(s: string, max: number): string {
 }
 
 
-// ── Verdict & qualifiers ──────────────────────────────────────────────────
+// -- Verdict & qualifiers --------------------------------------------------
 
 export interface VerdictDescriptor {
   label: 'Favorable' | 'Favorable avec réserves' | 'Réservée' | 'Défavorable'
@@ -106,7 +106,7 @@ export function describeVerdict(score: number, ncMajor: number): VerdictDescript
   }
 }
 
-// ── 01. Contexte de l'audit ───────────────────────────────────────────────
+// -- 01. Contexte de l'audit -----------------------------------------------
 
 export function generateContextNarrative(data: AuditReportData): string[] {
   const fw = frameworkLabel(data)
@@ -131,7 +131,7 @@ export function generateContextNarrative(data: AuditReportData): string[] {
   ]
 }
 
-// ── 02. Méthodologie ──────────────────────────────────────────────────────
+// -- 02. Méthodologie ------------------------------------------------------
 
 export function generateMethodologyNarrative(data: AuditReportData): string[] {
   return [
@@ -143,7 +143,7 @@ export function generateMethodologyNarrative(data: AuditReportData): string[] {
   ]
 }
 
-// ── 03. Synthèse exécutive ────────────────────────────────────────────────
+// -- 03. Synthèse exécutive ------------------------------------------------
 
 export function generateExecutiveNarrative(data: AuditReportData): string[] {
   const t = data.totals!
@@ -176,7 +176,7 @@ export function generateExecutiveNarrative(data: AuditReportData): string[] {
   ]
 }
 
-// ── 04. Détail par domaine - narratif court par domaine ───────────────────
+// -- 04. Détail par domaine - narratif court par domaine -------------------
 
 export function generateDomainNarrative(domain: DomainStat, data: AuditReportData): string[] {
   const fw = frameworkLabel(data)
@@ -243,7 +243,7 @@ export function generateDomainNarrative(domain: DomainStat, data: AuditReportDat
   return [p1, p2, p3]
 }
 
-// ── 05. Fiches NC majeures - sous-paragraphes ─────────────────────────────
+// -- 05. Fiches NC majeures - sous-paragraphes -----------------------------
 
 export interface NCFactSheetSections {
   requirement: string
@@ -309,7 +309,7 @@ function generateImpactAnalysis(a: AssessmentWithControl, data: AuditReportData)
   return `À court terme, cet écart expose l'organisation à un risque de non-conformité au référentiel ${fw}, susceptible de compromettre l'obtention ou le maintien de l'attestation correspondante. À moyen terme, l'absence du dispositif attendu peut générer une exposition opérationnelle accrue dans ${sector}, des difficultés à répondre aux contrôles externes (régulateur, partenaires, clients sensibles), ainsi qu'une perte de mémoire organisationnelle en cas de rotation du personnel sur les fonctions concernées. La criticité du contrôle ${a.control.code} dans le cadre du référentiel justifie la qualification en non-conformité majeure et la priorité accordée à sa remédiation.`
 }
 
-// ── 06. Recommandations & matrice ─────────────────────────────────────────
+// -- 06. Recommandations & matrice -----------------------------------------
 
 export function generateRecommendationNarrative(data: AuditReportData): string[] {
   const t = data.totals!
@@ -320,7 +320,7 @@ export function generateRecommendationNarrative(data: AuditReportData): string[]
   ]
 }
 
-// ── 07. Plan d'action ──────────────────────────────────────────────────────
+// -- 07. Plan d'action ------------------------------------------------------
 
 export function generateActionPlanNarrative(data: AuditReportData): string[] {
   const t = data.totals!
@@ -332,7 +332,7 @@ export function generateActionPlanNarrative(data: AuditReportData): string[] {
   ]
 }
 
-// ── 08. Conclusion ────────────────────────────────────────────────────────
+// -- 08. Conclusion --------------------------------------------------------
 
 export function generateConclusionNarrative(data: AuditReportData): string[] {
   const t = data.totals!
@@ -362,7 +362,7 @@ export function generateExecutiveLetterBody(data: AuditReportData): string[] {
   ]
 }
 
-// ── Glossaire ──────────────────────────────────────────────────────────────
+// -- Glossaire --------------------------------------------------------------
 
 export function generateGlossary(): { term: string; def: string }[] {
   return [
@@ -381,7 +381,7 @@ export function generateGlossary(): { term: string; def: string }[] {
   ]
 }
 
-// ── Helpers narratifs ─────────────────────────────────────────────────────
+// -- Helpers narratifs -----------------------------------------------------
 
 /**
  * Libellé du référentiel utilisé dans la prose. Source unique : la relation

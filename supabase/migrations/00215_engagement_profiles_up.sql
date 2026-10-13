@@ -34,7 +34,7 @@ create trigger trg_engagement_profiles_updated_at
   before update on public.engagement_profiles
   for each row execute function public.set_updated_at();
 
--- ── RLS ────────────────────────────────────────────────────────────────────────
+-- -- RLS ------------------------------------------------------------------------
 alter table public.engagement_profiles enable row level security;
 
 -- Lecture : cote ACTEUR de l'arete (le cabinet auditeur). get_my_organization_id()
@@ -54,7 +54,7 @@ create policy "engagement_profiles_select_actor" on public.engagement_profiles
 -- Ecritures : AUCUNE policy authenticated -> reserve au service_role (Edge Functions
 -- create-client / update-client), coherent avec le graphe.
 
--- ── Backfill : un profil par arete audit_engagement active, depuis la fiche ─────
+-- -- Backfill : un profil par arete audit_engagement active, depuis la fiche -----
 -- La fiche est unique par (cabinet, client_name) et pointe client_org_id ; on la
 -- rattache a l'arete (actor=cabinet_id, target=client_org_id).
 insert into public.engagement_profiles (

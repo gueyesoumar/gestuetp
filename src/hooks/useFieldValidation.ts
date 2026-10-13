@@ -69,7 +69,7 @@ export function useFieldValidation(
   }
 }
 
-// ── Common validators ──────────────────────────────────────────────────────
+// -- Common validators ------------------------------------------------------
 
 export const required = (message = 'Champ requis.'): Validator =>
   (v) => v.trim().length > 0 ? null : message

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=1280" />
-  <title>Gëstu Comply — Allègement Cadrage & Planification</title>
+  <title>Gëstu Comply - Allègement Cadrage & Planification</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -390,7 +390,7 @@
     <div class="doc-header">
       <div class="eyebrow">Analyse critique · phases 2 & 3 + refonte Entretiens</div>
       <h1>Allègement Cadrage / Planification + refonte des Entretiens</h1>
-      <p>Avant / Après pour les principales frictions identifiées sur les 2 phases, plus une refonte transverse de la fonction <strong>Entretiens</strong> (acteur-centrée, basée sur l'organigramme client + matrice acteurs × sujets + PV pré-rempli). Tous les changements sont valables pour <strong>tous les référentiels</strong> (ISO 27001, NIST CSF, PSSI-ES, COBIT, ITIL...) — pas spécifiques à PSSI.</p>
+      <p>Avant / Après pour les principales frictions identifiées sur les 2 phases, plus une refonte transverse de la fonction <strong>Entretiens</strong> (acteur-centrée, basée sur l'organigramme client + matrice acteurs × sujets + PV pré-rempli). Tous les changements sont valables pour <strong>tous les référentiels</strong> (ISO 27001, NIST CSF, PSSI-ES, COBIT, ITIL...) - pas spécifiques à PSSI.</p>
     </div>
 
     <!-- ============================================================ -->
@@ -399,7 +399,7 @@
     <div class="phase-section">
       <div class="phase-header">
         <div class="num">02</div>
-        <h2>Cadrage — questionnaire client</h2>
+        <h2>Cadrage - questionnaire client</h2>
         <span class="impact-pill universal">Tous référentiels</span>
       </div>
 
@@ -417,7 +417,7 @@
           <div class="ab-cell before">
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
-              <li>Le client retape l'effectif, le nombre de sites, le secteur — alors que ces infos sont déjà dans la fiche client côté cabinet.</li>
+              <li>Le client retape l'effectif, le nombre de sites, le secteur - alors que ces infos sont déjà dans la fiche client côté cabinet.</li>
               <li>Risque d'incohérence : les chiffres saisis par le client peuvent diverger de la fiche.</li>
               <li>Première impression "questionnaire générique".</li>
             </ul>
@@ -437,7 +437,7 @@
             <div class="ab-label">Après</div>
             <ul class="friction-list">
               <li>Réponse pré-remplie depuis la fiche client, badge "Pré-rempli" visible.</li>
-              <li>Le client confirme d'un clic ou corrige si besoin — temps divisé par 3 sur ces questions.</li>
+              <li>Le client confirme d'un clic ou corrige si besoin - temps divisé par 3 sur ces questions.</li>
               <li>Cohérence garantie : un seul lieu de vérité.</li>
             </ul>
             <div class="ui-mock">
@@ -589,7 +589,7 @@
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
               <li>Bouton "Valider la planification" passe direct en <code>planning</code>, même si le cadrage est à 20%.</li>
-              <li>Checklist sidebar pas vérifiée — items "Note de cadrage validée" toujours <code>done:false</code>.</li>
+              <li>Checklist sidebar pas vérifiée - items "Note de cadrage validée" toujours <code>done:false</code>.</li>
               <li>Aucune date d'échéance, aucun rappel automatique au client.</li>
               <li>Bannière "SmartScope · Analyser" sans handler.</li>
             </ul>
@@ -599,7 +599,7 @@
             <ul class="friction-list">
               <li>Bouton "Valider" désactivé tant que checklist n'est pas verte (ou avertissement explicite).</li>
               <li>Champ "Échéance souhaitée" sur le questionnaire client, rappels J-3 et J-1 automatiques par email.</li>
-              <li>Bannière SmartScope branchée OU retirée — pas de UI fantôme.</li>
+              <li>Bannière SmartScope branchée OU retirée - pas de UI fantôme.</li>
               <li>Vue cross-mission "Cadrages en cours" pour le chef de mission.</li>
             </ul>
             <div class="ui-mock">
@@ -612,7 +612,7 @@
                   <div style="display:flex; align-items:center; gap:8px; padding:4px 0; color:var(--text-300);"><span>○</span> Note de cadrage validée</div>
                 </div>
                 <div style="margin-top:8px; padding:6px 8px; background:var(--warn-bg); border-radius:4px; font-size:11px; color:var(--gold-700); font-weight:600;">
-                  ⚠ Validation possible à 67% — risque de retravail en Phase 4
+                  ⚠ Validation possible à 67% - risque de retravail en Phase 4
                 </div>
               </div>
             </div>
@@ -637,7 +637,7 @@
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
               <li>Aucune feature dédiée à l'identification des acteurs SI du client.</li>
-              <li>L'auditeur découvre les contacts en arrivant sur le terrain — risque d'oublis, de doublons, de noms incorrects.</li>
+              <li>L'auditeur découvre les contacts en arrivant sur le terrain - risque d'oublis, de doublons, de noms incorrects.</li>
               <li>Les <code>client_contacts</code> sont saisis manuellement, un par un, par le chef de mission au moment de planifier les entretiens.</li>
               <li>Pas de visibilité sur la cartographie des rôles (qui est responsable de quoi).</li>
             </ul>
@@ -658,7 +658,7 @@
               <li>Extraction IA des personnes : Nom · Fonction · Direction · Email (si visible).</li>
               <li>Le client valide / corrige / complète la liste.</li>
               <li>Fallback : saisie manuelle si pas d'organigramme disponible.</li>
-              <li>L'auditeur récupère la liste structurée en Phase 3 — base de la matrice d'entretiens.</li>
+              <li>L'auditeur récupère la liste structurée en Phase 3 - base de la matrice d'entretiens.</li>
             </ul>
             <div class="ui-mock">
               <div class="head">Wizard cadrage · question 5/18 · organigramme</div>
@@ -716,7 +716,7 @@
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
               <li>Onglet plein écran read-only avec 6 champs identité (nom, secteur, effectif, CA, pays, adresse) déjà visibles sur la page client.</li>
-              <li><strong>Effectif affiché ici + redemandé au client</strong> dans le questionnaire (CTX-02) — incohérence non détectée.</li>
+              <li><strong>Effectif affiché ici + redemandé au client</strong> dans le questionnaire (CTX-02) - incohérence non détectée.</li>
               <li>Pas d'édition possible : si un champ manque, il faut quitter la mission.</li>
               <li>L'historique audits (la vraie valeur) noyé sous des champs décoratifs.</li>
             </ul>
@@ -726,10 +726,10 @@
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
                   <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Secteur</div>Industrie</div>
                   <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Effectif</div>240</div>
-                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Chiffre d'affaires</div>—</div>
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Chiffre d'affaires</div>-</div>
                   <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Pays</div>Sénégal</div>
                   <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Adresse</div>Dakar</div>
-                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Contact</div>—</div>
+                  <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;"><div style="color:var(--text-500); font-size:9px; text-transform:uppercase; font-weight:700;">Contact</div>-</div>
                 </div>
                 <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px; margin-bottom:6px;">
                   <div style="font-weight:700; margin-bottom:4px;">Environnement réglementaire</div>
@@ -741,7 +741,7 @@
                 </div>
                 <div style="padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:4px;">
                   <div style="font-weight:700; margin-bottom:4px;">Historique audits</div>
-                  <span class="role-tag" style="background:var(--success-bg); color:var(--success);">2024</span> ISO 27001 — Score 72% — 8 NC
+                  <span class="role-tag" style="background:var(--success-bg); color:var(--success);">2024</span> ISO 27001 - Score 72% - 8 NC
                 </div>
               </div>
             </div>
@@ -752,7 +752,7 @@
               <li>Widget compact dans la sidebar (toggleable comme la sidebar Programme/Charge).</li>
               <li>Garde uniquement ce qui sert au cadrage : <strong>historique audits, contexte réglementaire, contexte SI</strong>.</li>
               <li>Lien "Modifier la fiche" qui ouvre la page client en sidedrawer (pas de perte de contexte).</li>
-              <li>Onglet plein écran libéré — disponible pour la matrice acteurs × sujets ou pour les risques mission.</li>
+              <li>Onglet plein écran libéré - disponible pour la matrice acteurs × sujets ou pour les risques mission.</li>
               <li>L'identité (nom + secteur) reste visible en permanence dans le ribbon de phase (déjà existant).</li>
             </ul>
             <div class="ui-mock">
@@ -767,12 +767,12 @@
                   </div>
                   <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--border-soft);">
                     <span class="role-tag" style="background:var(--success-bg); color:var(--success);">2024</span>
-                    <span style="flex:1;">ISO 27001 — <strong>72%</strong></span>
+                    <span style="flex:1;">ISO 27001 - <strong>72%</strong></span>
                     <span style="color:var(--text-500); font-size:10px;">8 NC</span>
                   </div>
                   <div style="display:flex; align-items:center; gap:6px; padding:4px 0;">
                     <span class="role-tag" style="background:var(--warn-bg); color:var(--warn);">2022</span>
-                    <span style="flex:1;">PSSI-ES — <strong>58%</strong></span>
+                    <span style="flex:1;">PSSI-ES - <strong>58%</strong></span>
                     <span style="color:var(--text-500); font-size:10px;">14 NC</span>
                   </div>
                 </div>
@@ -822,7 +822,7 @@
     <div class="phase-section">
       <div class="phase-header">
         <div class="num">03</div>
-        <h2>Planification — affectation des contrôles & entretiens</h2>
+        <h2>Planification - affectation des contrôles & entretiens</h2>
         <span class="impact-pill universal">Tous référentiels</span>
       </div>
 
@@ -840,7 +840,7 @@
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
               <li>Pour reaffecter 10 contrôles dispersés sur 4 domaines : 10 selects unitaires.</li>
-              <li>Bulk uniquement par domaine entier — pas de transverse.</li>
+              <li>Bulk uniquement par domaine entier - pas de transverse.</li>
               <li>Aucune checkbox sur les lignes.</li>
             </ul>
             <div class="ui-mock">
@@ -848,9 +848,9 @@
               <div class="body">
                 <table class="row-table">
                   <tr><th></th><th>Code</th><th>Risque</th><th>Auditeur</th></tr>
-                  <tr><td></td><td><span class="code">A.5.7</span></td><td><span class="pill-risk"></span></td><td><select><option>—</option></select></td></tr>
-                  <tr><td></td><td><span class="code">A.8.2</span></td><td><span class="pill-risk"></span></td><td><select><option>—</option></select></td></tr>
-                  <tr><td></td><td><span class="code">A.8.5</span></td><td><span class="pill-risk"></span></td><td><select><option>—</option></select></td></tr>
+                  <tr><td></td><td><span class="code">A.5.7</span></td><td><span class="pill-risk"></span></td><td><select><option>-</option></select></td></tr>
+                  <tr><td></td><td><span class="code">A.8.2</span></td><td><span class="pill-risk"></span></td><td><select><option>-</option></select></td></tr>
+                  <tr><td></td><td><span class="code">A.8.5</span></td><td><span class="pill-risk"></span></td><td><select><option>-</option></select></td></tr>
                 </table>
               </div>
             </div>
@@ -901,7 +901,7 @@
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
               <li><strong>3 boutons sans handler</strong> : "Répartition équilibrée auto", "Exporter Excel", "Envoyer planning au client".</li>
-              <li>Dette de confiance UI — le chef croit aux fonctionnalités, elles n'existent pas.</li>
+              <li>Dette de confiance UI - le chef croit aux fonctionnalités, elles n'existent pas.</li>
               <li>"Répartition équilibrée auto" est <em>déjà codée</em> dans <code>generateWorkProgram.ts</code> mais pas branchée.</li>
             </ul>
             <div class="ui-mock">
@@ -955,7 +955,7 @@
             <ul class="friction-list">
               <li>Les <code>mission_risks</code> saisis en Phase 2 ne sont pas affichés en Phase 3.</li>
               <li>L'IA backend les lit, mais le chef de mission ne voit rien (boucle ouverte Phase 2 ↔ Phase 3).</li>
-              <li>Champs <code>audit_techniques</code>, <code>estimated_hours</code>, <code>sampling_size</code> non éditables inline — uniquement modifiables par SmartPlan.</li>
+              <li>Champs <code>audit_techniques</code>, <code>estimated_hours</code>, <code>sampling_size</code> non éditables inline - uniquement modifiables par SmartPlan.</li>
             </ul>
           </div>
           <div class="ab-cell after">
@@ -1001,7 +1001,7 @@
           <div class="ab-cell before">
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
-              <li>L'auditeur découvre sa charge en arrivant en Phase 4 — push-only depuis le chef.</li>
+              <li>L'auditeur découvre sa charge en arrivant en Phase 4 - push-only depuis le chef.</li>
               <li>Aucune vue "mes contrôles affectés en planning" avant le terrain.</li>
               <li>Aucune validation/négociation possible.</li>
               <li>Le client n'a aucune visibilité Phase 3 (aucune transparence sur le planning des entretiens, contacts désignés...).</li>
@@ -1041,7 +1041,7 @@
     <div class="phase-section">
       <div class="phase-header" style="border-bottom-color: var(--forest-500);">
         <div class="num" style="background:var(--gold-50); color:var(--gold-700);">📅</div>
-        <h2>Entretiens — refonte acteur-centrée</h2>
+        <h2>Entretiens - refonte acteur-centrée</h2>
         <span class="impact-pill universal">Tous référentiels · transverse</span>
       </div>
 
@@ -1049,7 +1049,7 @@
       <div class="change-card">
         <div class="change-head">
           <span class="step-num">ENTRETIEN 01</span>
-          <h3>Catalogue de "Sujets d'audit" — méta-thèmes qui couvrent N contrôles</h3>
+          <h3>Catalogue de "Sujets d'audit" - méta-thèmes qui couvrent N contrôles</h3>
           <div class="role-tags">
             <span class="role-tag win">Cabinet ++</span>
             <span class="role-tag win">Auditeur +</span>
@@ -1059,8 +1059,8 @@
           <div class="ab-cell before">
             <div class="ab-label">Avant</div>
             <ul class="friction-list">
-              <li>L'entretien est rattaché à un <strong>domaine</strong> du référentiel (A.5, A.6, A.7, A.8...) — granularité trop large.</li>
-              <li>Pas de notion de "sujet d'audit" qui regrouperait des contrôles transverses (ex : <em>Gestion des accès</em> couvre A.5.15, A.8.2, A.8.5 — 3 domaines).</li>
+              <li>L'entretien est rattaché à un <strong>domaine</strong> du référentiel (A.5, A.6, A.7, A.8...) - granularité trop large.</li>
+              <li>Pas de notion de "sujet d'audit" qui regrouperait des contrôles transverses (ex : <em>Gestion des accès</em> couvre A.5.15, A.8.2, A.8.5 - 3 domaines).</li>
               <li>Conséquence : l'auditeur doit imaginer manuellement le découpage par interview.</li>
             </ul>
             <div class="ui-mock">
@@ -1124,7 +1124,7 @@
       <div class="change-card">
         <div class="change-head">
           <span class="step-num">ENTRETIEN 02</span>
-          <h3>Matrice "Acteurs × Sujets" — qui rencontre qui sur quoi</h3>
+          <h3>Matrice "Acteurs × Sujets" - qui rencontre qui sur quoi</h3>
           <div class="role-tags">
             <span class="role-tag win">Chef de mission ++</span>
             <span class="role-tag win">Auditeur +</span>
@@ -1229,7 +1229,7 @@
             <ul class="friction-list">
               <li>Un entretien = simple créneau (date · heure · durée · lieu · titre).</li>
               <li>Aucun ordre du jour structuré, aucun template de PV.</li>
-              <li>L'auditeur arrive sans guide — note libre dans un fichier externe ou une zone <code>notes</code> sans structure.</li>
+              <li>L'auditeur arrive sans guide - note libre dans un fichier externe ou une zone <code>notes</code> sans structure.</li>
               <li>Pas de lien direct entre l'entretien et les contrôles à investiguer.</li>
             </ul>
             <div class="ui-mock">
@@ -1371,12 +1371,12 @@
     </div>
 
     <div class="footer-note">
-      <strong>Portée des changements.</strong> Les améliorations s'appliquent à <strong>tous les référentiels seedés</strong>. Aucun changement n'est PSSI-spécifique. Les chiffres "30 questions", "29 obligatoires" servent d'illustration la plus extrême — sur ISO 27001 (14 questions), les gains sont proportionnels (-40% de questions reste -40%).<br/><br/>
+      <strong>Portée des changements.</strong> Les améliorations s'appliquent à <strong>tous les référentiels seedés</strong>. Aucun changement n'est PSSI-spécifique. Les chiffres "30 questions", "29 obligatoires" servent d'illustration la plus extrême - sur ISO 27001 (14 questions), les gains sont proportionnels (-40% de questions reste -40%).<br/><br/>
       <strong>Effort total estimé.</strong>
       Sprint 1 (5 quick wins Cadrage/Planification · ~1j) →
       Sprint 2 (multi-sélection + vue auditeur · ~1j) →
       Sprint 3 (refonte questionnaire personnalisable + visibilité client · ~3j) →
-      <strong>Sprint 4 (refonte Entretiens : organigramme + sujets + matrice + PV · ~5j)</strong>. Le Sprint 4 introduit 5 nouvelles tables et un Edge Function d'extraction IA d'organigramme — c'est une pièce structurante de la plateforme.
+      <strong>Sprint 4 (refonte Entretiens : organigramme + sujets + matrice + PV · ~5j)</strong>. Le Sprint 4 introduit 5 nouvelles tables et un Edge Function d'extraction IA d'organigramme - c'est une pièce structurante de la plateforme.
     </div>
 
   </div>

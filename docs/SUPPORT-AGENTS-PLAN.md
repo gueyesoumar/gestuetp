@@ -1,11 +1,11 @@
-# Plan d'implémentation — Support & Agents
+# Plan d'implémentation - Support & Agents
 
 > Module « Centre d'aide » (3 actions : bug / demande / suggestion) + agents associés.
 > Maquette de référence : `prototype/support-triage/mockup.html`.
 > Prototype moteur (triage) : `prototype/support-triage/triage.ts`.
 > Sous-agents dev déjà présents : `.claude/agents/{security-auditor,code-reviewer,bug-reproducer}.md`.
 >
-> Statut : **proposition — à valider avant tout code.**
+> Statut : **proposition - à valider avant tout code.**
 
 ---
 
@@ -37,10 +37,10 @@ Cette frontière conditionne tout le découpage : on ne fait jamais analyser du 
 
 ## 2. Découpage en phases (valeur d'abord, risque IA en dernier)
 
-### Phase 0 — Fondations (prérequis transverses) · taille **M**
+### Phase 0 - Fondations (prérequis transverses) · taille **M**
 - **Migration** `NNNNN_support_requests_up/down.sql` :
   - `support_requests(id, nature ['bug'|'demande'|'suggestion'], subtype, status, title, body, requester_user_id, cabinet_id, mission_id?, role_at_submit, context jsonb, attachments jsonb, created_at, updated_at)`.
-  - **RLS** : lecture/écriture par le cabinet du demandeur (`cabinet_id = get_my_organization_id()` ou via `get_my_mission_ids()` pour les clients), tout pour `is_platform_owner` — **via fonctions SECURITY DEFINER, aucune sous-requête sur la table elle-même** (pas de récursion).
+  - **RLS** : lecture/écriture par le cabinet du demandeur (`cabinet_id = get_my_organization_id()` ou via `get_my_mission_ids()` pour les clients), tout pour `is_platform_owner` - **via fonctions SECURITY DEFINER, aucune sous-requête sur la table elle-même** (pas de récursion).
 - **Bucket** privé `support-attachments` + policies RLS (captures d'écran = données potentiellement sensibles).
 - **Frontend transverse** :
   - `ErrorBoundary` global + **buffer d'erreurs** (ring buffer des N dernières erreurs console + requêtes 4xx/5xx), **filtrant `Authorization`/tokens** avant stockage.
@@ -49,7 +49,7 @@ Cette frontière conditionne tout le découpage : on ne fait jamais analyser du 
   - Écran d'entrée à **3 cartes** (bug / demande / suggestion).
 - **Sortie** : socle prêt, rien d'« intelligent » encore.
 
-### Phase 1 — Demandes (routage, sans IA) · taille **M** · *recommandé en 1er*
+### Phase 1 - Demandes (routage, sans IA) · taille **M** · *recommandé en 1er*
 - Formulaires par type, **liste filtrée par rôle** (options centralisées dans `src/lib/constants.ts`).
 - **Moteur de routage** :
   | Type | Traitement | Cible |
@@ -62,26 +62,26 @@ Cette frontière conditionne tout le découpage : on ne fait jamais analyser du 
 - Superadmin : file + traitement des demandes.
 - **Aucune IA, aucun risque RGPD nouveau.** Livre de la valeur immédiatement.
 
-### Phase 2 — Bug : intake + reproduction assistée (sans agent) · taille **L**
+### Phase 2 - Bug : intake + reproduction assistée (sans agent) · taille **L**
 - **Enregistreur d'actions** (pièce la plus délicate) : capte clics, changements de route, erreurs réseau ; produit une trace ; **filtre les secrets**.
 - Formulaire bug + **récap de trace éditable** (retrait d'étape, commentaire) → stocké dans `support_requests.context`.
 - Superadmin : détail bug avec la trace.
 - **Sans agent** : les humains trient déjà avec une trace précise → gros gain seul.
 
-### Phase 3 — Agent de triage bug (data-facing) · taille **M** · *dépend d'un feu vert DPA*
+### Phase 3 - Agent de triage bug (data-facing) · taille **M** · *dépend d'un feu vert DPA*
 - Edge Function `run-agent` = industrialisation de `prototype/support-triage/triage.ts` : boucle tool-use Anthropic, **outils DB en lecture seule et scopés** (jamais de SQL libre), lit le ticket + la trace.
 - Tables `agent_runs` / `agent_run_steps`, gate `is_platform_owner`, secret `ANTHROPIC_API_KEY`, coût via `log-ai-call.ts`.
 - Superadmin : bouton « Lancer le triage » + **brouillon de réponse (co-pilote)** ; l'humain valide.
 
-### Phase 4 — Agent de faisabilité suggestions (code-facing) · taille **L** · *le plus lourd*
+### Phase 4 - Agent de faisabilité suggestions (code-facing) · taille **L** · *le plus lourd*
 - Workflow **GitHub Actions** (`workflow_dispatch`) : checkout repo → Claude (sous-agent `suggestion-analyst`, cousin de `impact-analyst`) → rapport **RICE** structuré (verdicts par dimension, conformité/RGPD, hypothèses, effort+confiance).
-- **Write-back authentifié** : le workflow réécrit le rapport sur `support_requests` (via une Edge Function dédiée protégée par un secret CI, OU artefact + import manuel — à trancher).
+- **Write-back authentifié** : le workflow réécrit le rapport sur `support_requests` (via une Edge Function dédiée protégée par un secret CI, OU artefact + import manuel - à trancher).
 - Superadmin : bouton « Analyser la faisabilité » → dispatch → affichage du rapport.
 - Crée `.claude/agents/suggestion-analyst.md`.
 
 ---
 
-## 3. Sécurité & conformité (transverse — bloquant pour 3 & 4)
+## 3. Sécurité & conformité (transverse - bloquant pour 3 & 4)
 
 1. **RLS** sur `support_requests`, `agent_runs`, bucket : cloisonnement cabinet via `SECURITY DEFINER`, **jamais** de self-référence (anti-récursion).
 2. **Agents service_role** : outils **lecture seule**, requêtes pré-définies, **pas de SQL généré par le LLM** (sinon exfiltration cross-cabinet).
@@ -89,14 +89,14 @@ Cette frontière conditionne tout le découpage : on ne fait jamais analyser du 
 4. **RGPD / DPA** : des données tenant partent vers Anthropic (Phases 3-4). À **cadrer juridiquement avant prod** : base légale, minimisation, anonymisation si possible, zone de données. **Potentiel bloquant.**
 5. **Buffer d'erreurs** : strip `Authorization`/tokens/cookies avant stockage.
 6. **Prompt injection** : les données tenant peuvent contenir des instructions piégées → agents **sans outil à effet de bord** (lecture seule).
-7. **Coût/abus** : plafond de tokens par run, rate-limit, budget — branchés sur le monitoring existant.
+7. **Coût/abus** : plafond de tokens par run, rate-limit, budget - branchés sur le monitoring existant.
 8. **Journalisation** : chaque run/demande dans `admin_audit_log`.
 
 ---
 
 ## 4. Décisions à trancher avant de coder
 
-- **Schéma** : ✅ **tranché** — STI hybride (table unique `support_requests` : colonnes typées pour le commun + `payload`/`context` JSONB pour le variable + table enfant `agent_runs`). Voir Annexe A.
+- **Schéma** : ✅ **tranché** - STI hybride (table unique `support_requests` : colonnes typées pour le commun + `payload`/`context` JSONB pour le variable + table enfant `agent_runs`). Voir Annexe A.
 - **DPA Anthropic** : le flux données tenant → Anthropic est-il contractuellement couvert ? (conditionne Phases 3-4 en prod)
 - **Canal du « support platform owner »** : notification in-app, email (Resend déjà validé pour gestugroup.com), ou les deux ?
 - **Enregistreur d'actions** : périmètre des événements captés + durée de rétention de la trace.
@@ -110,7 +110,7 @@ Cette frontière conditionne tout le découpage : on ne fait jamais analyser du 
 
 ---
 
-## Annexe A — Spéc détaillée Phase 0 (fondations)
+## Annexe A - Spéc détaillée Phase 0 (fondations)
 
 > Analyse d'impact à valider **avant** d'écrire le code.
 
@@ -123,7 +123,7 @@ create type support_status as enum ('open','in_progress','answered','escalated',
 create table public.support_requests (
   id                uuid primary key default gen_random_uuid(),
   nature            support_nature not null,
-  subtype           text,                 -- 'password_reset','feature_activation'… (null pour bug/suggestion)
+  subtype           text,                 -- 'password_reset','feature_activation'... (null pour bug/suggestion)
   status            support_status not null default 'open',
   title             text not null,
   body              text,
@@ -138,7 +138,7 @@ create table public.support_requests (
 create index support_requests_cabinet_status_idx on public.support_requests (cabinet_id, status);
 create index support_requests_nature_idx on public.support_requests (nature);
 
--- Table enfant : runs d'agent (Phases 3-4) — créée dès maintenant ou plus tard
+-- Table enfant : runs d'agent (Phases 3-4) - créée dès maintenant ou plus tard
 create table public.agent_runs (
   id            uuid primary key default gen_random_uuid(),
   request_id    uuid not null references public.support_requests(id) on delete cascade,
@@ -194,7 +194,7 @@ Taille **M** (~3-5 j-h). Pré-requis d'aucune autre phase ; débloque 1 et 2.
 
 ---
 
-## Annexe B — Spéc détaillée Phase 1 (Demandes)
+## Annexe B - Spéc détaillée Phase 1 (Demandes)
 
 > Analyse d'impact à valider **avant** code. Construit sur le socle Phase 0 (table + RLS livrées).
 
@@ -222,10 +222,10 @@ Taille **M** (~3-5 j-h). Pré-requis d'aucune autre phase ; débloque 1 et 2.
 
 ### B.4 Périmètre v1 vs v1.b
 - **v1 (cette phase)** : formulaires + création de tickets + décision de routage (qui traite) + workflow de statut (`open→in_progress→resolved/closed`) + file de demandes côté traitant. + l'ACT `password_reset`.
-- **v1.b (suite)** : exécution **en un clic depuis le ticket** (toggle `feature_flags`, `manage-team`/`invite-client`) — réutilise les backends existants, gardés par leurs permissions actuelles.
+- **v1.b (suite)** : exécution **en un clic depuis le ticket** (toggle `feature_flags`, `manage-team`/`invite-client`) - réutilise les backends existants, gardés par leurs permissions actuelles.
 
-### Annexe E — File côté cabinet (demandes routées cabinet)
-- **Migration `00130`** : étendre la policy `support_requests_update` pour autoriser un gestionnaire du cabinet — `cabinet_id = get_my_organization_id() AND has_cabinet_permission('can_manage_members')` — en plus du demandeur / platform owner. (La policy `SELECT` permet déjà à un membre de voir les tickets de son cabinet.)
+### Annexe E - File côté cabinet (demandes routées cabinet)
+- **Migration `00130`** : étendre la policy `support_requests_update` pour autoriser un gestionnaire du cabinet - `cabinet_id = get_my_organization_id() AND has_cabinet_permission('can_manage_members')` - en plus du demandeur / platform owner. (La policy `SELECT` permet déjà à un membre de voir les tickets de son cabinet.)
 - **UI** : page `/demandes-support` (app auditeur) réutilisant `useSupportRequestList` (filtré `nature='demande'`) + `SupportRequestDetail` (workflow de statut). Entrée nav gatée sur `useCabinetPermissions().canManageMembers`.
 - **Fulfillment** : `access_member` → note « Traiter dans Membres » (pas de 1-clic, le formulaire n'a capté que du texte libre). `feature_activation`/`plan_change` restent côté owner.
 - **Sécurité** : la RLS reste le garde-fou (le front ne fait que masquer l'entrée) ; pas de récursion (la policy n'interroge pas `support_requests`).
@@ -238,16 +238,16 @@ Taille **M** (~3-5 j-h). Pré-requis d'aucune autre phase ; débloque 1 et 2.
 - Entités HTML FR dans le JSX, composants ≤ 150 lignes, blocs `error` sur chaque appel.
 
 ### B.6 Décisions à valider
-1. **password_reset** : self-service par email (recommandé) — OK ?
-2. **Périmètre v1** : tickets + routage + statut maintenant, fulfillment 1-clic en v1.b — OK ?
-3. **Notifications** : se reposer sur la file en v1 (pas de notif dédiée au traitant tout de suite) — OK ?
+1. **password_reset** : self-service par email (recommandé) - OK ?
+2. **Périmètre v1** : tickets + routage + statut maintenant, fulfillment 1-clic en v1.b - OK ?
+3. **Notifications** : se reposer sur la file en v1 (pas de notif dédiée au traitant tout de suite) - OK ?
 
 ### B.7 Effort
 Taille **M**. Livrable et testable (création + scoping RLS validés en réel avec les 3 rôles).
 
 ---
 
-## Annexe D — Spéc détaillée Phase 2 : reproduction assistée
+## Annexe D - Spéc détaillée Phase 2 : reproduction assistée
 
 > Analyse d'impact à valider **avant** code. Réutilise l'`errorBuffer` (Phase 0).
 
@@ -257,10 +257,10 @@ Un **enregistreur global** capte les actions de l'utilisateur pendant une sessio
 ### D.2 Architecture
 - **`RecorderProvider`** monté **dans** `<BrowserRouter>` (App.tsx), au-dessus des routes : tient l'état (`recording`, `events[]`, `lastTrace`), expose `start() / stop() / cancel()`, et rend le **HUD** par-dessus toute l'app.
 - Capture **sans patch d'historique** : `useLocation()` pour les navigations (le provider est sous le Router), un listener `click` global (phase capture) ajouté seulement pendant l'enregistrement, et `errorBuffer.subscribe(cb)` pour les erreurs/4xx en temps réel.
-- **Extension `errorBuffer`** : ajouter `subscribe(cb): () => void` (notifie à chaque push) — le buffer existe déjà, on ajoute juste l'abonnement.
+- **Extension `errorBuffer`** : ajouter `subscribe(cb): () => void` (notifie à chaque push) - le buffer existe déjà, on ajoute juste l'abonnement.
 
 ### D.3 Ce qui est capté (et ce qui ne l'est PAS)
-- ✅ Clics : libellé/role de l'élément (texte tronqué, `aria-label`, tag) — **jamais** la valeur des `input`.
+- ✅ Clics : libellé/role de l'élément (texte tronqué, `aria-label`, tag) - **jamais** la valeur des `input`.
 - ✅ Navigations : changement de route.
 - ✅ Erreurs : console / rejets / requêtes 4xx-5xx (via `errorBuffer`, déjà sans secret).
 - ❌ **Aucune** frappe clavier, valeur de champ, en-tête, token. Privacy by design.
@@ -282,13 +282,13 @@ Pas de valeurs de champ ni de secret captés ; l'utilisateur **voit et édite** 
 Playwright : `start()`, faire des clics + une navigation + déclencher une 4xx, `stop()`, vérifier la trace (clics/nav/erreur ordonnés) puis la création du ticket bug (POST 201, trace en `context`). Nettoyage du ticket de test.
 
 ### D.8 Découpage
-- **D-a** : enregistreur core (provider + HUD + capture clics/nav/erreurs) — le gros morceau.
+- **D-a** : enregistreur core (provider + HUD + capture clics/nav/erreurs) - le gros morceau.
 - **D-b** : récap éditable + création du ticket bug + branchement des 2 cartes Bug.
 Taille **L**.
 
 ---
 
-## Annexe F — Phase 3 : agent de triage (data-facing)
+## Annexe F - Phase 3 : agent de triage (data-facing)
 
 > ⚠️ **Garde-fou DPA** : l'infra est construite mais **un feature flag `support_agent_triage` reste OFF par défaut**. Tant qu'il est OFF, `run-agent` refuse (aucune donnée tenant ne part vers Anthropic). Activation = **après feu vert DPA**. Tests uniquement sur données propres (compte owner).
 
@@ -316,19 +316,19 @@ Taille **L**.
 
 ---
 
-## Annexe G — Phase 4 : agent de faisabilité (code-facing)
+## Annexe G - Phase 4 : agent de faisabilité (code-facing)
 
 > ⚠️ **Garde-fou DPA** : flag `support_agent_feasibility` **OFF par défaut** (mig. 00132). Tant qu'il est OFF, `dispatch-feasibility` refuse (rien ne part vers GitHub ni Anthropic). Activation = **après feu vert DPA**. Le texte de la suggestion transite par GitHub **ET** Anthropic.
 
 ### G.1 Frontière respectée
-Code-facing : l'analyse lit le **repo** (jamais la base). Tourne dans **GitHub Actions** (checkout + Claude Code), pas dans une Edge Function. Réutilise `agent_runs` (`kind='feasibility'`) — **pas de nouvelle table**.
+Code-facing : l'analyse lit le **repo** (jamais la base). Tourne dans **GitHub Actions** (checkout + Claude Code), pas dans une Edge Function. Réutilise `agent_runs` (`kind='feasibility'`) - **pas de nouvelle table**.
 
 ### G.2 Flux
 ```
 Superadmin « Analyser la faisabilité »
   → dispatch-feasibility (Edge, JWT + owner + flag)
       · crée agent_runs(kind='feasibility', status='running')
-      · workflow_dispatch (GITHUB_DISPATCH_TOKEN) — input = run_id SEUL
+      · workflow_dispatch (GITHUB_DISPATCH_TOKEN) - input = run_id SEUL
   → .github/workflows/feasibility.yml
       · checkout (lecture seule) + Claude Code
       · feasibility-callback action=fetch → récupère body + module
@@ -339,7 +339,7 @@ Superadmin « Analyser la faisabilité »
 
 ### G.3 Minimisation (double surface : GitHub + Anthropic)
 - Le dispatch ne porte **que `run_id`** : le texte de la suggestion **n'apparaît pas** dans les inputs visibles des Actions ; le workflow le récupère à l'exécution via `feasibility-callback`.
-- `fetch` ne renvoie **que `body` + `module`** — jamais requester / cabinet / mission.
+- `fetch` ne renvoie **que `body` + `module`** - jamais requester / cabinet / mission.
 - Aucune donnée d'autres tenants : l'analyste lit le **code**, pas la base.
 
 ### G.4 Sécurité
@@ -349,7 +349,7 @@ Superadmin « Analyser la faisabilité »
 - `GITHUB_DISPATCH_TOKEN` : PAT fine-grained, **Actions:write** sur le seul repo. Secrets jamais côté client.
 
 ### G.5 Décision tranchée
-**Write-back** : Edge Function dédiée (`feasibility-callback`) protégée par secret CI partagé — UX automatique (le rapport remonte seul dans la superadmin).
+**Write-back** : Edge Function dédiée (`feasibility-callback`) protégée par secret CI partagé - UX automatique (le rapport remonte seul dans la superadmin).
 
 ### G.6 Pré-requis de déploiement (côté utilisateur)
 1. Migration `00132` (flag OFF).

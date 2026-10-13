@@ -1,8 +1,8 @@
-# RFC 0002 — Capacités + vocabulaire par org : suppression de l'édition au runtime
+# RFC 0002 - Capacités + vocabulaire par org : suppression de l'édition au runtime
 
 **Statut** : proposition (cadrage, avant tout code)
 **Prolonge** : RFC 0001 (modèle d'org en graphe entité/capacité), découplage produit runtime (suppression `VITE_PRODUCT`).
-**Remplace** : la première mouture de ce RFC (« édition = archétype de contexte »), abandonnée — l'édition ne gagne pas son statut de concept runtime.
+**Remplace** : la première mouture de ce RFC (« édition = archétype de contexte »), abandonnée - l'édition ne gagne pas son statut de concept runtime.
 
 ---
 
@@ -10,15 +10,15 @@
 
 **On supprime la notion d'« édition » au runtime.** Une organisation est entièrement définie par **deux axes indépendants** :
 
-1. **Capacités** (`organization_capabilities`) — *ce qu'elle peut faire* (les modules), **à la carte, par org**.
-2. **Vocabulaire par org** — *comment elle nomme les choses* (les libellés), **self-service**.
+1. **Capacités** (`organization_capabilities`) - *ce qu'elle peut faire* (les modules), **à la carte, par org**.
+2. **Vocabulaire par org** - *comment elle nomme les choses* (les libellés), **self-service**.
 
 Tout le reste que l'édition portait (`comply`/`regul`/`etp`, `get_my_edition`, `EditionContext.edition`, ~20 branchements `edition === 'regul'`) **disparaît**. Le code devient générique : il rend ce que les capacités + le vocab disent, jamais « si édition = regul ».
 
 ## 2. Motivation
 
 - **Besoin métier** : activer/désactiver un module **au besoin, pour un client déterminé** (entitlements SaaS).
-- **Constat** : le seul apport réel de l'édition au quotidien était le **vocabulaire** — or le vocabulaire est une **préférence par org**, pas un template figé. Une fois les capacités (modules) et le vocab (mots) gérés par org, l'édition est un **doublon** : un troisième concept qui ne fait que pointer vers les deux autres.
+- **Constat** : le seul apport réel de l'édition au quotidien était le **vocabulaire** - or le vocabulaire est une **préférence par org**, pas un template figé. Une fois les capacités (modules) et le vocab (mots) gérés par org, l'édition est un **doublon** : un troisième concept qui ne fait que pointer vers les deux autres.
 - **Conséquence** : la garder = maintenir une indirection inutile + du code qui branche en dur (`edition === 'regul'`), non scalable.
 
 ## 3. La frontière à garder claire
@@ -40,7 +40,7 @@ Tout le reste que l'édition portait (`comply`/`regul`/`etp`, `get_my_edition`, 
 3. **Suppression de l'édition** : retrait de `organizations.edition`, `get_my_edition()`, de la dépendance runtime à `editions`, et de `EditionContext.edition`. `EditionContext` se réduit à `capabilities` (renommer en `CapabilitiesContext`).
 4. **Templates de provisioning (optionnel, hors runtime)** : au mieux un catalogue léger de kits de démarrage (« Régulateur », « Cabinet ») = raccourcis de création qui pré-remplissent capacités + vocab. Aucun code ne les relit au runtime.
 
-## 5. Généralisation du code — retirer les `if edition === 'regul'`
+## 5. Généralisation du code - retirer les `if edition === 'regul'`
 
 Règle : brancher sur **capacités** (« ai-je le module X ? ») + **vocab** (labels), jamais sur une chaîne d'édition.
 
@@ -69,11 +69,11 @@ Règle : brancher sur **capacités** (« ai-je le module X ? ») + **vocab** (la
 
 ## 8. Plan par phases (compat d'abord, pas de big-bang)
 
-- **P1 — Vocabulaire par org.** Table `organization_vocab` + backfill des défauts (les valeurs codées comply/regul actuelles). `useVocab` lit par org avec repli. **Iso-fonctionnel** : comply et regul rendent exactement pareil. Aucune régression.
-- **P2 — Généraliser la coquille sur les capacités.** Remplacer les `=== 'regul'` un par un (dashboard, routes, bandeau, Hub, features), **équivalence prouvée** à chaque site. À l'issue, plus aucun code ne lit `edition`.
-- **P3 — Capacités éditables + écrans admin.** Découpler les capacités du seed ; livrer les toggles capacités **et** l'éditeur de terminologie ; journaliser.
-- **P4 — Retrait de l'édition.** Une fois plus rien ne lit `edition` : supprimer la colonne, `get_my_edition`, la dépendance runtime à `editions`. Remplacer par des **templates de provisioning** (raccourcis de création) si la commodité en vaut la peine.
-- **Futur — Plans de facturation.** Si besoin, un objet « plan/SKU » = bundle payant de capacités, adossé à la couche capacités + pricing (jamais à la coquille).
+- **P1 - Vocabulaire par org.** Table `organization_vocab` + backfill des défauts (les valeurs codées comply/regul actuelles). `useVocab` lit par org avec repli. **Iso-fonctionnel** : comply et regul rendent exactement pareil. Aucune régression.
+- **P2 - Généraliser la coquille sur les capacités.** Remplacer les `=== 'regul'` un par un (dashboard, routes, bandeau, Hub, features), **équivalence prouvée** à chaque site. À l'issue, plus aucun code ne lit `edition`.
+- **P3 - Capacités éditables + écrans admin.** Découpler les capacités du seed ; livrer les toggles capacités **et** l'éditeur de terminologie ; journaliser.
+- **P4 - Retrait de l'édition.** Une fois plus rien ne lit `edition` : supprimer la colonne, `get_my_edition`, la dépendance runtime à `editions`. Remplacer par des **templates de provisioning** (raccourcis de création) si la commodité en vaut la peine.
+- **Futur - Plans de facturation.** Si besoin, un objet « plan/SKU » = bundle payant de capacités, adossé à la couche capacités + pricing (jamais à la coquille).
 
 Chaque phase laisse l'app verte (typecheck+build) et les parcours Comply **et** Regul fonctionnels, via le pipeline `feat/* → staging → main`.
 
@@ -88,14 +88,14 @@ Chaque phase laisse l'app verte (typecheck+build) et les parcours Comply **et** 
 1. **Schéma du vocab** → table `organization_vocab(org_id, key, value)`, repli sur un défaut applicatif. Requêtable, extensible sans migration de colonne.
 2. **Qui édite le vocab** → super-admin Gëstu au provisioning + admin de l'org en ajustement fin. Écriture `service_role` + journalisée.
 3. **Étendue des clés** → **ensemble fixe et documenté** (issu du scan de code 2026-08-03), borné à ce qui varie par contexte :
-   - entité : `entity_singular`, `entity_plural`, `entities_title`, `entity_with_dem`, **`entity_gender`** (m/f — pilote l'accord FR ; remplace le bricolage `endsWith('e')` de `SubsidiariesPage`/`EntityFormModal`/`InactiveEntitiesSection`)
-   - rôles : **`provider_term`** (cabinet ↔ régulateur/autorité — angle mort majeur, présent partout y compris les emails), **`auditor_term`** (auditeur/chef de mission ↔ contrôleur/inspecteur)
+   - entité : `entity_singular`, `entity_plural`, `entities_title`, `entity_with_dem`, **`entity_gender`** (m/f - pilote l'accord FR ; remplace le bricolage `endsWith('e')` de `SubsidiariesPage`/`EntityFormModal`/`InactiveEntitiesSection`)
+   - rôles : **`provider_term`** (cabinet ↔ régulateur/autorité - angle mort majeur, présent partout y compris les emails), **`auditor_term`** (auditeur/chef de mission ↔ contrôleur/inspecteur)
    - modules : `mission_term`, `measure_term`, `finding_term`
    - portail : `portal_label`
    - présentation : `context_banner`, **`context_banner_sub`** (titre + sous-titre du bandeau, éditables séparément)
    - mineures / à dériver ou différer : `clients_nav_label`, `measures_nav_label` (« Constats & mesures » composé), `portfolio_label`
 
-   Le reste (boutons, messages système, enums de mesures/statuts, routes, branding marque-blanche, modules capability-gated) reste **fixe** — pas personnalisable (sinon = localisation ou casse du mapping enum/RLS).
+   Le reste (boutons, messages système, enums de mesures/statuts, routes, branding marque-blanche, modules capability-gated) reste **fixe** - pas personnalisable (sinon = localisation ou casse du mapping enum/RLS).
 
    **Le vocab n'est pas un simple `clé→string`** : `entity_gender` porte une métadonnée grammaticale → le modèle prévoit une valeur pouvant être structurée (ou une clé companion).
 4. **Templates de provisioning** → **cloner depuis une org de référence** (action super-admin « provisionner à partir de \<org type\> » qui copie capacités + vocab). Pas de table catalogue ; les orgs « Régulateur type » / « Cabinet type » **sont** les templates. Promotion vers un catalogue managé plus tard, avec les plans.
@@ -106,17 +106,17 @@ Chaque phase laisse l'app verte (typecheck+build) et les parcours Comply **et** 
 ## Résumé
 
 - **Runtime = capacités (modules) + vocab par org (mots).** Rien d'autre.
-- **L'édition disparaît** comme concept runtime (colonne, résolveur, ~20 branchements) — au mieux un **template de provisioning** optionnel.
+- **L'édition disparaît** comme concept runtime (colonne, résolveur, ~20 branchements) - au mieux un **template de provisioning** optionnel.
 - Le code passe de « `if edition === 'regul'` » à « **rends ce que les capacités + le vocab disent** » → générique, scalable, un concept en moins à maintenir.
 - Une org se définit par **ce qu'elle peut faire** + **comment elle nomme les choses**.
 
 ---
 
-## Annexe A — Catalogue des clés de vocab
+## Annexe A - Catalogue des clés de vocab
 
 Issu du scan de code du 2026-08-03. **13 clés cœur + 3 différées.** Défaut = valeur plateforme (cadrage Comply/cabinet) ; exemple = édition régulateur.
 
-### Entité — le terme central
+### Entité - le terme central
 | Clé | Rôle / où | Défaut | Exemple régul |
 |---|---|---|---|
 | `entity_singular` | Phrases, formulaires, titres de détail (« nouvel **assujetti** ») | entité | assujetti |
@@ -142,7 +142,7 @@ Issu du scan de code du 2026-08-03. **13 clés cœur + 3 différées.** Défaut 
 | Clé | Rôle / où | Défaut | Exemple régul |
 |---|---|---|---|
 | `portal_label` | Nom du portail externe : sidebar portail, en-tête, emails | Portail Client | Portail Assujetti |
-| `context_banner` | Bandeau de contexte (titre) — *vide = pas de bandeau* | *(vide)* | Console régulateur |
+| `context_banner` | Bandeau de contexte (titre) - *vide = pas de bandeau* | *(vide)* | Console régulateur |
 | `context_banner_sub` | Sous-titre du bandeau, éditable séparément | *(vide)* | Superviseur de conformité cyber |
 
 ### Différées / à dériver (mineures)
@@ -152,8 +152,8 @@ Issu du scan de code du 2026-08-03. **13 clés cœur + 3 différées.** Défaut 
 | `measures_nav_label` | Libellé composé « Constats & mesures » | dérivable de `finding_term`+`measure_term` (séparateur/ordre variables) |
 | `portfolio_label` | « Portefeuille clients » (dashboard cabinet) | Comply-only, faible variance |
 
-### Hors vocab (rappel — reste FIXE)
-Types de mesures (`recommandation`/`mise_en_demeure`/`injonction`/`sanction`), statuts, routes (`entityRouteBase`), `logoTag`, `primaryProduct`, objet CAR, marque blanche — enums/routes/branding/domaines, non personnalisables. Les **modules** actifs relèvent des **capacités**, pas du vocab.
+### Hors vocab (rappel - reste FIXE)
+Types de mesures (`recommandation`/`mise_en_demeure`/`injonction`/`sanction`), statuts, routes (`entityRouteBase`), `logoTag`, `primaryProduct`, objet CAR, marque blanche - enums/routes/branding/domaines, non personnalisables. Les **modules** actifs relèvent des **capacités**, pas du vocab.
 
 ### Surfaces à câbler
 Front : `src/lib/product.ts` (source vocab), `useVocab.ts`/`EditionContext.tsx` (résolveur → lire `organization_vocab`), `useSidebarNav.tsx` + `AppLayout.tsx` (densité de libellés). Serveur : `supabase/functions/_shared/email-templates.ts`, `reminder.ts`, `car.ts` (aujourd'hui figés « cabinet/auditeur »).

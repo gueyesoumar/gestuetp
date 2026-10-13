@@ -4,7 +4,7 @@
 -- et la primitive visible_target_ids() (étape 3) font l'objet de migrations séparées.
 -- types[], cabinet_clients, parent_org_id et les policies actuelles restent intacts.
 
--- ── Enums ─────────────────────────────────────────────────────────────────────
+-- -- Enums ---------------------------------------------------------------------
 do $$ begin
   create type public.relationship_nature as enum
     ('self','audit_engagement','group_ownership','regulatory_supervision','delegation');
@@ -23,7 +23,7 @@ do $$ begin
   create type public.capability_status as enum ('active','trial','disabled');
 exception when duplicate_object then null; end $$;
 
--- ── Arêtes typées entre organisations ─────────────────────────────────────────
+-- -- Arêtes typées entre organisations -----------------------------------------
 create table if not exists public.organization_relationships (
   id uuid primary key default gen_random_uuid(),
   actor_org_id uuid not null references public.organizations(id) on delete cascade,
@@ -54,7 +54,7 @@ create unique index if not exists uq_org_rel_active
   on public.organization_relationships(actor_org_id, target_org_id, nature)
   where status = 'active';
 
--- ── Capacités (modules) par organisation ──────────────────────────────────────
+-- -- Capacités (modules) par organisation --------------------------------------
 create table if not exists public.organization_capabilities (
   id uuid primary key default gen_random_uuid(),
   org_id uuid not null references public.organizations(id) on delete cascade,
@@ -69,14 +69,14 @@ comment on table public.organization_capabilities is
 
 create index if not exists idx_org_cap_org on public.organization_capabilities(org_id);
 
--- ── Lien mission → arête d'engagement (décision #3) ────────────────────────────
+-- -- Lien mission → arête d'engagement (décision #3) ----------------------------
 -- Nullable, rempli à l'étape 2. Aucun code actuel ne le référence → sans impact.
 alter table public.missions
   add column if not exists engagement_id uuid
   references public.organization_relationships(id) on delete set null;
 create index if not exists idx_missions_engagement on public.missions(engagement_id);
 
--- ── RLS (activée dès la création) ──────────────────────────────────────────────
+-- -- RLS (activée dès la création) ----------------------------------------------
 alter table public.organization_relationships enable row level security;
 alter table public.organization_capabilities  enable row level security;
 

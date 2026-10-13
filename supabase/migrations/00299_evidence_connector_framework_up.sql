@@ -13,7 +13,7 @@
 --    aucun jeton n'est jamais stocké en clair ici.
 --  - Standard plateforme : session MFA (AAL2) requise (restrictive).
 
--- ───────────────────────── 1. control_checks (bibliothèque plateforme) ─────────────────────────
+-- ------------------------- 1. control_checks (bibliothèque plateforme) -------------------------
 -- Décision §10.a : bibliothèque réutilisable, liée aux contrôles via control_check_links.
 create table public.control_checks (
   id uuid primary key default gen_random_uuid(),
@@ -38,7 +38,7 @@ create policy "control_checks_aal2" on public.control_checks
   as restrictive for all to authenticated using (public.is_aal2());
 -- Aucune policy d'écriture → INSERT/UPDATE/DELETE réservés au service_role.
 
--- ───────────────────────── 2. control_check_links (contrôle ↔ check) ─────────────────────────
+-- ------------------------- 2. control_check_links (contrôle ↔ check) -------------------------
 -- Liaison au niveau du référentiel (patron question_controls). Gérée par la plateforme.
 create table public.control_check_links (
   id uuid primary key default gen_random_uuid(),
@@ -61,7 +61,7 @@ create policy "control_check_links_aal2" on public.control_check_links
   as restrictive for all to authenticated using (public.is_aal2());
 -- Aucune policy d'écriture → service_role.
 
--- ───────────────────────── 3. connector_integrations (OAuth par org) ─────────────────────────
+-- ------------------------- 3. connector_integrations (OAuth par org) -------------------------
 create table public.connector_integrations (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
@@ -90,7 +90,7 @@ create policy "ci_aal2" on public.connector_integrations
   as restrictive for all to authenticated using (public.is_aal2());
 -- Aucune policy d'écriture → INSERT/UPDATE/DELETE réservés au service_role (OAuth + Vault).
 
--- ───────────────────────── 4. evidence_results (modèle de preuve commun) ─────────────────────────
+-- ------------------------- 4. evidence_results (modèle de preuve commun) -------------------------
 -- Décision §10.b : verdict + valeur par défaut ; brut (raw_ref) optionnel selon consentement.
 create table public.evidence_results (
   id uuid primary key default gen_random_uuid(),
@@ -121,7 +121,7 @@ create policy "er_aal2" on public.evidence_results
   as restrictive for all to authenticated using (public.is_aal2());
 -- Aucune policy d'écriture → service_role (collecte via edge, preuve non falsifiable).
 
--- ───────────────────────── SEED : 3 checks Entra (pilote, §5) ─────────────────────────
+-- ------------------------- SEED : 3 checks Entra (pilote, §5) -------------------------
 insert into public.control_checks (provider, check_key, title, description, default_params, dimension, severity_on_fail) values
   ('entra', 'entra.mfa_admins',
    'MFA activé pour les comptes à privilèges',

@@ -1,4 +1,4 @@
-# Documentation — Gëstu ETP
+# Documentation - Gëstu ETP
 
 Carte de la documentation du projet. Le code vit dans [`../src/`](../src/), les migrations et Edge Functions dans [`../supabase/`](../supabase/).
 
@@ -9,10 +9,10 @@ Carte de la documentation du projet. Le code vit dans [`../src/`](../src/), les 
 | Dossier | Contenu |
 |---|---|
 | [`rfc/`](rfc/) | **Décisions d'architecture** (RFC). Documents de référence figés, une décision majeure par fichier. |
-| [`audit/`](audit/) | **Dossier d'audit** complet (fonctionnel, sécurité, architecture, matrice de contrôles, onboarding, revues OWASP…). Voir son [README](audit/README.md). |
+| [`audit/`](audit/) | **Dossier d'audit** complet (fonctionnel, sécurité, architecture, matrice de contrôles, onboarding, revues OWASP...). Voir son [README](audit/README.md). |
 | [`ops/`](ops/) | **Exploitation** : mise en place CI/CD ([`cicd-setup.md`](ops/cicd-setup.md)), scellements probatoires ([`probative-seals/`](ops/probative-seals/)). |
 | [`runbooks/`](runbooks/) | **Procédures opérationnelles** (ex. [activation MFA](runbooks/mfa-activation.md)). |
-| [`mockups/`](mockups/) | **Maquettes design** (HTML, ~69) — historique des directions visuelles. |
+| [`mockups/`](mockups/) | **Maquettes design** (HTML, ~69) - historique des directions visuelles. |
 | [`demo/`](demo/) | Supports de **démonstration** (ex. démo DCSSI). |
 | [`tests/`](tests/) | **Cahier de tests** (`.md` + `.xlsx`). |
 | [`archive/`](archive/) | Documents **historiques** : handoff de portage, prototypes, résumés obsolètes. |
@@ -30,6 +30,6 @@ Carte de la documentation du projet. Le code vit dans [`../src/`](../src/), les 
 
 ## Notes transverses (racine de `docs/`)
 
-- [`SECURITY-REVIEW-2026-06.md`](SECURITY-REVIEW-2026-06.md) — revue de sécurité
-- [`SUPPORT-AGENTS-PLAN.md`](SUPPORT-AGENTS-PLAN.md) — plan des agents de support
-- [`ops-super-admin.md`](ops-super-admin.md) · [`ops-evidence-reminders.md`](ops-evidence-reminders.md) — notes d'exploitation
+- [`SECURITY-REVIEW-2026-06.md`](SECURITY-REVIEW-2026-06.md) - revue de sécurité
+- [`SUPPORT-AGENTS-PLAN.md`](SUPPORT-AGENTS-PLAN.md) - plan des agents de support
+- [`ops-super-admin.md`](ops-super-admin.md) · [`ops-evidence-reminders.md`](ops-evidence-reminders.md) - notes d'exploitation

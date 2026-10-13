@@ -85,7 +85,7 @@ jobs:
             --permission-mode acceptEdits --allowedTools "Read,Grep,Glob,Edit,Write" > env.json || true
           COST=$(jq -r '.total_cost_usd // 0' env.json 2>/dev/null || echo 0)
           echo "coût agent : $COST \$"
-          awk -v t="$COST" 'BEGIN{exit !(t>5.0)}' && { echo "Budget 5\$ dépassé — arrêt"; exit 1; }
+          awk -v t="$COST" 'BEGIN{exit !(t>5.0)}' && { echo "Budget 5\$ dépassé - arrêt"; exit 1; }
 
           # Clôture frontend-only : restaurer les modifs suivies hors src/ + supprimer
           # les fichiers non suivis hors src/ (node_modules ignoré n'est pas touché).
@@ -108,12 +108,12 @@ jobs:
           git checkout -b "$BRANCH"
           git add -A src/
           if git diff --cached --quiet; then echo "Aucune modification frontend produite"; exit 1; fi
-          git commit -m "feat(agent): brouillon — $(cat module.txt) (run ${RUN_ID})"
+          git commit -m "feat(agent): brouillon - $(cat module.txt) (run ${RUN_ID})"
           git push origin "$BRANCH"
-          BODY=$(printf '**Brouillon généré par un agent — à revoir avant merge.**\n\nModule : %s\nRun : %s\n\nSuggestion :\n%s\n\n_Périmètre frontend-only (src/) ; base staging ; gates CI passés._' \
+          BODY=$(printf '**Brouillon généré par un agent - à revoir avant merge.**\n\nModule : %s\nRun : %s\n\nSuggestion :\n%s\n\n_Périmètre frontend-only (src/) ; base staging ; gates CI passés._' \
             "$(cat module.txt)" "$RUN_ID" "$(cat body.txt)")
           PR_URL=$(gh pr create --base staging --head "$BRANCH" \
-            --title "Brouillon agent — $(cat module.txt) (run ${RUN_ID})" --body "$BODY")
+            --title "Brouillon agent - $(cat module.txt) (run ${RUN_ID})" --body "$BODY")
           echo "PR: $PR_URL"
           jq -n --arg u "$PR_URL" --arg b "$BRANCH" \
             '{action:"record_pr", run_id:env.RUN_ID, pr_url:$u, pr_branch:$b, pr_state:"open"}' > rec.json

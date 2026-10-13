@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gëstu — Mockup · Centre d'aide (bug / demande / suggestion)</title>
+<title>Gëstu - Mockup · Centre d'aide (bug / demande / suggestion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
@@ -166,7 +166,7 @@
   <button id="sw-adm" onclick="setSide('adm')">② Côté superadmin · traitement</button>
 </div>
 
-<!-- ════════ CÔTÉ CABINET / CLIENT ════════ -->
+<!-- -------- CÔTÉ CABINET / CLIENT -------- -->
 <div id="screen-cab">
   <div class="portal-top"><b>Gëstu<span style="color:var(--gold)">.</span></b><span class="tag">CENTRE D'AIDE</span><span class="who">Seydina O. Gueye · Groupe ISM</span></div>
   <div class="portal-wrap">
@@ -174,7 +174,7 @@
     <!-- ENTRÉE : 3 cartes -->
     <div id="cab-home">
       <h1>Comment pouvons-nous aider&nbsp;?</h1>
-      <div class="sub" style="margin-bottom:18px">Choisissez ce que vous souhaitez faire — on adapte le formulaire et l'acheminement.</div>
+      <div class="sub" style="margin-bottom:18px">Choisissez ce que vous souhaitez faire - on adapte le formulaire et l'acheminement.</div>
       <div class="choices">
         <div class="choice" onclick="goCab('cab-bug')">
           <div class="em">🐞</div><div class="ct">Signaler un bug</div>
@@ -182,7 +182,7 @@
         </div>
         <div class="choice" onclick="goCab('cab-demande')">
           <div class="em">📋</div><div class="ct">Faire une demande</div>
-          <div class="cd">Mot de passe, accès, activation d'une fonctionnalité, changement de plan…</div>
+          <div class="cd">Mot de passe, accès, activation d'une fonctionnalité, changement de plan...</div>
         </div>
         <div class="choice" onclick="goCab('cab-suggest')">
           <div class="em">💡</div><div class="ct">Suggérer une amélioration</div>
@@ -207,9 +207,9 @@
 
     <!-- BUG : enregistrement -->
     <div id="cab-rec" class="hidden">
-      <h1>Enregistrement…</h1><div class="sub">Refaites simplement l'action qui pose problème.</div>
+      <h1>Enregistrement...</h1><div class="sub">Refaites simplement l'action qui pose problème.</div>
       <div class="stage" style="margin-top:12px">
-        <div class="fakebar"><span class="u"></span><span class="u"></span><span class="u"></span><span class="addr">app.gestugroup.com/client/missions/4b16…/rapports</span></div>
+        <div class="fakebar"><span class="u"></span><span class="u"></span><span class="u"></span><span class="addr">app.gestugroup.com/client/missions/4b16.../rapports</span></div>
         <div class="fakebody"><div class="skl" style="width:40%"></div><div class="skl" style="width:90%"></div><div class="skl" style="width:80%"></div><div class="skl" style="width:60%"></div></div>
         <div class="hud">
           <div class="hh"><span class="recdot"></span> Enregistrement en cours <span class="htime" id="rectime">00:00</span></div>
@@ -232,7 +232,7 @@
     <div id="cab-demande" class="hidden">
       <div class="backlink" onclick="goCab('cab-home')">← Centre d'aide</div>
       <h1>Faire une demande</h1>
-      <div class="sub" style="margin-bottom:16px">Choisissez le type — l'acheminement s'affiche selon le traitement requis.</div>
+      <div class="sub" style="margin-bottom:16px">Choisissez le type - l'acheminement s'affiche selon le traitement requis.</div>
       <div class="types" id="typeList"></div>
       <div id="demande-form" class="card hidden" style="padding:16px;margin-top:16px"></div>
       <div class="note">ℹ️ La liste s'adapte au rôle : un client du portail ne voit pas « Changement de plan ». <span class="tag-role">RÔLE CABINET</span> = visible pour les rôles cabinet.</div>
@@ -242,7 +242,7 @@
     <div id="cab-suggest" class="hidden">
       <div class="backlink" onclick="goCab('cab-home')">← Centre d'aide</div>
       <h1>Suggérer une amélioration</h1>
-      <div class="sub" style="margin-bottom:16px">Votre idée est transmise à l'équipe produit (sans délai garanti — ce n'est pas un incident).</div>
+      <div class="sub" style="margin-bottom:16px">Votre idée est transmise à l'équipe produit (sans délai garanti - ce n'est pas un incident).</div>
       <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:14px">
         <div><label>Module concerné</label><select><option>Missions</option><option>Portail client</option><option>Rapports</option><option>Planning</option><option>Général</option></select></div>
         <div><label>Votre idée</label><textarea>Pouvoir exporter le plan d'action en Excel directement depuis le portail.</textarea></div>
@@ -262,7 +262,7 @@
   </div>
 </div>
 
-<!-- ════════ CÔTÉ SUPERADMIN ════════ -->
+<!-- -------- CÔTÉ SUPERADMIN -------- -->
 <div id="screen-adm" class="hidden">
   <div class="app">
     <aside class="side">
@@ -313,9 +313,9 @@
             <div class="result hidden" id="result">
               <div class="rh"><span class="badge b-org"><span class="dot"></span>BUG CODE</span><span class="meta">Gravité : <b>élevée</b></span></div>
               <div class="body"><h4>Cause probable</h4><p>La page Rapports interroge <span class="mono">reports.title</span> qui n'existe pas (PostgREST <span class="mono">42703</span>) → <b>400</b>, liste vide. Bug requête front, reproductible.</p>
-              <h4>Données vues (via la trace)</h4><p class="seen">GET /rest/v1/reports?select=id,title,… → 400 · column reports.title does not exist</p></div>
+              <h4>Données vues (via la trace)</h4><p class="seen">GET /rest/v1/reports?select=id,title,... → 400 · column reports.title does not exist</p></div>
             </div>
-            <div class="copilot hidden" id="copilot"><div class="ch">✦ ACTIONS — à valider</div>
+            <div class="copilot hidden" id="copilot"><div class="ch">✦ ACTIONS - à valider</div>
               <textarea>Au client : « Merci pour la reproduction, elle a permis d'identifier l'origine (un champ obsolète dans la requête des rapports). Correctif en cours. »</textarea>
               <div class="ractions"><button class="btn prim">✓ Répondre au client</button><button class="btn">↑ Escalader vers dev (trace jointe)</button><button class="btn">✎ Éditer</button></div>
             </div>
@@ -338,13 +338,13 @@
               </div>
             </div>
             <div class="run-head" style="border-bottom:0;padding-bottom:6px">
-              <div class="meta"><b style="color:var(--ink)">Analyse de faisabilité</b> — agent code · repo via GitHub Actions</div>
+              <div class="meta"><b style="color:var(--ink)">Analyse de faisabilité</b> - agent code · repo via GitHub Actions</div>
               <div class="meta" id="feasMeta">prêt</div>
             </div>
             <div class="timeline" id="feasTimeline"></div>
 
             <div class="result hidden" id="feasReport">
-              <div class="rh"><span class="badge b-grn"><span class="dot"></span>★ QUICK WIN — à prioriser</span><span class="meta">Score <b>RICE</b></span></div>
+              <div class="rh"><span class="badge b-grn"><span class="dot"></span>★ QUICK WIN - à prioriser</span><span class="meta">Score <b>RICE</b></span></div>
               <div class="rice">
                 <div class="m"><div class="ml">Reach</div><div class="mv">80<span style="font-size:10px;font-weight:600;color:var(--muted)">/mois</span></div></div>
                 <div class="m"><div class="ml">Impact</div><div class="mv">2<span style="font-size:10px;font-weight:600;color:var(--muted)">/3</span></div></div>
@@ -358,8 +358,8 @@
                 <h4>Fonctionnel <span class="vd ok">✓ CLAIR</span></h4><p>Colonnes : contrôle · constat · action · responsable · échéance · statut. Rôles : client &amp; auditeur. Cas limites : plan vide, gros volumes.</p>
                 <h4>Impact technique <span class="vd ok">✓ LIMITÉ</span></h4><p class="seen">UI: ClientActionPlanTab · hook: useClientActionPlan (données déjà chargées) · table: corrective_action_requests (lecture) · migration: aucune · Edge Function: aucune si export client</p>
                 <h4>🔒 Sécurité <span class="vd ok">✓ FAIBLE RISQUE</span></h4><p>Lecture seule de données <b>déjà visibles</b> par l'utilisateur ; la RLS de <span class="mono">corrective_action_requests</span> s'applique déjà. Export généré côté client → <b>aucune nouvelle surface</b>. ⚠️ Si export déplacé côté serveur plus tard : cloisonner par cabinet.</p>
-                <h4>🛡️ Conformité / RGPD <span class="vd warn">⚠️ POINT D'ATTENTION</span></h4><p>Le plan d'action contient des noms de responsables (<b>données personnelles</b>). L'export est une sortie locale vers un utilisateur qui y a déjà accès → pas de nouveau traitement ni transfert tiers. <b>Recommandé</b> : journaliser les exports (qui / quoi / quand) pour la piste d'audit — cohérent avec un produit de conformité.</p>
-                <h4>Complexité / effort <span class="vd ok">✓ TAILLE S</span></h4><p>Effort estimé <b>0,5–1 j-h</b>. Confiance de l'analyse : <b>85% (élevée)</b> — lib et données déjà présentes, périmètre clair. Pas de migration.</p>
+                <h4>🛡️ Conformité / RGPD <span class="vd warn">⚠️ POINT D'ATTENTION</span></h4><p>Le plan d'action contient des noms de responsables (<b>données personnelles</b>). L'export est une sortie locale vers un utilisateur qui y a déjà accès → pas de nouveau traitement ni transfert tiers. <b>Recommandé</b> : journaliser les exports (qui / quoi / quand) pour la piste d'audit - cohérent avec un produit de conformité.</p>
+                <h4>Complexité / effort <span class="vd ok">✓ TAILLE S</span></h4><p>Effort estimé <b>0,5-1 j-h</b>. Confiance de l'analyse : <b>85% (élevée)</b> - lib et données déjà présentes, périmètre clair. Pas de migration.</p>
                 <h4>Hypothèses &amp; questions ouvertes</h4>
                 <ul class="qa">
                   <li><b>Hypothèse</b> : export généré côté client à partir des données déjà chargées (pas d'Edge Function).</li>
@@ -380,20 +380,20 @@
 
 <script>
   const TRACE=[
-    {ic:'🧭',lbl:'Page ouverte',det:'/client/missions/4b16…f582 › Rapports'},
-    {ic:'🖱️',lbl:'Clic — bouton « Actualiser »',det:'button#refresh-reports'},
+    {ic:'🧭',lbl:'Page ouverte',det:'/client/missions/4b16...f582 › Rapports'},
+    {ic:'🖱️',lbl:'Clic - bouton « Actualiser »',det:'button#refresh-reports'},
     {ic:'🌐',lbl:'Requête réseau',det:'GET /rest/v1/reports?select=id,title,file_size,file_path,created_at'},
     {ic:'⛔',lbl:'Erreur 400',det:'column reports.title does not exist (PostgREST 42703)',err:true},
   ];
   const REC_EVENTS=[
     {tx:'→ page chargée · Rapports'},{tx:'→ clic « Actualiser »'},
-    {tx:'→ GET /rest/v1/reports?select=id,title,…'},{tx:'⛔ 400 · column reports.title does not exist — capturé',cls:'err'},
+    {tx:'→ GET /rest/v1/reports?select=id,title,...'},{tx:'⛔ 400 · column reports.title does not exist - capturé',cls:'err'},
   ];
   // types de demande (avec routage + role)
   const DEMANDES=[
     {id:'pwd',em:'🔑',tt:'Réinitialiser un mot de passe',td:'Pour vous ou un membre',chip:['auto','Traité automatiquement'],route:'⚡ Un email de réinitialisation est envoyé immédiatement (via votre admin cabinet).',fields:'<label>Compte concerné</label><input value="seydina-oumar.gueye@groupeism.sn">'},
     {id:'feat',em:'⚡',tt:'Activer une fonctionnalité',td:'Module non disponible',chip:['cab','Cabinet / Gëstu'],route:'⚙️ Si incluse à votre plan : activée par votre cabinet. Sinon : transmise à Gëstu pour validation.',fields:'<label>Fonctionnalité souhaitée</label><select><option>Smart Questionnaire (IA)</option><option>Analyse documentaire IA</option><option>Module Groupe</option></select><div style="margin-top:12px"><label>Précision (optionnel)</label><textarea style="min-height:50px"></textarea></div>'},
-    {id:'plan',em:'💳',tt:'Changer de plan',td:'Évolution commerciale',chip:['gst','Gëstu'],role:true,route:'💼 Transmise à l\'équipe Gëstu (platform owner) — un conseiller revient vers vous.',fields:'<label>Plan souhaité</label><select><option>Standard → Pro</option><option>Pro → Entreprise</option><option>Autre / sur-mesure</option></select><div style="margin-top:12px"><label>Contexte (optionnel)</label><textarea style="min-height:50px"></textarea></div>'},
+    {id:'plan',em:'💳',tt:'Changer de plan',td:'Évolution commerciale',chip:['gst','Gëstu'],role:true,route:'💼 Transmise à l\'équipe Gëstu (platform owner) - un conseiller revient vers vous.',fields:'<label>Plan souhaité</label><select><option>Standard → Pro</option><option>Pro → Entreprise</option><option>Autre / sur-mesure</option></select><div style="margin-top:12px"><label>Contexte (optionnel)</label><textarea style="min-height:50px"></textarea></div>'},
     {id:'access',em:'👥',tt:'Gérer un accès / membre',td:'Inviter, retirer, changer un rôle',chip:['cab','Admin cabinet'],role:true,route:'👤 Transmise à l\'admin de votre cabinet.',fields:'<label>Action</label><select><option>Inviter un membre</option><option>Retirer un membre</option><option>Changer un rôle</option></select><div style="margin-top:12px"><label>Email concerné</label><input placeholder="prenom.nom@cabinet.com"></div>'},
   ];
 
@@ -456,7 +456,7 @@
   function openSuggestion(){['view-list','view-ticket'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById('view-suggestion').classList.remove('hidden');resetFeas();}
   const FEAS_STEPS=[
     {t:'think',tx:'Analyse code-facing : je récupère le repo et je cherche un export existant.'},
-    {t:'tool',tx:'grep -r "xlsx" src supabase',res:'↳ lib xlsx déjà utilisée (Edge Functions smart-*) — réutilisable'},
+    {t:'tool',tx:'grep -r "xlsx" src supabase',res:'↳ lib xlsx déjà utilisée (Edge Functions smart-*) - réutilisable'},
     {t:'tool',tx:'find export plan d\'action',res:'↳ aucun export Excel ; génération PDF déjà en place (générateurs lazy-loaded)'},
     {t:'tool',tx:'read useClientActionPlan + table corrective_action_requests',res:'↳ données déjà chargées côté client'},
     {t:'tool',tx:'check RLS corrective_action_requests',res:'↳ déjà cloisonnée par mission · lecture seule'},

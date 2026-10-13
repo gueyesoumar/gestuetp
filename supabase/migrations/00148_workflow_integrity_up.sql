@@ -11,7 +11,7 @@
 -- B3 (majeur) : control_assessments.auditor_id ON DELETE CASCADE → supprimer un
 --   auditeur détruit son travail. → passage en ON DELETE SET NULL (colonne nullable).
 
--- ── B1 : visibilité client bornée à la phase client_review/closure ────────────
+-- -- B1 : visibilité client bornée à la phase client_review/closure ------------
 drop policy if exists "cp_assessments_select" on public.control_assessments;
 create policy "cp_assessments_select"
   on public.control_assessments for select to authenticated
@@ -33,7 +33,7 @@ create policy "cp_findings_select"
     )
   );
 
--- ── B2 : garde de transitions sur missions.status ────────────────────────────
+-- -- B2 : garde de transitions sur missions.status ----------------------------
 create or replace function public.missions_status_transition_guard()
 returns trigger
 language plpgsql
@@ -62,7 +62,7 @@ create trigger trg_missions_status_guard
   before update of status on public.missions
   for each row execute function public.missions_status_transition_guard();
 
--- ── B3 : préserver le travail d'audit si un auditeur est supprimé ─────────────
+-- -- B3 : préserver le travail d'audit si un auditeur est supprimé -------------
 alter table public.control_assessments drop constraint if exists control_assessments_auditor_id_fkey;
 alter table public.control_assessments alter column auditor_id drop not null;
 alter table public.control_assessments

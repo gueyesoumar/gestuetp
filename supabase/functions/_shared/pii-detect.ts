@@ -12,7 +12,7 @@ export interface PiiMatch {
   end: number
 }
 
-// ── Validateurs ───────────────────────────────────────────────────────────────
+// -- Validateurs ---------------------------------------------------------------
 
 /** Luhn : vrai si la séquence de chiffres est un numéro de carte plausible. */
 function luhnValid(digits: string): boolean {
@@ -41,7 +41,7 @@ function ibanValid(raw: string): boolean {
   return remainder === 1
 }
 
-// ── Détecteurs ────────────────────────────────────────────────────────────────
+// -- Détecteurs ----------------------------------------------------------------
 
 interface Detector {
   category: string

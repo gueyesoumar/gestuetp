@@ -101,7 +101,7 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
 
   return (
     <div className="space-y-8">
-      {/* ═══ Livrables ═══ */}
+      {/* --- Livrables --- */}
       <section>
         <p className="text-sm font-bold mb-3">Livrables</p>
         {reports.length > 0 ? (
@@ -129,7 +129,7 @@ export function ClientReportsTab({ mission }: Props): JSX.Element {
         )}
       </section>
 
-      {/* ═══ Historique ═══ */}
+      {/* --- Historique --- */}
       <section>
         <p className="text-sm font-bold mb-3">&Eacute;volution dans le temps</p>
         {history.length > 0 ? (

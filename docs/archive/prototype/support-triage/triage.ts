@@ -1,5 +1,5 @@
 /**
- * PROTOTYPE JETABLE — agent de triage support Gestu Comply.
+ * PROTOTYPE JETABLE - agent de triage support Gestu Comply.
  *
  * But : sentir le comportement agentique (boucle tool-use multi-etapes) avant
  * d'industrialiser en Edge Function. LECTURE SEULE. Hors prod.
@@ -35,7 +35,7 @@ if (!symptom) {
   Deno.exit(1);
 }
 
-// ── Outils DB (lecture seule, scopes) ───────────────────────────────────────
+// -- Outils DB (lecture seule, scopes) ---------------------------------------
 const rest = (path: string) =>
   fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
@@ -117,7 +117,7 @@ const TOOLS: Record<
   },
 };
 
-// ── Boucle agentique (Anthropic Messages API, tool use) ──────────────────────
+// -- Boucle agentique (Anthropic Messages API, tool use) ----------------------
 const SYSTEM = `Tu es l'agent de triage support de Gestu Comply, plateforme SaaS multi-tenant d'audit/conformite (cloisonnee par cabinet).
 On te donne un symptome remonte par un utilisateur (auditeur ou client). Enquete avec les outils en LECTURE SEULE, puis conclus.
 Methode : pars du symptome -> retrouve la mission/le cabinet/l'utilisateur concerne -> regarde les compteurs et les permissions -> forme une hypothese, verifie-la.
@@ -178,7 +178,7 @@ for (let turn = 1; turn <= MAX_TURNS; turn++) {
     const tool = TOOLS[b.name as string];
     const out = tool ? await tool.run(b.input as Record<string, string>) : { _error: "outil inconnu" };
     const preview = JSON.stringify(out).slice(0, 300);
-    console.log(`   ↳ ${preview}${preview.length >= 300 ? "…" : ""}`);
+    console.log(`   ↳ ${preview}${preview.length >= 300 ? "..." : ""}`);
     results.push({ type: "tool_result", tool_use_id: b.id, content: JSON.stringify(out).slice(0, 4000) });
   }
   messages.push({ role: "user", content: results });

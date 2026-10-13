@@ -6,7 +6,7 @@ import { drawH3, drawSectionBanner, drawTable, setText, writeWrapped } from './p
 import { formatDate, truncate } from './utils'
 import { frameworkLabel, generateGlossary } from '../auditReportNarratives'
 
-// ── Annexes ───────────────────────────────────────────────────────────────
+// -- Annexes ---------------------------------------------------------------
 
 export function drawAnnexAGlossary(ctx: DocContext): void {
   drawSectionBanner(ctx, 'A', 'Glossaire', 'Définitions des termes techniques utilisés dans le rapport')

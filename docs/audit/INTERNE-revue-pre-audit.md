@@ -1,8 +1,8 @@
-# [INTERNE] Revue pré-audit Gëstu ETP — backlog de remédiation
+# [INTERNE] Revue pré-audit Gëstu ETP - backlog de remédiation
 
 > Document **INTERNE** (ne pas transmettre tel quel à l'auditeur externe). Issu d'une revue multi-agents adversariale du code réel, 2026-07-09. Sévérités = **confirmées après contre-analyse**.
 
-# Rapport de synthèse — Revue pré-audit Gëstu ETP
+# Rapport de synthèse - Revue pré-audit Gëstu ETP
 
 _Revue adversariale de la plateforme (Comply + module régulateur Regul). Chaque constat a été vérifié sur le code réel ; les sévérités ci-dessous sont les **sévérités confirmées après contre-analyse**, qui divergent parfois des sévérités initiales._
 
@@ -10,7 +10,7 @@ _Revue adversariale de la plateforme (Comply + module régulateur Regul). Chaque
 
 ## 1. Résumé exécutif
 
-**Posture générale : globalement saine mais non prête pour l'audit externe.** Le socle applicatif est propre sur les fondamentaux les plus dangereux (aucun `dangerouslySetInnerHTML`, aucune clé `service_role` côté client, `SafeMarkdown` durci, RLS active et cloisonnée sur la quasi-totalité des tables sensibles, pattern `SECURITY DEFINER` respecté contre la récursion RLS). La plupart des alertes bruyantes du scan initial (react-router « RCE », DOMPurify, CSP, JWT en localStorage) se sont révélées **non exploitables en l'état** après vérification — ce sont des durcissements, pas des brèches.
+**Posture générale : globalement saine mais non prête pour l'audit externe.** Le socle applicatif est propre sur les fondamentaux les plus dangereux (aucun `dangerouslySetInnerHTML`, aucune clé `service_role` côté client, `SafeMarkdown` durci, RLS active et cloisonnée sur la quasi-totalité des tables sensibles, pattern `SECURITY DEFINER` respecté contre la récursion RLS). La plupart des alertes bruyantes du scan initial (react-router « RCE », DOMPurify, CSP, JWT en localStorage) se sont révélées **non exploitables en l'état** après vérification - ce sont des durcissements, pas des brèches.
 
 En revanche, **2 constats bloquants confirmés** touchent le cœur métier : une fuite cross-tenant du journal probant et une collision de statut qui expose le travail d'audit non finalisé au client. Ils doivent être corrigés **avant** l'audit.
 
@@ -23,7 +23,7 @@ En revanche, **2 constats bloquants confirmés** touchent le cœur métier : une
 | **Mineur** | **9** | Durcissements RLS, validations d'entrée manquantes, CSP absente, cohérence de code, hygiène build/CI |
 | **Info** | **5** | Anon key (non-problème), audit deps dev-only, transition REST brute, rollback mono-niveau, react-router (surévalué) |
 
-> **3 constats initialement notés « bloquant »** (react-router, gate SCA, absence de CI migrations) ont été **rétrogradés** après vérification (info / majeur / mineur) — lacunes réelles d'hygiène/défense-en-profondeur, non des brèches exploitables. À l'inverse, **2 constats initialement « majeur/mineur »** ont été **confirmés bloquants** car ils touchent la confidentialité inter-tenants et le workflow d'audit.
+> **3 constats initialement notés « bloquant »** (react-router, gate SCA, absence de CI migrations) ont été **rétrogradés** après vérification (info / majeur / mineur) - lacunes réelles d'hygiène/défense-en-profondeur, non des brèches exploitables. À l'inverse, **2 constats initialement « majeur/mineur »** ont été **confirmés bloquants** car ils touchent la confidentialité inter-tenants et le workflow d'audit.
 
 ---
 
@@ -86,11 +86,11 @@ En revanche, **2 constats bloquants confirmés** touchent le cœur métier : une
 
 ## 3. Top 5 des actions recommandées avant l'audit externe
 
-1. **[Bloquant] Fermer la fuite cross-tenant de `probative_log`.** Retirer le SELECT direct aux `authenticated` et exposer le journal uniquement via une Edge Function `service_role` filtrée par périmètre (ne laisser que `verify_probative_chain()`). Seule brèche de confidentialité inter-tenants active — un auditeur externe la trouvera immédiatement.
+1. **[Bloquant] Fermer la fuite cross-tenant de `probative_log`.** Retirer le SELECT direct aux `authenticated` et exposer le journal uniquement via une Edge Function `service_role` filtrée par périmètre (ne laisser que `verify_probative_chain()`). Seule brèche de confidentialité inter-tenants active - un auditeur externe la trouvera immédiatement.
 
 2. **[Bloquant] Séparer la revue interne de la revue client (`in_review`).** Introduire un état/stage `client_review` distinct, restreindre les policies RLS client à cet état, et faire de `send-to-client-review` le seul chemin de visibilité client. Corrige à la fois la fuite de constats non finalisés et la corruption de la machine à états de validation.
 
-3. **[Majeur] Rendre atomique et fiabiliser la chaîne probante Regul.** `pg_advisory_xact_lock` (ou vraie séquence) dans le trigger `probative_log`, insert métier + ancrage transactionnels, et capturer/propager l'erreur d'ancrage sur `set-status`/`notify` de `declare-incident`. Garantie centrale du produit régulateur — pas d'actes orphelins.
+3. **[Majeur] Rendre atomique et fiabiliser la chaîne probante Regul.** `pg_advisory_xact_lock` (ou vraie séquence) dans le trigger `probative_log`, insert métier + ancrage transactionnels, et capturer/propager l'erreur d'ancrage sur `set-status`/`notify` de `declare-incident`. Garantie centrale du produit régulateur - pas d'actes orphelins.
 
 4. **[Majeur] Corriger les FK et le down destructeurs.** Passer `control_assessments.auditor_id` en `ON DELETE SET NULL`/`RESTRICT`, et réécrire `00100_down` pour supprimer le `truncate ... cascade` global. Deux bombes à retardement de perte irréversible de preuves d'audit, déclenchables par une action admin banale.
 
@@ -103,14 +103,14 @@ Le rapport complet est disponible dans `/tmp/rapport_synthese.md`.
 
 ---
 
-## Annexe — Détail des 28 constats confirmés
+## Annexe - Détail des 28 constats confirmés
 
 
 ### 1. [BLOQUANT] probative_log lisible cross-tenant par tout staff (fuite du journal probant multi-régulateur)
 - **Dimension** : rls
 - **Localisation** : `supabase/migrations/00138_probative_log_up.sql:124-126`
 - **Impact** : Fuite cross-tenant du contenu du journal à valeur probante: titres/gravités d'incidents cyber, types de sanctions, échéances et références d'actes réglementaires d'autres tenants. Le chaînage par hash protège l'intégrité mais PAS la confidentialité. Violation directe du cloisonnement multi-tenant.
-- **Recommandation** : Scoper la lecture au sous-arbre du régulateur/tenant, ex: using (not is_client_role() and subject_id in (select id from incidents where entity_id in (select get_subsidiary_ids(get_my_organization_id()))) or subject_id in (select id from regulatory_measures where entity_id in (...))). Plus simple et robuste: ne PAS exposer le journal en SELECT direct aux authenticated — le lire uniquement via une Edge Function service_role qui filtre par périmètre, et ne garder côté authenticated que verify_probative_chain() (qui ne renvoie pas de payload).
+- **Recommandation** : Scoper la lecture au sous-arbre du régulateur/tenant, ex: using (not is_client_role() and subject_id in (select id from incidents where entity_id in (select get_subsidiary_ids(get_my_organization_id()))) or subject_id in (select id from regulatory_measures where entity_id in (...))). Plus simple et robuste: ne PAS exposer le journal en SELECT direct aux authenticated - le lire uniquement via une Edge Function service_role qui filtre par périmètre, et ne garder côté authenticated que verify_probative_chain() (qui ne renvoie pas de payload).
 - **Vérification** : Constat CONFIRMÉ sur le code réel. La policy SELECT de probative_log (supabase/migrations/00138_probative_log_up.sql:124-126) est bien `using (not public.is_client_role())` sans AUCUNE borne de tenant/organisation. Or les deux tables sources dont les données sensibles sont recopiées dans le payload jsonb sont, elles, correctement cloisonnées au sous-arbre du régulateur : incidents (00144_incidents_up.sql:75-81) et regulatory_measures (00139_regulatory_measures_up.sql:42-48) utilisent toutes deux `and entity_id in (select public.get_subsidiary_ids(public.get_my_organization_id()))`. probative_l
 
 ### 2. [BLOQUANT] Le client voit et peut valider/rejeter des évaluations encore en revue interne (collision de statut in_review)
@@ -121,7 +121,7 @@ Le rapport complet est disponible dans `/tmp/rapport_synthese.md`.
 - **Vérification** : Constat confirmé sur le code réel, y compris l'état LE PLUS RÉCENT des migrations (00134 qui redéfinit findings_select_client conserve `ca.status in ('approved','in_review')`).
 
 Preuves vérifiées :
-1) Surcharge du statut in_review. supabase/functions/send-to-client-review/index.ts commente explicitement le hack : `// Passer les assessments en client_review (on reutilise in_review avec un stage different)` puis `.update({ status: 'in_review' })` (l.~104-108) et met la mission en `client_review`. Or l'enum assessment_status (00015:4-10) ne contient PAS de valeur `client_review` — uniquement draf
+1) Surcharge du statut in_review. supabase/functions/send-to-client-review/index.ts commente explicitement le hack : `// Passer les assessments en client_review (on reutilise in_review avec un stage different)` puis `.update({ status: 'in_review' })` (l.~104-108) et met la mission en `client_review`. Or l'enum assessment_status (00015:4-10) ne contient PAS de valeur `client_review` - uniquement draf
 
 ### 3. [MAJEUR] IDOR cross-tenant : extract-document-metadata n'authentifie ni ne cloisonne l'appelant
 - **Dimension** : edge
@@ -139,14 +139,14 @@ Absence de cloisonnement confirmée par contraste : _shared/auth.ts documente ex
 - **Recommandation** : Sérialiser l'attribution de seq via `pg_advisory_xact_lock(<clé fixe>)` en tête du trigger, OU calculer seq avec une vraie séquence/`FOR UPDATE`. Surtout : rendre l'insertion métier + ancrage atomiques (une seule RPC/transaction PLpgSQL, ou insérer l'acte dans probative_log dans le même trigger AFTER INSERT de incidents/regulatory_measures) plutôt que deux appels REST séparés depuis l'edge function.
 - **Vérification** : Constat confirmé sur le code réel (code vivant, câblé à src/regul/useMeasures.ts:59 et src/regul/incidents/useIncidents.ts:59 ; le trigger de 00138 est l'unique attributeur de seq et les 2 edge functions sont les seuls écrivains de probative_log).
 
-1) Race sur seq/prev_hash — VRAI. supabase/migrations/00138_probative_log_up.sql:67-68 fait `select seq, hash into v_seq, v_prev from public.probative_log order by seq desc limit 1` SANS FOR UPDATE ni pg_advisory_xact_lock. En READ COMMITTED (défaut Postgres), deux insertions concurrentes lisent le même max, calculent toutes deux seq=N+1 et le même 
+1) Race sur seq/prev_hash - VRAI. supabase/migrations/00138_probative_log_up.sql:67-68 fait `select seq, hash into v_seq, v_prev from public.probative_log order by seq desc limit 1` SANS FOR UPDATE ni pg_advisory_xact_lock. En READ COMMITTED (défaut Postgres), deux insertions concurrentes lisent le même max, calculent toutes deux seq=N+1 et le même 
 
-### 5. [MAJEUR] declare-incident : machine à états incohérente — notification/résolution possibles sans passer par la qualification
+### 5. [MAJEUR] declare-incident : machine à états incohérente - notification/résolution possibles sans passer par la qualification
 - **Dimension** : regul
 - **Localisation** : `supabase/functions/declare-incident/index.ts:118-135 ; src/regul/incidents/IncidentDetailPanel.tsx:65-69`
 - **Impact** : Incidents dans des états impossibles au regard du cycle réglementaire (résolu jamais notifié, notifié mais statut declared). Les délais/deadlines et le reporting de conformité deviennent faux ; l'audit probant enregistre des transitions non conformes au droit.
 - **Recommandation** : Définir la matrice de transitions autorisées (declared→triage→notified→resolved→closed) et la faire respecter côté edge function pour set-status ET notify (rejeter les sauts). Aligner notify pour promouvoir le statut aussi depuis `declared`, ou refuser la notification tant que l'incident n'est pas en `triage`. Masquer/désactiver les boutons UI hors transitions valides.
-- **Vérification** : Constat confirmé sur le code réel. (1) set-status (declare-incident/index.ts:118-124) : `update({ status: body.status })` ne valide QUE l'appartenance à la liste STATUSES (l.119), aucune matrice de transition — declared→closed en un saut est accepté. (2) notify (l.127-135) : `if (body.kind !== 'final' && incident.status === 'triage') patch.status = 'notified'` (l.130) — donc notifier un incident en `declared` renseigne `notified_initial_at` mais laisse `status='declared'`, état incohérent réel et systématiquement reproductible (le pill statut l.42 affichera « déclaré » pendant que le DeadlineC
+- **Vérification** : Constat confirmé sur le code réel. (1) set-status (declare-incident/index.ts:118-124) : `update({ status: body.status })` ne valide QUE l'appartenance à la liste STATUSES (l.119), aucune matrice de transition - declared→closed en un saut est accepté. (2) notify (l.127-135) : `if (body.kind !== 'final' && incident.status === 'triage') patch.status = 'notified'` (l.130) - donc notifier un incident en `declared` renseigne `notified_initial_at` mais laisse `status='declared'`, état incohérent réel et systématiquement reproductible (le pill statut l.42 affichera « déclaré » pendant que le DeadlineC
 
 ### 6. [MAJEUR] declare-incident : échec d'ancrage silencieusement ignoré sur set-status et notify
 - **Dimension** : regul
@@ -165,19 +165,19 @@ Absence de cloisonnement confirmée par contraste : _shared/auth.ts documente ex
 Le mécanisme d'invisibilité est exact :
 - get_subsidiary_ids (00136_entity_structure_up.sql:32-43, version courante récursive) est ACTIVE-ONLY : `AND is_active = true` dans l'ancre (l.36) ET le terme récursif (l.41). Le commentaire même de la migration (l.13-14) le confirme : « la RLS
 
-### 8. [MAJEUR] Aucune garde de machine à états sur missions.status — transitions arbitraires côté client
+### 8. [MAJEUR] Aucune garde de machine à états sur missions.status - transitions arbitraires côté client
 - **Dimension** : coherence
 - **Localisation** : `supabase/migrations/00023_fix_recursive_policies_up.sql:100-110 ; src/features/missions/fieldwork/MissionFieldworkTab.tsx:92 ; src/features/missions/internal-review/MissionInternalReviewTab.tsx:61-64 ; src/features/missions/scoping/MissionScopingTab.tsx:175-184`
 - **Impact** : La machine à états (scoping->planning->fieldwork->internal_review->client_review->closure) n'existe que dans le front, qui est contournable. Un lead peut sauter des phases (ex: scoping -> closure) ou régresser arbitrairement, produisant des missions dans des états incohérents avec leurs assessments (ex: mission en closure alors qu'aucun contrôle n'est approuvé). Divergence garantie entre l'affichage (useMissionProgress) et l'état réel des données.
 - **Recommandation** : Ajouter un trigger BEFORE UPDATE sur public.missions validant les transitions autorisées (table de transitions), OU router toutes les transitions de statut via des edge functions service_role qui appliquent les préconditions. Retirer la capacité de modifier `status` via l'UPDATE RLS direct (colonne protégée).
-- **Vérification** : Constat vérifié sur le code réel et confirmé. (1) La colonne missions.status est un enum PostgreSQL (mission_status, 00012_missions_up.sql:4-12) qui borne les VALEURS aux 7 phases mais n'impose AUCUN ordre ni transition légale. (2) Aucun trigger de validation de transition n'existe : sur public.missions on ne trouve que trg_missions_updated_at (timestamps), trg_sync_lead_associate_to_members (sync membres, 00119) et trg_missions_quota (quota à l'INSERT, 00125) — aucun ne contrôle la légalité d'un changement de status. (3) La policy missions_update_lead_associate (00023_fix_recursive_policies_u
+- **Vérification** : Constat vérifié sur le code réel et confirmé. (1) La colonne missions.status est un enum PostgreSQL (mission_status, 00012_missions_up.sql:4-12) qui borne les VALEURS aux 7 phases mais n'impose AUCUN ordre ni transition légale. (2) Aucun trigger de validation de transition n'existe : sur public.missions on ne trouve que trg_missions_updated_at (timestamps), trg_sync_lead_associate_to_members (sync membres, 00119) et trg_missions_quota (quota à l'INSERT, 00125) - aucun ne contrôle la légalité d'un changement de status. (3) La policy missions_update_lead_associate (00023_fix_recursive_policies_u
 
 ### 9. [MAJEUR] control_assessments.auditor_id en ON DELETE CASCADE détruit le travail d'audit si un auditeur est supprimé
 - **Dimension** : coherence
 - **Localisation** : `supabase/migrations/00015_control_assessments_up.sql:16 ; supabase/migrations/00099_assessment_findings_up.sql:11 ; supabase/migrations/00012_missions_up.sql:22-23`
-- **Impact** : La suppression physique d'un utilisateur (via cascade auth.users, opération SQL admin, ou évolution future d'admin-user au-delà du soft-delete is_active actuel) effacerait irrémédiablement des constats d'audit validés — perte de preuve probante. Le soft-delete (is_active) actuel masque le risque mais ne le corrige pas ; c'est une bombe à retardement d'intégrité.
+- **Impact** : La suppression physique d'un utilisateur (via cascade auth.users, opération SQL admin, ou évolution future d'admin-user au-delà du soft-delete is_active actuel) effacerait irrémédiablement des constats d'audit validés - perte de preuve probante. Le soft-delete (is_active) actuel masque le risque mais ne le corrige pas ; c'est une bombe à retardement d'intégrité.
 - **Recommandation** : Passer auditor_id en `on delete set null` (rendre la colonne nullable) ou `on delete restrict` pour interdire la suppression d'un auditeur ayant des assessments, comme pour cabinet_id/client_id/framework_id de missions (restrict). Migration up/down dédiée.
-- **Vérification** : Constat exact et confirme sur le code reel. control_assessments.auditor_id est bien `not null references public.users(id) on delete cascade` (00015_control_assessments_up.sql:16), et assessment_findings.assessment_id est `not null references public.control_assessments(id) on delete cascade` (00099_assessment_findings_up.sql:11). La suppression d'une ligne public.users detruit donc en cascade tous ses assessments ET tous les constats (findings) associes — preuve probante d'audit effacee irremediablement. L'incoherence de politique FK est reelle au sein de la meme feature : missions.lead_auditor
+- **Vérification** : Constat exact et confirme sur le code reel. control_assessments.auditor_id est bien `not null references public.users(id) on delete cascade` (00015_control_assessments_up.sql:16), et assessment_findings.assessment_id est `not null references public.control_assessments(id) on delete cascade` (00099_assessment_findings_up.sql:11). La suppression d'une ligne public.users detruit donc en cascade tous ses assessments ET tous les constats (findings) associes - preuve probante d'audit effacee irremediablement. L'incoherence de politique FK est reelle au sein de la meme feature : missions.lead_auditor
 
 ### 10. [MAJEUR] Aucune analyse de composition logicielle (SCA) dans la CI : 12 vulnérabilités connues passent le gate (dont 5 hautes)
 - **Dimension** : deps
@@ -188,7 +188,7 @@ Le mécanisme d'invisibilité est exact :
 
 FAITS CONFIRMÉS :
 1. Aucun gate SCA dans la CI. `.github/workflows/ci.yml` (job « verify ») exécute uniquement `npm ci`, `npm run typecheck` (gate dur), `npm run build` (gate dur), et `npm run lint` avec `continue-on-error: true`. Aucun `npm audit`, aucun scanner de dépendances (Snyk/Trivy/CodeQL). Le second workflow `feasibility.yml` est sans rapport. Aucun `dependabot.yml` n'existe dans `.github/`.
-2. `npm audit` complet = « 12 vulnerabilities (1 low, 6 moderate, 5 high) » — chiffres exacts.
+2. `npm audit` complet = « 12 vulnerabilities (1 low, 6 moderate, 5 high) » - chiffres exacts.
 3. Les 5 hautes citées
 
 ### 11. [MAJEUR] Le down de la migration 00100 tronque TOUTE la table assessment_findings, pas seulement les lignes backfillées
@@ -198,7 +198,7 @@ FAITS CONFIRMÉS :
 - **Recommandation** : Rendre le down ciblé : ne supprimer que les findings issus du backfill (les marquer via une colonne/source à l'insertion, ou supprimer uniquement ceux liés aux CAR migrés) au lieu d'un `truncate ... cascade` global ; ou documenter explicitement le down comme non-destructif-safe et refuser le truncate.
 - **Vérification** : Constat vérifié sur le code réel et exact.
 
-Preuve fichier:ligne — supabase/migrations/00100_assessment_findings_backfill_down.sql:15 : `truncate table public.assessment_findings cascade;` sans aucune clause WHERE ni filtre. Le commentaire ligne 13 assume à tort « les rows ont ete creees par le backfill », ce qui est précisément l'hypothèse fausse : la table est créée par 00099 (00099_assessment_findings_up.sql), pas par 00100.
+Preuve fichier:ligne - supabase/migrations/00100_assessment_findings_backfill_down.sql:15 : `truncate table public.assessment_findings cascade;` sans aucune clause WHERE ni filtre. Le commentaire ligne 13 assume à tort « les rows ont ete creees par le backfill », ce qui est précisément l'hypothèse fausse : la table est créée par 00099 (00099_assessment_findings_up.sql), pas par 00100.
 
 Le up de 00100 (00100_..._up.sql:53-68 et 78-112) n'insère que des miroirs de CAR et des notes legacy, SANS colonne marqueur (ai_generated=false y compris pour le back
 
@@ -207,18 +207,18 @@ Le up de 00100 (00100_..._up.sql:53-68 et 78-112) n'insère que des miroirs de C
 - **Localisation** : `supabase/migrations/00141_portal_contact_entity_link_up.sql (policy cpc_select_own_org, branche entity_org_id)`
 - **Impact** : La policy est du code mort côté Regul: un assujetti ne voit jamais les autres contacts de sa propre entité via ce chemin (il ne voit que sa propre fiche via cpc_select_self, 00142). Fonctionnalité portail assujetti dégradée; risque de confusion future si quelqu'un met client_org_id à un organizations.id (collision d'espaces d'ID → potentielle fuite si les deux tables partagent un uuid).
 - **Recommandation** : Réécrire la branche Regul pour comparer entity_org_id au périmètre canonique de l'assujetti, en réutilisant get_my_entity_org_ids() (00145): ... OR (entity_org_id is not null AND entity_org_id in (select public.get_my_entity_org_ids())). Cela aligne la visibilité inter-contacts sur le même helper SECURITY DEFINER déjà utilisé pour inc_select_assujetti.
-- **Vérification** : Constat exact, vérifié sur le code réel. Les trois ancrages sont confirmés : (1) entity_org_id REFERENCES public.organizations(id) — 00141_portal_contact_entity_link_up.sql (ADD COLUMN entity_org_id). (2) users.client_org_id REFERENCES public.cabinet_clients(id) — 00040_portal_user_role_up.sql:6, avec commentaire ligne 12 « Référence cabinet_clients ... NULL pour les auditeurs ». (3) invite-assujetti/index.ts:163 laisse explicitement client_org_id NULL : commentaire « client_org_id reste NULL : FK -> cabinet_clients, inapplicable à un assujetti. »
+- **Vérification** : Constat exact, vérifié sur le code réel. Les trois ancrages sont confirmés : (1) entity_org_id REFERENCES public.organizations(id) - 00141_portal_contact_entity_link_up.sql (ADD COLUMN entity_org_id). (2) users.client_org_id REFERENCES public.cabinet_clients(id) - 00040_portal_user_role_up.sql:6, avec commentaire ligne 12 « Référence cabinet_clients ... NULL pour les auditeurs ». (3) invite-assujetti/index.ts:163 laisse explicitement client_org_id NULL : commentaire « client_org_id reste NULL : FK -> cabinet_clients, inapplicable à un assujetti. »
 
 La branche entity_org_id de cpc_select_own_or
 
-### 13. [MINEUR] Policies de supervision groupe sans garde not is_client_role() — cloisonnement client dépendant d'un effet de bord de 00134
+### 13. [MINEUR] Policies de supervision groupe sans garde not is_client_role() - cloisonnement client dépendant d'un effet de bord de 00134
 - **Dimension** : rls
 - **Localisation** : `supabase/migrations/00058_group_supervision_policies_up.sql:9-13 (missions_select_group), et ca_select_group / car_select_group`
 - **Impact** : Cloisonnement fragile: toute régression sur get_my_organization_id() (revert 00134, ou un client dont organization_id serait un jour renseigné à une org groupe) rouvre immédiatement une lecture cross-tenant des missions/évaluations/CAR de toutes les entités du sous-arbre. Défense en profondeur manquante sur des tables sensibles.
 - **Recommandation** : Ajouter la garde explicite à chaque policy: using (not public.is_client_role() and <condition existante>), comme fait systématiquement en 00133. Coût nul, aligne sur la doctrine, supprime la dépendance implicite à l'effet de bord de 00134.
 - **Vérification** : Constat factuellement exact mais surcoté. Le code réel confirme les 3 points :
 
-1) Les 3 policies existent telles que citées et sans garde de rôle : supabase/migrations/00058_group_supervision_policies_up.sql — missions_select_group (l.9-16), ca_select_group (l.21-32), car_select_group (l.37-48), toutes gatées uniquement sur `client_id IN (SELECT public.get_subsidiary_ids(public.get_my_organization_id()))`. Aucune migration ultérieure (00127/00133/00136/00143/00144) ne les recrée avec un guard.
+1) Les 3 policies existent telles que citées et sans garde de rôle : supabase/migrations/00058_group_supervision_policies_up.sql - missions_select_group (l.9-16), ca_select_group (l.21-32), car_select_group (l.37-48), toutes gatées uniquement sur `client_id IN (SELECT public.get_subsidiary_ids(public.get_my_organization_id()))`. Aucune migration ultérieure (00127/00133/00136/00143/00144) ne les recrée avec un guard.
 
 2) La doctrine invoquée est réelle : 00133_rls_client_guard_pass1_up.sql:1-12 énonce explicitement 
 
@@ -230,9 +230,9 @@ La branche entity_org_id de cpc_select_own_or
 - **Vérification** : Constat vérifié sur le code réel, sévérité mineur confirmée.
 
 Chaîne de preuves:
-- 00135_organizations_scoped_select_up.sql:50-58 — get_my_client_visible_org_ids() ne joint QUE via cpc.cabinet_client_id = cc.id (deux SELECT). Aucune branche entity_org_id.
-- 00141_portal_contact_entity_link_up.sql:26-28 — CHECK XOR: pour un contact assujetti, cabinet_client_id IS NULL, entity_org_id IS NOT NULL. Donc les deux SELECT du helper ne renvoient rien.
-- 00134_rls_client_scope_helpers_up.sql:28 — get_my_organization_id() renvoie NULL pour role='client', ce qui vide aussi get_my_client_org_ids() (00135:
+- 00135_organizations_scoped_select_up.sql:50-58 - get_my_client_visible_org_ids() ne joint QUE via cpc.cabinet_client_id = cc.id (deux SELECT). Aucune branche entity_org_id.
+- 00141_portal_contact_entity_link_up.sql:26-28 - CHECK XOR: pour un contact assujetti, cabinet_client_id IS NULL, entity_org_id IS NOT NULL. Donc les deux SELECT du helper ne renvoient rien.
+- 00134_rls_client_scope_helpers_up.sql:28 - get_my_organization_id() renvoie NULL pour role='client', ce qui vide aussi get_my_client_org_ids() (00135:
 
 ### 15. [MINEUR] extract-org-chart-actors : aucun cloisonnement du mission_id fourni
 - **Dimension** : edge
@@ -246,16 +246,16 @@ Le pattern de cloisonnement existe et est documenté dans _shared/auth.ts (authe
 ### 16. [MINEUR] Fonctions de workflow d'audit : autorisation par identite mais sans verification is_active
 - **Dimension** : edge
 - **Localisation** : `supabase/functions/review-assessment/index.ts:33-44,95-103 ; supabase/functions/submit-assessment/index.ts:33-44,70-75 ; supabase/functions/generate-action-plan/index.ts:88-99,122-127 ; supabase/functions/send-to-client-review/index.ts:32-43,72-77 ; supabase/functions/close-mission/index.ts:32-43,68-73`
-- **Impact** : Un membre suspendu (is_active=false) via manage-member conserve un JWT valide jusqu'a expiration et, tant qu'il figure encore comme auditeur/chef de mission/associe sur une mission, peut continuer a soumettre, valider, generer le plan d'action, envoyer au client et cloturer des missions — court-circuitant la revocation d'acces. Portee limitee a ses propres missions assignees.
+- **Impact** : Un membre suspendu (is_active=false) via manage-member conserve un JWT valide jusqu'a expiration et, tant qu'il figure encore comme auditeur/chef de mission/associe sur une mission, peut continuer a soumettre, valider, generer le plan d'action, envoyer au client et cloturer des missions - court-circuitant la revocation d'acces. Portee limitee a ses propres missions assignees.
 - **Recommandation** : Selectionner is_active dans la requete de profil de ces fonctions et refuser 403 si false, ou mieux : router toutes ces fonctions via le helper partage authenticateCaller (_shared/auth.ts) qui verifie deja is_active de maniere centralisee (comme le font assign-controls, reset-user-password, issue-measure).
 - **Vérification** : Constat verifie et exact sur le code reel. Les cinq fonctions resolvent le profil appelant avec .select('id') uniquement et n'evaluent jamais is_active : review-assessment/index.ts:33-37 puis autorisation par comparaison d'id l.95-98 ; submit-assessment/index.ts:33-37 puis l.70 (assessment.auditor_id !== callerProfile.id) ; generate-action-plan/index.ts:88-92 puis l.122 ; send-to-client-review/index.ts:32-36 puis l.72 ; close-mission/index.ts:32-36 puis l.68. Aucune ne charge is_active ni ne refuse un compte desactive. A l'inverse, manage-member/index.ts effectue bien la suspension via update(
 
-### 17. [MINEUR] JWT (access + refresh token longue durée) stockés en localStorage sans CSP — tout XSS = prise de compte complète
+### 17. [MINEUR] JWT (access + refresh token longue durée) stockés en localStorage sans CSP - tout XSS = prise de compte complète
 - **Dimension** : front
 - **Localisation** : `src/lib/supabase.ts:7 (createClient sans options) ; vercel.json (aucun header CSP) ; index.html (aucune meta CSP)`
 - **Impact** : Facteur aggravant à la CSP absente : la moindre XSS (dépendance compromise, injection future) permet d'exfiltrer le refresh_token depuis localStorage. Le refresh_token étant réutilisable pour régénérer des access_token, c'est une prise de contrôle durable du compte (au-delà de la session), non révocable par simple logout. Contexte multi-tenant + rôles admin/cabinet = impact élevé si atteint.
-- **Recommandation** : 1) Déployer une CSP stricte (script-src 'self', object-src 'none', base-uri 'self') via vercel.json headers ou meta — c'est le contrôle qui rend une XSS non exploitable. 2) Envisager un storage plus contraint pour la session ; a minima documenter le modèle de menace. Le code applicatif est par ailleurs propre côté XSS (SafeMarkdown skipHtml, aucun dangerouslySetInnerHTML) ce qui limite la probabilité d'origine.
-- **Vérification** : Faits vérifiés sur le code réel : (1) src/lib/supabase.ts:7 appelle createClient sans bloc auth → défauts supabase-js v2 (^2.103.0) : persistSession=true, storage=localStorage, autoRefreshToken=true, donc access_token ET refresh_token en localStorage ; (2) aucune CSP nulle part — grep Content-Security-Policy sur json/html/ts/tsx/js = 0 résultat ; vercel.json ne pose que X-Frame-Options/nosniff/Referrer-Policy/Permissions-Policy ; index.html sans meta CSP ; middleware.ts existe mais n'est qu'un gatekeeper hostname marque-blanche (aucun header sécurité) ; (3) hygiène XSS réellement bonne : aucun
+- **Recommandation** : 1) Déployer une CSP stricte (script-src 'self', object-src 'none', base-uri 'self') via vercel.json headers ou meta - c'est le contrôle qui rend une XSS non exploitable. 2) Envisager un storage plus contraint pour la session ; a minima documenter le modèle de menace. Le code applicatif est par ailleurs propre côté XSS (SafeMarkdown skipHtml, aucun dangerouslySetInnerHTML) ce qui limite la probabilité d'origine.
+- **Vérification** : Faits vérifiés sur le code réel : (1) src/lib/supabase.ts:7 appelle createClient sans bloc auth → défauts supabase-js v2 (^2.103.0) : persistSession=true, storage=localStorage, autoRefreshToken=true, donc access_token ET refresh_token en localStorage ; (2) aucune CSP nulle part - grep Content-Security-Policy sur json/html/ts/tsx/js = 0 résultat ; vercel.json ne pose que X-Frame-Options/nosniff/Referrer-Policy/Permissions-Policy ; index.html sans meta CSP ; middleware.ts existe mais n'est qu'un gatekeeper hostname marque-blanche (aucun header sécurité) ; (3) hygiène XSS réellement bonne : aucun
 
 ### 18. [MINEUR] issue-measure : finding_ids acceptés sans validation d'appartenance à l'entité/mission (fuite inter-entités dans le journal probant)
 - **Dimension** : regul
@@ -279,18 +279,18 @@ Le pattern de cloisonnement existe et est documenté dans _shared/auth.ts (authe
 - **Vérification** : Constat globalement exact au niveau code, mais son impact "runtime en Regul" est surestimé.
 
 Faits vérifiés :
-- src/features/group-module/TransversalPlansPage.tsx:101 : `<Link to={`/filiales/${c.subsidiary_id}`}>` — base de route codée en dur. CONFIRMÉ.
-- src/features/group-module/ContinuousReviewsPage.tsx:56 : `<Link to={`/filiales/${m.subsidiary_id}`}>` — idem. CONFIRMÉ.
+- src/features/group-module/TransversalPlansPage.tsx:101 : `<Link to={`/filiales/${c.subsidiary_id}`}>` - base de route codée en dur. CONFIRMÉ.
+- src/features/group-module/ContinuousReviewsPage.tsx:56 : `<Link to={`/filiales/${m.subsidiary_id}`}>` - idem. CONFIRMÉ.
 - src/features/group-module/SubsidiaryCard.tsx:52 utilise bien `${productVocab.entityRouteBase}/${subsidiary.id}` et SubsidiaryDetailPage.tsx:22 `productVocab.entityRouteBase` (src/lib/product.ts:47 => /assujettis en Regul, 
 
 ### 21. [MINEUR] Aucun Content-Security-Policy alors que des dépendances de sanitisation HTML (DOMPurify) sont vulnérables et que du Markdown utilisateur est rendu
 - **Dimension** : deps
-- **Localisation** : `vercel.json:8-16 (headers : X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy — pas de CSP) ; dépendances prod dompurify@3.3.3 + react-markdown@10.1.0 (package-lock.json)`
+- **Localisation** : `vercel.json:8-16 (headers : X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy - pas de CSP) ; dépendances prod dompurify@3.3.3 + react-markdown@10.1.0 (package-lock.json)`
 - **Impact** : En l'absence de CSP, toute faille XSS résiduelle (Markdown, PDF html plugin, DOMPurify contourné) s'exécute sans filet côté navigateur. Défense en profondeur manquante sur une app manipulant des données d'audit sensibles multi-tenant.
 - **Recommandation** : Ajouter un header Content-Security-Policy strict dans vercel.json (au minimum default-src 'self', frame-ancestors 'none', object-src 'none', connect-src limité à l'URL Supabase). Mettre DOMPurify à jour (>=3.3.x patché) via `npm audit fix`.
 - **Vérification** : Constat PARTIELLEMENT réel mais fortement surévalué ; sévérité réelle = mineur (défense en profondeur), pas majeur.
 
-FAITS CONFIRMÉS : (1) Aucun CSP. vercel.json:7-16 ne pose que X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy — pas de Content-Security-Policy. middleware.ts (racine) ne pose AUCUN header de sécurité (uniquement routing hostname marque blanche, ligne 76-80 passthrough). Pas de meta CSP dans index.html. (2) dompurify@3.3.3 présent (package-lock.json). npm audit confirme des advisories sur <=3.4.10.
+FAITS CONFIRMÉS : (1) Aucun CSP. vercel.json:7-16 ne pose que X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy - pas de Content-Security-Policy. middleware.ts (racine) ne pose AUCUN header de sécurité (uniquement routing hostname marque blanche, ligne 76-80 passthrough). Pas de meta CSP dans index.html. (2) dompurify@3.3.3 présent (package-lock.json). npm audit confirme des advisories sur <=3.4.10.
 
 RÉFUTATION DU MODÈLE DE MENACE (ce qui 
 
@@ -322,12 +322,12 @@ RÉFUTATION DU MODÈLE DE MENACE (ce qui
 
 La dérive est concrète : la machine de dev tourne sous 
 
-### 24. [INFO] Dépendances transitives supplémentaires signalées high/moderate (dompurify, tmp, ws) — surface majoritairement dev/transitive
+### 24. [INFO] Dépendances transitives supplémentaires signalées high/moderate (dompurify, tmp, ws) - surface majoritairement dev/transitive
 - **Dimension** : front
 - **Localisation** : `npm audit --omit=dev (racine du repo)`
 - **Impact** : Faible en production frontend : dompurify n'est pas importé par le code applicatif (grep dompurify dans src/ = 0 ; c'est une dépendance transitive, probablement de jspdf/html2canvas et non appelée sur du HTML attaquant). tmp et ws sont des dépendances de build/tooling non embarquées dans le bundle client servi. À traiter par hygiène, pas comme exposition directe.
 - **Recommandation** : Lancer `npm audit fix` (non-breaking) pour dompurify/tmp/ws/react-router en une passe, puis committer le package-lock. Vérifier après coup que le bundle client ne régresse pas.
-- **Vérification** : Constat vérifié sur l'arbre de dépendances réel. `npm audit --omit=dev` confirme exactement les 3 avis cités : dompurify <=3.4.10 (moderate, multiples bypass XSS/FORBID_TAGS), tmp <0.2.6 (high, path traversal), ws 8.0.0-8.20.1 (high, DoS/mem disclosure), avec « fix available via npm audit fix » (non-breaking) pour les trois. Total 7 vulnérabilités (3 moderate, 4 high) — chiffre exact.
+- **Vérification** : Constat vérifié sur l'arbre de dépendances réel. `npm audit --omit=dev` confirme exactement les 3 avis cités : dompurify <=3.4.10 (moderate, multiples bypass XSS/FORBID_TAGS), tmp <0.2.6 (high, path traversal), ws 8.0.0-8.20.1 (high, DoS/mem disclosure), avec « fix available via npm audit fix » (non-breaking) pour les trois. Total 7 vulnérabilités (3 moderate, 4 high) - chiffre exact.
 
 Chaînes transitives confirmées via `npm ls` :
 - dompurify@3.4.9 <- jspdf@4.2.1 (jspdf est bien une dépendance prod, package.json:17). Grep « dompurify » dans src/ = 0 : jamais importé directement par le code app
@@ -335,16 +335,16 @@ Chaînes transitives confirmées via `npm ls` :
 ### 25. [INFO] anon key Supabase versionnée en .env.local (public par nature, mais présente sur disque)
 - **Dimension** : front
 - **Localisation** : `.env.local:2 (VITE_SUPABASE_ANON_KEY=eyJ...role":"anon")`
-- **Impact** : Aucun réel : la clé anon est conçue pour être publique (elle est de toute façon exposée dans le bundle via import.meta.env.VITE_*). L'important — l'absence de service_role côté client — est respecté. Le fichier n'étant pas tracké, pas de fuite git.
+- **Impact** : Aucun réel : la clé anon est conçue pour être publique (elle est de toute façon exposée dans le bundle via import.meta.env.VITE_*). L'important - l'absence de service_role côté client - est respecté. Le fichier n'étant pas tracké, pas de fuite git.
 - **Recommandation** : RAS sur la clé anon. Maintenir l'invariant : aucune clé service_role dans le frontend (déjà le cas). S'assurer que la sécurité repose entièrement sur la RLS puisque l'anon key est publique.
-- **Vérification** : Constat vérifié et exact. .env.local existe sur disque avec VITE_SUPABASE_ANON_KEY en ligne 2 (confirmé par Read). Le JWT décodé donne bien {"iss":"supabase","ref":"jibblzpownddlodzmewj","role":"anon","iat":1775861157,"exp":2091437157} — c'est le rôle anon, pas service_role. .gitignore:13 (*.local) couvre le fichier : `git check-ignore -v .env.local` renvoie ".gitignore:13:*.local  .env.local", `git ls-files | grep env` est vide, et `git log --all` ne montre aucun .env* dans l'historique → jamais commité, aucune fuite git. Aucune clé service_role dans le frontend : le seul hit `service_role` d
+- **Vérification** : Constat vérifié et exact. .env.local existe sur disque avec VITE_SUPABASE_ANON_KEY en ligne 2 (confirmé par Read). Le JWT décodé donne bien {"iss":"supabase","ref":"jibblzpownddlodzmewj","role":"anon","iat":1775861157,"exp":2091437157} - c'est le rôle anon, pas service_role. .gitignore:13 (*.local) couvre le fichier : `git check-ignore -v .env.local` renvoie ".gitignore:13:*.local  .env.local", `git ls-files | grep env` est vide, et `git log --all` ne montre aucun .env* dans l'historique → jamais commité, aucune fuite git. Aucune clé service_role dans le frontend : le seul hit `service_role` d
 
 ### 26. [INFO] Rollback 00136 rétrograde get_subsidiary_ids en mono-niveau, cassant silencieusement la RLS récursive de tout le socle Regul (et des groupes Comply multi-niveaux)
 - **Dimension** : regul
 - **Localisation** : `supabase/migrations/00136_entity_structure_down.sql:6-24`
-- **Impact** : En cas de rollback partiel, les petits-enfants (arbre multi-niveaux) deviennent invisibles côté supervision Regul ET côté visibilité des groupes Comply, sans erreur — dégradation silencieuse de visibilité. Purement opérationnel (dépend d'un rollback mal ordonné), d'où info.
+- **Impact** : En cas de rollback partiel, les petits-enfants (arbre multi-niveaux) deviennent invisibles côté supervision Regul ET côté visibilité des groupes Comply, sans erreur - dégradation silencieuse de visibilité. Purement opérationnel (dépend d'un rollback mal ordonné), d'où info.
 - **Recommandation** : Ajouter dans l'en-tête du 00136_down un avertissement explicite « ne pas rollbacker tant que 00137→00146 sont appliquées », ou garder la version récursive de get_subsidiary_ids dans le down (le récursif est un surensemble sûr du mono-niveau).
-- **Vérification** : Faits vérifiés sur le code réel. 00136_up (lignes 25-44) rend get_subsidiary_ids RÉCURSIF (WITH RECURSIVE, multi-niveaux). 00136_down (lignes 7-18) le rétrograde bien en mono-niveau (enfants directs uniquement). Les policies dépendantes existent et appellent toutes get_subsidiary_ids(get_my_organization_id()) : erp_select_regulator (00137_up:46), rm_select_regulator (00139_up:47) et la policy incidents (00144_up:80). J'ai vérifié que les _down de 00137/00139/00144 ne restaurent PAS get_subsidiary_ids (seul grep positif sur _down : 00057, 00127, 00136) — donc un rollback isolé de 00136 laissera
+- **Vérification** : Faits vérifiés sur le code réel. 00136_up (lignes 25-44) rend get_subsidiary_ids RÉCURSIF (WITH RECURSIVE, multi-niveaux). 00136_down (lignes 7-18) le rétrograde bien en mono-niveau (enfants directs uniquement). Les policies dépendantes existent et appellent toutes get_subsidiary_ids(get_my_organization_id()) : erp_select_regulator (00137_up:46), rm_select_regulator (00139_up:47) et la policy incidents (00144_up:80). J'ai vérifié que les _down de 00137/00139/00144 ne restaurent PAS get_subsidiary_ids (seul grep positif sur _down : 00057, 00127, 00136) - donc un rollback isolé de 00136 laissera
 
 ### 27. [INFO] Transition de statut de mission via fetch REST brut au lieu du client Supabase typé
 - **Dimension** : coherence
@@ -358,4 +358,4 @@ Chaînes transitives confirmées via `npm ls` :
 - **Localisation** : `package.json:16 ("react-router-dom": "^7.14.0") ; package-lock.json → node_modules/react-router@7.14.0`
 - **Impact** : C'est la lib de routage runtime servie en production (app.gestugroup.com). L'open redirect et le CSRF sont directement exploitables sur une SPA multi-tenant exposée ; la chaîne turbo-stream est classée RCE non authentifiée. Sur une plateforme de conformité/audit SI, c'est le constat le plus grave.
 - **Recommandation** : Passer react-router-dom en ^7.15.1 (ou dernière 7.x patchée) et re-lock (npm update react-router-dom react-router). Vérifier qu'aucun usage de loaders/actions SSR turbo-stream n'est en jeu, puis re-tester le routage. À faire avant tout audit.
-- **Vérification** : La dépendance et les avis sont réels mais la sévérité/exploitabilité sont grossièrement surestimées. Vérifié : package.json:22 "react-router-dom": "^7.14.0" et package-lock.json résolvent react-router ET react-router-dom en 7.14.0 ; npm audit confirme les 4 GHSA. MAIS les sévérités réelles d'npm audit contredisent le reviewer : turbo-stream = HIGH 8.1 (pas RCE critique), open redirect = MODERATE, DoS __manifest = HIGH 7.5, CSRF = LOW 3.1 — aucune n'est "bloquante". Surtout, TOUTES ces vulnérabilités vivent dans le chemin serveur SSR/framework-mode de react-router, absent de cette application. 
+- **Vérification** : La dépendance et les avis sont réels mais la sévérité/exploitabilité sont grossièrement surestimées. Vérifié : package.json:22 "react-router-dom": "^7.14.0" et package-lock.json résolvent react-router ET react-router-dom en 7.14.0 ; npm audit confirme les 4 GHSA. MAIS les sévérités réelles d'npm audit contredisent le reviewer : turbo-stream = HIGH 8.1 (pas RCE critique), open redirect = MODERATE, DoS __manifest = HIGH 7.5, CSRF = LOW 3.1 - aucune n'est "bloquante". Surtout, TOUTES ces vulnérabilités vivent dans le chemin serveur SSR/framework-mode de react-router, absent de cette application. 

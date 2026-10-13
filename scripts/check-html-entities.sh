@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Garde-fou : détecte les entités HTML (&eacute;, &hellip;, &mdash;…) dans des
+# Garde-fou : détecte les entités HTML (&eacute;, &hellip;, &mdash;, etc.) dans des
 # STRINGS JavaScript, où elles ne décodent PAS et s'affichent en clair.
 #
 # Rappel : une entité HTML ne se décode QUE dans (a) le texte JSX (>...<) et
-# (b) les attributs string littéraux (label="..."). Partout ailleurs — ternaire
+# (b) les attributs string littéraux (label="..."). Partout ailleurs : ternaire
 # {x ? 'a' : 'b'}, template literal `...`, .join('...'), valeur d'objet, fichier
-# .ts — il faut un CARACTÈRE UTF-8 RÉEL (é, è, à, ô, —, •, …).
+# .ts : il faut un CARACTÈRE UTF-8 RÉEL (é, è, à, ô, •).
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -26,10 +26,10 @@ m3=$(grep -rnE "([?:]|\.join\(|\{)\s*['\"][^'\"]*${ENT}" src --include='*.tsx' 2
 out=$(printf '%s\n%s\n%s\n' "$m1" "$m2" "$m3" | grep -vE '^[[:space:]]*$' | sort -u || true)
 
 if [ -n "$out" ]; then
-  echo "❌ Entités HTML dans des strings JS (elles ne décodent pas — utiliser un caractère UTF-8 réel) :"
+  echo "❌ Entités HTML dans des strings JS (elles ne décodent pas : utiliser un caractère UTF-8 réel) :"
   echo "$out"
   echo ""
-  echo "Fix : remplacer &eacute; -> é, &ocirc; -> ô, &hellip; -> …, &mdash; -> —, &bull; -> •, etc."
+  echo "Fix : remplacer &eacute; -> é, &ocirc; -> ô, &bull; -> •, etc."
   echo "Les entités ne décodent QUE dans le texte JSX et les attributs \"...\"."
   exit 1
 fi

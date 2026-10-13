@@ -1,4 +1,4 @@
-# CI/CD — environnements & déploiement (ETP)
+# CI/CD - environnements & déploiement (ETP)
 
 Automatisation GitHub Actions + Vercel + Supabase pour **dev / test / prod**.
 Décisions : runner de migrations **psql custom** + **snayz recyclé en projet test**
@@ -8,11 +8,11 @@ Décisions : runner de migrations **psql custom** + **snayz recyclé en projet t
 
 | Env  | Branche git | Frontend (Vercel) | Base (Supabase)      | Migrations & edge fns        |
 |------|-------------|-------------------|----------------------|------------------------------|
-| prod | `main`      | Production        | **jibbl**            | CI au merge — **approbation** |
-| test | `staging`   | Preview « staging»| **snayz** (recyclé)  | CI au merge — auto           |
+| prod | `main`      | Production        | **jibbl**            | CI au merge - **approbation** |
+| test | `staging`   | Preview « staging»| **snayz** (recyclé)  | CI au merge - auto           |
 | dev  | `feat/*`    | Preview           | snayz (partagé) / local | manuel / local            |
 
-> `snayznxraupndrdmhbak` (ex-instance Regul) est **recyclé en test** — plus
+> `snayznxraupndrdmhbak` (ex-instance Regul) est **recyclé en test** - plus
 > décommissionné. Ses données Regul sont jetables ; on repart de son schéma remis à
 > niveau sur celui de prod.
 
@@ -21,15 +21,15 @@ l'automatisation **base + edge functions**, pilotée par la branche = environnem
 
 ## Pièces livrées (dans le repo)
 
-- `scripts/migrate.sh` — applique les `NNNNN_nom_up.sql` en attente, suivi dans
+- `scripts/migrate.sh` - applique les `NNNNN_nom_up.sql` en attente, suivi dans
   `ops.migrations`. Modes : `apply` (défaut), `--baseline` (marque appliqué sans
   exécuter), `--dry-run`.
-- `.github/workflows/deploy.yml` — push `staging`→env staging (auto), push `main`→
+- `.github/workflows/deploy.yml` - push `staging`→env staging (auto), push `main`→
   env production (approbation). Applique migrations + déploie edge functions si le
   chemin correspondant a changé.
-- `.github/workflows/ci.yml` — inchangé : typecheck+build sur PR/push.
+- `.github/workflows/ci.yml` - inchangé : typecheck+build sur PR/push.
 
-## Mise en place (une fois) — À FAIRE
+## Mise en place (une fois) - À FAIRE
 
 Toutes les chaînes de connexion = **« Session pooler »** de Supabase (Settings →
 Database → Connection pooling → *Session mode*, port 5432, IPv4). Les runners

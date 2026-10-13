@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockup — Système de toasts — Gestu Comply</title>
+<title>Mockup - Système de toasts - Gestu Comply</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -33,7 +33,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .section-h .num { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--gold); font-weight:700 }
 .section-desc { font-size:13px; color:var(--t5); margin-bottom:20px }
 
-/* Toast anatomy ─────────────────────────────────────── */
+/* Toast anatomy --------------------------------------- */
 .toasts-row { display:grid; grid-template-columns:repeat(2,1fr); gap:16px }
 .toast-demo { background:white; border:1px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 4px 12px rgba(27,67,50,.06) }
 .toast-demo .label { font-size:11px; font-weight:600; color:var(--t3); letter-spacing:.5px; text-transform:uppercase; margin-bottom:12px }
@@ -81,7 +81,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .pill-loading { background:#F3F4F6; color:var(--t5) }
 .pill-brand { background:var(--f9); color:white }
 
-/* Scenarios — fake screens ──────────────────────────── */
+/* Scenarios - fake screens ---------------------------- */
 .scene { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; position:relative; box-shadow:0 4px 12px rgba(27,67,50,.04) }
 .scene-h { padding:14px 18px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px }
 .scene-h .dot { width:10px; height:10px; border-radius:50%; background:#E5E7EB }
@@ -112,7 +112,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .btn-sec { background:white; color:var(--t7); border-color:var(--border2) }
 .btn-pri.gold { background:var(--gold); color:var(--f9); border-color:var(--gold) }
 
-/* Comparison ─ before / after ───────────────────────── */
+/* Comparison - before / after ------------------------- */
 .compare { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start }
 .compare .col-l { position:relative }
 .compare .col-l::after { content:'avant'; position:absolute; top:-12px; right:14px; padding:3px 10px; background:#374151; color:white; border-radius:99px; font-size:10px; font-weight:600; letter-spacing:.5px; text-transform:uppercase }
@@ -165,19 +165,19 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
 <div class="wrap">
 
-  <!-- Hero ─────────────────────────────────────────────── -->
+  <!-- Hero ----------------------------------------------- -->
   <div class="hero">
     <div class="hero-tag">Chantier UX #1 · Mockup d'impact</div>
-    <h1>Système de toasts — feedback visuel sur chaque action</h1>
+    <h1>Système de toasts - feedback visuel sur chaque action</h1>
     <p>
       Aujourd'hui, sauvegarder un travail terrain, soumettre une validation ou uploader un document
       ne déclenche aucune confirmation. L'utilisateur doute. Avec un système de toasts cohérent
       (succès, erreur, info, chargement asynchrone), chaque action génère un retour immédiat,
-      éphémère et accessible — sans alourdir l'écran.
+      éphémère et accessible - sans alourdir l'écran.
     </p>
   </div>
 
-  <!-- Section 1 — Anatomie ──────────────────────────────── -->
+  <!-- Section 1 - Anatomie -------------------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">01</span>
@@ -191,7 +191,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     <div class="toasts-row">
       <!-- Success -->
       <div class="toast-demo">
-        <div class="label">Succès — action validée</div>
+        <div class="label">Succès - action validée</div>
         <div class="toast t-success">
           <div class="ic">✓</div>
           <div class="body">
@@ -204,7 +204,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
       <!-- Error -->
       <div class="toast-demo">
-        <div class="label">Erreur — action échouée</div>
+        <div class="label">Erreur - action échouée</div>
         <div class="toast t-error">
           <div class="ic">!</div>
           <div class="body">
@@ -220,7 +220,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
       <!-- Info -->
       <div class="toast-demo">
-        <div class="label">Info — événement neutre</div>
+        <div class="label">Info - événement neutre</div>
         <div class="toast t-info">
           <div class="ic">i</div>
           <div class="body">
@@ -233,7 +233,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
       <!-- Warn -->
       <div class="toast-demo">
-        <div class="label">Avertissement — attention requise</div>
+        <div class="label">Avertissement - attention requise</div>
         <div class="toast t-warn">
           <div class="ic">⚠</div>
           <div class="body">
@@ -246,11 +246,11 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
       <!-- Loading / Promise -->
       <div class="toast-demo">
-        <div class="label">Chargement — opération asynchrone</div>
+        <div class="label">Chargement - opération asynchrone</div>
         <div class="toast t-loading">
           <div class="ic">⟳</div>
           <div class="body">
-            <div class="title">Analyse IA en cours…</div>
+            <div class="title">Analyse IA en cours...</div>
             <div class="desc">Lecture de 4 documents · ~30 s</div>
           </div>
         </div>
@@ -258,7 +258,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
       <!-- Brand action -->
       <div class="toast-demo">
-        <div class="label">Branded — action contextuelle</div>
+        <div class="label">Branded - action contextuelle</div>
         <div class="toast t-brand">
           <div class="ic">★</div>
           <div class="body">
@@ -291,7 +291,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
   </div>
 
-  <!-- Section 2 — Mises en situation ────────────────────── -->
+  <!-- Section 2 - Mises en situation ---------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">02</span>
@@ -303,7 +303,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
     <div class="scene-grid">
 
-      <!-- Scene 1 — Save fieldwork -->
+      <!-- Scene 1 - Save fieldwork -->
       <div class="scene">
         <div class="scene-h">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
@@ -341,7 +341,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
         </div>
       </div>
 
-      <!-- Scene 2 — Upload document with promise toast -->
+      <!-- Scene 2 - Upload document with promise toast -->
       <div class="scene">
         <div class="scene-h">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
@@ -376,7 +376,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
             <div class="toast t-loading">
               <div class="ic">⟳</div>
               <div class="body">
-                <div class="title">Indexation IA en cours…</div>
+                <div class="title">Indexation IA en cours...</div>
                 <div class="desc">politique_acces_v3_2026.pdf · ~10 s</div>
               </div>
             </div>
@@ -384,7 +384,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
         </div>
       </div>
 
-      <!-- Scene 3 — Validation submitted -->
+      <!-- Scene 3 - Validation submitted -->
       <div class="scene">
         <div class="scene-h">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
@@ -395,7 +395,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
           <div class="mini-h">
             <div class="crumb"><b>Hôpital Principal</b><i>›</i>Revue interne<i>›</i><b>Domaine A.12</b></div>
           </div>
-          <div class="mini-title">Validation des travaux — Sécurité physique</div>
+          <div class="mini-title">Validation des travaux - Sécurité physique</div>
           <div class="mini-sub">8 contrôles évalués · Maturité moyenne 3,2/5</div>
           <div class="field">
             <label>Commentaire du lead</label>
@@ -423,7 +423,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
         </div>
       </div>
 
-      <!-- Scene 4 — Error case -->
+      <!-- Scene 4 - Error case -->
       <div class="scene">
         <div class="scene-h">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
@@ -465,7 +465,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
   </div>
 
-  <!-- Section 3 — Avant / Après ─────────────────────────── -->
+  <!-- Section 3 - Avant / Après --------------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">03</span>
@@ -495,7 +495,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
             <div class="mini-sub">Domaine A.9 · Maturité 3/5</div>
             <div class="field">
               <label>Constats</label>
-              <div class="input lg">…</div>
+              <div class="input lg">...</div>
             </div>
             <div class="btn-row">
               <button class="btn btn-pri">Enregistrer</button>
@@ -519,7 +519,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
             <div class="mini-sub">Domaine A.9 · Maturité 3/5</div>
             <div class="field">
               <label>Constats</label>
-              <div class="input lg">…</div>
+              <div class="input lg">...</div>
             </div>
             <div class="btn-row">
               <button class="btn btn-pri">Enregistrer</button>
@@ -548,7 +548,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
 
     <div class="note">
-      <b>Garde-fou sécurité (CLAUDE.md §3)</b> — le wrapper <span class="mono">useToast()</span> impose un message
+      <b>Garde-fou sécurité (CLAUDE.md §3)</b> - le wrapper <span class="mono">useToast()</span> impose un message
       générique pour les erreurs. Le détail technique (message Supabase, stack) est loggé en console
       via <span class="mono">console.error()</span>, jamais affiché à l'utilisateur. Cette séparation
       empêche la fuite d'informations internes (noms de tables, contraintes, schémas) qui pourraient
@@ -556,14 +556,14 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
   </div>
 
-  <!-- Section 4 — API du wrapper ─────────────────────────── -->
+  <!-- Section 4 - API du wrapper --------------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">04</span>
       <h2>API attendue · <span class="mono" style="font-size:14px;color:var(--gold)">useToast()</span></h2>
     </div>
     <div class="section-desc">
-      Wrapper minimal au-dessus de Sonner — impose la sémantique Gestu et masque les détails techniques en cas d'erreur.
+      Wrapper minimal au-dessus de Sonner - impose la sémantique Gestu et masque les détails techniques en cas d'erreur.
     </div>
 
 <div class="code">
@@ -593,7 +593,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 </div>
   </div>
 
-  <!-- Footer ─────────────────────────────────────────────── -->
+  <!-- Footer ----------------------------------------------- -->
   <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:14px; font-size:12px; color:var(--t5)">
     <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--f9)">Gestu Comply</div>
     <div>·</div>

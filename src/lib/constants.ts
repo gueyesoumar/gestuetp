@@ -218,7 +218,7 @@ export const MEMBER_AUDIT_ACTION_LABELS: Record<string, string> = {
   invitation_resent: 'Invitation renvoyée',
 } as const
 
-// ── Centre d'aide : types de demande (Phase 1) ──
+// -- Centre d'aide : types de demande (Phase 1) --
 // UserRole ne distingue que 'auditor' | 'client' ; la notion d'admin releve des
 // permissions cabinet, verifiees au fulfillment (Phase 1.b), pas a l'intake.
 export type SupportRequesterRole = 'client' | 'auditor'
@@ -319,7 +319,7 @@ export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
   closed: 'Clôturé',
 }
 
-// ── Dimensions du score de confiance (mapping contrôle -> dimension) ──────────
+// -- Dimensions du score de confiance (mapping contrôle -> dimension) ----------
 // 6 dimensions (axes du radar) + 2 facteurs transverses (coefficients).
 export const SCORE_DIMENSION_KEYS = [
   'security', 'data_protection', 'resilience', 'integrity',

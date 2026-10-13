@@ -4,7 +4,7 @@ import type { LogoData } from './logo-loader'
 import { drawKpi, fillRect, fillRoundedRect, setText, strokeRoundedRect } from './primitives'
 import { formatDate, generateContextSummary } from './narratives'
 
-// ── Cover page ─────────────────────────────────────────────────────────────
+// -- Cover page -------------------------------------------------------------
 
 export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null): void {
   const { doc, data, pageW, pageH, marginL } = ctx

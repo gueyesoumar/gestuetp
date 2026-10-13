@@ -5,7 +5,7 @@ import {
 } from './colors'
 import type { DocContext } from './context'
 
-// ── Pagination helpers ─────────────────────────────────────────────────────
+// -- Pagination helpers -----------------------------------------------------
 
 export function checkPage(ctx: DocContext, needed: number): void {
   if (ctx.y + needed > ctx.pageH - 18) {
@@ -22,7 +22,7 @@ export function addPageNum(ctx: DocContext): void {
   ctx.doc.text(`${total}`, ctx.pageW - ctx.marginR, ctx.pageH - 8, { align: 'right' })
 }
 
-// ── Drawing primitives ─────────────────────────────────────────────────────
+// -- Drawing primitives -----------------------------------------------------
 
 export function fillRect(doc: jsPDF, x: number, y: number, w: number, h: number, color: RGB): void {
   doc.setFillColor(...color)
@@ -71,7 +71,7 @@ export function drawKpi(doc: jsPDF, x: number, y: number, w: number, h: number, 
   doc.line(x + w, y + 3, x + w, y + h - 3)
 }
 
-// ── Section banner ─────────────────────────────────────────────────────────
+// -- Section banner ---------------------------------------------------------
 
 export function drawSectionBanner(ctx: DocContext, num: string, title: string, lead: string): void {
   ctx.doc.addPage()
@@ -136,7 +136,7 @@ export function drawSignatureCard(ctx: DocContext, x: number, y: number, w: numb
   ctx.doc.text('Signature et cachet', x + 4, y + h - 3)
 }
 
-// ── Generic table ──────────────────────────────────────────────────────────
+// -- Generic table ----------------------------------------------------------
 
 export function drawTable(ctx: DocContext, headers: string[], rows: string[][]): void {
   const colW = ctx.contentW / headers.length

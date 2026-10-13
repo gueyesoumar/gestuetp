@@ -1,5 +1,5 @@
 /**
- * Vercel Edge Middleware — gatekeeper hostname pour la marque blanche.
+ * Vercel Edge Middleware - gatekeeper hostname pour la marque blanche.
  *
  * Tourne sur l'edge V8 avant de servir l'app. Pour les hostnames neutres
  * (Gëstu, vercel preview, localhost), laisse passer. Pour les hostnames
@@ -11,9 +11,9 @@
  * un domaine custom en révoquant l'entrée cabinet_domains côté admin.
  *
  * Variables d'env requises sur Vercel :
- *   VITE_SUPABASE_URL  (ou SUPABASE_URL)   — URL projet Supabase
- *   VITE_SUPABASE_ANON_KEY  (ou SUPABASE_ANON_KEY) — anon key publique
- *   APP_PRIMARY_HOSTNAME (optionnel) — défaut app.gestugroup.com
+ *   VITE_SUPABASE_URL  (ou SUPABASE_URL)   - URL projet Supabase
+ *   VITE_SUPABASE_ANON_KEY  (ou SUPABASE_ANON_KEY) - anon key publique
+ *   APP_PRIMARY_HOSTNAME (optionnel) - défaut app.gestugroup.com
  */
 
 export const config = {
@@ -45,7 +45,7 @@ export default async function middleware(request: Request): Promise<Response> {
     (globalThis as { process?: { env?: Record<string, string> } }).process?.env?.VITE_SUPABASE_ANON_KEY ??
     (globalThis as { process?: { env?: Record<string, string> } }).process?.env?.SUPABASE_ANON_KEY
   if (!supabaseUrl || !anonKey) {
-    console.warn('[middleware] Supabase env vars manquantes — passthrough')
+    console.warn('[middleware] Supabase env vars manquantes - passthrough')
     return passthrough(request)
   }
 

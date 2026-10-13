@@ -29,7 +29,7 @@ retry() {
       echo ">> échec après $max tentatives : $*" >&2
       return 1
     fi
-    echo ">> échec (tentative $n/$max) — probable 522 esm.sh, nouvelle tentative dans $((n * 10))s…" >&2
+    echo ">> échec (tentative $n/$max) - probable 522 esm.sh, nouvelle tentative dans $((n * 10))s..." >&2
     sleep "$((n * 10))"
     n=$((n + 1))
   done

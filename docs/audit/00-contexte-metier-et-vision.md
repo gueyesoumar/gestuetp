@@ -1,9 +1,9 @@
-# Contexte métier & vision — Gëstu ETP
+# Contexte métier & vision - Gëstu ETP
 
-> **⚠ Évolution post-audit — voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime — le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
+> **⚠ Évolution post-audit - voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime - le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
 
 > Document préparé pour l'audit externe. Version du 2026-07-09.
-> Objectif : donner à l'auditeur **le « pourquoi »** de la plateforme — le problème métier, les acteurs, et les logiques du domaine (audit de conformité, régulation cyber) — avant d'aborder le « quoi » (dossier fonctionnel) et le « comment » (architecture, sécurité). À lire **en premier**.
+> Objectif : donner à l'auditeur **le « pourquoi »** de la plateforme - le problème métier, les acteurs, et les logiques du domaine (audit de conformité, régulation cyber) - avant d'aborder le « quoi » (dossier fonctionnel) et le « comment » (architecture, sécurité). À lire **en premier**.
 
 ---
 
@@ -11,19 +11,19 @@
 
 Gëstu ETP répond à **deux problèmes voisins mais distincts**, tous deux ancrés dans la conformité et la sécurité des systèmes d'information.
 
-### 1.1 Problème A — conduire des audits de conformité (Gëstu Comply)
+### 1.1 Problème A - conduire des audits de conformité (Gëstu Comply)
 
-Un **audit de conformité SI** consiste à vérifier qu'une organisation respecte un **référentiel** (ISO 27001, PSSI, réglementation sectorielle bancaire, RGPD…). Aujourd'hui, ce travail est massivement conduit avec des tableurs et des documents dispersés. Les difficultés récurrentes :
+Un **audit de conformité SI** consiste à vérifier qu'une organisation respecte un **référentiel** (ISO 27001, PSSI, réglementation sectorielle bancaire, RGPD...). Aujourd'hui, ce travail est massivement conduit avec des tableurs et des documents dispersés. Les difficultés récurrentes :
 
 - **Dispersion** : questionnaires, preuves, constats et rapports éclatés entre e-mails, Excel et dossiers partagés.
 - **Traçabilité faible** : qui a évalué quoi, quand, sur quelle preuve ? Difficile à reconstituer.
 - **Multi-référentiels** : une même organisation est auditée sur plusieurs cadres ; pas de socle commun.
-- **Collaboration client friable** : l'entité auditée doit fournir des preuves, valider des constats — un aller-retour mal outillé.
+- **Collaboration client friable** : l'entité auditée doit fournir des preuves, valider des constats - un aller-retour mal outillé.
 - **Restitution coûteuse** : produire un rapport d'audit propre et un plan d'action prend un temps disproportionné.
 
 Gëstu Comply industrialise ce cycle : un **moteur d'audit** unique, multi-référentiels, collaboratif (cabinet ↔ client), avec traçabilité native et restitution automatisée.
 
-### 1.2 Problème B — superviser un parc d'entités régulées (Gëstu Regul)
+### 1.2 Problème B - superviser un parc d'entités régulées (Gëstu Regul)
 
 Une **autorité de régulation cyber** (ex. la DCSSI au Sénégal) ne pilote pas *sa* conformité : elle **supervise la conformité d'un parc d'organisations tierces** (les « assujettis »), avec un **pouvoir contraignant**. Ses besoins sont d'une autre nature :
 
@@ -46,7 +46,7 @@ Gëstu Regul réutilise le moteur d'audit de Comply mais l'oriente vers cette **
 | **Auditeur terrain** | Évalue des contrôles précis | Un cadre guidé pour évaluer, documenter, justifier |
 | **Client audité** (Comply) | Entité auditée | Fournir ses preuves, comprendre et valider/contester les constats, suivre son plan d'action |
 | **Autorité de régulation** (Regul) | Supervise un secteur | Connaître la posture du parc, prioriser ses contrôles, prononcer des actes, suivre les incidents |
-| **Assujetti** (Regul) | Entité régulée | Répondre aux contrôles, déclarer ses incidents, suivre ses obligations — dans un espace strictement privé |
+| **Assujetti** (Regul) | Entité régulée | Répondre aux contrôles, déclarer ses incidents, suivre ses obligations - dans un espace strictement privé |
 | **Éditeur / super-admin** | Exploite la plateforme | Gérer les cabinets, les référentiels, la facturation, superviser techniquement |
 
 La **relation de confiance asymétrique** (un tiers évalue / supervise une organisation) est le cœur du métier : elle impose que chaque partie ne voie **que** ce qui la concerne. C'est la raison d'être du cloisonnement (§8).
@@ -69,9 +69,9 @@ Comprendre ces concepts et **leurs relations** suffit à comprendre 90 % de la p
 
 - **Référentiel** (*framework*) : un cadre normatif structuré en **domaines** puis en **contrôles**. C'est l'unité de mesure de la conformité (ex. PSSI-ES : 11 domaines, 213 contrôles).
 - **Contrôle** : une exigence vérifiable (« les accès sont revus périodiquement »). L'audit consiste à statuer sur chaque contrôle.
-- **Mission** : un audit daté, sur un référentiel, pour une organisation, mené par une équipe. Elle traverse des **phases** (cadrage → … → clôture).
+- **Mission** : un audit daté, sur un référentiel, pour une organisation, mené par une équipe. Elle traverse des **phases** (cadrage → ... → clôture).
 - **Évaluation** (*assessment*) : le jugement porté sur un contrôle dans une mission, avec un **niveau de conformité** et des **preuves**.
-- **Constat** (*finding*) : ce que l'audit relève sur un contrôle — non-conformité majeure/mineure, observation, ou point fort. C'est la matière du rapport et du plan d'action.
+- **Constat** (*finding*) : ce que l'audit relève sur un contrôle - non-conformité majeure/mineure, observation, ou point fort. C'est la matière du rapport et du plan d'action.
 - **Preuve** (*evidence*) : un document/élément justifiant l'évaluation. Une preuve absente peut devenir un constat.
 - **Conformité** : le degré de respect (Conforme / Largement / Partiellement / Non conforme / N-A), agrégé en **score**.
 - **Plan d'action** : les actions correctives suivies après l'audit.
@@ -89,12 +89,12 @@ Comprendre ces concepts et **leurs relations** suffit à comprendre 90 % de la p
 
 Le cycle n'est pas arbitraire : il reproduit la **méthodologie d'audit professionnelle**, où chaque étape réduit un risque.
 
-1. **Cadrage** — *pourquoi* : on ne peut pas auditer « tout ». On délimite le périmètre, on identifie les risques et on interroge l'organisation (questionnaire) pour cibler l'effort.
-2. **Planification** — *pourquoi* : répartir les contrôles selon le risque et affecter les bons auditeurs ; l'audit doit être **proportionné** (plus d'effort là où le risque est élevé).
-3. **Travaux** — *pourquoi* : c'est le cœur probant — évaluer chaque contrôle sur pièces (preuves), pas sur déclaration seule.
-4. **Revue interne** — *pourquoi* : un second regard (le chef de mission) garantit la **qualité et la cohérence** avant d'exposer quoi que ce soit au client. Principe du « quatre yeux ».
-5. **Validation client** — *pourquoi* : l'entité auditée a le droit de **comprendre et contester** les constats (contradictoire) ; cela fiabilise le rapport et responsabilise le client.
-6. **Clôture** — *pourquoi* : figer le résultat (score, rapport) et enclencher la remédiation (plan d'action).
+1. **Cadrage** - *pourquoi* : on ne peut pas auditer « tout ». On délimite le périmètre, on identifie les risques et on interroge l'organisation (questionnaire) pour cibler l'effort.
+2. **Planification** - *pourquoi* : répartir les contrôles selon le risque et affecter les bons auditeurs ; l'audit doit être **proportionné** (plus d'effort là où le risque est élevé).
+3. **Travaux** - *pourquoi* : c'est le cœur probant - évaluer chaque contrôle sur pièces (preuves), pas sur déclaration seule.
+4. **Revue interne** - *pourquoi* : un second regard (le chef de mission) garantit la **qualité et la cohérence** avant d'exposer quoi que ce soit au client. Principe du « quatre yeux ».
+5. **Validation client** - *pourquoi* : l'entité auditée a le droit de **comprendre et contester** les constats (contradictoire) ; cela fiabilise le rapport et responsabilise le client.
+6. **Clôture** - *pourquoi* : figer le résultat (score, rapport) et enclencher la remédiation (plan d'action).
 
 La distinction des **rôles** (auditeur terrain restreint à ses contrôles ; lead/associé qui pilotent et revoient) traduit cette logique de séparation des responsabilités et de contrôle qualité.
 
@@ -128,7 +128,7 @@ Le métier repose sur une **confiance asymétrique** : un tiers (cabinet, autori
 ## 9. Pourquoi un codebase unique, deux produits (logique au service du métier)
 
 - **Anti-divergence** : Comply et Regul partagent le même métier de fond (référentiels, contrôles, évaluations, cloisonnement, traçabilité). Les faire diverger en deux bases distinctes multiplierait les bugs et les coûts. On garde **un moteur**, spécialisé par `VITE_PRODUCT`.
-- **Souveraineté sans fork** : le code est commun, mais Regul tourne sur une **instance dédiée** — on concilie mutualisation du logiciel et séparation des données.
+- **Souveraineté sans fork** : le code est commun, mais Regul tourne sur une **instance dédiée** - on concilie mutualisation du logiciel et séparation des données.
 - **Réutilisation intelligente** : l'assujetti régulé réutilise le mécanisme du « client portail » ; l'organe régulateur réutilise le mécanisme « groupe/entités ». Le net-nouveau se limite au spécifique régulateur (mesures, incidents, journal probant).
 
 ---
@@ -137,7 +137,7 @@ Le métier repose sur une **confiance asymétrique** : un tiers (cabinet, autori
 
 | Décision | Pourquoi |
 |---|---|
-| **Modèle centré constats** (N constats par évaluation) | Un contrôle peut soulever plusieurs points distincts, chacun avec sa gravité et sa recommandation — plus fidèle qu'un jugement unique. |
+| **Modèle centré constats** (N constats par évaluation) | Un contrôle peut soulever plusieurs points distincts, chacun avec sa gravité et sa recommandation - plus fidèle qu'un jugement unique. |
 | **Liaison question ↔ contrôle** | Les réponses de cadrage alimentent l'évaluation : on ne redemande pas ce que le client a déjà déclaré, et on trace le lien. |
 | **Portail par comptes (pas de lien anonyme)** | Traçabilité et responsabilité : chaque action côté client/assujetti est rattachée à une identité. |
 | **Criticité neutre & configurable** | Ne pas figer une terminologie réglementaire (ex. « OIV ») tant que le cadre juridique cible n'est pas arrêté ; le libellé se change en un point. |

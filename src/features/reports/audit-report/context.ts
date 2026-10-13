@@ -5,7 +5,7 @@ import type { AssessmentFinding, CabinetClient, ControlAssessment } from '../../
 import { type RGB, FOREST_900, GOLD_500 } from './colors'
 import { conformityWeight } from './utils'
 
-// ── Types externes ─────────────────────────────────────────────────────────
+// -- Types externes ---------------------------------------------------------
 
 export interface AssessmentWithControl extends ControlAssessment {
   control: { id: string; code: string; name: string; description: string | null; domain_id: string }

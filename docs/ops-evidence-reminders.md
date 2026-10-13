@@ -1,4 +1,4 @@
-# Configuration opérationnelle — Relances graduées
+# Configuration opérationnelle - Relances graduées
 
 Ce document décrit les étapes à effectuer après le déploiement du chantier #4
 (relances graduées sur les demandes de preuves).
@@ -11,7 +11,7 @@ Ce document décrit les étapes à effectuer après le déploiement du chantier 
 |----------|--------|------|
 | `RESEND_API_KEY` | clé API Resend | Déjà présente (utilisée par `_shared/resend.ts`) |
 | `RESEND_FROM_EMAIL` | `Gëstu Comply <noreply@gestucomply.com>` | Optionnel, fallback prévu |
-| `APP_BASE_URL` | `https://app.gestucomply.com` | URL publique de l'application — utilisée pour les liens dans les emails |
+| `APP_BASE_URL` | `https://app.gestucomply.com` | URL publique de l'application - utilisée pour les liens dans les emails |
 
 ## 2. Migrations à appliquer
 

@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Runner de migrations Gëstu ETP — applique les `NNNNN_nom_up.sql` en attente sur
+# Runner de migrations Gëstu ETP - applique les `NNNNN_nom_up.sql` en attente sur
 # une base, de façon idempotente et ordonnée, en suivant l'état dans `ops.migrations`.
 #
 # Convention projet : supabase/migrations/NNNNN_nom_up.sql (+ _down.sql pour le
 # rollback manuel, ignoré ici). Chaque migration est appliquée dans UNE transaction
-# (atomique) — vérifié : aucune migration non-transactionnelle (add value/concurrently).
+# (atomique) - vérifié : aucune migration non-transactionnelle (add value/concurrently).
 #
 # Usage :
-#   DATABASE_URL='postgresql://…' bash scripts/migrate.sh            # applique les manquantes
-#   DATABASE_URL='postgresql://…' bash scripts/migrate.sh --baseline # marque TOUT comme appliqué SANS exécuter
-#   DATABASE_URL='postgresql://…' bash scripts/migrate.sh --dry-run  # liste les manquantes, n'applique rien
+#   DATABASE_URL='postgresql://...' bash scripts/migrate.sh            # applique les manquantes
+#   DATABASE_URL='postgresql://...' bash scripts/migrate.sh --baseline # marque TOUT comme appliqué SANS exécuter
+#   DATABASE_URL='postgresql://...' bash scripts/migrate.sh --dry-run  # liste les manquantes, n'applique rien
 #
 # --baseline : pour une base qui a DÉJÀ le schéma (prod jibbl, ou test chargé depuis
-#   un dump) — enregistre les versions présentes sans rejouer le SQL.
+#   un dump) - enregistre les versions présentes sans rejouer le SQL.
 # =============================================================================
 set -euo pipefail
 
@@ -67,7 +67,7 @@ for f in "$MIG_DIR"/*_up.sql; do
       applied_count=$((applied_count + 1))
       ;;
     apply)
-      echo "  application : $version ($name)…"
+      echo "  application : $version ($name)..."
       # --single-transaction : migration + enregistrement commitent ensemble (atomique).
       psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q --single-transaction \
         -f "$f" \

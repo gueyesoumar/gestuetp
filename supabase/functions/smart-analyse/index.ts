@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // ── 1. Fetch client context ──────────────────────────────────────────────
+    // -- 1. Fetch client context ----------------------------------------------
     let clientContext = ''
     let cadrageResponsesText = ''
     let cabinetIdForLog: string | null = null
@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 1bis. Fetch audit_checklist du controle ──────────────────────────────
+    // -- 1bis. Fetch audit_checklist du controle ------------------------------
     let auditChecklistText = ''
     if (control_id) {
       const { data: ctrl } = await admin.from('controls')
@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 2. Fetch documents - priority to those tied to this control ──────────
+    // -- 2. Fetch documents - priority to those tied to this control ----------
     // deno-lint-ignore no-explicit-any
     type ContentBlock = any
     // deno-lint-ignore no-explicit-any
@@ -363,7 +363,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 3. Build prompt (sections-based, only include what we have) ──────────
+    // -- 3. Build prompt (sections-based, only include what we have) ----------
     const promptSections: string[] = []
     if (clientContext) promptSections.push(`CONTEXTE CLIENT:\n${clientContext}`)
 
@@ -452,7 +452,7 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
 
     console.log('[smart-analyse] Content blocks:', contentParts.map((p: { type: string }) => p.type).join(', '))
 
-    // ── 4. Call Claude API ───────────────────────────────────────────────────
+    // -- 4. Call Claude API ---------------------------------------------------
     const claudeController = new AbortController()
     const claudeTimeout = setTimeout(() => claudeController.abort(), 120_000)
     const startedAt = Date.now()
@@ -510,7 +510,7 @@ JSON uniquement, en francais. Maximum ${MAX_FINDINGS} findings.`
     const rawText = gate.anonymized && gate.mapping ? rehydrate(rawModelText, gate.mapping) : rawModelText
     const clean = rawText.replace(/```json|```/g, '').trim()
 
-    // ── 5. Parse + validate response ─────────────────────────────────────────
+    // -- 5. Parse + validate response -----------------------------------------
     let parsed: Record<string, unknown>
     try {
       parsed = JSON.parse(clean)

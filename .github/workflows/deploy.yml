@@ -1,8 +1,8 @@
 name: Deploy
 
 # Déploiement backend piloté par la branche = environnement :
-#   push staging → env « staging »    (projet Supabase test)      — auto
-#   push main    → env « production » (projet Supabase jibbl)     — APPROBATION requise
+#   push staging → env « staging »    (projet Supabase test)      - auto
+#   push main    → env « production » (projet Supabase jibbl)     - APPROBATION requise
 #
 # Le frontend est déployé par Vercel (push → build). Ce workflow ne gère que la
 # base (migrations via scripts/migrate.sh) et les edge functions.

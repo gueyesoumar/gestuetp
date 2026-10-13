@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}))
     const action = body?.action
 
-    // ───────────────────── CONNECT ─────────────────────
+    // --------------------- CONNECT ---------------------
     if (action === 'connect') {
       const accessKey = String(body.accessKey ?? '').trim()
       const secretKey = String(body.secretKey ?? '').trim()
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       return json({ ok: true })
     }
 
-    // ───────────────────── COLLECT (manuel) ─────────────────────
+    // --------------------- COLLECT (manuel) ---------------------
     if (action === 'collect') {
       const outcome = await collectTenableForOrg(supabaseAdmin, orgId, profile.id)
       if (outcome.error === 'no_active_integration') return json({ error: 'Aucune connexion Tenable active' }, 400)

@@ -13,7 +13,7 @@
 \set parent_nature group_ownership
 \endif
 
--- ── 1. Arêtes self : une par organisation ─────────────────────────────────────
+-- -- 1. Arêtes self : une par organisation -------------------------------------
 insert into public.organization_relationships (actor_org_id, target_org_id, nature, status)
 select o.id, o.id, 'self', 'active'
 from public.organizations o
@@ -23,7 +23,7 @@ where not exists (
     and r.nature = 'self' and r.status = 'active'
 );
 
--- ── 2. Arêtes audit_engagement : missions ∪ cabinet_clients (décision A) ───────
+-- -- 2. Arêtes audit_engagement : missions ∪ cabinet_clients (décision A) -------
 with pairs as (
   select cabinet_id as actor, client_org_id as target
   from public.cabinet_clients
@@ -45,7 +45,7 @@ where p.actor <> p.target
       and r.nature = 'audit_engagement' and r.status = 'active'
   );
 
--- ── 3. Arêtes parent_org_id -> nature fournie par la variable parent_nature ────
+-- -- 3. Arêtes parent_org_id -> nature fournie par la variable parent_nature ----
 insert into public.organization_relationships (actor_org_id, target_org_id, nature, status)
 select
   o.parent_org_id,
@@ -62,7 +62,7 @@ where o.parent_org_id is not null
       and r.status = 'active'
   );
 
--- ── 4. Lier les missions à leur arête d'engagement (décision #3) ───────────────
+-- -- 4. Lier les missions à leur arête d'engagement (décision #3) ---------------
 update public.missions m
 set engagement_id = r.id
 from public.organization_relationships r

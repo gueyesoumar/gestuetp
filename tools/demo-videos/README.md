@@ -1,7 +1,7 @@
-# Kit vidéos de démo — Gëstu (Playwright)
+# Kit vidéos de démo - Gëstu (Playwright)
 
 Enregistre des **vidéos de vrais parcours** de la plateforme (voie B). Tu exécutes tout
-en local (tu es connecté) ; aucun mot de passe ni secret 2FA n'est stocké — seule une
+en local (tu es connecté) ; aucun mot de passe ni secret 2FA n'est stocké - seule une
 **session** est sauvegardée localement dans `.auth/` (gitignoré).
 
 ## Prérequis
@@ -20,14 +20,14 @@ cd tools/demo-videos
 npm install
 ```
 
-### Navigateur — **téléchargement résumable** (recommandé)
+### Navigateur - **téléchargement résumable** (recommandé)
 ⚠️ N'utilise **pas** `npx playwright install` : son téléchargeur **ne reprend pas** après
 une coupure réseau (il recommence de zéro) et **supprime** au passage tout Chromium en
 cache. Sur une connexion instable, utilise le script résumable :
 ```bash
 bash download-chromium.sh      # relançable : reprend là où ça s'est arrêté
 ```
-Il affiche à la fin une ligne `export CHROME_BIN="…"` — copie-la et exécute-la (les
+Il affiche à la fin une ligne `export CHROME_BIN="..."` - copie-la et exécute-la (les
 scripts `auth` / `record:*` lisent `CHROME_BIN`). Garde ce `export` dans le même terminal.
 
 *(Réseau stable ? Tu peux à la place faire `npx playwright install chromium` et ignorer
@@ -36,7 +36,7 @@ scripts `auth` / `record:*` lisent `CHROME_BIN`). Garde ce `export` dans le mêm
 ## 0. Staging protégé par Vercel ? (mur « connexion Vercel/GitHub/Google »)
 Si la fenêtre tombe sur un **mur d'authentification Vercel** (et que Google ferme la
 fenêtre car il bloque les navigateurs automatisés), active le contournement prévu par
-Vercel — **sans toucher à Google** :
+Vercel - **sans toucher à Google** :
 1. Vercel → projet **staging** → *Settings → Deployment Protection* →
    **Protection Bypass for Automation** → activer → copier le secret.
 2. Exporte-le dans le terminal, puis lance l'auth :
@@ -46,7 +46,7 @@ Vercel — **sans toucher à Google** :
 Les scripts envoient alors l'en-tête `x-vercel-protection-bypass` et atteignent
 directement l'app. Garde ce `export` dans le même terminal que `npm run`.
 
-*(Prod `app.gestugroup.com` n'est en général pas protégée ainsi — mais évite d'y créer
+*(Prod `app.gestugroup.com` n'est en général pas protégée ainsi - mais évite d'y créer
 des missions de démo.)*
 
 ## 1. Sauvegarder ta session (une fois, navigateur visible)
@@ -66,12 +66,12 @@ BASE_URL=https://test.gestugroup.com npm run record:create-mission
 SUBMIT=false npm run record:create-mission   # s'arrête au récapitulatif, ne crée rien
 ```
 Sorties :
-- **`videos/creer-une-mission.webm`** — capture brute (source).
-- **`videos/creer-une-mission.mp4`** — version partageable (H.264), **temps mort du début
+- **`videos/creer-une-mission.webm`** - capture brute (source).
+- **`videos/creer-une-mission.mp4`** - version partageable (H.264), **temps mort du début
   rogné automatiquement** si `ffmpeg` est présent (sinon seul le WebM est produit).
 
 La vidéo affiche un **curseur synthétique** (rond doré qui suit la souris et « pulse » aux
-clics) et une **légende d'étape** flottante (« Étape 3 — Périmètre & contrôles »), pour que
+clics) et une **légende d'étape** flottante (« Étape 3 - Périmètre & contrôles »), pour que
 le parcours se suive sans commentaire audio.
 
 > Par défaut, le script **crée réellement** une mission (utile pour une démo complète).
@@ -89,7 +89,7 @@ ffmpeg -i videos/creer-une-mission.webm -c:v libx264 -pix_fmt yuv420p videos/cre
   ralentir la vidéo).
 - **Résolution / netteté** : capture **Full HD 1920×1080** (viewport = `recordVideo.size`,
   capturé 1:1). ⚠️ `deviceScaleFactor` n'augmente PAS la résolution capturée par Playwright
-  (il n'ajoute que du vide autour) — pour plus de netteté, **agrandir le viewport**, pas le
+  (il n'ajoute que du vide autour) - pour plus de netteté, **agrandir le viewport**, pas le
   scale factor. Le MP4 est ré-encodé en `-crf 18 -preset slow`. Pour un fichier plus léger,
   baisser le viewport (1600×900) ou ajouter `-vf scale=1280:-2` à la commande ffmpeg.
 - **Autres parcours** : dupliquer `record-create-mission.mjs` et adapter les sélecteurs

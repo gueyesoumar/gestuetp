@@ -1,7 +1,7 @@
 import { BORDER, FOREST_900, GOLD_500, TEXT_500, WATERMARK_GRAY } from './colors'
 import type { DocContext } from './context'
 
-// ── Pagination ─────────────────────────────────────────────────────────────
+// -- Pagination -------------------------------------------------------------
 
 export function checkPage(ctx: DocContext, needed: number): void {
   if (ctx.y + needed > ctx.pageH - 22) {
@@ -25,7 +25,7 @@ export function setPageContext(ctx: DocContext, label: string): void {
   ctx.sectionByPage.set(ctx.doc.getCurrentPageInfo().pageNumber, label)
 }
 
-// ── Header / Footer / Watermark - appliqués à la fin ──────────────────────
+// -- Header / Footer / Watermark - appliqués à la fin ----------------------
 
 export function finalizeHeadersFooters(ctx: DocContext): void {
   const total = ctx.doc.getNumberOfPages()

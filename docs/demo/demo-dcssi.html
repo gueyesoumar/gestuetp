@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Démo Gëstu Regul — DCSSI · Scénario pas à pas</title>
+<title>Démo Gëstu Regul - DCSSI · Scénario pas à pas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{
@@ -140,7 +140,7 @@
       <svg class="sh" viewBox="0 0 30 34" fill="none"><path d="M15 1 27 6v11c0 8-5.4 13-12 16C8.4 30 3 25 3 17V6z" fill="none" stroke="#D4A843" stroke-width="1.6"/><circle cx="15" cy="15" r="5" fill="none" stroke="#D4A843" stroke-width="1.3"/><circle cx="15" cy="15" r="2" fill="#D4A843"/></svg>
       Gëstu Regul · Démo prospect
     </div>
-    <h1>Superviser le SI de l&rsquo;État.<br><b>Scénario de test pas à pas — DCSSI.</b></h1>
+    <h1>Superviser le SI de l&rsquo;État.<br><b>Scénario de test pas à pas - DCSSI.</b></h1>
     <p>Runbook du présentateur. Le cœur : dérouler une <b>mission de contrôle de bout en bout</b> sur un assujetti public. Mène par les différenciateurs (chaîne probante, mesures graduées, personnalisation) et prépare aux questions d&rsquo;une autorité cyber.</p>
     <div class="meta">
       <span class="pill">⏱ <b>~35 min</b> + Q&amp;A</span>
@@ -169,14 +169,14 @@
 
     <div class="col">
       <div class="prep" id="prep">
-        <h2>🎬 Avant de commencer — check-list</h2>
-        <p class="sub"><b>Environnement : TEST (snayz) — jamais la prod.</b> Tenant DCSSI + parc à provisionner sur snayz, front pointant snayz.</p>
+        <h2>🎬 Avant de commencer - check-list</h2>
+        <p class="sub"><b>Environnement : TEST (snayz) - jamais la prod.</b> Tenant DCSSI + parc à provisionner sur snayz, front pointant snayz.</p>
         <label class="check"><input type="checkbox"><span>Tenant <b>DCSSI + admin@dcssi.sn</b> bootstrappés <b>sur snayz</b> ; front de démo (URL staging) pointant <b>snayz</b>.</span></label>
         <label class="check"><input type="checkbox"><span>Connexion <span class="mono">admin@dcssi.sn</span> testée, <b>MFA</b> prêt sur le téléphone.</span></label>
         <label class="check"><input type="checkbox"><span>Parc public seedé <b>sur snayz</b> : <b>6 entités</b> (Sénégal Numérique SA, DGID, Ministère de la Santé, Douanes, CSS, ANSD).</span></label>
         <label class="check"><input type="checkbox"><span>Un <b>contrôle sur la DGID</b> pré-amorcé (au moins créé), pour dérouler l&rsquo;acte 3 sans temps mort.</span></label>
-        <label class="check"><input type="checkbox"><span>Un <b>compte assujetti DGID</b> prêt (portail) — pour l&rsquo;acte 7. Login testé.</span></label>
-        <label class="check"><input type="checkbox"><span><b>Terminologie remise aux défauts</b> — pour montrer la personnalisation en direct (acte 8).</span></label>
+        <label class="check"><input type="checkbox"><span>Un <b>compte assujetti DGID</b> prêt (portail) - pour l&rsquo;acte 7. Login testé.</span></label>
+        <label class="check"><input type="checkbox"><span><b>Terminologie remise aux défauts</b> - pour montrer la personnalisation en direct (acte 8).</span></label>
         <label class="check"><input type="checkbox"><span>2 onglets pré-ouverts : Hub (régulateur) + portail (assujetti). Bonne connexion.</span></label>
       </div>
 
@@ -201,31 +201,31 @@
           <div class="row"><div class="k">Le parc</div><div class="v">
             <table class="parc"><thead><tr><th>Entité publique</th><th>Secteur</th><th>Régime</th><th>Criticité</th></tr></thead><tbody>
               <tr><td class="e">Sénégal Numérique SA</td><td>Infrastructure numérique de l&rsquo;État</td><td><span class="tag oiv">OIV</span></td><td><span class="tag hi">critique</span></td></tr>
-              <tr><td class="e">DGID — Impôts &amp; Domaines</td><td>Fiscalité</td><td><span class="tag oiv">OIV</span></td><td><span class="tag hi">élevée</span></td></tr>
+              <tr><td class="e">DGID - Impôts &amp; Domaines</td><td>Fiscalité</td><td><span class="tag oiv">OIV</span></td><td><span class="tag hi">élevée</span></td></tr>
               <tr><td class="e">Ministère de la Santé</td><td>Santé publique</td><td><span class="tag ose">OSE</span></td><td><span class="tag hi">élevée</span></td></tr>
               <tr><td class="e">Direction Générale des Douanes</td><td>Douanes</td><td><span class="tag oiv">OIV</span></td><td><span class="tag hi">élevée</span></td></tr>
               <tr><td class="e">Caisse de Sécurité Sociale</td><td>Protection sociale</td><td><span class="tag ose">OSE</span></td><td>standard</td></tr>
-              <tr><td class="e">ANSD — Statistique</td><td>Statistique nationale</td><td><span class="tag ose">OSE</span></td><td>standard</td></tr>
+              <tr><td class="e">ANSD - Statistique</td><td>Statistique nationale</td><td><span class="tag ose">OSE</span></td><td>standard</td></tr>
             </tbody></table>
           </div></div>
           <div class="row"><div class="k">Action</div><div class="v">Ouvrir <b>DGID</b> → son <b>profil réglementaire</b> (secteur, criticité, régime OIV, tier).</div></div>
-          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">Votre périmètre : ministères, directions et agences. Chacun qualifié — secteur, criticité, régime OIV/OSE. La DGID, dépositaire des données fiscales : OIV, criticité élevée.</div></div></div>
+          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">Votre périmètre : ministères, directions et agences. Chacun qualifié - secteur, criticité, régime OIV/OSE. La DGID, dépositaire des données fiscales : OIV, criticité élevée.</div></div></div>
           <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Registre réglementaire du parc étatique</span></div></div>
         </div>
       </div>
 
-      <!-- ACT 3 — MISSION DE CONTRÔLE BOUT EN BOUT -->
+      <!-- ACT 3 - MISSION DE CONTRÔLE BOUT EN BOUT -->
       <div class="card big" id="a3">
         <div class="card-h"><div class="num">3</div><div class="t"><h2>La mission de contrôle, de bout en bout <span class="flag">Le cœur du test</span></h2><div class="dur">~12 min · sur la DGID · 5 phases</div></div></div>
         <div class="rows" style="padding-bottom:6px">
-          <div class="row"><div class="k">Contexte</div><div class="v">On déroule un <b>contrôle de conformité SI de la DGID</b> sur un référentiel national (ex. loi n°2008-41 / PSSI-E), de la création à la clôture — puis on en tire une mesure (acte 4).</div></div>
+          <div class="row"><div class="k">Contexte</div><div class="v">On déroule un <b>contrôle de conformité SI de la DGID</b> sur un référentiel national (ex. loi n°2008-41 / PSSI-E), de la création à la clôture - puis on en tire une mesure (acte 4).</div></div>
         </div>
         <div class="phases">
           <div class="phase"><div class="pn">1</div><div><div class="pt">Initialisation <span class="st">Statut : Initialisation</span></div><div class="pd"><b>Créer le contrôle</b> : assujetti = <b>DGID</b>, <span class="m">référentiel</span> (PSSI-E / loi 2008-41), <span class="m">équipe</span> (chef de mission + contrôleurs), <span class="m">calendrier</span>.<div class="psay">On ouvre un contrôle sur la DGID, sur le référentiel national, avec l&rsquo;équipe de contrôleurs affectée.</div></div></div></div>
           <div class="phase"><div class="pn">2</div><div><div class="pt">Cadrage <span class="st">Statut : Planification</span></div><div class="pd">Définir le <b>périmètre</b> : domaines de contrôle retenus, exclusions, et les <b>risques initiaux</b> identifiés.<div class="psay">On cadre : quels domaines on contrôle, quels risques on cible en priorité.</div></div></div></div>
           <div class="phase"><div class="pn">3</div><div><div class="pt">Travaux &amp; demande de preuve <span class="st">Statut : Travaux</span></div><div class="pd">Évaluer chaque contrôle ; <b>demander des pièces à la DGID via son portail</b> ; la DGID dépose ; analyser les preuves ; produire les <b>constats</b> (classés, priorisés, avec recommandation). <span class="m">→ fait le lien avec l&rsquo;acte 7 (portail).</span><div class="psay">Le contrôleur évalue et demande les preuves directement à l&rsquo;assujetti, qui les dépose dans son portail. Chaque écart devient un constat qualifié.</div></div></div></div>
           <div class="phase"><div class="pn">4</div><div><div class="pt">Revue &amp; contradictoire <span class="st">Statut : Revue</span></div><div class="pd"><b>Revue interne</b> par le chef de mission, puis <b>envoi à l&rsquo;assujetti</b> pour ses observations avant finalisation.<div class="psay">Les constats passent en revue interne, puis l&rsquo;assujetti peut réagir avant qu&rsquo;on ne fige.</div></div></div></div>
-          <div class="phase"><div class="pn">5</div><div><div class="pt">Clôture <span class="st">Statut : Clôturée</span></div><div class="pd"><b>Scoring</b> de conformité, constats finalisés — qui deviennent la <b>base des mesures</b> (acte 4). Chaque acte du contrôle est <b>scellé au journal probant</b>.<div class="psay">On clôture avec un score de conformité et des constats définitifs — la matière des mesures à venir.</div></div></div></div>
+          <div class="phase"><div class="pn">5</div><div><div class="pt">Clôture <span class="st">Statut : Clôturée</span></div><div class="pd"><b>Scoring</b> de conformité, constats finalisés - qui deviennent la <b>base des mesures</b> (acte 4). Chaque acte du contrôle est <b>scellé au journal probant</b>.<div class="psay">On clôture avec un score de conformité et des constats définitifs - la matière des mesures à venir.</div></div></div></div>
         </div>
         <div class="rows" style="padding-top:0">
           <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Cycle de contrôle complet, tracé de bout en bout</span></div></div>
@@ -238,7 +238,7 @@
         <div class="rows">
           <div class="row"><div class="k">Écran</div><div class="v">Nav <b>Constats &amp; mesures</b> → DGID</div></div>
           <div class="row"><div class="k">Action</div><div class="v"><ol><li>À partir des constats du contrôle DGID, <b>émettre une mesure</b> (ex. mise en demeure).</li><li>Renseigner <b>base légale</b> + <b>délai</b>.</li><li>Montrer l&rsquo;<b>escalade</b> : recommandation → mise en demeure → injonction → sanction.</li></ol></div></div>
-          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">Le contrôle débouche sur un acte. Votre pouvoir de contrainte est gradué : de la recommandation à la sanction, avec base légale et délai — et chaque acte est immédiatement scellé.</div></div></div>
+          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">Le contrôle débouche sur un acte. Votre pouvoir de contrainte est gradué : de la recommandation à la sanction, avec base légale et délai - et chaque acte est immédiatement scellé.</div></div></div>
           <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Du constat à l&rsquo;acte gradué, ancré</span></div></div>
         </div>
       </div>
@@ -249,7 +249,7 @@
         <div class="rows">
           <div class="row"><div class="k">Écran</div><div class="v">Nav <b>Incidents</b></div></div>
           <div class="row"><div class="k">Action</div><div class="v"><ol><li>Ouvrir un incident <b>critique</b> (ex. ransomware sur <b>Sénégal Numérique SA</b>).</li><li>Montrer les <b>délais initial / final</b> calculés selon la gravité + la chronologie.</li></ol></div></div>
-          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">La déclaration vient de l&rsquo;assujetti. La plateforme calcule et suit les délais réglementaires de notification selon la gravité — vous voyez d&rsquo;un coup qui est en retard.</div></div></div>
+          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">La déclaration vient de l&rsquo;assujetti. La plateforme calcule et suit les délais réglementaires de notification selon la gravité - vous voyez d&rsquo;un coup qui est en retard.</div></div></div>
           <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Délais réglementaires suivis automatiquement</span></div></div>
         </div>
       </div>
@@ -261,7 +261,7 @@
           <div class="row"><div class="k">Écran</div><div class="v">Journal probant / détail d&rsquo;un acte</div></div>
           <div class="row"><div class="k">Action</div><div class="v"><ol><li>Montrer qu&rsquo;un acte (mesure DGID, incident) est <b>haché</b>, <b>chaîné</b> au précédent, <b>horodaté</b> par une autorité de temps (TSA RFC-3161).</li><li>Évoquer la <b>vérification d&rsquo;intégrité</b> de la chaîne.</li></ol></div></div>
           <div class="row"><div class="k">Discours</div><div class="v"><div class="say">Voici ce qui distingue une plateforme de supervision d&rsquo;un simple outil. Chaque acte est inscrit dans un journal inviolable, horodaté par une autorité de temps. Un acte ne peut être ni nié, ni antidaté, ni supprimé. C&rsquo;est votre défendabilité juridique.</div></div></div>
-          <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Défendabilité juridique — rare sur le marché</span></div></div>
+          <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Défendabilité juridique - rare sur le marché</span></div></div>
         </div>
       </div>
 
@@ -270,8 +270,8 @@
         <div class="card-h"><div class="num">7</div><div class="t"><h2>Le portail assujetti</h2><div class="dur">~3 min · le cloisonnement (rappel acte 3)</div></div></div>
         <div class="rows">
           <div class="row"><div class="k">Écran</div><div class="v">2e onglet → portail (compte <b>DGID</b>)</div></div>
-          <div class="row"><div class="k">Action</div><div class="v"><ol><li>Se connecter en tant qu&rsquo;<b>assujetti DGID</b>.</li><li>Montrer le <b>revers du contrôle</b> : la DGID voit sa demande de preuve (acte 3), y répond, dépose ses pièces, déclare un incident — et ne voit <b>QUE</b> son périmètre.</li></ol></div></div>
-          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">Voici le contrôle vu du côté de l&rsquo;assujetti. La DGID répond à vos demandes, dépose ses preuves, déclare ses incidents — sans jamais voir un autre assujetti. Le cloisonnement est garanti au niveau de la base.</div></div></div>
+          <div class="row"><div class="k">Action</div><div class="v"><ol><li>Se connecter en tant qu&rsquo;<b>assujetti DGID</b>.</li><li>Montrer le <b>revers du contrôle</b> : la DGID voit sa demande de preuve (acte 3), y répond, dépose ses pièces, déclare un incident - et ne voit <b>QUE</b> son périmètre.</li></ol></div></div>
+          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">Voici le contrôle vu du côté de l&rsquo;assujetti. La DGID répond à vos demandes, dépose ses preuves, déclare ses incidents - sans jamais voir un autre assujetti. Le cloisonnement est garanti au niveau de la base.</div></div></div>
           <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Cloisonnement strict (RLS) · boucle du contrôle</span></div></div>
         </div>
       </div>
@@ -282,7 +282,7 @@
         <div class="rows">
           <div class="row"><div class="k">Écran</div><div class="v">Admin → <b>Terminologie</b></div></div>
           <div class="row"><div class="k">Action</div><div class="v"><ol><li>Renommer en direct : « assujetti » → « <b>entité assujettie</b> » (ou le terme DCSSI), « auditeur » → « <b>contrôleur</b> », le bandeau de contexte.</li><li><b>Recharger</b> → toute la plateforme (nav, écrans, <b>et les emails</b>) s&rsquo;adapte.</li></ol></div></div>
-          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">La plateforme s&rsquo;adapte à votre cadre réglementaire, pas l&rsquo;inverse. Vos termes, votre persona, jusque dans les notifications aux assujettis — sans une ligne de développement.</div></div></div>
+          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">La plateforme s&rsquo;adapte à votre cadre réglementaire, pas l&rsquo;inverse. Vos termes, votre persona, jusque dans les notifications aux assujettis - sans une ligne de développement.</div></div></div>
           <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>Personnalisation par organisation, sans code</span></div></div>
         </div>
       </div>
@@ -292,17 +292,17 @@
         <div class="card-h"><div class="num">9</div><div class="t"><h2>Sécurité &amp; souveraineté</h2><div class="dur">~3 min · la clôture</div></div></div>
         <div class="rows">
           <div class="row"><div class="k">Écran</div><div class="v">Discours / slide de clôture</div></div>
-          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">MFA obligatoire, cloisonnement au niveau base, journal d&rsquo;audit des actes. Et sur le point non négociable pour une autorité cyber de l&rsquo;État — la souveraineté : un déploiement dédié souverain, sur votre infrastructure ou un cloud national, est notre trajectoire.</div></div></div>
-          <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>MFA · RLS · audit — et souveraineté en cible</span></div></div>
+          <div class="row"><div class="k">Discours</div><div class="v"><div class="say">MFA obligatoire, cloisonnement au niveau base, journal d&rsquo;audit des actes. Et sur le point non négociable pour une autorité cyber de l&rsquo;État - la souveraineté : un déploiement dédié souverain, sur votre infrastructure ou un cloud national, est notre trajectoire.</div></div></div>
+          <div class="row"><div class="k">Point clé</div><div class="v"><span class="keypoint"><span class="d"></span>MFA · RLS · audit - et souveraineté en cible</span></div></div>
         </div>
       </div>
 
       <!-- Q&A -->
       <div class="qa-wrap" id="qa">
-        <h2>⚠️ Questions pièges — et comment répondre</h2>
+        <h2>⚠️ Questions pièges - et comment répondre</h2>
         <p class="sub">Une DCSSI teste après avoir été séduite. Mène par la force (chaîne probante), reconnais les manques, montre la trajectoire.</p>
-        <div class="qa"><div class="q"><span class="ic">Q.</span> « Où sont hébergées les données de l&rsquo;État ? »</div><div class="a"><b>Le point n°1, souvent éliminatoire.</b> « Pour une autorité cyber, notre cible est un <b>déploiement dédié souverain</b> — on-prem ou cloud national. La démo tourne sur notre infrastructure, le déploiement réel sera le vôtre. »</div></div>
-        <div class="qa"><div class="q"><span class="ic">Q.</span> « Une sanction prononcée ici est-elle juridiquement opposable ? » (contradictoire, notification légale, recours)</div><div class="a">Honnêteté : « La <b>chaîne probante</b> — défendabilité de l&rsquo;acte — est déjà là, c&rsquo;est rare. Le <b>contradictoire formel</b>, la <b>notification légale avec AR</b> et la <b>voie de recours</b> sont notre prochaine priorité. » Ne pas survendre : c&rsquo;est le vrai chantier.</div></div>
+        <div class="qa"><div class="q"><span class="ic">Q.</span> « Où sont hébergées les données de l&rsquo;État ? »</div><div class="a"><b>Le point n°1, souvent éliminatoire.</b> « Pour une autorité cyber, notre cible est un <b>déploiement dédié souverain</b> - on-prem ou cloud national. La démo tourne sur notre infrastructure, le déploiement réel sera le vôtre. »</div></div>
+        <div class="qa"><div class="q"><span class="ic">Q.</span> « Une sanction prononcée ici est-elle juridiquement opposable ? » (contradictoire, notification légale, recours)</div><div class="a">Honnêteté : « La <b>chaîne probante</b> - défendabilité de l&rsquo;acte - est déjà là, c&rsquo;est rare. Le <b>contradictoire formel</b>, la <b>notification légale avec AR</b> et la <b>voie de recours</b> sont notre prochaine priorité. » Ne pas survendre : c&rsquo;est le vrai chantier.</div></div>
         <div class="qa"><div class="q"><span class="ic">Q.</span> « Comment intégrer tout le parc de l&rsquo;administration ? »</div><div class="a">« <b>Import de masse (CSV)</b> en roadmap. Aujourd&rsquo;hui : création à l&rsquo;unité + invitations. »</div></div>
         <div class="qa"><div class="q"><span class="ic">Q.</span> « Comment rendons-nous compte à notre tutelle / au ministère ? »</div><div class="a">« Le cockpit donne les agrégats parc. Les <b>vues sectorielles</b> et l&rsquo;<b>export PDF/CSV</b> de tutelle sont en roadmap. »</div></div>
         <div class="qa"><div class="q"><span class="ic">Q.</span> « Quelle assurance sur la sécurité de l&rsquo;outil lui-même ? »</div><div class="a">« MFA, RLS, journal d&rsquo;audit en place. Dossier ISO 27001 / pentest disponible sur demande. »</div></div>

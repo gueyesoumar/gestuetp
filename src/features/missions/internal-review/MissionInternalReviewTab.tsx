@@ -259,7 +259,7 @@ export function MissionInternalReviewTab({ mission, onStatusChange }: MissionInt
   )
 }
 
-/* ── Score Section ── */
+/* -- Score Section -- */
 function ScoreSection({ score, domains }: { score: number; domains: DomainScore[] }) {
   const scoreColor = score >= 80 ? 'text-emerald-600' : score >= 60 ? 'text-gold-600' : 'text-red-600'
   const ringColor = score >= 80 ? '#27AE60' : score >= 60 ? '#D4A843' : '#C0392B'
@@ -303,7 +303,7 @@ function ScoreSection({ score, domains }: { score: number; domains: DomainScore[
   )
 }
 
-/* ── Findings Section ── */
+/* -- Findings Section -- */
 function FindingsSection({ summary, majorNCs }: { summary: { conformes: number; observations: number; ncMinor: number; ncMajor: number; strengths: number }; majorNCs: MajorNC[] }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -343,7 +343,7 @@ function StatCard({ value, label, bg, color }: { value: number; label: string; b
   )
 }
 
-/* ── Report Preview ── */
+/* -- Report Preview -- */
 function ReportPreview({ mission, review }: { mission: MissionDetail; review: ReturnType<typeof useInternalReviewData> }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -368,7 +368,7 @@ function ReportPreview({ mission, review }: { mission: MissionDetail; review: Re
   )
 }
 
-/* ── Checklist ── */
+/* -- Checklist -- */
 function Checklist({ review }: { review: ReturnType<typeof useInternalReviewData> }) {
   const items = [
     { label: 'Contr\u00f4les valid\u00e9s', value: `${review.approvedControls}/${review.totalControls}`, ok: review.approvedControls === review.totalControls },

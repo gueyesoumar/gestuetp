@@ -1,6 +1,6 @@
-# Guide d'onboarding fonctionnel — Gëstu ETP
+# Guide d'onboarding fonctionnel - Gëstu ETP
 
-> **⚠ Évolution post-audit — voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime — le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
+> **⚠ Évolution post-audit - voir [RFC 0001](../rfc/0001-modele-relationnel-organisations.md) (accepté le 2026-07-29).** Ce document reflète l'état à la date d'audit. Depuis, l'architecture a été **unifiée** : une seule plateforme ETP, **branche et schéma de base unifiés**, et **Regul n'est plus un « produit séparé » mais une _édition_** (preset de capacités + vocabulaire + branding, résolu au runtime - le fork `VITE_PRODUCT` et l'« instance dédiée » sont en cours de suppression). La **souveraineté** relève de la **topologie d'hébergement**, orthogonale à l'édition. Les passages ci-dessous évoquant « deux produits / deux instances dédiées / `VITE_PRODUCT` » sont donc **datés** et remplacés par le RFC.
 
 > Complément au dossier fonctionnel, conçu pour être **autoporteur** : une personne externe au projet doit pouvoir comprendre l'application sans autre contexte. Version du 2026-07-09.
 > Contient : périmètre & hypothèses (§1), glossaire (§2), intégrations (§3), schémas (§4), **scénarios de bout en bout** (§5), **dictionnaire de données** (§6), **machines à états** (§7).
@@ -9,7 +9,7 @@
 
 ## 1. Périmètre, hypothèses & hors-périmètre
 
-**Dans le périmètre** : application web (SPA React) Gëstu ETP — produits Comply et Regul — et son backend Supabase (PostgreSQL + RLS, Auth, Storage, Edge Functions).
+**Dans le périmètre** : application web (SPA React) Gëstu ETP - produits Comply et Regul - et son backend Supabase (PostgreSQL + RLS, Auth, Storage, Edge Functions).
 
 **Hypothèses de fonctionnement**
 - **Langue** : interface en **français** (fr-FR).
@@ -29,18 +29,18 @@
 
 | Terme | Signification |
 |---|---|
-| **Référentiel** (framework) | Cadre normatif (ISO 27001, PSSI-ES…) structuré en domaines → contrôles |
+| **Référentiel** (framework) | Cadre normatif (ISO 27001, PSSI-ES...) structuré en domaines → contrôles |
 | **Contrôle** | Exigence vérifiable d'un référentiel |
 | **Évaluation** (assessment) | Jugement porté sur un contrôle dans une mission |
 | **Constat** (finding) | Point relevé sur un contrôle |
 | **NC / PC / LC / C / N/A** | Niveaux de conformité : Non conforme / Partiellement / Largement / Conforme / Non applicable |
 | **major_nc / minor_nc** | Non-conformité majeure / mineure (classification d'un constat) |
 | **observation / strength** | Constat mineur non bloquant / point fort |
-| **CAR** | *Corrective Action Request* — action corrective du plan d'action |
-| **PSSI-ES** | Politique de Sécurité des Systèmes d'Information de l'État (Sénégal) — le référentiel régulateur |
+| **CAR** | *Corrective Action Request* - action corrective du plan d'action |
+| **PSSI-ES** | Politique de Sécurité des Systèmes d'Information de l'État (Sénégal) - le référentiel régulateur |
 | **Assujetti** (Regul) | Organisation soumise à la supervision de l'autorité |
 | **OIV** | Opérateur d'Importance Vitale (terme FR ; **abandonné** au profit d'une criticité neutre) |
-| **RLS** | *Row-Level Security* — cloisonnement au niveau des lignes en base |
+| **RLS** | *Row-Level Security* - cloisonnement au niveau des lignes en base |
 | **Lead / associé / auditeur** | Rôles dans une mission (chef, qualité, terrain) |
 
 ---
@@ -64,32 +64,32 @@
 
 ```
                           GËSTU ETP
-        ┌───────────────────────────┬───────────────────────────┐
-        │           COMPLY          │           REGUL           │
-   ┌────┴─────┐               ┌─────┴──────┐            ┌────────┴────────┐
-   │ Cabinet  │  audite  ───▶ │  Client    │            │   Régulateur    │
-   │ d'audit  │               │  (audité)  │            │   (autorité)    │
-   └────┬─────┘               └────────────┘            └────────┬────────┘
-        │ équipe                                                  │ supervise 1..N
-   ┌────┴──────────────┐                              ┌───────────┴───────────┐
-   │ lead / associé /  │                              │      Assujettis        │
-   │ auditeurs         │                              │  (entités régulées)    │
-   └───────────────────┘                              └────────────────────────┘
+        ---------------------------------------------------------
+        -           COMPLY          -           REGUL           -
+   ------------               --------------            -------------------
+   - Cabinet  -  audite  ---▶ -  Client    -            -   Régulateur    -
+   - d'audit  -               -  (audité)  -            -   (autorité)    -
+   ------------               --------------            -------------------
+        - équipe                                                  - supervise 1..N
+   ---------------------                              -------------------------
+   - lead / associé /  -                              -      Assujettis        -
+   - auditeurs         -                              -  (entités régulées)    -
+   ---------------------                              --------------------------
 
-   Super-admin (éditeur) : transverse aux deux — gère cabinets, référentiels, plans.
+   Super-admin (éditeur) : transverse aux deux - gère cabinets, référentiels, plans.
 ```
 
 ### 4.2 Chaîne métier (du référentiel à l'action)
 
 ```
-Référentiel ─▶ Domaines ─▶ Contrôles
-                                │  (dans une Mission)
+Référentiel -▶ Domaines -▶ Contrôles
+                                -  (dans une Mission)
                                 ▼
-                          Évaluations ─▶ Constats ─▶ Rapport ─▶ Plan d'action
-                                │                                    (Comply)
-                                │
-                   (Regul) Constats ─▶ Mesures graduées ──┐
-                           Incidents ───────────────────┐ │
+                          Évaluations -▶ Constats -▶ Rapport -▶ Plan d'action
+                                -                                    (Comply)
+                                -
+                   (Regul) Constats -▶ Mesures graduées ---
+                           Incidents -------------------- -
                                                          ▼ ▼
                                               Journal probant (append-only, hash)
 ```
@@ -97,9 +97,9 @@ Référentiel ─▶ Domaines ─▶ Contrôles
 ### 4.3 Cycle de vie d'une mission
 
 ```
-initialization ─▶ scoping ─▶ planning ─▶ fieldwork ─▶ internal_review ─▶ client_review ─▶ closure
+initialization -▶ scoping -▶ planning -▶ fieldwork -▶ internal_review -▶ client_review -▶ closure
    (création)     (cadrage)  (planif.)   (travaux)     (revue interne)   (valid. client)  (clôture)
-                                                                                   │
+                                                                                   -
                                                                                    ▼
                                                                             Plan d'action (suivi CAR)
 ```
@@ -108,30 +108,30 @@ initialization ─▶ scoping ─▶ planning ─▶ fieldwork ─▶ internal_r
 
 ## 5. Scénarios de bout en bout
 
-### 5.1 Comply — un audit ISO 27001 complet
+### 5.1 Comply - un audit ISO 27001 complet
 
 **Contexte** : le cabinet *AuditCo* audite son client *BanqueX* sur ISO 27001.
 
-1. **Créer la mission** — Un membre habilité (`can_create_mission`) ouvre `/missions/nouvelle` (assistant 6 étapes) : type = audit → référentiel ISO 27001 → client BanqueX → équipe (lead + auditeurs) → dates → confirmation. La mission naît en `initialization`.
-2. **Cadrage** — Le lead définit le périmètre, lance le **questionnaire** à BanqueX (invitation e-mail d'un contact), identifie des risques initiaux. (IA optionnelle : *Smart Interview* pré-remplit le questionnaire à partir des documents déposés ; *Smart Risks* propose des risques.) Statut → `scoping`.
-3. **Planification** — Le lead sélectionne les contrôles pertinents, leur attribue un **niveau de risque** et affecte chaque contrôle à un auditeur (IA optionnelle : *Smart Plan*). Statut → `planning`.
-4. **Travaux** — Chaque auditeur ouvre ses contrôles, **observe → documente → analyse**, dépose/relie des **preuves**, pose un **niveau de conformité** (NC/PC/LC/C/N-A) et crée des **constats**. Il **soumet** (`submitted`). Statut → `fieldwork`.
-5. **Revue interne** — Le lead revoit chaque évaluation (`in_review`) et **approuve** ou **rejette** (renvoi en correction). Statut → `internal_review`.
-6. **Validation client** — Les évaluations approuvées sont envoyées à BanqueX, qui **valide ou conteste** et pose des **observations**. Statut → `client_review`.
-7. **Clôture** — Le lead clôt : calcul du **score de conformité**, génération du **rapport d'audit (PDF)** et du **plan d'action (Excel)**. Statut → `closure`.
-8. **Plan d'action** — BanqueX suit ses **CAR** (`open → client_responded → verified → closed`), l'auditeur vérifiant les remédiations.
+1. **Créer la mission** - Un membre habilité (`can_create_mission`) ouvre `/missions/nouvelle` (assistant 6 étapes) : type = audit → référentiel ISO 27001 → client BanqueX → équipe (lead + auditeurs) → dates → confirmation. La mission naît en `initialization`.
+2. **Cadrage** - Le lead définit le périmètre, lance le **questionnaire** à BanqueX (invitation e-mail d'un contact), identifie des risques initiaux. (IA optionnelle : *Smart Interview* pré-remplit le questionnaire à partir des documents déposés ; *Smart Risks* propose des risques.) Statut → `scoping`.
+3. **Planification** - Le lead sélectionne les contrôles pertinents, leur attribue un **niveau de risque** et affecte chaque contrôle à un auditeur (IA optionnelle : *Smart Plan*). Statut → `planning`.
+4. **Travaux** - Chaque auditeur ouvre ses contrôles, **observe → documente → analyse**, dépose/relie des **preuves**, pose un **niveau de conformité** (NC/PC/LC/C/N-A) et crée des **constats**. Il **soumet** (`submitted`). Statut → `fieldwork`.
+5. **Revue interne** - Le lead revoit chaque évaluation (`in_review`) et **approuve** ou **rejette** (renvoi en correction). Statut → `internal_review`.
+6. **Validation client** - Les évaluations approuvées sont envoyées à BanqueX, qui **valide ou conteste** et pose des **observations**. Statut → `client_review`.
+7. **Clôture** - Le lead clôt : calcul du **score de conformité**, génération du **rapport d'audit (PDF)** et du **plan d'action (Excel)**. Statut → `closure`.
+8. **Plan d'action** - BanqueX suit ses **CAR** (`open → client_responded → verified → closed`), l'auditeur vérifiant les remédiations.
 
-### 5.2 Regul — un contrôle de la DCSSI
+### 5.2 Regul - un contrôle de la DCSSI
 
 **Contexte** : le régulateur *DCSSI* supervise l'assujetti *Opérateur Télécom National*.
 
-1. **Enregistrer l'assujetti** (M1) — Sur `/assujettis`, création de l'entité + **profil réglementaire** (criticité élevée/standard/indéterminée, régime, tier).
-2. **Planifier un contrôle** (M3) — Sur `/controles/nouvelle`, mission de contrôle sur le référentiel **PSSI-ES** (11 domaines / 213 contrôles).
-3. **Évaluer & constater** — Même moteur qu'en Comply : évaluations + constats.
-4. **Prononcer une mesure** (M4) — Sur `/constats`, l'autorité transforme des constats en **mesure graduée** (recommandation d'abord ; escalade possible vers mise en demeure → injonction → sanction). Chaque acte est **ancré dans le journal probant**.
-5. **Inviter l'assujetti au portail** (M7) — Depuis la fiche assujetti → « Gérer les accès » → un contact reçoit une invitation et accède à un espace **strictement cloisonné**.
-6. **Incidents** (M5) — L'assujetti **déclare** un incident depuis son portail ; l'autorité le **qualifie**, suit les **échéances** de notification (figées à la déclaration), puis **notifie/résout/clôt**.
-7. **Piloter** (M8) — Le tableau de bord agrège la **posture du parc** : criticité × conformité, priorités d'action, mesures ouvertes, échéances.
+1. **Enregistrer l'assujetti** (M1) - Sur `/assujettis`, création de l'entité + **profil réglementaire** (criticité élevée/standard/indéterminée, régime, tier).
+2. **Planifier un contrôle** (M3) - Sur `/controles/nouvelle`, mission de contrôle sur le référentiel **PSSI-ES** (11 domaines / 213 contrôles).
+3. **Évaluer & constater** - Même moteur qu'en Comply : évaluations + constats.
+4. **Prononcer une mesure** (M4) - Sur `/constats`, l'autorité transforme des constats en **mesure graduée** (recommandation d'abord ; escalade possible vers mise en demeure → injonction → sanction). Chaque acte est **ancré dans le journal probant**.
+5. **Inviter l'assujetti au portail** (M7) - Depuis la fiche assujetti → « Gérer les accès » → un contact reçoit une invitation et accède à un espace **strictement cloisonné**.
+6. **Incidents** (M5) - L'assujetti **déclare** un incident depuis son portail ; l'autorité le **qualifie**, suit les **échéances** de notification (figées à la déclaration), puis **notifie/résout/clôt**.
+7. **Piloter** (M8) - Le tableau de bord agrège la **posture du parc** : criticité × conformité, priorités d'action, mesures ouvertes, échéances.
 
 ---
 
@@ -140,7 +140,7 @@ initialization ─▶ scoping ─▶ planning ─▶ fieldwork ─▶ internal_r
 > Champs *signifiants* (métier), pas exhaustifs techniquement. Types PostgreSQL simplifiés.
 
 ### `organizations`
-Cabinet, client, groupe ou assujetti selon `types[]` / `parent_org_id`. Champs : `name`, `slug`, `types[]` (`cabinet`/`group`/…), `parent_org_id` (hiérarchie), `entity_type` (`filiale`/`site`/`direction`/`business_unit`), `is_active`.
+Cabinet, client, groupe ou assujetti selon `types[]` / `parent_org_id`. Champs : `name`, `slug`, `types[]` (`cabinet`/`group`/...), `parent_org_id` (hiérarchie), `entity_type` (`filiale`/`site`/`direction`/`business_unit`), `is_active`.
 
 ### `users`
 `auth_id` (lien Supabase Auth), `organization_id`, `email`, `first_name`/`last_name`, `role` (`auditor`/`client`), `is_platform_owner`, `is_active`.
@@ -199,7 +199,7 @@ Transitions **imposées côté serveur** (`submit-assessment`, `review-assessmen
 
 | De → Vers | Déclencheur | Acteur |
 |---|---|---|
-| `— → draft` | Ouverture d'un contrôle | Auditeur affecté |
+| `- → draft` | Ouverture d'un contrôle | Auditeur affecté |
 | `draft → submitted` | Soumission | Auditeur |
 | `submitted → in_review` | Approbation par le lead **lorsqu'un associé doit encore revoir** (mission avec `associate_id`) | Lead |
 | `submitted → approved` | Approbation par le lead **sans associé** | Lead |
@@ -215,18 +215,18 @@ Point clé : l'état `in_review` **n'apparaît que si la mission a un associé**
 
 | De → Vers | Déclencheur | Acteur |
 |---|---|---|
-| `— → pending` | Demande créée | Auditeur |
+| `- → pending` | Demande créée | Auditeur |
 | `pending → uploaded` | Dépôt d'un document | Client |
 | `pending → declined_by_client` | Refus motivé | Client |
 | `uploaded → accepted` | Preuve acceptée | Auditeur |
 | `declined_by_client → reissued` | Relance | Auditeur |
 | `declined_by_client → escalated_to_finding` | Escalade en constat | Auditeur |
 
-### 7.4 Mesure réglementaire (`regulatory_measures.status`) — Regul
+### 7.4 Mesure réglementaire (`regulatory_measures.status`) - Regul
 
 | De → Vers | Déclencheur | Acteur |
 |---|---|---|
-| `— → draft` | Création d'un acte | Régulateur |
+| `- → draft` | Création d'un acte | Régulateur |
 | `draft → issued` | Émission (ancrage probant) | Régulateur |
 | `issued → acknowledged` | Prise en compte | Assujetti/Régulateur |
 | `issued → appealed` | Contestation | Assujetti |
@@ -234,11 +234,11 @@ Point clé : l'état `in_review` **n'apparaît que si la mission a un associé**
 | `resolved → closed` | Clôture | Régulateur |
 | (parallèle) escalade | Nouvelle mesure `parent_measure_id` de **niveau supérieur** | Régulateur |
 
-### 7.5 Incident (`incidents.status`) — Regul
+### 7.5 Incident (`incidents.status`) - Regul
 
 | De → Vers | Déclencheur | Acteur |
 |---|---|---|
-| `— → declared` | Déclaration (échéances figées) | Assujetti ou régulateur |
+| `- → declared` | Déclaration (échéances figées) | Assujetti ou régulateur |
 | `declared → triage` | Mise en qualification | Régulateur |
 | `triage → notified` | Notification initiale enregistrée | Régulateur |
 | `notified/triage → resolved` | Résolution | Régulateur |
@@ -246,7 +246,7 @@ Point clé : l'état `in_review` **n'apparaît que si la mission a un associé**
 
 Actes de notification (`notified_initial_at`, `final_report_at`) et changements de statut **ancrés dans le journal probant**.
 
-> **Nuance importante** : l'ordre des statuts d'incident est **indicatif** (guidé par l'UI). Côté serveur, `declare-incident` n'impose pas l'ordre pour `set-status` (hormis `notify` qui exige `triage`) — un régulateur habilité peut fixer un statut valide directement. À l'inverse, les transitions des **évaluations** (§7.2) et l'**escalade des mesures** (§7.4, obligatoirement vers un niveau supérieur) **sont** contraintes côté serveur.
+> **Nuance importante** : l'ordre des statuts d'incident est **indicatif** (guidé par l'UI). Côté serveur, `declare-incident` n'impose pas l'ordre pour `set-status` (hormis `notify` qui exige `triage`) - un régulateur habilité peut fixer un statut valide directement. À l'inverse, les transitions des **évaluations** (§7.2) et l'**escalade des mesures** (§7.4, obligatoirement vers un niveau supérieur) **sont** contraintes côté serveur.
 
 ---
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockup — Validation inline — Gestu Comply</title>
+<title>Mockup - Validation inline - Gestu Comply</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -32,7 +32,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .section-h .num { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--gold); font-weight:700 }
 .section-desc { font-size:13px; color:var(--t5); margin-bottom:20px; max-width:780px; line-height:1.6 }
 
-/* Form field states ──────────────────────────────────── */
+/* Form field states ------------------------------------ */
 .fieldgrid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px }
 .fdemo { background:white; border:1px solid var(--border); border-radius:14px; padding:18px 20px 16px; box-shadow:0 4px 12px rgba(27,67,50,.04) }
 .fdemo .label { font-size:11px; font-weight:600; color:var(--t3); letter-spacing:.5px; text-transform:uppercase; margin-bottom:14px }
@@ -76,7 +76,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .pill-err { background:var(--err-bg); color:var(--err) }
 .pill-ok { background:var(--ok-bg); color:var(--ok) }
 
-/* Scenes ─────────────────────────────────────────────── */
+/* Scenes ----------------------------------------------- */
 .scene { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 4px 12px rgba(27,67,50,.04) }
 .scene-h { padding:14px 18px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px }
 .scene-h .dot { width:10px; height:10px; border-radius:50%; background:#E5E7EB }
@@ -116,7 +116,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .btn-sec { background:white; color:var(--t7); border-color:var(--border2) }
 .btn-pri.gold { background:var(--gold); color:var(--f9); border-color:var(--gold) }
 
-/* Compare ─────────────────────────────────────── */
+/* Compare --------------------------------------- */
 .compare { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start }
 .compare .col-l, .compare .col-r { position:relative; padding-top:20px }
 .compare .col-l::before, .compare .col-r::before {
@@ -158,19 +158,19 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
 <div class="wrap">
 
-  <!-- Hero ─────────────────────────────────────────────── -->
+  <!-- Hero ----------------------------------------------- -->
   <div class="hero">
     <div class="hero-tag">Chantier UX #2 · Mockup d'impact</div>
-    <h1>Validation inline — l'erreur s'affiche sous le champ, pas après le submit</h1>
+    <h1>Validation inline - l'erreur s'affiche sous le champ, pas après le submit</h1>
     <p>
       Aujourd'hui, l'utilisateur soumet, attend, voit une bulle navigateur ou un encart rouge en haut.
-      Avec la validation inline, chaque champ se déclare invalide dès qu'il quitte le focus —
+      Avec la validation inline, chaque champ se déclare invalide dès qu'il quitte le focus -
       message en rouge sous le label, bordure rouge, icône, et <span class="mono">aria-invalid</span> pour les lecteurs d'écran.
       Le wizard bloque « Suivant » tant que l'étape n'est pas valide et défile vers le premier champ en erreur.
     </p>
   </div>
 
-  <!-- Section 1 — États du champ ─────────────────────────── -->
+  <!-- Section 1 - États du champ --------------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">01</span>
@@ -178,7 +178,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
     <div class="section-desc">
       Quatre états cohérents avec la charte (vert forêt + or + sémantique standard).
-      Le passage en erreur ne se déclenche qu'après le premier blur du champ ou une tentative de submit — jamais à la frappe.
+      Le passage en erreur ne se déclenche qu'après le premier blur du champ ou une tentative de submit - jamais à la frappe.
     </div>
 
     <div class="fieldgrid">
@@ -244,7 +244,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
   </div>
 
-  <!-- Section 2 — Quand l'erreur apparaît ────────────────── -->
+  <!-- Section 2 - Quand l'erreur apparaît ------------------ -->
   <div class="section">
     <div class="section-h">
       <span class="num">02</span>
@@ -270,7 +270,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
   </div>
 
-  <!-- Section 3 — Mises en situation ─────────────────────── -->
+  <!-- Section 3 - Mises en situation ----------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">03</span>
@@ -282,7 +282,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
     <div class="scene-grid">
 
-      <!-- Scene 1 — ProfilePage email -->
+      <!-- Scene 1 - ProfilePage email -->
       <div class="scene">
         <div class="scene-h">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
@@ -318,7 +318,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
         </div>
       </div>
 
-      <!-- Scene 2 — Mission wizard calendar (cross-field) -->
+      <!-- Scene 2 - Mission wizard calendar (cross-field) -->
       <div class="scene">
         <div class="scene-h">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
@@ -356,7 +356,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
     </div>
 
-    <!-- Scene 3 — ClientCreatePage with multi-section -->
+    <!-- Scene 3 - ClientCreatePage with multi-section -->
     <div class="scene" style="margin-top:20px">
       <div class="scene-h">
         <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
@@ -380,11 +380,11 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
           </div>
           <div class="field">
             <label class="lab">Secteur</label>
-            <div class="input ph">Choisir un secteur…</div>
+            <div class="input ph">Choisir un secteur...</div>
           </div>
           <div class="field">
             <label class="lab">Effectifs <span class="req">*</span></label>
-            <div class="input ok">500 — 2000 <span class="ic-end ok">✓</span></div>
+            <div class="input ok">500 - 2000 <span class="ic-end ok">✓</span></div>
           </div>
           <div class="field">
             <label class="lab">Email du référent <span class="req">*</span></label>
@@ -406,7 +406,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
   </div>
 
-  <!-- Section 4 — Wizard step blocked ────────────────────── -->
+  <!-- Section 4 - Wizard step blocked ---------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">04</span>
@@ -455,7 +455,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
   </div>
 
-  <!-- Section 5 — Avant / Après ──────────────────────────── -->
+  <!-- Section 5 - Avant / Après ---------------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">05</span>
@@ -531,7 +531,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
   </div>
 
-  <!-- Section 6 — API ────────────────────────────────────── -->
+  <!-- Section 6 - API -------------------------------------- -->
   <div class="section">
     <div class="section-h">
       <span class="num">06</span>
@@ -543,7 +543,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
     </div>
 
 <div class="code">
-<span class="com">// src/components/ui/FormField.tsx — props ajoutées</span>
+<span class="com">// src/components/ui/FormField.tsx - props ajoutées</span>
 <span class="kw">interface</span> <span class="ty">FormFieldProps</span> {
   id: string
   label: string
@@ -555,7 +555,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   ...
 }
 
-<span class="com">// src/hooks/useFieldValidation.ts — mini-hook par champ</span>
+<span class="com">// src/hooks/useFieldValidation.ts - mini-hook par champ</span>
 <span class="kw">export function</span> <span class="fn">useFieldValidation</span>&lt;<span class="ty">T</span>&gt;(
   initial: <span class="ty">T</span>,
   validate: (v: <span class="ty">T</span>) =&gt; string | null,
@@ -582,13 +582,13 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 </div>
 
     <div class="note">
-      <b>Garde-fou sécurité</b> — la validation inline n'est jamais une garantie de validité.
+      <b>Garde-fou sécurité</b> - la validation inline n'est jamais une garantie de validité.
       Toute donnée doit être re-validée côté serveur (Edge Function, contrainte DB, RLS).
-      Les messages d'erreur affichés sont des strings statiques (pas d'interpolation depuis du contenu utilisateur non échappé) — pas de surface XSS.
+      Les messages d'erreur affichés sont des strings statiques (pas d'interpolation depuis du contenu utilisateur non échappé) - pas de surface XSS.
     </div>
   </div>
 
-  <!-- Footer ─────────────────────────────────────────────── -->
+  <!-- Footer ----------------------------------------------- -->
   <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:14px; font-size:12px; color:var(--t5)">
     <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--f9)">Gestu Comply</div>
     <div>·</div>

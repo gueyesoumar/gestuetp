@@ -1,11 +1,11 @@
-# Suivi — Revue de code approfondie (ultra) — Gestu Comply
+# Suivi - Revue de code approfondie (ultra) - Gestu Comply
 
 > Revue multi-agents du 2026-06-11. 56 constats remontés, 36 confirmés après vérification adversariale.
 > Légende statut : ✅ corrigé · 🔧 en cours · ⬜ à traiter
 
 ## Helper introduit
 
-`supabase/functions/_shared/auth.ts` — `authenticateCaller()` (auth.getUser + résolution profil + `is_active`), `sameCabinet()`, `ACCESS_DENIED`. À réutiliser pour toute Edge Function opérant sur des données tenant via `service_role`.
+`supabase/functions/_shared/auth.ts` - `authenticateCaller()` (auth.getUser + résolution profil + `is_active`), `sameCabinet()`, `ACCESS_DENIED`. À réutiliser pour toute Edge Function opérant sur des données tenant via `service_role`.
 
 ---
 
@@ -15,9 +15,9 @@
 |----|--------------------|----------|--------|
 | C1 | `ai-documents/index.ts` | Aucune auth ni cloisonnement (IDOR lecture/analyse/suppression) | ✅ auth + `callerOwnsMission` sur upload/delete/analyze |
 | C2 | `reset-user-password/index.ts` | Tout membre peut réinitialiser le mot de passe d'un collègue (prise de contrôle) | ✅ `can_manage_members` + protection `can_manage_roles` |
-| C3 | `smart-analyse/index.ts` | Aucune auth — fuite données + URLs signées | ✅ auth + check cabinet sur `mission_id` |
+| C3 | `smart-analyse/index.ts` | Aucune auth - fuite données + URLs signées | ✅ auth + check cabinet sur `mission_id` |
 | C4 | `smart-questionnaire/index.ts` | Lecture ET écriture transverses (cache IA) | ✅ check cabinet avant lecture/écriture |
-| — | `launch-questionnaire/index.ts` | (Hors revue) même schéma IDOR | ✅ corrigé en amont |
+| - | `launch-questionnaire/index.ts` | (Hors revue) même schéma IDOR | ✅ corrigé en amont |
 
 ## Élevé
 
@@ -63,7 +63,7 @@
 | F5 | `features/supervision/SupervisionReport.tsx` | CTA principaux sans `onClick` | ✅ boutons désactivés + mention « Bientôt disponible » (PDF/PPTX/Excel + actions) |
 | F6 | `features/admin/useAdminCabinets.ts` (+ `useAdminFrameworkDetail`) | Erreurs secondaires avalées | ✅ erreurs secondaires loggées, fallbacks conservés |
 | F7 | `features/group-module/useSubsidiaryDetail.ts` (+ `useSubsidiaries`, `useContinuousReviews`, `useTransversalPlans`) | Gardes `aborted` présentes mais pas de `.abortSignal()` | ✅ supervision (M6) + group-module (`.abortSignal` ajouté via M12) ; `useContinuousReviews` n'a pas d'AbortController propre |
-| F8 | `features/client-portal/smart-interview/SmartInterviewContainer.tsx:53-57` | Compteur de réponses stale (prop dérivée une fois) | ✅ callback `onAnswered` + `Set` local (compteur seulement, pas la liste — évite la réindexation) |
+| F8 | `features/client-portal/smart-interview/SmartInterviewContainer.tsx:53-57` | Compteur de réponses stale (prop dérivée une fois) | ✅ callback `onAnswered` + `Set` local (compteur seulement, pas la liste - évite la réindexation) |
 
 ## Découvert pendant la vérification runtime (hors périmètre revue initiale)
 
@@ -72,7 +72,7 @@
 | V1 | Page mission client : `ClientTeamCard`, `ClientUpcomingDeadlines` (dashboard) + `useMissionDocuments`, `useMissionQuestionnaire`, `useClientExpectedDocuments` (échanges) | `fetch`/`.abortSignal().then()` sans `.catch()` → `PAGEERR: signal is aborted without reason` au démontage (StrictMode) | ✅ `.catch()` défensif ; **vérifié runtime : 0 erreur d'abort sur la page mission client** |
 | V2 | ~10 hooks/composants **côté auditeur** (`useMissionDetail`, `useMissionControls`, `usePlanningData`, `useScopingData`, `useInternalReviewData`, `useAssessmentObservations`, `useAssessmentDeclineSource`, `DeclinedEvidenceSection`, `MissionScopingTab`, `MissionClosureTab`) | Identique à V1, sur les pages mission auditeur | ✅ `.catch()` défensif ; **vérifié runtime : 0 abort sur la mission auditeur (tous onglets)** |
 | V3 | `ClientReportsTab.tsx` + `useClientActionPlan.ts` + `loadAuditReportData.ts` | 3× HTTP 400 (`42703` colonne inexistante) reproduits au runtime : `reports.title`/`file_size` (n'existent pas → select sur `id,format,version,file_path,created_at`, titre dérivé de `format`+`version`, filtre `status=ready`) et `cabinet_clients.client_organization_id` (vrai nom : `client_org_id`, 2 fichiers) | ✅ corrigé ; **vérifié runtime : 0 réponse 400 Supabase sur la mission client** |
-| V4 | `useFieldworkState.ts` + `useMissionDocuments.ts` + `useCampaignDetail.ts` + `useEntityDetail.ts` + `useClientEvidenceUpload.ts` | 6 erreurs TypeScript régressives introduites pendant la remédiation, invisibles car esbuild ne typecheck pas | ✅ corrigé ; `tsc -b` repasse à **0 erreur**, build OK. **Vérifié runtime** : (1) `useFieldworkState` — l'import `supabase` retiré par E7 mais encore utilisé par `saveAssessment` était un **vrai bug runtime (`ReferenceError` à chaque enregistrement)** → après correctif : sauvegarde fieldwork OK (3× `PATCH control_assessments` 204, 0 pageerror ; donnée de test annulée). (2) Les 5 autres étaient **type-only**, confirmé en lisant postgrest-js : `single()` retourne `this` (donc `.abortSignal()` existait sur le prototype) et `.then()` retourne une vraie `Promise` (donc `.catch` existait) → comportement runtime inchangé, correctifs purement compile-time |
+| V4 | `useFieldworkState.ts` + `useMissionDocuments.ts` + `useCampaignDetail.ts` + `useEntityDetail.ts` + `useClientEvidenceUpload.ts` | 6 erreurs TypeScript régressives introduites pendant la remédiation, invisibles car esbuild ne typecheck pas | ✅ corrigé ; `tsc -b` repasse à **0 erreur**, build OK. **Vérifié runtime** : (1) `useFieldworkState` - l'import `supabase` retiré par E7 mais encore utilisé par `saveAssessment` était un **vrai bug runtime (`ReferenceError` à chaque enregistrement)** → après correctif : sauvegarde fieldwork OK (3× `PATCH control_assessments` 204, 0 pageerror ; donnée de test annulée). (2) Les 5 autres étaient **type-only**, confirmé en lisant postgrest-js : `single()` retourne `this` (donc `.abortSignal()` existait sur le prototype) et `.then()` retourne une vraie `Promise` (donc `.catch` existait) → comportement runtime inchangé, correctifs purement compile-time |
 
 ---
 
@@ -86,7 +86,7 @@ supabase functions deploy ai-documents reset-user-password smart-analyse smart-q
   launch-questionnaire respond-evidence-decline update-cabinet-settings
 ```
 
-### Migrations SQL (E6 + E10) — sur le cloud lié
+### Migrations SQL (E6 + E10) - sur le cloud lié
 
 ```bash
 supabase db push

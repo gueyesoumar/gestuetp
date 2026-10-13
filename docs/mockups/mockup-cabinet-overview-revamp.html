@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Mockup — Vue d'ensemble fusionnée (revamp moderne)</title>
+<title>Mockup - Vue d'ensemble fusionnée (revamp moderne)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -36,12 +36,12 @@
 </head>
 <body class="px-7 py-6">
 
-  <!-- ─────────── Breadcrumb + retour ─────────── -->
+  <!-- ----------- Breadcrumb + retour ----------- -->
   <div class="text-[12px] text-forest-700 font-semibold mb-3">
     ← Retour aux organisations
   </div>
 
-  <!-- ─────────── Header organisation ─────────── -->
+  <!-- ----------- Header organisation ----------- -->
   <div class="flex items-center gap-3 mb-5">
     <div class="w-12 h-12 rounded-xl flex items-center justify-center text-[16px] font-extrabold bg-forest-100 text-forest-700">G</div>
     <div>
@@ -56,7 +56,7 @@
     </div>
   </div>
 
-  <!-- ─────────── Tabs (Santé fusionnée disparait) ─────────── -->
+  <!-- ----------- Tabs (Santé fusionnée disparait) ----------- -->
   <div class="flex gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
     <button class="px-4 py-2 text-[12.5px] tab-active whitespace-nowrap">Vue d'ensemble</button>
     <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Membres · 7</button>
@@ -67,7 +67,7 @@
     <button class="px-4 py-2 text-[12.5px] tab-inactive whitespace-nowrap">Audit log</button>
   </div>
 
-  <!-- ─────────── HERO STRIP : 4 KPIs en gros ─────────── -->
+  <!-- ----------- HERO STRIP : 4 KPIs en gros ----------- -->
   <div class="grid grid-cols-4 gap-3 mb-5">
     <!-- KPI 1 : Membres actifs -->
     <div class="bg-white rounded-xl ring-soft p-4 ring-soft-hover">
@@ -128,7 +128,7 @@
     </div>
   </div>
 
-  <!-- ─────────── BLOC PRINCIPAL : 2 colonnes ─────────── -->
+  <!-- ----------- BLOC PRINCIPAL : 2 colonnes ----------- -->
   <div class="grid grid-cols-[1fr_360px] gap-5 mb-5">
 
     <!-- COLONNE GAUCHE : Activité + Consommation détaillée + Erreurs -->
@@ -262,7 +262,7 @@
               <span class="text-[10.5px] text-red-600 font-semibold">2 échecs</span>
             </div>
             <p class="text-[12.5px] mono text-red-800 font-semibold">smart-plan</p>
-            <p class="text-[11px] text-gray-600 italic mt-1">« OpenAI rate limit exceeded — retry after 60s »</p>
+            <p class="text-[11px] text-gray-600 italic mt-1">« OpenAI rate limit exceeded - retry after 60s »</p>
           </div>
           <p class="text-[10.5px] text-gray-400 italic">Les erreurs côté edge functions et auth ne sont pas encore loggées centralement.</p>
         </div>
@@ -310,7 +310,7 @@
             <span class="text-[10.5px] text-emerald-700 font-semibold">OK</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-5 h-5 rounded bg-gray-100 text-gray-400 flex items-center justify-center text-[10px] font-bold">—</div>
+            <div class="w-5 h-5 rounded bg-gray-100 text-gray-400 flex items-center justify-center text-[10px] font-bold">-</div>
             <span class="flex-1 text-[12px] text-gray-700">Logo sombre</span>
             <span class="text-[10.5px] text-gray-400 font-semibold">absent</span>
           </div>
@@ -357,15 +357,15 @@
     </div>
   </div>
 
-  <!-- ─────────── Légende du redesign ─────────── -->
+  <!-- ----------- Légende du redesign ----------- -->
   <div class="bg-gradient-to-br from-forest-50 to-white border border-forest-200 rounded-xl p-5 mt-6">
     <h3 class="text-[14px] font-bold text-forest-900 mb-2">Logique du revamp</h3>
     <ul class="text-[12px] text-gray-700 space-y-1.5 leading-relaxed">
-      <li><b>1. Hero KPI strip</b> — les 4 chiffres qui comptent en un coup d'œil (<i>membres actifs · missions · coût IA · stockage</i>). Plus besoin de scroll pour avoir le pouls de l'organisation.</li>
-      <li><b>2. Colonne gauche = signal vivant</b> — Activité (avec sparkline 30j), Consommation IA (top fonctions barchart), Erreurs (top failure callout). C'est la "santé" qui demande lecture.</li>
-      <li><b>3. Colonne droite = identité statique</b> — Identité, Configuration (visuel ✓/!/—), Zone sensible. C'est ce qu'on consulte ponctuellement.</li>
-      <li><b>4. Suppression de l'onglet "Santé"</b> — la vraie info est ici. Plus besoin de switcher entre 2 onglets pour avoir une vision complète.</li>
-      <li><b>5. Visualisations légères</b> — sparkline missions, barchart top fonctions IA, progress bar membres actifs : ratio info/encombrement maximisé sans Chart.js.</li>
+      <li><b>1. Hero KPI strip</b> - les 4 chiffres qui comptent en un coup d'œil (<i>membres actifs · missions · coût IA · stockage</i>). Plus besoin de scroll pour avoir le pouls de l'organisation.</li>
+      <li><b>2. Colonne gauche = signal vivant</b> - Activité (avec sparkline 30j), Consommation IA (top fonctions barchart), Erreurs (top failure callout). C'est la "santé" qui demande lecture.</li>
+      <li><b>3. Colonne droite = identité statique</b> - Identité, Configuration (visuel ✓/!/-), Zone sensible. C'est ce qu'on consulte ponctuellement.</li>
+      <li><b>4. Suppression de l'onglet "Santé"</b> - la vraie info est ici. Plus besoin de switcher entre 2 onglets pour avoir une vision complète.</li>
+      <li><b>5. Visualisations légères</b> - sparkline missions, barchart top fonctions IA, progress bar membres actifs : ratio info/encombrement maximisé sans Chart.js.</li>
     </ul>
   </div>
 

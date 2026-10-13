@@ -1,4 +1,4 @@
-# Gëstu — Charte Graphique & Identité Visuelle
+# Gëstu - Charte Graphique & Identité Visuelle
 
 > Ce fichier est la référence unique pour toute décision visuelle sur le projet.
 > Toute génération de code UI doit respecter ces règles.
@@ -139,7 +139,7 @@ Le bouclier et le texte "Gëstu" restent identiques quel que soit le produit. Se
 
 Deux patterns selon le contexte :
 
-**Wizard (multi-étapes)** — pour les formulaires longs (3+ sections) : création de mission, fiche client
+**Wizard (multi-étapes)** - pour les formulaires longs (3+ sections) : création de mission, fiche client
 - Sidebar fond blanc avec ligne verticale connectée (composant `<FormWizard>`)
 - Ligne de progression `forest-500` qui se remplit au fur et à mesure
 - Étape active : dot `forest-700` avec halo `forest-100` (shadow ring)
@@ -148,7 +148,7 @@ Deux patterns selon le contexte :
 - Une section visible à la fois
 - Boutons Précédent/Suivant
 
-**Deux colonnes (settings)** — pour les formulaires courts : organisation, profil
+**Deux colonnes (settings)** - pour les formulaires courts : organisation, profil
 - Label + description à gauche (fond `bg`)
 - Champs à droite (fond blanc)
 - Sections séparées par des bordures (composant `<SplitFormSection>`)
@@ -174,7 +174,7 @@ Deux patterns selon le contexte :
 
 ## 7. Toasts (feedback transient)
 
-**Lib** : `sonner` — wrapper `useToast()` dans `src/hooks/useToast.ts`.
+**Lib** : `sonner` - wrapper `useToast()` dans `src/hooks/useToast.ts`.
 
 **Position** : `bottom-right`, empilement vertical, expand au survol.
 
@@ -186,13 +186,13 @@ Deux patterns selon le contexte :
 | `error` | Échec d'une opération · message générique uniquement | 6 s + dismissable | Rouge #C0392B sur #FEF2F2 |
 | `info` | Événement neutre, notification d'état | 4 s | Bleu #1D4ED8 sur #EFF6FF |
 | `warn` | Action permise mais à surveiller | 5 s | Ambre #B45309 sur #FFFBEB |
-| `loading` (`promise`) | Upload, analyse IA, etc. — mute en succès/erreur à la fin | jusqu'à résolution | Vert forêt |
+| `loading` (`promise`) | Upload, analyse IA, etc. - mute en succès/erreur à la fin | jusqu'à résolution | Vert forêt |
 
 **Règles :**
 1. **Toast vs ErrorAlert** : toast pour le feedback transient post-action ; `ErrorAlert` pour les erreurs persistantes/bloquantes (ex. chargement initial échoué).
 2. **Sécurité** : le wrapper `useToast().error()` impose un message générique côté UI. Le détail technique (message Supabase, stack) est loggé via `console.error()`, jamais affiché. Cohérent avec CLAUDE.md §3.
 3. **Pas de HTML brut** : passer uniquement des strings dans les toasts. Pas de `dangerouslySetInnerHTML`.
-4. **CTA optionnel** : pour les toasts post-action, proposer une action contextuelle (« Voir le suivi », « Réessayer ») — limite à 1 action.
+4. **CTA optionnel** : pour les toasts post-action, proposer une action contextuelle (« Voir le suivi », « Réessayer ») - limite à 1 action.
 5. **Accessibilité** : `aria-live="polite"` géré par sonner. Bouton de fermeture visible.
 
 ---
@@ -213,7 +213,7 @@ Deux patterns selon le contexte :
 
 **Règles :**
 1. **Pas d'erreur à la frappe** : on n'affiche jamais d'erreur tant que l'utilisateur n'a pas blurré le champ ou tenté de submit. Évite les faux positifs.
-2. **Validation côté serveur obligatoire** : la validation inline est une couche UX, jamais une couche de sécurité. Toute donnée doit être re-validée côté serveur (Edge Function, contrainte DB, RLS) — cf. CLAUDE.md §3.
+2. **Validation côté serveur obligatoire** : la validation inline est une couche UX, jamais une couche de sécurité. Toute donnée doit être re-validée côté serveur (Edge Function, contrainte DB, RLS) - cf. CLAUDE.md §3.
 3. **Messages génériques** : les messages d'erreur sont des strings statiques fournis par les validateurs. Pas d'interpolation depuis du contenu utilisateur non échappé (anti-XSS).
 4. **Astérisque rouge** : les champs requis affichent un `*` rouge à côté du label.
 5. **Compteur en pied de wizard** : quand une étape est invalide, le wizard affiche « Champs à corriger avant de poursuivre. » et le pastille de l'étape passe en rouge avec un `!`.
@@ -222,21 +222,21 @@ Deux patterns selon le contexte :
 
 ## 9. Autosave (sauvegarde automatique)
 
-**Hook** : `useAutosave()` dans `src/hooks/useAutosave.ts` — gère le cycle modified/saving/saved/error, le debounce, l'abort des cycles obsolètes et un `flush()` impératif.
-**Composant** : `AutosaveIndicator` (`src/components/ui/AutosaveIndicator.tsx`) — pastille discrète à placer en pied de zone de saisie.
+**Hook** : `useAutosave()` dans `src/hooks/useAutosave.ts` - gère le cycle modified/saving/saved/error, le debounce, l'abort des cycles obsolètes et un `flush()` impératif.
+**Composant** : `AutosaveIndicator` (`src/components/ui/AutosaveIndicator.tsx`) - pastille discrète à placer en pied de zone de saisie.
 
 **États visuels :**
 
 | Statut | Apparence | Quand |
 |--------|-----------|-------|
 | `modified` | Cercle gris · « Modifications non enregistrées » | Frappe en cours, débounce pas encore écoulé |
-| `saving` | Spinner vert forêt · « Enregistrement… » | Appel réseau en cours |
+| `saving` | Spinner vert forêt · « Enregistrement... » | Appel réseau en cours |
 | `saved` | Check vert · « Enregistré il y a Xs » (rafraîchi 30 s) | Dernier save réussi |
 | `error` | Icône rouge · « Échec d'enregistrement » + lien « Réessayer » | Échec réseau ou serveur |
 
 **Règles :**
 1. **Délai de debounce** : 1 500 ms par défaut. Modifiable via `delayMs` quand le contexte le justifie.
-2. **Save silencieux** : l'autosave appelle le saver avec `{ silent: true }` — pas de toast succès/erreur, pas de refetch global. Seuls les saves manuels et les soumissions toastent.
+2. **Save silencieux** : l'autosave appelle le saver avec `{ silent: true }` - pas de toast succès/erreur, pas de refetch global. Seuls les saves manuels et les soumissions toastent.
 3. **Désactivation** : `disabled={true}` quand le contenu est en lecture seule (assessment soumis, mode revue). Tout pending save est flushé avant désactivation effective.
 4. **Flush impératif** : appeler `autosave.flush()` avant changement de contexte (switch d'item, soumission, navigation) pour ne perdre aucune saisie.
 5. **Validation côté serveur reste obligatoire** : l'autosave ne contourne aucune RLS ni contrainte. La couche est purement UX (CLAUDE.md §3).
@@ -263,7 +263,7 @@ Deux patterns selon le contexte :
 1. **Échappement obligatoire** : tout contenu utilisateur (mission name, evidence name, etc.) passe par `escapeHtml()`. Aucun `dangerouslySetInnerHTML`-équivalent en email.
 2. **Lien de désabonnement** : présent dans CHAQUE email automatique (relance, digest). Pointe vers `/unsubscribe?token=...`.
 3. **Ton qui escalade** : J+3 courtois, J+7 ferme, J+14 final (mention escalade direction).
-4. **Largeur max 600 px** : conforme aux clients mail. Pas de CSS Grid / Flexbox dans les emails — `<table>` uniquement.
+4. **Largeur max 600 px** : conforme aux clients mail. Pas de CSS Grid / Flexbox dans les emails - `<table>` uniquement.
 5. **Pas de JS** : les clients mail ne l'exécutent pas.
 6. **Idempotence** : un envoi est tracé dans `email_log(user_id, type, related_id)` avec un UNIQUE pour empêcher tout doublon.
 7. **Anti-XSS** : un email reçu et affiché ne doit jamais permettre l'exécution de code chez le destinataire (les clients mail bloquent le JS, mais on échappe quand même par défense en profondeur).
@@ -285,7 +285,7 @@ La console Gëstu Admin est **distincte visuellement** de l'app cabinet pour qu'
 1. **Mode-bar non masquable** : la bande or est visible sur toutes les pages `/admin/*`. Elle rappelle que les actions sont tracées et offre un retour direct vers `/`.
 2. **Pas de mélange visuel** : aucun élément de la console admin ne doit apparaître dans l'app cabinet, et inversement. Le passage se fait par la mode-bar (admin → cabinet) ou par lien direct (cabinet → `/admin`).
 3. **Motif obligatoire** : toute action sensible (suspendre, réactiver, exporter, reset password, désactiver user) déclenche une modale de motif. Le motif est tracé dans `admin_audit_log` et conservé indéfiniment.
-4. **Garde-fou immuabilité du flag** : le flag `is_platform_owner` n'est éditable QUE via SQL Editor. Aucune Edge Function ni UI ne le manipule. Ce garde-fou est **critique en sécurité** — un compte compromis ne peut pas s'auto-promouvoir ni promouvoir un complice.
+4. **Garde-fou immuabilité du flag** : le flag `is_platform_owner` n'est éditable QUE via SQL Editor. Aucune Edge Function ni UI ne le manipule. Ce garde-fou est **critique en sécurité** - un compte compromis ne peut pas s'auto-promouvoir ni promouvoir un complice.
 5. **Distinction logo** : sous le bouclier, le sous-titre passe à `Admin` en or majuscules. Le reste du logo reste identique.
 
 ---
@@ -297,7 +297,7 @@ Le super-admin peut consulter une fiche utilisateur détaillée en lecture seule
 **Garde-fous UX et RGPD :**
 1. **Modale de motif obligatoire à l'arrivée** : avant tout affichage de données personnelles, l'admin doit saisir un motif texte non vide. Le motif est tracé dans `admin_audit_log` et `admin_view_sessions` indéfiniment.
 2. **Notification à l'utilisateur consulté** : à chaque ouverture, une notification in-app est insérée pour le target (`type='admin_view'`). Anti-spam : skip si une session de moins de 24 h existe déjà sur le même couple admin/target.
-3. **Bandeau ambre persistant** : pendant la consultation, un bandeau « Aperçu actif — vous consultez cette fiche en lecture seule » est visible en haut de la page.
+3. **Bandeau ambre persistant** : pendant la consultation, un bandeau « Aperçu actif - vous consultez cette fiche en lecture seule » est visible en haut de la page.
 4. **Lecture seule par construction** : la page ne propose aucune action de mutation. Les actions sensibles (reset password, désactivation) restent disponibles depuis `/admin/utilisateurs` (recherche) et déclenchent leur propre log indépendant.
 
 **Distinction avec une vraie impersonation** : Gëstu ne propose PAS de mode « se faire passer pour » l'utilisateur dans l'app cabinet. Cette décision est délibérée :
@@ -311,10 +311,10 @@ Si un besoin de vraie impersonation émerge, c'est un Phase 3 dédié avec un fl
 
 ## 13. Règles d'application
 
-1. **Ne jamais modifier les couleurs du bouclier** — toujours vert forêt + or
+1. **Ne jamais modifier les couleurs du bouclier** - toujours vert forêt + or
 2. **Le tréma doré est obligatoire** sur le "e" de Gëstu dans tous les contextes
 3. **Le sous-titre produit** est la seule partie du logo qui change par produit
-4. **Pas de dégradés** — couleurs plates uniquement
+4. **Pas de dégradés** - couleurs plates uniquement
 5. **Pas d'ombres sur les cartes** sauf hover des éléments cliquables
 6. **Inter est la seule police** pour l'interface (JetBrains Mono pour le code)
 7. **Les couleurs produits** ne doivent pas contaminer les composants partagés (boutons, badges, cartes)

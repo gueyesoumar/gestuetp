@@ -1,11 +1,11 @@
-# Guide de génération de démos — Gëstu Comply
+# Guide de génération de démos - Gëstu Comply
 
 > **Destinataire : un outil / agent IA** chargé de produire des démonstrations réalistes
 > de Gëstu (données d'exemple, scénarios de mission, parcours de démonstration).
 > Ce document est un **référentiel factuel** : produit, vocabulaire, modèle de données,
 > valeurs autorisées (enums), référentiels, workflows, modèle de score, et **règles de
 > réalisme**. Toutes les valeurs sont extraites du code source ; respecte-les à la lettre
-> (les enums sont contraints par des `CHECK` en base — une valeur hors liste sera rejetée).
+> (les enums sont contraints par des `CHECK` en base - une valeur hors liste sera rejetée).
 
 **Contexte produit clé, à toujours garder en tête** : plateforme **francophone**,
 orientée **Sénégal / Afrique de l'Ouest**, monnaie **FCFA**, cadre phare **PSSI-ES**
@@ -25,7 +25,7 @@ Les **référentiels sont maintenus par Gëstu**, jamais par les clients.
   vert forêt `#1B4332`, accent Comply `#40916C`, or `#D4A843` (signature Regul).
 - Langue : **français** partout (UI, libellés d'enums).
 
-### Modèle B2B2B — trois segments
+### Modèle B2B2B - trois segments
 1. **Cabinets de conseil** (priorité V1) : un cabinet réalise des **missions** pour ses
    **clients** ; l'accès client est limité à la durée de la mission.
 2. **Entreprises / Groupes / Holdings** : supervisent leurs filiales.
@@ -72,14 +72,14 @@ dérive le persona de la capacité **`supervision`** : présente → **Regul**, 
 | `assessment_findings` | **Constats** (classification, priorité, risque, recommandation). |
 | `assessment_validations` | Historique de la cascade de validation (`stage`, `decision`). |
 | `assessment_observations` | Observations **non bloquantes** du client sur un constat. |
-| `corrective_action_requests` | **Plan d'action correctif** (CAR, code `CAR-001`…, statut, échéance). |
+| `corrective_action_requests` | **Plan d'action correctif** (CAR, code `CAR-001`..., statut, échéance). |
 | `client_contacts` / `interview_schedules` | Contacts client + entretiens. |
 | `control_comments` | Discussion sur un contrôle. |
 | `reports` | Rapports générés (PDF/PowerPoint), versionnés. |
 | `risk_scenarios` / `risk_control_links` | Registre Gëstu Risk (scénario + liens contrôles). |
 | `supervision_cycles` | Cycles de supervision continue (Regul). |
 | `regulatory_measures` | Mesures graduées du régulateur (Regul). |
-| `regulatory_catalog` | Catalogue d'obligations légales/réglementaires (≈22 entrées) — **distinct** de `frameworks`. |
+| `regulatory_catalog` | Catalogue d'obligations légales/réglementaires (≈22 entrées) - **distinct** de `frameworks`. |
 | `organization_relationships` | Arêtes d'engagement (nature `audit_engagement`). |
 
 **Hiérarchie de travail** : `mission` → (contrôles du `framework`) → `control_assessments`
@@ -106,7 +106,7 @@ dérive le persona de la capacité **`supervision`** : présente → **Regul**, 
 
 ---
 
-## 4. Valeurs autorisées (enums) — la « grammaire » des données
+## 4. Valeurs autorisées (enums) - la « grammaire » des données
 
 > Utilise **exactement** ces valeurs (clé technique) ; les libellés FR sont pour l'affichage.
 
@@ -173,18 +173,18 @@ Deux catalogues **distincts**.
 ### 6.1 Référentiels d'audit (table `frameworks`)
 | Nom | slug | Version / éditeur | Catégorie | Taille |
 |---|---|---|---|---|
-| ISO/IEC 27001 | `iso-27001` | 2022 (Annexe A) | conformité | — |
-| NIST Cybersecurity Framework | `nist-csf` | 2.0 | conformité | — |
-| COBIT | `cobit-2019` | 2019 | gouvernance | — |
-| ITIL | `itil-v4` | 4 | gouvernance | — |
-| Audit SI | `audit-si` | — | conformité | 6 domaines, 79 contrôles |
-| Due Diligence Technique | `due-diligence-tech` | — | évaluation | 5 domaines, 42 contrôles |
-| Maturité Digitale | `maturite-digitale` | — | évaluation | 6 domaines, 46 contrôles |
-| **PSSI-ES — Sénégal** | `pssi-es` | 2017 | conformité | 11 domaines, ~213-224 contrôles |
+| ISO/IEC 27001 | `iso-27001` | 2022 (Annexe A) | conformité | - |
+| NIST Cybersecurity Framework | `nist-csf` | 2.0 | conformité | - |
+| COBIT | `cobit-2019` | 2019 | gouvernance | - |
+| ITIL | `itil-v4` | 4 | gouvernance | - |
+| Audit SI | `audit-si` | - | conformité | 6 domaines, 79 contrôles |
+| Due Diligence Technique | `due-diligence-tech` | - | évaluation | 5 domaines, 42 contrôles |
+| Maturité Digitale | `maturite-digitale` | - | évaluation | 6 domaines, 46 contrôles |
+| **PSSI-ES - Sénégal** | `pssi-es` | 2017 | conformité | 11 domaines, ~213-224 contrôles |
 
 ### 6.2 PSSI-ES (le référentiel « signature » Sénégal)
 « Politique de Sécurité des Systèmes d'Information de l'État du Sénégal », **Instruction
-présidentielle N° 003/PR du 03 janvier 2017** — Commission Nationale de Cryptologie /
+présidentielle N° 003/PR du 03 janvier 2017** - Commission Nationale de Cryptologie /
 Présidence de la République du Sénégal. Structure officielle : **11 chapitres, 30
 objectifs, 155 règles** (contenu seedé : 11 domaines, ~213-224 contrôles).
 
@@ -216,7 +216,7 @@ Clôture → (Plan d'action)**. Le client est **approbateur** : il approuve/reje
 contrôle** (étape bloquante `client_review`).
 
 ### 7.2 Moteur **Contrôle** (ex. DCSSI)
-Phases (5) : **Cadrage → Planification → Travaux → Revue → Clôture** — **pas** de
+Phases (5) : **Cadrage → Planification → Travaux → Revue → Clôture** - **pas** de
 validation client. L'assujetti est **contributeur** : il laisse des **observations non
 bloquantes**. Le sous-onglet « Risques » du cadrage est désactivé.
 
@@ -246,7 +246,7 @@ que **tempérer**, jamais gonfler).
   `resilience` (Résilience & continuité), `integrity` (Intégrité & fiabilité),
   `governance` (Gouvernance & éthique), `verifiability` (Transparence & vérifiabilité).
 - **3 facteurs** : `human_factor` (Facteur humain, 0.15), `third_party`
-  (Écosystème / tiers, 0.15), `assurance` (Assurance des preuves, 0.2 — dérivé de la
+  (Écosystème / tiers, 0.15), `assurance` (Assurance des preuves, 0.2 - dérivé de la
   fraîcheur/documentation des preuves).
 - Plancher de coefficient 0.5 ; fenêtre de fraîcheur des preuves **12 mois** ; poids de
   scellement par étape (lead_review 0.5, associate_review 0.8, client_review 1).
@@ -282,12 +282,12 @@ de lignes.
    journalisation centralisée des accès aux systèmes sensibles »), pas un libellé générique.
 5. **Cohérence des dates** : cadrage < travaux < revue < clôture ; entretiens datés dans
    la fenêtre de la mission ; CAR avec échéance future (~+30 j) en cours, passée si `closed`.
-6. **Score cohérent** : le score et le radar **découlent** des évaluations — ne pas poser
+6. **Score cohérent** : le score et le radar **découlent** des évaluations - ne pas poser
    un score « à la main » incohérent avec des contrôles majoritairement non conformes.
    Répartir les contrôles évalués sur **plusieurs dimensions** pour un radar lisible.
 7. **Risques liés aux constats** : un scénario de risque crédible **pointe un contrôle
    réellement évalué** (ex. « Intrusion non détectée » ↔ contrôle de journalisation
-   faible), coté sur la grille 4×4, avec un traitement (`reduce`/`open`…).
+   faible), coté sur la grille 4×4, avec un traitement (`reduce`/`open`...).
 8. **Rôles réalistes** : un chef de mission + un associé + éventuellement un auditeur ;
    côté client un contact **RSSI** (« Responsable de la Sécurité des SI »).
 
@@ -295,22 +295,22 @@ de lignes.
 
 ## 10. Scénario de référence (ce qu'une bonne démo contient déjà)
 
-Le générateur intégré (`seed-demo-data`) produit une démo de référence — à **imiter et
+Le générateur intégré (`seed-demo-data`) produit une démo de référence - à **imiter et
 enrichir** :
 
 - **Org client de démo** : « **Téranga Finances** » (secteur finance, `.sn`).
 - **Contact / interviewé** : « **Awa Diallo** », **RSSI**, dépt « Sécurité des SI »,
   `awa.diallo@teranga-finances.sn`.
 - **3 missions à des stades variés** :
-  1. **Audit — Clôture** : couverture 100 %, tout approuvé ; constats = 1 `strength`
+  1. **Audit - Clôture** : couverture 100 %, tout approuvé ; constats = 1 `strength`
      (« revue des accès à privilèges formalisée et tracée trimestriellement ») + 1
      `minor_nc`/medium (« politique de contrôle d'accès non revue depuis > 12 mois ») ;
      CAR `verified`/`closed` ; **rapport PDF** généré ; entretien « completed ».
-  2. **Contrôle — Travaux** : couverture ~60 % ; constats = 1 `major_nc`/high (« Aucune
+  2. **Contrôle - Travaux** : couverture ~60 % ; constats = 1 `major_nc`/high (« Aucune
      journalisation centralisée des accès aux systèmes sensibles ») + 1 `minor_nc`/low
      (« sauvegardes sans tests de restauration documentés ») ; CAR `open`/`client_responded` ;
      1 observation client `pending`.
-  3. **Audit — Cadrage** : état initial vide (0 évaluation, 0 constat).
+  3. **Audit - Cadrage** : état initial vide (0 évaluation, 0 constat).
 - **Planification** : `risk_level` réparti (high/medium/low/critical), `estimated_hours` 2-8 h.
 - **Registre de risques (2 scénarios)** liés à des contrôles réels :
   (1) « Intrusion non détectée sur les systèmes sensibles » (vuln « Journalisation

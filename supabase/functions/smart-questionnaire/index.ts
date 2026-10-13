@@ -394,7 +394,7 @@ Deno.serve(async (req) => {
   }
 })
 
-// ── MODE METADATA ──────────────────────────────────────────────────────────
+// -- MODE METADATA ----------------------------------------------------------
 // Envoie les ai_metadata résumées + les anthropic_file_id en pièces jointes
 // (pour citation/vérif). Un seul appel Claude.
 
@@ -524,7 +524,7 @@ function formatMetadataBlock(d: DocRow): string {
 - Sujets clés: ${m.key_topics.join(', ') || '?'}`
 }
 
-// ── BACKFILL ───────────────────────────────────────────────────────────────
+// -- BACKFILL ---------------------------------------------------------------
 // Invoque extract-document-metadata pour chaque doc en attente, avec
 // concurrence bornée. await complet avant de rendre la main pour que la
 // Passe 2 puisse exploiter les ai_metadata fraîchement écrits.
@@ -586,7 +586,7 @@ async function runBackfill(_admin: SupabaseAdmin, docs: DocRow[], callerAuthHead
   return { processed, remaining: 0 }
 }
 
-// ── MODE FALLBACK ──────────────────────────────────────────────────────────
+// -- MODE FALLBACK ----------------------------------------------------------
 // Si aucune métadonnée Passe 1 disponible, envoie directement les fichiers.
 
 async function synthesizeWithRawDocs(
@@ -653,7 +653,7 @@ Appelle UNIQUEMENT l'outil propose_answers.`
   }
 }
 
-// ── CLAUDE CALL ─────────────────────────────────────────────────────────────
+// -- CLAUDE CALL -------------------------------------------------------------
 
 // Backoff sur erreurs transient Anthropic. Attend 5s puis 15s puis 45s.
 const RETRY_DELAYS_MS = [5_000, 15_000, 45_000]
@@ -767,7 +767,7 @@ async function callClaudeWithTool(
   return { success: true, answers }
 }
 
-// ── EVIDENCE CONTEXT (pièces dédiées + pièces déclinées) ───────────────────
+// -- EVIDENCE CONTEXT (pièces dédiées + pièces déclinées) -------------------
 // Permet à la Passe 2 de :
 //   - prioriser les docs uploadés EN RÉPONSE à une demande de preuve précise
 //     (mapping fort doc → contrôle / sujet) plutôt qu'un doc généraliste (PSSI)
@@ -875,7 +875,7 @@ async function loadEvidenceContext(admin: SupabaseAdmin, missionId: string): Pro
   return { dedicatedDocs, declinedRequests }
 }
 
-// ── MAPPING QUESTION → PIÈCE DÉDIÉE (pré-calcul serveur) ──────────────────
+// -- MAPPING QUESTION → PIÈCE DÉDIÉE (pré-calcul serveur) ------------------
 // On ne laisse plus le modèle deviner : pour chaque question on calcule
 // par recouvrement de mots-clés la pièce dédiée la plus pertinente, et on
 // force ce mapping dans le prompt + en post-traitement.
@@ -1019,7 +1019,7 @@ function formatEvidenceSection(ctx: EvidenceContext): string {
   return parts.join('\n')
 }
 
-// ── HELPERS ─────────────────────────────────────────────────────────────────
+// -- HELPERS -----------------------------------------------------------------
 
 function jsonResponse(data: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(data), {

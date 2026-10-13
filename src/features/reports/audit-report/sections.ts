@@ -18,21 +18,21 @@ import {
   generateMethodologyNarrative, generateNCFactSheet, generateRecommendationNarrative,
 } from '../auditReportNarratives'
 
-// ── Section 01 - Contexte ─────────────────────────────────────────────────
+// -- Section 01 - Contexte -------------------------------------------------
 
 export function drawSection01Context(ctx: DocContext): void {
   drawSectionBanner(ctx, '01', 'Contexte et mandat', 'Cadre de la mission, périmètre, équipe et destinataires du rapport')
   writeParagraphs(ctx, generateContextNarrative(ctx.data), { gap: 4 })
 }
 
-// ── Section 02 - Méthodologie ─────────────────────────────────────────────
+// -- Section 02 - Méthodologie ---------------------------------------------
 
 export function drawSection02Methodology(ctx: DocContext): void {
   drawSectionBanner(ctx, '02', 'Méthodologie d’audit', "Standards mobilisés, techniques d'audit, échantillonnage et matérialité")
   writeParagraphs(ctx, generateMethodologyNarrative(ctx.data), { gap: 4 })
 }
 
-// ── Section 03 - Synthèse exécutive ───────────────────────────────────────
+// -- Section 03 - Synthèse exécutive ---------------------------------------
 
 export function drawSection03ExecutiveSummary(ctx: DocContext): void {
   drawSectionBanner(ctx, '03', 'Synthèse exécutive', "Score de conformité, verdict, lecture rapide, radar de maturité")
@@ -86,7 +86,7 @@ export function drawSection03ExecutiveSummary(ctx: DocContext): void {
   ctx.y += 100
 }
 
-// ── Section 04 - Détail par domaine ───────────────────────────────────────
+// -- Section 04 - Détail par domaine ---------------------------------------
 
 export function drawSection04DomainDetails(ctx: DocContext): void {
   drawSectionBanner(ctx, '04', 'Détail par domaine', 'Score, maturité, faits saillants et statistiques de couverture')
@@ -126,7 +126,7 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   ctx.y += 5
 }
 
-// ── Section 05 - Fiches NC majeures ───────────────────────────────────────
+// -- Section 05 - Fiches NC majeures ---------------------------------------
 
 export function drawSection05NCFactSheets(ctx: DocContext): void {
   const majors = ctx.data.assessments.filter((a) => a.finding_classification === 'major_nc')
@@ -206,7 +206,7 @@ function drawNCBlock(ctx: DocContext, title: string, body: string, accent: RGB):
   ctx.y += blockH + 3
 }
 
-// ── Section 06 - Recommandations + matrice ────────────────────────────────
+// -- Section 06 - Recommandations + matrice --------------------------------
 
 export function drawSection06Recommendations(ctx: DocContext): void {
   drawSectionBanner(ctx, '06', 'Recommandations et matrice de priorisation', "Hiérarchisation des recommandations selon l'axe impact × effort")
@@ -274,7 +274,7 @@ function drawRecoCard(ctx: DocContext, a: AssessmentWithControl, idx: number): v
   ctx.y += cardH + 2
 }
 
-// ── Section 07 - Plan d'action ────────────────────────────────────────────
+// -- Section 07 - Plan d'action --------------------------------------------
 
 export function drawSection07ActionPlan(ctx: DocContext): void {
   drawSectionBanner(ctx, '07', 'Plan d’action de remédiation', "Cycle de vie des CAR, suivi sur la plateforme et tableau récapitulatif")
@@ -304,7 +304,7 @@ export function drawSection07ActionPlan(ctx: DocContext): void {
   }
 }
 
-// ── Section 08 - Conclusion + signataires ─────────────────────────────────
+// -- Section 08 - Conclusion + signataires ---------------------------------
 
 export function drawSection08Conclusion(ctx: DocContext, _clientLogo: LogoData | null): void {
   drawSectionBanner(ctx, '08', 'Conclusion et opinion d’audit', 'Verdict argumenté, conditions de délivrance et signatures')

@@ -116,7 +116,7 @@ export function AdminFrameworkDetailPage() {
   )
 }
 
-// ── Metadata editor (inline edit + save) ──────────────────────────────────
+// -- Metadata editor (inline edit + save) ----------------------------------
 
 function MetadataEditor({ framework, onSaved, toast }: {
   framework: { id: string; name: string; slug: string; version: string | null; publisher: string | null; description: string | null; category: string; is_active: boolean; was_ai_generated: boolean }
@@ -219,7 +219,7 @@ function MetadataEditor({ framework, onSaved, toast }: {
   )
 }
 
-// ── Domain editor (accordion + reorder + add control) ─────────────────────
+// -- Domain editor (accordion + reorder + add control) ---------------------
 
 function DomainEditor({ domain, onChanged, toast, allDomainIds, currentIndex }: {
   domain: AdminDomain; isFirst: boolean; isLast: boolean; onChanged: () => void; toast: ReturnType<typeof useToast>; allDomainIds: string[]; currentIndex: number
@@ -331,7 +331,7 @@ function DomainEditor({ domain, onChanged, toast, allDomainIds, currentIndex }: 
   )
 }
 
-// ── Control editor ──────────────────────────────────────────────────────
+// -- Control editor ------------------------------------------------------
 
 function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex }: {
   control: AdminControl; onChanged: () => void; toast: ReturnType<typeof useToast>; allControlIds: string[]; currentIndex: number
@@ -439,7 +439,7 @@ function ControlEditor({ control, onChanged, toast, allControlIds, currentIndex 
   )
 }
 
-// ── Add buttons ───────────────────────────────────────────────────────────
+// -- Add buttons -----------------------------------------------------------
 
 function AddDomainButton({ frameworkId, onCreated, toast }: { frameworkId: string; onCreated: () => void; toast: ReturnType<typeof useToast> }) {
   const [open, setOpen] = useState(false)

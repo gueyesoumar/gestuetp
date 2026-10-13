@@ -80,7 +80,7 @@ export function MemberProfileDrawer({ member, open, onClose }: MemberProfileDraw
   )
 }
 
-/* ── Onglet Info ── */
+/* -- Onglet Info -- */
 
 function InfoTab({ member }: { member: MemberWithRoles }) {
   return (

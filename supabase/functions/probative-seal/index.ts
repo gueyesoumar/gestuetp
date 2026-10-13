@@ -16,7 +16,7 @@ function timingSafeEqual(a: string, b: string): boolean {
   return out === 0
 }
 
-// ── RFC-3161 : construction manuelle de la requête d'horodatage (DER) ──────────
+// -- RFC-3161 : construction manuelle de la requête d'horodatage (DER) ----------
 function derLen(n: number): number[] {
   if (n < 0x80) return [n]
   const o: number[] = []
@@ -33,7 +33,7 @@ function toB64(bytes: Uint8Array): string {
   return btoa(s)
 }
 
-// ── DER : lecture TLV minimale pour vérifier la réponse RFC-3161 ───────────────
+// -- DER : lecture TLV minimale pour vérifier la réponse RFC-3161 ---------------
 interface Tlv { tag: number; vStart: number; vEnd: number; end: number }
 function readTlv(b: Uint8Array, pos: number): Tlv {
   const tag = b[pos]

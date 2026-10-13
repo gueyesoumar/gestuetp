@@ -1,9 +1,9 @@
-# Matrice de contrôles de sécurité — Gëstu ETP
+# Matrice de contrôles de sécurité - Gëstu ETP
 
 > Grille d'auto-évaluation alignée sur les catégories **OWASP ASVS**. À usage de l'auditeur : colonne « Statut déclaré » = position de l'éditeur ; colonne « Vérifié auditeur » à compléter.
 > Légende statut : ✅ en place · ⚠️ partiel / à améliorer · ❌ absent · N/A.
 
-## V1 — Architecture & conception
+## V1 - Architecture & conception
 
 | Contrôle | Statut déclaré | Preuve / emplacement | Vérifié auditeur |
 |---|---|---|---|
@@ -12,7 +12,7 @@
 | Isolation multi-tenant documentée | ✅ | §4 dossier sécurité | ☐ |
 | Isolation des environnements sensibles (Regul dédié) | ✅ | 2 projets Supabase | ☐ |
 
-## V2 — Authentification
+## V2 - Authentification
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -22,7 +22,7 @@
 | Réinitialisation de mot de passe par lien (pas de plaintext) | ✅ | `admin-user`, `reset-user-password` | ☐ |
 | MFA | ⚠️/N/A | Non implémenté (dépend de la config Supabase Auth) | ☐ |
 
-## V3 — Gestion de session
+## V3 - Gestion de session
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -30,7 +30,7 @@
 | Pas de token sensible en localStorage applicatif | ✅ | revue `localStorage` (usages non sensibles) | ☐ |
 | Cookies custom / CSRF custom | N/A | pas de cookie custom | ☐ |
 
-## V4 — Contrôle d'accès
+## V4 - Contrôle d'accès
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -42,7 +42,7 @@
 | Écritures sensibles réservées au service_role | ✅ | Edge Functions | ☐ |
 | Gate super-admin + journal | ✅ | `requirePlatformOwner`, `admin_audit_log` | ☐ |
 
-## V5 — Validation, assainissement, encodage
+## V5 - Validation, assainissement, encodage
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -52,7 +52,7 @@
 | Content-Security-Policy | ❌ | absente (R1) | ☐ |
 | Validation des entrées (hostname/slug/MIME) | ✅ | regex dans Edge Functions | ☐ |
 
-## V6 — Cryptographie & données au repos
+## V6 - Cryptographie & données au repos
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -60,7 +60,7 @@
 | Intégrité des actes (hash-chaining) | ✅ | `probative_log`, `verify_probative_chain()` | ☐ |
 | Secrets hors du code | ✅ | pas de secret en dur dans `src/` | ☐ |
 
-## V7 — Gestion des erreurs & journalisation
+## V7 - Gestion des erreurs & journalisation
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -69,7 +69,7 @@
 | Journal probant (régulateur) | ✅ | `probative_log` | ☐ |
 | Journalisation des appels IA (coût/tokens) | ✅ | `logAiCall` | ☐ |
 
-## V9 — Communications
+## V9 - Communications
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -77,7 +77,7 @@
 | HTTPS partout | ✅ | Vercel + Supabase | ☐ |
 | CSP | ❌ | R1 | ☐ |
 
-## V10 — Code malveillant / dépendances
+## V10 - Code malveillant / dépendances
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
@@ -87,21 +87,21 @@
 | Gates CI (typecheck + build) | ✅ | `.github/workflows/ci.yml` | ☐ |
 | Scan de vulnérabilités dépendances (SCA) | ⚠️ | à mettre en place (`npm audit` / Dependabot) | ☐ |
 
-## V13 — API & Edge Functions
+## V13 - API & Edge Functions
 
 | Contrôle | Statut | Preuve | Vérifié |
 |---|---|---|---|
 | Auth sur toutes les fonctions sensibles | ✅ | `authenticateCaller` / `requirePlatformOwner` | ☐ |
 | Vérification d'appartenance avant écriture | ✅ | gardes cabinet/sous-arbre/own-org | ☐ |
 | Webhooks authentifiés (secret + timing-safe) | ✅ | `feasibility-callback` | ☐ |
-| Rate limiting anti-énumération | ⚠️ | partiel (infra) — à confirmer | ☐ |
+| Rate limiting anti-énumération | ⚠️ | partiel (infra) - à confirmer | ☐ |
 
 ## Synthèse des écarts (à traiter)
 
 | Réf | Écart | Sévérité |
 |---|---|---|
 | R1 | CSP absente | Moyen |
-| ~~R2~~ | `dangerouslySetInnerHTML` — **résolu** (code mort supprimé) | — |
+| ~~R2~~ | `dangerouslySetInnerHTML` - **résolu** (code mort supprimé) | - |
 | R3 | Dépendances de génération de documents à surveiller | Faible-Moyen |
 | R6 | Migrations manuelles (dérive possible) | Faible-Moyen |
-| — | SCA/Dependabot, MFA, rate-limiting explicite | Faible |
+| - | SCA/Dependabot, MFA, rate-limiting explicite | Faible |

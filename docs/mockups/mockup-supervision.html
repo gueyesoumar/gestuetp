@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockup — Supervision multi-référentiels — Gestu Comply</title>
+<title>Mockup - Supervision multi-référentiels - Gestu Comply</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -121,10 +121,10 @@ tailwind.config = {
           <div class="flex-1 min-w-[220px]">
             <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Référentiel</label>
             <select id="select-framework" onchange="switchFramework()" class="selector w-full rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] font-medium text-gray-900 outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100">
-              <option value="pssi-es" selected>PSSI-ES — Sénégal (155 contrôles)</option>
+              <option value="pssi-es" selected>PSSI-ES - Sénégal (155 contrôles)</option>
               <option value="iso-27001">ISO/IEC 27001:2022 (93 contrôles)</option>
               <option value="nist-csf">NIST CSF 2.0 (23 contrôles)</option>
-              <option value="audit-si">Audit SI — Composite (79 contrôles)</option>
+              <option value="audit-si">Audit SI - Composite (79 contrôles)</option>
             </select>
           </div>
           <!-- Périmètre -->
@@ -150,11 +150,11 @@ tailwind.config = {
           </div>
         </div>
 
-        <!-- Référentiel sélectionné — badge info -->
+        <!-- Référentiel sélectionné - badge info -->
         <div id="framework-info" class="mt-3 flex items-center gap-3">
           <span id="fw-badge" class="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span id="fw-badge-text">PSSI-ES — 11 domaines, 155 contrôles</span>
+            <span id="fw-badge-text">PSSI-ES - 11 domaines, 155 contrôles</span>
           </span>
           <span id="fw-publisher" class="text-[11px] text-gray-400">Commission Nationale de Cryptologie / Présidence de la République</span>
         </div>
@@ -216,7 +216,7 @@ tailwind.config = {
       </div>
 
       <!-- ============================================================ -->
-      <!-- TAB 1 — CLASSEMENT                                          -->
+      <!-- TAB 1 - CLASSEMENT                                          -->
       <!-- ============================================================ -->
       <div id="panel-classement">
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -246,7 +246,7 @@ tailwind.config = {
       </div>
 
       <!-- ============================================================ -->
-      <!-- TAB 2 — HEATMAP                                             -->
+      <!-- TAB 2 - HEATMAP                                             -->
       <!-- ============================================================ -->
       <div id="panel-heatmap" class="hidden">
         <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -266,7 +266,7 @@ tailwind.config = {
       </div>
 
       <!-- ============================================================ -->
-      <!-- TAB 3 — RISQUES SYSTÉMIQUES                                 -->
+      <!-- TAB 3 - RISQUES SYSTÉMIQUES                                 -->
       <!-- ============================================================ -->
       <div id="panel-risques" class="hidden">
         <div class="mb-4 flex items-center justify-between">
@@ -279,7 +279,7 @@ tailwind.config = {
       </div>
 
       <!-- ============================================================ -->
-      <!-- TAB 4 — ÉVOLUTION                                           -->
+      <!-- TAB 4 - ÉVOLUTION                                           -->
       <!-- ============================================================ -->
       <div id="panel-evolution" class="hidden">
         <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -361,7 +361,7 @@ tailwind.config = {
       </div>
 
       <!-- ============================================================ -->
-      <!-- TAB 5 — RAPPORT                                             -->
+      <!-- TAB 5 - RAPPORT                                             -->
       <!-- ============================================================ -->
       <div id="panel-rapport" class="hidden">
         <!-- Configuration du rapport -->
@@ -402,9 +402,9 @@ tailwind.config = {
         <!-- Aperçu du rapport -->
         <div class="bg-white rounded-xl border border-gray-200 p-8 max-w-[800px]">
           <div class="text-center border-b border-gray-200 pb-6 mb-6">
-            <div class="text-[11px] uppercase tracking-widest text-gray-400" id="rapport-header-1">République du Sénégal — Un Peuple, Un But, Une Foi</div>
-            <div class="text-[12px] font-semibold text-gray-500 mt-1" id="rapport-header-2">Présidence de la République — Commission Nationale de Cryptologie</div>
-            <div class="mt-4 text-[18px] font-extrabold text-forest-700" id="rapport-title">Rapport de synthèse — Conformité PSSI-ES</div>
+            <div class="text-[11px] uppercase tracking-widest text-gray-400" id="rapport-header-1">République du Sénégal - Un Peuple, Un But, Une Foi</div>
+            <div class="text-[12px] font-semibold text-gray-500 mt-1" id="rapport-header-2">Présidence de la République - Commission Nationale de Cryptologie</div>
+            <div class="mt-4 text-[18px] font-extrabold text-forest-700" id="rapport-title">Rapport de synthèse - Conformité PSSI-ES</div>
             <div class="text-[13px] text-gray-500 mt-1">Période : 2025-2026</div>
           </div>
 
@@ -470,10 +470,10 @@ tailwind.config = {
 
 const FRAMEWORKS = {
   'pssi-es': {
-    label: 'PSSI-ES — Sénégal',
-    badge: 'PSSI-ES — 11 domaines, 155 contrôles',
+    label: 'PSSI-ES - Sénégal',
+    badge: 'PSSI-ES - 11 domaines, 155 contrôles',
     publisher: 'Commission Nationale de Cryptologie / Présidence de la République',
-    reportTitle: 'Rapport de synthèse — Conformité PSSI-ES',
+    reportTitle: 'Rapport de synthèse - Conformité PSSI-ES',
     domains: ['ORG','PER','ACQ','ACT','FRN','PHY','LOG','EXP','CLM','INC','AUD'],
     domainNames: { ORG:'Organisation SSI', PER:'Sécurité du personnel', ACQ:'Acquisition/Développement', ACT:'Gestion des actifs', FRN:'Fournisseurs', PHY:'Sécurité physique', LOG:'Sécurité logique', EXP:'Exploitation', CLM:'Cloud/Mobile/Télétravail', INC:'Gestion des incidents', AUD:'Audit et conformité' },
     entities: [
@@ -493,9 +493,9 @@ const FRAMEWORKS = {
   },
   'iso-27001': {
     label: 'ISO/IEC 27001:2022',
-    badge: 'ISO 27001 — 4 domaines, 93 contrôles',
-    publisher: 'ISO/IEC — Organisme international de normalisation',
-    reportTitle: 'Rapport de synthèse — Conformité ISO 27001',
+    badge: 'ISO 27001 - 4 domaines, 93 contrôles',
+    publisher: 'ISO/IEC - Organisme international de normalisation',
+    reportTitle: 'Rapport de synthèse - Conformité ISO 27001',
     domains: ['A.5','A.6','A.7','A.8'],
     domainNames: { 'A.5':'Mesures organisationnelles', 'A.6':'Mesures liées aux personnes', 'A.7':'Mesures physiques', 'A.8':'Mesures technologiques' },
     entities: [
@@ -514,9 +514,9 @@ const FRAMEWORKS = {
   },
   'nist-csf': {
     label: 'NIST CSF 2.0',
-    badge: 'NIST CSF — 6 domaines, 23 contrôles',
-    publisher: 'NIST — National Institute of Standards and Technology (USA)',
-    reportTitle: 'Rapport de synthèse — Maturité NIST CSF',
+    badge: 'NIST CSF - 6 domaines, 23 contrôles',
+    publisher: 'NIST - National Institute of Standards and Technology (USA)',
+    reportTitle: 'Rapport de synthèse - Maturité NIST CSF',
     domains: ['GV','ID','PR','DE','RS','RC'],
     domainNames: { GV:'Govern', ID:'Identify', PR:'Protect', DE:'Detect', RS:'Respond', RC:'Recover' },
     entities: [
@@ -530,10 +530,10 @@ const FRAMEWORKS = {
     ],
   },
   'audit-si': {
-    label: 'Audit SI — Composite',
-    badge: 'Audit SI — 6 domaines, 79 contrôles',
-    publisher: 'Gestu — Référentiel composite COBIT + ITIL + ISO 27001 + RGPD',
-    reportTitle: 'Rapport de synthèse — Audit SI',
+    label: 'Audit SI - Composite',
+    badge: 'Audit SI - 6 domaines, 79 contrôles',
+    publisher: 'Gestu - Référentiel composite COBIT + ITIL + ISO 27001 + RGPD',
+    reportTitle: 'Rapport de synthèse - Audit SI',
     domains: ['GO','GR','AE','GD','GS','MS'],
     domainNames: { GO:'Gouvernance SI', GR:'Gestion des risques', AE:'Architecture', GD:'Gouvernance données', GS:'Gestion services', MS:'Management sécurité' },
     entities: [
@@ -612,7 +612,7 @@ function renderHeatmap(fw) {
     html += `<tr class="border-t border-gray-50"><td class="px-2 py-2 font-medium text-gray-900 text-[12px]">${e.name}</td>`;
     domains.forEach(d => {
       const s = e.scores[d];
-      html += `<td class="px-1 py-1"><div class="heatmap-cell ${hcClass(s)}">${s ?? '—'}</div></td>`;
+      html += `<td class="px-1 py-1"><div class="heatmap-cell ${hcClass(s)}">${s ?? '-'}</div></td>`;
     });
     html += `<td class="px-2 py-1 font-bold ${getScoreColor(e.score)}">${e.score}%</td></tr>`;
   });
@@ -627,7 +627,7 @@ function renderHeatmap(fw) {
 
   html += '<tr class="border-t-2 border-forest-200 bg-forest-50/50"><td class="px-2 py-2 font-bold text-forest-700 text-[12px]">MOYENNE</td>';
   domains.forEach(d => {
-    html += `<td class="px-1 py-1"><div class="heatmap-cell ${hcClass(avgs[d])} font-bold">${avgs[d] ?? '—'}</div></td>`;
+    html += `<td class="px-1 py-1"><div class="heatmap-cell ${hcClass(avgs[d])} font-bold">${avgs[d] ?? '-'}</div></td>`;
   });
   html += `<td class="px-2 py-1 font-extrabold text-forest-700">${totalAvg}%</td></tr>`;
   html += '</tbody></table>';
@@ -644,7 +644,7 @@ function renderHeatmap(fw) {
     const pct = i === 0 ? 'text-red-600' : 'text-amber-600';
     return `<div class="rounded-lg border ${border} p-4">
       <div class="text-[10px] font-semibold ${title} uppercase">${i === 0 ? 'Domaine le plus faible' : (i+1)+'e domaine faible'}</div>
-      <div class="mt-1 text-[14px] font-bold ${name}">${w.code} — ${w.name}</div>
+      <div class="mt-1 text-[14px] font-bold ${name}">${w.code} - ${w.name}</div>
       <div class="mt-1 text-[12px] ${pct}">${w.avg}% de conformité moyenne</div>
     </div>`;
   }).join('') + '</div>';

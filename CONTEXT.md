@@ -1,4 +1,4 @@
-# Gëstu Comply — Document de contexte projet
+# Gëstu Comply - Document de contexte projet
 
 > **Usage** : Coller ce fichier en début de chaque session Claude (chat ou Claude Code) avant de travailler sur le projet.
 
@@ -16,15 +16,15 @@ Les référentiels sont **gérés et maintenus par Gëstu** (pas par les clients
 
 ## 2. Segments de marché (B2B2B)
 
-### Segment 1 — Cabinets de conseil ⭐ (priorité V1)
+### Segment 1 - Cabinets de conseil ⭐ (priorité V1)
 Cabinets accompagnant plusieurs clients sur des audits SI et projets de conformité.
 - **Objectif** : Automatiser les missions, approche customer-centric, intégration IA.
 - **Modèle** : Le cabinet crée des missions pour ses clients. Le client a accès à la plateforme **uniquement pendant la durée de la mission**.
 
-### Segment 2 — Entreprises groupe / Holding
+### Segment 2 - Entreprises groupe / Holding
 Groupes avec filiales souhaitant superviser leur conformité, réaliser des audits et assurer le suivi des recommandations et plans d'action.
 
-### Segment 3 — Fonds d'investissement / Accompagnement
+### Segment 3 - Fonds d'investissement / Accompagnement
 Fonds travaillant avec des start-ups/PMEs souhaitant :
 - En entrée : due diligence (avant investissement)
 - En cours : contrôle de conformité et audit des entreprises en portefeuille
@@ -90,7 +90,7 @@ Fonds travaillant avec des start-ups/PMEs souhaitant :
 
 ---
 
-## 6. Workflow de mission — 7 phases
+## 6. Workflow de mission - 7 phases
 
 ```
 Phase 1 → Phase 2 → Phase 3 → Phase 4 ⇄ Phase 5 ⇄ Phase 6 → Phase 7
@@ -114,7 +114,7 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4 ⇄ Phase 5 ⇄ Phase 6 → Phase 7
 
 ---
 
-## 7. Intégration IA — V1
+## 7. Intégration IA - V1
 
 | Fonctionnalité | Phase concernée |
 |---|---|

@@ -73,7 +73,7 @@ jobs:
             total=$(awk -v a="$total" -v b="$c" 'BEGIN{printf "%.4f", a+b}')
             echo "coût cumulé : $total \$"
             # Coupe dure à 3 $. NB: on renvoie 0 dans le cas normal (sinon `set -e` tue le script).
-            if awk -v t="$total" 'BEGIN{exit !(t>3.0)}'; then echo "Budget 3\$ dépassé — arrêt"; exit 1; fi
+            if awk -v t="$total" 'BEGIN{exit !(t>3.0)}'; then echo "Budget 3\$ dépassé - arrêt"; exit 1; fi
             return 0
           }
           mkprompt() {  # $1 = fichier prompt du repo
@@ -86,7 +86,7 @@ jobs:
           }
           # Récupère le JSON produit : le fichier écrit par l'agent s'il existe et est valide,
           # sinon on l'extrait de la réponse de l'agent (.result de l'enveloppe --output-format json),
-          # en retirant d'éventuelles clôtures ```… (les modèles légers répondent souvent inline).
+          # en retirant d'éventuelles clôtures ```... (les modèles légers répondent souvent inline).
           get_json() {  # $1 = enveloppe, $2 = fichier de sortie
             if [ -f "$2" ] && jq empty "$2" 2>/dev/null; then return 0; fi
             jq -r '.result // ""' "$1" 2>/dev/null | sed '/^```/d' > "$2"
@@ -103,28 +103,28 @@ jobs:
           L_FRONT=$(jq -r '.layers.frontend // false' carto.json)
           echo "couches → data_rls=$L_DATA security=$L_SEC frontend=$L_FRONT"
 
-          # ② Données & RLS (Sonnet) — conditionnel
+          # ② Données & RLS (Sonnet) - conditionnel
           if [ "$L_DATA" = "true" ]; then
             mkprompt impact-prompt-data-rls.md
             claude -p "$(cat p.txt)" --model sonnet --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-data.json || true
             add_cost env-data.json
             get_json env-data.json spec-data.json || echo "spec-data indisponible (ignoré)"
           fi
-          # ③ Sécurité serveur (Sonnet) — conditionnel, réutilise security-auditor
+          # ③ Sécurité serveur (Sonnet) - conditionnel, réutilise security-auditor
           if [ "$L_SEC" = "true" ]; then
             run_specialist_from_agent security-auditor.md spec-sec.json "Sécurité serveur"
             claude -p "$(cat p.txt)" --model sonnet --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-sec.json || true
             add_cost env-sec.json
             get_json env-sec.json spec-sec.json || echo "spec-sec indisponible (ignoré)"
           fi
-          # ④ Frontend & charte (Haiku) — conditionnel, réutilise code-reviewer
+          # ④ Frontend & charte (Haiku) - conditionnel, réutilise code-reviewer
           if [ "$L_FRONT" = "true" ]; then
             run_specialist_from_agent code-reviewer.md spec-front.json "Frontend & charte"
             claude -p "$(cat p.txt)" --model haiku --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-front.json || true
             add_cost env-front.json
             get_json env-front.json spec-front.json || echo "spec-front indisponible (ignoré)"
           fi
-          # ⑤ Qualité & tests (Haiku) — toujours
+          # ⑤ Qualité & tests (Haiku) - toujours
           mkprompt impact-prompt-tests.md
           claude -p "$(cat p.txt)" --model haiku --output-format json --permission-mode acceptEdits --allowedTools "$TOOLS" > env-tests.json || true
           add_cost env-tests.json

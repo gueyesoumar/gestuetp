@@ -1709,7 +1709,7 @@ export type Capability =
   | 'client_portal' | 'continuous_compliance'
 export type CapabilityStatus = 'active' | 'trial' | 'disabled'
 
-// ── RFC 0014 - Conformité continue (connecteurs de preuve) ────────────────────
+// -- RFC 0014 - Conformité continue (connecteurs de preuve) --------------------
 export type ConnectorProvider = 'entra' | 'google' | 'github' | 'aws' | 'azure' | 'gcp' | 'tenable'
 export type EvidenceVerdict = 'pass' | 'fail' | 'warn' | 'na'
 export type CheckSeverity = 'faible' | 'moyen' | 'fort' | 'critique'

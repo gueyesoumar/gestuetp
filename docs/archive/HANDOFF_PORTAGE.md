@@ -1,4 +1,4 @@
-# HANDOFF_PORTAGE.md — Plan de portage du handoff Claude Design
+# HANDOFF_PORTAGE.md - Plan de portage du handoff Claude Design
 
 > Synthèse des décisions et chantiers issus de la transposition du handoff Claude Design (6 écrans : Hub, Wizard, Phase 2 cabinet, Phase 2 client, Phase 3, Phase 4) vers la codebase Gëstu Comply.
 >
@@ -27,13 +27,13 @@ Chaque décision est traçable à un mockup et à une mémoire produit (cf. doss
 
 ## 1. Refactors architecturaux validés
 
-Cinq décisions structurantes prises pendant la transposition. Chacune impacte plusieurs phases — l'ordre d'exécution est important.
+Cinq décisions structurantes prises pendant la transposition. Chacune impacte plusieurs phases - l'ordre d'exécution est important.
 
 ### A. `question_controls` (many-to-many cadrage ↔ contrôles)
 
 **Décision** : créer une table de liaison entre les questions du questionnaire de cadrage et les contrôles d'un référentiel. Une question peut alimenter N contrôles, un contrôle peut être informé par N questions.
 
-**Pourquoi** : sans ce lien, le questionnaire de prise de connaissance (sections GOV/MAT/OPS/INC/ATT) n'alimente jamais l'évaluation des contrôles en phase 4 — l'auditeur évalue chaque contrôle from scratch en perdant le contexte client.
+**Pourquoi** : sans ce lien, le questionnaire de prise de connaissance (sections GOV/MAT/OPS/INC/ATT) n'alimente jamais l'évaluation des contrôles en phase 4 - l'auditeur évalue chaque contrôle from scratch en perdant le contexte client.
 
 **Bénéfices en aval** :
 - Phase 2 client : upload inline par question rattache automatiquement les documents aux preuves attendues sur les contrôles concernés
@@ -88,41 +88,41 @@ Toutes les migrations respectent la convention CLAUDE.md (`up` + `down`, pas de 
 
 ```
 00100_question_controls_up.sql
-  └─ table question_controls(question_id, control_id, weight)
-  └─ index on (question_id), (control_id)
-  └─ RLS : SELECT authenticated, INSERT/UPDATE/DELETE service_role only
-  └─ colonne nullable evidence_catalog_id sur questionnaire_template_questions
+  -- table question_controls(question_id, control_id, weight)
+  -- index on (question_id), (control_id)
+  -- RLS : SELECT authenticated, INSERT/UPDATE/DELETE service_role only
+  -- colonne nullable evidence_catalog_id sur questionnaire_template_questions
 
 00101_assessment_findings_up.sql
-  └─ table assessment_findings(id, assessment_id, ord, classification, description, risk, recommendation, priority, proposed_deadline, ai_generated, created_at, updated_at)
-  └─ index on (assessment_id, ord)
-  └─ RLS : alignée sur control_assessments (même périmètre cabinet/client)
+  -- table assessment_findings(id, assessment_id, ord, classification, description, risk, recommendation, priority, proposed_deadline, ai_generated, created_at, updated_at)
+  -- index on (assessment_id, ord)
+  -- RLS : alignée sur control_assessments (même périmètre cabinet/client)
 
 00102_assessment_findings_migrate.sql
-  └─ INSERT INTO assessment_findings (assessment_id, classification, description, risk, recommendation)
+  -- INSERT INTO assessment_findings (assessment_id, classification, description, risk, recommendation)
      SELECT id, COALESCE(classification, 'minor_nc'), findings, risk_notes, recommendations
      FROM control_assessments
      WHERE findings IS NOT NULL AND findings <> ''
-  └─ best-effort : 1 finding par assessment legacy, à retravailler par les auditeurs lors de la prochaine session
+  -- best-effort : 1 finding par assessment legacy, à retravailler par les auditeurs lors de la prochaine session
 
 00103_control_assessments_deprecate.sql
-  └─ ATTENTION : ne pas DROP les colonnes legacy avant 2 sprints minimum
-  └─ pour l'instant : commentaires SQL pour signaler la dépréciation
-  └─ DROP réel dans une migration séparée après vérification que tous les composants utilisent assessment_findings
+  -- ATTENTION : ne pas DROP les colonnes legacy avant 2 sprints minimum
+  -- pour l'instant : commentaires SQL pour signaler la dépréciation
+  -- DROP réel dans une migration séparée après vérification que tous les composants utilisent assessment_findings
 
 00104_control_comments_up.sql
-  └─ table control_comments(id, mission_id, control_id, author_id, body, parent_id, mentions[], created_at)
-  └─ RLS : SELECT membres mission, INSERT membres mission
-  └─ trigger : créer notification sur mention
+  -- table control_comments(id, mission_id, control_id, author_id, body, parent_id, mentions[], created_at)
+  -- RLS : SELECT membres mission, INSERT membres mission
+  -- trigger : créer notification sur mention
 
 00105_controls_audit_checklist_up.sql
-  └─ colonne audit_checklist text[] sur controls
-  └─ INSERT/UPDATE service_role only
-  └─ seed à faire dans un script séparé (00106 ou via outil admin)
+  -- colonne audit_checklist text[] sur controls
+  -- INSERT/UPDATE service_role only
+  -- seed à faire dans un script séparé (00106 ou via outil admin)
 
 00106_missions_letter_pdf_url_up.sql
-  └─ colonne letter_pdf_url text sur missions
-  └─ colonne letter_tone text DEFAULT 'standard' (standard / formel / concis)
+  -- colonne letter_pdf_url text sur missions
+  -- colonne letter_tone text DEFAULT 'standard' (standard / formel / concis)
 ```
 
 Chaque fichier `_up.sql` a son `_down.sql` permettant le rollback (cf CLAUDE.md règle #6).
@@ -180,8 +180,8 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 | Composant | Action | Effort |
 |---|---|---|
 | `MissionsCardsView` | Phase mini-ribbon (7 segments) sur chaque carte, supervision banner animé (gradient shimmer) | XS |
-| `MissionsKanbanView` | Pas de changement structurel | — |
-| `MissionsSplitView` | Pas de changement structurel | — |
+| `MissionsKanbanView` | Pas de changement structurel | - |
+| `MissionsSplitView` | Pas de changement structurel | - |
 
 **Décision retenue** : pas de KPI strip sur la liste missions (les KPI agrégés vivent sur DashboardPage). Réf : `project_kpi_placement.md`.
 
@@ -199,7 +199,7 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 |---|---|---|
 | `MissionOverviewTab` | **Refonte complète** : KPI strip 4 tuiles + reminder banner contextuel + domain progress + contacts + activity feed | L |
 | `MissionDetailHeader` | Phase tabs avec distinction `active` (onglet) vs `current-phase` (live-dot) | S |
-| `MissionScopingTab` | **Inchangé** (5 sub-tabs : Fiche client / Périmètre / Questionnaire / Documents / Risques) | — |
+| `MissionScopingTab` | **Inchangé** (5 sub-tabs : Fiche client / Périmètre / Questionnaire / Documents / Risques) | - |
 
 ### Phase 2 Client
 
@@ -218,7 +218,7 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 |---|---|---|
 | `WorkProgramTable` | Multi-select bulk + table 6 colonnes (drop "Statut") | M |
 | `PlanningWorkloadSection` + `PlanningGanttSection` | Fusion en une seule card avec onglets Charge / Calendrier | S |
-| `PlanningActionsSection` | Pas de change | — |
+| `PlanningActionsSection` | Pas de change | - |
 | `RiskCallout` | **Nouveau** : P1 unassigned + CTA pré-ciblé sur auditeur le moins chargé | S |
 | `SmartPlanHypothesesModal` | **Nouveau** : modale détaillant les critères IA pour transparence | S |
 
@@ -248,9 +248,9 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 
 ---
 
-## 5. Roadmap recommandée — 5 vagues
+## 5. Roadmap recommandée - 5 vagues
 
-### Vague 1 — Fondations (~3 semaines)
+### Vague 1 - Fondations (~3 semaines)
 
 **Bloque la suite. À shipper en premier.**
 
@@ -263,7 +263,7 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 
 **Critères de sortie** : tous les composants existants continuent de fonctionner (legacy fields lus en fallback). Les nouvelles tables sont peuplées et accessibles via API.
 
-### Vague 2 — Phase 4 cœur métier (~4 semaines)
+### Vague 2 - Phase 4 cœur métier (~4 semaines)
 
 **Le workspace contrôle est l'écran le plus utilisé par les auditeurs. Refonte high-impact.**
 
@@ -277,7 +277,7 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 
 **Critères de sortie** : un auditeur peut produire des findings structurés, le plan d'action et le rapport sont cohérents.
 
-### Vague 3 — Visuel & ergonomie (~3 semaines)
+### Vague 3 - Visuel & ergonomie (~3 semaines)
 
 **Améliorations à valeur immédiate, peu de risque. Peut partir en parallèle de Vague 1.**
 
@@ -289,7 +289,7 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 - [ ] Phase 4 Workspace : mode Guidé avec stepper 4 étapes
 - [ ] Phase 4 Workspace : rail droit repliable
 
-### Vague 4 — Phase 2 Client (~3 semaines)
+### Vague 4 - Phase 2 Client (~3 semaines)
 
 **Refonte UX significative côté client. À valider avec un client pilote avant rollout.**
 
@@ -299,7 +299,7 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 - [ ] Help text par question
 - [ ] Bandeau gold pour conditional follow-up
 
-### Vague 5 — Polish & nice-to-have (~3 semaines)
+### Vague 5 - Polish & nice-to-have (~3 semaines)
 
 **Pas bloquant. Items modulaires, peut être étalé.**
 
@@ -388,29 +388,29 @@ L'ancienne signature (textes plats) doit rester supportée le temps de la migrat
 
 ### Mockups (HTML, dossier [mockups/](mockups/))
 
-- [handoff-1-hub-missions.html](mockups/handoff-1-hub-missions.html) — Hub
-- [handoff-2-mission-create-wizard.html](mockups/handoff-2-mission-create-wizard.html) — Wizard
-- [handoff-3-phase2-cabinet.html](mockups/handoff-3-phase2-cabinet.html) — Phase 2 Cabinet
-- [handoff-4-phase2-client.html](mockups/handoff-4-phase2-client.html) — Phase 2 Client
-- [handoff-5-phase3-planning.html](mockups/handoff-5-phase3-planning.html) — Phase 3 Planning
-- [handoff-6-phase4-workspace.html](mockups/handoff-6-phase4-workspace.html) — Phase 4 Workspace
+- [handoff-1-hub-missions.html](mockups/handoff-1-hub-missions.html) - Hub
+- [handoff-2-mission-create-wizard.html](mockups/handoff-2-mission-create-wizard.html) - Wizard
+- [handoff-3-phase2-cabinet.html](mockups/handoff-3-phase2-cabinet.html) - Phase 2 Cabinet
+- [handoff-4-phase2-client.html](mockups/handoff-4-phase2-client.html) - Phase 2 Client
+- [handoff-5-phase3-planning.html](mockups/handoff-5-phase3-planning.html) - Phase 3 Planning
+- [handoff-6-phase4-workspace.html](mockups/handoff-6-phase4-workspace.html) - Phase 4 Workspace
 
 ### Mémoires produit (`~/.claude/projects/.../memory/`)
 
-- `project_question_controls_link.md` — Refactor A
-- `project_findings_centric.md` — Refactor B
-- `project_kpi_placement.md` — Décision KPI sur Dashboard uniquement
-- `feedback_mission_create.md` — Wizard 7 steps actualisé
-- `feedback_planning.md` — Phase 3 décisions visuelles + pas de due dates
-- `feedback_form_selects.md`, `feedback_form_ux.md` — patterns formulaires
-- `feedback_dashboard.md` — patterns dashboard
-- `feedback_missions_views.md` — 3 vues Kanban/Cards/Split
+- `project_question_controls_link.md` - Refactor A
+- `project_findings_centric.md` - Refactor B
+- `project_kpi_placement.md` - Décision KPI sur Dashboard uniquement
+- `feedback_mission_create.md` - Wizard 7 steps actualisé
+- `feedback_planning.md` - Phase 3 décisions visuelles + pas de due dates
+- `feedback_form_selects.md`, `feedback_form_ux.md` - patterns formulaires
+- `feedback_dashboard.md` - patterns dashboard
+- `feedback_missions_views.md` - 3 vues Kanban/Cards/Split
 
 ### Documentation projet
 
-- [CLAUDE.md](CLAUDE.md) — règles non négociables (TS strict, RLS, encoding...)
-- [BRAND.md](BRAND.md) — charte graphique forest+gold + logo
-- [README.md](README.md) — démarrage projet (si présent)
+- [CLAUDE.md](CLAUDE.md) - règles non négociables (TS strict, RLS, encoding...)
+- [BRAND.md](BRAND.md) - charte graphique forest+gold + logo
+- [README.md](README.md) - démarrage projet (si présent)
 
 ---
 

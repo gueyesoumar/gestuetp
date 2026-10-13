@@ -13,9 +13,9 @@
 --
 -- Anti-récursion : pg_trigger_depth() > 1 court-circuite le cascade.
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- 1. BACKFILL - réconcilier les états existants (missions = autorité sur conflit)
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 -- 1a. Pour chaque mission avec lead_auditor_id défini, garantir mission_members
 insert into public.mission_members (mission_id, user_id, role)
@@ -91,9 +91,9 @@ where mm.mission_id = m.id
   and mm.role = 'associate'
   and (m.associate_id is null or mm.user_id <> m.associate_id);
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- 2. TRIGGER : missions → mission_members
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 create or replace function public.sync_lead_associate_to_members()
 returns trigger
@@ -105,7 +105,7 @@ begin
   -- Anti-récursion : si on est déjà dans un cascade, ne rien faire
   if pg_trigger_depth() > 1 then return new; end if;
 
-  -- ─── LEAD AUDITOR ───
+  -- --- LEAD AUDITOR ---
   if (TG_OP = 'INSERT' and new.lead_auditor_id is not null)
      or (TG_OP = 'UPDATE' and new.lead_auditor_id is distinct from old.lead_auditor_id)
   then
@@ -125,7 +125,7 @@ begin
     end if;
   end if;
 
-  -- ─── ASSOCIATE ───
+  -- --- ASSOCIATE ---
   if (TG_OP = 'INSERT' and new.associate_id is not null)
      or (TG_OP = 'UPDATE' and new.associate_id is distinct from old.associate_id)
   then
@@ -155,9 +155,9 @@ create trigger trg_sync_lead_associate_to_members
   after insert or update on public.missions
   for each row execute function public.sync_lead_associate_to_members();
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- 3. TRIGGER : mission_members → missions
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 create or replace function public.sync_member_role_to_mission()
 returns trigger
@@ -171,7 +171,7 @@ begin
     return new;
   end if;
 
-  -- ─── INSERT ───
+  -- --- INSERT ---
   if TG_OP = 'INSERT' then
     if new.role = 'lead_auditor' then
       update public.missions set lead_auditor_id = new.user_id where id = new.mission_id;
@@ -181,7 +181,7 @@ begin
     return new;
   end if;
 
-  -- ─── UPDATE ───
+  -- --- UPDATE ---
   if TG_OP = 'UPDATE' then
     -- Si role changé vers lead_auditor / associate
     if new.role = 'lead_auditor' and old.role <> 'lead_auditor' then
@@ -204,7 +204,7 @@ begin
     return new;
   end if;
 
-  -- ─── DELETE ───
+  -- --- DELETE ---
   if TG_OP = 'DELETE' then
     if old.role = 'lead_auditor' then
       update public.missions

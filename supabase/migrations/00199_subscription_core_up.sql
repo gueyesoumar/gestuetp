@@ -74,9 +74,9 @@ create policy "osf_org" on public.org_subscription_features for all to authentic
 drop policy if exists "osf_aal2" on public.org_subscription_features;
 create policy "osf_aal2" on public.org_subscription_features as restrictive for all to authenticated using (public.is_aal2());
 
--- ══════════════════════════════════════════════════════════════════════════════
+-- ------------------------------------------------------------------------------
 -- 6. BACKFILL (idempotent) - mapping Annexe A via les ponts de 00198
--- ══════════════════════════════════════════════════════════════════════════════
+-- ------------------------------------------------------------------------------
 
 -- 6a. Produits : chaque capacité produit (product_capability) → un abonnement.
 --     Statut : disabled → suspended, sinon identique.

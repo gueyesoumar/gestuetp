@@ -1,4 +1,4 @@
-# Guide d'accès & jeux de test — Gëstu ETP
+# Guide d'accès & jeux de test - Gëstu ETP
 
 > À l'usage de l'auditeur externe pour rejouer les parcours. **Ce document ne contient aucun secret réel** : les identifiants et clés sont des placeholders, à transmettre **hors bande** (canal sécurisé), jamais versionnés.
 

@@ -9,9 +9,9 @@
 --
 -- Idempotent : DROP IF EXISTS + CREATE pour pouvoir réappliquer sans erreur.
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- Mission-scoped tables
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 DROP POLICY IF EXISTS "missions_select_platform_owner" ON public.missions;
 CREATE POLICY "missions_select_platform_owner"
@@ -93,9 +93,9 @@ CREATE POLICY "control_comments_select_platform_owner"
   ON public.control_comments FOR SELECT TO authenticated
   USING (public.is_platform_owner());
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- Cabinet/Organization-scoped tables
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 DROP POLICY IF EXISTS "cabinet_clients_select_platform_owner" ON public.cabinet_clients;
 CREATE POLICY "cabinet_clients_select_platform_owner"
@@ -117,10 +117,10 @@ CREATE POLICY "client_action_items_select_platform_owner"
   ON public.client_action_items FOR SELECT TO authenticated
   USING (public.is_platform_owner());
 
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 -- Catalog-scoped (déjà accessibles à tout authenticated en lecture, mais on
 -- garde la cohérence pour les liens transverses)
--- ════════════════════════════════════════════════════════════════════════════
+-- ----------------------------------------------------------------------------
 
 DROP POLICY IF EXISTS "question_controls_select_platform_owner" ON public.question_controls;
 CREATE POLICY "question_controls_select_platform_owner"

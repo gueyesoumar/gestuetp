@@ -2,7 +2,7 @@ import { type RGB, BLUE, BORDER, GOLD_500, ORANGE, RED, TEXT_400, TEXT_500, WHIT
 import type { AssessmentWithControl, DocContext, DomainStat } from './context'
 import { fillRect, fillRounded, setText, strokeRounded } from './primitives'
 
-// ── Visuels ───────────────────────────────────────────────────────────────
+// -- Visuels ---------------------------------------------------------------
 
 export function drawRadarChart(ctx: DocContext, x: number, y: number, size: number, stats: DomainStat[]): void {
   const { doc } = ctx

@@ -6,7 +6,7 @@ import { setPageContext } from './page-chrome'
 import { fillRect, fillRounded, setText, strokeRounded, writeWrapped } from './primitives'
 import { formatDate, formatPeriodShort, memberName } from './utils'
 
-// ── Couverture ─────────────────────────────────────────────────────────────
+// -- Couverture -------------------------------------------------------------
 
 export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabinetLogoLight: LogoData | null, cabinetLogoDark: LogoData | null): void {
   const { doc, data, pageW, pageH, marginL } = ctx
@@ -119,7 +119,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabi
   doc.text('Diffusion restreinte (cf. Annexe D)', pageW - marginL, pageH - 23, { align: 'right' })
 }
 
-// ── Lettre executive (1 page, signée Associé) ─────────────────────────────
+// -- Lettre executive (1 page, signée Associé) -----------------------------
 
 export function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData | null): void {
   ctx.doc.addPage()
@@ -203,7 +203,7 @@ export function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData 
   doc.text(ctx.data.cabinetName, pageW - marginL, sigY + 32, { align: 'right' })
 }
 
-// ── Sommaire ──────────────────────────────────────────────────────────────
+// -- Sommaire --------------------------------------------------------------
 
 export function drawTOC(ctx: DocContext): void {
   ctx.doc.addPage()

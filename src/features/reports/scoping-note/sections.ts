@@ -10,7 +10,7 @@ import {
   generateRiskMitigation, generateStructuralObjectives, computeMilestones,
 } from './narratives'
 
-// ── Section 01 - Préambule ─────────────────────────────────────────────────
+// -- Section 01 - Préambule -------------------------------------------------
 
 export function drawSection01Preambule(ctx: DocContext): void {
   drawSectionBanner(
@@ -43,7 +43,7 @@ export function drawSection01Preambule(ctx: DocContext): void {
   }
 }
 
-// ── Section 02 - Objectifs ─────────────────────────────────────────────────
+// -- Section 02 - Objectifs -------------------------------------------------
 
 export function drawSection02Objectifs(ctx: DocContext): void {
   drawSectionBanner(
@@ -92,7 +92,7 @@ function drawObjectiveCard(ctx: DocContext, num: number, title: string, desc: st
   ctx.y += h + 3
 }
 
-// ── Section 03 - Périmètre 4D ──────────────────────────────────────────────
+// -- Section 03 - Périmètre 4D ----------------------------------------------
 
 export function drawSection03Perimetre(ctx: DocContext): void {
   drawSectionBanner(
@@ -156,7 +156,7 @@ function drawPerimCard(ctx: DocContext, x: number, y: number, w: number, h: numb
   }
 }
 
-// ── Section 04 - Méthodologie ──────────────────────────────────────────────
+// -- Section 04 - Méthodologie ----------------------------------------------
 
 export function drawSection04Methodologie(ctx: DocContext): void {
   drawSectionBanner(
@@ -198,7 +198,7 @@ export function drawSection04Methodologie(ctx: DocContext): void {
   ])
 }
 
-// ── Section 05 - Risques ───────────────────────────────────────────────────
+// -- Section 05 - Risques ---------------------------------------------------
 
 export function drawSection05Risques(ctx: DocContext): void {
   drawSectionBanner(
@@ -275,7 +275,7 @@ function riskTheme(level: string): { accent: RGB; bg: RGB; label: string } {
   }
 }
 
-// ── Section 06 - Équipe + RACI ─────────────────────────────────────────────
+// -- Section 06 - Équipe + RACI ---------------------------------------------
 
 export function drawSection06Equipe(ctx: DocContext): void {
   drawSectionBanner(
@@ -311,7 +311,7 @@ export function drawSection06Equipe(ctx: DocContext): void {
   ctx.y += 5
 }
 
-// ── Section 07 - Planning ──────────────────────────────────────────────────
+// -- Section 07 - Planning --------------------------------------------------
 
 export function drawSection07Planning(ctx: DocContext): void {
   drawSectionBanner(
@@ -377,7 +377,7 @@ function drawGantt(ctx: DocContext): void {
   ctx.y += 4
 }
 
-// ── Section 08 - Livrables + gouvernance ───────────────────────────────────
+// -- Section 08 - Livrables + gouvernance -----------------------------------
 
 export function drawSection08LivrablesGouvernance(ctx: DocContext): void {
   drawSectionBanner(
@@ -415,7 +415,7 @@ export function drawSection08LivrablesGouvernance(ctx: DocContext): void {
   writeWrapped(ctx, "Tout point bloquant non levé sous 3 jours ouvrés est porté en COPIL. Les désaccords de qualification d'un écart sont arbitrés par l'associé en charge et le sponsor en bilatéral sous 5 jours ouvrés. Les conflits d'intérêts éventuels sont déclarés sans délai au comité d'éthique du cabinet et au sponsor.")
 }
 
-// ── Section 09 - Hypothèses + limitations ──────────────────────────────────
+// -- Section 09 - Hypothèses + limitations ----------------------------------
 
 export function drawSection09Hypotheses(ctx: DocContext): void {
   drawSectionBanner(
@@ -472,7 +472,7 @@ export function drawSection09Hypotheses(ctx: DocContext): void {
   )
 }
 
-// ── Section 10 - Signatures ────────────────────────────────────────────────
+// -- Section 10 - Signatures ------------------------------------------------
 
 export function drawSection10Signatures(ctx: DocContext): void {
   drawSectionBanner(

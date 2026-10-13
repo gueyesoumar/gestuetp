@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
   }
 })
 
-// ── CLOISONNEMENT ─────────────────────────────────────────────────────────
+// -- CLOISONNEMENT ---------------------------------------------------------
 // Verifie qu'une mission appartient au cabinet de l'appelant.
 async function callerOwnsMission(
   admin: ReturnType<typeof createClient>,
@@ -99,7 +99,7 @@ async function callerOwnsMission(
   return sameCabinet(caller, (m as { cabinet_id?: string } | null)?.cabinet_id)
 }
 
-// ── UPLOAD ──────────────────────────────────────────────────────────────────
+// -- UPLOAD ------------------------------------------------------------------
 // Downloads file from Supabase Storage → (optional conversion) → uploads
 // to Anthropic Files API. Stores file_id + kind back in the documents table.
 
@@ -284,7 +284,7 @@ async function handleUpload(
   return jsonResponse({ ...exposureFields, kind: prepared.kind, pending_ai_upload: true })
 }
 
-// ── DELETE ──────────────────────────────────────────────────────────────────
+// -- DELETE ------------------------------------------------------------------
 
 async function handleDelete(
   admin: ReturnType<typeof createClient>,
@@ -338,7 +338,7 @@ async function handleDelete(
   return jsonResponse({ success: true })
 }
 
-// ── ANALYZE ─────────────────────────────────────────────────────────────────
+// -- ANALYZE -----------------------------------------------------------------
 // Builds content blocks per file_id : 'document' or 'image' selon le kind
 // stocké en BDD lors du upload. Indispensable pour les images.
 
@@ -489,7 +489,7 @@ async function handleAnalyze(
   })
 }
 
-// ── PREPARE ASSET ───────────────────────────────────────────────────────────
+// -- PREPARE ASSET -----------------------------------------------------------
 // Détermine le kind et applique la conversion serveur si nécessaire.
 // Throws si le format est non géré.
 
@@ -586,7 +586,7 @@ async function persistExtractError(
   if (error) console.warn('[ai-documents] persistExtractError failed:', error.message)
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+// -- HELPERS ------------------------------------------------------------------
 
 async function buildMissionContext(
   admin: ReturnType<typeof createClient>,

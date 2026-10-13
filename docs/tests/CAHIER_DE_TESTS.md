@@ -1,6 +1,6 @@
-# Cahier de tests — Gestu Comply
+# Cahier de tests - Gestu Comply
 
-> Version 1.0 — Avril 2026
+> Version 1.0 - Avril 2026
 > Référence : fonctionnalités extraites du code source
 
 ---
@@ -25,8 +25,8 @@
 |---|------------|--------|-------------------|--------|
 | NAV-01 | Affichage du Hub | 1. Se connecter 2. Vérifier le Hub ETP | Les produits Gestu (Comply) sont affichés | ☐ |
 | NAV-02 | Navigation sidebar | 1. Cliquer sur chaque item de la sidebar (Tableau de bord, Supervision, Clients, Référentiels, Missions) | Chaque page se charge correctement | ☐ |
-| NAV-03 | Sidebar — item actif | 1. Naviguer sur `/clients` | L'item "Clients" est surligné avec un liseré or | ☐ |
-| NAV-04 | Sidebar — collapse | 1. Cliquer sur le bouton de réduction de la sidebar | Sidebar réduite à 68px, icônes seules visibles | ☐ |
+| NAV-03 | Sidebar - item actif | 1. Naviguer sur `/clients` | L'item "Clients" est surligné avec un liseré or | ☐ |
+| NAV-04 | Sidebar - collapse | 1. Cliquer sur le bouton de réduction de la sidebar | Sidebar réduite à 68px, icônes seules visibles | ☐ |
 | NAV-05 | Menu profil | 1. Cliquer sur le profil en bas de la sidebar | Menu popup avec : Mon profil, Notifications, Organisation, Membres, Déconnexion | ☐ |
 
 ---
@@ -51,8 +51,8 @@
 | MBR-03 | Filtre par statut | 1. Sélectionner "Actifs" dans le filtre statut | Seuls les membres actifs sont affichés | ☐ |
 | MBR-04 | Filtre par rôle | 1. Sélectionner un rôle dans le filtre | Seuls les membres ayant ce rôle sont affichés | ☐ |
 | MBR-05 | Inviter un membre | 1. Cliquer "Inviter un membre" 2. Remplir email, prénom, nom, rôle 3. Soumettre | Membre créé, apparaît dans la liste | ☐ |
-| MBR-06 | Invitation — email invalide | 1. Saisir un email invalide dans le formulaire d'invitation | Message d'erreur, formulaire non soumis | ☐ |
-| MBR-07 | Invitation — email déjà utilisé | 1. Inviter un email déjà enregistré | Message d'erreur "Cet email est déjà utilisé" | ☐ |
+| MBR-06 | Invitation - email invalide | 1. Saisir un email invalide dans le formulaire d'invitation | Message d'erreur, formulaire non soumis | ☐ |
+| MBR-07 | Invitation - email déjà utilisé | 1. Inviter un email déjà enregistré | Message d'erreur "Cet email est déjà utilisé" | ☐ |
 | MBR-08 | Attribuer un rôle | 1. Menu contextuel (⋮) → "Gérer les rôles" 2. Sélectionner un ou plusieurs rôles 3. Enregistrer | Rôle(s) attribué(s), badge mis à jour | ☐ |
 | MBR-09 | Multi-rôles | 1. Attribuer 2 rôles à un membre | Les 2 badges de rôle sont affichés | ☐ |
 | MBR-10 | Désactiver un membre | 1. Menu (⋮) → "Désactiver" 2. Confirmer | Statut passe à "Inactif" (badge gris) | ☐ |
@@ -62,7 +62,7 @@
 | MBR-14 | Mots de passe non identiques | 1. Saisir des mots de passe différents dans les 2 champs | Message "Les mots de passe ne correspondent pas" | ☐ |
 | MBR-15 | Renvoyer l'invitation | 1. Menu (⋮) → "Renvoyer l'invitation" 2. Confirmer | Invitation renvoyée (pas d'erreur) | ☐ |
 | MBR-16 | Voir le profil | 1. Cliquer sur le nom d'un membre ou menu (⋮) → "Voir le profil" | Drawer latéral avec 3 onglets : Profil, Missions, Historique | ☐ |
-| MBR-17 | Profil — onglet Missions | 1. Ouvrir le profil d'un membre 2. Aller sur l'onglet "Missions" | Liste des missions assignées avec statut et rôle | ☐ |
+| MBR-17 | Profil - onglet Missions | 1. Ouvrir le profil d'un membre 2. Aller sur l'onglet "Missions" | Liste des missions assignées avec statut et rôle | ☐ |
 | MBR-18 | Visualiser les permissions | 1. Cliquer sur un badge de rôle dans le tableau | Les permissions s'affichent en dessous (badges compacts) | ☐ |
 | MBR-19 | Gestion des rôles (CRUD) | 1. Cliquer "Rôles" (icône engrenage) 2. Créer un nouveau rôle avec nom + permissions 3. Enregistrer | Rôle créé, apparaît dans la liste | ☐ |
 | MBR-20 | Modifier un rôle | 1. Dans la gestion des rôles, cliquer le crayon sur un rôle 2. Modifier le nom ou les permissions 3. Enregistrer | Rôle mis à jour | ☐ |
@@ -75,11 +75,11 @@
 | # | Cas de test | Étapes | Résultat attendu | Statut |
 |---|------------|--------|-------------------|--------|
 | CLT-01 | Liste des clients | 1. Aller sur `/clients` | Tableau ou cartes des clients du cabinet | ☐ |
-| CLT-02 | Créer un client | 1. Cliquer "Nouveau client" 2. Remplir le formulaire (nom, secteur, effectifs, pays…) 3. Soumettre | Client créé, redirection vers sa fiche | ☐ |
-| CLT-03 | Fiche client — informations | 1. Cliquer sur un client | Fiche détaillée avec identité, coordonnées, secteur | ☐ |
+| CLT-02 | Créer un client | 1. Cliquer "Nouveau client" 2. Remplir le formulaire (nom, secteur, effectifs, pays...) 3. Soumettre | Client créé, redirection vers sa fiche | ☐ |
+| CLT-03 | Fiche client - informations | 1. Cliquer sur un client | Fiche détaillée avec identité, coordonnées, secteur | ☐ |
 | CLT-04 | Modifier les informations | 1. Modifier les champs de la fiche client 2. Enregistrer | Données mises à jour | ☐ |
 | CLT-05 | Exigences réglementaires | 1. Aller sur la section "Exigences réglementaires" d'un client | Liste du catalogue réglementaire groupée par juridiction | ☐ |
-| CLT-06 | Sélectionner des exigences | 1. Cocher des exigences (CDP-SN, PSSI-ES, BCEAO-SSI…) | Exigences liées au client, compteur mis à jour | ☐ |
+| CLT-06 | Sélectionner des exigences | 1. Cocher des exigences (CDP-SN, PSSI-ES, BCEAO-SSI...) | Exigences liées au client, compteur mis à jour | ☐ |
 | CLT-07 | Parties intéressées | 1. Ajouter une partie intéressée (nom, rôle, attentes) | Partie ajoutée à la liste | ☐ |
 | CLT-08 | Branding client | 1. Uploader un logo 2. Définir les couleurs primaire/secondaire | Logo affiché, couleurs appliquées au portail client | ☐ |
 
@@ -90,7 +90,7 @@
 | # | Cas de test | Étapes | Résultat attendu | Statut |
 |---|------------|--------|-------------------|--------|
 | REF-01 | Liste des référentiels | 1. Aller sur `/referentiels` | Cartes des référentiels : PSSI-ES, ISO 27001, NIST CSF, Audit SI, etc. | ☐ |
-| REF-02 | Détail PSSI-ES | 1. Cliquer sur "PSSI-ES — Sénégal" | Page avec 11 domaines listés, compteur 155 contrôles | ☐ |
+| REF-02 | Détail PSSI-ES | 1. Cliquer sur "PSSI-ES - Sénégal" | Page avec 11 domaines listés, compteur 155 contrôles | ☐ |
 | REF-03 | Domaines et contrôles | 1. Cliquer sur un domaine (ex: ORG) | Liste des contrôles du domaine avec code, nom, description | ☐ |
 | REF-04 | Guidance / Mapping ISO | 1. Ouvrir un contrôle (ex: REG 1-1) | Le champ guidance affiche le mapping ISO 27001 | ☐ |
 | REF-05 | Comparaison de référentiels | 1. Aller sur `/referentiels/comparer` 2. Sélectionner 2 référentiels | Tableau comparatif côte à côte | ☐ |
@@ -103,17 +103,17 @@
 
 | # | Cas de test | Étapes | Résultat attendu | Statut |
 |---|------------|--------|-------------------|--------|
-| MIS-01 | Étape 1 — Type de mission | 1. Aller sur `/missions/nouvelle` 2. Sélectionner "PSSI-ES" | Carte sélectionnée avec coche verte | ☐ |
-| MIS-02 | Étape 2 — Client | 1. Cliquer "Suivant" 2. Sélectionner un client existant | Client affiché avec son nom et secteur | ☐ |
-| MIS-03 | Étape 3 — Équipe | 1. Sélectionner un auditeur principal 2. Sélectionner un associé 3. Ajouter des auditeurs | Équipe constituée, compteur affiché | ☐ |
-| MIS-04 | Étape 4 — Calendrier | 1. Définir la date de début et de fin | Dates affichées dans le récapitulatif | ☐ |
-| MIS-05 | Étape 5 — Confirmation | 1. Vérifier le récapitulatif 2. Cliquer "Créer la mission" | Mission créée, redirection vers sa page détail | ☐ |
+| MIS-01 | Étape 1 - Type de mission | 1. Aller sur `/missions/nouvelle` 2. Sélectionner "PSSI-ES" | Carte sélectionnée avec coche verte | ☐ |
+| MIS-02 | Étape 2 - Client | 1. Cliquer "Suivant" 2. Sélectionner un client existant | Client affiché avec son nom et secteur | ☐ |
+| MIS-03 | Étape 3 - Équipe | 1. Sélectionner un auditeur principal 2. Sélectionner un associé 3. Ajouter des auditeurs | Équipe constituée, compteur affiché | ☐ |
+| MIS-04 | Étape 4 - Calendrier | 1. Définir la date de début et de fin | Dates affichées dans le récapitulatif | ☐ |
+| MIS-05 | Étape 5 - Confirmation | 1. Vérifier le récapitulatif 2. Cliquer "Créer la mission" | Mission créée, redirection vers sa page détail | ☐ |
 | MIS-06 | Navigation wizard | 1. Cliquer "Précédent" à l'étape 3 | Retour à l'étape 2 avec les données conservées | ☐ |
 | MIS-07 | Validation des champs requis | 1. Tenter de passer à l'étape suivante sans sélection | Le bouton "Suivant" est désactivé | ☐ |
 
 ---
 
-## 8. Détail d'une mission — Vue d'ensemble
+## 8. Détail d'une mission - Vue d'ensemble
 
 | # | Cas de test | Étapes | Résultat attendu | Statut |
 |---|------------|--------|-------------------|--------|
@@ -267,7 +267,7 @@
 | SEC-01 | Isolation des données | 1. Se connecter avec l'org A 2. Vérifier que les données de l'org B ne sont pas visibles | Aucune donnée d'une autre organisation accessible | ☐ |
 | SEC-02 | Rôle client limité | 1. Se connecter en tant que client 2. Tenter d'accéder aux routes auditeur | Accès refusé | ☐ |
 | SEC-03 | Opérations sensibles serveur | 1. Vérifier que la création de mission, l'invitation de membres, la revue passent par des Edge Functions | Pas d'accès direct en écriture depuis le client | ☐ |
-| SEC-04 | Mot de passe — règles minimum | 1. Tenter de définir un mot de passe de 4 caractères | Rejeté avec message d'erreur | ☐ |
+| SEC-04 | Mot de passe - règles minimum | 1. Tenter de définir un mot de passe de 4 caractères | Rejeté avec message d'erreur | ☐ |
 
 ---
 

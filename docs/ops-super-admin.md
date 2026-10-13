@@ -1,4 +1,4 @@
-# Configuration opérationnelle — Super-admin Gëstu
+# Configuration opérationnelle - Super-admin Gëstu
 
 Ce document décrit comment activer et opérer la console super-admin Phase 1.
 
@@ -24,7 +24,7 @@ SELECT slug, monthly_price_eur FROM public.plans;     -- 3 plans seedés
 **Sécurité critique** : `is_platform_owner` est volontairement non éditable via UI.
 La nomination se fait au SQL Editor par un compte ayant l'accès admin Supabase.
 
-### Cas A — l'utilisateur a déjà un profil dans `public.users`
+### Cas A - l'utilisateur a déjà un profil dans `public.users`
 
 (C'est-à-dire : il a déjà été invité comme membre d'un cabinet, il s'est connecté au moins une fois, etc.)
 
@@ -34,13 +34,13 @@ SET is_platform_owner = true
 WHERE email = 'oumar@gestucomply.com';
 ```
 
-### Cas B — l'utilisateur vient juste d'être créé dans Supabase Auth (`auth.users` uniquement)
+### Cas B - l'utilisateur vient juste d'être créé dans Supabase Auth (`auth.users` uniquement)
 
 Créer un compte dans **Supabase Dashboard → Authentication → Users → Add user** ne crée
 PAS de ligne `public.users`. L'`UPDATE` ci-dessus retourne alors « 0 rows updated » sans erreur.
 
 Il faut d'abord créer la ligne `public.users` rattachée à une organisation (par exemple
-une organisation « Gëstu Group » dédiée à l'éditeur). Le bloc ci-dessous est idempotent —
+une organisation « Gëstu Group » dédiée à l'éditeur). Le bloc ci-dessous est idempotent -
 on peut le rejouer sans casser quoi que ce soit :
 
 ```sql
@@ -52,7 +52,7 @@ BEGIN
   -- Récupérer l'auth_id depuis l'email
   SELECT id INTO v_auth_id FROM auth.users WHERE email = 'oumar@gestugroup.com';
   IF v_auth_id IS NULL THEN
-    RAISE EXCEPTION 'auth.users introuvable — créer d''abord le compte dans Supabase Auth';
+    RAISE EXCEPTION 'auth.users introuvable - créer d''abord le compte dans Supabase Auth';
   END IF;
 
   -- Créer (ou récupérer) l'organisation Gëstu Group
@@ -96,10 +96,10 @@ UPDATE public.users SET is_platform_owner = false WHERE email = 'ancien@gestucom
 ```
 
 ⚠️ Garder une trace papier / Notion de qui est owner et pourquoi. La table `admin_audit_log`
-ne capture que les actions effectuées via la console — pas les `UPDATE` SQL directs.
+ne capture que les actions effectuées via la console - pas les `UPDATE` SQL directs.
 
 ⚠️ Après nomination, **se déconnecter / reconnecter** pour rafraîchir le profil chargé côté
-client — sinon `useAuth().profile.is_platform_owner` reste à `false` jusqu'à la prochaine
+client - sinon `useAuth().profile.is_platform_owner` reste à `false` jusqu'à la prochaine
 session.
 
 ## 3. Déploiement des Edge Functions
@@ -116,10 +116,10 @@ supabase functions deploy admin-feature-flags
 supabase functions deploy admin-create-cabinet
 supabase functions deploy admin-delete-cabinet
 
-# Phase 2.5 — overrides feature flags par cabinet
+# Phase 2.5 - overrides feature flags par cabinet
 supabase functions deploy admin-feature-flag-overrides
 
-# Phase 3 — monitoring (redéployer aussi les 5 Edge Functions IA pour activer le logging)
+# Phase 3 - monitoring (redéployer aussi les 5 Edge Functions IA pour activer le logging)
 supabase functions deploy admin-monitoring-stats
 supabase functions deploy smart-questionnaire
 supabase functions deploy smart-analyse
@@ -127,7 +127,7 @@ supabase functions deploy smart-plan
 supabase functions deploy smart-risks
 supabase functions deploy ai-documents
 
-# Phase 4 — frameworks management UI
+# Phase 4 - frameworks management UI
 supabase functions deploy admin-framework
 supabase functions deploy admin-framework-ai-draft
 ```
@@ -162,17 +162,17 @@ ORDER BY created_at DESC;
 | Action | Édition | Effet | Réversible ? |
 |--------|---------|-------|--------------|
 | Suspendre un cabinet | `organizations.is_active = false` | Membres perdent l'accès aux missions/données via RLS | Oui (Réactiver) |
-| Réactiver un cabinet | `organizations.is_active = true` | Restaure l'accès | — |
-| Exporter un cabinet (CSV) | Lecture | Génère un fichier CSV avec membres + missions | — (lecture seule) |
-| Réinitialiser le mot de passe | Supabase Auth recovery | Envoie un email de récup. à l'utilisateur | — (l'utilisateur définit son nouveau MDP) |
+| Réactiver un cabinet | `organizations.is_active = true` | Restaure l'accès | - |
+| Exporter un cabinet (CSV) | Lecture | Génère un fichier CSV avec membres + missions | - (lecture seule) |
+| Réinitialiser le mot de passe | Supabase Auth recovery | Envoie un email de récup. à l'utilisateur | - (l'utilisateur définit son nouveau MDP) |
 | Désactiver un compte utilisateur | `users.is_active = false` | L'utilisateur ne peut plus se connecter | Oui (Réactiver) |
 
 ## 6. Phase 2 (livrée)
 
-- ✅ **Mode aperçu utilisateur** (lecture seule) — `/admin/utilisateurs/:id` avec motif obligatoire + notification RGPD au target. Pas de vraie impersonation (voir BRAND.md §12 pour le pourquoi).
-- ✅ **Onboarding wizard** — bouton « Onboarder un cabinet » sur `/admin/cabinets`. Crée org + rôle Associé + auth user + email de définition de mot de passe en une seule transaction.
-- ✅ **Feature flags globaux** — `/admin/feature-flags`. 4 flags seedés (`weekly_digest_email`, `smart_questionnaire_v2`, `ai_pre_review`, `multi_framework_dashboard`). Hook `useFeatureFlag('slug')` côté client.
-- ✅ **Suppression définitive** — bouton dans la danger zone du cabinet. Triple confirmation (nom exact + mot SUPPRIMER + motif). Refus si platform owner présent. Refus si missions actives non clôturées (sauf force=true). Snapshot léger en metadata du log avant DELETE CASCADE.
+- ✅ **Mode aperçu utilisateur** (lecture seule) - `/admin/utilisateurs/:id` avec motif obligatoire + notification RGPD au target. Pas de vraie impersonation (voir BRAND.md §12 pour le pourquoi).
+- ✅ **Onboarding wizard** - bouton « Onboarder un cabinet » sur `/admin/cabinets`. Crée org + rôle Associé + auth user + email de définition de mot de passe en une seule transaction.
+- ✅ **Feature flags globaux** - `/admin/feature-flags`. 4 flags seedés (`weekly_digest_email`, `smart_questionnaire_v2`, `ai_pre_review`, `multi_framework_dashboard`). Hook `useFeatureFlag('slug')` côté client.
+- ✅ **Suppression définitive** - bouton dans la danger zone du cabinet. Triple confirmation (nom exact + mot SUPPRIMER + motif). Refus si platform owner présent. Refus si missions actives non clôturées (sauf force=true). Snapshot léger en metadata du log avant DELETE CASCADE.
 
 ## 6bis. Page Santé / Monitoring
 
@@ -199,7 +199,7 @@ appel à Anthropic. Le calcul utilise des constantes hardcodées dans
 | Opus 4 / 4.7 | 15 | 75 |
 
 **À mettre à jour** quand Anthropic ajuste ses prix. Les anciens log restent inchangés
-(coût figé à l'instant T) — pas de recalcul rétroactif.
+(coût figé à l'instant T) - pas de recalcul rétroactif.
 
 **Données rétroactives** : la table `ai_calls_log` ne capture que les appels postérieurs
 au déploiement de la migration 00074. Pas d'historique antérieur.
@@ -219,17 +219,17 @@ sans passer par SQL.
 **Édition** sur `/admin/frameworks/:slug` :
 - Métadonnées éditables inline (nom, version, publisher, description, catégorie)
 - Domaines en accordéon avec drag-handle ↑↓ (boutons), édition inline, ajout/suppression
-- Contrôles inline : code, name, description, guidance — édition rapide
+- Contrôles inline : code, name, description, guidance - édition rapide
 - Toggle « Désactivé » (soft-delete) sur framework / domaine / contrôle
 
 **Garde-fous** :
 - Hard-delete d'un framework refusé si missions actives référencent → utiliser le soft-delete
 - Hard-delete d'un domaine refusé si `control_assessments` existent
 - Hard-delete d'un contrôle refusé si `control_assessments` existent
-- Soft-delete (`is_active = false`) toujours possible — invisible côté cabinet, données existantes intactes
+- Soft-delete (`is_active = false`) toujours possible - invisible côté cabinet, données existantes intactes
 
 **Brouillon IA** : badge `was_ai_generated` reste affiché jusqu'à ce que l'admin le retire
-manuellement (« Marquer comme publié »). Toujours **relire les contrôles** avant publication —
+manuellement (« Marquer comme publié »). Toujours **relire les contrôles** avant publication -
 Claude peut halluciner sur des codes ou descriptions.
 
 ## 7. Limites restantes (Phase 3 si besoin)
@@ -243,7 +243,7 @@ Claude peut halluciner sur des codes ou descriptions.
 ## 7. Tests manuels recommandés
 
 1. Se nommer platform owner via SQL.
-2. Visiter `/admin` — la mode-bar or doit apparaître.
+2. Visiter `/admin` - la mode-bar or doit apparaître.
 3. Vérifier la liste des cabinets (devrait inclure même le cabinet de l'admin).
 4. Suspendre un cabinet test, vérifier que ses membres ne peuvent plus se connecter, puis réactiver.
 5. Rechercher un utilisateur, déclencher un reset password, vérifier la réception de l'email.

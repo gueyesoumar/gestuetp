@@ -1,8 +1,8 @@
-# Prototype jetable — agent de triage support
+# Prototype jetable - agent de triage support
 
 > ⚠️ **Jetable / hors prod.** Non commité par défaut. But : sentir la boucle
 > agentique (tool-use multi-étapes) avant d'industrialiser en Edge Function.
-> **Lecture seule.** Aucun write, aucun SQL libre — les outils sont une whitelist.
+> **Lecture seule.** Aucun write, aucun SQL libre - les outils sont une whitelist.
 
 ## Lancer
 

@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
   }
 })
 
-// ── FRAMEWORK ─────────────────────────────────────────────────────────────
+// -- FRAMEWORK -------------------------------------------------------------
 
 async function handleCreateFramework(admin: Admin, ownerId: string, body: Record<string, unknown>): Promise<Response> {
   const name = String(body.name ?? '').trim()
@@ -139,7 +139,7 @@ async function handleDeleteFramework(admin: Admin, ownerId: string, body: Record
   return jsonResponse({ success: true })
 }
 
-// ── DOMAIN ────────────────────────────────────────────────────────────────
+// -- DOMAIN ----------------------------------------------------------------
 
 async function handleCreateDomain(admin: Admin, _ownerId: string, body: Record<string, unknown>): Promise<Response> {
   const framework_id = String(body.framework_id ?? '')
@@ -213,7 +213,7 @@ async function handleReorderDomains(admin: Admin, body: Record<string, unknown>)
   return jsonResponse({ success: true })
 }
 
-// ── CONTROL ───────────────────────────────────────────────────────────────
+// -- CONTROL ---------------------------------------------------------------
 
 const SCORE_DIMENSIONS = [
   'security', 'data_protection', 'resilience', 'integrity',

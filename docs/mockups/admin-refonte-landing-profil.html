@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Refonte — Atterrissage admin & profil/compte</title>
+<title>Refonte - Atterrissage admin & profil/compte</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet" />
@@ -29,13 +29,13 @@ tailwind.config = {
   <header class="mb-9">
     <div class="flex items-center gap-2.5 mb-3">
       <div class="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center text-forest-900 font-black font-mono text-sm">G</div>
-      <div class="font-extrabold text-lg">G<span class="text-gold-500">ë</span>stu <span class="text-gray-400 font-semibold">— refonte console admin</span></div>
+      <div class="font-extrabold text-lg">G<span class="text-gold-500">ë</span>stu <span class="text-gray-400 font-semibold">- refonte console admin</span></div>
     </div>
     <h1 class="text-2xl font-extrabold text-forest-900">Atterrissage owner &amp; accès profil/compte</h1>
     <p class="text-sm text-gray-500 mt-1 max-w-2xl">Le platform owner atterrit <b>directement dans la console</b> (son espace de travail), avec un sélecteur « Changer d'espace ». Le profil devient accessible <b>depuis l'admin</b> via un menu utilisateur, et une <b>page Compte dédiée</b> remplace l'onglet enfoui.</p>
   </header>
 
-  <!-- ============ FRAME 1 — CONSOLE COMME ATTERRISSAGE ============ -->
+  <!-- ============ FRAME 1 - CONSOLE COMME ATTERRISSAGE ============ -->
   <section class="mb-12">
     <div class="flex items-center gap-2 mb-3">
       <span class="bg-forest-900 text-white tag font-bold uppercase px-2 py-1 rounded">Écran 1</span>
@@ -90,7 +90,7 @@ tailwind.config = {
         <!-- topbar gold avec switcher -->
         <div class="bg-gold-500 text-forest-900 px-5 py-2 flex items-center gap-3 text-[12px] font-semibold">
           <span class="px-2 py-0.5 border border-forest-900 rounded-full text-[10px] font-bold uppercase tracking-wider">Admin mode</span>
-          Console super-admin Gëstu — toutes vos actions sont tracées.
+          Console super-admin Gëstu - toutes vos actions sont tracées.
           <button class="ml-auto inline-flex items-center gap-1.5 bg-forest-900 text-white px-3 py-1 rounded-full text-[11.5px] font-bold hover:bg-forest-700">
             ⇄ Changer d'espace
           </button>
@@ -114,14 +114,14 @@ tailwind.config = {
         </div>
       </div>
     </div>
-    <p class="text-[12px] text-gray-500 mt-2.5 pl-1">◑ <b>Avant</b> : login → hub « choisissez votre espace » → chercher la pastille admin. &nbsp;•&nbsp; <b class="text-forest-700">Après</b> : login → la console directement. Le pied de sidebar devient un <b>menu utilisateur</b> (profil / préférences / déconnexion) — absent aujourd'hui de l'admin.</p>
+    <p class="text-[12px] text-gray-500 mt-2.5 pl-1">◑ <b>Avant</b> : login → hub « choisissez votre espace » → chercher la pastille admin. &nbsp;•&nbsp; <b class="text-forest-700">Après</b> : login → la console directement. Le pied de sidebar devient un <b>menu utilisateur</b> (profil / préférences / déconnexion) - absent aujourd'hui de l'admin.</p>
   </section>
 
-  <!-- ============ FRAME 2 — CHANGER D'ESPACE ============ -->
+  <!-- ============ FRAME 2 - CHANGER D'ESPACE ============ -->
   <section class="mb-12">
     <div class="flex items-center gap-2 mb-3">
       <span class="bg-forest-900 text-white tag font-bold uppercase px-2 py-1 rounded">Écran 2</span>
-      <h2 class="font-bold text-forest-900">« Changer d'espace » — l'owner reste maître de sa navigation</h2>
+      <h2 class="font-bold text-forest-900">« Changer d'espace » - l'owner reste maître de sa navigation</h2>
     </div>
     <div class="frame rounded-2xl border border-gray-200 bg-white p-8 flex justify-center">
       <div class="w-[420px]">
@@ -137,7 +137,7 @@ tailwind.config = {
           </button>
           <button class="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-left hover:border-forest-300 hover:bg-forest-50">
             <div class="w-9 h-9 rounded-lg bg-forest-100 text-forest-700 flex items-center justify-center font-bold">C</div>
-            <div><div class="text-[13px] font-bold text-gray-900">Gëstu Comply <span class="text-gray-400 font-normal">(cabinet)</span></div><div class="text-[11px] text-gray-500">Missions, clients, référentiels…</div></div>
+            <div><div class="text-[13px] font-bold text-gray-900">Gëstu Comply <span class="text-gray-400 font-normal">(cabinet)</span></div><div class="text-[11px] text-gray-500">Missions, clients, référentiels...</div></div>
             <span class="ml-auto text-gray-300">→</span>
           </button>
           <button class="w-full flex items-center gap-3 border border-gray-100 rounded-xl px-4 py-3 text-left text-gray-400 hover:bg-gray-50">
@@ -147,14 +147,14 @@ tailwind.config = {
         </div>
       </div>
     </div>
-    <p class="text-[12px] text-gray-500 mt-2.5 pl-1">Le hub n'est pas supprimé — il devient une <b>destination de second plan</b> (« Tous les produits »), au lieu d'être imposé à chaque connexion.</p>
+    <p class="text-[12px] text-gray-500 mt-2.5 pl-1">Le hub n'est pas supprimé - il devient une <b>destination de second plan</b> (« Tous les produits »), au lieu d'être imposé à chaque connexion.</p>
   </section>
 
-  <!-- ============ FRAME 3 — PAGE COMPTE DÉDIÉE ============ -->
+  <!-- ============ FRAME 3 - PAGE COMPTE DÉDIÉE ============ -->
   <section class="mb-6">
     <div class="flex items-center gap-2 mb-3">
       <span class="bg-forest-900 text-white tag font-bold uppercase px-2 py-1 rounded">Écran 3</span>
-      <h2 class="font-bold text-forest-900">Page « Mon compte » dédiée — partagée admin &amp; cabinet</h2>
+      <h2 class="font-bold text-forest-900">Page « Mon compte » dédiée - partagée admin &amp; cabinet</h2>
     </div>
     <div class="frame rounded-2xl border border-gray-200 bg-page p-7">
       <div class="max-w-[720px] mx-auto">
@@ -172,7 +172,7 @@ tailwind.config = {
           <div class="grid grid-cols-2 gap-3">
             <div><label class="text-[11px] font-semibold text-gray-600">Prénom</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white">Seydina</div></div>
             <div><label class="text-[11px] font-semibold text-gray-600">Nom</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white">Gueye</div></div>
-            <div><label class="text-[11px] font-semibold text-gray-600">Téléphone</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white text-gray-400">+221 …</div></div>
+            <div><label class="text-[11px] font-semibold text-gray-600">Téléphone</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white text-gray-400">+221 ...</div></div>
             <div><label class="text-[11px] font-semibold text-gray-600">Fonction</label><div class="border border-gray-200 rounded-lg px-3 py-2 text-[13px] mt-1 bg-white">Directeur</div></div>
           </div>
         </div>
@@ -212,7 +212,7 @@ tailwind.config = {
     <p class="text-[12px] text-gray-500 mt-2.5 pl-1">Remplace l'onglet « Mon profil » enfoui dans <span class="font-mono">/organisation</span>. Une seule route <span class="font-mono">/compte</span>, atteignable du menu utilisateur en admin <b>et</b> en cabinet. (On peut réutiliser <span class="font-mono">ProfileSettingsTab</span> comme corps.)</p>
   </section>
 
-  <footer class="text-[11px] text-gray-400 border-t border-gray-200 pt-4">Mockup statique — Gëstu Comply · refonte atterrissage admin + profil/compte · charte BRAND.md (forêt #1B4332 / or #D4A843, Inter).</footer>
+  <footer class="text-[11px] text-gray-400 border-t border-gray-200 pt-4">Mockup statique - Gëstu Comply · refonte atterrissage admin + profil/compte · charte BRAND.md (forêt #1B4332 / or #D4A843, Inter).</footer>
 </div>
 </body>
 </html>

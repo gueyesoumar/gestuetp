@@ -48,7 +48,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
         accept={ACCEPT_ATTR}
         onChange={upload.handleFileSelected} />
 
-      {/* ═══ SECTION: Documents ═══ */}
+      {/* --- SECTION: Documents --- */}
       <DocumentsSection
         canContribute={canContribute}
         uploading={uploading}
@@ -64,7 +64,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
         decline={decline}
       />
 
-      {/* ═══ SECTION: Questionnaire ═══ */}
+      {/* --- SECTION: Questionnaire --- */}
       {!smartInterviewFlag.loading && smartInterviewFlag.enabled && (
         <section>
           <div className="flex items-center gap-2 mb-3">
@@ -81,7 +81,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
         </section>
       )}
 
-      {/* ═══ SECTION: Entretiens ═══ */}
+      {/* --- SECTION: Entretiens --- */}
       <InterviewsSection missionId={mission.id} />
 
       {/* Decline modal */}

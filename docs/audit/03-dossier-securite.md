@@ -1,7 +1,7 @@
-# Dossier de sécurité — Gëstu ETP
+# Dossier de sécurité - Gëstu ETP
 
 > Document préparé pour l'audit externe (volet sécurité). Version du 2026-07-09.
-> Rédigé à partir d'un inventaire du code réel (migrations RLS, Edge Functions, configuration). Les **faiblesses connues** y sont déclarées volontairement (§9) — ce dossier n'a pas vocation à masquer les écarts mais à orienter l'auditeur.
+> Rédigé à partir d'un inventaire du code réel (migrations RLS, Edge Functions, configuration). Les **faiblesses connues** y sont déclarées volontairement (§9) - ce dossier n'a pas vocation à masquer les écarts mais à orienter l'auditeur.
 
 ## 1. Modèle de menace (synthèse)
 
@@ -18,7 +18,7 @@ Menaces principales adressées :
 
 - **Supabase Auth (JWT)**. Le frontend n'embarque que la **clé anon** ; aucune clé `service_role` côté client (`src/lib/supabase.ts`).
 - Chaque Edge Function sensible ré-authentifie l'appelant côté serveur via `authenticateCaller` (`_shared/auth.ts`) : vérification du JWT (`admin.auth.getUser`), chargement du profil `users`, **refus si `is_active = false`**.
-- Gardes de route côté client (`ProtectedRoute`, `ClientProtectedRoute`, `AdminProtectedRoute`) — défense en profondeur UX, **la sécurité réelle étant la RLS + les Edge Functions** (le client n'est jamais la source de vérité).
+- Gardes de route côté client (`ProtectedRoute`, `ClientProtectedRoute`, `AdminProtectedRoute`) - défense en profondeur UX, **la sécurité réelle étant la RLS + les Edge Functions** (le client n'est jamais la source de vérité).
 
 ## 3. Autorisation & RBAC
 
@@ -35,7 +35,7 @@ Une policy RLS ne doit **jamais** interroger sa propre table (récursion). Le pr
 | Helper | Retour |
 |---|---|
 | `get_my_user_id()` | id `users` courant |
-| `get_my_organization_id()` | org du staff courant (**NULL si `role='client'`** — cf. 4.3) |
+| `get_my_organization_id()` | org du staff courant (**NULL si `role='client'`** - cf. 4.3) |
 | `get_my_mission_ids()` | missions d'équipe du staff (vide pour client) |
 | `get_my_client_mission_ids()` | missions accordées au contact portail (via `client_mission_access`) |
 | `get_subsidiary_ids(parent_id)` | sous-arbre d'organisations (filiales / assujettis) |
@@ -48,14 +48,14 @@ Toutes ces fonctions sont `SECURITY DEFINER` avec `SET search_path = public` (du
 
 Policies scopées par `cabinet_id = get_my_organization_id()` (cabinet) ou `... IN (get_subsidiary_ids(get_my_organization_id()))` (groupe / régulateur).
 
-### 4.3 Cloisonnement portail client (durcissement 00133–00135)
+### 4.3 Cloisonnement portail client (durcissement 00133-00135)
 
 **Constat initial** : un `role='client'` a `organization_id` = l'org du cabinet ; sans précaution, les policies staff basées sur `get_my_organization_id()` lui auraient donné accès aux données du cabinet.
 
 Remédiation en trois migrations :
-- **00133** — ajout de `NOT is_client_role()` sur les policies staff des tables que le client ne doit pas voir.
-- **00134** — **neutralisation** de `get_my_organization_id()` et `get_my_mission_ids()` pour `role='client'` (retour NULL/vide) ; le client n'accède qu'aux policies dédiées `cp_*` via `is_client_role() AND mission_id IN (get_my_client_mission_ids())`.
-- **00135** — remplacement du SELECT ouvert sur `organizations` par une policy scopée (fin de l'énumération cross-tenant).
+- **00133** - ajout de `NOT is_client_role()` sur les policies staff des tables que le client ne doit pas voir.
+- **00134** - **neutralisation** de `get_my_organization_id()` et `get_my_mission_ids()` pour `role='client'` (retour NULL/vide) ; le client n'accède qu'aux policies dédiées `cp_*` via `is_client_role() AND mission_id IN (get_my_client_mission_ids())`.
+- **00135** - remplacement du SELECT ouvert sur `organizations` par une policy scopée (fin de l'énumération cross-tenant).
 
 Le chemin d'accès client est unique : `user → client_portal_contacts → client_mission_access → mission`. Vérifié e2e (aucune fuite inter-assujettis, cf. dossier de recette Regul).
 
@@ -65,7 +65,7 @@ Le chemin d'accès client est unique : `user → client_portal_contacts → clie
 
 ### 4.5 Isolation des instances
 
-Comply et Regul sont sur **deux projets Supabase distincts** — isolation physique des données commerciales et gouvernementales (souveraineté).
+Comply et Regul sont sur **deux projets Supabase distincts** - isolation physique des données commerciales et gouvernementales (souveraineté).
 
 ## 5. Edge Functions (surface d'écriture)
 
@@ -82,12 +82,12 @@ Constantes : re-vérification systématique de l'appartenance (cabinet / sous-ar
 
 ## 6. Traçabilité probante (S1)
 
-`probative_log` (00138) : table **append-only** chaînée par **hash SHA-256** (`hash` = sha256 de la forme canonique incluant `prev_hash`). Fonctions `probative_canonical` / `probative_hash` **IMMUTABLE**. Trigger BEFORE INSERT calcule `seq`/`prev_hash`/`hash` ; trigger BEFORE UPDATE/DELETE **lève une exception** (immutabilité stricte). Fonction `verify_probative_chain()` rejoue la chaîne et retourne le premier point de rupture — utilisable par l'auditeur pour détecter toute falsification.
+`probative_log` (00138) : table **append-only** chaînée par **hash SHA-256** (`hash` = sha256 de la forme canonique incluant `prev_hash`). Fonctions `probative_canonical` / `probative_hash` **IMMUTABLE**. Trigger BEFORE INSERT calcule `seq`/`prev_hash`/`hash` ; trigger BEFORE UPDATE/DELETE **lève une exception** (immutabilité stricte). Fonction `verify_probative_chain()` rejoue la chaîne et retourne le premier point de rupture - utilisable par l'auditeur pour détecter toute falsification.
 
 ## 7. Gestion des secrets
 
 - **Front** : seules des variables `VITE_*` publiques (URL + clé anon Supabase). La clé anon est conçue pour être publique (RLS applique la sécurité).
-- **Backend (Edge Functions)** : `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, secret webhook — jamais exposés au client.
+- **Backend (Edge Functions)** : `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, secret webhook - jamais exposés au client.
 - **Aucun secret en dur** dans `src/` (vérifié). `.env.local` non versionné.
 - Recommandation opérationnelle : rotation périodique de la clé `service_role` ; procédure de rotation à documenter.
 
@@ -106,7 +106,7 @@ Protection XSS : React échappe par défaut ; **aucun `dangerouslySetInnerHTML` 
 | # | Écart | Risque | Sévérité | Recommandation |
 |---|---|---|---|---|
 | R1 | **Pas de Content-Security-Policy** (ni `vercel.json`, ni meta) | XSS / injection de ressources | Moyen | Ajouter une CSP stricte (`default-src 'self'`, autoriser l'hôte Supabase) |
-| ~~R2~~ | ~~`dangerouslySetInnerHTML`~~ **RÉSOLU** : le seul composant concerné (`dashboard/ActionsList.tsx`) était du **code mort** (jamais monté) ; il a été supprimé. **Plus aucun `dangerouslySetInnerHTML` dans `src/`.** | — | Résolu | — |
+| ~~R2~~ | ~~`dangerouslySetInnerHTML`~~ **RÉSOLU** : le seul composant concerné (`dashboard/ActionsList.tsx`) était du **code mort** (jamais monté) ; il a été supprimé. **Plus aucun `dangerouslySetInnerHTML` dans `src/`.** | - | Résolu | - |
 | R3 | **Génération de documents côté client** (`jspdf`, `html2canvas`, `exceljs`) | XSS/DoS si contenu brut | Faible-Moyen | Vérifier l'échappement des données injectées dans les rendus PDF/canvas ; suivre les CVE |
 | R4 | **Absence de `.env.example`** | Onboarding / erreur de config | Faible | Créer un fichier d'exemple à placeholders |
 | R5 | **Lint non bloquant** (~243 erreurs préexistantes, surtout Edge Functions Deno) | Dette qualité | Faible | Traiter progressivement ; la garde reste `typecheck` + `build` |
@@ -116,7 +116,7 @@ Protection XSS : React échappe par défaut ; **aucun `dangerouslySetInnerHTML` 
 
 - TypeScript **strict** + gates CI (`typecheck`, `build`) bloquants.
 - RLS sur ~67 tables, pattern anti-récursion systématique via `SECURITY DEFINER`.
-- Cloisonnement portail **durci et vérifié** (00133–00135) ; isolation des instances Comply/Regul.
+- Cloisonnement portail **durci et vérifié** (00133-00135) ; isolation des instances Comply/Regul.
 - Écritures sensibles exclusivement via `service_role` avec double garde (permission + appartenance).
 - Journal probant append-only vérifiable (valeur probante).
 - Séparation stricte des secrets front/back ; en-têtes de sécurité configurés.
@@ -124,6 +124,6 @@ Protection XSS : React échappe par défaut ; **aucun `dangerouslySetInnerHTML` 
 ## 11. Éléments à fournir à l'auditeur pour vérification
 
 - Accès en lecture aux migrations `supabase/migrations/` et aux Edge Functions `supabase/functions/`.
-- Comptes de test (staff, client/assujetti, super-admin) — cf. `05-guide-acces-tests.md`.
+- Comptes de test (staff, client/assujetti, super-admin) - cf. `05-guide-acces-tests.md`.
 - Résultat de `verify_probative_chain()` sur l'instance Regul.
 - Export des policies RLS effectives (via le dashboard Supabase ou `pg_policies`).

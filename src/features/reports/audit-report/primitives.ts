@@ -3,7 +3,7 @@ import { type RGB, BORDER, CREAM, FOREST_900, FOREST_700, GOLD_500, TEXT_500, TE
 import type { DocContext } from './context'
 import { checkPage, newSection } from './page-chrome'
 
-// ── Drawing primitives ─────────────────────────────────────────────────────
+// -- Drawing primitives -----------------------------------------------------
 
 export function fillRect(doc: jsPDF, x: number, y: number, w: number, h: number, color: RGB): void {
   doc.setFillColor(...color); doc.rect(x, y, w, h, 'F')
