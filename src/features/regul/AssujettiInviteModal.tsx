@@ -10,12 +10,14 @@ interface Props {
   entityOrgId: string
   entityName: string
   missions: MissionOption[]
+  /** Pré-remplissage (ex. invitation depuis un Acteur du cadrage). */
+  prefill?: { name: string; email: string; jobTitle?: string }
   onClose: () => void
   onSuccess: () => void
 }
 
 /** Invitation d'un contact assujetti au portail cloisonné (Gëstu Regul / M7-2). */
-export function AssujettiInviteModal({ entityOrgId, entityName, missions, onClose, onSuccess }: Props): JSX.Element {
+export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefill, onClose, onSuccess }: Props): JSX.Element {
   const { profile } = useAuth()
   const [contacts, setContacts] = useState<EntityContact[]>([])
   const [access, setAccess] = useState<{ contact_id: string; mission_id: string }[]>([])
@@ -23,9 +25,9 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, onClos
   const [inviting, setInviting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [jobTitle, setJobTitle] = useState('')
+  const [name, setName] = useState(prefill?.name ?? '')
+  const [email, setEmail] = useState(prefill?.email ?? '')
+  const [jobTitle, setJobTitle] = useState(prefill?.jobTitle ?? '')
   const [missionId, setMissionId] = useState(missions[0]?.id ?? '')
   const [permission, setPermission] = useState<'viewer' | 'contributor'>('viewer')
 

@@ -9,11 +9,13 @@ interface PortalInviteModalProps {
   missionId: string
   cabinetId: string
   clientOrgId: string
+  /** Pré-remplissage (ex. invitation depuis un Acteur du cadrage). */
+  prefill?: { name: string; email: string; jobTitle?: string }
   onClose: () => void
   onSuccess: () => void
 }
 
-export function PortalInviteModal({ missionId, cabinetId, clientOrgId, onClose, onSuccess }: PortalInviteModalProps): JSX.Element {
+export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, onClose, onSuccess }: PortalInviteModalProps): JSX.Element {
   const { profile } = useAuth()
   const [cabinetClientId, setCabinetClientId] = useState<string | null>(null)
   const [ficheMissing, setFicheMissing] = useState(false)
@@ -24,11 +26,11 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, onClose, 
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // New contact form
-  const [showForm, setShowForm] = useState(false)
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [jobTitle, setJobTitle] = useState('')
+  // New contact form (pré-rempli si invitation depuis un Acteur).
+  const [showForm, setShowForm] = useState(!!prefill)
+  const [name, setName] = useState(prefill?.name ?? '')
+  const [email, setEmail] = useState(prefill?.email ?? '')
+  const [jobTitle, setJobTitle] = useState(prefill?.jobTitle ?? '')
   const [, setPhone] = useState('')
   const [permission, setPermission] = useState<ClientPermission>('contributor')
 

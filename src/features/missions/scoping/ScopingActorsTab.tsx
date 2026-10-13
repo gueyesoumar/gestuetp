@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Plus, Pencil, Trash2, Star, X, Check, UserCircle2, Sparkles } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Pencil, Trash2, Star, X, Check, UserCircle2, Sparkles, UserPlus } from 'lucide-react'
+import { supabase } from '../../../lib/supabase'
 import { useMissionActors } from './useMissionActors'
 import { OrgChartImportModal } from './OrgChartImportModal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -8,6 +9,12 @@ import type { ClientContact, ClientContactInsert } from '../../../types/database
 
 interface ScopingActorsTabProps {
   missionId: string
+  /** Org auditée (pour repérer les acteurs ayant déjà un accès portail). */
+  clientOrgId?: string
+  /** Portail disponible pour cette mission (sinon pas d'invitation). */
+  showPortal?: boolean
+  /** Ouvre l'invitation portail pré-remplie avec cet acteur. */
+  onInviteActor?: (prefill: { name: string; email: string; jobTitle?: string }) => void
 }
 
 interface DraftActor {
@@ -36,10 +43,24 @@ function fromActor(a: ClientContact): DraftActor {
   }
 }
 
-export function ScopingActorsTab({ missionId }: ScopingActorsTabProps) {
+export function ScopingActorsTab({ missionId, clientOrgId, showPortal = false, onInviteActor }: ScopingActorsTabProps) {
   const { actors, loading, error, saving, add, update, remove } = useMissionActors(missionId)
   const [draft, setDraft] = useState<DraftActor | null>(null)
   const [showImport, setShowImport] = useState(false)
+  // Emails des contacts ayant déjà un accès portail (pont par email, RFC 0007).
+  const [invitedEmails, setInvitedEmails] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (!clientOrgId) return
+    const ac = new AbortController()
+    void (async () => {
+      const { data } = await supabase
+        .from('client_portal_contacts').select('email').eq('client_org_id', clientOrgId).abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      setInvitedEmails(new Set((data ?? []).map((r: { email: string }) => r.email.toLowerCase())))
+    })()
+    return () => ac.abort()
+  }, [clientOrgId])
 
   const handleSave = async (): Promise<void> => {
     if (!draft || draft.name.trim().length === 0) return
@@ -181,6 +202,9 @@ export function ScopingActorsTab({ missionId }: ScopingActorsTabProps) {
               onEdit={() => setDraft(fromActor(a))}
               onRemove={() => void remove(a.id)}
               disabled={!!draft || saving}
+              canInvite={showPortal && !!a.email && !!onInviteActor}
+              invited={!!a.email && invitedEmails.has(a.email.toLowerCase())}
+              onInvite={() => a.email && onInviteActor?.({ name: a.name, email: a.email, jobTitle: a.job_title ?? undefined })}
             />
           ))}
         </div>
@@ -207,9 +231,12 @@ interface ActorRowProps {
   onEdit: () => void
   onRemove: () => void
   disabled: boolean
+  canInvite: boolean
+  invited: boolean
+  onInvite: () => void
 }
 
-function ActorRow({ actor, onEdit, onRemove, disabled }: ActorRowProps) {
+function ActorRow({ actor, onEdit, onRemove, disabled, canInvite, invited, onInvite }: ActorRowProps) {
   return (
     <div className="flex items-start gap-3 px-3 py-2.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/60">
       <div className="w-8 h-8 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center text-[11px] font-bold shrink-0">
@@ -232,6 +259,15 @@ function ActorRow({ actor, onEdit, onRemove, disabled }: ActorRowProps) {
         </div>
       </div>
       <div className="flex items-center gap-1 shrink-0">
+        {invited ? (
+          <span className="text-[9px] font-semibold text-forest-700 bg-forest-50 border border-forest-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1" title="Cet acteur a déjà un accès au portail">
+            <Check size={10} /> Portail
+          </span>
+        ) : canInvite ? (
+          <button onClick={onInvite} disabled={disabled} className="p-1.5 text-gray-400 hover:text-forest-700 disabled:opacity-30" title="Inviter au portail">
+            <UserPlus size={13} />
+          </button>
+        ) : null}
         <button onClick={onEdit} disabled={disabled} className="p-1.5 text-gray-400 hover:text-forest-700 disabled:opacity-30" title="Modifier">
           <Pencil size={13} />
         </button>

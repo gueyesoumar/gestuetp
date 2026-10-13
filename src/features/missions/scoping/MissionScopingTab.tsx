@@ -74,6 +74,9 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const [actionLoading, setActionLoading] = useState(false)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
   const [showPortalModal, setShowPortalModal] = useState(false)
+  // Pré-remplissage de l'invitation quand elle part d'un Acteur du cadrage.
+  const [portalPrefill, setPortalPrefill] = useState<{ name: string; email: string; jobTitle?: string } | null>(null)
+  const closePortalModal = useCallback(() => { setShowPortalModal(false); setPortalPrefill(null) }, [])
 
   const questProgress = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0
 
@@ -269,7 +272,14 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
         {showRisks && activeTab === 'risks' && (
           <ScopingRisksTab missionId={mission.id} risks={risks} userId={profile?.id ?? ''} onAddRisk={handleAddRisk} onRemoveRisk={removeRisk} onPromoted={refetchScoping} saving={saving} error={saveError} />
         )}
-        {showActors && activeTab === 'actors' && <ScopingActorsTab missionId={mission.id} />}
+        {showActors && activeTab === 'actors' && (
+          <ScopingActorsTab
+            missionId={mission.id}
+            clientOrgId={mission.client_id}
+            showPortal={showPortal}
+            onInviteActor={(p) => { setPortalPrefill(p); setShowPortalModal(true) }}
+          />
+        )}
       </div>
 
       {/* RIGHT SIDEBAR */}
@@ -286,7 +296,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
           onRemindClient={handleRemindClient}
           onGenerateNote={handleGenerateNote}
           onValidateScoping={handleValidateScoping}
-          onInvitePortal={() => setShowPortalModal(true)}
+          onInvitePortal={() => { setPortalPrefill(null); setShowPortalModal(true) }}
           onNavigate={(tab) => setActiveTab(tab)}
           actionLoading={actionLoading}
           actionSuccess={actionSuccess}
@@ -303,7 +313,8 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
             entityOrgId={mission.client_id}
             entityName={mission.client?.name ?? ''}
             missions={[{ id: mission.id, name: mission.name }]}
-            onClose={() => setShowPortalModal(false)}
+            prefill={portalPrefill ?? undefined}
+            onClose={closePortalModal}
             onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
           />
         ) : (
@@ -311,7 +322,8 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
             missionId={mission.id}
             cabinetId={mission.cabinet_id}
             clientOrgId={mission.client_id}
-            onClose={() => setShowPortalModal(false)}
+            prefill={portalPrefill ?? undefined}
+            onClose={closePortalModal}
             onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
           />
         )
