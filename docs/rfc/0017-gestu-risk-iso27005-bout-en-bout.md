@@ -90,7 +90,7 @@ Constat clé : le **résiduel et l'efficacité des barrières sont recalculés �
 - **Comply -> Risk** : `control_assessments.conformity_level` = efficacité des barrières -> résiduel (déjà là). Nouveau : justification SoA, et une action de traitement peut **cibler un contrôle** à faire évaluer.
 - **Risk -> Comply** : les risques **hors appétit** pondèrent le SmartPlan (auditer d'abord ce qui expose le plus) - RFC 0004 §6, à implémenter.
 - **Regul -> Risk** : `incidents` aggravent la vraisemblance (déjà) ; `regulatory_measures` = signal de risque réalisé -> re-cotation + invalidation d'acceptation.
-- **Risk -> Score** : résiduel **persisté** -> `risk_mastery` plus robuste. Sortie progressive du mode shadow (décision D4), activation par org quand le registre est peuplé (dégradation gracieuse déjà en place : registre vide -> `risk_mastery = null`).
+- **Risk -> Score** : **différé** (décision D4). La refonte ne touche pas au score de confiance pour l'instant ; le couplage `risk_mastery` existant reste en shadow, inchangé. Le résiduel persisté (snapshots) servira à le fiabiliser quand ce chantier sera rouvert.
 - **Piste d'audit F6** : nouvelles familles `risk.*` (cotation, traitement, acceptation, revue) scellées dans `activity_log`.
 
 ## 11. Décisions actées
@@ -98,7 +98,7 @@ Constat clé : le **résiduel et l'efficacité des barrières sont recalculés �
 - **D1 - Critères de risque** -> **4x4 fixe** ; configurables par org : **seuil d'acceptation + libellés + cadence de revue** (pas la taille de matrice). Défaut = le 4x4 actuel.
 - **D2 - Plan de traitement** -> **table dédiée `risk_treatment_actions`** (niveau org) ; une action peut cibler un contrôle Comply (lien SoA). Pont CAR reporté.
 - **D3 - Acceptation** -> **permission dédiée `can_accept_risk`**, portée par défaut par le propriétaire du risque ; jamais un rôle `client` (hors édition réflexive).
-- **D4 - Impact score** -> **garder le flag `risk_score_impact` en shadow + activation par org** (dégradation gracieuse : registre vide = neutre). Pas d'activation globale par défaut.
+- **D4 - Impact score** -> **couplage au score de confiance DIFFÉRÉ** (décision 2026-10-14). La refonte n'intègre rien au score Gëstu pour l'instant : le facteur `risk_mastery` existant reste tel quel (shadow, inchangé), on ne l'étend pas et on ne le sort pas du shadow. À rouvrir une fois le cycle de vie en place.
 - **D5 (défaut)** - Menaces/vulnérabilités : **menace = catalogue, vulnérabilité = texte** en v1 ; tables org dédiées en v1.1.
 - **D6 (défaut)** - Portée Regul : le **cycle complet est disponible à toute org** portant la capacité `risk` (y compris assujetti, via org-scoping) ; le **régulateur conserve l'agrégation cross-tenant en lecture seule** (`get_audited_org_risks`). Réversible.
 
@@ -111,7 +111,7 @@ Constat clé : le **résiduel et l'efficacité des barrières sont recalculés �
 | **3 - Acceptation** | `risk_acceptances` + règles d'invalidation (triggers) + permission `can_accept_risk` | Lot 1 |
 | **4 - Revue & historisation** | `next_review_at`/`review_frequency`, `risk_reviews`, `risk_snapshots` (triggers), rappels | Lot 1 |
 | **5 - Communication** | dashboard enrichi, exports, notifications ; vue Regul enrichie | Lots 1-4 |
-| **6 - Boucles & score** | SmartPlan pondéré risque, sortie de shadow par org, familles `risk.*` piste d'audit | Lots 1-4 |
+| **6 - Boucles & audit** | SmartPlan pondéré risque, familles `risk.*` piste d'audit (couplage score **différé**, D4) | Lots 1-4 |
 
 Chaque lot : branche feat -> staging (snayz) -> PR main (gate) ; gates `typecheck` / `check:entities` / `check:accents` / `build` ; migrations up/down.
 
@@ -133,6 +133,7 @@ Chaque lot : branche feat -> staging (snayz) -> PR main (gate) ; gates `typechec
 
 ## 15. Hors scope (v1)
 
+- **Couplage au score de confiance Gëstu (facteur `risk_mastery`) : différé** (décision 2026-10-14). La refonte n'y touche pas ; le couplage shadow existant reste inchangé. À rouvrir ultérieurement en s'appuyant sur le résiduel persisté.
 - Quantification monétaire du risque (VaR, ALE/SLE) - possible en v1.1 via `cost_estimate` et scénarios chiffrés.
 - Matrices de taille variable (D1-b).
 - Tables menaces/vulnérabilités org (D5-b).
