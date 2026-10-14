@@ -196,10 +196,12 @@ async function handleDeleteDomain(admin: Admin, ownerId: string, body: Record<st
     }, 409)
   }
 
+  const fwId = await fwFromDomain(admin, id) // résoudre AVANT la suppression (cascade des contrôles)
   const { error } = await admin.from('domains').delete().eq('id', id)
   if (error) return jsonResponse({ error: 'Suppression impossible' }, 500)
 
   await logAdminAction(admin, ownerId, 'delete_domain', 'domain', id, body.reason as string ?? '(domain delete)', {})
+  await syncSelfAssessment(admin, fwId)
   return jsonResponse({ success: true })
 }
 
@@ -221,6 +223,24 @@ const SCORE_DIMENSIONS = [
 ] as const
 function parseDimension(v: unknown): string | null {
   return typeof v === 'string' && (SCORE_DIMENSIONS as readonly string[]).includes(v) ? v : null
+}
+
+// --- Resynchro de l'auto-évaluation (RFC 0015 Lot 2) : best-effort, ne casse pas l'action ---
+async function syncSelfAssessment(admin: Admin, frameworkId: string | null): Promise<void> {
+  if (!frameworkId) return
+  const { error } = await admin.rpc('sync_self_assessment_template', { p_framework_id: frameworkId })
+  if (error) console.error('[admin-framework] sync self-assessment:', error.message)
+}
+async function fwFromDomain(admin: Admin, domainId: string): Promise<string | null> {
+  if (!domainId) return null
+  const { data } = await admin.from('domains').select('framework_id').eq('id', domainId).maybeSingle()
+  return (data as { framework_id?: string } | null)?.framework_id ?? null
+}
+async function fwFromControl(admin: Admin, controlId: string): Promise<string | null> {
+  if (!controlId) return null
+  const { data } = await admin.from('controls').select('domain_id').eq('id', controlId).maybeSingle()
+  const did = (data as { domain_id?: string } | null)?.domain_id
+  return did ? await fwFromDomain(admin, did) : null
 }
 
 async function handleCreateControl(admin: Admin, _ownerId: string, body: Record<string, unknown>): Promise<Response> {
@@ -250,6 +270,7 @@ async function handleCreateControl(admin: Admin, _ownerId: string, body: Record<
     if (error.message.includes('duplicate')) return jsonResponse({ error: 'Code déjà utilisé pour ce domaine' }, 409)
     return jsonResponse({ error: 'Création impossible' }, 500)
   }
+  await syncSelfAssessment(admin, await fwFromDomain(admin, domain_id))
   return jsonResponse({ control: data })
 }
 
@@ -271,6 +292,7 @@ async function handleUpdateControl(admin: Admin, body: Record<string, unknown>):
   updates.updated_at = new Date().toISOString()
   const { error } = await admin.from('controls').update(updates).eq('id', id)
   if (error) return jsonResponse({ error: 'Mise à jour impossible' }, 500)
+  await syncSelfAssessment(admin, await fwFromControl(admin, id))
   return jsonResponse({ success: true })
 }
 
@@ -287,10 +309,12 @@ async function handleDeleteControl(admin: Admin, ownerId: string, body: Record<s
     }, 409)
   }
 
+  const fwId = await fwFromControl(admin, id) // résoudre AVANT la suppression
   const { error } = await admin.from('controls').delete().eq('id', id)
   if (error) return jsonResponse({ error: 'Suppression impossible' }, 500)
 
   await logAdminAction(admin, ownerId, 'delete_control', 'control', id, body.reason as string ?? '(control delete)', {})
+  await syncSelfAssessment(admin, fwId)
   return jsonResponse({ success: true })
 }
 
@@ -301,6 +325,7 @@ async function handleReorderControls(admin: Admin, body: Record<string, unknown>
   for (let i = 0; i < orderedIds.length; i++) {
     await admin.from('controls').update({ sort_order: (i + 1) * 10 }).eq('id', orderedIds[i])
   }
+  await syncSelfAssessment(admin, await fwFromControl(admin, orderedIds[0]))
   return jsonResponse({ success: true })
 }
 
