@@ -4,6 +4,7 @@ import { useEvidenceCatalog } from '../useEvidenceCatalog'
 import { useMissionEvidenceRequests } from '../useMissionEvidenceRequests'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionEvidenceOverrides } from '../useMissionEvidenceOverrides'
+import { useToast } from '../../../hooks/useToast'
 import { supabase } from '../../../lib/supabase'
 import { DeclinedEvidenceSection } from './DeclinedEvidenceSection'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
@@ -19,6 +20,7 @@ interface ScopingDocumentsTabProps {
 
 export function ScopingDocumentsTab({ missionId, domains, exclusions, showPortal = true }: ScopingDocumentsTabProps): JSX.Element {
   const { evidenceByControl, loading: catLoading } = useEvidenceCatalog(domains)
+  const toast = useToast()
   const { requests, requestedIds, requestEvidence, requesting, refetch } = useMissionEvidenceRequests(missionId)
   const { documents } = useMissionDocuments(missionId)
   const { isEssential, toggleOverride, saving: savingOverride } = useMissionEvidenceOverrides(missionId)
@@ -183,10 +185,14 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions, showPortal
 
   const handleSubmit = async (): Promise<void> => {
     if (selected.size === 0) return
+    const count = selected.size
     const ok = await requestEvidence(missionId, [...selected])
     if (ok) {
       setSelected(new Set())
       refetch()
+      toast.success(showPortal ? 'Demande envoyée au client' : 'Document demandé', {
+        description: `${count} preuve${count > 1 ? 's' : ''} demandée${count > 1 ? 's' : ''}.`,
+      })
     }
   }
 

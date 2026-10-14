@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { readInvokeError } from '../../lib/edgeError'
+import { useToast } from '../../hooks/useToast'
 import type { MissionEvidenceRequest } from '../../types/database.types'
 
 export type DeclineDecisionAction = 'accept' | 'reissue' | 'escalate'
@@ -25,6 +26,7 @@ interface UseMissionEvidenceRequestsResult {
 }
 
 export function useMissionEvidenceRequests(missionId: string | undefined): UseMissionEvidenceRequestsResult {
+  const toast = useToast()
   const [requests, setRequests] = useState<MissionEvidenceRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,12 +74,14 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
     if (fnError) {
       const detail = await readInvokeError(fnError, data, 'Demande de preuves impossible')
       console.error('requestEvidence:', detail)
+      toast.error('Demande impossible', { description: detail })
       setRequesting(false)
       return false
     }
 
     if (data?.error) {
       console.error('requestEvidence:', data.error)
+      toast.error('Demande impossible', { description: String(data.error) })
       setRequesting(false)
       return false
     }
@@ -85,7 +89,7 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
     setRequesting(false)
     refetch()
     return true
-  }, [refetch])
+  }, [refetch, toast])
 
   const respondToDecline = useCallback(async (
     params: RespondToDeclineParams,
