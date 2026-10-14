@@ -141,7 +141,9 @@ export function useClientExpectedDocuments(missionId: string): UseClientExpected
             if (doms.length > 0) {
               const cRes = await fetch(
                 `${baseUrl}/rest/v1/controls?domain_id=in.(${doms.map((d) => d.id).join(',')})&select=id`,
-                { headers, signal: controller.signal, method: 'HEAD' }
+                // Prefer count=exact : sans cet en-tête, content-range renvoie « .../* »
+                // (pas de total) et le dénominateur de couverture restait à 0.
+                { headers: { ...headers, Prefer: 'count=exact' }, signal: controller.signal, method: 'HEAD' }
               )
               if (controller.signal.aborted) return
               // Use count header or fallback
