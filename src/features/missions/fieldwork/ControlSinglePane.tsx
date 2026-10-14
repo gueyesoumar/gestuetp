@@ -1,6 +1,8 @@
 import { FindingsEditor } from './findings/FindingsEditor'
 import { ControlVerdictCard } from './findings/ControlVerdictCard'
 import { AiPreAnalysisSection } from './AiPreAnalysisSection'
+import { CadrageInline } from './right-rail/CadrageInline'
+import { useControlContext } from './right-rail/useControlContext'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { UseAssessmentFindingsReturn } from './findings/useAssessmentFindings'
 
@@ -19,6 +21,10 @@ interface ControlSinglePaneProps {
  * et constats. Le contexte et les preuves sont dans le rail (onglets Contexte / Preuves).
  */
 export function ControlSinglePane({ assessment, observations, evidenceNotes, conformityLevel, onConformityChange, findingsHook, readOnly }: ControlSinglePaneProps) {
+  // Réponses de cadrage liées à ce contrôle (question_controls -> questions -> réponses).
+  // Réutilise le hook du rail ; affichées ici, au plus près de l'acte d'évaluation.
+  const { cadrageAnswers } = useControlContext(assessment.mission_id, assessment.control_id)
+
   return (
     <div className="p-6 space-y-5">
       <ControlVerdictCard
@@ -27,6 +33,8 @@ export function ControlSinglePane({ assessment, observations, evidenceNotes, con
         readOnly={readOnly}
         onChange={onConformityChange}
       />
+
+      {cadrageAnswers.length > 0 && <CadrageInline answers={cadrageAnswers} defaultOpen />}
 
       <AiPreAnalysisSection
         assessment={assessment}

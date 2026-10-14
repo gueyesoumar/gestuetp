@@ -5,6 +5,8 @@ import { isUnfavorable } from './cadrageHint'
 
 interface CadrageInlineProps {
   answers: CadrageAnswer[]
+  /** Ouverte d'emblée (zone centrale d'évaluation) ; repliée par défaut dans le rail. */
+  defaultOpen?: boolean
 }
 
 const WEIGHT_CFG: Record<number, { label: string; color: string }> = {
@@ -22,8 +24,8 @@ function formatResponse(value: unknown): string {
   return JSON.stringify(value)
 }
 
-export function CadrageInline({ answers }: CadrageInlineProps) {
-  const [open, setOpen] = useState(false)
+export function CadrageInline({ answers, defaultOpen = false }: CadrageInlineProps) {
+  const [open, setOpen] = useState(defaultOpen)
   if (answers.length === 0) return null
 
   return (
@@ -58,7 +60,7 @@ export function CadrageInline({ answers }: CadrageInlineProps) {
                   {ans.question_text && (
                     <span className="text-gray-600">{' '}&middot; {ans.question_text}</span>
                   )}
-                  {' '}&mdash; <strong className="text-gray-900">{formatted}</strong>
+                  {' : '}<strong className="text-gray-900">{formatted}</strong>
                   {isUnfavorable(ans) && (
                     <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">&Eacute;cart</span>
                   )}
