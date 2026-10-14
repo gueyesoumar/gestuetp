@@ -60,6 +60,7 @@ Constat clé : le **résiduel et l'efficacité des barrières sont recalculés �
 
 **`risk_treatment_actions`** (N actions par scénario) :
 - `risk_scenario_id`, `organization_id`, `description`, `option` (reduce/transfer/avoid/accept - hérite du scénario), `owner_user_id`, `due_date`, `status` (todo/in_progress/done/cancelled), `cost_estimate numeric?`, `control_id?` (action = mise en oeuvre d'un contrôle Comply -> **lien SoA**), `created_by`, timestamps.
+- **Demandes d'action du régulateur (directives).** Une action peut être d'**origine superviseur** : `origin` (`internal | supervisor_directive`), `requested_by` (régulateur), `verification_status` (`pending | verified | rejected`), `verified_by`, `verified_at`. Cycle : le régulateur **demande** -> l'assujetti **réalise** (via portail, met `status=done`) -> le régulateur **vérifie** (`verified`/`rejected`). Suivi des retards et des demandes à vérifier côté régulateur (écran « Suivi des demandes »). Même table, pas de fork.
 - `treatment_status` du scénario devient **dérivé** de l'avancement des actions (ou conservé comme résumé).
 - **SoA** : `risk_control_links` gagne `applicability_justification text?` (pourquoi ce contrôle traite ce risque) -> alimente une Déclaration d'Applicabilité exportable (pont ISO 27001 Annexe A).
 
@@ -102,10 +103,11 @@ Le module Risque se résout **par capacités** (comme le reste de la plateforme)
 |---|---|---|---|---|
 | **Entreprise** (réflexive, `client_id = cabinet_id`) | ni `supervision` ni `client_portal` | gère **son propre** registre de bout en bout ; pas de notion de mission/client | CRUD complet sur sa propre org | « mon organisation » |
 | **Cabinet** | `client_portal` | registre **par client/mission** ; **promotion** des constats et risques de cadrage vers le registre du client | CRUD sur le registre du client (contexte mission) | « client » |
-| **Régulateur** | `supervision` | **agrégation cross-tenant par assujetti** + critères sectoriels + risques systémiques | **lecture seule** des registres des assujettis (besoin d'en connaître) | « assujetti » |
+| **Régulateur** | `supervision` (+ `client_portal` pour les assujettis) | **supervision active** : agrégation par assujetti + **demandes d'action de traitement** + suivi/vérification de réalisation + critères sectoriels / risques systémiques | **écriture de supervision** sur le registre des assujettis (gérer, demander, vérifier) ; la saisie interne reste faite par l'assujetti via son portail | « assujetti » |
 
-- Résolution via les mêmes helpers que `moduleRegistry` / `missionHasClientPortal` : la vue régulateur n'apparaît que sous `supervision` ; le mode lecture seule découle de l'absence de droit d'écriture cross-tenant (RLS + UI).
-- Vocabulaire via les presets d'édition (RFC 0013). **Aucune divergence de schéma** : une seule base de code, affordances masquées ou ouvertes par capacité (les tables et RLS org-scoped restent identiques).
+- **Le régulateur n'est PAS en lecture seule.** Il suit que les risques des assujettis sont bien traités et à jour : il peut gérer leurs risques, **émettre des demandes d'action de traitement** (échéance, suivi, **vérification de clôture**), et relancer. L'assujetti remplit son registre et **répond via son portail** (`client_portal` activé pour l'assujetti) ; le régulateur vérifie. Modèle collaboratif régulateur <-> assujetti, analogue à cabinet <-> client mais avec autorité de supervision.
+- Résolution via les mêmes helpers que `moduleRegistry` / `missionHasClientPortal` : la vue régulateur et le suivi des demandes n'apparaissent que sous `supervision`.
+- Vocabulaire via les presets d'édition (RFC 0013). **Aucune divergence de schéma** : une seule base de code, affordances ouvertes par capacité (les tables et RLS org-scoped restent identiques ; l'écriture cross-tenant du superviseur passe par un canal dédié, cf. §6 et §13).
 
 ## 11. Décisions actées
 
@@ -133,7 +135,7 @@ Chaque lot : branche feat -> staging (snayz) -> PR main (gate) ; gates `typechec
 
 - Toutes les nouvelles tables **org-scoped** sur le patron existant : `organization_id = get_my_organization_id() and not is_client_role()` + policy RESTRICTIVE `is_aal2()` (helpers SECURITY DEFINER, **pas de récursion**).
 - Écritures sensibles (acceptation, snapshots, invalidation) via **triggers/RPC SECURITY DEFINER** `search_path=''` ou edge service_role ; jamais de confiance client.
-- Cloisonnement Regul : vues cross-tenant uniquement via `get_audited_org_risks` / sous-arbre (`get_subsidiary_ids`), jamais d'accès cross-org direct.
+- Cloisonnement Regul : **lecture** cross-tenant via `get_audited_org_risks` / sous-arbre (`get_subsidiary_ids`). **L'écriture de supervision** (créer une demande d'action, vérifier une clôture, annoter un risque d'un assujetti) passe par une **edge/RPC SECURITY DEFINER dédiée** qui vérifie la **relation de supervision** régulateur -> assujetti (jamais d'écriture RLS directe cross-org) et la journalise (`risk.directive.*`). L'assujetti, lui, écrit son propre registre via son portail (RLS org-scoped habituelle, `can_accept_risk` jamais donné au portail sauf édition réflexive).
 - Acceptation réservée au staff habilité (`can_accept_risk`), jamais `client` (sauf édition réflexive).
 - Journalisation `risk.*` dans `activity_log` (chaîne de hash par org, F6).
 
