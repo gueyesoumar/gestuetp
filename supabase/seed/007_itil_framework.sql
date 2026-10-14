@@ -5,71 +5,86 @@ values (
   '00000000-0000-0000-0000-000000000013',
   'ITIL',
   'itil-v4',
-  'Cadre de bonnes pratiques pour la gestion des services IT. Organise en 34 pratiques reparties en 3 categories.',
+  'Cadre de bonnes pratiques pour la gestion des services IT. Organisé en 34 pratiques réparties en 3 catégories.',
   '4',
   'Axelos / PeopleCert'
-);
+)
+on conflict (slug) do update set
+  name = excluded.name,
+  description = excluded.description;
 
 -- ============================================================
 -- Domaines (3 categories de pratiques ITIL 4)
 -- ============================================================
 
 insert into public.domains (id, framework_id, code, name, description, sort_order) values
-('00000000-0000-0000-0004-000000000001', '00000000-0000-0000-0000-000000000013', 'GMP', 'Pratiques generales de management', 'Pratiques adoptees et adaptees pour la gestion des services', 1),
-('00000000-0000-0000-0004-000000000002', '00000000-0000-0000-0000-000000000013', 'SMP', 'Pratiques de management des services', 'Pratiques specifiques a la gestion et livraison des services IT', 2),
-('00000000-0000-0000-0004-000000000003', '00000000-0000-0000-0000-000000000013', 'TMP', 'Pratiques de management technique', 'Pratiques techniques pour le deploiement et la gestion de l''infrastructure', 3);
+('00000000-0000-0000-0004-000000000001', '00000000-0000-0000-0000-000000000013', 'GMP', 'Pratiques générales de management', 'Pratiques adoptées et adaptées pour la gestion des services', 1),
+('00000000-0000-0000-0004-000000000002', '00000000-0000-0000-0000-000000000013', 'SMP', 'Pratiques de management des services', 'Pratiques spécifiques à la gestion et livraison des services IT', 2),
+('00000000-0000-0000-0004-000000000003', '00000000-0000-0000-0000-000000000013', 'TMP', 'Pratiques de management technique', 'Pratiques techniques pour le déploiement et la gestion de l''infrastructure', 3)
+on conflict (framework_id, code) do update set
+  name = excluded.name,
+  description = excluded.description;
 
 -- ============================================================
 -- Controles - GMP Pratiques generales de management
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
-('00000000-0000-0000-0004-000000000001', 'GMP.01', 'Gestion de l''architecture', 'Comprendre les elements de l''organisation et leurs interrelations', 1),
-('00000000-0000-0000-0004-000000000001', 'GMP.02', 'Amelioration continue', 'Aligner les pratiques et services avec les besoins changeants', 2),
-('00000000-0000-0000-0004-000000000001', 'GMP.03', 'Gestion de la securite de l''information', 'Proteger l''information necessaire a l''organisation', 3),
-('00000000-0000-0000-0004-000000000001', 'GMP.04', 'Gestion des connaissances', 'Maintenir et ameliorer l''utilisation efficace de l''information et des connaissances', 4),
-('00000000-0000-0000-0004-000000000001', 'GMP.05', 'Mesure et reporting', 'Soutenir la prise de decision et l''amelioration continue', 5),
-('00000000-0000-0000-0004-000000000001', 'GMP.06', 'Gestion du changement organisationnel', 'S''assurer que les changements sont mis en oeuvre avec succes', 6),
+('00000000-0000-0000-0004-000000000001', 'GMP.01', 'Gestion de l''architecture', 'Comprendre les éléments de l''organisation et leurs interrelations', 1),
+('00000000-0000-0000-0004-000000000001', 'GMP.02', 'Amélioration continue', 'Aligner les pratiques et services avec les besoins changeants', 2),
+('00000000-0000-0000-0004-000000000001', 'GMP.03', 'Gestion de la sécurité de l''information', 'Protéger l''information nécessaire à l''organisation', 3),
+('00000000-0000-0000-0004-000000000001', 'GMP.04', 'Gestion des connaissances', 'Maintenir et améliorer l''utilisation efficace de l''information et des connaissances', 4),
+('00000000-0000-0000-0004-000000000001', 'GMP.05', 'Mesure et reporting', 'Soutenir la prise de décision et l''amélioration continue', 5),
+('00000000-0000-0000-0004-000000000001', 'GMP.06', 'Gestion du changement organisationnel', 'S''assurer que les changements sont mis en œuvre avec succès', 6),
 ('00000000-0000-0000-0004-000000000001', 'GMP.07', 'Gestion du portefeuille', 'S''assurer que l''organisation dispose du bon mix de programmes, projets et services', 7),
-('00000000-0000-0000-0004-000000000001', 'GMP.08', 'Gestion de projet', 'S''assurer que tous les projets sont livres avec succes', 8),
-('00000000-0000-0000-0004-000000000001', 'GMP.09', 'Gestion des relations', 'Etablir et entretenir les liens entre l''organisation et ses parties prenantes', 9),
-('00000000-0000-0000-0004-000000000001', 'GMP.10', 'Gestion des risques', 'Comprendre et gerer les risques de maniere efficace', 10),
-('00000000-0000-0000-0004-000000000001', 'GMP.11', 'Gestion financiere des services', 'Soutenir les strategies et plans de gestion des services', 11),
-('00000000-0000-0000-0004-000000000001', 'GMP.12', 'Gestion de la strategie', 'Definir la direction de l''organisation et l''allocation des ressources', 12),
-('00000000-0000-0000-0004-000000000001', 'GMP.13', 'Gestion des fournisseurs', 'S''assurer que les fournisseurs et leurs performances sont geres de maniere appropriee', 13),
-('00000000-0000-0000-0004-000000000001', 'GMP.14', 'Gestion du personnel et des talents', 'S''assurer que l''organisation dispose des bonnes personnes avec les bonnes competences', 14);
+('00000000-0000-0000-0004-000000000001', 'GMP.08', 'Gestion de projet', 'S''assurer que tous les projets sont livrés avec succès', 8),
+('00000000-0000-0000-0004-000000000001', 'GMP.09', 'Gestion des relations', 'Établir et entretenir les liens entre l''organisation et ses parties prenantes', 9),
+('00000000-0000-0000-0004-000000000001', 'GMP.10', 'Gestion des risques', 'Comprendre et gérer les risques de manière efficace', 10),
+('00000000-0000-0000-0004-000000000001', 'GMP.11', 'Gestion financière des services', 'Soutenir les stratégies et plans de gestion des services', 11),
+('00000000-0000-0000-0004-000000000001', 'GMP.12', 'Gestion de la stratégie', 'Définir la direction de l''organisation et l''allocation des ressources', 12),
+('00000000-0000-0000-0004-000000000001', 'GMP.13', 'Gestion des fournisseurs', 'S''assurer que les fournisseurs et leurs performances sont gérés de manière appropriée', 13),
+('00000000-0000-0000-0004-000000000001', 'GMP.14', 'Gestion du personnel et des talents', 'S''assurer que l''organisation dispose des bonnes personnes avec les bonnes compétences', 14)
+on conflict (domain_id, code) do update set
+  name = excluded.name,
+  description = excluded.description;
 
 -- ============================================================
 -- Controles - SMP Pratiques de management des services
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
-('00000000-0000-0000-0004-000000000002', 'SMP.01', 'Gestion de la disponibilite', 'S''assurer que les services sont disponibles selon les niveaux convenus', 1),
-('00000000-0000-0000-0004-000000000002', 'SMP.02', 'Analyse metier', 'Analyser les besoins metier et recommander des solutions', 2),
-('00000000-0000-0000-0004-000000000002', 'SMP.03', 'Gestion de la capacite et de la performance', 'S''assurer que les services atteignent les niveaux de performance convenus', 3),
-('00000000-0000-0000-0004-000000000002', 'SMP.04', 'Habilitation des changements', 'Maximiser le nombre de changements reussis par une evaluation appropriee', 4),
-('00000000-0000-0000-0004-000000000002', 'SMP.05', 'Gestion des incidents', 'Minimiser l''impact negatif des incidents en restaurant le service normal', 5),
-('00000000-0000-0000-0004-000000000002', 'SMP.06', 'Gestion des actifs IT', 'Planifier et gerer le cycle de vie complet des actifs IT', 6),
-('00000000-0000-0000-0004-000000000002', 'SMP.07', 'Surveillance et gestion des evenements', 'Observer les services et enregistrer les evenements', 7),
-('00000000-0000-0000-0004-000000000002', 'SMP.08', 'Gestion des problemes', 'Reduire la probabilite et l''impact des incidents en identifiant les causes', 8),
-('00000000-0000-0000-0004-000000000002', 'SMP.09', 'Gestion des mises en production', 'Rendre les services et fonctionnalites nouveaux ou modifies disponibles', 9),
-('00000000-0000-0000-0004-000000000002', 'SMP.10', 'Gestion du catalogue de services', 'Fournir une source unique d''information coherente sur les services', 10),
+('00000000-0000-0000-0004-000000000002', 'SMP.01', 'Gestion de la disponibilité', 'S''assurer que les services sont disponibles selon les niveaux convenus', 1),
+('00000000-0000-0000-0004-000000000002', 'SMP.02', 'Analyse métier', 'Analyser les besoins métier et recommander des solutions', 2),
+('00000000-0000-0000-0004-000000000002', 'SMP.03', 'Gestion de la capacité et de la performance', 'S''assurer que les services atteignent les niveaux de performance convenus', 3),
+('00000000-0000-0000-0004-000000000002', 'SMP.04', 'Habilitation des changements', 'Maximiser le nombre de changements réussis par une évaluation appropriée', 4),
+('00000000-0000-0000-0004-000000000002', 'SMP.05', 'Gestion des incidents', 'Minimiser l''impact négatif des incidents en restaurant le service normal', 5),
+('00000000-0000-0000-0004-000000000002', 'SMP.06', 'Gestion des actifs IT', 'Planifier et gérer le cycle de vie complet des actifs IT', 6),
+('00000000-0000-0000-0004-000000000002', 'SMP.07', 'Surveillance et gestion des événements', 'Observer les services et enregistrer les événements', 7),
+('00000000-0000-0000-0004-000000000002', 'SMP.08', 'Gestion des problèmes', 'Réduire la probabilité et l''impact des incidents en identifiant les causes', 8),
+('00000000-0000-0000-0004-000000000002', 'SMP.09', 'Gestion des mises en production', 'Rendre les services et fonctionnalités nouveaux ou modifiés disponibles', 9),
+('00000000-0000-0000-0004-000000000002', 'SMP.10', 'Gestion du catalogue de services', 'Fournir une source unique d''information cohérente sur les services', 10),
 ('00000000-0000-0000-0004-000000000002', 'SMP.11', 'Gestion de la configuration des services', 'S''assurer que l''information sur la configuration est disponible et fiable', 11),
-('00000000-0000-0000-0004-000000000002', 'SMP.12', 'Gestion de la continuite des services', 'S''assurer que la disponibilite et la performance sont maintenues a un niveau suffisant en cas de sinistre', 12),
-('00000000-0000-0000-0004-000000000002', 'SMP.13', 'Conception des services', 'Concevoir des produits et services adaptes et utilisables', 13),
-('00000000-0000-0000-0004-000000000002', 'SMP.14', 'Centre de services (Service Desk)', 'Capturer la demande de resolution d''incidents et de demandes de service', 14),
-('00000000-0000-0000-0004-000000000002', 'SMP.15', 'Gestion des niveaux de service', 'Definir des objectifs de niveaux de service clairs et mesurables', 15),
-('00000000-0000-0000-0004-000000000002', 'SMP.16', 'Gestion des demandes de service', 'Soutenir la qualite de service convenue en traitant les demandes', 16),
-('00000000-0000-0000-0004-000000000002', 'SMP.17', 'Validation et test des services', 'S''assurer que les services repondent aux exigences definies', 17);
+('00000000-0000-0000-0004-000000000002', 'SMP.12', 'Gestion de la continuité des services', 'S''assurer que la disponibilité et la performance sont maintenues à un niveau suffisant en cas de sinistre', 12),
+('00000000-0000-0000-0004-000000000002', 'SMP.13', 'Conception des services', 'Concevoir des produits et services adaptés et utilisables', 13),
+('00000000-0000-0000-0004-000000000002', 'SMP.14', 'Centre de services (Service Desk)', 'Capturer la demande de résolution d''incidents et de demandes de service', 14),
+('00000000-0000-0000-0004-000000000002', 'SMP.15', 'Gestion des niveaux de service', 'Définir des objectifs de niveaux de service clairs et mesurables', 15),
+('00000000-0000-0000-0004-000000000002', 'SMP.16', 'Gestion des demandes de service', 'Soutenir la qualité de service convenue en traitant les demandes', 16),
+('00000000-0000-0000-0004-000000000002', 'SMP.17', 'Validation et test des services', 'S''assurer que les services répondent aux exigences définies', 17)
+on conflict (domain_id, code) do update set
+  name = excluded.name,
+  description = excluded.description;
 
 -- ============================================================
 -- Controles - TMP Pratiques de management technique
 -- ============================================================
 
 insert into public.controls (domain_id, code, name, description, sort_order) values
-('00000000-0000-0000-0004-000000000003', 'TMP.01', 'Gestion des deploiements', 'Deployer le materiel, les logiciels et la documentation nouveaux ou modifies', 1),
+('00000000-0000-0000-0004-000000000003', 'TMP.01', 'Gestion des déploiements', 'Déployer le matériel, les logiciels et la documentation nouveaux ou modifiés', 1),
 ('00000000-0000-0000-0004-000000000003', 'TMP.02', 'Gestion de l''infrastructure et des plateformes', 'Superviser l''infrastructure et les plateformes technologiques', 2),
-('00000000-0000-0000-0004-000000000003', 'TMP.03', 'Developpement et gestion des logiciels', 'S''assurer que les applications repondent aux besoins des parties prenantes', 3);
+('00000000-0000-0000-0004-000000000003', 'TMP.03', 'Développement et gestion des logiciels', 'S''assurer que les applications répondent aux besoins des parties prenantes', 3)
+on conflict (domain_id, code) do update set
+  name = excluded.name,
+  description = excluded.description;
 
 -- ============================================================
 -- Correspondances ISO 27001 <-> ITIL 4
