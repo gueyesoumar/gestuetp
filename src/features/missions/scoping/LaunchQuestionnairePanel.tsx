@@ -103,7 +103,9 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
 
   const standaloneCustoms = customsBySection.get('__none__') ?? []
 
-  const totalIncluded = includedCodes.size + customQuestions.length
+  // Défensif : ne compter que les questions de la formule COURANTE (évite de compter
+  // des codes résiduels d'une autre formule pendant un changement).
+  const totalIncluded = questions.filter((q) => includedCodes.has(q.code)).length + customQuestions.length
 
   const toggleQuestion = (code: string) => {
     setIncludedCodes((prev) => {
@@ -179,7 +181,7 @@ export function LaunchQuestionnairePanel({ missionId, frameworkId, clientOrgId, 
       body: {
         mission_id: missionId,
         template_id: selectedTemplateId ?? undefined,
-        included_codes: Array.from(includedCodes),
+        included_codes: questions.filter((q) => includedCodes.has(q.code)).map((q) => q.code),
         custom_questions: customQuestions.length > 0 ? customQuestions : undefined,
         due_date: dueDate || null,
         section_assignees: Object.keys(sectionAssignees).length > 0 ? sectionAssignees : undefined,

@@ -65,10 +65,10 @@ export function useTemplateQuestions(
         list.find((t) => t.id === templateId) ??
         list.find((t) => t.kind === 'context') ??
         list[0] ?? null
-      setSelectedTemplateId(effective?.id ?? null)
-      setTemplateName(effective?.name ?? null)
 
-      if (!effective) { setQuestions([]); setLoading(false); return }
+      if (!effective) {
+        setSelectedTemplateId(null); setTemplateName(null); setQuestions([]); setLoading(false); return
+      }
 
       const { data: qs, error: qErr } = await supabase
         .from('questions')
@@ -83,6 +83,11 @@ export function useTemplateQuestions(
         setLoading(false)
         return
       }
+      // Mise à jour COHÉRENTE : id + nom + questions dans le même lot, pour éviter un
+      // état intermédiaire (selectedTemplateId neuf avec les anciennes questions) qui
+      // faisait ré-hydrater la sélection avec le mauvais template (compteur inversé).
+      setSelectedTemplateId(effective.id)
+      setTemplateName(effective.name)
       setQuestions((qs ?? []) as unknown as Question[])
       setLoading(false)
     })()

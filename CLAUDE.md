@@ -71,6 +71,7 @@ Stack : React 18 + Vite + TypeScript strict + Tailwind CSS v4 + Supabase (Auth, 
 - **Entités HTML : uniquement pour les caractères refusés par `react/no-unescaped-entities`** (`'` → `&apos;`/`&rsquo;`, `"`, `<`, `>`, `}`) et **seulement dans le TEXTE JSX** (`>...<`).
 - **Piège récurrent** : une entité ne se décode QUE dans le texte JSX et les attributs `attr="..."`. Dans une **string JS** - ternaire `{x ? 'a' : 'b'}`, template `` `...` ``, `.join('...')`, valeur d'objet, fichier `.ts` - elle s'affiche EN CLAIR. Y mettre un caractère réel (é, -, •, ...).
 - **Garde-fou CI** : `scripts/check-html-entities.sh` (gate dur `ci.yml`) bloque toute entité en contexte string JS. Lancer en local : `npm run check:entities`.
+- **Contenu de DONNÉES (seeds SQL + contenu seedé en base : questions, contrôles, référentiels, catalogues, libellés) : MÊME EXIGENCE.** Tout texte français destiné à l'utilisateur porte ses accents RÉELS (é, è, à, ê, ô, ç, …) - jamais d'ASCII « securite / systeme / entite / conformite / controle ». Garde-fou : `scripts/check-french-accents.sh` (`npm run check:accents`) signale les mots FR fréquents non accentués dans `src/` et `supabase/seed/`.
 
 ## 6. Migrations SQL
 
