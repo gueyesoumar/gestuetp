@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { Sparkles, ClipboardList } from 'lucide-react'
 import { useAuth } from '../../../../hooks/useAuth'
 import { useFeatureFlag } from '../../../../hooks/useFeatureFlag'
 import { useMissionQuestionnaire } from '../../../missions/useMissionQuestionnaire'
@@ -22,6 +22,9 @@ interface Props {
 export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Element {
   const { profile } = useAuth()
   const smartInterviewFlag = useFeatureFlag('smart_interview_portal')
+  // Le questionnaire (saisie manuelle) s'affiche toujours ; le flag ne conditionne que
+  // la couche de pré-remplissage IA (RFC 0016 : découplage questionnaire / IA).
+  const aiEnabled = !smartInterviewFlag.loading && smartInterviewFlag.enabled
 
   const { instance, questions, responses, loading: qLoading } = useMissionQuestionnaire(mission.id)
   const { documents, uploading, refetch: refetchDocs } = useMissionDocuments(mission.id)
@@ -64,22 +67,22 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
         decline={decline}
       />
 
-      {/* --- SECTION: Questionnaire --- */}
-      {!smartInterviewFlag.loading && smartInterviewFlag.enabled && (
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={15} className="text-gold-500" />
-            <h3 className="text-sm font-bold">Questionnaire intelligent</h3>
-          </div>
-          {qLoading ? (
-            <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Chargement...</p></div>
-          ) : instance && questions.length > 0 ? (
-            <SmartInterviewContainer missionId={mission.id} missionName={mission.name} questions={questions} instanceId={instance.id} userId={profile?.id ?? null} initialResponses={initialResponses} readOnly={!canContribute} documentsCount={documents.length} />
-          ) : (
-            <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Aucun questionnaire pour cette mission.</p></div>
-          )}
-        </section>
-      )}
+      {/* --- SECTION: Questionnaire (toujours visible ; IA optionnelle selon le flag) --- */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          {aiEnabled
+            ? <Sparkles size={15} className="text-gold-500" />
+            : <ClipboardList size={15} className="text-forest-600" />}
+          <h3 className="text-sm font-bold">{aiEnabled ? 'Questionnaire intelligent' : 'Questionnaire'}</h3>
+        </div>
+        {qLoading ? (
+          <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Chargement...</p></div>
+        ) : instance && questions.length > 0 ? (
+          <SmartInterviewContainer missionId={mission.id} missionName={mission.name} questions={questions} instanceId={instance.id} userId={profile?.id ?? null} initialResponses={initialResponses} readOnly={!canContribute} documentsCount={documents.length} aiEnabled={aiEnabled} />
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-xl p-5 text-center"><p className="text-xs text-gray-400">Aucun questionnaire pour cette mission.</p></div>
+        )}
+      </section>
 
       {/* --- SECTION: Entretiens --- */}
       <InterviewsSection missionId={mission.id} />

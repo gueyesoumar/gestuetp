@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, MessageCircle, Paperclip } from 'lucide-react'
+import { Sparkles, MessageCircle, Paperclip, ClipboardList } from 'lucide-react'
 import { SmartPrefilledAnswers } from './SmartPrefilledAnswers'
 import { SmartConversation } from './SmartConversation'
 import type { Question } from '../../../types/database.types'
@@ -37,15 +37,18 @@ interface SmartInterviewContainerProps {
   initialResponses: Map<string, unknown>
   readOnly: boolean
   documentsCount: number
+  /** Pré-remplissage IA disponible (flag smart_interview_portal). Si false, seule la
+   *  saisie manuelle « Conversation » est proposée (pas d'exposition IA, cf. RFC 0012). */
+  aiEnabled: boolean
 }
 
 type SmartTab = 'prefill' | 'conversation'
 
 export function SmartInterviewContainer({
   missionId, questions, instanceId, userId,
-  initialResponses, readOnly, documentsCount,
+  initialResponses, readOnly, documentsCount, aiEnabled,
 }: SmartInterviewContainerProps): JSX.Element {
-  const [activeTab, setActiveTab] = useState<SmartTab>('prefill')
+  const [activeTab, setActiveTab] = useState<SmartTab>(aiEnabled ? 'prefill' : 'conversation')
   const [prefilledAnswers, setPrefilledAnswers] = useState<SmartAnswer[]>([])
   const [analyzing, setAnalyzing] = useState(false)
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null)
@@ -65,23 +68,26 @@ export function SmartInterviewContainer({
     !initialResponses.has(q.code) && !prefilledAnswers.some((a) => a.questionCode === q.code && a.validated)
   )
 
+  // L'onglet IA n'est propos\u00e9 que si le pr\u00e9-remplissage IA est activ\u00e9 pour l'organisation.
   const tabs: { key: SmartTab; label: string; icon: ReactNode }[] = [
-    { key: 'prefill', label: 'R\u00e9ponses IA', icon: <Sparkles size={13} /> },
-    { key: 'conversation', label: 'Conversation', icon: <MessageCircle size={13} /> },
+    ...(aiEnabled ? [{ key: 'prefill' as const, label: 'R\u00e9ponses IA', icon: <Sparkles size={13} /> }] : []),
+    { key: 'conversation', label: aiEnabled ? 'Conversation' : 'R\u00e9pondre', icon: <MessageCircle size={13} /> },
   ]
 
   return (
     <div>
-      {/* Document-awareness banner */}
+      {/* Banni\u00e8re de progression (cadrage IA si disponible, sinon progression simple) */}
       <div className="flex items-center gap-3 p-3 bg-forest-50 border border-forest-100 rounded-xl mb-4">
         <div className="w-9 h-9 rounded-lg bg-forest-100 flex items-center justify-center shrink-0">
-          <Paperclip size={16} />
+          {aiEnabled ? <Paperclip size={16} /> : <ClipboardList size={16} />}
         </div>
         <div className="flex-1">
           <p className="text-xs font-semibold text-forest-900">
-            {documentsCount > 0
-              ? `${documentsCount} document${documentsCount > 1 ? 's' : ''} d\u00e9pos\u00e9${documentsCount > 1 ? 's' : ''} \u2192 ${prefilledAnswers.length} r\u00e9ponse${prefilledAnswers.length > 1 ? 's' : ''} pr\u00e9-remplie${prefilledAnswers.length > 1 ? 's' : ''}`
-              : 'D\u00e9posez vos documents pour pr\u00e9-remplir le questionnaire automatiquement'}
+            {!aiEnabled
+              ? 'R\u00e9pondez aux questions du questionnaire'
+              : documentsCount > 0
+                ? `${documentsCount} document${documentsCount > 1 ? 's' : ''} d\u00e9pos\u00e9${documentsCount > 1 ? 's' : ''} \u2192 ${prefilledAnswers.length} r\u00e9ponse${prefilledAnswers.length > 1 ? 's' : ''} pr\u00e9-remplie${prefilledAnswers.length > 1 ? 's' : ''}`
+                : 'D\u00e9posez vos documents pour pr\u00e9-remplir le questionnaire automatiquement'}
           </p>
           <p className="text-[10px] text-forest-700 mt-0.5">
             {answeredCount}/{totalCount} questions r&eacute;pondues
@@ -119,7 +125,8 @@ export function SmartInterviewContainer({
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Tabs (masqués quand seule la saisie manuelle est disponible) */}
+      {tabs.length > 1 && (
       <div className="flex gap-1 mb-4">
         {tabs.map((tab) => (
           <button
@@ -135,6 +142,7 @@ export function SmartInterviewContainer({
           </button>
         ))}
       </div>
+      )}
 
       {/* Tab content */}
       {activeTab === 'prefill' && (
