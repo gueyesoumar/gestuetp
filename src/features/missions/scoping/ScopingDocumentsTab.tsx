@@ -185,13 +185,14 @@ export function ScopingDocumentsTab({ missionId, domains, exclusions, showPortal
 
   const handleSubmit = async (): Promise<void> => {
     if (selected.size === 0) return
-    const count = selected.size
-    const ok = await requestEvidence(missionId, [...selected])
+    const { ok, count } = await requestEvidence(missionId, [...selected])
     if (ok) {
       setSelected(new Set())
       refetch()
+      // count = demandes canoniques créées (une preuve mutualisée couvre plusieurs
+      // contrôles) ; peut être inférieur au nombre de lignes sélectionnées.
       toast.success(showPortal ? 'Demande envoyée au client' : 'Document demandé', {
-        description: `${count} preuve${count > 1 ? 's' : ''} demandée${count > 1 ? 's' : ''}.`,
+        description: `${count} demande${count > 1 ? 's' : ''} de preuve créée${count > 1 ? 's' : ''}.`,
       })
     }
   }

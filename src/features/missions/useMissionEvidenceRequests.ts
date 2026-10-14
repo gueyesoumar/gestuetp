@@ -18,7 +18,7 @@ interface UseMissionEvidenceRequestsResult {
   requestedIds: Set<string>
   loading: boolean
   error: string | null
-  requestEvidence: (missionId: string, evidenceCatalogIds: string[]) => Promise<boolean>
+  requestEvidence: (missionId: string, evidenceCatalogIds: string[]) => Promise<{ ok: boolean; count: number }>
   requesting: boolean
   respondToDecline: (params: RespondToDeclineParams) => Promise<{ ok: boolean; error?: string; assessment_id?: string }>
   responding: boolean
@@ -64,7 +64,7 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
     return () => abortController.abort()
   }, [missionId, refreshKey])
 
-  const requestEvidence = useCallback(async (mId: string, evidenceCatalogIds: string[]): Promise<boolean> => {
+  const requestEvidence = useCallback(async (mId: string, evidenceCatalogIds: string[]): Promise<{ ok: boolean; count: number }> => {
     setRequesting(true)
 
     const { data, error: fnError } = await supabase.functions.invoke('request-evidence', {
@@ -76,19 +76,22 @@ export function useMissionEvidenceRequests(missionId: string | undefined): UseMi
       console.error('requestEvidence:', detail)
       toast.error('Demande impossible', { description: detail })
       setRequesting(false)
-      return false
+      return { ok: false, count: 0 }
     }
 
     if (data?.error) {
       console.error('requestEvidence:', data.error)
       toast.error('Demande impossible', { description: String(data.error) })
       setRequesting(false)
-      return false
+      return { ok: false, count: 0 }
     }
 
     setRequesting(false)
     refetch()
-    return true
+    // count = nombre de demandes canoniques réellement créées côté serveur (une preuve
+    // mutualisée = une demande couvrant plusieurs contrôles), pas le nombre de lignes
+    // de catalogue sélectionnées.
+    return { ok: true, count: typeof data?.count === 'number' ? data.count : 0 }
   }, [refetch, toast])
 
   const respondToDecline = useCallback(async (

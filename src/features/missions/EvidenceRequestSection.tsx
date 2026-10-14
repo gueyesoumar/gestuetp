@@ -83,7 +83,7 @@ export function EvidenceRequestSection({ missionId, domains }: EvidenceRequestSe
 
   const handleSubmit = async () => {
     if (selected.size === 0) return
-    const ok = await requestEvidence(missionId, Array.from(selected))
+    const { ok } = await requestEvidence(missionId, Array.from(selected))
     if (ok) {
       setSelected(new Set())
       refetch()

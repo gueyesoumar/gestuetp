@@ -178,7 +178,7 @@ export function EvidenceTracker({ missionId, domains, documents }: EvidenceTrack
 
   const handleSubmitRequest = async (): Promise<void> => {
     if (selected.size === 0) return
-    const ok = await requestEvidence(missionId, Array.from(selected))
+    const { ok } = await requestEvidence(missionId, Array.from(selected))
     if (ok) {
       setSelected(new Set())
       refetchRequests()
