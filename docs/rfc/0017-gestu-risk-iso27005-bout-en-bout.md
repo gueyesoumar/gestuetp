@@ -54,6 +54,7 @@ Constat clé : le **résiduel et l'efficacité des barrières sont recalculés �
 
 - `risk_scenarios` gagne un **statut de cycle de vie** `lifecycle_status` : `identified | analysed | evaluated | treatment_planned | in_treatment | residual_accepted | monitored | closed` (+ `reopened`). Défaut `identified` ; migration backfill des existants selon l'état (coté -> `analysed`, barrières -> `treatment_planned`, etc.).
 - L'évaluation compare le **niveau résiduel** (ou inhérent si pas de traitement) au `acceptance_threshold` -> drapeau `is_above_appetite` (calculé). Priorisation du registre par dépassement d'appétit puis exposition.
+- **Exigence par étape (saisie progressive).** À la création, seuls **intitulé + dimension + cotation V/I** sont requis (contrainte NOT NULL + défauts) ; tous les autres champs (source, menace, vulnérabilité, bien support, valeur métier, événement redouté, propriétaire, échéance) restent **optionnels**. La complétude est exigée **par transition de statut**, pas à la création : `analysed` requiert la cotation + l'actif ou l'événement redouté ; `treatment_planned`/`in_treatment` requiert un propriétaire + au moins une action ou barrière ; `residual_accepted` requiert une acceptation active. La validation de passage d'étape vit côté edge/RPC (serveur). UI : formulaire de **création rapide (3 champs)**, champs optionnels repliés, **jauge de complétude** et enrichissement différé (évite les registres vides par friction de saisie).
 
 ## 6. Traitement - plan structuré (nouveau)
 
