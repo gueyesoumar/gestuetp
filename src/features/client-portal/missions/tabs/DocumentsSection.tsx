@@ -17,6 +17,8 @@ interface Props {
   declinedCount: number
   coveredControls: number
   totalControls: number
+  /** Pré-remplissage IA actif (flag smart_interview_portal). Adapte le libellé d'incitation. */
+  aiEnabled: boolean
   upload: ClientEvidenceUploadApi
   decline: EvidenceDeclineApi
 }
@@ -25,7 +27,7 @@ interface Props {
 export function DocumentsSection({
   canContribute, uploading, documents, expectedDocs, edLoading,
   pendingCount, uploadedCount, declinedCount, coveredControls, totalControls,
-  upload, decline,
+  aiEnabled, upload, decline,
 }: Props): JSX.Element {
   return (
     <section>
@@ -93,7 +95,9 @@ export function DocumentsSection({
             <BarChart3 size={13} className="text-forest-700" />
             <p className="text-[10px] text-forest-700">
               <b>{expectedDocs.length} documents</b> couvrent <b>{coveredControls}/{totalControls} contr&ocirc;les</b>.
-              {pendingCount > 0 && ` Déposez les ${pendingCount} restants pour optimiser l’analyse IA.`}
+              {pendingCount > 0 && (aiEnabled
+                ? ` Déposez les ${pendingCount} restants pour optimiser l’analyse IA.`
+                : ` Déposez les ${pendingCount} restants pour compléter votre dossier de preuves.`)}
             </p>
           </div>
         </>

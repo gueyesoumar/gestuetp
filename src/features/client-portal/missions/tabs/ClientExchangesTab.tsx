@@ -63,6 +63,7 @@ export function ClientExchangesTab({ mission, canContribute }: Props): JSX.Eleme
         declinedCount={declinedCount}
         coveredControls={coveredControls}
         totalControls={totalControls}
+        aiEnabled={aiEnabled}
         upload={upload}
         decline={decline}
       />
