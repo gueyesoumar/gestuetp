@@ -94,6 +94,19 @@ Constat clé : le **résiduel et l'efficacité des barrières sont recalculés �
 - **Risk -> Score** : **différé** (décision D4). La refonte ne touche pas au score de confiance pour l'instant ; le couplage `risk_mastery` existant reste en shadow, inchangé. Le résiduel persisté (snapshots) servira à le fiabiliser quand ce chantier sera rouvert.
 - **Piste d'audit F6** : nouvelles familles `risk.*` (cotation, traitement, acceptation, revue) scellées dans `activity_log`.
 
+## 10bis. Adaptation par édition (RFC 0013)
+
+Le module Risque se résout **par capacités** (comme le reste de la plateforme), sans fork. L'édition du client détermine nav, posture, droits et vocabulaire :
+
+| Édition | Capacité distinctive | Posture Risque | Droits | Vocabulaire |
+|---|---|---|---|---|
+| **Entreprise** (réflexive, `client_id = cabinet_id`) | ni `supervision` ni `client_portal` | gère **son propre** registre de bout en bout ; pas de notion de mission/client | CRUD complet sur sa propre org | « mon organisation » |
+| **Cabinet** | `client_portal` | registre **par client/mission** ; **promotion** des constats et risques de cadrage vers le registre du client | CRUD sur le registre du client (contexte mission) | « client » |
+| **Régulateur** | `supervision` | **agrégation cross-tenant par assujetti** + critères sectoriels + risques systémiques | **lecture seule** des registres des assujettis (besoin d'en connaître) | « assujetti » |
+
+- Résolution via les mêmes helpers que `moduleRegistry` / `missionHasClientPortal` : la vue régulateur n'apparaît que sous `supervision` ; le mode lecture seule découle de l'absence de droit d'écriture cross-tenant (RLS + UI).
+- Vocabulaire via les presets d'édition (RFC 0013). **Aucune divergence de schéma** : une seule base de code, affordances masquées ou ouvertes par capacité (les tables et RLS org-scoped restent identiques).
+
 ## 11. Décisions actées
 
 - **D1 - Critères de risque** -> **4x4 fixe** ; configurables par org : **seuil d'acceptation + libellés + cadence de revue** (pas la taille de matrice). Défaut = le 4x4 actuel.
