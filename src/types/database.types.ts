@@ -2443,6 +2443,24 @@ export interface Database {
           vulnerability: string | null; asset_name: string | null
         }[]
       }
+      get_supervised_org_portfolio: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          organization_id: string; org_name: string; sector: string | null
+          scenario_count: number; above_threshold: number; overdue_reviews: number
+          avg_exposure: number; max_exposure: number; pending_directives: number
+        }[]
+      }
+      get_supervised_risks: {
+        Args: { p_org_id: string }
+        Returns: {
+          id: string; organization_id: string; org_name: string; title: string; dimension: string | null
+          inherent_likelihood: number; inherent_impact: number; treatment: string
+          lifecycle_status: string; next_review_at: string | null
+          threat_ref: string | null; feared_event_ref: string | null
+          vulnerability: string | null; asset_name: string | null
+        }[]
+      }
       get_audited_scenario_bowtie: {
         Args: { p_scenario_id: string }
         Returns: {

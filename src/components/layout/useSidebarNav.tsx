@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
@@ -26,17 +26,19 @@ export function useSidebarNavItems(
   // Workspace dédié Gëstu Risk : sous /risque, la barre latérale bascule sur la
   // sous-nav du module (le lien « Hub ETP » du shell assure le retour à l'écosystème).
   if (pathname.startsWith('/risque') && hasCapability('risk')) {
-    return {
-      mainItems: [
-        { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
-        { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
-        { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
-        { to: '/risque/plan', label: 'Plan de traitement', icon: <ListChecks size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
-        { to: '/risque/acceptations', label: 'Acceptations', icon: <ShieldCheck size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
-        { to: '/risque/revue', label: 'Revue & surveillance', icon: <History size={20} strokeWidth={1.5} />, section: '3 · Surveiller' },
-      ],
-      groupItems: [],
-    }
+    const supervises = hasCapability('supervision') || hasCapability('client_portal')
+    const items: NavItem[] = [
+      { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
+    ]
+    if (supervises) items.push({ to: '/risque/portefeuille', label: 'Portefeuille', icon: <Network size={20} strokeWidth={1.5} /> })
+    items.push(
+      { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
+      { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
+      { to: '/risque/plan', label: 'Plan de traitement', icon: <ListChecks size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
+      { to: '/risque/acceptations', label: 'Acceptations', icon: <ShieldCheck size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
+      { to: '/risque/revue', label: 'Revue & surveillance', icon: <History size={20} strokeWidth={1.5} />, section: '3 · Surveiller' },
+    )
+    return { mainItems: items, groupItems: [] }
   }
 
   // Workspace dédié Gëstu Policy : sous /politiques, sous-nav du module.

@@ -19,6 +19,7 @@ import { RiskCriteriaPage } from './features/risk/RiskCriteriaPage'
 import { RiskPlanPage } from './features/risk/RiskPlanPage'
 import { RiskAcceptancesPage } from './features/risk/RiskAcceptancesPage'
 import { RiskReviewPage } from './features/risk/RiskReviewPage'
+import { RiskPortfolioPage } from './features/risk/RiskPortfolioPage'
 import { PolicyBoardPage } from './features/policy/PolicyBoardPage'
 import { PolicyCoveragePage } from './features/policy/PolicyCoveragePage'
 import { AppLayout } from './components/layout/AppLayout'
@@ -123,6 +124,7 @@ function AppRoutes(): JSX.Element {
         <Route path="risque/plan" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskPlanPage /> : <Navigate to="/" replace />} />
         <Route path="risque/acceptations" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskAcceptancesPage /> : <Navigate to="/" replace />} />
         <Route path="risque/revue" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskReviewPage /> : <Navigate to="/" replace />} />
+        <Route path="risque/portefeuille" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') && (hasCapability('supervision') || hasCapability('client_portal')) ? <RiskPortfolioPage /> : <Navigate to="/" replace />} />
         <Route path="politiques" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />
         <Route path="politiques/couverture" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyCoveragePage /> : <Navigate to="/" replace />} />
         <Route path="conformite-continue" element={edLoading ? <FullscreenLoader /> : hasCapability('continuous_compliance') ? <ContinuousCompliancePage /> : <Navigate to="/" replace />} />

@@ -1,0 +1,106 @@
+import { useEffect, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { useSupervisedRisks, type SupervisedRisk, type PortfolioOrg } from './useSupervisedPortfolio'
+import { useSupervisorDirectives } from './useSupervisorDirectives'
+import { useToast } from '../../hooks/useToast'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { AuditedScenarioBowtie, type AuditedScenario } from '../missions/AuditedScenarioBowtie'
+import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS, riskExposure, type ScoreDimensionKey } from '../../lib/constants'
+import type { RiskCatalogEntry } from '../../types/database.types'
+
+const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) => t.value === v)?.label ?? v
+const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
+const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
+const toAudited = (r: SupervisedRisk): AuditedScenario => ({
+  id: r.id, title: r.title, dimension: r.dimension,
+  inherent_likelihood: r.inherent_likelihood, inherent_impact: r.inherent_impact,
+  threat_ref: r.threat_ref, feared_event_ref: r.feared_event_ref,
+  vulnerability: r.vulnerability, asset_name: r.asset_name,
+})
+
+/** Drill-down : registre de risque d'UN assujetti supervisé + demande d'action. */
+export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack: () => void }): JSX.Element {
+  const { rows, loading, reload } = useSupervisedRisks(org.organization_id)
+  const [catalog, setCatalog] = useState<RiskCatalogEntry[]>([])
+  const [selected, setSelected] = useState<SupervisedRisk | null>(null)
+  const [requestFor, setRequestFor] = useState<SupervisedRisk | null>(null)
+  const [desc, setDesc] = useState('')
+  const dir = useSupervisorDirectives()
+  const toast = useToast()
+
+  useEffect(() => {
+    const ac = new AbortController()
+    void (async () => {
+      const { data } = await supabase.from('risk_catalog').select('*').abortSignal(ac.signal)
+      if (!ac.signal.aborted) setCatalog((data ?? []) as RiskCatalogEntry[])
+    })()
+    return () => ac.abort()
+  }, [])
+
+  const submitRequest = async (): Promise<void> => {
+    if (!requestFor || !desc.trim()) return
+    const res = await dir.request(requestFor.id, desc.trim())
+    if (res.ok) { toast.success('Demande envoyée à l\'assujetti'); setRequestFor(null); setDesc(''); reload() }
+    else toast.error('Demande impossible', { description: res.error })
+  }
+
+  return (
+    <div className="space-y-4">
+      <button onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-500 hover:text-gray-800"><ArrowLeft size={15} /> Retour au portefeuille</button>
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">{org.org_name}</h2>
+        <p className="text-[13px] text-gray-500 mt-0.5">{org.sector ?? 'Secteur non renseigné'} · registre de risque de l&apos;assujetti (lecture) ; vous pouvez <b>demander des actions de traitement</b>.</p>
+      </div>
+
+      {requestFor && (
+        <div className="rounded-xl border border-forest-200 bg-forest-50 p-4 space-y-2">
+          <div className="text-[13px] font-semibold text-gray-900">Demander une action · <span className="font-normal">{requestFor.title}</span></div>
+          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder="Action demandée (ex. déployer la MFA sur les comptes admin)" className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px]" />
+          <div className="flex gap-2">
+            <button onClick={() => void submitRequest()} disabled={!desc.trim()} className="px-3 py-1.5 text-[12px] font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">Envoyer la demande</button>
+            <button onClick={() => { setRequestFor(null); setDesc('') }} className="px-3 py-1.5 text-[12px] text-gray-500">Annuler</button>
+          </div>
+        </div>
+      )}
+
+      {loading ? <LoadingSpinner /> : rows.length === 0 ? (
+        <EmptyState title="Aucun risque" description="Cet assujetti n'a pas (encore) de scénario dans son registre." />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+          <table className="w-full text-[13px]">
+            <thead className="bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider text-gray-500">
+              <tr>
+                <th className="text-left px-4 py-3 font-semibold">Scénario</th>
+                <th className="text-left px-4 py-3 font-semibold">Dimension</th>
+                <th className="text-left px-4 py-3 font-semibold">Exposition</th>
+                <th className="text-left px-4 py-3 font-semibold">Cycle de vie</th>
+                <th className="text-left px-4 py-3 font-semibold">Traitement</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {rows.map((r) => {
+                const exp = riskExposure(r.inherent_likelihood, r.inherent_impact)
+                const dimColor = r.dimension ? SCORE_DIMENSION_COLORS[r.dimension as ScoreDimensionKey] : '#94A3B8'
+                return (
+                  <tr key={r.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(r)}>
+                    <td className="px-4 py-3"><span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span>{r.asset_name && <span className="text-gray-400"> · {r.asset_name}</span>}</td>
+                    <td className="px-4 py-3">{r.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[r.dimension as ScoreDimensionKey]}</span>}</td>
+                    <td className="px-4 py-3 font-semibold" style={{ color: expColor(exp) }}>{exp}</td>
+                    <td className="px-4 py-3"><span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(r.lifecycle_status)}</span></td>
+                    <td className="px-4 py-3 text-gray-600">{treatmentLabel(r.treatment)}</td>
+                    <td className="px-4 py-3 text-right"><button onClick={(e) => { e.stopPropagation(); setRequestFor(r) }} className="text-[12px] font-semibold text-forest-700 hover:underline whitespace-nowrap">Demander une action</button></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {selected && <AuditedScenarioBowtie scenario={toAudited(selected)} catalog={catalog} onClose={() => setSelected(null)} />}
+    </div>
+  )
+}
