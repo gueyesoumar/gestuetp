@@ -52,9 +52,12 @@ export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.El
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Nouveau scénario de risque</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <h3 className="font-semibold text-gray-900">Nouveau scénario de risque</h3>
+            <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100 whitespace-nowrap">3 champs suffisent</span>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0"><X size={18} /></button>
         </div>
         <form onSubmit={submit} className="px-5 py-4 space-y-3">
           <p className="text-[12px] text-gray-500">Renseignez l&apos;essentiel maintenant (intitulé, dimension, cotation). Vous pourrez préciser et compléter le scénario plus tard depuis son détail.</p>
@@ -63,17 +66,21 @@ export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.El
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} placeholder="ex. Rançongiciel sur le SI de production" autoFocus />
           </div>
           <ScenarioCoreFields value={fields} onChange={patch} />
-          <div>
-            <label className="block text-[12px] font-medium text-gray-600 mb-1">Traitement</label>
-            <select value={treatment} onChange={(e) => setTreatment(e.target.value as NewScenario['treatment'])} className={field}>
-              {RISK_TREATMENTS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </div>
 
           <button type="button" onClick={() => setShowRefs((v) => !v)} className="flex items-center gap-1.5 text-[12px] font-semibold text-forest-700 hover:text-forest-900">
-            <ChevronDown size={15} className={`transition-transform ${showRefs ? 'rotate-180' : ''}`} /> Préciser maintenant (optionnel)
+            <ChevronDown size={15} className={`transition-transform ${showRefs ? 'rotate-180' : ''}`} /> Champs optionnels (à compléter plus tard)
           </button>
-          {showRefs && <div className="space-y-3 rounded-lg bg-gray-50 p-3"><ScenarioRefFields value={fields} onChange={patch} catalog={catalog} /></div>}
+          {showRefs && (
+            <div className="space-y-3 rounded-lg bg-gray-50 p-3">
+              <div>
+                <label className="block text-[12px] font-medium text-gray-600 mb-1">Traitement <span className="text-gray-400 font-normal">· se décide en phase « Traiter »</span></label>
+                <select value={treatment} onChange={(e) => setTreatment(e.target.value as NewScenario['treatment'])} className={field}>
+                  {RISK_TREATMENTS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <ScenarioRefFields value={fields} onChange={patch} catalog={catalog} />
+            </div>
+          )}
 
           <div className="flex items-center gap-2 text-[11px] text-gray-400">
             <span className="uppercase tracking-wide">Complétude {comp.filled}/{comp.total}</span>
