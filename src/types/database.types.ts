@@ -2414,6 +2414,26 @@ export interface Database {
         Args: { p_control_id: string }
         Returns: { policy_id: string; title: string; status: string; applied: boolean }[]
       }
+      can_supervise_org: {
+        Args: { p_org: string }
+        Returns: boolean
+      }
+      request_risk_treatment: {
+        Args: { p_scenario: string; p_description: string; p_control_id?: string | null; p_due_date?: string | null }
+        Returns: string
+      }
+      verify_risk_treatment: {
+        Args: { p_action: string; p_decision: string }
+        Returns: undefined
+      }
+      get_supervisor_directives: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string; organization_id: string; org_name: string; risk_scenario_id: string
+          scenario_title: string | null; description: string; due_date: string | null
+          status: string; verification_status: string; created_at: string
+        }[]
+      }
       get_audited_org_risks: {
         Args: { p_mission_id: string }
         Returns: {
