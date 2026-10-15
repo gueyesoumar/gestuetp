@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useSupervisedRisks, type SupervisedRisk, type PortfolioOrg } from './useSupervisedPortfolio'
 import { useSupervisorDirectives } from './useSupervisorDirectives'
+import { useVocab } from '../edition/useVocab'
 import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -29,6 +30,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
   const [desc, setDesc] = useState('')
   const dir = useSupervisorDirectives()
   const toast = useToast()
+  const vocab = useVocab()
 
   useEffect(() => {
     const ac = new AbortController()
@@ -42,7 +44,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
   const submitRequest = async (): Promise<void> => {
     if (!requestFor || !desc.trim()) return
     const res = await dir.request(requestFor.id, desc.trim())
-    if (res.ok) { toast.success('Demande envoyée à l\'assujetti'); setRequestFor(null); setDesc(''); reload() }
+    if (res.ok) { toast.success(`Demande envoyée à l'${vocab.entitySingular}`); setRequestFor(null); setDesc(''); reload() }
     else toast.error('Demande impossible', { description: res.error })
   }
 
@@ -51,7 +53,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
       <button onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-500 hover:text-gray-800"><ArrowLeft size={15} /> Retour au portefeuille</button>
       <div>
         <h2 className="text-lg font-semibold text-gray-900">{org.org_name}</h2>
-        <p className="text-[13px] text-gray-500 mt-0.5">{org.sector ?? 'Secteur non renseigné'} · registre de risque de l&apos;assujetti (lecture) ; vous pouvez <b>demander des actions de traitement</b>.</p>
+        <p className="text-[13px] text-gray-500 mt-0.5">{org.sector ?? 'Secteur non renseigné'} · registre de risque de l&apos;{vocab.entitySingular} (lecture) ; vous pouvez <b>demander des actions de traitement</b>.</p>
       </div>
 
       {requestFor && (
@@ -66,7 +68,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
       )}
 
       {loading ? <LoadingSpinner /> : rows.length === 0 ? (
-        <EmptyState title="Aucun risque" description="Cet assujetti n'a pas (encore) de scénario dans son registre." />
+        <EmptyState title="Aucun risque" description={`${vocab.entityWithDem.charAt(0).toUpperCase()}${vocab.entityWithDem.slice(1)} n'a pas (encore) de scénario dans son registre.`} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
           <table className="w-full text-[13px]">

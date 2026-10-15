@@ -5,6 +5,7 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, riskExposure, type ScoreDimensionKey } from '../../lib/constants'
 import { AuditedScenarioBowtie, type AuditedScenario } from './AuditedScenarioBowtie'
 import { useSupervisorDirectives } from '../risk/useSupervisorDirectives'
+import { useVocab } from '../edition/useVocab'
 import { useToast } from '../../hooks/useToast'
 import type { RiskCatalogEntry } from '../../types/database.types'
 
@@ -22,13 +23,14 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
   const [selected, setSelected] = useState<AuditedRisk | null>(null)
   const dir = useSupervisorDirectives()
   const toast = useToast()
+  const vocab = useVocab()
   const [requestFor, setRequestFor] = useState<AuditedRisk | null>(null)
   const [desc, setDesc] = useState('')
 
   const submitRequest = async (): Promise<void> => {
     if (!requestFor || !desc.trim()) return
     const res = await dir.request(requestFor.id, desc.trim())
-    if (res.ok) { toast.success('Demande envoyée à l\'assujetti'); setRequestFor(null); setDesc('') }
+    if (res.ok) { toast.success(`Demande envoyée à l'${vocab.entitySingular}`); setRequestFor(null); setDesc('') }
     else toast.error('Demande impossible', { description: res.error })
   }
 
@@ -54,14 +56,14 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Registre de risque de l&apos;assujetti</h2>
-        <p className="text-[13px] text-gray-500 mt-1">Registre de risque de l&apos;assujetti (lecture) ; vous pouvez <b>demander des actions de traitement</b> et vérifier leur réalisation.</p>
+        <h2 className="text-lg font-semibold text-gray-900">Registre de risque de l&apos;{vocab.entitySingular}</h2>
+        <p className="text-[13px] text-gray-500 mt-1">Registre de risque de l&apos;{vocab.entitySingular} (lecture) ; vous pouvez <b>demander des actions de traitement</b> et vérifier leur réalisation.</p>
       </div>
 
       {requestFor && (
         <div className="rounded-xl border border-forest-200 bg-forest-50 p-4 space-y-2">
           <div className="text-[13px] font-semibold text-gray-900">Demander une action de traitement · <span className="font-normal">{requestFor.title}</span></div>
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder="Action demandée à l'assujetti (ex. déployer la MFA sur les comptes admin)" className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px]" />
+          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder={`Action demandée à l'${vocab.entitySingular} (ex. déployer la MFA sur les comptes admin)`} className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px]" />
           <div className="flex gap-2">
             <button onClick={() => void submitRequest()} disabled={!desc.trim()} className="px-3 py-1.5 text-[12px] font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">Envoyer la demande</button>
             <button onClick={() => { setRequestFor(null); setDesc('') }} className="px-3 py-1.5 text-[12px] text-gray-500">Annuler</button>
@@ -116,10 +118,10 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
             <table className="w-full text-[13px]">
               <thead className="text-[11px] uppercase tracking-wider text-gray-500 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-3 py-2 font-semibold">Assujetti</th>
+                  <th className="text-left px-3 py-2 font-semibold">{vocab.entitiesTitle}</th>
                   <th className="text-left px-3 py-2 font-semibold">Action demandée</th>
                   <th className="text-left px-3 py-2 font-semibold">Échéance</th>
-                  <th className="text-left px-3 py-2 font-semibold">Statut assujetti</th>
+                  <th className="text-left px-3 py-2 font-semibold">Statut {vocab.entitySingular}</th>
                   <th className="text-left px-3 py-2 font-semibold">Vérification</th>
                   <th className="px-3 py-2"></th>
                 </tr>

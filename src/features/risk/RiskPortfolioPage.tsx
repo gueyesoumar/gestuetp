@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Network, Search } from 'lucide-react'
+import { useVocab } from '../edition/useVocab'
 import { useSupervisedPortfolio, type PortfolioOrg } from './useSupervisedPortfolio'
 import { SupervisedOrgRisks } from './SupervisedOrgRisks'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -14,6 +15,7 @@ type SortKey = 'org_name' | 'scenario_count' | 'above_threshold' | 'overdue_revi
 
 /** Vue régulateur/cabinet : portefeuille de risque multi-org, scalable (RFC 0017 Lot C). */
 export function RiskPortfolioPage(): JSX.Element {
+  const vocab = useVocab()
   const { orgs, loading, error } = useSupervisedPortfolio()
   const [selected, setSelected] = useState<PortfolioOrg | null>(null)
   const [q, setQ] = useState('')
@@ -46,15 +48,15 @@ export function RiskPortfolioPage(): JSX.Element {
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><Network size={20} className="text-[#E07A5F]" /> Portefeuille de risque</h1>
-        <p className="mt-1 text-[13px] text-gray-500">Le risque de vos assujettis : suivez, demandez des actions de traitement et vérifiez leur réalisation.</p>
+        <p className="mt-1 text-[13px] text-gray-500">Le risque de vos {vocab.entityPlural} : suivez, demandez des actions de traitement et vérifiez leur réalisation.</p>
       </div>
 
       {orgs.length === 0 ? (
-        <EmptyState title="Aucun assujetti supervisé" description="Vous n'avez pas de mission active vous donnant accès au registre de risque d'une autre organisation." />
+        <EmptyState title={`Aucun ${vocab.entitySingular} supervisé`} description="Vous n'avez pas de mission active vous donnant accès au registre de risque d'une autre organisation." />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <Kpi value={orgs.length} label="Assujettis" />
+            <Kpi value={orgs.length} label={vocab.entitiesTitle} />
             <Kpi value={totals.scenarios} label="Risques" />
             <Kpi value={totals.aboveThreshold} label="Hors seuil" tone={totals.aboveThreshold > 0 ? 'text-red-600' : undefined} />
             <Kpi value={totals.overdue} label="Revues en retard" tone={totals.overdue > 0 ? 'text-red-600' : undefined} />
@@ -69,7 +71,7 @@ export function RiskPortfolioPage(): JSX.Element {
               <DistBar label="Faible (< 30)" count={dist.faible} total={orgs.length} color="#27AE60" />
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-4">
-              <h3 className="text-sm font-bold text-gray-900 mb-2">Assujettis les plus exposés</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-2">{vocab.entitiesTitle} les plus exposés</h3>
               <div className="space-y-1.5">
                 {top5.map((o) => (
                   <button key={o.organization_id} onClick={() => setSelected(o)} className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-[13px] hover:bg-gray-50">
@@ -84,7 +86,7 @@ export function RiskPortfolioPage(): JSX.Element {
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0) }} placeholder="Rechercher un assujetti ou un secteur..." className="w-full pl-9 pr-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
+              <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0) }} placeholder={`Rechercher un ${vocab.entitySingular} ou un secteur...`} className="w-full pl-9 pr-3 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
             </div>
             <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="px-2 py-2 text-[12px] border border-gray-300 rounded-lg">
               <option value="max_exposure">Trier : exposition max</option>
@@ -96,7 +98,7 @@ export function RiskPortfolioPage(): JSX.Element {
             </select>
           </div>
 
-          <PortfolioTable rows={pageRows} onSelect={setSelected} />
+          <PortfolioTable rows={pageRows} onSelect={setSelected} entityLabel={vocab.entitiesTitle} />
 
           {pages > 1 && (
             <div className="flex items-center justify-center gap-3 text-[13px]">
@@ -130,13 +132,13 @@ function DistBar({ label, count, total, color }: { label: string; count: number;
   )
 }
 
-function PortfolioTable({ rows, onSelect }: { rows: PortfolioOrg[]; onSelect: (o: PortfolioOrg) => void }): JSX.Element {
+function PortfolioTable({ rows, onSelect, entityLabel }: { rows: PortfolioOrg[]; onSelect: (o: PortfolioOrg) => void; entityLabel: string }): JSX.Element {
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
       <table className="w-full text-[13px]">
         <thead className="bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider text-gray-500">
           <tr>
-            <th className="text-left px-4 py-3 font-semibold">Assujetti</th>
+            <th className="text-left px-4 py-3 font-semibold">{entityLabel}</th>
             <th className="text-left px-4 py-3 font-semibold">Secteur</th>
             <th className="text-right px-4 py-3 font-semibold">Risques</th>
             <th className="text-right px-4 py-3 font-semibold">Hors seuil</th>
