@@ -4,7 +4,7 @@ import { useRiskRegister, type ScenarioRow } from './useRiskRegister'
 import { useRiskCriteria } from './useRiskCriteria'
 import { useSoA } from './useSoA'
 import { ScenarioFormModal } from './ScenarioFormModal'
-import { ScenarioBowtie } from './ScenarioBowtie'
+import { ScenarioDetail } from './ScenarioDetail'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -21,7 +21,7 @@ export function RiskRegisterPage(): JSX.Element {
   const crit = useRiskCriteria()
   const soa = useSoA()
   const [modal, setModal] = useState(false)
-  const [bowtie, setBowtie] = useState<ScenarioRow | null>(null)
+  const [detail, setDetail] = useState<ScenarioRow | null>(null)
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />
@@ -78,7 +78,7 @@ export function RiskRegisterPage(): JSX.Element {
               {reg.scenarios.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <button onClick={() => setBowtie(s)} className="font-medium text-gray-900 hover:text-[#B34A31] text-left">{s.title}</button>
+                    <button onClick={() => setDetail(s)} className="font-medium text-gray-900 hover:text-[#B34A31] text-left">{s.title}</button>
                     {s.asset_name && <span className="text-gray-400"> · {s.asset_name}</span>}
                   </td>
                   <td className="px-4 py-3">
@@ -102,7 +102,7 @@ export function RiskRegisterPage(): JSX.Element {
       )}
 
       {modal && <ScenarioFormModal catalog={reg.catalog} onClose={() => setModal(false)} onCreate={reg.createScenario} />}
-      {bowtie && <ScenarioBowtie scenario={bowtie} catalog={reg.catalog} onClose={() => setBowtie(null)} />}
+      {detail && <ScenarioDetail scenario={detail} catalog={reg.catalog} onClose={() => setDetail(null)} />}
     </div>
   )
 }

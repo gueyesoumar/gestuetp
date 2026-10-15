@@ -1,14 +1,11 @@
 import { useState } from 'react'
-import { X, ArrowRight, Shield, Plus, Trash2, AlertTriangle, FileText } from 'lucide-react'
-import { useScenarioControls, type ControlOption, type BarrierControl } from './useScenarioControls'
-import { ScenarioActionsSection } from './ScenarioActionsSection'
-import { ScenarioAcceptanceCard } from './ScenarioAcceptanceCard'
-import { ScenarioReviewSection } from './ScenarioReviewSection'
-import { useScenarioIncidents, type IncidentOption, type ScenarioIncident } from './useScenarioIncidents'
-import { useScenarioPolicies, type PolicyOption, type PolicyBarrier, type BarrierKind } from '../policy/useScenarioPolicies'
+import { ArrowRight, Shield, Plus, Trash2, AlertTriangle, FileText } from 'lucide-react'
+import type { useScenarioControls, ControlOption, BarrierControl } from './useScenarioControls'
+import type { useScenarioIncidents, IncidentOption, ScenarioIncident } from './useScenarioIncidents'
+import type { useScenarioPolicies, PolicyOption, PolicyBarrier, BarrierKind } from '../policy/useScenarioPolicies'
+import type { BowtieModel } from './scenarioBowtieModel'
 import {
-  SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_CONTROL_LINK_KINDS,
-  barrierSide, splitBarrierEfficacies, riskResidualSplit, riskExposure,
+  SCORE_DIMENSION_COLORS, RISK_CONTROL_LINK_KINDS, barrierSide,
 } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
@@ -18,124 +15,112 @@ const pct = (v: number): number => Math.round(v * 100)
 const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 const SEV_COLOR: Record<string, string> = { critique: '#C0392B', eleve: '#B8860B', moyen: '#3B82F6', faible: '#6B7280' }
 
-/** Nœud papillon EBIOS : menace → [barrières] → scénario/actif → événement redouté. */
-export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: ScenarioRow; catalog: RiskCatalogEntry[]; onClose: () => void }): JSX.Element {
-  const { barriers, search, link, unlink, setJustification } = useScenarioControls(scenario.id)
-  const { incidents, bump, search: searchInc, link: linkInc, unlink: unlinkInc } = useScenarioIncidents(scenario.id, scenario.dimension)
-  const pol = useScenarioPolicies(scenario.id)
+interface Props {
+  scenario: ScenarioRow
+  catalog: RiskCatalogEntry[]
+  model: BowtieModel
+  ctrl: ReturnType<typeof useScenarioControls>
+  inc: ReturnType<typeof useScenarioIncidents>
+  pol: ReturnType<typeof useScenarioPolicies>
+}
+
+/** Onglet « Apprécier » : nœud papillon EBIOS + barrières (contrôles + politiques) + incidents. */
+export function ScenarioAppreciationTab({ scenario, catalog, model, ctrl, inc, pol }: Props): JSX.Element {
+  const { barriers, search, link, unlink, setJustification } = ctrl
+  const { incidents, bump, search: searchInc, link: linkInc, unlink: unlinkInc } = inc
+  const { effPrev, effCorr, hasBarriers, inherentExp, residual } = model
   const label = (id: string | null): string | null => id ? (catalog.find((c) => c.id === id)?.label ?? null) : null
   const dimColor = scenario.dimension ? SCORE_DIMENSION_COLORS[scenario.dimension] : '#94A3B8'
-  // Vraisemblance effective = inhérente + aggravation incidents (plafond 4).
-  const effL = Math.min(4, scenario.inherent_likelihood + bump)
-  const inherentExp = riskExposure(effL, scenario.inherent_impact)
-  // Barrières : contrôles Comply + politiques ; préventives ↓ vraisemblance, correctives ↓ impact.
-  const { effPrev, effCorr } = splitBarrierEfficacies([...barriers, ...pol.barriers])
-  const hasBarriers = barriers.length + pol.barriers.length > 0
-  const residual = hasBarriers ? riskResidualSplit(effL, scenario.inherent_impact, effPrev, effCorr) : inherentExp
   const prev = barriers.filter((b) => barrierSide(b.kind) === 'likelihood')
   const corr = barriers.filter((b) => barrierSide(b.kind) === 'impact')
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <div>
-            <h3 className="font-semibold text-gray-900">{scenario.title}</h3>
-            {scenario.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[scenario.dimension]}</span>}
+    <div>
+      {/* Nœud papillon (diagramme actuel ; refonte lisible 5 zones = Lot E) */}
+      <div className="px-5 py-5 grid grid-cols-[1fr_auto_1.2fr_auto_1fr] gap-3 items-center">
+        <BowtieCard title="Menace" tone="red" main={label(scenario.threat_ref) ?? 'Non précisée'} sub={label(scenario.source_ref) ?? undefined} />
+        <ArrowRight size={18} className="text-gray-300 mx-auto" />
+        <div className="rounded-xl border-2 p-3 text-center" style={{ borderColor: dimColor }}>
+          <div className="text-[10px] font-mono uppercase tracking-wide text-gray-400">Scénario</div>
+          <div className="text-[13px] font-bold text-gray-900 mt-1">{scenario.title}</div>
+          {scenario.asset_name && <div className="text-[11px] text-gray-500 mt-0.5">Actif&nbsp;: {scenario.asset_name}</div>}
+          {scenario.vulnerability && <div className="text-[11px] text-gray-400 mt-0.5 italic">« {scenario.vulnerability} »</div>}
+          <div className="mt-2 text-[10px] font-mono text-gray-400">
+            V{scenario.inherent_likelihood}{bump > 0 && <b style={{ color: '#C0392B' }}>+{bump}</b>}·I{scenario.inherent_impact}
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-        </div>
-
-        {/* Bowtie */}
-        <div className="px-5 py-5 grid grid-cols-[1fr_auto_1.2fr_auto_1fr] gap-3 items-center">
-          <BowtieCard title="Menace" tone="red" main={label(scenario.threat_ref) ?? 'Non précisée'} sub={label(scenario.source_ref) ?? undefined} />
-          <ArrowRight size={18} className="text-gray-300 mx-auto" />
-          <div className="rounded-xl border-2 p-3 text-center" style={{ borderColor: dimColor }}>
-            <div className="text-[10px] font-mono uppercase tracking-wide text-gray-400">Scénario</div>
-            <div className="text-[13px] font-bold text-gray-900 mt-1">{scenario.title}</div>
-            {scenario.asset_name && <div className="text-[11px] text-gray-500 mt-0.5">Actif&nbsp;: {scenario.asset_name}</div>}
-            {scenario.vulnerability && <div className="text-[11px] text-gray-400 mt-0.5 italic">« {scenario.vulnerability} »</div>}
-            <div className="mt-2 text-[10px] font-mono text-gray-400">
-              V{scenario.inherent_likelihood}{bump > 0 && <b style={{ color: '#C0392B' }}>+{bump}</b>}·I{scenario.inherent_impact}
+          <div className="mt-1.5 flex items-center justify-center gap-1.5 text-[10px] font-mono">
+            <span className="text-gray-400">inhérent <b style={{ color: expColor(inherentExp) }}>{inherentExp}</b></span>
+            {hasBarriers && <span className="text-gray-300">→</span>}
+            {hasBarriers && <span className="text-gray-400">résiduel <b style={{ color: expColor(residual) }}>{residual}</b></span>}
+          </div>
+          {bump > 0 && <div className="mt-1 text-[9.5px] text-[#C0392B]">vraisemblance aggravée par incident (+{bump})</div>}
+          {hasBarriers && (
+            <div className="mt-1 text-[9.5px] text-forest-700 space-y-0.5">
+              <div>préventif <b>{effPrev == null ? '-' : `${pct(effPrev)}%`}</b> · ↓ vraisemblance</div>
+              <div>correctif <b>{effCorr == null ? '-' : `${pct(effCorr)}%`}</b> · ↓ impact</div>
             </div>
-            <div className="mt-1.5 flex items-center justify-center gap-1.5 text-[10px] font-mono">
-              <span className="text-gray-400">inhérent <b style={{ color: expColor(inherentExp) }}>{inherentExp}</b></span>
-              {hasBarriers && <span className="text-gray-300">→</span>}
-              {hasBarriers && <span className="text-gray-400">résiduel <b style={{ color: expColor(residual) }}>{residual}</b></span>}
+          )}
+        </div>
+        <ArrowRight size={18} className="text-gray-300 mx-auto" />
+        <BowtieCard title="Événement redouté" tone="amber" main={label(scenario.feared_event_ref) ?? 'Non précisé'} />
+      </div>
+
+      {/* Barrières (contrôles Comply) */}
+      <div className="px-5 pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Shield size={14} className="text-forest-700" />
+          <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Barrières (contrôles Comply)</h4>
+        </div>
+        {!hasBarriers
+          ? <p className="text-[12px] text-gray-400 mb-3">Aucun contrôle-barrière lié. Reliez les contrôles qui maîtrisent ce risque.</p>
+          : (
+            <div className="space-y-2 mb-3">
+              <BarrierGroup title="Préventives · ↓ vraisemblance" items={prev} onUnlink={unlink} onSetJustification={setJustification} />
+              <BarrierGroup title="Correctives / détectives · ↓ impact" items={corr} onUnlink={unlink} onSetJustification={setJustification} />
             </div>
-            {bump > 0 && <div className="mt-1 text-[9.5px] text-[#C0392B]">vraisemblance aggravée par incident (+{bump})</div>}
-            {hasBarriers && (
-              <div className="mt-1 text-[9.5px] text-forest-700 space-y-0.5">
-                <div>préventif <b>{effPrev == null ? '-' : `${pct(effPrev)}%`}</b> · ↓ vraisemblance</div>
-                <div>correctif <b>{effCorr == null ? '-' : `${pct(effCorr)}%`}</b> · ↓ impact</div>
-              </div>
-            )}
-          </div>
-          <ArrowRight size={18} className="text-gray-300 mx-auto" />
-          <BowtieCard title="Événement redouté" tone="amber" main={label(scenario.feared_event_ref) ?? 'Non précisé'} />
-        </div>
+          )}
+        <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel : c&apos;est ce lien qui fait vivre le score de confiance.</p>
+        <ControlLinker existing={barriers} onSearch={search} onLink={link} />
+      </div>
 
-        {/* Barrières */}
-        <div className="px-5 pb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield size={14} className="text-forest-700" />
-            <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Barrières (contrôles Comply)</h4>
-          </div>
-          {!hasBarriers
-            ? <p className="text-[12px] text-gray-400 mb-3">Aucun contrôle-barrière lié. Reliez les contrôles qui maîtrisent ce risque.</p>
-            : (
-              <div className="space-y-2 mb-3">
-                <BarrierGroup title="Préventives · ↓ vraisemblance" items={prev} onUnlink={unlink} onSetJustification={setJustification} />
-                <BarrierGroup title="Correctives / détectives · ↓ impact" items={corr} onUnlink={unlink} onSetJustification={setJustification} />
-              </div>
-            )}
-          <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel : c&apos;est ce lien qui fait vivre le score de confiance.</p>
-          <ControlLinker existing={barriers} onSearch={search} onLink={link} />
+      {/* Politiques-barrières (Gëstu Policy) */}
+      <div className="px-5 pb-4 border-t border-gray-100 pt-4">
+        <div className="flex items-center gap-2 mb-2">
+          <FileText size={14} className="text-[#6D5AE6]" />
+          <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Politiques (barrières)</h4>
         </div>
+        {pol.barriers.length === 0
+          ? <p className="text-[12px] text-gray-400 mb-3">Aucune politique-barrière. Une politique <b>appliquée</b> réduit ce risque.</p>
+          : (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {pol.barriers.map((b) => (
+                <span key={b.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-[#6D5AE6]/30 bg-[#6D5AE6]/[0.07] px-2.5 py-1 text-[11px]">
+                  <span className="text-gray-700 max-w-[150px] truncate">{b.title}</span>
+                  <span className="text-gray-500">· {kindLabel(b.kind)}</span>
+                  <span className="font-semibold" style={{ color: expColor(100 - pct(b.effectiveness)) }}>{pct(b.effectiveness)}%</span>
+                  <button onClick={() => void pol.unlink(b.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
+                </span>
+              ))}
+            </div>
+          )}
+        <PolicyBarrierLinker existing={pol.barriers} onSearch={pol.search} onLink={pol.link} />
+      </div>
 
-        {/* Politiques-barrières (Gëstu Policy) */}
-        <div className="px-5 pb-4 border-t border-gray-100 pt-4">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText size={14} className="text-[#6D5AE6]" />
-            <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Politiques (barrières)</h4>
-          </div>
-          {pol.barriers.length === 0
-            ? <p className="text-[12px] text-gray-400 mb-3">Aucune politique-barrière. Une politique <b>appliquée</b> réduit ce risque.</p>
-            : (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {pol.barriers.map((b) => (
-                  <span key={b.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-[#6D5AE6]/30 bg-[#6D5AE6]/[0.07] px-2.5 py-1 text-[11px]">
-                    <span className="text-gray-700 max-w-[150px] truncate">{b.title}</span>
-                    <span className="text-gray-500">· {kindLabel(b.kind)}</span>
-                    <span className="font-semibold" style={{ color: expColor(100 - pct(b.effectiveness)) }}>{pct(b.effectiveness)}%</span>
-                    <button onClick={() => void pol.unlink(b.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
-                  </span>
-                ))}
-              </div>
-            )}
-          <PolicyBarrierLinker existing={pol.barriers} onSearch={pol.search} onLink={pol.link} />
+      {/* Incidents (Regul → aggravation vraisemblance) */}
+      <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertTriangle size={14} className="text-[#C0392B]" />
+          <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Incidents (aggravation de la vraisemblance)</h4>
         </div>
-
-        {/* Incidents (Regul → aggravation vraisemblance) */}
-        <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle size={14} className="text-[#C0392B]" />
-            <h4 className="text-[12px] font-bold uppercase tracking-wide text-gray-500">Incidents (aggravation de la vraisemblance)</h4>
-          </div>
-          {incidents.length === 0
-            ? <p className="text-[12px] text-gray-400 mb-3">Aucun incident récent n&apos;aggrave ce scénario.</p>
-            : (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {incidents.map((i) => <IncidentChip key={i.id} inc={i} onUnlink={unlinkInc} />)}
-              </div>
-            )}
-          <p className="text-[11px] text-gray-400 mb-2">Un incident de la dimension aggrave <b>automatiquement</b> la vraisemblance ; liez-en un explicitement pour cibler ce scénario précis.</p>
-          <IncidentLinker onSearch={searchInc} onLink={linkInc} existing={incidents} />
-        </div>
-
-        <ScenarioActionsSection scenarioId={scenario.id} />
-        <ScenarioAcceptanceCard scenarioId={scenario.id} residual={residual} />
-        <ScenarioReviewSection scenarioId={scenario.id} residual={residual} inherent={inherentExp} nextReviewAt={scenario.next_review_at} />
+        {incidents.length === 0
+          ? <p className="text-[12px] text-gray-400 mb-3">Aucun incident récent n&apos;aggrave ce scénario.</p>
+          : (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {incidents.map((i) => <IncidentChip key={i.id} inc={i} onUnlink={unlinkInc} />)}
+            </div>
+          )}
+        <p className="text-[11px] text-gray-400 mb-2">Un incident de la dimension aggrave <b>automatiquement</b> la vraisemblance ; liez-en un explicitement pour cibler ce scénario précis.</p>
+        <IncidentLinker onSearch={searchInc} onLink={linkInc} existing={incidents} />
       </div>
     </div>
   )
