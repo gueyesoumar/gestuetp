@@ -2603,6 +2603,9 @@ export interface RiskScenario {
   treatment: 'accept' | 'reduce' | 'transfer' | 'avoid' | 'untreated'
   treatment_status: 'open' | 'in_progress' | 'done'
   lifecycle_status: RiskLifecycleStatus
+  review_frequency_months: number | null
+  last_reviewed_at: string | null
+  next_review_at: string | null
   owner_user_id: string | null
   due_date: string | null
   source_mission_id: string | null
@@ -2682,6 +2685,22 @@ export interface RiskAcceptance {
   created_by: string | null
   created_at: string
   updated_at: string
+}
+
+// RFC 0017 Lot 4 : revue périodique d'un scénario de risque.
+export type RiskReviewDecision = 'maintain' | 'retreat' | 'accept' | 'close' | 'reopen'
+
+export interface RiskReview {
+  id: string
+  organization_id: string
+  risk_scenario_id: string
+  reviewed_by: string | null
+  reviewed_at: string
+  decision: RiskReviewDecision
+  inherent_level: number | null
+  residual_level: number | null
+  notes: string | null
+  created_at: string
 }
 
 export type IncidentCategory = 'intrusion' | 'ransomware' | 'fuite_donnees' | 'deni_service' | 'autre'

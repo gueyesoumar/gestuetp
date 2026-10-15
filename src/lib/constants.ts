@@ -508,6 +508,15 @@ export const RISK_ACTION_STATUS = [
   { value: 'cancelled', label: 'Annulé' },
 ] as const
 
+// RFC 0017 Lot 4 - décisions de revue périodique.
+export const RISK_REVIEW_DECISIONS = [
+  { value: 'maintain', label: 'Maintenir' },
+  { value: 'retreat', label: 'Re-traiter' },
+  { value: 'accept', label: 'Accepter' },
+  { value: 'close', label: 'Clôturer' },
+  { value: 'reopen', label: 'Rouvrir' },
+] as const
+
 // ---- Boucle Regul → Risk : un incident aggrave la vraisemblance ----
 // Mapping nature d'incident → dimension du score (ajustable). 'autre' = neutre.
 export const INCIDENT_CATEGORY_DIMENSION: Record<string, ScoreDimensionKey | null> = {

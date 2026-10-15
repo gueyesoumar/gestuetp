@@ -21,6 +21,8 @@ export interface ScenarioRow {
   treatment: 'accept' | 'reduce' | 'transfer' | 'avoid' | 'untreated'
   treatment_status: 'open' | 'in_progress' | 'done'
   lifecycle_status: RiskLifecycleStatus
+  next_review_at: string | null
+  last_reviewed_at: string | null
   /** Exposition inhérente 0..100 (dérivée de la cotation 4×4). */
   exposure: number
 }
@@ -69,7 +71,7 @@ export function useRiskRegister(): RegisterData {
     void (async () => {
       const [{ data: sc, error: sErr }, { data: cat }, { data: ast }] = await Promise.all([
         supabase.from('risk_scenarios')
-          .select('id, title, description, dimension, asset_id, threat_ref, feared_event_ref, source_ref, vulnerability, inherent_likelihood, inherent_impact, treatment, treatment_status, lifecycle_status, asset:risk_assets(name)')
+          .select('id, title, description, dimension, asset_id, threat_ref, feared_event_ref, source_ref, vulnerability, inherent_likelihood, inherent_impact, treatment, treatment_status, lifecycle_status, next_review_at, last_reviewed_at, asset:risk_assets(name)')
           .eq('organization_id', orgId).or(demoLensFilter(lensOn, uid))
           .order('created_at', { ascending: false }).abortSignal(ac.signal),
         supabase.from('risk_catalog').select('*').order('code').abortSignal(ac.signal),
