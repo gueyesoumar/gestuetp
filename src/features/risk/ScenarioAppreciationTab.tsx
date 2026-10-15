@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { ArrowRight, Shield, Plus, Trash2, AlertTriangle, FileText } from 'lucide-react'
+import { Shield, Plus, Trash2, AlertTriangle, FileText } from 'lucide-react'
 import type { useScenarioControls, ControlOption, BarrierControl } from './useScenarioControls'
 import type { useScenarioIncidents, IncidentOption, ScenarioIncident } from './useScenarioIncidents'
 import type { useScenarioPolicies, PolicyOption, PolicyBarrier, BarrierKind } from '../policy/useScenarioPolicies'
 import type { BowtieModel } from './scenarioBowtieModel'
-import {
-  SCORE_DIMENSION_COLORS, RISK_CONTROL_LINK_KINDS, barrierSide,
-} from '../../lib/constants'
+import { ScenarioBowtieDiagram } from './ScenarioBowtieDiagram'
+import { RISK_CONTROL_LINK_KINDS, barrierSide } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
 
@@ -28,42 +27,14 @@ interface Props {
 export function ScenarioAppreciationTab({ scenario, catalog, model, ctrl, inc, pol }: Props): JSX.Element {
   const { barriers, search, link, unlink, setJustification } = ctrl
   const { incidents, bump, search: searchInc, link: linkInc, unlink: unlinkInc } = inc
-  const { effPrev, effCorr, hasBarriers, inherentExp, residual } = model
-  const label = (id: string | null): string | null => id ? (catalog.find((c) => c.id === id)?.label ?? null) : null
-  const dimColor = scenario.dimension ? SCORE_DIMENSION_COLORS[scenario.dimension] : '#94A3B8'
+  const { hasBarriers } = model
   const prev = barriers.filter((b) => barrierSide(b.kind) === 'likelihood')
   const corr = barriers.filter((b) => barrierSide(b.kind) === 'impact')
 
   return (
     <div>
-      {/* Nœud papillon (diagramme actuel ; refonte lisible 5 zones = Lot E) */}
-      <div className="px-5 py-5 grid grid-cols-[1fr_auto_1.2fr_auto_1fr] gap-3 items-center">
-        <BowtieCard title="Menace" tone="red" main={label(scenario.threat_ref) ?? 'Non précisée'} sub={label(scenario.source_ref) ?? undefined} />
-        <ArrowRight size={18} className="text-gray-300 mx-auto" />
-        <div className="rounded-xl border-2 p-3 text-center" style={{ borderColor: dimColor }}>
-          <div className="text-[10px] font-mono uppercase tracking-wide text-gray-400">Scénario</div>
-          <div className="text-[13px] font-bold text-gray-900 mt-1">{scenario.title}</div>
-          {scenario.asset_name && <div className="text-[11px] text-gray-500 mt-0.5">Actif&nbsp;: {scenario.asset_name}</div>}
-          {scenario.vulnerability && <div className="text-[11px] text-gray-400 mt-0.5 italic">« {scenario.vulnerability} »</div>}
-          <div className="mt-2 text-[10px] font-mono text-gray-400">
-            V{scenario.inherent_likelihood}{bump > 0 && <b style={{ color: '#C0392B' }}>+{bump}</b>}·I{scenario.inherent_impact}
-          </div>
-          <div className="mt-1.5 flex items-center justify-center gap-1.5 text-[10px] font-mono">
-            <span className="text-gray-400">inhérent <b style={{ color: expColor(inherentExp) }}>{inherentExp}</b></span>
-            {hasBarriers && <span className="text-gray-300">→</span>}
-            {hasBarriers && <span className="text-gray-400">résiduel <b style={{ color: expColor(residual) }}>{residual}</b></span>}
-          </div>
-          {bump > 0 && <div className="mt-1 text-[9.5px] text-[#C0392B]">vraisemblance aggravée par incident (+{bump})</div>}
-          {hasBarriers && (
-            <div className="mt-1 text-[9.5px] text-forest-700 space-y-0.5">
-              <div>préventif <b>{effPrev == null ? '-' : `${pct(effPrev)}%`}</b> · ↓ vraisemblance</div>
-              <div>correctif <b>{effCorr == null ? '-' : `${pct(effCorr)}%`}</b> · ↓ impact</div>
-            </div>
-          )}
-        </div>
-        <ArrowRight size={18} className="text-gray-300 mx-auto" />
-        <BowtieCard title="Événement redouté" tone="amber" main={label(scenario.feared_event_ref) ?? 'Non précisé'} />
-      </div>
+      {/* Nœud papillon lisible 5 zones (Lot E) */}
+      <ScenarioBowtieDiagram scenario={scenario} catalog={catalog} model={model} bump={bump} barriers={barriers} policyBarriers={pol.barriers} />
 
       {/* Barrières (contrôles Comply) */}
       <div className="px-5 pb-4">
@@ -192,17 +163,6 @@ function BarrierGroup({ title, items, onUnlink, onSetJustification }: { title: s
           </div>
         ))}
       </div>
-    </div>
-  )
-}
-
-function BowtieCard({ title, main, sub, tone }: { title: string; main: string; sub?: string; tone: 'red' | 'amber' }): JSX.Element {
-  const c = tone === 'red' ? { bg: 'bg-red-50', bd: 'border-red-100', t: 'text-red-700' } : { bg: 'bg-amber-50', bd: 'border-amber-100', t: 'text-amber-700' }
-  return (
-    <div className={`rounded-xl border ${c.bd} ${c.bg} p-3 text-center`}>
-      <div className={`text-[10px] font-mono uppercase tracking-wide ${c.t}`}>{title}</div>
-      <div className="text-[12.5px] font-semibold text-gray-800 mt-1">{main}</div>
-      {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
     </div>
   )
 }
