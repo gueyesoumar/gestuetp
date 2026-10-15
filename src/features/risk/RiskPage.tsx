@@ -99,7 +99,7 @@ export function RiskPage(): JSX.Element {
           <AlertLink to="/risque/plan" label="Actions en retard" count={overdueActions} />
         </div>
       </div>
-      <RiskSimulator score={score} />
+      <RiskSimulator scenarios={reg.scenarios} threshold={crit.acceptanceThreshold} />
 
       {/* 3 - Surveiller : revoir, historiser, alerter */}
       <RiskPhaseBand phase="surveiller" />

@@ -1,87 +1,98 @@
 import { useMemo, useState } from 'react'
-import { Sparkles } from 'lucide-react'
-import { RISK_MASTERY_WEIGHT, SCORE_COEFFICIENT_FLOOR } from '../../lib/constants'
-import type { SelfDimensionData } from '../hub/useSelfDimensionScores'
+import { Sparkles, Plus } from 'lucide-react'
+import { RISK_TREATMENT_LEVERS, riskExposure } from '../../lib/constants'
+import { useToast } from '../../hooks/useToast'
+import { useRiskTreatmentActions } from './useRiskTreatment'
+import type { ScenarioRow } from './useRiskRegister'
 
-const CIRC = 2 * Math.PI * 46
-const band = (v: number): [string, string] => v >= 80 ? ['Solide', '#27AE60'] : v >= 60 ? ['À surveiller', '#D4A843'] : ['À risque', '#C0392B']
+const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 
 /**
- * Simulateur « et si » : un curseur de couverture de traitement recalcule, en
- * temps réel et 100% côté client, la maîtrise du risque et le score de confiance.
- * Rend visible le lien risque → confiance. Aucune écriture.
+ * Simulateur « et si » (RFC 0017 Lot D) : ancré sur un scénario, on coche des
+ * leviers de traitement concrets et on voit l'exposition projetée face au seuil
+ * d'acceptation, puis on les ajoute au plan. Projection indicative (100% client).
  */
-export function RiskSimulator({ score }: { score: SelfDimensionData }): JSX.Element {
-  const [cov, setCov] = useState(0)
+export function RiskSimulator({ scenarios, threshold }: { scenarios: ScenarioRow[]; threshold: number }): JSX.Element {
+  const toast = useToast()
+  const sorted = useMemo(() => [...scenarios].sort((a, b) => b.exposure - a.exposure), [scenarios])
+  const [id, setId] = useState<string>(() => sorted[0]?.id ?? '')
+  const [checked, setChecked] = useState<Set<string>>(new Set())
+  const [busy, setBusy] = useState(false)
+  const scenario = sorted.find((s) => s.id === id) ?? sorted[0]
+  const { createAction } = useRiskTreatmentActions(scenario?.id ?? null)
 
-  const baseResiduals = useMemo(
-    () => Object.values(score.residualByDim).map((r) => r?.residual ?? 0).filter((v) => v > 0),
-    [score.residualByDim],
-  )
-  const t = cov / 100
-  const hasRisk = baseResiduals.length > 0
-  const simResidual = baseResiduals.map((r) => r * (1 - t))
-  const avgResidual = simResidual.length ? Math.round(simResidual.reduce((s, x) => s + x, 0) / simResidual.length) : 0
-  const simMastery = hasRisk ? Math.max(0, 100 - avgResidual) : null
-  const penaltyFrac = simMastery === null ? 0 : RISK_MASTERY_WEIGHT * (1 - simMastery / 100)
-  const simComposite = score.compositePosture === null
-    ? null
-    : Math.round(score.compositePosture * Math.max(SCORE_COEFFICIENT_FLOOR, score.coefficientBase * (1 - penaltyFrac)))
+  if (!scenario) {
+    return (
+      <div className="rounded-xl border border-[#E07A5F]/30 bg-white p-5">
+        <div className="flex items-center gap-2 mb-1"><Sparkles size={16} className="text-[#E07A5F]" /><h3 className="text-sm font-bold text-gray-900">Simulateur « et si »</h3></div>
+        <p className="text-[13px] text-gray-400 py-6 text-center">Ajoutez des scénarios cotés pour activer le simulateur.</p>
+      </div>
+    )
+  }
 
-  // Le cadran montre le composite si une posture existe, sinon la maîtrise du risque.
-  const dialVal = simComposite ?? simMastery ?? 0
-  const dialLabel = simComposite !== null ? 'confiance' : 'maîtrise'
-  const [bl, bc] = band(dialVal)
+  const toggle = (lid: string): void => setChecked((prev) => { const n = new Set(prev); n.has(lid) ? n.delete(lid) : n.add(lid); return n })
+  const dL = RISK_TREATMENT_LEVERS.filter((l) => checked.has(l.id) && l.axis === 'likelihood').length
+  const dI = RISK_TREATMENT_LEVERS.filter((l) => checked.has(l.id) && l.axis === 'impact').length
+  const projL = Math.max(1, scenario.inherent_likelihood - dL)
+  const projI = Math.max(1, scenario.inherent_impact - dI)
+  const projExp = riskExposure(projL, projI)
+  const underThreshold = projExp <= threshold
 
-  const gain = simComposite !== null && score.composite !== null ? simComposite - score.composite : null
+  const addToPlan = async (): Promise<void> => {
+    const levers = RISK_TREATMENT_LEVERS.filter((l) => checked.has(l.id))
+    if (levers.length === 0) return
+    setBusy(true)
+    const results = await Promise.all(levers.map((l) => createAction({ description: l.label, option: l.option })))
+    setBusy(false)
+    if (results.every(Boolean)) { toast.success(`${levers.length} action(s) ajoutée(s) au plan`); setChecked(new Set()) }
+    else toast.error('Ajout au plan partiel ou impossible')
+  }
 
   return (
     <div className="rounded-xl border border-[#E07A5F]/30 bg-white p-5" style={{ backgroundImage: 'radial-gradient(360px 160px at 90% -20%, rgba(224,122,95,.10), transparent 60%)' }}>
-      <div className="flex items-center gap-2 mb-1">
-        <Sparkles size={16} className="text-[#E07A5F]" />
-        <h3 className="text-sm font-bold text-gray-900">Simulateur « et si »</h3>
+      <div className="flex items-center gap-2 mb-1"><Sparkles size={16} className="text-[#E07A5F]" /><h3 className="text-sm font-bold text-gray-900">Simulateur « et si »</h3></div>
+      <p className="text-[11px] text-gray-400 mb-4">Cochez des actions de traitement et visualisez l&apos;exposition projetée face au seuil. Projection indicative.</p>
+
+      <label className="block text-[12px] font-medium text-gray-600 mb-1">Scénario</label>
+      <select value={scenario.id} onChange={(e) => { setId(e.target.value); setChecked(new Set()) }} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700 mb-4">
+        {sorted.map((s) => <option key={s.id} value={s.id}>{s.title} (expo {s.exposure})</option>)}
+      </select>
+
+      {/* Avant -> après vs seuil */}
+      <div className="rounded-lg bg-gray-50 p-3 mb-4">
+        <div className="flex items-center justify-between text-[12px] mb-2">
+          <span className="text-gray-500">Exposition</span>
+          <span className="font-mono">
+            <b style={{ color: expColor(scenario.exposure) }}>{scenario.exposure}</b>
+            <span className="text-gray-300"> &rarr; </span>
+            <b style={{ color: expColor(projExp) }}>{projExp}</b>
+            <span className="text-gray-400"> (seuil {threshold})</span>
+          </span>
+        </div>
+        <div className="relative h-2 rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${projExp}%`, background: underThreshold ? '#27AE60' : 'linear-gradient(90deg,#B34A31,#E07A5F)', transition: 'width .15s ease' }} />
+          <div className="absolute top-0 bottom-0 w-[2px] bg-gray-800/70" style={{ left: `${threshold}%` }} title={`Seuil d'acceptation ${threshold}`} />
+        </div>
+        <p className="text-[11.5px] mt-2" style={{ color: underThreshold ? '#1B7A43' : '#B34A31' }}>
+          {underThreshold ? 'Exposition projetée sous le seuil d\'acceptation.' : 'Exposition projetée encore au-dessus du seuil.'}
+        </p>
       </div>
-      <p className="text-[11px] text-gray-400 mb-4">Traitez les risques prioritaires et observez la confiance réagir.</p>
 
-      {!hasRisk ? (
-        <p className="text-[13px] text-gray-400 py-6 text-center">Ajoutez des scénarios cotés pour activer le simulateur.</p>
-      ) : (
-        <>
-          <div className="flex items-center gap-5">
-            <div className="relative w-[120px] h-[120px] shrink-0">
-              <svg viewBox="0 0 120 120" width="120" height="120">
-                <circle cx="60" cy="60" r="46" fill="none" stroke="#EEF0EF" strokeWidth="9" />
-                <circle cx="60" cy="60" r="46" fill="none" stroke={bc} strokeWidth="9" strokeLinecap="round"
-                  strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - dialVal / 100)} transform="rotate(-90 60 60)"
-                  style={{ transition: 'stroke-dashoffset .15s ease, stroke .15s ease' }} />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-extrabold text-gray-900 tabular-nums">{dialVal}</span>
-                <span className="text-[9px] text-gray-400">/ 100 · {dialLabel}</span>
-                <span className="text-[10px] font-bold mt-0.5" style={{ color: bc }}>{bl}</span>
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between text-[10px] font-mono uppercase tracking-wide text-gray-400 mb-1">
-                <span>Exposition résiduelle moy.</span><span>{avgResidual}</span>
-              </div>
-              <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${avgResidual}%`, background: 'linear-gradient(90deg,#B34A31,#E07A5F)', transition: 'width .15s ease' }} />
-              </div>
-              <p className="text-[12.5px] text-gray-600 mt-3 leading-snug">
-                {simComposite !== null && gain !== null
-                  ? <>À {cov}% de traitement, la confiance passe de <b>{score.composite}</b> à <b style={{ color: '#B34A31' }}>{simComposite}</b> (<b>{gain >= 0 ? '+' : ''}{gain} pts</b>).</>
-                  : <>À {cov}% de traitement, la maîtrise du risque atteint <b style={{ color: '#B34A31' }}>{simMastery}/100</b>.</>}
-              </p>
-            </div>
-          </div>
+      {/* Leviers concrets */}
+      <div className="space-y-1.5 mb-4">
+        {RISK_TREATMENT_LEVERS.map((l) => (
+          <label key={l.id} className="flex items-center gap-2.5 rounded-lg border border-gray-200 px-3 py-2 text-[13px] cursor-pointer hover:bg-gray-50">
+            <input type="checkbox" checked={checked.has(l.id)} onChange={() => toggle(l.id)} className="accent-[#E07A5F]" />
+            <span className="flex-1 text-gray-700">{l.label}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{l.axis === 'likelihood' ? '↓ vraisemblance' : '↓ impact'}</span>
+          </label>
+        ))}
+      </div>
 
-          <div className="mt-5">
-            <label className="flex justify-between text-[12px] text-gray-500 mb-2">Couverture de traitement <b className="text-[#B34A31] font-mono">{cov}%</b></label>
-            <input type="range" min={0} max={100} value={cov} onChange={(e) => setCov(+e.target.value)} className="w-full accent-[#E07A5F]" />
-          </div>
-        </>
-      )}
+      <button onClick={() => void addToPlan()} disabled={busy || checked.size === 0}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
+        <Plus size={16} /> {busy ? 'Ajout...' : `Ajouter au plan${checked.size > 0 ? ` (${checked.size})` : ''}`}
+      </button>
     </div>
   )
 }
