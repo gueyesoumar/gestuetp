@@ -2452,13 +2452,22 @@ export interface Database {
         }[]
       }
       get_supervised_risks: {
-        Args: { p_org_id: string }
+        Args: { p_org_id?: string | null }
         Returns: {
           id: string; organization_id: string; org_name: string; title: string; dimension: string | null
           inherent_likelihood: number; inherent_impact: number; treatment: string
           lifecycle_status: string; next_review_at: string | null
           threat_ref: string | null; feared_event_ref: string | null
           vulnerability: string | null; asset_name: string | null
+        }[]
+      }
+      get_supervised_plan: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string; organization_id: string; org_name: string; risk_scenario_id: string
+          scenario_title: string | null; description: string; control_code: string | null
+          option: string | null; origin: string; due_date: string | null
+          status: string; verification_status: string; created_at: string
         }[]
       }
       get_audited_scenario_bowtie: {
