@@ -1,26 +1,46 @@
 import { useState } from 'react'
-import { Plus, Trash2, ClipboardList } from 'lucide-react'
+import { Plus, Trash2, ClipboardList, Download } from 'lucide-react'
 import { useRiskRegister, type ScenarioRow } from './useRiskRegister'
 import { useRiskCriteria } from './useRiskCriteria'
+import { useSoA } from './useSoA'
 import { ScenarioFormModal } from './ScenarioFormModal'
 import { ScenarioBowtie } from './ScenarioBowtie'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS } from '../../lib/constants'
+import { downloadCsv } from '../../lib/downloadCsv'
+import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS, RISK_CONTROL_LINK_KINDS } from '../../lib/constants'
 
 const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) => t.value === v)?.label ?? v
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
+const kindLabel = (v: string): string => RISK_CONTROL_LINK_KINDS.find((k) => k.value === v)?.label ?? v
 
 /** Registre des scénarios de risque : tableau, création, nœud papillon. */
 export function RiskRegisterPage(): JSX.Element {
   const reg = useRiskRegister()
   const crit = useRiskCriteria()
+  const soa = useSoA()
   const [modal, setModal] = useState(false)
   const [bowtie, setBowtie] = useState<ScenarioRow | null>(null)
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />
+
+  const today = new Date().toISOString().slice(0, 10)
+  const exportRegister = (): void => {
+    const header = ['Titre', 'Dimension', 'Vraisemblance', 'Impact', 'Exposition', 'Cycle de vie', 'Traitement', 'Prochaine revue']
+    const rows = reg.scenarios.map((s) => [
+      s.title, s.dimension ? SCORE_DIMENSION_LABELS[s.dimension] : '',
+      s.inherent_likelihood, s.inherent_impact, s.exposure,
+      lifecycleLabel(s.lifecycle_status), treatmentLabel(s.treatment), s.next_review_at ?? '',
+    ])
+    downloadCsv(`registre-risques-${today}.csv`, [header, ...rows])
+  }
+  const exportSoA = (): void => {
+    const header = ['Contrôle', 'Intitulé', 'Type de barrière', 'Risque traité', 'Justification d\'applicabilité']
+    const rows = soa.rows.map((r) => [r.control_code, r.control_name, kindLabel(r.kind), r.scenario_title, r.justification ?? ''])
+    downloadCsv(`soa-${today}.csv`, [header, ...rows])
+  }
 
   return (
     <div className="space-y-5">
@@ -29,9 +49,13 @@ export function RiskRegisterPage(): JSX.Element {
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><ClipboardList size={20} className="text-[#E07A5F]" /> Registre des risques</h1>
           <p className="mt-1 text-[13px] text-gray-500">Scénarios EBIOS RM : cliquez un scénario pour ouvrir son nœud papillon.</p>
         </div>
-        <button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
-          <Plus size={16} /> Nouveau scénario
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={exportRegister} disabled={reg.scenarios.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> Registre</button>
+          <button onClick={exportSoA} disabled={soa.rows.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> SoA</button>
+          <button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
+            <Plus size={16} /> Nouveau scénario
+          </button>
+        </div>
       </div>
 
       {reg.scenarios.length === 0 ? (
