@@ -56,7 +56,7 @@ export function RiskCriteriaPage(): JSX.Element {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl">
+    <div className="space-y-5">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><SlidersHorizontal size={20} className="text-[#E07A5F]" /> Critères &amp; contexte</h1>
@@ -68,7 +68,7 @@ export function RiskCriteriaPage(): JSX.Element {
       {ro && <div className="flex items-center gap-2 text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2"><Lock size={14} /> Lecture seule : la permission <span className="font-mono">can_manage_risk_criteria</span> est requise pour modifier les critères.</div>}
       {!crit.customized && <p className="text-[12px] text-gray-400">Valeurs par défaut de la plateforme (aucune personnalisation enregistrée pour cette organisation).</p>}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-start">
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">Échelle de vraisemblance</h2>
           <div className="space-y-2">
@@ -87,25 +87,25 @@ export function RiskCriteriaPage(): JSX.Element {
             ))}
           </div>
         </div>
-      </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4">
-        <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1">Seuil d'acceptation <span className="font-normal text-gray-400">(exposition 0-100)</span></label>
-          <p className="text-[12px] text-gray-500 mb-2">Au-dessus de ce niveau, un traitement est obligatoire avant toute acceptation (drapeau « hors seuil »).</p>
-          <input type="number" min={0} max={100} disabled={ro} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} className={`${inputCls} w-28`} />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1">Appétit au risque</label>
-          <textarea disabled={ro} rows={3} value={appetite} onChange={(e) => setAppetite(e.target.value)} placeholder="Ex. L'organisme ne tolère aucun risque critique non traité sur les données sensibles..." className={`${inputCls} w-full`} />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-1">Cadence de revue par défaut</label>
-          <select disabled={ro} value={cadence} onChange={(e) => setCadence(Number(e.target.value))} className={`${inputCls} w-40`}>
-            <option value={3}>3 mois</option>
-            <option value={6}>6 mois</option>
-            <option value={12}>12 mois</option>
-          </select>
+        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 md:col-span-2 lg:col-span-1">
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1">Seuil d'acceptation <span className="font-normal text-gray-400">(exposition 0-100)</span></label>
+            <p className="text-[12px] text-gray-500 mb-2">Au-dessus de ce niveau, un traitement est obligatoire avant toute acceptation (drapeau « hors seuil »).</p>
+            <input type="number" min={0} max={100} disabled={ro} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} className={`${inputCls} w-28`} />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1">Appétit au risque</label>
+            <textarea disabled={ro} rows={3} value={appetite} onChange={(e) => setAppetite(e.target.value)} placeholder="Ex. L'organisme ne tolère aucun risque critique non traité sur les données sensibles..." className={`${inputCls} w-full`} />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1">Cadence de revue par défaut</label>
+            <select disabled={ro} value={cadence} onChange={(e) => setCadence(Number(e.target.value))} className={`${inputCls} w-40`}>
+              <option value={3}>3 mois</option>
+              <option value={6}>6 mois</option>
+              <option value={12}>12 mois</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
