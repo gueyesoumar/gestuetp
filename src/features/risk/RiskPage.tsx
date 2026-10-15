@@ -9,6 +9,7 @@ import { useSelfDimensionScores } from '../hub/useSelfDimensionScores'
 import { RiskMatrix } from './RiskMatrix'
 import { RiskRadar } from './RiskRadar'
 import { RiskSimulator } from './RiskSimulator'
+import { RiskPhaseBand } from './RiskPhaseBand'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 
@@ -62,7 +63,7 @@ export function RiskPage(): JSX.Element {
         )}
       </div>
 
-      {/* KPIs */}
+      {/* Cockpit transverse : lecture d'ensemble, toutes phases confondues */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi value={reg.scenarios.length} label="Scénarios" />
         <Kpi value={aboveThreshold} label="À traiter (hors seuil)" tone={aboveThreshold > 0 ? 'text-red-600' : 'text-forest-700'} />
@@ -70,20 +71,8 @@ export function RiskPage(): JSX.Element {
         <Kpi value={`${avgExposure}/100`} label="Exposition moyenne" tone={avgExposure >= 60 ? 'text-red-600' : avgExposure >= 30 ? 'text-amber-600' : 'text-forest-700'} />
       </div>
 
-      {/* Points d'attention (alertes dérivées) + export */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <h3 className="text-sm font-bold text-gray-900">Points d&apos;attention</h3>
-          <span className="text-[11px] text-gray-400">Plan de traitement : {planPct}% réalisé</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-          <AlertLink to="/risque/registre" label="À traiter (hors seuil)" count={aboveThreshold} />
-          <AlertLink to="/risque/revue" label="Revues en retard" count={overdueReviews} />
-          <AlertLink to="/risque/plan" label="Actions en retard" count={overdueActions} />
-          <AlertLink to="/risque/acceptations" label="Acceptations expirées" count={expiredAcc} />
-        </div>
-      </div>
-
+      {/* 1 - Apprécier : identifier, analyser, évaluer */}
+      <RiskPhaseBand phase="apprecier" />
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <h3 className="text-sm font-bold text-gray-900 mb-1">Radar tri-couche</h3>
@@ -98,7 +87,28 @@ export function RiskPage(): JSX.Element {
         </div>
       </div>
 
+      {/* 2 - Traiter : décider, planifier, accepter */}
+      <RiskPhaseBand phase="traiter" />
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <h3 className="text-sm font-bold text-gray-900">À traiter</h3>
+          <span className="text-[11px] text-gray-400">Plan de traitement : {planPct}% réalisé</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <AlertLink to="/risque/registre" label="À traiter (hors seuil)" count={aboveThreshold} />
+          <AlertLink to="/risque/plan" label="Actions en retard" count={overdueActions} />
+        </div>
+      </div>
       <RiskSimulator score={score} />
+
+      {/* 3 - Surveiller : revoir, historiser, alerter */}
+      <RiskPhaseBand phase="surveiller" />
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="grid grid-cols-2 gap-2">
+          <AlertLink to="/risque/revue" label="Revues en retard" count={overdueReviews} />
+          <AlertLink to="/risque/acceptations" label="Acceptations expirées" count={expiredAcc} />
+        </div>
+      </div>
     </div>
   )
 }

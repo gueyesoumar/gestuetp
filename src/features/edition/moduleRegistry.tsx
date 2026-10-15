@@ -9,6 +9,9 @@ export interface NavItem {
   icon: ReactNode
   /** Force une correspondance exacte pour l'état actif (index d'un workspace). */
   end?: boolean
+  /** En-tête de section optionnel (cosmétique) : groupe les items consécutifs
+   *  partageant le même libellé sous un sous-titre dans la barre latérale. */
+  section?: string
 }
 
 /** Contexte de résolution d'un module : capacités + vocabulaire + permissions. */

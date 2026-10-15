@@ -29,11 +29,11 @@ export function useSidebarNavItems(
     return {
       mainItems: [
         { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
-        { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} /> },
-        { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} /> },
-        { to: '/risque/plan', label: 'Plan de traitement', icon: <ListChecks size={20} strokeWidth={1.5} /> },
-        { to: '/risque/acceptations', label: 'Acceptations', icon: <ShieldCheck size={20} strokeWidth={1.5} /> },
-        { to: '/risque/revue', label: 'Revue & surveillance', icon: <History size={20} strokeWidth={1.5} /> },
+        { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
+        { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
+        { to: '/risque/plan', label: 'Plan de traitement', icon: <ListChecks size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
+        { to: '/risque/acceptations', label: 'Acceptations', icon: <ShieldCheck size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
+        { to: '/risque/revue', label: 'Revue & surveillance', icon: <History size={20} strokeWidth={1.5} />, section: '3 · Surveiller' },
       ],
       groupItems: [],
     }

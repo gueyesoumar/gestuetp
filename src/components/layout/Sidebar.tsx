@@ -133,32 +133,42 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
           {!collapsed && (
             <p className="mb-2 px-3.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/30">Espace de travail</p>
           )}
-          {mainItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end ?? item.to === '/'}
-              onClick={onClose}
-              title={collapsed ? item.label : undefined}
-              className={({ isActive }) =>
-                collapsed
-                  ? `relative flex items-center justify-center w-11 h-11 mx-auto mb-1 rounded-xl transition-colors ${
-                      isActive ? 'bg-white/12 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/70'
-                    }`
-                  : `relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 mb-0.5 text-[13px] font-medium transition-colors ${
-                      isActive ? 'bg-white/12 text-white' : 'text-white/45 hover:bg-white/8 hover:text-white/80'
-                    }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && <span className={`absolute top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gold-500 ${collapsed ? '-left-2' : 'left-0'}`} />}
-                  <span className="flex-shrink-0">{item.icon}</span>
-                  {!collapsed && <span>{item.label}</span>}
-                </>
-              )}
-            </NavLink>
-          ))}
+          {mainItems.map((item, i) => {
+            // En-tête de section optionnel (triptyque Risk, etc.) : rendu quand
+            // l'item ouvre une section différente de celle du précédent.
+            const newSection = item.section && item.section !== mainItems[i - 1]?.section
+            return (
+              <div key={item.to}>
+                {newSection && (!collapsed
+                  ? <p className="mt-4 mb-1.5 px-3.5 text-[10px] font-bold uppercase tracking-wider text-white/30">{item.section}</p>
+                  : <div className="my-2 mx-auto h-px w-8 bg-white/10" />
+                )}
+                <NavLink
+                  to={item.to}
+                  end={item.end ?? item.to === '/'}
+                  onClick={onClose}
+                  title={collapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    collapsed
+                      ? `relative flex items-center justify-center w-11 h-11 mx-auto mb-1 rounded-xl transition-colors ${
+                          isActive ? 'bg-white/12 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/70'
+                        }`
+                      : `relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 mb-0.5 text-[13px] font-medium transition-colors ${
+                          isActive ? 'bg-white/12 text-white' : 'text-white/45 hover:bg-white/8 hover:text-white/80'
+                        }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && <span className={`absolute top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gold-500 ${collapsed ? '-left-2' : 'left-0'}`} />}
+                      <span className="flex-shrink-0">{item.icon}</span>
+                      {!collapsed && <span>{item.label}</span>}
+                    </>
+                  )}
+                </NavLink>
+              </div>
+            )
+          })}
 
           {groupItems.length > 0 && (
             <>
