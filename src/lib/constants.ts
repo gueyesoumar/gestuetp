@@ -500,6 +500,14 @@ export const RISK_LIFECYCLE_STATUS = [
   { value: 'reopened', label: 'Rouvert' },
 ] as const
 
+// RFC 0017 Lot 2 - statuts d'une action de traitement.
+export const RISK_ACTION_STATUS = [
+  { value: 'todo', label: 'À faire' },
+  { value: 'in_progress', label: 'En cours' },
+  { value: 'done', label: 'Terminé' },
+  { value: 'cancelled', label: 'Annulé' },
+] as const
+
 // ---- Boucle Regul → Risk : un incident aggrave la vraisemblance ----
 // Mapping nature d'incident → dimension du score (ajustable). 'autre' = neutre.
 export const INCIDENT_CATEGORY_DIMENSION: Record<string, ScoreDimensionKey | null> = {

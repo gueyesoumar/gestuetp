@@ -12,6 +12,8 @@ export interface BarrierControl {
   effectiveness: number
   /** Le contrôle a-t-il au moins une évaluation ? (sinon efficacité = 0, non prouvée). */
   assessed: boolean
+  /** Justification d'applicabilité (SoA ISO 27001) : pourquoi ce contrôle traite ce risque. */
+  justification: string | null
 }
 export interface ControlOption { id: string; code: string; name: string }
 
@@ -22,6 +24,7 @@ export function useScenarioControls(scenarioId: string): {
   search: (q: string) => Promise<ControlOption[]>
   link: (controlId: string, kind: BarrierControl['kind']) => Promise<void>
   unlink: (linkId: string) => Promise<void>
+  setJustification: (linkId: string, text: string) => Promise<void>
 } {
   const { profile } = useAuth()
   const [barriers, setBarriers] = useState<BarrierControl[]>([])
@@ -33,11 +36,11 @@ export function useScenarioControls(scenarioId: string): {
     setLoading(true)
     void (async () => {
       const { data, error } = await supabase.from('risk_control_links')
-        .select('id, control_id, kind, control:controls(code, name)')
+        .select('id, control_id, kind, applicability_justification, control:controls(code, name)')
         .eq('risk_scenario_id', scenarioId).abortSignal(ac.signal)
       if (ac.signal.aborted) return
       if (error) { console.error('[useScenarioControls]', error.message); setLoading(false); return }
-      const linkRows = (data ?? []) as unknown as Array<{ id: string; control_id: string; kind: BarrierControl['kind']; control: { code: string; name: string } | null }>
+      const linkRows = (data ?? []) as unknown as Array<{ id: string; control_id: string; kind: BarrierControl['kind']; applicability_justification: string | null; control: { code: string; name: string } | null }>
       // Efficacité par contrôle = ratio d'évaluations approuvées (RLS = missions de l'org).
       const ids = [...new Set(linkRows.map((r) => r.control_id))]
       const eff = new Map<string, number>()
@@ -57,6 +60,7 @@ export function useScenarioControls(scenarioId: string): {
         linkId: r.id, control_id: r.control_id, kind: r.kind,
         code: r.control?.code ?? '-', name: r.control?.name ?? '',
         effectiveness: eff.get(r.control_id) ?? 0, assessed: eff.has(r.control_id),
+        justification: r.applicability_justification ?? null,
       })))
       setLoading(false)
     })()
@@ -85,5 +89,12 @@ export function useScenarioControls(scenarioId: string): {
     setKey((k) => k + 1)
   }, [])
 
-  return { barriers, loading, search, link, unlink }
+  const setJustification = useCallback(async (linkId: string, text: string): Promise<void> => {
+    const { error } = await supabase.from('risk_control_links')
+      .update({ applicability_justification: text.trim() || null } as never).eq('id', linkId)
+    if (error) { console.error('[setJustification]', error.message); return }
+    setKey((k) => k + 1)
+  }, [])
+
+  return { barriers, loading, search, link, unlink, setJustification }
 }

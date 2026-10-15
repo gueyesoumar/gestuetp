@@ -2633,7 +2633,34 @@ export interface RiskControlLink {
   risk_scenario_id: string
   control_id: string
   kind: 'preventive' | 'detective' | 'corrective'
+  applicability_justification: string | null
   created_at: string
+}
+
+// RFC 0017 Lot 2 : action de traitement d'un scénario de risque.
+export type RiskActionStatus = 'todo' | 'in_progress' | 'done' | 'cancelled'
+export type RiskActionOrigin = 'internal' | 'supervisor_directive'
+export type RiskActionVerification = 'pending' | 'verified' | 'rejected'
+
+export interface RiskTreatmentAction {
+  id: string
+  organization_id: string
+  risk_scenario_id: string
+  description: string
+  option: 'reduce' | 'transfer' | 'avoid' | 'accept' | null
+  control_id: string | null
+  owner_user_id: string | null
+  due_date: string | null
+  status: RiskActionStatus
+  cost_estimate: number | null
+  origin: RiskActionOrigin
+  requested_by: string | null
+  verification_status: RiskActionVerification
+  verified_by: string | null
+  verified_at: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
 }
 
 export type IncidentCategory = 'intrusion' | 'ransomware' | 'fuite_donnees' | 'deni_service' | 'autre'

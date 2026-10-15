@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, ArrowRight, Shield, Plus, Trash2, AlertTriangle, FileText } from 'lucide-react'
 import { useScenarioControls, type ControlOption, type BarrierControl } from './useScenarioControls'
+import { ScenarioActionsSection } from './ScenarioActionsSection'
 import { useScenarioIncidents, type IncidentOption, type ScenarioIncident } from './useScenarioIncidents'
 import { useScenarioPolicies, type PolicyOption, type PolicyBarrier, type BarrierKind } from '../policy/useScenarioPolicies'
 import {
@@ -17,7 +18,7 @@ const SEV_COLOR: Record<string, string> = { critique: '#C0392B', eleve: '#B8860B
 
 /** Nœud papillon EBIOS : menace → [barrières] → scénario/actif → événement redouté. */
 export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: ScenarioRow; catalog: RiskCatalogEntry[]; onClose: () => void }): JSX.Element {
-  const { barriers, search, link, unlink } = useScenarioControls(scenario.id)
+  const { barriers, search, link, unlink, setJustification } = useScenarioControls(scenario.id)
   const { incidents, bump, search: searchInc, link: linkInc, unlink: unlinkInc } = useScenarioIncidents(scenario.id, scenario.dimension)
   const pol = useScenarioPolicies(scenario.id)
   const label = (id: string | null): string | null => id ? (catalog.find((c) => c.id === id)?.label ?? null) : null
@@ -82,8 +83,8 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
             ? <p className="text-[12px] text-gray-400 mb-3">Aucun contrôle-barrière lié. Reliez les contrôles qui maîtrisent ce risque.</p>
             : (
               <div className="space-y-2 mb-3">
-                <BarrierGroup title="Préventives · ↓ vraisemblance" items={prev} onUnlink={unlink} />
-                <BarrierGroup title="Correctives / détectives · ↓ impact" items={corr} onUnlink={unlink} />
+                <BarrierGroup title="Préventives · ↓ vraisemblance" items={prev} onUnlink={unlink} onSetJustification={setJustification} />
+                <BarrierGroup title="Correctives / détectives · ↓ impact" items={corr} onUnlink={unlink} onSetJustification={setJustification} />
               </div>
             )}
           <p className="text-[11px] text-gray-400 mb-2">Seule une barrière <b>évaluée et approuvée</b> en mission Comply réduit le résiduel : c&apos;est ce lien qui fait vivre le score de confiance.</p>
@@ -129,6 +130,8 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
           <p className="text-[11px] text-gray-400 mb-2">Un incident de la dimension aggrave <b>automatiquement</b> la vraisemblance ; liez-en un explicitement pour cibler ce scénario précis.</p>
           <IncidentLinker onSearch={searchInc} onLink={linkInc} existing={incidents} />
         </div>
+
+        <ScenarioActionsSection scenarioId={scenario.id} />
       </div>
     </div>
   )
@@ -177,21 +180,27 @@ function IncidentLinker({ existing, onSearch, onLink }: {
   )
 }
 
-function BarrierGroup({ title, items, onUnlink }: { title: string; items: BarrierControl[]; onUnlink: (id: string) => Promise<void> }): JSX.Element | null {
+function BarrierGroup({ title, items, onUnlink, onSetJustification }: { title: string; items: BarrierControl[]; onUnlink: (id: string) => Promise<void>; onSetJustification: (id: string, text: string) => Promise<void> }): JSX.Element | null {
   if (items.length === 0) return null
   return (
     <div>
       <div className="text-[10px] font-mono uppercase tracking-wide text-gray-400 mb-1">{title}</div>
-      <div className="flex flex-wrap gap-2">
+      <div className="space-y-1.5">
         {items.map((b) => (
-          <span key={b.linkId} className="inline-flex items-center gap-1.5 rounded-lg border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px]">
-            <span className="font-mono font-semibold text-forest-800">{b.code}</span>
-            <span className="text-gray-500">· {kindLabel(b.kind)}</span>
-            {b.assessed
-              ? <span className="font-semibold" style={{ color: expColor(100 - pct(b.effectiveness)) }}>{pct(b.effectiveness)}%</span>
-              : <span className="text-amber-600" title="Contrôle non évalué en mission → efficacité nulle">non évaluée</span>}
-            <button onClick={() => void onUnlink(b.linkId)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
-          </span>
+          <div key={b.linkId} className="rounded-lg border border-forest-200 bg-forest-50 px-2.5 py-1.5 text-[11px]">
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono font-semibold text-forest-800">{b.code}</span>
+              <span className="text-gray-500">· {kindLabel(b.kind)}</span>
+              {b.assessed
+                ? <span className="font-semibold" style={{ color: expColor(100 - pct(b.effectiveness)) }}>{pct(b.effectiveness)}%</span>
+                : <span className="text-amber-600" title="Contrôle non évalué en mission → efficacité nulle">non évaluée</span>}
+              <button onClick={() => void onUnlink(b.linkId)} className="text-gray-400 hover:text-red-600 ml-auto"><Trash2 size={11} /></button>
+            </div>
+            <input defaultValue={b.justification ?? ''}
+              onBlur={(e) => { if ((e.target.value.trim() || null) !== (b.justification ?? null)) void onSetJustification(b.linkId, e.target.value) }}
+              placeholder="Justification d'applicabilité (SoA)..."
+              className="mt-1 w-full border border-gray-200 rounded px-2 py-1 text-[11px] bg-white" />
+          </div>
         ))}
       </div>
     </div>
