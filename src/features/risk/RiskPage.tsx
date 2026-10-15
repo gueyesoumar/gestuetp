@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShieldAlert, Info, ArrowRight } from 'lucide-react'
+import { ShieldAlert, Info, ArrowRight, Sparkles } from 'lucide-react'
 import { useRiskRegister } from './useRiskRegister'
 import { useRiskCriteria } from './useRiskCriteria'
 import { useReviewsDue } from './useRiskReview'
@@ -8,7 +8,6 @@ import { useRiskAcceptancesList } from './useRiskAcceptance'
 import { useSelfDimensionScores } from '../hub/useSelfDimensionScores'
 import { RiskMatrix } from './RiskMatrix'
 import { RiskRadar } from './RiskRadar'
-import { RiskSimulator } from './RiskSimulator'
 import { RiskPhaseBand } from './RiskPhaseBand'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -99,7 +98,14 @@ export function RiskPage(): JSX.Element {
           <AlertLink to="/risque/plan" label="Actions en retard" count={overdueActions} />
         </div>
       </div>
-      <RiskSimulator scenarios={reg.scenarios} threshold={crit.acceptanceThreshold} />
+      <Link to="/risque/simulateur" className="flex items-center gap-3 rounded-xl border border-[#E07A5F]/30 bg-[#E07A5F]/[0.06] p-4 hover:bg-[#E07A5F]/[0.1] transition-colors">
+        <Sparkles size={18} className="text-[#E07A5F] shrink-0" />
+        <div className="flex-1">
+          <div className="text-sm font-bold text-gray-900">Simulateur « et si »</div>
+          <div className="text-[12px] text-gray-500">Testez des actions de traitement sur un risque et voyez l&apos;exposition projetée face au seuil.</div>
+        </div>
+        <ArrowRight size={16} className="text-[#E07A5F]" />
+      </Link>
 
       {/* 3 - Surveiller : revoir, historiser, alerter */}
       <RiskPhaseBand phase="surveiller" />

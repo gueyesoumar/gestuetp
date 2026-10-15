@@ -435,18 +435,6 @@ export const RISK_TREATMENT_STATUS = [
   { value: 'in_progress', label: 'En cours' },
   { value: 'done', label: 'Terminé' },
 ] as const
-
-// Leviers de traitement concrets (ISO 27005) pour le simulateur « et si » (RFC 0017
-// Lot D). axis = axe de cotation réduit ; option = type de traitement de l'action créée.
-export const RISK_TREATMENT_LEVERS = [
-  { id: 'harden', label: 'Durcissement & MFA des accès', axis: 'likelihood', option: 'reduce' },
-  { id: 'patch', label: 'Gestion des vulnérabilités (correctifs)', axis: 'likelihood', option: 'reduce' },
-  { id: 'awareness', label: 'Sensibilisation & formation', axis: 'likelihood', option: 'reduce' },
-  { id: 'backup', label: 'Sauvegardes testées & plan de reprise', axis: 'impact', option: 'reduce' },
-  { id: 'detect', label: 'Détection & réponse (SOC / EDR)', axis: 'impact', option: 'reduce' },
-  { id: 'transfer', label: 'Transfert du risque (assurance cyber)', axis: 'impact', option: 'transfer' },
-] as const
-export type RiskTreatmentLever = typeof RISK_TREATMENT_LEVERS[number]
 export const RISK_CONTROL_LINK_KINDS = [
   { value: 'preventive', label: 'Préventive' },
   { value: 'detective', label: 'Détective' },

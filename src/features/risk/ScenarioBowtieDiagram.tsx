@@ -1,4 +1,5 @@
-import { ShieldCheck, ShieldX } from 'lucide-react'
+import { ShieldCheck, ShieldX, Sparkles, ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { SCORE_DIMENSION_COLORS, barrierSide } from '../../lib/constants'
 import type { BowtieModel } from './scenarioBowtieModel'
 import type { BarrierControl } from './useScenarioControls'
@@ -22,20 +23,24 @@ const toDiag = (barriers: BarrierControl[], pols: PolicyBarrier[], side: 'likeli
  * barrières correctives (↓ impact), conséquence. Lecture seule ; l'édition des
  * barrières se fait dans les sections dessous.
  */
-export function ScenarioBowtieDiagram({ scenario, catalog, model, bump, barriers, policyBarriers }: {
+export function ScenarioBowtieDiagram({ scenario, catalog, model, bump, barriers, policyBarriers, causes, consequences }: {
   scenario: ScenarioRow; catalog: RiskCatalogEntry[]; model: BowtieModel
   bump: number; barriers: BarrierControl[]; policyBarriers: PolicyBarrier[]
+  causes: string[]; consequences: string[]
 }): JSX.Element {
   const label = (id: string | null): string | null => id ? (catalog.find((c) => c.id === id)?.label ?? null) : null
   const dimColor = scenario.dimension ? SCORE_DIMENSION_COLORS[scenario.dimension] : '#94A3B8'
   const prev = toDiag(barriers, policyBarriers, 'likelihood')
   const corr = toDiag(barriers, policyBarriers, 'impact')
   const { inherentExp, residual, hasBarriers, effPrev, effCorr } = model
+  // Fallback sur les colonnes legacy si aucune node (RFC 0017 G2).
+  const causeItems = causes.length ? causes : [label(scenario.threat_ref) ?? 'Menace non précisée']
+  const consItems = consequences.length ? consequences : [label(scenario.feared_event_ref) ?? 'Événement redouté non précisé']
 
   return (
     <div className="px-5 py-5">
       <div className="grid gap-2 lg:grid-cols-5 items-stretch">
-        <EndZone title="Cause" tone="red" main={label(scenario.threat_ref) ?? 'Menace non précisée'} sub={label(scenario.source_ref) ?? undefined} />
+        <EndZone title="Causes" tone="red" items={causeItems} sub={label(scenario.source_ref) ?? undefined} />
 
         <BarrierColumn title="Préventives" effect="↓ vraisemblance" items={prev} tone="#2D6A4F" avg={effPrev} />
 
@@ -56,20 +61,27 @@ export function ScenarioBowtieDiagram({ scenario, catalog, model, bump, barriers
 
         <BarrierColumn title="Correctives" effect="↓ impact" items={corr} tone="#B8860B" avg={effCorr} />
 
-        <EndZone title="Conséquence" tone="amber" main={label(scenario.feared_event_ref) ?? 'Événement redouté non précisé'} />
+        <EndZone title="Conséquences" tone="amber" items={consItems} />
       </div>
       <p className="mt-3 text-[11px] text-gray-400 text-center">Lisez de gauche à droite&nbsp;: la cause, les barrières qui abaissent la vraisemblance, le scénario, les barrières qui abaissent l&apos;impact, la conséquence.</p>
+      <div className="mt-2 text-center">
+        <Link to="/risque/simulateur" className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#B34A31] hover:underline">
+          <Sparkles size={13} /> Voir le simulateur <ArrowRight size={12} />
+        </Link>
+      </div>
     </div>
   )
 }
 
-function EndZone({ title, main, sub, tone }: { title: string; main: string; sub?: string; tone: 'red' | 'amber' }): JSX.Element {
+function EndZone({ title, items, sub, tone }: { title: string; items: string[]; sub?: string; tone: 'red' | 'amber' }): JSX.Element {
   const c = tone === 'red' ? { bg: 'bg-red-50', bd: 'border-red-100', t: 'text-red-700' } : { bg: 'bg-amber-50', bd: 'border-amber-100', t: 'text-amber-700' }
   return (
-    <div className={`rounded-xl border ${c.bd} ${c.bg} p-3 flex flex-col justify-center`}>
+    <div className={`rounded-xl border ${c.bd} ${c.bg} p-3 flex flex-col gap-1.5`}>
       <div className={`text-[10px] font-mono uppercase tracking-wide ${c.t}`}>{title}</div>
-      <div className="text-[12.5px] font-semibold text-gray-800 mt-1 leading-snug">{main}</div>
-      {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
+      {items.map((it, i) => (
+        <div key={i} className="text-[12px] font-semibold text-gray-800 leading-snug bg-white/60 rounded-md px-2 py-1 border border-white">{it}</div>
+      ))}
+      {sub && <div className="text-[10px] text-gray-400">{sub}</div>}
     </div>
   )
 }

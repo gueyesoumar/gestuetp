@@ -5,6 +5,8 @@ import type { useScenarioIncidents, IncidentOption, ScenarioIncident } from './u
 import type { useScenarioPolicies, PolicyOption, PolicyBarrier, BarrierKind } from '../policy/useScenarioPolicies'
 import type { BowtieModel } from './scenarioBowtieModel'
 import { ScenarioBowtieDiagram } from './ScenarioBowtieDiagram'
+import { useScenarioNodes } from './useScenarioNodes'
+import type { RiskScenarioNode, RiskNodeType } from '../../types/database.types'
 import { RISK_CONTROL_LINK_KINDS, barrierSide } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
@@ -28,13 +30,22 @@ export function ScenarioAppreciationTab({ scenario, catalog, model, ctrl, inc, p
   const { barriers, search, link, unlink, setJustification } = ctrl
   const { incidents, bump, search: searchInc, link: linkInc, unlink: unlinkInc } = inc
   const { hasBarriers } = model
+  const nodes = useScenarioNodes(scenario.id)
   const prev = barriers.filter((b) => barrierSide(b.kind) === 'likelihood')
   const corr = barriers.filter((b) => barrierSide(b.kind) === 'impact')
 
   return (
     <div>
-      {/* Nœud papillon lisible 5 zones (Lot E) */}
-      <ScenarioBowtieDiagram scenario={scenario} catalog={catalog} model={model} bump={bump} barriers={barriers} policyBarriers={pol.barriers} />
+      {/* Nœud papillon lisible 5 zones (Lot E) + causes/conséquences multiples (G2) */}
+      <ScenarioBowtieDiagram scenario={scenario} catalog={catalog} model={model} bump={bump}
+        barriers={barriers} policyBarriers={pol.barriers}
+        causes={nodes.causes.map((n) => n.label)} consequences={nodes.consequences.map((n) => n.label)} />
+
+      {/* Éditeur causes & conséquences (zones 1 et 5) */}
+      <div className="px-5 pb-4 grid gap-4 sm:grid-cols-2">
+        <NodeColumn title="Causes (menaces)" type="cause" items={nodes.causes} onAdd={nodes.addNode} onRemove={nodes.removeNode} placeholder="ex. Hameçonnage ciblé d'un admin" />
+        <NodeColumn title="Conséquences" type="consequence" items={nodes.consequences} onAdd={nodes.addNode} onRemove={nodes.removeNode} placeholder="ex. Fuite de données des assurés" />
+      </div>
 
       {/* Barrières (contrôles Comply) */}
       <div className="px-5 pb-4">
@@ -92,6 +103,33 @@ export function ScenarioAppreciationTab({ scenario, catalog, model, ctrl, inc, p
           )}
         <p className="text-[11px] text-gray-400 mb-2">Un incident de la dimension aggrave <b>automatiquement</b> la vraisemblance ; liez-en un explicitement pour cibler ce scénario précis.</p>
         <IncidentLinker onSearch={searchInc} onLink={linkInc} existing={incidents} />
+      </div>
+    </div>
+  )
+}
+
+function NodeColumn({ title, type, items, onAdd, onRemove, placeholder }: {
+  title: string; type: RiskNodeType; items: RiskScenarioNode[]
+  onAdd: (t: RiskNodeType, label: string) => Promise<boolean>; onRemove: (id: string) => Promise<void>; placeholder: string
+}): JSX.Element {
+  const [val, setVal] = useState('')
+  const submit = async (): Promise<void> => { if (!val.trim()) return; const ok = await onAdd(type, val); if (ok) setVal('') }
+  return (
+    <div>
+      <div className="text-[12px] font-bold uppercase tracking-wide text-gray-500 mb-2">{title}</div>
+      {items.length > 0 && (
+        <div className="space-y-1.5 mb-2">
+          {items.map((n) => (
+            <div key={n.id} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-[12px]">
+              <span className="flex-1 text-gray-700">{n.label}</span>
+              <button onClick={() => void onRemove(n.id)} className="text-gray-400 hover:text-red-600" aria-label="Retirer"><Trash2 size={12} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void submit() }} placeholder={placeholder} className="flex-1 px-2.5 py-1.5 text-[12px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
+        <button onClick={() => void submit()} disabled={!val.trim()} className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] font-semibold text-forest-700 border border-forest-200 rounded-lg hover:bg-forest-50 disabled:opacity-50"><Plus size={13} /> Ajouter</button>
       </div>
     </div>
   )

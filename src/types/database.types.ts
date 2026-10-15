@@ -2706,6 +2706,21 @@ export interface RiskTreatmentAction {
   updated_at: string
 }
 
+// RFC 0017 G2 : causes & conséquences multiples du nœud papillon.
+export type RiskNodeType = 'cause' | 'consequence'
+
+export interface RiskScenarioNode {
+  id: string
+  organization_id: string
+  risk_scenario_id: string
+  node_type: RiskNodeType
+  label: string
+  catalog_ref: string | null
+  position: number
+  created_by: string | null
+  created_at: string
+}
+
 // RFC 0017 Lot 3 : acceptation formelle du risque résiduel.
 export type RiskAcceptanceStatus = 'active' | 'expired' | 'revoked' | 'superseded'
 
