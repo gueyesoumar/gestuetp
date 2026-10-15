@@ -41,6 +41,7 @@ Constat clé : le **résiduel et l'efficacité des barrières sont recalculés �
 3. **Le résiduel devient une donnée de première classe** : calculé (inchangé) mais **capturé en instantanés** (snapshots) aux événements clés (évaluation, revue, changement de barrière, incident) -> historique + piste d'audit + tendance.
 4. **Configurabilité par organisation** (contexte) : échelles et seuil d'acceptation paramétrables, valeur par défaut = le 4x4 actuel (non-régression totale).
 5. **Boucles préservées** : Comply (contrôles = traitement, SoA), Regul (incidents = risque réalisé), score (`risk_mastery`), piste d'audit (`risk.*`).
+6. **Ossature « Apprécier -> Traiter -> Surveiller » (ISO 27005/31000) = organisation de TOUT le module Risk**, de façon fractale : la **navigation** (3 groupes : 1 Apprécier / 2 Traiter / 3 Surveiller, sous une « Vue d'ensemble »), le **tableau de bord** (cartes marquées par phase) et le **détail d'un scénario** (3 onglets Appréciation / Traiter / Surveiller) suivent la même séquence. L'utilisateur apprend le processus en naviguant. (Portée = le module Risk uniquement ; pas une refonte des autres modules.)
 
 ## 4. Établissement du contexte - critères de risque (nouveau)
 
