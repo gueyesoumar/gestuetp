@@ -484,6 +484,22 @@ export function riskResidualSplit(
 // Poids du facteur risk_mastery dans le coefficient conservateur (= assurance).
 export const RISK_MASTERY_WEIGHT = 0.2
 
+// RFC 0017 Lot 1 - critères de risque : défauts plateforme (fallback si aucune
+// ligne risk_criteria pour l'org) + cycle de vie ISO 27005.
+export const DEFAULT_ACCEPTANCE_THRESHOLD = 60
+export const DEFAULT_REVIEW_MONTHS = 6
+export const RISK_LIFECYCLE_STATUS = [
+  { value: 'identified', label: 'Identifié' },
+  { value: 'analysed', label: 'Analysé' },
+  { value: 'evaluated', label: 'Évalué' },
+  { value: 'treatment_planned', label: 'Traitement planifié' },
+  { value: 'in_treatment', label: 'En traitement' },
+  { value: 'residual_accepted', label: 'Résiduel accepté' },
+  { value: 'monitored', label: 'Surveillé' },
+  { value: 'closed', label: 'Clôturé' },
+  { value: 'reopened', label: 'Rouvert' },
+] as const
+
 // ---- Boucle Regul → Risk : un incident aggrave la vraisemblance ----
 // Mapping nature d'incident → dimension du score (ajustable). 'autre' = neutre.
 export const INCIDENT_CATEGORY_DIMENSION: Record<string, ScoreDimensionKey | null> = {

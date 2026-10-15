@@ -1,18 +1,21 @@
 import { useState } from 'react'
 import { Plus, Trash2, ClipboardList } from 'lucide-react'
 import { useRiskRegister, type ScenarioRow } from './useRiskRegister'
+import { useRiskCriteria } from './useRiskCriteria'
 import { ScenarioFormModal } from './ScenarioFormModal'
 import { ScenarioBowtie } from './ScenarioBowtie'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS } from '../../lib/constants'
+import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS } from '../../lib/constants'
 
 const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) => t.value === v)?.label ?? v
+const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
 
 /** Registre des scénarios de risque : tableau, création, nœud papillon. */
 export function RiskRegisterPage(): JSX.Element {
   const reg = useRiskRegister()
+  const crit = useRiskCriteria()
   const [modal, setModal] = useState(false)
   const [bowtie, setBowtie] = useState<ScenarioRow | null>(null)
 
@@ -42,6 +45,7 @@ export function RiskRegisterPage(): JSX.Element {
                 <th className="text-left px-4 py-3 font-semibold">Dimension</th>
                 <th className="text-left px-4 py-3 font-semibold">Cotation</th>
                 <th className="text-left px-4 py-3 font-semibold">Exposition</th>
+                <th className="text-left px-4 py-3 font-semibold">Cycle de vie</th>
                 <th className="text-left px-4 py-3 font-semibold">Traitement</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -57,7 +61,11 @@ export function RiskRegisterPage(): JSX.Element {
                     {s.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${SCORE_DIMENSION_COLORS[s.dimension]}22`, color: SCORE_DIMENSION_COLORS[s.dimension] }}>{SCORE_DIMENSION_LABELS[s.dimension]}</span>}
                   </td>
                   <td className="px-4 py-3 font-mono text-gray-500">V{s.inherent_likelihood}·I{s.inherent_impact}</td>
-                  <td className="px-4 py-3 font-semibold" style={{ color: s.exposure >= 60 ? '#C0392B' : s.exposure >= 30 ? '#B8860B' : '#27AE60' }}>{s.exposure}</td>
+                  <td className="px-4 py-3 font-semibold" style={{ color: s.exposure >= 60 ? '#C0392B' : s.exposure >= 30 ? '#B8860B' : '#27AE60' }}>
+                    {s.exposure}
+                    {crit.isAboveThreshold(s.exposure) && <span title={`Au-dessus du seuil d'acceptation (${crit.acceptanceThreshold})`} className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded align-middle">Hors seuil</span>}
+                  </td>
+                  <td className="px-4 py-3"><span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(s.lifecycle_status)}</span></td>
                   <td className="px-4 py-3 text-gray-600">{treatmentLabel(s.treatment)}</td>
                   <td className="px-4 py-3 text-right">
                     <button onClick={() => void reg.deleteScenario(s.id)} className="text-gray-400 hover:text-red-600" aria-label="Supprimer"><Trash2 size={14} /></button>

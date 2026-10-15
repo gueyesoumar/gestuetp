@@ -26,6 +26,7 @@ export interface CabinetPermissions {
   canManageRoles: boolean
   canViewAuditTrail: boolean
   canManageWorkflow: boolean
+  canManageRiskCriteria: boolean
   loading: boolean
 }
 
@@ -41,6 +42,7 @@ const DEFAULT_PERMS: Omit<CabinetPermissions, 'loading'> = {
   canManageRoles: false,
   canViewAuditTrail: false,
   canManageWorkflow: false,
+  canManageRiskCriteria: false,
 }
 
 const ALL_TRUE: Omit<CabinetPermissions, 'loading'> = {
@@ -55,6 +57,7 @@ const ALL_TRUE: Omit<CabinetPermissions, 'loading'> = {
   canManageRoles: true,
   canViewAuditTrail: true,
   canManageWorkflow: true,
+  canManageRiskCriteria: true,
 }
 
 export function useCabinetPermissions(): CabinetPermissions {
@@ -109,6 +112,7 @@ export function useCabinetPermissions(): CabinetPermissions {
           if (p.can_manage_roles) acc.canManageRoles = true
           if (p.can_view_audit_trail) acc.canViewAuditTrail = true
           if (p.can_manage_workflow) acc.canManageWorkflow = true
+          if (p.can_manage_risk_criteria) acc.canManageRiskCriteria = true
         }
 
         setPerms(acc)

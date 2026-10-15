@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { ClipboardCheck, LayoutDashboard, FileText, Activity } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
@@ -29,6 +29,7 @@ export function useSidebarNavItems(
     return {
       mainItems: [
         { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
+        { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} /> },
         { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} /> },
       ],
       groupItems: [],

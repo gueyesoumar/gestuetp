@@ -277,6 +277,8 @@ export interface PlatformRolePermissions {
   can_manage_workflow?: boolean
   /** Accès à la piste d'audit (F6, migration 00179). */
   can_view_audit_trail?: boolean
+  /** Édition des critères de risque de l'org (RFC 0017 Lot 1, migration 00309). */
+  can_manage_risk_criteria?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
@@ -2598,10 +2600,28 @@ export interface RiskScenario {
   inherent_impact: number
   treatment: 'accept' | 'reduce' | 'transfer' | 'avoid' | 'untreated'
   treatment_status: 'open' | 'in_progress' | 'done'
+  lifecycle_status: RiskLifecycleStatus
   owner_user_id: string | null
   due_date: string | null
   source_mission_id: string | null
   source_risk_id: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type RiskLifecycleStatus =
+  | 'identified' | 'analysed' | 'evaluated' | 'treatment_planned'
+  | 'in_treatment' | 'residual_accepted' | 'monitored' | 'closed' | 'reopened'
+
+// RFC 0017 Lot 1 : critères de risque par organisation (contexte ISO 27005).
+export interface RiskCriteria {
+  organization_id: string
+  acceptance_threshold: number
+  appetite_statement: string | null
+  review_default_months: number
+  likelihood_labels: string[] | null
+  impact_labels: string[] | null
   created_by: string | null
   created_at: string
   updated_at: string
