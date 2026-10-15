@@ -279,6 +279,8 @@ export interface PlatformRolePermissions {
   can_view_audit_trail?: boolean
   /** Édition des critères de risque de l'org (RFC 0017 Lot 1, migration 00309). */
   can_manage_risk_criteria?: boolean
+  /** Acceptation formelle d'un risque résiduel (RFC 0017 Lot 3, migration 00313). */
+  can_accept_risk?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
@@ -2658,6 +2660,25 @@ export interface RiskTreatmentAction {
   verification_status: RiskActionVerification
   verified_by: string | null
   verified_at: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+// RFC 0017 Lot 3 : acceptation formelle du risque résiduel.
+export type RiskAcceptanceStatus = 'active' | 'expired' | 'revoked' | 'superseded'
+
+export interface RiskAcceptance {
+  id: string
+  organization_id: string
+  risk_scenario_id: string
+  residual_level: number
+  accepted_by: string | null
+  accepted_at: string
+  justification: string | null
+  valid_until: string | null
+  is_derogation: boolean
+  status: RiskAcceptanceStatus
   created_by: string | null
   created_at: string
   updated_at: string

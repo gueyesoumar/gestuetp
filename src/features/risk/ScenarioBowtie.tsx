@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, ArrowRight, Shield, Plus, Trash2, AlertTriangle, FileText } from 'lucide-react'
 import { useScenarioControls, type ControlOption, type BarrierControl } from './useScenarioControls'
 import { ScenarioActionsSection } from './ScenarioActionsSection'
+import { ScenarioAcceptanceCard } from './ScenarioAcceptanceCard'
 import { useScenarioIncidents, type IncidentOption, type ScenarioIncident } from './useScenarioIncidents'
 import { useScenarioPolicies, type PolicyOption, type PolicyBarrier, type BarrierKind } from '../policy/useScenarioPolicies'
 import {
@@ -132,6 +133,7 @@ export function ScenarioBowtie({ scenario, catalog, onClose }: { scenario: Scena
         </div>
 
         <ScenarioActionsSection scenarioId={scenario.id} />
+        <ScenarioAcceptanceCard scenarioId={scenario.id} residual={residual} />
       </div>
     </div>
   )
