@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SlidersHorizontal, Save, Lock } from 'lucide-react'
+import { SlidersHorizontal, Save, Lock, Calculator } from 'lucide-react'
 import { useRiskCriteria } from './useRiskCriteria'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useToast } from '../../hooks/useToast'
@@ -107,6 +107,40 @@ export function RiskCriteriaPage(): JSX.Element {
             </select>
           </div>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <h2 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2"><Calculator size={16} className="text-[#E07A5F]" /> Comment l&rsquo;exposition est calculée</h2>
+        <p className="text-[13px] text-gray-600">
+          Chaque scénario est coté sur deux axes de 1 à 4 : la <b>vraisemblance (V)</b> et l&rsquo;<b>impact (I)</b>.
+          L&rsquo;exposition est un indice sur 100, normalisé par rapport au maximum de la matrice (4×4 = 16) :
+        </p>
+        <p className="my-2 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 font-mono text-[13px] text-gray-900">
+          exposition = V × I / 16 × 100
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-[12px] font-semibold text-gray-700 mb-1">Bandes de lecture</p>
+            <ul className="space-y-1 text-[12px] text-gray-600">
+              <li><span className="font-bold text-[#C0392B]">≥ 60</span> critique</li>
+              <li><span className="font-bold text-[#B8860B]">30 à 59</span> à surveiller</li>
+              <li><span className="font-bold text-[#27AE60]">&lt; 30</span> maîtrisé</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-[12px] font-semibold text-gray-700 mb-1">Exemples</p>
+            <ul className="space-y-1 text-[12px] text-gray-600 font-mono">
+              <li>V=2 · I=2 &rarr; 4/16 × 100 = <b>25</b> (maîtrisé)</li>
+              <li>V=3 · I=4 &rarr; 12/16 × 100 = <b>75</b> (critique)</li>
+              <li>V=4 · I=4 &rarr; 16/16 × 100 = <b>100</b> (critique)</li>
+            </ul>
+          </div>
+        </div>
+        <p className="mt-3 text-[12px] text-gray-500">
+          Au-dessus du <b>seuil d&rsquo;acceptation</b> (actuellement <b>{threshold}</b>), un traitement est obligatoire
+          avant toute acceptation : le scénario est marqué « hors seuil ». L&rsquo;exposition <b>résiduelle</b> applique
+          en plus l&rsquo;effet des barrières (préventives sur V, correctives sur I).
+        </p>
       </div>
     </div>
   )

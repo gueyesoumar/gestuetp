@@ -4,6 +4,7 @@ import { useVocab } from '../edition/useVocab'
 import { useSupervisedPortfolio, type PortfolioOrg } from './useSupervisedPortfolio'
 import { SupervisedOrgRisks } from './SupervisedOrgRisks'
 import { IicBadge } from './riskLabels'
+import { ExpositionHelp } from './ExpositionHelp'
 import { FilterBar } from '../../components/filters/FilterBar'
 import { useFilters, type FilterDef } from '../../components/filters/useFilters'
 import { Pagination, pageSlice } from '../../components/ui/Pagination'
@@ -127,7 +128,7 @@ export function RiskPortfolioPage(): JSX.Element {
                   <th className="text-right px-4 py-3 font-semibold">Risques</th>
                   <th className="text-right px-4 py-3 font-semibold">Hors seuil</th>
                   <th className="text-right px-4 py-3 font-semibold">Revues retard</th>
-                  <th className="text-right px-4 py-3 font-semibold">Expo moy / max</th>
+                  <th className="text-right px-4 py-3 font-semibold"><span className="inline-flex items-center justify-end gap-1">Expo moy / max <ExpositionHelp /></span></th>
                   <th className="text-right px-4 py-3 font-semibold">Demandes</th>
                 </tr>
               </thead>

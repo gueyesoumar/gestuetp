@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, ArrowRight, History } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { ExpositionHelp } from './ExpositionHelp'
 import { useScenarioControls } from './useScenarioControls'
 import { useScenarioIncidents } from './useScenarioIncidents'
 import { useScenarioPolicies } from '../policy/useScenarioPolicies'
@@ -39,6 +40,7 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
               <div className="mt-1 flex items-center gap-2 flex-wrap">
                 {scenario.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[scenario.dimension]}</span>}
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(scenario.lifecycle_status)}</span>
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-gray-400">Exposition <ExpositionHelp /></span>
               </div>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0"><X size={18} /></button>

@@ -9,6 +9,7 @@ import { ScenarioFormModal } from './ScenarioFormModal'
 import { ScenarioDetail } from './ScenarioDetail'
 import { SupervisedRegister } from './SupervisedRegister'
 import { RiskLegend } from './RiskLegend'
+import { ExpositionHelp } from './ExpositionHelp'
 import { treatmentLabel, lifecycleLabel, expColor, DimChip, LifecycleChip } from './riskLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -85,7 +86,7 @@ export function RiskRegisterPage(): JSX.Element {
                 <th className="text-left px-4 py-3 font-semibold">Scénario</th>
                 <th className="text-left px-4 py-3 font-semibold">Dimension</th>
                 <th className="text-left px-4 py-3 font-semibold">Cotation</th>
-                <th className="text-left px-4 py-3 font-semibold">Exposition</th>
+                <th className="text-left px-4 py-3 font-semibold"><span className="inline-flex items-center gap-1">Exposition <ExpositionHelp threshold={crit.acceptanceThreshold} /></span></th>
                 <th className="text-left px-4 py-3 font-semibold">Cycle de vie</th>
                 <th className="text-left px-4 py-3 font-semibold">Traitement</th>
                 <th className="px-4 py-3"></th>
