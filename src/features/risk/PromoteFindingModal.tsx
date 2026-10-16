@@ -15,7 +15,7 @@ function findingRating(f: AssessmentFinding): number {
 export function PromoteFindingModal({ finding, onClose, onDone }: { finding: AssessmentFinding; onClose: () => void; onDone: () => void }): JSX.Element {
   const base = findingRating(finding)
   const initial: ScenarioFields = {
-    dimension: '', threat: '', feared: '', vulnerability: '', likelihood: base, impact: base,
+    dimension: '', threat: '', feared: '', vulnerability: finding.description ?? '', likelihood: base, impact: base,
   }
 
   const onSubmit = async (f: ScenarioFields): Promise<string | null> => {
@@ -34,10 +34,10 @@ export function PromoteFindingModal({ finding, onClose, onDone }: { finding: Ass
 
   return (
     <PromoteToRegisterModal
-      subject={{ title: finding.description || 'Constat', description: finding.risk }}
+      subject={{ title: finding.risk || finding.description || 'Risque', description: finding.risk ? finding.description : null }}
       initial={initial}
       dimensionOptional
-      note="Dimension auto-déduite du contrôle si laissée vide ; ajustez la cotation au besoin."
+      note="Le scénario est nommé par le risque associé ; le constat devient la vulnérabilité. Dimension auto-déduite du contrôle si laissée vide."
       onSubmit={onSubmit}
       onClose={onClose}
       onDone={onDone}
