@@ -9,9 +9,8 @@
 -- -- 1. Helper : org(s) propre(s) de l'assujetti portail (pas le cabinet qui sert) ----
 create or replace function public.get_my_portal_org_ids()
 returns setof uuid language sql stable security definer set search_path = '' as $$
-  select cc.client_org_id
-  from public.cabinet_clients cc
-  join public.client_portal_contacts cpc on cpc.cabinet_client_id = cc.id
+  select cpc.client_org_id
+  from public.client_portal_contacts cpc
   where cpc.user_id = public.get_my_user_id();
 $$;
 revoke all on function public.get_my_portal_org_ids() from public;
