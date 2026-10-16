@@ -28,6 +28,7 @@ export interface CabinetPermissions {
   canManageWorkflow: boolean
   canManageRiskCriteria: boolean
   canAcceptRisk: boolean
+  canManageSupervisionAssignments: boolean
   loading: boolean
 }
 
@@ -45,6 +46,7 @@ const DEFAULT_PERMS: Omit<CabinetPermissions, 'loading'> = {
   canManageWorkflow: false,
   canManageRiskCriteria: false,
   canAcceptRisk: false,
+  canManageSupervisionAssignments: false,
 }
 
 const ALL_TRUE: Omit<CabinetPermissions, 'loading'> = {
@@ -61,6 +63,7 @@ const ALL_TRUE: Omit<CabinetPermissions, 'loading'> = {
   canManageWorkflow: true,
   canManageRiskCriteria: true,
   canAcceptRisk: true,
+  canManageSupervisionAssignments: true,
 }
 
 export function useCabinetPermissions(): CabinetPermissions {
@@ -117,6 +120,7 @@ export function useCabinetPermissions(): CabinetPermissions {
           if (p.can_manage_workflow) acc.canManageWorkflow = true
           if (p.can_manage_risk_criteria) acc.canManageRiskCriteria = true
           if (p.can_accept_risk) acc.canAcceptRisk = true
+          if (p.can_manage_supervision_assignments) acc.canManageSupervisionAssignments = true
         }
 
         setPerms(acc)

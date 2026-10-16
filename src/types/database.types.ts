@@ -281,6 +281,8 @@ export interface PlatformRolePermissions {
   can_manage_risk_criteria?: boolean
   /** Acceptation formelle d'un risque résiduel (RFC 0017 Lot 3, migration 00313). */
   can_accept_risk?: boolean
+  /** Gérer les affectations de supervision (secteurs/assujettis aux membres, migration 00326). */
+  can_manage_supervision_assignments?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
@@ -2481,6 +2483,21 @@ export interface Database {
           linkedIncidentIds: string[]
           scenarioIncidentIds: string[]
         }
+      }
+      get_supervision_assignments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string; assignee_user_id: string; assignee_name: string; assignee_email: string
+          scope_type: string; scope_org_id: string | null; scope_label: string; created_at: string
+        }[]
+      }
+      add_supervision_assignment: {
+        Args: { p_user_id: string; p_scope_type: string; p_scope_org_id?: string | null; p_scope_sector?: string | null }
+        Returns: string | null
+      }
+      remove_supervision_assignment: {
+        Args: { p_id: string }
+        Returns: undefined
       }
     }
     Enums: {

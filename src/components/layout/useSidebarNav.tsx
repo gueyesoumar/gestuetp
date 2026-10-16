@@ -1,8 +1,9 @@
 import { useLocation } from 'react-router-dom'
-import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 import { APP_MODULES, type ModuleCtx, type NavItem } from '../../features/edition/moduleRegistry'
 
@@ -20,6 +21,7 @@ export function useSidebarNavItems(
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const { canViewSupervision } = useGroupPermissions()
+  const { canManageSupervisionAssignments } = useCabinetPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
   const { pathname } = useLocation()
 
@@ -31,6 +33,7 @@ export function useSidebarNavItems(
       { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
     ]
     if (supervises) items.push({ to: '/risque/portefeuille', label: 'Portefeuille', icon: <Network size={20} strokeWidth={1.5} /> })
+    if (supervises && canManageSupervisionAssignments) items.push({ to: '/risque/affectations', label: 'Affectations', icon: <UsersRound size={20} strokeWidth={1.5} /> })
     items.push(
       { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
       { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
