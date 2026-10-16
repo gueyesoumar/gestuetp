@@ -20,18 +20,21 @@ export function QuickClientModal({ open, onClose, onCreated }: QuickClientModalP
   const [name, setName] = useState('')
   const [sector, setSector] = useState('')
   const [city, setCity] = useState('')
+  const [isIic, setIsIic] = useState(false)
 
   const handleCreate = async () => {
     if (!name.trim()) return
     const id = await createClient({
       client_name: name.trim(),
       client_sector: sector || null,
+      client_is_iic: isIic,
       client_city: city.trim() || null,
     })
     if (id) {
       setName('')
       setSector('')
       setCity('')
+      setIsIic(false)
       onCreated(id)
     }
   }
@@ -58,6 +61,10 @@ export function QuickClientModal({ open, onClose, onCreated }: QuickClientModalP
             <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full" placeholder="Dakar" />
           </div>
         </div>
+        <label className="flex items-center gap-2.5 text-[13px] text-gray-700 cursor-pointer">
+          <input type="checkbox" checked={isIic} onChange={(e) => setIsIic(e.target.checked)} className="w-4 h-4 accent-[#C08A1E]" />
+          Infrastructure d&apos;importance critique (IIC)
+        </label>
         <p className="text-[11px] text-gray-400">
           Vous pourrez compléter la fiche (immatriculation, exigences, parties intéressées...) plus tard.
         </p>

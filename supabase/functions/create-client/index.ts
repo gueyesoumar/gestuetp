@@ -19,6 +19,7 @@ interface CreateClientPayload {
   client_email_domain?: string | null
   client_registration_number?: string | null
   client_sector?: string | null
+  client_is_iic?: boolean | null
   client_address?: string | null
   client_city?: string | null
   client_country?: string | null
@@ -133,6 +134,7 @@ Deno.serve(async (req) => {
           types: ['client'],
           registration_number: regNumber || null,
           sector: body.client_sector ?? null,
+          is_iic: body.client_is_iic ?? false,
           address: body.client_address ?? null,
           city: body.client_city ?? null,
           country: body.client_country ?? null,
