@@ -4,6 +4,7 @@ import { useSupervisorDirectives } from './useSupervisorDirectives'
 import { useVocab } from '../edition/useVocab'
 import { useToast } from '../../hooks/useToast'
 import { expColor, DimChip, LifecycleChip, IicBadge } from './riskLabels'
+import { ExpositionHelp } from './ExpositionHelp'
 import { FilterBar } from '../../components/filters/FilterBar'
 import { useFilters, type FilterDef } from '../../components/filters/useFilters'
 import { Pagination, pageSlice } from '../../components/ui/Pagination'
@@ -97,7 +98,7 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
                 <th className="text-left px-4 py-3 font-semibold">Secteur</th>
                 <th className="text-left px-4 py-3 font-semibold">Scénario</th>
                 <th className="text-left px-4 py-3 font-semibold">Dimension</th>
-                <th className="text-left px-4 py-3 font-semibold">Exposition</th>
+                <th className="text-left px-4 py-3 font-semibold"><span className="inline-flex items-center gap-1">Exposition <ExpositionHelp /></span></th>
                 <th className="text-left px-4 py-3 font-semibold">Cycle de vie</th>
                 <th className="px-4 py-3"></th>
               </tr>
