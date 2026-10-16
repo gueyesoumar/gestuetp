@@ -7,7 +7,7 @@ import { useScenarioPolicies } from '../policy/useScenarioPolicies'
 import { useScenarioIncidents } from './useScenarioIncidents'
 import { useRiskTreatmentActions } from './useRiskTreatment'
 import { computeBowtieModel } from './scenarioBowtieModel'
-import { barrierSide, type RiskControlLinkKind } from '../../lib/constants'
+import { barrierSide, RISK_TREATMENT_LEVERS, type RiskControlLinkKind } from '../../lib/constants'
 import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -18,7 +18,7 @@ type BarrierLike = { kind: RiskControlLinkKind; effectiveness: number; label: st
 type Lever = { id: string; label: string; kind: RiskControlLinkKind; apply: (arr: BarrierLike[]) => BarrierLike[] }
 
 const typeLabel = (k: RiskControlLinkKind): string => k === 'detective' ? 'Détectif' : barrierSide(k) === 'likelihood' ? 'Préventif' : 'Correctif'
-const TARGET = 0.75, NEW_EFF = 0.7
+const TARGET = 0.75
 
 /** Simulateur « et si » fidèle (RFC 0017 G1) : ancré sur un scénario, leviers = ses
  *  barrières candidates, effet chiffré par le vrai modèle, puis ajout au plan. */
@@ -44,14 +44,19 @@ export function RiskSimulatorPage(): JSX.Element {
 
   const levers = useMemo<Lever[]>(() => {
     const out: Lever[] = []
+    // 1. Rendre efficaces les barrières faibles déjà liées au risque.
     base.forEach((b, i) => { if (b.effectiveness < 0.5) out.push({
       id: `imp-${i}`, label: `Rendre efficace : ${b.label}`, kind: b.kind,
       apply: (arr) => arr.map((x, idx) => idx === i ? { ...x, effectiveness: Math.max(x.effectiveness, TARGET) } : x),
     }) })
-    out.push({ id: 'gen-prev', label: 'Nouvelle barrière préventive (MFA, durcissement...)', kind: 'preventive', apply: (arr) => [...arr, { kind: 'preventive', effectiveness: NEW_EFF, label: '' }] })
-    out.push({ id: 'gen-corr', label: 'Nouvelle barrière corrective (sauvegardes, PRA...)', kind: 'corrective', apply: (arr) => [...arr, { kind: 'corrective', effectiveness: NEW_EFF, label: '' }] })
+    // 2. Catalogue d'actions concrètes filtré par la dimension du risque (repli transverse).
+    const cat = RISK_TREATMENT_LEVERS[scenario?.dimension ?? '_'] ?? RISK_TREATMENT_LEVERS._
+    cat.forEach((lv, i) => out.push({
+      id: `cat-${i}`, label: lv.label, kind: lv.kind,
+      apply: (arr) => [...arr, { kind: lv.kind, effectiveness: lv.eff, label: lv.label }],
+    }))
     return out
-  }, [base])
+  }, [base, scenario?.dimension])
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />

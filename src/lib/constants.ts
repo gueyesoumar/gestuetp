@@ -485,6 +485,63 @@ export function barrierSide(kind: RiskControlLinkKind): 'likelihood' | 'impact' 
   return kind === 'preventive' ? 'likelihood' : 'impact'
 }
 
+// Catalogue de leviers de traitement concrets proposés dans le simulateur, par
+// dimension du risque. kind = côté nœud papillon (preventive/detective/corrective),
+// eff = efficacité simulée par défaut (0..1). Le repli '_' s'applique quand la
+// dimension est absente. Libellés = descriptions des actions ajoutées au plan.
+export interface TreatmentLever { label: string; kind: RiskControlLinkKind; eff: number }
+export const RISK_TREATMENT_LEVERS: Record<string, TreatmentLever[]> = {
+  security: [
+    { label: "Déployer l'authentification forte (MFA)", kind: 'preventive', eff: 0.75 },
+    { label: 'Segmenter le réseau (IT/OT, cloisonnement)', kind: 'preventive', eff: 0.7 },
+    { label: 'Durcir et corriger les serveurs exposés', kind: 'preventive', eff: 0.7 },
+    { label: 'Déployer une détection (EDR, supervision)', kind: 'detective', eff: 0.6 },
+    { label: 'Filtrer la messagerie et bloquer les pièces jointes piégées', kind: 'preventive', eff: 0.6 },
+  ],
+  resilience: [
+    { label: 'Mettre en place des sauvegardes hors ligne testées', kind: 'corrective', eff: 0.8 },
+    { label: "Élaborer et tester un plan de reprise d'activité (PRA)", kind: 'corrective', eff: 0.75 },
+    { label: "Redonder l'alimentation (onduleurs, groupe électrogène)", kind: 'corrective', eff: 0.7 },
+    { label: 'Mettre en place une protection anti-DDoS', kind: 'preventive', eff: 0.6 },
+    { label: 'Prévoir un site de secours', kind: 'corrective', eff: 0.7 },
+  ],
+  data_protection: [
+    { label: 'Chiffrer les données sensibles au repos', kind: 'corrective', eff: 0.8 },
+    { label: 'Cloisonner les accès (moindre privilège)', kind: 'preventive', eff: 0.7 },
+    { label: 'Minimiser et anonymiser les données', kind: 'corrective', eff: 0.6 },
+    { label: 'Détecter les accès et exfiltrations anormaux', kind: 'detective', eff: 0.6 },
+  ],
+  integrity: [
+    { label: 'Séparer les tâches et exiger une double validation', kind: 'preventive', eff: 0.75 },
+    { label: "Mettre en place des contrôles d'intégrité et rapprochements", kind: 'detective', eff: 0.65 },
+    { label: 'Journaliser de façon inaltérable (scellement)', kind: 'detective', eff: 0.6 },
+  ],
+  governance: [
+    { label: 'Désigner un RSSI et formaliser la PSSI', kind: 'preventive', eff: 0.6 },
+    { label: 'Mettre les traitements en conformité (CDP, loi 2008-12)', kind: 'preventive', eff: 0.6 },
+    { label: 'Instaurer un comité de sécurité et arbitrer les risques', kind: 'preventive', eff: 0.55 },
+  ],
+  verifiability: [
+    { label: 'Centraliser la journalisation (SIEM)', kind: 'detective', eff: 0.7 },
+    { label: 'Horodater et conserver les traces', kind: 'detective', eff: 0.6 },
+    { label: 'Mettre en place une revue périodique des journaux', kind: 'detective', eff: 0.55 },
+  ],
+  human_factor: [
+    { label: "Sensibiliser et simuler des campagnes d'hameçonnage", kind: 'preventive', eff: 0.6 },
+    { label: "Déployer l'authentification forte (MFA)", kind: 'preventive', eff: 0.75 },
+    { label: 'Revoir et révoquer les habilitations', kind: 'preventive', eff: 0.65 },
+  ],
+  third_party: [
+    { label: 'Imposer des clauses de sécurité et auditer les prestataires', kind: 'preventive', eff: 0.6 },
+    { label: 'Encadrer et journaliser la télémaintenance', kind: 'detective', eff: 0.6 },
+    { label: 'Privilégier un hébergement souverain et la réversibilité', kind: 'corrective', eff: 0.6 },
+  ],
+  _: [
+    { label: 'Ajouter une barrière préventive (réduit la vraisemblance)', kind: 'preventive', eff: 0.7 },
+    { label: "Ajouter une barrière corrective (réduit l'impact)", kind: 'corrective', eff: 0.7 },
+  ],
+}
+
 // Efficacités moyennes par côté (préventif ↓ vraisemblance, correctif ↓ impact).
 // null = aucune barrière de ce côté → le facteur reste inchangé.
 export function splitBarrierEfficacies(
