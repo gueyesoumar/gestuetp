@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import type { MemberWithRoles } from '../members/types'
 import type { PortfolioOrg } from './useSupervisedPortfolio'
@@ -9,15 +9,24 @@ interface Props {
   orgs: PortfolioOrg[]
   sectors: string[]
   onAdd: (input: AddAssignmentInput) => Promise<{ ok: boolean; error?: string }>
+  /** Pré-sélection d'un assujetti depuis l'alerte « sans responsable ». */
+  preset?: { orgId: string; nonce: number } | null
 }
 
 /** Formulaire d'ajout d'une affectation (membre -> assujetti ou secteur). */
-export function SupervisionAssignmentForm({ members, orgs, sectors, onAdd }: Props): JSX.Element {
+export function SupervisionAssignmentForm({ members, orgs, sectors, onAdd, preset }: Props): JSX.Element {
   const [userId, setUserId] = useState('')
   const [scopeType, setScopeType] = useState<'org' | 'sector'>('org')
   const [scopeRef, setScopeRef] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!preset) return
+    setScopeType('org')
+    setScopeRef(preset.orgId)
+    setErr(null)
+  }, [preset])
 
   const canSubmit = userId !== '' && scopeRef !== '' && !busy
 

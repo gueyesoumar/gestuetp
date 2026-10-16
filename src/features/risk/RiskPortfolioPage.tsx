@@ -5,6 +5,8 @@ import { useSupervisedPortfolio, type PortfolioOrg } from './useSupervisedPortfo
 import { SupervisedOrgRisks } from './SupervisedOrgRisks'
 import { IicBadge } from './riskLabels'
 import { ExpositionHelp } from './ExpositionHelp'
+import { useSupervisionAssignments } from './useSupervisionAssignments'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { FilterBar } from '../../components/filters/FilterBar'
 import { useFilters, type FilterDef } from '../../components/filters/useFilters'
 import { Pagination, pageSlice } from '../../components/ui/Pagination'
@@ -21,6 +23,8 @@ type SortKey = 'org_name' | 'scenario_count' | 'above_threshold' | 'overdue_revi
 export function RiskPortfolioPage(): JSX.Element {
   const vocab = useVocab()
   const { orgs, loading, error } = useSupervisedPortfolio()
+  const { canManageSupervisionAssignments } = useCabinetPermissions()
+  const { assignments } = useSupervisionAssignments()
   const [selected, setSelected] = useState<PortfolioOrg | null>(null)
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<SortKey>('max_exposure')
@@ -59,6 +63,11 @@ export function RiskPortfolioPage(): JSX.Element {
     overdue: filtered.reduce((s, o) => s + o.overdue_reviews, 0),
     pending: filtered.reduce((s, o) => s + o.pending_directives, 0),
   }
+  const unassigned = canManageSupervisionAssignments
+    ? filtered.filter((o) => !assignments.some((a) =>
+        (a.scope_type === 'org' && a.scope_org_id === o.organization_id)
+        || (a.scope_type === 'sector' && a.scope_label === o.sector))).length
+    : 0
   const dist = { eleve: 0, moyen: 0, faible: 0 }
   filtered.forEach((o) => { dist[postureOf(o.max_exposure)]++ })
   const top5 = [...filtered].sort((a, b) => b.max_exposure - a.max_exposure).slice(0, 5)
@@ -75,13 +84,14 @@ export function RiskPortfolioPage(): JSX.Element {
         <EmptyState title={`Aucun ${vocab.entitySingular} supervisé`} description="Vous n'avez pas de mission active vous donnant accès au registre de risque d'une autre organisation." />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+          <div className={`grid grid-cols-2 gap-3 ${canManageSupervisionAssignments ? 'lg:grid-cols-7' : 'lg:grid-cols-6'}`}>
             <Kpi value={filtered.length} label={vocab.entitiesTitle} />
             <Kpi value={totals.iic} label="dont IIC" tone={totals.iic > 0 ? 'text-[#C08A1E]' : undefined} />
             <Kpi value={totals.scenarios} label="Risques" />
             <Kpi value={totals.aboveThreshold} label="Hors seuil" tone={totals.aboveThreshold > 0 ? 'text-red-600' : undefined} />
             <Kpi value={totals.overdue} label="Revues en retard" tone={totals.overdue > 0 ? 'text-red-600' : undefined} />
             <Kpi value={totals.pending} label="Demandes" tone={totals.pending > 0 ? 'text-amber-600' : undefined} />
+            {canManageSupervisionAssignments && <Kpi value={unassigned} label="Sans responsable" tone={unassigned > 0 ? 'text-amber-600' : undefined} />}
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2">

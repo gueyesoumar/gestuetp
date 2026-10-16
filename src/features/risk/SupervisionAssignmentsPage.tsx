@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { UsersRound, X, Building2, Layers } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { UsersRound, X, Building2, Layers, AlertTriangle } from 'lucide-react'
 import { useVocab } from '../edition/useVocab'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useMembers } from '../members/useMembers'
@@ -23,6 +23,11 @@ export function SupervisionAssignmentsPage(): JSX.Element {
     [orgs],
   )
   const staff = useMemo(() => members.filter((m) => m.is_active), [members])
+  const [preset, setPreset] = useState<{ orgId: string; nonce: number } | null>(null)
+  const uncovered = useMemo(() => orgs.filter((o) => !assignments.some((a) =>
+    (a.scope_type === 'org' && a.scope_org_id === o.organization_id)
+    || (a.scope_type === 'sector' && a.scope_label === o.sector),
+  )), [orgs, assignments])
   const byMember = useMemo(() => {
     const map = new Map<string, { name: string; items: SupervisionAssignment[] }>()
     for (const a of assignments) {
@@ -53,7 +58,24 @@ export function SupervisionAssignmentsPage(): JSX.Element {
         </p>
       </div>
 
-      <SupervisionAssignmentForm members={staff} orgs={orgs} sectors={sectors} onAdd={add} />
+      {uncovered.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="flex items-center gap-2 text-sm font-bold text-amber-900">
+            <AlertTriangle size={16} /> {uncovered.length} {uncovered.length > 1 ? vocab.entityPlural : vocab.entitySingular} sans responsable
+          </p>
+          <p className="mt-1 text-[12px] text-amber-800">Personne ne suit ces {vocab.entityPlural} : leurs risques peuvent passer inaperçus. Affectez-les à un membre.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {uncovered.map((o) => (
+              <button key={o.organization_id} onClick={() => setPreset({ orgId: o.organization_id, nonce: Date.now() })}
+                className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-white px-2.5 py-1 text-[12px] text-amber-900 hover:bg-amber-100">
+                <Building2 size={13} className="text-amber-500" /> {o.org_name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <SupervisionAssignmentForm members={staff} orgs={orgs} sectors={sectors} onAdd={add} preset={preset} />
 
       {byMember.length === 0 ? (
         <EmptyState title="Aucune affectation" description="Commencez par affecter un secteur ou un assujetti à un membre ci-dessus." />
