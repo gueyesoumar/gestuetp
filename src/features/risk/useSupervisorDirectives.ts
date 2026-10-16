@@ -12,6 +12,9 @@ export interface SupervisorDirective {
   status: string
   verification_status: string
   created_at: string
+  client_response: string | null
+  client_responded_at: string | null
+  evidence_count: number
 }
 
 /**
@@ -54,5 +57,14 @@ export function useSupervisorDirectives() {
     return true
   }, [refresh])
 
-  return { rows, loading, error, request, verify, refresh }
+  const openEvidence = useCallback(async (actionId: string): Promise<void> => {
+    const { data, error: e } = await supabase.rpc('get_directive_evidence', { p_action: actionId })
+    if (e) { console.error('[get_directive_evidence]', e.message); return }
+    for (const ev of (data ?? []) as unknown as { file_path: string }[]) {
+      const { data: s } = await supabase.storage.from('documents').createSignedUrl(ev.file_path, 120)
+      if (s?.signedUrl) window.open(s.signedUrl, '_blank', 'noopener')
+    }
+  }, [])
+
+  return { rows, loading, error, request, verify, openEvidence, refresh }
 }

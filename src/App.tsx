@@ -48,6 +48,7 @@ import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDa
 import { ClientMissionsPage } from './features/client-portal/missions/ClientMissionsPage'
 import { ClientMissionDetailPage } from './features/client-portal/missions/ClientMissionDetailPage'
 import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
+import { ClientDirectivesPage } from './features/client-portal/directives/ClientDirectivesPage'
 import { ClientSupportCenterPage } from './features/client-portal/ClientSupportCenterPage'
 import { RecorderProvider } from './features/support/recorder/RecorderContext'
 import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
@@ -207,6 +208,7 @@ function AppRoutes(): JSX.Element {
         <Route index element={<ClientDashboardPage />} />
         <Route path="missions" element={<ClientMissionsPage />} />
         <Route path="missions/:id" element={<ClientMissionDetailPage />} />
+        <Route path="directives" element={<ClientDirectivesPage />} />
         {isSupervision && <Route path="incidents" element={<AssujettiIncidentsPage />} />}
         <Route path="documents" element={<ClientDocumentsPage />} />
         <Route path="notifications" element={<ClientNotificationsPage />} />

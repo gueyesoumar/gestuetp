@@ -133,7 +133,12 @@ export function MissionAuditedRisksTab({ missionId }: { missionId: string }): JS
                   return (
                     <tr key={d.id} className="hover:bg-gray-50">
                       <td className="px-3 py-2 text-gray-700">{d.org_name}</td>
-                      <td className="px-3 py-2"><span className="text-gray-900">{d.description}</span>{d.scenario_title && <div className="text-[11px] text-gray-400">{d.scenario_title}</div>}</td>
+                      <td className="px-3 py-2">
+                        <span className="text-gray-900">{d.description}</span>
+                        {d.scenario_title && <div className="text-[11px] text-gray-400">{d.scenario_title}</div>}
+                        {d.client_response && <div className="mt-0.5 text-[11px] text-forest-700">Réponse : {d.client_response}</div>}
+                        {d.evidence_count > 0 && <button onClick={() => void dir.openEvidence(d.id)} className="mt-0.5 text-[11px] font-medium text-forest-700 hover:underline">{d.evidence_count} preuve{d.evidence_count > 1 ? 's' : ''}</button>}
+                      </td>
                       <td className="px-3 py-2 text-gray-500">{d.due_date ?? '-'}</td>
                       <td className="px-3 py-2 text-gray-600">{d.status === 'done' ? 'Fait' : d.status === 'in_progress' ? 'En cours' : d.status === 'cancelled' ? 'Annulé' : 'À faire'}</td>
                       <td className="px-3 py-2"><span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${d.verification_status === 'verified' ? 'bg-green-50 text-green-700' : d.verification_status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-500'}`}>{verifLabel}</span></td>
