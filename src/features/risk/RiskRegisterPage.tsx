@@ -5,9 +5,10 @@ import { useRiskCriteria } from './useRiskCriteria'
 import { useSoA } from './useSoA'
 import { useEdition } from '../edition/EditionContext'
 import { useVocab } from '../edition/useVocab'
-import { useSupervisedRegister } from './useSupervisedPortfolio'
+import { useSupervisedRegister, type SupervisedRisk } from './useSupervisedPortfolio'
 import { ScenarioFormModal } from './ScenarioFormModal'
 import { ScenarioDetail } from './ScenarioDetail'
+import { AuditedScenarioBowtie, type AuditedScenario } from '../missions/AuditedScenarioBowtie'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -18,6 +19,12 @@ const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) => t.valu
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
 const kindLabel = (v: string): string => RISK_CONTROL_LINK_KINDS.find((k) => k.value === v)?.label ?? v
 const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
+const toAudited = (r: SupervisedRisk): AuditedScenario => ({
+  id: r.id, title: r.title, dimension: r.dimension,
+  inherent_likelihood: r.inherent_likelihood, inherent_impact: r.inherent_impact,
+  threat_ref: r.threat_ref, feared_event_ref: r.feared_event_ref,
+  vulnerability: r.vulnerability, asset_name: r.asset_name,
+})
 const dimChip = (d: string | null): JSX.Element | null => {
   if (!d) return null
   const c = SCORE_DIMENSION_COLORS[d as ScoreDimensionKey] ?? '#94A3B8'
@@ -36,6 +43,7 @@ export function RiskRegisterPage(): JSX.Element {
   const sup = useSupervisedRegister()
   const [modal, setModal] = useState(false)
   const [detail, setDetail] = useState<ScenarioRow | null>(null)
+  const [supDetail, setSupDetail] = useState<SupervisedRisk | null>(null)
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />
@@ -100,9 +108,9 @@ export function RiskRegisterPage(): JSX.Element {
                 {sup.rows.map((r) => {
                   const exp = riskExposure(r.inherent_likelihood, r.inherent_impact)
                   return (
-                    <tr key={r.id} className="hover:bg-gray-50">
+                    <tr key={r.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSupDetail(r)}>
                       <td className="px-4 py-3 font-medium text-gray-900">{r.org_name}</td>
-                      <td className="px-4 py-3 text-gray-700">{r.title}{r.asset_name && <span className="text-gray-400"> · {r.asset_name}</span>}</td>
+                      <td className="px-4 py-3 text-gray-700"><span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span>{r.asset_name && <span className="text-gray-400"> · {r.asset_name}</span>}</td>
                       <td className="px-4 py-3">{dimChip(r.dimension)}</td>
                       <td className="px-4 py-3 font-semibold" style={{ color: expColor(exp) }}>{exp}</td>
                       <td className="px-4 py-3"><span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(r.lifecycle_status)}</span></td>
@@ -157,6 +165,7 @@ export function RiskRegisterPage(): JSX.Element {
 
       {modal && <ScenarioFormModal catalog={reg.catalog} onClose={() => setModal(false)} onCreate={reg.createScenario} />}
       {detail && <ScenarioDetail scenario={detail} catalog={reg.catalog} onClose={() => setDetail(null)} />}
+      {supDetail && <AuditedScenarioBowtie scenario={toAudited(supDetail)} catalog={reg.catalog} onClose={() => setSupDetail(null)} />}
     </div>
   )
 }
