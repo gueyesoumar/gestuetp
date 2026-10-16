@@ -10,10 +10,10 @@ import type { RiskScenarioNode, RiskNodeType } from '../../types/database.types'
 import { RISK_CONTROL_LINK_KINDS, barrierSide } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
+import { expColor } from './riskLabels'
 
 const kindLabel = (k: string): string => RISK_CONTROL_LINK_KINDS.find((x) => x.value === k)?.label ?? k
 const pct = (v: number): number => Math.round(v * 100)
-const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 const SEV_COLOR: Record<string, string> = { critique: '#C0392B', eleve: '#B8860B', moyen: '#3B82F6', faible: '#6B7280' }
 
 interface Props {

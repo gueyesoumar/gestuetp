@@ -3,7 +3,7 @@ import { Network } from 'lucide-react'
 import { useVocab } from '../edition/useVocab'
 import { useSupervisedPortfolio, type PortfolioOrg } from './useSupervisedPortfolio'
 import { SupervisedOrgRisks } from './SupervisedOrgRisks'
-import { IicBadge } from './riskLabels'
+import { IicBadge, expColor } from './riskLabels'
 import { ExpositionHelp } from './ExpositionHelp'
 import { useSupervisionAssignments } from './useSupervisionAssignments'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
@@ -15,7 +15,6 @@ import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { EmptyState } from '../../components/ui/EmptyState'
 
 const PAGE = 10
-const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 const postureOf = (max: number): 'eleve' | 'moyen' | 'faible' => max >= 60 ? 'eleve' : max >= 30 ? 'moyen' : 'faible'
 type SortKey = 'org_name' | 'scenario_count' | 'above_threshold' | 'overdue_reviews' | 'max_exposure' | 'pending_directives'
 

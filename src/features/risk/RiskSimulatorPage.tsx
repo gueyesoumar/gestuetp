@@ -12,11 +12,11 @@ import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { expColor } from './riskLabels'
 
 type BarrierLike = { kind: RiskControlLinkKind; effectiveness: number; label: string }
 type Lever = { id: string; label: string; kind: RiskControlLinkKind; apply: (arr: BarrierLike[]) => BarrierLike[] }
 
-const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 const typeLabel = (k: RiskControlLinkKind): string => k === 'detective' ? 'Détectif' : barrierSide(k) === 'likelihood' ? 'Préventif' : 'Correctif'
 const TARGET = 0.75, NEW_EFF = 0.7
 

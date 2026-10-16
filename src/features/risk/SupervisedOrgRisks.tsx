@@ -10,10 +10,10 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { AuditedScenarioBowtie, type AuditedScenario } from '../missions/AuditedScenarioBowtie'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS, riskExposure, type ScoreDimensionKey } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
+import { expColor } from './riskLabels'
 
 const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) => t.value === v)?.label ?? v
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
-const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 const toAudited = (r: SupervisedRisk): AuditedScenario => ({
   id: r.id, title: r.title, dimension: r.dimension,
   inherent_likelihood: r.inherent_likelihood, inherent_impact: r.inherent_impact,

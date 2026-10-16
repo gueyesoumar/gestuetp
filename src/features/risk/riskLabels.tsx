@@ -5,6 +5,12 @@ export const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) =>
 export const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
 export const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 
+/** Badge d'exposition unifié : chiffre coloré par bande (critique / à surveiller / maîtrisé). */
+export function ExpoBadge({ value }: { value: number | null | undefined }): JSX.Element {
+  if (value === null || value === undefined) return <span className="text-gray-300">-</span>
+  return <span className="font-mono font-bold" style={{ color: expColor(value) }}>{value}</span>
+}
+
 export function DimChip({ d }: { d: string | null }): JSX.Element | null {
   if (!d) return null
   const c = SCORE_DIMENSION_COLORS[d as ScoreDimensionKey] ?? '#94A3B8'

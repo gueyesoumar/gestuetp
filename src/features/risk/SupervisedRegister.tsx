@@ -3,7 +3,7 @@ import { useSupervisedRegister, type SupervisedRisk } from './useSupervisedPortf
 import { useSupervisorDirectives } from './useSupervisorDirectives'
 import { useVocab } from '../edition/useVocab'
 import { useToast } from '../../hooks/useToast'
-import { expColor, DimChip, LifecycleChip, IicBadge } from './riskLabels'
+import { ExpoBadge, DimChip, LifecycleChip, IicBadge } from './riskLabels'
 import { ExpositionHelp } from './ExpositionHelp'
 import { FilterBar } from '../../components/filters/FilterBar'
 import { useFilters, type FilterDef } from '../../components/filters/useFilters'
@@ -113,7 +113,7 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
                     <td className="px-4 py-3 text-gray-500">{r.org_sector ?? '-'}</td>
                     <td className="px-4 py-3 text-gray-700"><span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span></td>
                     <td className="px-4 py-3"><DimChip d={r.dimension} /></td>
-                    <td className="px-4 py-3 font-semibold" style={{ color: expColor(exp) }}>{exp}</td>
+                    <td className="px-4 py-3"><ExpoBadge value={exp} /></td>
                     <td className="px-4 py-3"><LifecycleChip v={r.lifecycle_status} /></td>
                     <td className="px-4 py-3 text-right"><button onClick={(e) => { e.stopPropagation(); setRequestFor(r); setDesc('') }} className="text-[12px] font-semibold text-forest-700 hover:underline whitespace-nowrap">Demander une action</button></td>
                   </tr>

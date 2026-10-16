@@ -10,7 +10,7 @@ import { ScenarioDetail } from './ScenarioDetail'
 import { SupervisedRegister } from './SupervisedRegister'
 import { RiskLegend } from './RiskLegend'
 import { ExpositionHelp } from './ExpositionHelp'
-import { treatmentLabel, lifecycleLabel, expColor, DimChip, LifecycleChip } from './riskLabels'
+import { treatmentLabel, lifecycleLabel, ExpoBadge, DimChip, LifecycleChip } from './riskLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -101,8 +101,8 @@ export function RiskRegisterPage(): JSX.Element {
                   </td>
                   <td className="px-4 py-3"><DimChip d={s.dimension} /></td>
                   <td className="px-4 py-3 font-mono text-gray-500">V{s.inherent_likelihood}·I{s.inherent_impact}</td>
-                  <td className="px-4 py-3 font-semibold" style={{ color: expColor(s.exposure) }}>
-                    {s.exposure}
+                  <td className="px-4 py-3">
+                    <ExpoBadge value={s.exposure} />
                     {crit.isAboveThreshold(s.exposure) && <span title={`Au-dessus du seuil d'acceptation (${crit.acceptanceThreshold})`} className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded align-middle">Hors seuil</span>}
                   </td>
                   <td className="px-4 py-3"><LifecycleChip v={s.lifecycle_status} /></td>

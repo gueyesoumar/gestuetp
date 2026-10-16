@@ -6,9 +6,10 @@ import type { BarrierControl } from './useScenarioControls'
 import type { PolicyBarrier } from '../policy/useScenarioPolicies'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
+import { expColor } from './riskLabels'
+import { HelpHint } from './HelpHint'
 
 const pct = (v: number): number => Math.round(v * 100)
-const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 
 interface DiagBarrier { key: string; label: string; eff: number | null; weak: boolean }
 
@@ -42,7 +43,7 @@ export function ScenarioBowtieDiagram({ scenario, catalog, model, bump, barriers
       <div className="grid gap-2 lg:grid-cols-5 items-stretch">
         <EndZone title="Causes" tone="red" items={causeItems} sub={label(scenario.source_ref) ?? undefined} />
 
-        <BarrierColumn title="Préventives" effect="↓ vraisemblance" items={prev} tone="#2D6A4F" avg={effPrev} />
+        <BarrierColumn title="Préventives" effect="↓ vraisemblance" items={prev} tone="#2D6A4F" avg={effPrev} hint />
 
         {/* Centre : le scénario / événement */}
         <div className="rounded-xl border-2 p-3 text-center flex flex-col justify-center" style={{ borderColor: dimColor }}>
@@ -86,10 +87,14 @@ function EndZone({ title, items, sub, tone }: { title: string; items: string[]; 
   )
 }
 
-function BarrierColumn({ title, effect, items, tone, avg }: { title: string; effect: string; items: DiagBarrier[]; tone: string; avg: number | null }): JSX.Element {
+function BarrierColumn({ title, effect, items, tone, avg, hint }: { title: string; effect: string; items: DiagBarrier[]; tone: string; avg: number | null; hint?: boolean }): JSX.Element {
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-2.5 flex flex-col">
-      <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: tone }}>{title}</div>
+      <div className="text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1" style={{ color: tone }}>{title}{hint && (
+        <HelpHint title="Efficacité d'une barrière">
+          <p>Chaque barrière est un contrôle ou une politique réduisant le risque. Son <b>efficacité</b> (0 à 100%) mesure sa capacité à agir ; <span className="font-mono">n/e</span> = non évaluée. Les préventives abaissent la <b>vraisemblance</b>, les correctives l&rsquo;<b>impact</b> : c&rsquo;est ce qui fait passer de l&rsquo;exposition inhérente à l&rsquo;exposition résiduelle.</p>
+        </HelpHint>
+      )}</div>
       <div className="text-[9.5px] text-gray-400 mb-1.5">{effect}{avg != null && <> · moy {pct(avg)}%</>}</div>
       {items.length === 0 ? (
         <p className="text-[11px] text-gray-300 italic">Aucune barrière</p>

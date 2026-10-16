@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, ArrowRight, History } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ExpositionHelp } from './ExpositionHelp'
+import { HelpHint } from './HelpHint'
 import { useScenarioControls } from './useScenarioControls'
 import { useScenarioIncidents } from './useScenarioIncidents'
 import { useScenarioPolicies } from '../policy/useScenarioPolicies'
@@ -15,8 +16,8 @@ import { RISK_PHASES, type RiskPhaseKey } from './phases'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_LIFECYCLE_STATUS } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
+import { expColor } from './riskLabels'
 
-const expColor = (v: number): string => v >= 60 ? '#C0392B' : v >= 30 ? '#B8860B' : '#27AE60'
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
 
 /** Détail d'un scénario : bande de synthèse + jauge + 3 onglets (triptyque ISO 27005). */
@@ -39,7 +40,11 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
               <h3 className="font-semibold text-gray-900 truncate">{scenario.title}</h3>
               <div className="mt-1 flex items-center gap-2 flex-wrap">
                 {scenario.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[scenario.dimension]}</span>}
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(scenario.lifecycle_status)}</span>
+                <span className="inline-flex items-center gap-0.5"><span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(scenario.lifecycle_status)}</span>
+                  <HelpHint title="Cycle de vie du risque">
+                    <p>Étapes ISO 27005 : <b>identifié</b> &rarr; <b>analysé</b> (coté) &rarr; <b>évalué</b> (vs seuil) &rarr; <b>traité</b> &rarr; <b>accepté</b> (résiduel formellement validé) &rarr; <b>surveillé</b> (revue périodique).</p>
+                  </HelpHint>
+                </span>
                 <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-gray-400">Exposition <ExpositionHelp /></span>
               </div>
             </div>
