@@ -15,8 +15,8 @@ export function PromoteRiskModal({ risk, onClose, onDone }: { risk: MissionRisk;
     dimension: '', threat: '', feared: '', vulnerability: '', likelihood: rating.l, impact: rating.i,
   }
 
-  const onSubmit = async (f: ScenarioFields): Promise<string | null> => {
-    const { error } = await supabase.rpc('promote_mission_risk', {
+  const onSubmit = async (f: ScenarioFields): Promise<{ error: string | null; scenarioId?: string }> => {
+    const { data, error } = await supabase.rpc('promote_mission_risk', {
       p_mission_risk_id: risk.id,
       p_dimension: f.dimension as ScoreDimension,
       p_likelihood: f.likelihood,
@@ -25,8 +25,8 @@ export function PromoteRiskModal({ risk, onClose, onDone }: { risk: MissionRisk;
       p_threat_ref: f.threat || null,
       p_feared_event_ref: f.feared || null,
     })
-    if (error) { console.error('[promote_mission_risk]', error.message); return error.message }
-    return null
+    if (error) { console.error('[promote_mission_risk]', error.message); return { error: error.message } }
+    return { error: null, scenarioId: (data as unknown as string) ?? undefined }
   }
 
   return (

@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { useEdition } from '../edition/EditionContext'
 import { PromoteToRegisterModal } from './PromoteToRegisterModal'
 import type { ScenarioFields } from './ScenarioFieldset'
 import type { AssessmentFinding, FindingPriority, ScoreDimension } from '../../types/database.types'
@@ -13,13 +14,14 @@ function findingRating(f: AssessmentFinding): number {
 
 /** Promeut un constat (assessment_finding) vers le registre de l'organisation auditée. */
 export function PromoteFindingModal({ finding, onClose, onDone }: { finding: AssessmentFinding; onClose: () => void; onDone: () => void }): JSX.Element {
+  const { hasCapability } = useEdition()
   const base = findingRating(finding)
   const initial: ScenarioFields = {
     dimension: '', threat: '', feared: '', vulnerability: finding.description ?? '', likelihood: base, impact: base,
   }
 
-  const onSubmit = async (f: ScenarioFields): Promise<string | null> => {
-    const { error } = await supabase.rpc('promote_finding', {
+  const onSubmit = async (f: ScenarioFields): Promise<{ error: string | null; scenarioId?: string }> => {
+    const { data, error } = await supabase.rpc('promote_finding', {
       p_finding_id: finding.id,
       p_dimension: (f.dimension || null) as ScoreDimension | null,
       p_likelihood: f.likelihood,
@@ -28,8 +30,8 @@ export function PromoteFindingModal({ finding, onClose, onDone }: { finding: Ass
       p_threat_ref: f.threat || null,
       p_feared_event_ref: f.feared || null,
     })
-    if (error) { console.error('[promote_finding]', error.message); return error.message }
-    return null
+    if (error) { console.error('[promote_finding]', error.message); return { error: error.message } }
+    return { error: null, scenarioId: (data as unknown as string) ?? undefined }
   }
 
   return (
@@ -37,6 +39,7 @@ export function PromoteFindingModal({ finding, onClose, onDone }: { finding: Ass
       subject={{ title: finding.risk || finding.description || 'Risque', description: finding.risk ? finding.description : null }}
       initial={initial}
       dimensionOptional
+      allowDirective={hasCapability('supervision')}
       note="Le scénario est nommé par le risque associé ; le constat devient la vulnérabilité. Dimension auto-déduite du contrôle si laissée vide."
       onSubmit={onSubmit}
       onClose={onClose}

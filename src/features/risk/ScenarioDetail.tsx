@@ -10,6 +10,7 @@ import { ScenarioAppreciationTab } from './ScenarioAppreciationTab'
 import { ScenarioActionsSection } from './ScenarioActionsSection'
 import { ScenarioAcceptanceCard } from './ScenarioAcceptanceCard'
 import { ScenarioReviewSection } from './ScenarioReviewSection'
+import { useScenarioProvenance } from './useScenarioProvenance'
 import { computeBowtieModel } from './scenarioBowtieModel'
 import { scenarioCompleteness } from './scenarioCompleteness'
 import { RISK_PHASES, type RiskPhaseKey } from './phases'
@@ -28,6 +29,7 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
   const pol = useScenarioPolicies(scenario.id)
   const model = computeBowtieModel(scenario, ctrl.barriers, pol.barriers, inc.bump)
   const comp = scenarioCompleteness(scenario)
+  const prov = useScenarioProvenance(scenario.id)
   const dimColor = scenario.dimension ? SCORE_DIMENSION_COLORS[scenario.dimension] : '#94A3B8'
 
   return (
@@ -47,6 +49,12 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
                 </span>
                 <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-gray-400">Exposition <ExpositionHelp /></span>
               </div>
+              {prov && (
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Issu {prov.origin_type === 'finding' ? 'du constat' : prov.origin_type === 'mission_risk' ? 'du risque' : 'de la mission'}
+                  {prov.origin_label ? ` « ${prov.origin_label} »` : ''}{prov.mission_name ? ` · ${prov.mission_name}` : ''}
+                </p>
+              )}
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0"><X size={18} /></button>
           </div>

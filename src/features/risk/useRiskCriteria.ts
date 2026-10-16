@@ -11,6 +11,7 @@ export interface RiskCriteriaPatch {
   review_default_months: number
   likelihood_labels: string[] | null
   impact_labels: string[] | null
+  auto_promote_findings: boolean
 }
 
 export interface UseRiskCriteriaResult {
@@ -20,6 +21,7 @@ export interface UseRiskCriteriaResult {
   reviewDefaultMonths: number
   likelihoodLabels: string[] | null
   impactLabels: string[] | null
+  autoPromoteFindings: boolean
   /** true = l'org a personnalisé ses critères ; false = défauts plateforme. */
   customized: boolean
   loading: boolean
@@ -84,6 +86,7 @@ export function useRiskCriteria(): UseRiskCriteriaResult {
     reviewDefaultMonths: raw?.review_default_months ?? DEFAULT_REVIEW_MONTHS,
     likelihoodLabels: raw?.likelihood_labels ?? null,
     impactLabels: raw?.impact_labels ?? null,
+    autoPromoteFindings: raw?.auto_promote_findings ?? false,
     customized: raw != null,
     loading,
     error,

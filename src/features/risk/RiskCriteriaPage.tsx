@@ -19,6 +19,7 @@ export function RiskCriteriaPage(): JSX.Element {
   const [threshold, setThreshold] = useState(60)
   const [appetite, setAppetite] = useState('')
   const [cadence, setCadence] = useState(6)
+  const [autoPromote, setAutoPromote] = useState(false)
   const [lLabels, setLLabels] = useState<string[]>(DEF_L)
   const [iLabels, setILabels] = useState<string[]>(DEF_I)
   const [ready, setReady] = useState(false)
@@ -30,10 +31,11 @@ export function RiskCriteriaPage(): JSX.Element {
     setThreshold(crit.acceptanceThreshold)
     setAppetite(crit.appetiteStatement ?? '')
     setCadence(crit.reviewDefaultMonths)
+    setAutoPromote(crit.autoPromoteFindings)
     setLLabels(crit.likelihoodLabels ?? DEF_L)
     setILabels(crit.impactLabels ?? DEF_I)
     setReady(true)
-  }, [crit.loading, ready, crit.acceptanceThreshold, crit.appetiteStatement, crit.reviewDefaultMonths, crit.likelihoodLabels, crit.impactLabels])
+  }, [crit.loading, ready, crit.acceptanceThreshold, crit.appetiteStatement, crit.reviewDefaultMonths, crit.likelihoodLabels, crit.impactLabels, crit.autoPromoteFindings])
 
   if (crit.loading || !ready) return <LoadingSpinner />
   if (crit.error) return <ErrorAlert message={crit.error} />
@@ -49,6 +51,7 @@ export function RiskCriteriaPage(): JSX.Element {
       review_default_months: cadence,
       likelihood_labels: lLabels,
       impact_labels: iLabels,
+      auto_promote_findings: autoPromote,
     })
     setSaving(false)
     if (ok) toast.success('Critères enregistrés')
@@ -105,6 +108,15 @@ export function RiskCriteriaPage(): JSX.Element {
               <option value={6}>6 mois</option>
               <option value={12}>12 mois</option>
             </select>
+          </div>
+          <div>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" disabled={ro} checked={autoPromote} onChange={(e) => setAutoPromote(e.target.checked)} className="mt-0.5 rounded border-gray-300 text-forest-600 focus:ring-forest-500" />
+              <span>
+                <span className="block text-sm font-semibold text-gray-900">Promotion automatique des constats</span>
+                <span className="block text-[12px] text-gray-500">À la clôture d&rsquo;un contrôle, les constats (NC majeures et mineures) deviennent automatiquement des scénarios « analysés » dans ce registre.</span>
+              </span>
+            </label>
           </div>
         </div>
       </div>
