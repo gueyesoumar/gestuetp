@@ -1,14 +1,23 @@
 import { SCORE_DIMENSION_COLORS, RISK_LIKELIHOOD_LEVELS, RISK_IMPACT_LEVELS } from '../../lib/constants'
 import type { ScenarioRow } from './useRiskRegister'
 
-/** Matrice 4×4 Vraisemblance × Impact ; bulles colorées par dimension, taille = exposition. */
-export function RiskMatrix({ scenarios }: { scenarios: ScenarioRow[] }): JSX.Element {
+/** Matrice 4×4 Vraisemblance × Impact ; bulles colorées par dimension, taille = exposition.
+ *  Cases cliquables (onCellClick) pour filtrer le registre sur un couple V×I. */
+export function RiskMatrix({ scenarios, onCellClick }: { scenarios: ScenarioRow[]; onCellClick?: (like: number, impact: number) => void }): JSX.Element {
   const cells = []
   for (let r = 0; r < 4; r++) {
     for (let c = 0; c < 4; c++) {
       const impact = 4 - r, like = c + 1, heat = impact * like
       const color = heat >= 12 ? '#C0392B' : heat >= 6 ? '#D4A843' : '#27AE60'
-      cells.push(<div key={`${r}-${c}`} style={{ background: color, opacity: 0.06 + (heat / 16) * 0.16 }} />)
+      cells.push(
+        <div
+          key={`${r}-${c}`}
+          onClick={onCellClick ? () => onCellClick(like, impact) : undefined}
+          title={onCellClick ? `Voir les risques V${like} · I${impact}` : undefined}
+          className={onCellClick ? 'cursor-pointer hover:brightness-95' : undefined}
+          style={{ background: color, opacity: 0.06 + (heat / 16) * 0.16 }}
+        />,
+      )
     }
   }
   return (

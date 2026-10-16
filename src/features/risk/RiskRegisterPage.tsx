@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Plus, Trash2, ClipboardList, Download } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Plus, Trash2, ClipboardList, Download, X } from 'lucide-react'
 import { useRiskRegister, type ScenarioRow } from './useRiskRegister'
 import { useRiskCriteria } from './useRiskCriteria'
 import { useSoA } from './useSoA'
@@ -30,6 +31,11 @@ export function RiskRegisterPage(): JSX.Element {
   const [scope, setScope] = useState<'own' | 'all'>(supervises ? 'all' : 'own')
   const [modal, setModal] = useState(false)
   const [detail, setDetail] = useState<ScenarioRow | null>(null)
+  const [params, setParams] = useSearchParams()
+
+  const fv = Number(params.get('v')), fi = Number(params.get('i'))
+  const cellFilter = fv >= 1 && fv <= 4 && fi >= 1 && fi <= 4
+  const shown = cellFilter ? reg.scenarios.filter((s) => s.inherent_likelihood === fv && s.inherent_impact === fi) : reg.scenarios
 
   if (reg.loading) return <LoadingSpinner />
   if (reg.error) return <ErrorAlert message={reg.error} />
@@ -74,10 +80,22 @@ export function RiskRegisterPage(): JSX.Element {
         </div>
       )}
 
+      {!consolidated && cellFilter && (
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[12px] text-gray-700">
+            Vraisemblance {fv} · Impact {fi}
+            <button onClick={() => { params.delete('v'); params.delete('i'); setParams(params, { replace: true }) }} className="rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700" title="Retirer le filtre"><X size={13} /></button>
+          </span>
+          <span className="text-[12px] text-gray-400">{shown.length} risque{shown.length !== 1 ? 's' : ''}</span>
+        </div>
+      )}
+
       {consolidated ? (
         <SupervisedRegister catalog={reg.catalog} />
       ) : reg.scenarios.length === 0 ? (
-        <EmptyState title="Registre vide" description="Créez votre premier scénario de risque avec le bouton ci-dessus." />
+        <EmptyState title="Registre vide" description="Créez votre premier scénario de risque avec le bouton ci-dessus." action={<button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={15} /> Nouveau scénario</button>} />
+      ) : shown.length === 0 ? (
+        <EmptyState title="Aucun risque pour ce couple" description={`Aucun scénario avec vraisemblance ${fv} et impact ${fi}.`} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
           <table className="w-full text-[13px]">
@@ -93,7 +111,7 @@ export function RiskRegisterPage(): JSX.Element {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {reg.scenarios.map((s) => (
+              {shown.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <button onClick={() => setDetail(s)} className="font-medium text-gray-900 hover:text-[#B34A31] text-left">{s.title}</button>

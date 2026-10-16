@@ -4,6 +4,7 @@
 
 export const TOUR_LABELS: Record<string, string> = {
   'hub-overview': 'Découvrir le Hub ETP',
+  'risk-overview': 'Découvrir le module Risque',
   'create-mission': 'Créer une mission',
   'missions-views': 'Changer de vue des missions',
   frameworks: 'Explorer les référentiels',

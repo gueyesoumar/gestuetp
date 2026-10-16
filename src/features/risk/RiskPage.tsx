@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
-import { ShieldAlert, Info, ArrowRight, Sparkles } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ShieldAlert, Info, ArrowRight, Sparkles, Compass } from 'lucide-react'
+import { launchTour } from '../support/onboarding/tours'
 import { useRiskRegister } from './useRiskRegister'
 import { useRiskCriteria } from './useRiskCriteria'
 import { useReviewsDue } from './useRiskReview'
@@ -14,6 +15,7 @@ import { ErrorAlert } from '../../components/ui/ErrorAlert'
 
 /** Vue d'ensemble du module Risk : maîtrise du risque, KPIs, radar, carte, simulateur. */
 export function RiskPage(): JSX.Element {
+  const navigate = useNavigate()
   const reg = useRiskRegister()
   const score = useSelfDimensionScores()
   const crit = useRiskCriteria()
@@ -41,9 +43,14 @@ export function RiskPage(): JSX.Element {
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><ShieldAlert size={20} className="text-[#E07A5F]" /> Vue d&apos;ensemble</h1>
           <p className="mt-1 text-[13px] text-gray-500">L&apos;exposition aux risques (EBIOS RM) qui alimente votre score de confiance.</p>
         </div>
-        <Link to="/risque/registre" className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-forest-700 border border-forest-200 rounded-lg hover:bg-forest-50">
-          Ouvrir le registre <ArrowRight size={16} />
-        </Link>
+        <div className="flex items-center gap-2">
+          <button onClick={() => launchTour('risk-overview')} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <Compass size={16} /> Visite guidée
+          </button>
+          <Link to="/risque/registre" className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-forest-700 border border-forest-200 rounded-lg hover:bg-forest-50">
+            Ouvrir le registre <ArrowRight size={16} />
+          </Link>
+        </div>
       </div>
 
       {/* Bandeau maîtrise du risque + impact score */}
@@ -78,11 +85,11 @@ export function RiskPage(): JSX.Element {
           <p className="text-[11px] text-gray-400 mb-2">Exposition inhérente (halo) · posture (trait) · résiduel (rempli)</p>
           <RiskRadar data={score} />
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div data-tour="risk-matrix" className="rounded-xl border border-gray-200 bg-white p-4">
           <h3 className="text-sm font-bold text-gray-900 mb-2">Carte de risque</h3>
           {reg.scenarios.length === 0
             ? <p className="text-[13px] text-gray-400 py-8 text-center">Ajoutez un scénario pour le voir apparaître.</p>
-            : <RiskMatrix scenarios={reg.scenarios} />}
+            : <RiskMatrix scenarios={reg.scenarios} onCellClick={(v, i) => navigate(`/risque/registre?v=${v}&i=${i}`)} />}
         </div>
       </div>
 

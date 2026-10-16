@@ -34,6 +34,15 @@ export const TOUR_DEFS: Record<string, TourDef> = {
       { element: '[data-tour="missions-views"]', popover: { title: 'Vos vues', description: 'Basculez entre Kanban, Split et Cartes selon votre façon de travailler. Votre choix est mémorisé.', side: 'bottom', align: 'end' } },
     ],
   },
+  'risk-overview': {
+    route: '/risque',
+    steps: [
+      { popover: { title: 'Le module Risque', description: "Gérez vos risques de bout en bout, selon le cycle ISO 27005 : Apprécier, Traiter, Surveiller." } },
+      { element: '[data-tour="sidebar-nav"]', popover: { title: 'Les trois temps', description: '1 · Apprécier (critères, registre) → 2 · Traiter (plan, acceptations, simulateur) → 3 · Surveiller (revue). Les superviseurs ont aussi le Portefeuille et les Affectations.', side: 'right', align: 'start' } },
+      { element: '[data-tour="risk-matrix"]', popover: { title: 'Matrice des risques', description: "Chaque risque est positionné par sa vraisemblance et son impact. Cliquez une case pour filtrer le registre sur ce couple.", side: 'left', align: 'center' } },
+      { popover: { title: "L'exposition", description: "L'exposition est un indice sur 100 (V × I / 16 × 100). La pastille ⓘ à côté du chiffre et la page Critères en détaillent la méthode." } },
+    ],
+  },
   frameworks: {
     route: '/referentiels',
     steps: [
