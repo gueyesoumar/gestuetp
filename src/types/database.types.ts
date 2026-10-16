@@ -2446,7 +2446,7 @@ export interface Database {
       get_supervised_org_portfolio: {
         Args: Record<PropertyKey, never>
         Returns: {
-          organization_id: string; org_name: string; sector: string | null
+          organization_id: string; org_name: string; sector: string | null; is_iic: boolean
           scenario_count: number; above_threshold: number; overdue_reviews: number
           avg_exposure: number; max_exposure: number; pending_directives: number
         }[]
@@ -2454,7 +2454,8 @@ export interface Database {
       get_supervised_risks: {
         Args: { p_org_id?: string | null }
         Returns: {
-          id: string; organization_id: string; org_name: string; title: string; dimension: string | null
+          id: string; organization_id: string; org_name: string; org_sector: string | null; org_is_iic: boolean
+          title: string; dimension: string | null
           inherent_likelihood: number; inherent_impact: number; treatment: string
           lifecycle_status: string; next_review_at: string | null
           threat_ref: string | null; feared_event_ref: string | null
@@ -2464,7 +2465,8 @@ export interface Database {
       get_supervised_plan: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string; organization_id: string; org_name: string; risk_scenario_id: string
+          id: string; organization_id: string; org_name: string; org_sector: string | null; org_is_iic: boolean
+          risk_scenario_id: string
           scenario_title: string | null; description: string; control_code: string | null
           option: string | null; origin: string; due_date: string | null
           status: string; verification_status: string; created_at: string

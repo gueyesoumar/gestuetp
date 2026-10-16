@@ -5,6 +5,7 @@ export interface PortfolioOrg {
   organization_id: string
   org_name: string
   sector: string | null
+  is_iic: boolean
   scenario_count: number
   above_threshold: number
   overdue_reviews: number
@@ -17,6 +18,8 @@ export interface SupervisedRisk {
   id: string
   organization_id: string
   org_name: string
+  org_sector: string | null
+  org_is_iic: boolean
   title: string
   dimension: string | null
   inherent_likelihood: number
@@ -56,6 +59,8 @@ export interface SupervisedPlanRow {
   id: string
   organization_id: string
   org_name: string
+  org_sector: string | null
+  org_is_iic: boolean
   risk_scenario_id: string
   scenario_title: string | null
   description: string

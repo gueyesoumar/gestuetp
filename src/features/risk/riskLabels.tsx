@@ -14,3 +14,10 @@ export function DimChip({ d }: { d: string | null }): JSX.Element | null {
 export function LifecycleChip({ v }: { v: string }): JSX.Element {
   return <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(v)}</span>
 }
+
+/** Badge type d'assujetti : IIC (doré) ou standard. */
+export function IicBadge({ iic }: { iic: boolean }): JSX.Element {
+  return iic
+    ? <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-[#e6cf94] bg-[#f7edd3] text-[#C08A1E]">IIC</span>
+    : <span className="text-[10px] font-semibold px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-400">Standard</span>
+}
