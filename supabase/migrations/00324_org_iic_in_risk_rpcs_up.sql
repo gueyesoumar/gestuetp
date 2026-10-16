@@ -8,6 +8,9 @@ comment on column public.organizations.is_iic is
   'Infrastructure d''importance critique (IIC) : vrai = assujetti critique, faux = standard.';
 
 -- Portefeuille : + is_iic (secteur déjà présent).
+-- DROP obligatoire : on change le type de retour (ajout de colonnes OUT), que
+-- CREATE OR REPLACE refuse ("cannot change return type of existing function").
+drop function if exists public.get_supervised_org_portfolio();
 create or replace function public.get_supervised_org_portfolio()
 returns table (
   organization_id uuid, org_name text, sector text, is_iic boolean,
@@ -48,6 +51,7 @@ revoke all on function public.get_supervised_org_portfolio() from public;
 grant execute on function public.get_supervised_org_portfolio() to authenticated;
 
 -- Registre consolidé : + org_sector, org_is_iic.
+drop function if exists public.get_supervised_risks(uuid);
 create or replace function public.get_supervised_risks(p_org_id uuid default null)
 returns table (
   id uuid, organization_id uuid, org_name text, org_sector text, org_is_iic boolean,
@@ -72,6 +76,7 @@ revoke all on function public.get_supervised_risks(uuid) from public;
 grant execute on function public.get_supervised_risks(uuid) to authenticated;
 
 -- Plan consolidé : + org_sector, org_is_iic.
+drop function if exists public.get_supervised_plan();
 create or replace function public.get_supervised_plan()
 returns table (
   id uuid, organization_id uuid, org_name text, org_sector text, org_is_iic boolean,
