@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react'
+import { FilterBar } from '../../../components/filters/FilterBar'
+import type { FilterDef, FiltersState, FilterOption } from '../../../components/filters/useFilters'
 import { getEffectiveClassification, type ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 
 export interface ActionPlanFilterState {
@@ -12,52 +13,47 @@ interface ActionPlanFiltersProps {
   onChange: (state: ActionPlanFilterState) => void
 }
 
-const STATUS_OPTIONS: Array<{ value: ActionPlanFilterState['status']; label: string }> = [
-  { value: 'all', label: 'Tous statuts' },
-  { value: 'open', label: 'Ouvertes' },
-  { value: 'client_responded', label: 'À vérifier' },
-  { value: 'verified', label: 'Vérifiées' },
-  { value: 'closed', label: 'Clôturées' },
-  { value: 'overdue', label: 'En retard' },
+const STATUS_OPTIONS: FilterOption[] = [
+  { value: 'open', label: 'Ouvertes' }, { value: 'client_responded', label: 'À vérifier' },
+  { value: 'verified', label: 'Vérifiées' }, { value: 'closed', label: 'Clôturées' }, { value: 'overdue', label: 'En retard' },
 ]
-
-const CLASS_OPTIONS: Array<{ value: ActionPlanFilterState['classification']; label: string }> = [
-  { value: 'all', label: 'Tous types' },
-  { value: 'major_nc', label: 'NC majeures' },
-  { value: 'minor_nc', label: 'NC mineures' },
-  { value: 'observation', label: 'Observations' },
+const CLASS_OPTIONS: FilterOption[] = [
+  { value: 'major_nc', label: 'NC majeures' }, { value: 'minor_nc', label: 'NC mineures' }, { value: 'observation', label: 'Observations' },
 ]
+const DEFS: FilterDef[] = [
+  { key: 'status', label: 'Statut', type: 'select', options: STATUS_OPTIONS },
+  { key: 'classification', label: 'Type', type: 'select', options: CLASS_OPTIONS },
+]
+const labelOf = (opts: FilterOption[], v: string): string => opts.find((o) => o.value === v)?.label ?? v
 
+/** Filtres du plan d'action, migrés vers le standard FilterBar (contrat/applyFilters inchangés). */
 export function ActionPlanFilters({ state, onChange }: ActionPlanFiltersProps): JSX.Element {
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          value={state.search}
-          onChange={(e) => onChange({ ...state, search: e.target.value })}
-          placeholder="Rechercher (code, contrôle, description)..."
-          className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg w-80 focus:border-forest-700 focus:ring-1 focus:ring-forest-700"
-        />
-      </div>
-      <select
-        value={state.status}
-        onChange={(e) => onChange({ ...state, status: e.target.value as ActionPlanFilterState['status'] })}
-        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700"
-      >
-        {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-      <select
-        value={state.classification}
-        onChange={(e) => onChange({ ...state, classification: e.target.value as ActionPlanFilterState['classification'] })}
-        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700"
-      >
-        {CLASS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    </div>
-  )
+  const values = {
+    status: state.status === 'all' ? '' : state.status,
+    classification: state.classification === 'all' ? '' : state.classification,
+  }
+  const chips = DEFS.filter((d) => values[d.key as 'status' | 'classification'])
+    .map((d) => ({ key: d.key, label: `${d.label} : ${labelOf(d.options ?? [], values[d.key as 'status' | 'classification'])}` }))
+
+  const fstate: FiltersState = {
+    values,
+    set: (k, v) => apply(k, v),
+    setAll: (nv) => onChange({ ...state, status: toStatus(nv.status), classification: toClass(nv.classification) }),
+    clear: (k) => apply(k, ''),
+    reset: () => onChange({ ...state, status: 'all', classification: 'all' }),
+    activeCount: chips.length,
+    chips,
+  }
+  function apply(k: string, v: string | boolean | undefined): void {
+    if (k === 'status') onChange({ ...state, status: toStatus(v) })
+    else if (k === 'classification') onChange({ ...state, classification: toClass(v) })
+  }
+
+  return <FilterBar defs={DEFS} state={fstate} search={{ value: state.search, onChange: (s) => onChange({ ...state, search: s }), placeholder: 'Rechercher (code, contrôle, description)...' }} />
 }
+
+const toStatus = (v: unknown): ActionPlanFilterState['status'] => (v || 'all') as ActionPlanFilterState['status']
+const toClass = (v: unknown): ActionPlanFilterState['classification'] => (v || 'all') as ActionPlanFilterState['classification']
 
 export function applyFilters<T extends ActionPlanCAR>(cars: T[], state: ActionPlanFilterState): T[] {
   const q = state.search.trim().toLowerCase()
