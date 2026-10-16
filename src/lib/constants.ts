@@ -37,6 +37,33 @@ export const SECTEURS_OPTIONS = [
   'Autre',
 ] as const
 
+// Taxonomie secteur public / parapublic (édition régulateur). Utilisée pour étiqueter
+// les modèles de scénarios de risque par secteur et pour filtrer le sélecteur à la
+// création. Inclut les valeurs déjà présentes sur les assujettis existants.
+export const PUBLIC_SECTORS = [
+  'Administration publique',
+  'Fiscalité',
+  'Douanes',
+  'Trésor / Finances publiques',
+  'Justice',
+  'Défense / Sécurité intérieure',
+  'Élections / État civil',
+  'Statistique nationale',
+  'Collectivités territoriales',
+  "Infrastructure numérique de l'État",
+  'Énergie',
+  'Eau / Assainissement',
+  'Télécommunications',
+  'Transport',
+  'Ports',
+  'Aéroports / Aviation civile',
+  'Santé publique',
+  'Protection sociale',
+  'Éducation / Formation',
+  'Agriculture / Élevage / Pêche',
+  'Environnement',
+] as const
+
 export const PAYS_OPTIONS = [
   'Bénin',
   'Burkina Faso',

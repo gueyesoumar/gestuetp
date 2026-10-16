@@ -2449,6 +2449,18 @@ export interface Database {
         Args: { p_action: string }
         Returns: { id: string; file_path: string; file_name: string; uploaded_by: string | null; created_at: string }[]
       }
+      get_scenario_templates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string; owner_org_id: string | null; sectors: string[]; title: string; dimension: string | null
+          suggested_likelihood: number; suggested_impact: number
+          threat_ref: string | null; feared_event_ref: string | null; vulnerability: string | null
+        }[]
+      }
+      get_scenario_template_nodes: {
+        Args: { p_template: string }
+        Returns: { node_type: string; label: string; position: number }[]
+      }
       get_audited_org_risks: {
         Args: { p_mission_id: string }
         Returns: {
