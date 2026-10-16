@@ -45,7 +45,7 @@ interface RegisterData {
   assets: Array<{ id: string; name: string }>
   loading: boolean
   error: string | null
-  createScenario: (s: NewScenario) => Promise<boolean>
+  createScenario: (s: NewScenario) => Promise<string | null>
   deleteScenario: (id: string) => Promise<void>
   refresh: () => void
 }
@@ -93,9 +93,9 @@ export function useRiskRegister(): RegisterData {
     return () => ac.abort()
   }, [orgId, uid, lensOn, key])
 
-  const createScenario = useCallback(async (s: NewScenario): Promise<boolean> => {
-    if (!orgId) return false
-    const { error: e } = await supabase.from('risk_scenarios').insert({
+  const createScenario = useCallback(async (s: NewScenario): Promise<string | null> => {
+    if (!orgId) return null
+    const { data, error: e } = await supabase.from('risk_scenarios').insert({
       organization_id: orgId,
       title: s.title,
       dimension: s.dimension,
@@ -107,10 +107,10 @@ export function useRiskRegister(): RegisterData {
       vulnerability: s.vulnerability ?? null,
       asset_id: s.asset_id ?? null,
       created_by: profile?.id ?? null,
-    } as never)
-    if (e) { console.error('[createScenario]', e.message); return false }
+    } as never).select('id').single()
+    if (e) { console.error('[createScenario]', e.message); return null }
     refresh()
-    return true
+    return (data as unknown as { id: string } | null)?.id ?? null
   }, [orgId, profile?.id, refresh])
 
   const deleteScenario = useCallback(async (id: string): Promise<void> => {

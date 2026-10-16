@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound, LibraryBig } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
@@ -21,7 +21,7 @@ export function useSidebarNavItems(
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const { canViewSupervision } = useGroupPermissions()
-  const { canManageSupervisionAssignments } = useCabinetPermissions()
+  const { canManageSupervisionAssignments, canManageRiskCriteria } = useCabinetPermissions()
   const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
   const { pathname } = useLocation()
 
@@ -37,6 +37,9 @@ export function useSidebarNavItems(
     items.push(
       { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
       { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
+    )
+    if (canManageRiskCriteria) items.push({ to: '/risque/modeles', label: 'Modèles', icon: <LibraryBig size={20} strokeWidth={1.5} />, section: '1 · Apprécier' })
+    items.push(
       { to: '/risque/plan', label: 'Plan de traitement', icon: <ListChecks size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
       { to: '/risque/acceptations', label: 'Acceptations', icon: <ShieldCheck size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
       { to: '/risque/simulateur', label: 'Simulateur', icon: <Sparkles size={20} strokeWidth={1.5} />, section: '2 · Traiter' },

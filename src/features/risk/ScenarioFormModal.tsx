@@ -2,28 +2,55 @@ import { useState } from 'react'
 import { X, ChevronDown } from 'lucide-react'
 import { RISK_TREATMENTS } from '../../lib/constants'
 import { useToast } from '../../hooks/useToast'
+import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../lib/supabase'
 import { ScenarioCoreFields, ScenarioRefFields, type ScenarioFields } from './ScenarioFieldset'
 import { scenarioCompleteness } from './scenarioCompleteness'
+import { TemplatePicker, type ScenarioTemplate } from './TemplatePicker'
 import type { RiskCatalogEntry, ScoreDimension } from '../../types/database.types'
 import type { NewScenario } from './useRiskRegister'
 
 interface Props {
   catalog: RiskCatalogEntry[]
   onClose: () => void
-  onCreate: (s: NewScenario) => Promise<boolean>
+  onCreate: (s: NewScenario) => Promise<string | null>
 }
 
 const INITIAL: ScenarioFields = { dimension: '', threat: '', feared: '', vulnerability: '', likelihood: 2, impact: 2 }
 
 export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.Element {
   const toast = useToast()
+  const { profile } = useAuth()
   const [title, setTitle] = useState('')
   const [fields, setFields] = useState<ScenarioFields>(INITIAL)
   const [treatment, setTreatment] = useState<NewScenario['treatment']>('untreated')
   const [showRefs, setShowRefs] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [templateId, setTemplateId] = useState<string | null>(null)
 
   const patch = (p: Partial<ScenarioFields>): void => setFields((f) => ({ ...f, ...p }))
+
+  const applyTemplate = (t: ScenarioTemplate): void => {
+    setTemplateId(t.id)
+    if (!title.trim()) setTitle(t.title)
+    patch({
+      dimension: (t.dimension ?? '') as ScenarioFields['dimension'],
+      likelihood: t.suggested_likelihood, impact: t.suggested_impact,
+      vulnerability: t.vulnerability ?? '',
+    })
+  }
+
+  // Copie les causes/conséquences du modèle dans le scénario créé (RLS org).
+  const seedNodesFromTemplate = async (scenarioId: string): Promise<void> => {
+    if (!templateId || !profile?.organization_id) return
+    const { data, error } = await supabase.rpc('get_scenario_template_nodes', { p_template: templateId })
+    if (error || !data) return
+    const rows = (data as unknown as Array<{ node_type: string; label: string; position: number }>).map((n) => ({
+      organization_id: profile.organization_id, risk_scenario_id: scenarioId,
+      node_type: n.node_type, label: n.label, position: n.position, created_by: profile.id,
+    }))
+    if (rows.length > 0) await supabase.from('risk_scenario_nodes').insert(rows as never)
+  }
   // Complétude en direct (mêmes critères ISO que la bande de synthèse du détail).
   const comp = scenarioCompleteness({
     threat_ref: fields.threat || null, feared_event_ref: fields.feared || null,
@@ -36,13 +63,14 @@ export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.El
     e.preventDefault()
     if (!title.trim() || !fields.dimension) { toast.error('Titre et dimension requis'); return }
     setBusy(true)
-    const ok = await onCreate({
+    const newId = await onCreate({
       title: title.trim(), dimension: fields.dimension as ScoreDimension,
       inherent_likelihood: fields.likelihood, inherent_impact: fields.impact, treatment,
       threat_ref: fields.threat || null, feared_event_ref: fields.feared || null, vulnerability: fields.vulnerability || null,
     })
+    if (newId) await seedNodesFromTemplate(newId)
     setBusy(false)
-    if (!ok) { toast.error('Création impossible'); return }
+    if (!newId) { toast.error('Création impossible'); return }
     toast.success('Scénario ajouté au registre')
     onClose()
   }
@@ -61,6 +89,7 @@ export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.El
         </div>
         <form onSubmit={submit} className="px-5 py-4 space-y-3">
           <p className="text-[12px] text-gray-500">Renseignez l&apos;essentiel maintenant (intitulé, dimension, cotation). Vous pourrez préciser et compléter le scénario plus tard depuis son détail.</p>
+          <TemplatePicker onPick={applyTemplate} />
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Intitulé *</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} placeholder="ex. Rançongiciel sur le SI de production" autoFocus />
