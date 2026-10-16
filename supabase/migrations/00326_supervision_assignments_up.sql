@@ -140,7 +140,7 @@ language sql stable security definer set search_path = '' as $$
   select a.id, a.assignee_user_id,
     trim(coalesce(u.first_name, '') || ' ' || coalesce(u.last_name, '')),
     u.email, a.scope_type, a.scope_org_id,
-    case when a.scope_type = 'org' then o.name else a.scope_sector end,
+    case when a.scope_type = 'org' then o.name else a.scope_sector end as scope_label,
     a.created_at
   from public.supervision_assignments a
   join public.users u on u.id = a.assignee_user_id
