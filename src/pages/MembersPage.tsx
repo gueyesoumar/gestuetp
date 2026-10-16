@@ -10,7 +10,8 @@ import { useMyCabinetQuotas } from '../hooks/useMyCabinetQuotas'
 import { useToast } from '../hooks/useToast'
 import { QuotaInlineBar, isQuotaReached } from '../components/quotas/QuotaInlineBar'
 import { MemberTable } from '../features/members/MemberTable'
-import { MemberSearchBar } from '../features/members/MemberSearchBar'
+import { FilterBar } from '../components/filters/FilterBar'
+import { useFilters, type FilterDef } from '../components/filters/useFilters'
 import { InviteMemberModal } from '../features/members/InviteMemberModal'
 import { RoleAssignmentModal } from '../features/members/RoleAssignmentModal'
 import { MemberProfileDrawer } from '../features/members/MemberProfileDrawer'
@@ -18,7 +19,7 @@ import { ResetPasswordModal } from '../features/members/ResetPasswordModal'
 import { ConfirmDialog } from '../features/members/ConfirmDialog'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
-import type { MemberWithRoles, MemberFilterStatus } from '../features/members/types'
+import type { MemberWithRoles } from '../features/members/types'
 
 export function MembersPage() {
   const { members, loading, error, refetch } = useMembers()
@@ -39,39 +40,25 @@ export function MembersPage() {
   const [resendTarget, setResendTarget] = useState<MemberWithRoles | null>(null)
   const [resetPwTarget, setResetPwTarget] = useState<MemberWithRoles | null>(null)
 
-  // Search & filters
+  // Recherche & filtres (standard plateforme : FilterBar + useFilters)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<MemberFilterStatus>('all')
-  const [roleFilter, setRoleFilter] = useState('')
+  const filterDefs = useMemo<FilterDef[]>(() => [
+    { key: 'statut', label: 'Statut', type: 'select', options: [{ value: 'active', label: 'Actifs' }, { value: 'inactive', label: 'Inactifs' }] },
+    { key: 'role', label: 'Rôle', type: 'select', options: roles.map((r) => ({ value: r.id, label: r.name })) },
+  ], [roles])
+  const f = useFilters(filterDefs)
 
   const filteredMembers = useMemo(() => {
     let result = members
-
-    // Text search
     if (search.trim()) {
       const q = search.toLowerCase()
-      result = result.filter(
-        (m) =>
-          m.first_name.toLowerCase().includes(q) ||
-          m.last_name.toLowerCase().includes(q) ||
-          m.email.toLowerCase().includes(q)
-      )
+      result = result.filter((m) => m.first_name.toLowerCase().includes(q) || m.last_name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q))
     }
-
-    // Status filter
-    if (statusFilter === 'active') {
-      result = result.filter((m) => m.is_active)
-    } else if (statusFilter === 'inactive') {
-      result = result.filter((m) => !m.is_active)
-    }
-
-    // Role filter
-    if (roleFilter) {
-      result = result.filter((m) => m.roles.some((r) => r.id === roleFilter))
-    }
-
+    if (f.values.statut === 'active') result = result.filter((m) => m.is_active)
+    else if (f.values.statut === 'inactive') result = result.filter((m) => !m.is_active)
+    if (f.values.role) result = result.filter((m) => m.roles.some((r) => r.id === f.values.role))
     return result
-  }, [members, search, statusFilter, roleFilter])
+  }, [members, search, f.values])
 
   const handleToggleStatus = useCallback((member: MemberWithRoles) => {
     setConfirmTarget(member)
@@ -156,17 +143,9 @@ export function MembersPage() {
         </div>
       </div>
 
-      {/* Search & Filters */}
+      {/* Recherche & filtres */}
       <div className="mt-4">
-        <MemberSearchBar
-          search={search}
-          onSearchChange={setSearch}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          roleFilter={roleFilter}
-          onRoleFilterChange={setRoleFilter}
-          roleOptions={roles.map((r) => ({ id: r.id, name: r.name }))}
-        />
+        <FilterBar defs={filterDefs} state={f} search={{ value: search, onChange: setSearch, placeholder: 'Rechercher un membre (nom, email)...' }} />
       </div>
 
       {/* Count */}
