@@ -2412,6 +2412,18 @@ export interface Database {
         }
         Returns: string
       }
+      promote_findings_bulk: {
+        Args: { p_mission_id: string }
+        Returns: number
+      }
+      auto_promote_mission_findings: {
+        Args: { p_mission_id: string }
+        Returns: number
+      }
+      get_scenario_provenance: {
+        Args: { p_scenario_id: string }
+        Returns: { origin_type: string; origin_label: string | null; mission_id: string | null; mission_name: string | null }[]
+      }
       get_control_policies: {
         Args: { p_control_id: string }
         Returns: { policy_id: string; title: string; status: string; applied: boolean }[]
@@ -2718,6 +2730,8 @@ export interface RiskCriteria {
   review_default_months: number
   likelihood_labels: string[] | null
   impact_labels: string[] | null
+  /** Auto-promotion des constats au registre à la clôture (RFC 0017, migration 00331). */
+  auto_promote_findings?: boolean
   created_by: string | null
   created_at: string
   updated_at: string

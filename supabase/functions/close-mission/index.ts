@@ -199,6 +199,11 @@ Deno.serve(async (req) => {
       summary: 'Mission clôturée',
     })
 
+    // Auto-promotion des constats au registre de risque de l'assujetti (opt-in par org,
+    // vérifié côté RPC). Non bloquant pour la clôture.
+    const { error: promoteError } = await supabaseAdmin.rpc('auto_promote_mission_findings', { p_mission_id: mission_id })
+    if (promoteError) console.error('close-mission auto-promote:', promoteError.message)
+
     return new Response(
       JSON.stringify({
         success: true,
