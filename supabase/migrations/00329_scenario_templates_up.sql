@@ -107,7 +107,7 @@ grant execute on function public.get_scenario_templates() to authenticated;
 
 -- RPC nodes d'un modèle (pour l'instanciation), même autorisation de visibilité.
 create or replace function public.get_scenario_template_nodes(p_template uuid)
-returns table (node_type text, label text, position int)
+returns table (node_type text, label text, "position" int)
 language sql stable security definer set search_path = '' as $$
   select n.node_type, n.label, n.position
   from public.risk_scenario_template_nodes n
