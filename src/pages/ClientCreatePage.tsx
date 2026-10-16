@@ -21,7 +21,6 @@ export function ClientCreatePage() {
   })
   const [registrationNumber, setRegistrationNumber] = useState('')
   const [sector, setSector] = useState('')
-  const [isIic, setIsIic] = useState(false)
   const [address, setAddress] = useState('')
   const [city, setCity] = useState('')
   const [country, setCountry] = useState('S\u00e9n\u00e9gal')
@@ -41,7 +40,6 @@ export function ClientCreatePage() {
       client_email_domain: emailDomain.value || null,
       client_registration_number: registrationNumber || null,
       client_sector: sector || null,
-      client_is_iic: isIic,
       client_address: address || null,
       client_city: city || null,
       client_country: country || null,
@@ -112,10 +110,6 @@ export function ClientCreatePage() {
                       onWebsite={website.onChange}
                       onPhone={phone.onChange}
                     />
-                    <label className="mt-4 flex items-center gap-2.5 text-[13px] text-gray-700 cursor-pointer">
-                      <input type="checkbox" checked={isIic} onChange={(e) => setIsIic(e.target.checked)} disabled={creating} className="w-4 h-4 accent-[#C08A1E]" />
-                      Infrastructure d&apos;importance critique (IIC)
-                    </label>
                   </div>
                 </div>
               ),

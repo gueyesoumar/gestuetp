@@ -915,7 +915,6 @@ export interface CabinetClientInsert {
   client_email_domain?: string | null
   client_registration_number?: string | null
   client_sector?: string | null
-  client_is_iic?: boolean | null
   client_address?: string | null
   client_city?: string | null
   client_country?: string | null
@@ -944,7 +943,6 @@ export interface CabinetClientUpdate {
   client_email_domain?: string | null
   client_registration_number?: string | null
   client_sector?: string | null
-  client_is_iic?: boolean | null
   client_address?: string | null
   client_city?: string | null
   client_country?: string | null
