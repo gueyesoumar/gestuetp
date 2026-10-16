@@ -8,6 +8,7 @@ import { useVocab } from '../edition/useVocab'
 import { ScenarioFormModal } from './ScenarioFormModal'
 import { ScenarioDetail } from './ScenarioDetail'
 import { SupervisedRegister } from './SupervisedRegister'
+import { RiskLegend } from './RiskLegend'
 import { treatmentLabel, lifecycleLabel, expColor, DimChip, LifecycleChip } from './riskLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -114,6 +115,8 @@ export function RiskRegisterPage(): JSX.Element {
           </table>
         </div>
       )}
+
+      <RiskLegend />
 
       {modal && <ScenarioFormModal catalog={reg.catalog} onClose={() => setModal(false)} onCreate={reg.createScenario} />}
       {detail && <ScenarioDetail scenario={detail} catalog={reg.catalog} onClose={() => setDetail(null)} />}
