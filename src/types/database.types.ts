@@ -2434,7 +2434,20 @@ export interface Database {
           id: string; organization_id: string; org_name: string; risk_scenario_id: string
           scenario_title: string | null; description: string; due_date: string | null
           status: string; verification_status: string; created_at: string
+          client_response: string | null; client_responded_at: string | null; evidence_count: number
         }[]
+      }
+      respond_risk_directive: {
+        Args: { p_action: string; p_status: string; p_note?: string | null }
+        Returns: undefined
+      }
+      add_directive_evidence: {
+        Args: { p_action: string; p_path: string; p_name: string }
+        Returns: string
+      }
+      get_directive_evidence: {
+        Args: { p_action: string }
+        Returns: { id: string; file_path: string; file_name: string; uploaded_by: string | null; created_at: string }[]
       }
       get_audited_org_risks: {
         Args: { p_mission_id: string }
