@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { LibraryBig, Plus, Pencil, Trash2 } from 'lucide-react'
+import { LibraryBig, Plus, Pencil, Trash2, Copy } from 'lucide-react'
 import { useScenarioTemplates, type ScenarioTemplateRow } from './useScenarioTemplates'
 import { TemplateFormModal } from './TemplateFormModal'
 import { ExpoBadge, DimChip } from './riskLabels'
@@ -12,15 +12,17 @@ const ALL = 'Tous secteurs'
 
 /** Régulateur : édition du catalogue de modèles de scénarios par secteur. */
 export function ScenarioTemplatesPage(): JSX.Element {
-  const { templates, loading, error, save, remove, loadNodes } = useScenarioTemplates()
+  const { templates, platform, loading, error, save, remove, loadNodes, duplicate } = useScenarioTemplates()
   const [edit, setEdit] = useState<ScenarioTemplateRow | null>(null)
   const [creating, setCreating] = useState(false)
   const [sector, setSector] = useState('')
+  const [view, setView] = useState<'mine' | 'platform'>('mine')
 
-  const sectors = useMemo(() => [...new Set(templates.flatMap((t) => t.sectors))].sort(), [templates])
+  const source = view === 'mine' ? templates : platform
+  const sectors = useMemo(() => [...new Set(source.flatMap((t) => t.sectors))].sort(), [source])
   const filtered = useMemo(() => sector
-    ? templates.filter((t) => sector === ALL ? t.sectors.length === 0 : t.sectors.includes(sector))
-    : templates, [templates, sector])
+    ? source.filter((t) => sector === ALL ? t.sectors.length === 0 : t.sectors.includes(sector))
+    : source, [source, sector])
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
@@ -35,16 +37,22 @@ export function ScenarioTemplatesPage(): JSX.Element {
         <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Nouveau modèle</button>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="inline-flex rounded-lg border border-gray-200 p-0.5 text-[13px]">
+          <button onClick={() => { setView('mine'); setSector('') }} className={`px-3 py-1.5 rounded-md font-medium ${view === 'mine' ? 'bg-forest-700 text-white' : 'text-gray-600'}`}>Mes modèles ({templates.length})</button>
+          <button onClick={() => { setView('platform'); setSector('') }} className={`px-3 py-1.5 rounded-md font-medium ${view === 'platform' ? 'bg-forest-700 text-white' : 'text-gray-600'}`}>Catalogue plateforme ({platform.length})</button>
+        </div>
         <select value={sector} onChange={(e) => setSector(e.target.value)} className="px-2 py-2 text-[12px] border border-gray-300 rounded-lg">
-          <option value="">Tous les modèles</option>
+          <option value="">Tous les secteurs</option>
           <option value={ALL}>Tous secteurs (transverses)</option>
           {sectors.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         <span className="text-[12px] text-gray-400">{filtered.length} modèle{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
-      {templates.length === 0 ? (
+      {view === 'platform' && <p className="text-[12px] text-gray-500">Catalogue fourni par la plateforme (lecture seule). Dupliquez un modèle pour l&rsquo;adapter à vos besoins dans « Mes modèles ».</p>}
+
+      {source.length === 0 ? (
         <EmptyState title="Aucun modèle propre" description="Créez vos modèles par secteur, ou laissez vos assujettis utiliser le catalogue plateforme." action={<button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={15} /> Nouveau modèle</button>} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
@@ -66,8 +74,14 @@ export function ScenarioTemplatesPage(): JSX.Element {
                   <td className="px-4 py-3"><DimChip d={t.dimension} /></td>
                   <td className="px-4 py-3"><ExpoBadge value={riskExposure(t.suggested_likelihood, t.suggested_impact)} /></td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <button onClick={() => setEdit(t)} className="text-gray-400 hover:text-forest-700" title="Modifier"><Pencil size={15} /></button>
-                    <button onClick={() => { if (window.confirm('Supprimer ce modèle ?')) void remove(t.id) }} className="ml-3 text-gray-400 hover:text-red-600" title="Supprimer"><Trash2 size={15} /></button>
+                    {view === 'mine' ? (
+                      <>
+                        <button onClick={() => setEdit(t)} className="text-gray-400 hover:text-forest-700" title="Modifier"><Pencil size={15} /></button>
+                        <button onClick={() => { if (window.confirm('Supprimer ce modèle ?')) void remove(t.id) }} className="ml-3 text-gray-400 hover:text-red-600" title="Supprimer"><Trash2 size={15} /></button>
+                      </>
+                    ) : (
+                      <button onClick={() => void duplicate(t)} className="inline-flex items-center gap-1 text-[12px] font-medium text-forest-700 hover:underline" title="Dupliquer dans mes modèles"><Copy size={13} /> Dupliquer</button>
+                    )}
                   </td>
                 </tr>
               ))}

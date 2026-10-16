@@ -28,11 +28,13 @@ export interface TemplateInput {
 
 interface Result {
   templates: ScenarioTemplateRow[]
+  platform: ScenarioTemplateRow[]
   loading: boolean
   error: string | null
   save: (input: TemplateInput, id?: string) => Promise<{ ok: boolean; error?: string }>
   remove: (id: string) => Promise<void>
   loadNodes: (id: string) => Promise<TemplateNode[]>
+  duplicate: (t: ScenarioTemplateRow) => Promise<{ ok: boolean; error?: string }>
   refetch: () => void
 }
 
@@ -41,6 +43,7 @@ export function useScenarioTemplates(): Result {
   const { profile } = useAuth()
   const orgId = profile?.organization_id ?? null
   const [templates, setTemplates] = useState<ScenarioTemplateRow[]>([])
+  const [platform, setPlatform] = useState<ScenarioTemplateRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [key, setKey] = useState(0)
@@ -50,14 +53,16 @@ export function useScenarioTemplates(): Result {
     if (!orgId) { setLoading(false); return }
     const ac = new AbortController()
     setLoading(true); setError(null)
+    const cols = 'id,sectors,title,dimension,suggested_likelihood,suggested_impact,vulnerability,is_active'
     void (async () => {
-      const { data, error: e } = await supabase
-        .from('risk_scenario_templates')
-        .select('id,sectors,title,dimension,suggested_likelihood,suggested_impact,vulnerability,is_active')
-        .eq('owner_org_id', orgId).order('title').abortSignal(ac.signal)
+      const [own, plat] = await Promise.all([
+        supabase.from('risk_scenario_templates').select(cols).eq('owner_org_id', orgId).order('title').abortSignal(ac.signal),
+        supabase.from('risk_scenario_templates').select(cols).is('owner_org_id', null).order('title').abortSignal(ac.signal),
+      ])
       if (ac.signal.aborted) return
-      if (e) { console.error('[useScenarioTemplates]', e.message); setError('Chargement des modèles impossible.'); setLoading(false); return }
-      setTemplates((data ?? []) as unknown as ScenarioTemplateRow[])
+      if (own.error) { console.error('[useScenarioTemplates]', own.error.message); setError('Chargement des modèles impossible.'); setLoading(false); return }
+      setTemplates((own.data ?? []) as unknown as ScenarioTemplateRow[])
+      setPlatform((plat.data ?? []) as unknown as ScenarioTemplateRow[])
       setLoading(false)
     })()
     return () => ac.abort()
@@ -105,5 +110,14 @@ export function useScenarioTemplates(): Result {
     return (data ?? []) as unknown as TemplateNode[]
   }, [])
 
-  return { templates, loading, error, save, remove, loadNodes, refetch }
+  const duplicate = useCallback(async (t: ScenarioTemplateRow) => {
+    const nodes = await loadNodes(t.id)
+    return save({
+      title: `${t.title} (copie)`, sectors: t.sectors, dimension: t.dimension,
+      suggested_likelihood: t.suggested_likelihood, suggested_impact: t.suggested_impact,
+      vulnerability: t.vulnerability, is_active: t.is_active, nodes,
+    })
+  }, [loadNodes, save])
+
+  return { templates, platform, loading, error, save, remove, loadNodes, duplicate, refetch }
 }
