@@ -149,6 +149,10 @@ Deno.serve(async (req) => {
         )
       }
       clientOrgId = newOrg.id
+      // Socle d'accès explicite (RFC 0018 Phase 3 : l'ancien trigger « comply forcé »
+      // est retiré ; chaque parcours provisionne désormais explicitement). Non bloquant.
+      const { error: baseErr } = await supabaseAdmin.rpc('provision_org_baseline', { p_org: clientOrgId })
+      if (baseErr) console.error('create-client provision_org_baseline:', baseErr.message)
     }
 
     // 5. Fiche cabinet_clients (client_org_id renseigné dès maintenant).

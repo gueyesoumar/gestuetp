@@ -17,6 +17,7 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [planSlug, setPlanSlug] = useState('decouverte')
+  const [preview, setPreview] = useState<{ modules: string[]; features: string[]; quotas: { key: string; limit: number | null }[] } | null>(null)
   const [ownerEmail, setOwnerEmail] = useState('')
   const [ownerFirstName, setOwnerFirstName] = useState('')
   const [ownerLastName, setOwnerLastName] = useState('')
@@ -30,6 +31,17 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
       setPlans((data ?? []) as Plan[])
     })
   }, [])
+
+  // Aperçu live du contenu du plan (RFC 0018 Phase 3).
+  useEffect(() => {
+    const ac = new AbortController()
+    void supabase.rpc('get_plan_contents', { p_plan: planSlug }).abortSignal(ac.signal).then(({ data, error }) => {
+      if (ac.signal.aborted) return
+      if (error) { console.warn('[CreateCabinetWizard] get_plan_contents:', error.message); setPreview(null); return }
+      setPreview((data ?? null) as typeof preview)
+    })
+    return () => ac.abort()
+  }, [planSlug])
 
   // Auto-slug depuis le nom (uniquement quand le slug n'a pas été touché manuellement)
   const [slugTouched, setSlugTouched] = useState(false)
@@ -101,6 +113,14 @@ export function CreateCabinetWizard({ onClose, onCreated }: Props) {
                 ))}
               </select>
             </Field>
+            {preview && (
+              <div className="rounded-lg border border-forest-100 bg-forest-50/50 p-3 text-[12px]">
+                <p className="font-semibold text-forest-800 mb-1.5">Ce que ce plan débloque</p>
+                <p className="text-gray-700"><span className="font-medium">Modules :</span> {preview.modules.length ? preview.modules.join(', ') : 'aucun'}</p>
+                <p className="text-gray-700"><span className="font-medium">Fonctionnalités :</span> {preview.features.length ? preview.features.join(', ') : 'aucune'}</p>
+                <p className="text-gray-700"><span className="font-medium">Quotas :</span> {preview.quotas.length ? preview.quotas.map((q) => `${q.key} ${q.limit ?? '∞'}`).join(' · ') : 'par défaut'}</p>
+              </div>
+            )}
           </div>
         )}
 

@@ -2392,6 +2392,18 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: { slug: string; source: string }[]
       }
+      get_plan_contents: {
+        Args: { p_plan: string }
+        Returns: { modules: string[]; features: string[]; quotas: { key: string; limit: number | null }[] }
+      }
+      apply_plan: {
+        Args: { p_org: string; p_plan: string }
+        Returns: undefined
+      }
+      provision_org_baseline: {
+        Args: { p_org: string }
+        Returns: undefined
+      }
       promote_mission_risk: {
         Args: {
           p_mission_risk_id: string

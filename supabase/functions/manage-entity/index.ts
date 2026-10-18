@@ -235,6 +235,9 @@ Deno.serve(async (req) => {
       }
       // RFC 0007 P4b : le rattachement est une ARÊTE du graphe (plus de parent_org_id).
       await setParentEdge(admin, parentId, created.id)
+      // Socle d'accès explicite (RFC 0018 Phase 3 : trigger « comply forcé » retiré). Non bloquant.
+      const { error: baseErr } = await admin.rpc('provision_org_baseline', { p_org: created.id })
+      if (baseErr) console.error('[manage-entity] provision_org_baseline:', baseErr.message)
       // Profil réglementaire (Regul) - best-effort, non bloquant pour la création.
       const prof = profilePatch(body)
       if (prof) {

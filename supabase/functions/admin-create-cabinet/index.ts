@@ -92,6 +92,14 @@ Deno.serve(async (req) => {
     }
     const orgId = (org as { id: string }).id
 
+    // 3bis. Provisionner les accès : socle comply puis application du plan choisi (RFC 0018
+    // Phase 3). Remplace l'ancien trigger qui forçait comply ; le plan débloque réellement
+    // ses modules/quotas/fonctionnalités. Non bloquant en cas d'échec (l'org existe déjà).
+    const { error: baseErr } = await admin.rpc('provision_org_baseline', { p_org: orgId })
+    if (baseErr) console.error('[admin-create-cabinet] provision_org_baseline:', baseErr.message)
+    const { error: planErr } = await admin.rpc('apply_plan', { p_org: orgId, p_plan: p.slug })
+    if (planErr) console.error('[admin-create-cabinet] apply_plan:', planErr.message)
+
     // 4. Créer le rôle par défaut 'Associé'
     // deno-lint-ignore no-explicit-any
     const { data: role, error: roleError } = await (admin.from('platform_roles') as any)
