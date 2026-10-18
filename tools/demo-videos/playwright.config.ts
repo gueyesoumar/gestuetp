@@ -11,8 +11,8 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 45000,
   expect: { timeout: 10000 },
-  retries: 0,
-  reporter: [['list']],
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
     baseURL: BASE,
     storageState: existsSync('.auth/state.json') ? '.auth/state.json' : undefined,

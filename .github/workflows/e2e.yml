@@ -1,0 +1,53 @@
+name: E2E
+
+# Tests E2E Playwright (lecture seule) des modules Risk / Regul, sur l'environnement
+# de test. Auth entièrement automatique via TOTP programmatique (auth-auto.mjs) : les
+# identifiants d'un COMPTE DE TEST DÉDIÉ et son secret TOTP sont fournis par les secrets
+# du dépôt, jamais versionnés. Déclenchement manuel + nocturne (pas sur push, pour ne
+# pas courir contre le déploiement).
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "URL de l'app à tester"
+        required: false
+        default: 'https://test.gestugroup.com'
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/demo-videos
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+      TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+      TEST_TOTP_SECRET: ${{ secrets.E2E_TEST_TOTP_SECRET }}
+      VERCEL_BYPASS: ${{ secrets.VERCEL_BYPASS }}
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://test.gestugroup.com' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tools/demo-videos/package-lock.json
+      - name: Install deps
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Authentifier (TOTP automatique)
+        run: node auth-auto.mjs
+      - name: Lancer les tests E2E
+        run: npm run test:e2e
+      - name: Rapport (si échec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tools/demo-videos/playwright-report/
+          retention-days: 7
