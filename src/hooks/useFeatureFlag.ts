@@ -5,20 +5,14 @@ import { useAuth } from './useAuth'
 /**
  * Lit l'état effectif d'un feature flag pour l'utilisateur courant.
  *
- * Résolution plan-based (Piste B) :
- *   1. Si flag.is_globally_enabled = false → OFF (kill switch plateforme)
- *   2. Sinon si feature_flag_overrides existe pour l'org → utilise l'override
- *   3. Sinon si plan_features contient (org.plan_id, flag.id) → ON
- *   4. Sinon → OFF (hors plan)
+ * Résolution unifiée (RFC 0018 Phase 1) : les fonctionnalités sont des entitlements
+ * `feature.<slug>` dans org_entitlements (même pile que hasCapability). Le RPC
+ * `my_features()` renvoie les fonctionnalités actives de l'org du caller ; le kill-switch
+ * global et l'appartenance au plan sont déjà pris en compte en amont (backfill + pont).
  *
- * Cache : sessionStorage clé `ff:${orgId}:${slug}`. L'admin invalide via
- * sessionStorage.removeItem lorsqu'il modifie un override / les features
- * d'un plan.
- *
- * Usage :
- *   const { enabled, loading, source } = useFeatureFlag('weekly_digest_email')
- *   if (loading) return null
- *   if (!enabled) return null
+ * Cache : sessionStorage `ff:${orgId}` = carte { slug: source } partagée par tous les
+ * appels de la page (un seul RPC). Stale-while-revalidate : affichage immédiat du cache,
+ * ré-interrogation en arrière-plan.
  */
 export type FeatureFlagSource = 'override' | 'plan' | 'kill_switch' | null
 
@@ -27,8 +21,6 @@ export interface FeatureFlagState {
   loading: boolean
   source: FeatureFlagSource
 }
-
-interface CachedValue { enabled: boolean; source: FeatureFlagSource }
 
 export function useFeatureFlag(slug: string): FeatureFlagState {
   const { profile } = useAuth()
@@ -41,93 +33,36 @@ export function useFeatureFlag(slug: string): FeatureFlagState {
       return
     }
 
-    const cacheKey = `ff:${orgId}:${slug}`
+    const cacheKey = `ff:${orgId}`
+    const apply = (map: Record<string, FeatureFlagSource>, loading: boolean): void => {
+      const has = Object.prototype.hasOwnProperty.call(map, slug)
+      setState({ enabled: has, loading, source: has ? (map[slug] ?? 'plan') : null })
+    }
+
     const cached = sessionStorage.getItem(cacheKey)
     if (cached) {
-      try {
-        const parsed = JSON.parse(cached) as CachedValue
-        // Stale-while-revalidate : on affiche le cache tout de suite (zéro flicker)
-        // MAIS on ne s'arrête pas là - on réinterroge en arrière-plan ci-dessous pour
-        // propager tout changement de flag sans attendre la fermeture de l'onglet.
-        setState({ enabled: parsed.enabled, loading: false, source: parsed.source })
-      } catch {
-        // cache corrompu - on ré-interroge (sessionStorage sera réécrit par commit()).
-      }
+      try { apply(JSON.parse(cached) as Record<string, FeatureFlagSource>, false) } catch { /* cache corrompu */ }
     }
 
     const abort = new AbortController()
     void (async () => {
-      const [flagRes, orgRes] = await Promise.all([
-        supabase
-          .from('feature_flags')
-          .select('id, is_globally_enabled')
-          .eq('slug', slug)
-          .abortSignal(abort.signal)
-          .maybeSingle(),
-        supabase
-          .from('organizations')
-          .select('plan_id')
-          .eq('id', orgId)
-          .abortSignal(abort.signal)
-          .maybeSingle(),
-      ])
+      const { data, error } = await supabase.rpc('my_features').abortSignal(abort.signal)
       if (abort.signal.aborted) return
-
-      const flag = flagRes.data as { id: string; is_globally_enabled: boolean } | null
-      if (!flag) {
-        if (flagRes.error) console.warn(`[useFeatureFlag] ${slug}:`, flagRes.error.message)
-        setState({ enabled: false, loading: false, source: null })
+      if (error) {
+        console.warn('[useFeatureFlag] my_features:', error.message)
+        if (!cached) setState({ enabled: false, loading: false, source: null })
         return
       }
-
-      if (!flag.is_globally_enabled) {
-        commit(cacheKey, { enabled: false, source: 'kill_switch' }, setState)
-        return
+      const map: Record<string, FeatureFlagSource> = {}
+      for (const r of (data ?? []) as Array<{ slug: string; source: string }>) {
+        map[r.slug] = (r.source === 'override' ? 'override' : 'plan')
       }
-
-      const orgPlanId = (orgRes.data as { plan_id: string | null } | null)?.plan_id ?? null
-
-      const [overrideRes, planFeatureRes] = await Promise.all([
-        supabase
-          .from('feature_flag_overrides')
-          .select('enabled')
-          .eq('flag_id', flag.id)
-          .eq('organization_id', orgId)
-          .abortSignal(abort.signal)
-          .maybeSingle(),
-        orgPlanId
-          ? supabase
-              .from('plan_features')
-              .select('flag_id')
-              .eq('plan_id', orgPlanId)
-              .eq('flag_id', flag.id)
-              .abortSignal(abort.signal)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-      ])
-      if (abort.signal.aborted) return
-
-      const override = overrideRes.data as { enabled: boolean } | null
-      if (override) {
-        commit(cacheKey, { enabled: override.enabled, source: 'override' }, setState)
-        return
-      }
-
-      const inPlan = (planFeatureRes.data as { flag_id: string } | null) !== null
-      commit(cacheKey, { enabled: inPlan, source: 'plan' }, setState)
+      try { sessionStorage.setItem(cacheKey, JSON.stringify(map)) } catch { /* quota dépassé */ }
+      apply(map, false)
     })()
 
     return () => abort.abort()
   }, [slug, orgId, profile])
 
   return state
-}
-
-function commit(cacheKey: string, value: CachedValue, setState: (s: FeatureFlagState) => void): void {
-  try {
-    sessionStorage.setItem(cacheKey, JSON.stringify(value))
-  } catch {
-    // quota dépassé - on continue sans cache
-  }
-  setState({ enabled: value.enabled, loading: false, source: value.source })
 }

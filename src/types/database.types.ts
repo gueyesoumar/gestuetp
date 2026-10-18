@@ -2388,6 +2388,10 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: { key: string; value: string }[]
       }
+      my_features: {
+        Args: Record<PropertyKey, never>
+        Returns: { slug: string; source: string }[]
+      }
       promote_mission_risk: {
         Args: {
           p_mission_risk_id: string
