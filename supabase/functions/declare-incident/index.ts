@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { authenticateCaller } from '../_shared/auth.ts'
+import { requireEntitlement } from '../_shared/require-entitlement.ts'
 
 // Gëstu Regul (M5) : déclaration et suivi d'incidents cyber. Chaque acte est
 // ancré dans probative_log (S1). Écritures réservées à cette fonction (service_role).
@@ -48,6 +49,14 @@ Deno.serve(async (req) => {
     if (!auth.ok) return json({ error: auth.message }, auth.status)
     const caller = auth.profile
     const isClient = caller.role === 'client'
+
+    // RFC 0018 P5 : le module incidents est garde cote STAFF (regulateur).
+    // Le chemin assujetti (client portail) n'est jamais garde par la capacite
+    // du regulateur. Soft tant que la cle 'incidents' n'est pas en 'hard'.
+    if (!isClient) {
+      const denied = await requireEntitlement(admin, caller.organization_id, 'incidents')
+      if (denied) return denied
+    }
 
     // Périmètre autorisé : assujetti = org(s) de son contact portail (entity_org_id,
     // scope canonique M7 - PAS organization_id, ambigu côté client) ; staff = sous-arbre.
