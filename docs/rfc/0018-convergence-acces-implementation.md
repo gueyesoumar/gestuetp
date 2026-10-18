@@ -32,7 +32,7 @@ Cinq frictions super-admin : (1) le plan choisi à la création n'active pas les
 
 - **D1 - Espace de clés : clés préfixées par nature** (`module.risk`, `feature.ia`, `quota.users`). Le préfixe porte la nature (affichage groupé, registre partagé). Coût ponctuel : mapping/backfill des clés existantes. Registre canonique partagé front/back (`src/lib/entitlements.ts` + table de référence).
 - **D2 - Enforcement hard ciblé** : `hard` sur le **statut suspendu** (coupe tout), les **modules payants** (risk/policy/privacy/supervision/incidents) et les **quotas** (users/missions) ; `soft` sur les fonctionnalités de confort (IA, mode d'affichage). Déploiement **observe -> flag -> enforce**.
-- **D3 - Couche abonnement conservée** : `products`/`org_subscriptions` restent la **couche de facturation** au-dessus des entitlements. Séparation nette : **entitlements = accès**, **abonnement = argent** (MRR, remises, périodes). Appliquer un plan provisionne l'accès (entitlements) **et** met à jour l'abonnement (facturation) de façon synchronisée.
+- **D3 - Facturation découplée (révisé 2026-10-18)** : la facturation devient un **module séparé** (RFC 0019, factures + encaissement, à concevoir quand priorisé) ; **l'accès ne dépend jamais de la facturation**. En attendant, le prix affiché par cabinet reste `plans.monthly_price` via `organizations.plan_id`. La couche granulaire `org_subscriptions`/`org_mrr` est **gelée** (non réactivée ; remplacée par RFC 0019). Donc `apply_plan` ne touche PAS `org_subscriptions` (P2-d option i).
 - **D4 - Édition déduite** : la persona Comply/Regul reste dérivée de `module.supervision` (pas d'attribut explicite).
 
 ## 4. Pré-requis transverses
@@ -56,6 +56,9 @@ Figer le registre de clés (mapping `feature_flags` -> `feature.*` : IA, risk_sc
 - Front : `AdminPlansPage` édite le bundle (modules+features+quotas) ; retrait de la matrice `plan_features`.
 - Supprime la friction #3.
 
+### Phase 2 (révisé) - apply_plan (option i, découplé de la facturation)
+`apply_plan(org, plan_slug)` : (1) pose `organizations.plan_id` -> prix affiché + recalcul des 10 flags via le pont Phase 1 ; (2) écrit les entitlements de **modules** (`plan_products` -> capacité) + **quotas** (`plan_quotas`), `source='plan:<slug>'`, en préservant `manual`/`override` (P2-c) et en retirant les lignes `plan:%` hors plan ; (3) `refresh_org_capabilities`. **Ne touche pas `org_subscriptions`** (facturation = RFC 0019). Les 10 fonctionnalités de gating viennent de `plan_features` (pile B) via le pont Phase 1 ; `product_features`/`plan_bundle_features` restent le catalogue d'affichage du Hub (P2-a' A').
+
 ### Phase 3 - La création applique le plan
 - Back : `admin-create-cabinet` appelle `apply_plan(org, plan_choisi)` ; retrait du trigger qui force `comply`.
 - Front : wizard = identité + plan + aperçu live.
@@ -70,9 +73,9 @@ Figer le registre de clés (mapping `feature_flags` -> `feature.*` : IA, risk_sc
 - Déploiement **observe -> flag -> enforce** pour éviter tout lockout.
 - Supprime la friction #5.
 
-### Phase 6 - Décommissionnement (partiel, D3)
-- Arrêt de lecture de `plan_features`/`feature_flags`, retrait du gating `plan_id`. Après soak : drop des tables mortes de la pile fonctionnalités (`plan_features`, `feature_flag_overrides`).
-- **On conserve `products`/`org_subscriptions`** (couche facturation, D3) et une table `plans` (tarifaire + lien bundle).
+### Phase 6 - Décommissionnement (partiel)
+- Arrêt de lecture de `plan_features`/`feature_flags`, retrait du gating `plan_id` pour l'accès. Après soak : drop des tables mortes de la pile fonctionnalités (`plan_features`, `feature_flag_overrides`).
+- La couche `org_subscriptions`/`org_mrr` (gelée) et le prix `plans.monthly_price` relèvent de la **refonte facturation (RFC 0019)**, pas de cette RFC.
 
 ## 6. Séquencement
 
