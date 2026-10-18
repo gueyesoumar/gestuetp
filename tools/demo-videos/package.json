@@ -5,6 +5,7 @@
   "description": "Kit Playwright pour enregistrer des vidéos de parcours Gëstu (voie B).",
   "scripts": {
     "auth": "node auth-setup.mjs",
+    "auth:auto": "node auth-auto.mjs",
     "record:create-mission": "node record-create-mission.mjs",
     "test:e2e": "playwright test"
   },

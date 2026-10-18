@@ -60,6 +60,10 @@ await page.waitForFunction(() => {
 
 await page.waitForTimeout(1500)
 mkdirSync('.auth', { recursive: true })
-await ctx.storageState({ path: '.auth/state.json' })
-console.log('✅ Session sauvegardée dans .auth/state.json — tu peux lancer les enregistrements.')
+// AUTH_FILE permet d'enregistrer plusieurs rôles (ex. .auth/state.json pour le
+// régulateur/staff, .auth/client.json pour l'assujetti portail) réutilisés par les
+// projets Playwright. Défaut : .auth/state.json.
+const outFile = process.env.AUTH_FILE || '.auth/state.json'
+await ctx.storageState({ path: outFile })
+console.log(`✅ Session sauvegardée dans ${outFile} — tu peux lancer les tests/enregistrements.`)
 await browser.close()
