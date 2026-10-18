@@ -9,7 +9,7 @@ import type { OrgEntitlementState } from '../../../types/database.types'
  * mute via l'edge admin-entitlement (motif obligatoire). Aucune écriture directe.
  */
 export interface EntitlementAction {
-  action: 'set_attributes' | 'grant_manual' | 'remove_manual' | 'set_status' | 'apply_template'
+  action: 'set_attributes' | 'grant_manual' | 'remove_manual' | 'set_status' | 'apply_template' | 'apply_plan'
   key?: string
   plan_slug?: string
   reason: string

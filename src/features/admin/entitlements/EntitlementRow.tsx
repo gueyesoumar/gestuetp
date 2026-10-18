@@ -1,4 +1,5 @@
 import type { OrgEntitlementEntry } from '../../../types/database.types'
+import { sourceBadge } from '../../../lib/entitlements'
 
 const STATUS_STYLE: Record<string, string> = {
   active: 'bg-green-50 text-green-700',
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function EntitlementRow({ entry, format, onEdit }: Props) {
+  const badge = sourceBadge(entry.source)
   const access = entry.limit_value != null
     ? <span className="text-gray-700">≤ <span className="font-semibold">{entry.limit_value}</span></span>
     : <span className="text-green-700 font-semibold">✓</span>
@@ -26,7 +28,10 @@ export function EntitlementRow({ entry, format, onEdit }: Props) {
     <tr className="hover:bg-page-bg">
       <td className="px-4 py-3 border-b border-gray-100">
         <div className="font-semibold text-gray-900">{entry.key}</div>
-        <div className="text-[11px] text-gray-400 font-mono">{entry.source}{entry.capability ? ` · ${entry.capability}` : ''}</div>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${badge.className}`}>{badge.label}</span>
+          {entry.capability ? <span className="text-[11px] text-gray-400 font-mono">{entry.capability}</span> : null}
+        </div>
       </td>
       <td className="px-4 py-3 border-b border-gray-100">
         <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${STATUS_STYLE[entry.status] ?? 'bg-gray-100 text-gray-500'}`}>

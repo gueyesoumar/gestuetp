@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { useCurrencyDisplay } from './useCurrencyDisplay'
 import { useOrgEntitlements } from './useOrgEntitlements'
-import { EntitlementRow } from './EntitlementRow'
+import { EntitlementGroup } from './EntitlementGroup'
 import { EntitlementEditModal } from './EntitlementEditModal'
 import { GrantManualModal } from './GrantManualModal'
 import { EntitlementTemplates } from './EntitlementTemplates'
+import { ReapplyPlanButton } from './ReapplyPlanButton'
+import { classifyEntitlement } from '../../../lib/entitlements'
 import type { OrgEntitlementEntry } from '../../../types/database.types'
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -28,6 +30,9 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
 
   const ent = state.entitlements
   const counts = ent.reduce((a, e) => { a[e.status] = (a[e.status] ?? 0) + 1; return a }, {} as Record<string, number>)
+  const modules = ent.filter((e) => classifyEntitlement(e) === 'module')
+  const quotas = ent.filter((e) => classifyEntitlement(e) === 'quota')
+  const others = ent.filter((e) => classifyEntitlement(e) === 'other')
 
   return (
     <div className="flex flex-col gap-4">
@@ -38,10 +43,13 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
               className={`px-3 py-1.5 text-[12px] font-semibold ${currency === c ? 'bg-forest-700 text-white' : 'text-gray-600 hover:bg-gray-50'}`}>{c}</button>
           ))}
         </div>
-        <button onClick={() => setGranting(true)}
-          className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest-700 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-900">
-          + Octroyer un droit
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <ReapplyPlanButton busy={busy} onReapply={(reason) => act({ action: 'apply_plan', reason })} />
+          <button onClick={() => setGranting(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest-700 text-white rounded-lg text-[12.5px] font-semibold hover:bg-forest-900">
+            + Octroyer un droit
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -51,30 +59,21 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
         <Stat label="Statuts" value={`${counts.active ?? 0} actifs · ${counts.trial ?? 0} essais · ${counts.suspended ?? 0} suspendus`} />
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-[13px]">
-          <thead>
-            <tr className="bg-page-bg text-[10.5px] uppercase tracking-wider text-gray-300 font-semibold">
-              <th className="text-left px-4 py-3 border-b border-gray-200">Droit · source</th>
-              <th className="text-left px-4 py-3 border-b border-gray-200">Statut</th>
-              <th className="text-left px-4 py-3 border-b border-gray-200">Accès</th>
-              <th className="text-left px-4 py-3 border-b border-gray-200">Prix</th>
-              <th className="text-left px-4 py-3 border-b border-gray-200">Verrou</th>
-              <th className="px-4 py-3 border-b border-gray-200"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {ent.length === 0
-              ? <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400 text-[13px]">Aucun droit</td></tr>
-              : ent.map((e) => <EntitlementRow key={e.key} entry={e} format={format} onEdit={setEditing} />)}
-          </tbody>
-        </table>
-      </div>
+      <EntitlementGroup title="Modules" subtitle="Produits et capacités activés pour cette organisation."
+        rows={modules} format={format} onEdit={setEditing} emptyLabel="Aucun module actif" />
+
+      <EntitlementGroup title="Quotas" subtitle="Plafonds d'usage (utilisateurs, missions)."
+        rows={quotas} format={format} onEdit={setEditing} emptyLabel="Aucun quota défini" />
+
+      {others.length > 0 && (
+        <EntitlementGroup title="Autres droits" subtitle="Droits manuels (crédits, dérogations ponctuelles)."
+          rows={others} format={format} onEdit={setEditing} emptyLabel="Aucun" />
+      )}
 
       <EntitlementTemplates plans={plans} busy={busy} onApply={(slug, reason) => act({ action: 'apply_template', plan_slug: slug, reason })} />
 
       <p className="text-[11px] text-gray-400">
-        Appliquer un template sème les droits d&apos;un plan ; l&apos;édition affine prix, plafonds, verrou et droits manuels.
+        « Réappliquer le plan » réaligne modules et quotas sur le plan ; l&apos;édition affine prix, plafonds, verrou et droits manuels.
       </p>
 
       {editing && <EntitlementEditModal entry={editing} busy={busy} onClose={() => setEditing(null)} onSubmit={act} />}
