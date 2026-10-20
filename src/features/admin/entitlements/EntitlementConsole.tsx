@@ -20,7 +20,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
-  const { state, plans, loading, busy, act } = useOrgEntitlements(cabinetId)
+  const { state, plans, moduleCapabilities, loading, busy, act } = useOrgEntitlements(cabinetId)
   const { currency, setCurrency, format } = useCurrencyDisplay()
   const [editing, setEditing] = useState<OrgEntitlementEntry | null>(null)
   const [granting, setGranting] = useState(false)
@@ -30,9 +30,10 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
 
   const ent = state.entitlements
   const counts = ent.reduce((a, e) => { a[e.status] = (a[e.status] ?? 0) + 1; return a }, {} as Record<string, number>)
-  const modules = ent.filter((e) => classifyEntitlement(e) === 'module')
-  const quotas = ent.filter((e) => classifyEntitlement(e) === 'quota')
-  const others = ent.filter((e) => classifyEntitlement(e) === 'other')
+  const modules = ent.filter((e) => classifyEntitlement(e, moduleCapabilities) === 'module')
+  const features = ent.filter((e) => classifyEntitlement(e, moduleCapabilities) === 'feature')
+  const quotas = ent.filter((e) => classifyEntitlement(e, moduleCapabilities) === 'quota')
+  const others = ent.filter((e) => classifyEntitlement(e, moduleCapabilities) === 'other')
 
   return (
     <div className="flex flex-col gap-4">
@@ -59,8 +60,13 @@ export function EntitlementConsole({ cabinetId }: { cabinetId: string }) {
         <Stat label="Statuts" value={`${counts.active ?? 0} actifs · ${counts.trial ?? 0} essais · ${counts.suspended ?? 0} suspendus`} />
       </div>
 
-      <EntitlementGroup title="Modules" subtitle="Produits et capacités activés pour cette organisation."
+      <EntitlementGroup title="Modules" subtitle="Produits activés pour cette organisation."
         rows={modules} format={format} onEdit={setEditing} emptyLabel="Aucun module actif" />
+
+      {features.length > 0 && (
+        <EntitlementGroup title="Fonctionnalités" subtitle="Fonctionnalités incluses dans un module (incidents, mesures, portail...)."
+          rows={features} format={format} onEdit={setEditing} emptyLabel="Aucune" />
+      )}
 
       <EntitlementGroup title="Quotas" subtitle="Plafonds d'usage (utilisateurs, missions)."
         rows={quotas} format={format} onEdit={setEditing} emptyLabel="Aucun quota défini" />

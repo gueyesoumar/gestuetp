@@ -3,7 +3,7 @@
 // et fournit le badge de provenance. Front/back partageront ce registre quand
 // les cles seront prefixees (Phase 2b) ; en attendant, on classe par capacite.
 
-export type EntitlementNature = 'module' | 'quota' | 'other'
+export type EntitlementNature = 'module' | 'feature' | 'quota' | 'other'
 
 // Cles portant un plafond metre. Le prefixe `quota.` est tolere d'avance (Phase 2b).
 const QUOTA_KEYS = new Set(['users', 'missions'])
@@ -14,13 +14,24 @@ function stripPrefix(key: string): string {
 }
 
 /**
- * Classe un droit : quota si la cle est un quota connu, module s'il porte une
- * capacite, « autre » sinon (droits manuels de confort, credits, etc.).
+ * Classe un droit (D-Mod-1, data-driven) :
+ *  - quota  : cle de plafond connue (users, missions) ;
+ *  - module : capacite correspondant a un PRODUIT du catalogue (moduleCaps =
+ *    capacites de product_capability : comply, supervision, risk, policy, vendor...) ;
+ *  - feature: capacite de SOUS-FONCTIONNALITE (incidents, mesures, client_portal...)
+ *    qui n'est pas un produit ;
+ *  - autre  : droit manuel sans capacite (credits, derogations).
+ * `moduleCaps` vide => repli : toute capacite compte comme module (comportement
+ * d'avant le chargement du catalogue, evite un faux vide transitoire).
  */
-export function classifyEntitlement(entry: { key: string; capability: string | null }): EntitlementNature {
+export function classifyEntitlement(
+  entry: { key: string; capability: string | null },
+  moduleCaps?: Set<string>,
+): EntitlementNature {
   if (QUOTA_KEYS.has(stripPrefix(entry.key))) return 'quota'
-  if (entry.capability != null) return 'module'
-  return 'other'
+  if (entry.capability == null) return 'other'
+  if (!moduleCaps || moduleCaps.size === 0) return 'module'
+  return moduleCaps.has(entry.capability) ? 'module' : 'feature'
 }
 
 export interface SourceBadge { label: string; className: string }

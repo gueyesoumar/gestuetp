@@ -30,6 +30,7 @@ export interface TemplatePlan { slug: string; name: string }
 interface Result {
   state: OrgEntitlementState | null
   plans: TemplatePlan[]
+  moduleCapabilities: Set<string>
   loading: boolean
   busy: boolean
   act: (a: EntitlementAction) => Promise<boolean>
@@ -39,14 +40,16 @@ interface Result {
 export function useOrgEntitlements(orgId: string): Result {
   const [state, setState] = useState<OrgEntitlementState | null>(null)
   const [plans, setPlans] = useState<TemplatePlan[]>([])
+  const [moduleCapabilities, setModuleCapabilities] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const toast = useToast()
 
   const load = useCallback(async () => {
-    const [{ data, error }, { data: planRows }] = await Promise.all([
+    const [{ data, error }, { data: planRows }, { data: capRows }] = await Promise.all([
       supabase.rpc('org_entitlement_state', { p_org: orgId }),
       supabase.from('plans').select('slug, name').order('slug'),
+      supabase.from('product_capability').select('capability'),
     ])
     if (error) {
       console.error('[useOrgEntitlements]', error.message)
@@ -56,6 +59,7 @@ export function useOrgEntitlements(orgId: string): Result {
     }
     setState(data as OrgEntitlementState)
     setPlans((planRows ?? []) as TemplatePlan[])
+    setModuleCapabilities(new Set(((capRows ?? []) as { capability: string }[]).map((r) => r.capability)))
     setLoading(false)
   }, [orgId, toast])
 
@@ -76,5 +80,5 @@ export function useOrgEntitlements(orgId: string): Result {
     return true
   }, [orgId, load, toast])
 
-  return { state, plans, loading, busy, act, reload: load }
+  return { state, plans, moduleCapabilities, loading, busy, act, reload: load }
 }
