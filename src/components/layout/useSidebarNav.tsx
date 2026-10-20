@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound, LibraryBig } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound, LibraryBig, Gauge } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
@@ -32,6 +32,7 @@ export function useSidebarNavItems(
     const items: NavItem[] = [
       { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
     ]
+    if (supervises) items.push({ to: '/risque/synthese', label: 'Synthèse', icon: <Gauge size={20} strokeWidth={1.5} /> })
     if (supervises) items.push({ to: '/risque/portefeuille', label: 'Portefeuille', icon: <Network size={20} strokeWidth={1.5} /> })
     if (supervises && canManageSupervisionAssignments) items.push({ to: '/risque/affectations', label: 'Affectations', icon: <UsersRound size={20} strokeWidth={1.5} /> })
     items.push(

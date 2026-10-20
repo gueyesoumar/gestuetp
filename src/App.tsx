@@ -21,6 +21,7 @@ import { RiskAcceptancesPage } from './features/risk/RiskAcceptancesPage'
 import { RiskReviewPage } from './features/risk/RiskReviewPage'
 import { RiskSimulatorPage } from './features/risk/RiskSimulatorPage'
 import { RiskPortfolioPage } from './features/risk/RiskPortfolioPage'
+import { RiskExecutivePage } from './features/risk/RiskExecutivePage'
 import { SupervisionAssignmentsPage } from './features/risk/SupervisionAssignmentsPage'
 import { ScenarioTemplatesPage } from './features/risk/ScenarioTemplatesPage'
 import { PolicyBoardPage } from './features/policy/PolicyBoardPage'
@@ -130,6 +131,7 @@ function AppRoutes(): JSX.Element {
         <Route path="risque/acceptations" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskAcceptancesPage /> : <Navigate to="/" replace />} />
         <Route path="risque/simulateur" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskSimulatorPage /> : <Navigate to="/" replace />} />
         <Route path="risque/revue" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskReviewPage /> : <Navigate to="/" replace />} />
+        <Route path="risque/synthese" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') && (hasCapability('supervision') || hasCapability('client_portal')) ? <RiskExecutivePage /> : <Navigate to="/" replace />} />
         <Route path="risque/portefeuille" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') && (hasCapability('supervision') || hasCapability('client_portal')) ? <RiskPortfolioPage /> : <Navigate to="/" replace />} />
         <Route path="risque/affectations" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') && (hasCapability('supervision') || hasCapability('client_portal')) ? <SupervisionAssignmentsPage /> : <Navigate to="/" replace />} />
         <Route path="politiques" element={edLoading ? <FullscreenLoader /> : hasCapability('policy') ? <PolicyBoardPage /> : <Navigate to="/" replace />} />
