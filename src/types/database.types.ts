@@ -1714,7 +1714,7 @@ type Rec = Record<string, unknown>
 export type Capability =
   | 'comply' | 'risk' | 'policy' | 'privacy'
   | 'awareness' | 'incidents' | 'measures' | 'supervision'
-  | 'client_portal' | 'continuous_compliance'
+  | 'client_portal' | 'continuous_compliance' | 'vendor'
 export type CapabilityStatus = 'active' | 'trial' | 'disabled'
 
 // -- RFC 0014 - Conformité continue (connecteurs de preuve) --------------------
@@ -2391,6 +2391,21 @@ export interface Database {
       my_features: {
         Args: Record<PropertyKey, never>
         Returns: { slug: string; source: string }[]
+      }
+      get_my_vendors: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          relationship_id: string
+          organization_id: string
+          name: string
+          sector: string | null
+          services: string | null
+          data_access_level: string
+          criticality: string
+          qualification_status: string
+          valid_until: string | null
+          next_assessment_at: string | null
+        }[]
       }
       get_plan_contents: {
         Args: { p_plan: string }

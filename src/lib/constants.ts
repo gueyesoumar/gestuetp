@@ -64,6 +64,28 @@ export const PUBLIC_SECTORS = [
   'Environnement',
 ] as const
 
+// Gëstu Vendor (RFC 0020) : options du registre des tiers / fournisseurs.
+export const VENDOR_DATA_ACCESS_OPTIONS = [
+  { value: 'aucun', label: 'Aucun accès' },
+  { value: 'limite', label: 'Accès limité' },
+  { value: 'etendu', label: 'Accès étendu' },
+  { value: 'critique', label: 'Accès critique' },
+] as const
+
+export const VENDOR_CRITICALITY_OPTIONS = [
+  { value: 'standard', label: 'Standard' },
+  { value: 'eleve', label: 'Critique' },
+] as const
+
+export const VENDOR_QUALIFICATION_OPTIONS = [
+  { value: 'prospect', label: 'Prospect' },
+  { value: 'en_evaluation', label: 'En évaluation' },
+  { value: 'qualifie', label: 'Qualifié' },
+  { value: 'qualifie_conditions', label: 'Qualifié sous conditions' },
+  { value: 'non_qualifie', label: 'Non qualifié' },
+  { value: 'suspendu', label: 'Suspendu' },
+] as const
+
 export const PAYS_OPTIONS = [
   'Bénin',
   'Burkina Faso',

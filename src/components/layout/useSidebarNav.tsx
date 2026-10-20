@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound, LibraryBig, Gauge } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound, LibraryBig, Gauge, Boxes } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
@@ -47,6 +47,16 @@ export function useSidebarNavItems(
       { to: '/risque/revue', label: 'Revue & surveillance', icon: <History size={20} strokeWidth={1.5} />, section: '3 · Surveiller' },
     )
     return { mainItems: items, groupItems: [] }
+  }
+
+  // Workspace dédié Gëstu Vendor : sous /fournisseurs, sous-nav du module (RFC 0020).
+  if (pathname.startsWith('/fournisseurs') && hasCapability('vendor')) {
+    return {
+      mainItems: [
+        { to: '/fournisseurs', label: 'Registre des tiers', icon: <Boxes size={20} strokeWidth={1.5} />, end: true },
+      ],
+      groupItems: [],
+    }
   }
 
   // Workspace dédié Gëstu Policy : sous /politiques, sous-nav du module.

@@ -53,6 +53,7 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
   const editionProducts = useMemo(() => new Set(APP_MODULES.map((m) => m.product).filter(Boolean) as string[]), [])
   const hasRisk = hasCapability('risk')
   const hasPolicy = hasCapability('policy')
+  const hasVendor = hasCapability('vendor')
 
   const products = useMemo(
     () => catalog.products
@@ -63,19 +64,21 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
       .map((p) => {
         if (p.name === 'Risk') return { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge }
         if (p.name === 'Policy') return { ...p, active: hasPolicy, badge: hasPolicy ? 'Actif' : p.badge }
+        if (p.name === 'Vendor') return { ...p, active: hasVendor, badge: hasVendor ? 'Actif' : p.badge }
         return p
       }),
-    [catalog.products, editionProducts, primaryProduct, hasRisk, hasPolicy],
+    [catalog.products, editionProducts, primaryProduct, hasRisk, hasPolicy, hasVendor],
   )
 
   const isEnterable = useCallback(
-    (p: HubProduct) => p.name === primaryProduct || (p.name === 'Risk' && hasRisk) || (p.name === 'Policy' && hasPolicy),
-    [primaryProduct, hasRisk, hasPolicy],
+    (p: HubProduct) => p.name === primaryProduct || (p.name === 'Risk' && hasRisk) || (p.name === 'Policy' && hasPolicy) || (p.name === 'Vendor' && hasVendor),
+    [primaryProduct, hasRisk, hasPolicy, hasVendor],
   )
   const onOpen = useCallback((p: HubProduct) => {
     if (p.name === primaryProduct) navigate('/')
     else if (p.name === 'Risk') navigate('/risque')
     else if (p.name === 'Policy') navigate('/politiques')
+    else if (p.name === 'Vendor') navigate('/fournisseurs')
   }, [navigate, primaryProduct])
 
   const [view, setView] = useState<HubView>('launcher')
