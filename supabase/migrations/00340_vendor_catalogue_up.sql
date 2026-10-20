@@ -16,15 +16,14 @@ on conflict (key) do update set
   active_default = excluded.active_default, sort_order = excluded.sort_order;
 
 insert into public.product_features
-  (product_key, key, label, is_core, monthly_price_eur, capability, sort_order) values
-  ('vendor', 'registre',      'Registre des tiers',        true,  0, 'vendor', 1),
-  ('vendor', 'evaluation',    'Évaluation sécurité',       false, 0, 'vendor', 2),
-  ('vendor', 'qualification', 'Qualification & registre',  false, 0, null,     3),
-  ('vendor', 'portail',       'Portail candidat',          false, 0, null,     4)
+  (product_key, key, label, is_core, capability, sort_order) values
+  ('vendor', 'registre',      'Registre des tiers',        true,  'vendor', 1),
+  ('vendor', 'evaluation',    'Évaluation sécurité',       false, 'vendor', 2),
+  ('vendor', 'qualification', 'Qualification & registre',  false, null,     3),
+  ('vendor', 'portail',       'Portail candidat',          false, null,     4)
 on conflict (product_key, key) do update set
   label = excluded.label, is_core = excluded.is_core,
-  monthly_price_eur = excluded.monthly_price_eur, capability = excluded.capability,
-  sort_order = excluded.sort_order;
+  capability = excluded.capability, sort_order = excluded.sort_order;
 
 insert into public.product_capability (product_key, capability) values
   ('vendor', 'vendor')
