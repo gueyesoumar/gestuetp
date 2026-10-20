@@ -10,6 +10,7 @@ import { useSelfDimensionScores } from '../hub/useSelfDimensionScores'
 import { RiskMatrix } from './RiskMatrix'
 import { RiskRadar } from './RiskRadar'
 import { RiskPhaseBand } from './RiskPhaseBand'
+import { RiskGlossary } from './RiskGlossary'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 
@@ -41,9 +42,10 @@ export function RiskPage(): JSX.Element {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><ShieldAlert size={20} className="text-[#E07A5F]" /> Vue d&apos;ensemble</h1>
-          <p className="mt-1 text-[13px] text-gray-500">L&apos;exposition aux risques (EBIOS RM) qui alimente votre score de confiance.</p>
+          <p className="mt-1 text-[13px] text-gray-500">L&apos;exposition aux risques (ISO 27005) qui alimente votre score de confiance.</p>
         </div>
         <div className="flex items-center gap-2">
+          <RiskGlossary />
           <button onClick={() => launchTour('risk-overview')} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
             <Compass size={16} /> Visite guidée
           </button>

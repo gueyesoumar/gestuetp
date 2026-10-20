@@ -71,7 +71,7 @@ export function ScenarioRefFields({ value, onChange, catalog }: {
         </select>
       </div>
       <div>
-        <label className="block text-[12px] font-medium text-gray-600 mb-1">Événement redouté (EBIOS RM)</label>
+        <label className="block text-[12px] font-medium text-gray-600 mb-1">Événement redouté (ISO 27005)</label>
         <select value={value.feared} onChange={(e) => onChange({ feared: e.target.value })} className={field}>
           <option value="">-</option>
           {fearedEvents.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}

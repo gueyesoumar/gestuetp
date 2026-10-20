@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Trash2, ClipboardList, Download, X } from 'lucide-react'
+import { Plus, ClipboardList, Download, X } from 'lucide-react'
 import { useRiskRegister, type ScenarioRow } from './useRiskRegister'
 import { useRiskCriteria } from './useRiskCriteria'
 import { useSoA } from './useSoA'
@@ -10,6 +10,8 @@ import { ScenarioFormModal } from './ScenarioFormModal'
 import { ScenarioDetail } from './ScenarioDetail'
 import { SupervisedRegister } from './SupervisedRegister'
 import { RiskLegend } from './RiskLegend'
+import { RiskGlossary } from './RiskGlossary'
+import { DeleteScenarioButton } from './DeleteScenarioButton'
 import { ExpositionHelp } from './ExpositionHelp'
 import { treatmentLabel, lifecycleLabel, ExpoBadge, DimChip, LifecycleChip } from './riskLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -62,15 +64,18 @@ export function RiskRegisterPage(): JSX.Element {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><ClipboardList size={20} className="text-[#E07A5F]" /> Registre des risques</h1>
-          <p className="mt-1 text-[13px] text-gray-500">{consolidated ? `Risques de l'ensemble de vos ${vocab.entityPlural}. Cliquez un scénario pour le détail ; demandez une action de traitement.` : 'Scénarios EBIOS RM : cliquez un scénario pour ouvrir son nœud papillon.'}</p>
+          <p className="mt-1 text-[13px] text-gray-500">{consolidated ? `Risques de l'ensemble de vos ${vocab.entityPlural}. Cliquez un scénario pour le détail ; demandez une action de traitement.` : 'Scénarios ISO 27005 : cliquez un scénario pour ouvrir son nœud papillon.'}</p>
         </div>
-        {!consolidated && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={exportRegister} disabled={reg.scenarios.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> Registre</button>
-            <button onClick={exportSoA} disabled={soa.rows.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> SoA</button>
-            <button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Nouveau scénario</button>
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          <RiskGlossary />
+          {!consolidated && (
+            <>
+              <button onClick={exportRegister} disabled={reg.scenarios.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> Registre</button>
+              <button onClick={exportSoA} disabled={soa.rows.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> SoA</button>
+              <button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Nouveau scénario</button>
+            </>
+          )}
+        </div>
       </div>
 
       {supervises && (
@@ -126,7 +131,7 @@ export function RiskRegisterPage(): JSX.Element {
                   <td className="px-4 py-3"><LifecycleChip v={s.lifecycle_status} /></td>
                   <td className="px-4 py-3 text-gray-600">{treatmentLabel(s.treatment)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => void reg.deleteScenario(s.id)} className="text-gray-400 hover:text-red-600" aria-label="Supprimer"><Trash2 size={14} /></button>
+                    <DeleteScenarioButton title={s.title} onConfirm={() => reg.deleteScenario(s.id)} />
                   </td>
                 </tr>
               ))}
