@@ -5,6 +5,7 @@ import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useMembers } from '../members/useMembers'
 import { useSupervisedPortfolio } from './useSupervisedPortfolio'
 import { useSupervisionAssignments, type SupervisionAssignment } from './useSupervisionAssignments'
+import { uncoveredOrgs } from './supervisionCoverage'
 import { SupervisionAssignmentForm } from './SupervisionAssignmentForm'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -24,10 +25,7 @@ export function SupervisionAssignmentsPage(): JSX.Element {
   )
   const staff = useMemo(() => members.filter((m) => m.is_active), [members])
   const [preset, setPreset] = useState<{ orgId: string; nonce: number } | null>(null)
-  const uncovered = useMemo(() => orgs.filter((o) => !assignments.some((a) =>
-    (a.scope_type === 'org' && a.scope_org_id === o.organization_id)
-    || (a.scope_type === 'sector' && a.scope_label === o.sector),
-  )), [orgs, assignments])
+  const uncovered = useMemo(() => uncoveredOrgs(orgs, assignments), [orgs, assignments])
   const byMember = useMemo(() => {
     const map = new Map<string, { name: string; items: SupervisionAssignment[] }>()
     for (const a of assignments) {
