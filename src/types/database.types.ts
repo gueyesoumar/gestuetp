@@ -2473,6 +2473,18 @@ export interface Database {
           domain_code: string; domain_name: string; conformity_level: string | null; status: string
         }[]
       }
+      add_vendor_evidence: {
+        Args: { p_assessment: string; p_control: string; p_path: string; p_name: string }
+        Returns: string
+      }
+      get_vendor_evidence: {
+        Args: { p_assessment: string }
+        Returns: { id: string; control_id: string | null; file_path: string; file_name: string; created_at: string }[]
+      }
+      delete_vendor_evidence: {
+        Args: { p_evidence: string }
+        Returns: undefined
+      }
       get_plan_contents: {
         Args: { p_plan: string }
         Returns: { modules: string[]; features: string[]; quotas: { key: string; limit: number | null }[] }

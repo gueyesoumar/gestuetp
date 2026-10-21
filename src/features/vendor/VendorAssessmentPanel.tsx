@@ -3,6 +3,8 @@ import { useAssessmentDetail, type VendorAssessment, type AssessmentControl } fr
 import { VENDOR_CONFORMITY, conformityScore, verdictOf } from './vendorLabels'
 import { QualificationBadge } from './vendorBadges'
 import { VendorFindings } from './VendorFindings'
+import { VendorEvidenceCell } from './VendorEvidenceCell'
+import { useVendorEvidence } from './useVendorEvidence'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 
 interface Props { assessment: VendorAssessment; onClosed: () => void }
@@ -10,6 +12,7 @@ interface Props { assessment: VendorAssessment; onClosed: () => void }
 /** Grille de cotation d'une evaluation fournisseur : score live + verdict + cloture. */
 export function VendorAssessmentPanel({ assessment, onClosed }: Props): JSX.Element {
   const { controls, loading, setLevel, close } = useAssessmentDetail(assessment.id)
+  const ev = useVendorEvidence(assessment.id)
   const [months, setMonths] = useState(12)
   const [busy, setBusy] = useState(false)
   const closed = assessment.status === 'cloturee'
@@ -56,6 +59,7 @@ export function VendorAssessmentPanel({ assessment, onClosed }: Props): JSX.Elem
                   <span className="font-mono text-[11px] text-gray-400">{c.control_code}</span>
                   <span className="text-[13px] text-gray-800 ml-2">{c.control_name}</span>
                 </div>
+                <VendorEvidenceCell files={ev.byControl.get(c.control_id) ?? []} editable={!closed} onUpload={(f) => void ev.upload(c.control_id, f)} onOpen={(e) => void ev.openFile(e)} onRemove={(e) => void ev.remove(e)} />
                 {closed ? (
                   <span className="text-[12px] text-gray-500 w-44 text-right">{VENDOR_CONFORMITY.find((o) => o.value === c.conformity_level)?.label ?? '-'}</span>
                 ) : (

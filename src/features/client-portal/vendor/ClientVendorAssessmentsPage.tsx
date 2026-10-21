@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { ClipboardCheck, ChevronLeft } from 'lucide-react'
 import { useMySelfAssessments, useMySelfAssessmentDetail } from '../../vendor/useMyVendorSelfAssessment'
 import { VENDOR_CONFORMITY } from '../../vendor/vendorLabels'
+import { VendorEvidenceCell } from '../../vendor/VendorEvidenceCell'
+import { useVendorEvidence } from '../../vendor/useVendorEvidence'
 import type { AssessmentControl } from '../../vendor/useVendorAssessment'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 
@@ -44,6 +46,7 @@ export function ClientVendorAssessmentsPage(): JSX.Element {
 
 function FillPanel({ assessmentId, onBack }: { assessmentId: string; onBack: () => void }): JSX.Element {
   const { controls, status, loading, setLevel, submit } = useMySelfAssessmentDetail(assessmentId)
+  const ev = useVendorEvidence(assessmentId)
   const [busy, setBusy] = useState(false)
   const editable = status === 'self_assessment'
   const byDomain = useMemo(() => {
@@ -72,6 +75,7 @@ function FillPanel({ assessmentId, onBack }: { assessmentId: string; onBack: () 
               {list.map((c) => (
                 <div key={c.control_id} className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-50">
                   <div className="min-w-0 flex-1"><span className="font-mono text-[11px] text-gray-400">{c.control_code}</span><span className="text-[13px] text-gray-800 ml-2">{c.control_name}</span></div>
+                  <VendorEvidenceCell files={ev.byControl.get(c.control_id) ?? []} editable={editable} onUpload={(f) => void ev.upload(c.control_id, f)} onOpen={(e) => void ev.openFile(e)} onRemove={(e) => void ev.remove(e)} />
                   {editable ? (
                     <select value={c.conformity_level ?? ''} onChange={(e) => void setLevel(c.control_id, e.target.value)} className="w-44 px-2 py-1.5 text-[12px] border border-gray-300 rounded-lg">
                       <option value="">A coter</option>
