@@ -1,14 +1,21 @@
+import { useState } from 'react'
 import { History } from 'lucide-react'
 import { useReviewsDue } from './useRiskReview'
+import { useEdition } from '../edition/EditionContext'
+import { useVocab } from '../edition/useVocab'
+import { SupervisedReviews } from './SupervisedReviews'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 
-/** Revue & surveillance : échéances de revue et revues en retard (RFC 0017 Lot 4). */
+/** Revue & surveillance : échéances de revue et revues en retard (RFC 0017 Lot 4 + #10). */
 export function RiskReviewPage(): JSX.Element {
+  const { hasCapability } = useEdition()
+  const vocab = useVocab()
+  const supervises = hasCapability('supervision') || hasCapability('client_portal')
+  const [scope, setScope] = useState<'own' | 'all'>('own')
+  const consolidated = supervises && scope === 'all'
   const { rows, loading, error } = useReviewsDue()
-  if (loading) return <LoadingSpinner />
-  if (error) return <ErrorAlert message={error} />
 
   const overdue = rows.filter((r) => r.overdue).length
 
@@ -16,10 +23,25 @@ export function RiskReviewPage(): JSX.Element {
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><History size={20} className="text-[#E07A5F]" /> Revue &amp; surveillance</h1>
-        <p className="mt-1 text-[13px] text-gray-500">Échéances de revue des risques (ISO 27005 §10). {overdue > 0 ? `${overdue} revue${overdue > 1 ? 's' : ''} en retard.` : 'Aucune revue en retard.'} Ouvrez un scénario depuis le registre pour enregistrer une revue.</p>
+        <p className="mt-1 text-[13px] text-gray-500">{consolidated
+          ? `Échéances de revue des risques de vos ${vocab.entityPlural} ; demandez une action si une revue tarde.`
+          : `Échéances de revue des risques (ISO 27005 §10). ${overdue > 0 ? `${overdue} revue${overdue > 1 ? 's' : ''} en retard.` : 'Aucune revue en retard.'} Ouvrez un scénario depuis le registre pour enregistrer une revue.`}</p>
       </div>
 
-      {rows.length === 0 ? (
+      {supervises && (
+        <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden text-[13px] font-semibold">
+          <button onClick={() => setScope('own')} className={`px-3 py-1.5 ${!consolidated ? 'bg-forest-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Mon organisation</button>
+          <button onClick={() => setScope('all')} className={`px-3 py-1.5 border-l border-gray-200 ${consolidated ? 'bg-forest-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Tous les {vocab.entityPlural}</button>
+        </div>
+      )}
+
+      {consolidated ? (
+        <SupervisedReviews />
+      ) : loading ? (
+        <LoadingSpinner />
+      ) : error ? (
+        <ErrorAlert message={error} />
+      ) : rows.length === 0 ? (
         <EmptyState title="Aucun scénario à surveiller" description="Les risques actifs et leurs échéances de revue apparaîtront ici." />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
