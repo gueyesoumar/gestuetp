@@ -99,7 +99,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
       )}
 
       {selected && <AuditedScenarioBowtie scenario={toAudited(selected)} catalog={catalog} onClose={() => setSelected(null)} />}
-      {createOpen && <CreateSupervisedScenarioModal orgId={org.organization_id} orgName={org.org_name} onClose={() => setCreateOpen(false)} onCreated={reload} />}
+      {createOpen && <CreateSupervisedScenarioModal orgs={[{ id: org.organization_id, name: org.org_name }]} onClose={() => setCreateOpen(false)} onCreated={reload} />}
     </div>
   )
 }

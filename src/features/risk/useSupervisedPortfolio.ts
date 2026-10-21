@@ -79,6 +79,7 @@ export function useSupervisedRegister() {
   const [rows, setRows] = useState<SupervisedRisk[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [key, setKey] = useState(0)
   useEffect(() => {
     const ac = new AbortController()
     setLoading(true)
@@ -90,8 +91,8 @@ export function useSupervisedRegister() {
       setError(null); setLoading(false)
     })()
     return () => ac.abort()
-  }, [])
-  return { rows, loading, error }
+  }, [key])
+  return { rows, loading, error, reload: () => setKey((k) => k + 1) }
 }
 
 /** Plan de traitement consolidé : actions de TOUS les assujettis supervisés (RFC 0017 Lot H). */
