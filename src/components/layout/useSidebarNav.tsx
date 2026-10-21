@@ -34,18 +34,17 @@ export function useSidebarNavItems(
     ]
     if (supervises) items.push({ to: '/risque/synthese', label: 'Synthèse', icon: <Gauge size={20} strokeWidth={1.5} /> })
     if (supervises) items.push({ to: '/risque/portefeuille', label: 'Portefeuille', icon: <Network size={20} strokeWidth={1.5} /> })
-    if (supervises && canManageSupervisionAssignments) items.push({ to: '/risque/affectations', label: 'Affectations', icon: <UsersRound size={20} strokeWidth={1.5} /> })
     items.push(
-      { to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
       { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} />, section: '1 · Apprécier' },
-    )
-    if (canManageRiskCriteria) items.push({ to: '/risque/modeles', label: 'Modèles', icon: <LibraryBig size={20} strokeWidth={1.5} />, section: '1 · Apprécier' })
-    items.push(
       { to: '/risque/plan', label: 'Plan de traitement', icon: <ListChecks size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
       { to: '/risque/acceptations', label: 'Acceptations', icon: <ShieldCheck size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
       { to: '/risque/simulateur', label: 'Simulateur', icon: <Sparkles size={20} strokeWidth={1.5} />, section: '2 · Traiter' },
       { to: '/risque/revue', label: 'Revue & surveillance', icon: <History size={20} strokeWidth={1.5} />, section: '3 · Surveiller' },
     )
+    // Paramétrage (en bas) : critères, affectations et modèles regroupés.
+    items.push({ to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: 'Paramétrage' })
+    if (supervises && canManageSupervisionAssignments) items.push({ to: '/risque/affectations', label: 'Affectations', icon: <UsersRound size={20} strokeWidth={1.5} />, section: 'Paramétrage' })
+    if (canManageRiskCriteria) items.push({ to: '/risque/modeles', label: 'Modèles', icon: <LibraryBig size={20} strokeWidth={1.5} />, section: 'Paramétrage' })
     return { mainItems: items, groupItems: [] }
   }
 

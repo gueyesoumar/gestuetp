@@ -5,7 +5,7 @@ import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { RISK_LIKELIHOOD_LEVELS, RISK_IMPACT_LEVELS } from '../../lib/constants'
+import { RISK_LIKELIHOOD_LEVELS, RISK_IMPACT_LEVELS, REVIEW_CADENCE_OPTIONS } from '../../lib/constants'
 
 const DEF_L = RISK_LIKELIHOOD_LEVELS.map((l) => l.label)
 const DEF_I = RISK_IMPACT_LEVELS.map((l) => l.label)
@@ -103,10 +103,8 @@ export function RiskCriteriaPage(): JSX.Element {
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-1">Cadence de revue par défaut</label>
-            <select disabled={ro} value={cadence} onChange={(e) => setCadence(Number(e.target.value))} className={`${inputCls} w-40`}>
-              <option value={3}>3 mois</option>
-              <option value={6}>6 mois</option>
-              <option value={12}>12 mois</option>
+            <select disabled={ro} value={cadence} onChange={(e) => setCadence(Number(e.target.value))} className={`${inputCls} w-48`}>
+              {REVIEW_CADENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
           <div>

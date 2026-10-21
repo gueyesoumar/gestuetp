@@ -30,7 +30,7 @@ export function RiskRegisterPage(): JSX.Element {
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const supervises = hasCapability('supervision') || hasCapability('client_portal')
-  const [scope, setScope] = useState<'own' | 'all'>(supervises ? 'all' : 'own')
+  const [scope, setScope] = useState<'own' | 'all'>('own')
   const [modal, setModal] = useState(false)
   const [detail, setDetail] = useState<ScenarioRow | null>(null)
   const [params, setParams] = useSearchParams()
@@ -80,8 +80,8 @@ export function RiskRegisterPage(): JSX.Element {
 
       {supervises && (
         <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden text-[13px] font-semibold">
-          <button onClick={() => setScope('all')} className={`px-3 py-1.5 ${consolidated ? 'bg-forest-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Tous les {vocab.entityPlural}</button>
-          <button onClick={() => setScope('own')} className={`px-3 py-1.5 border-l border-gray-200 ${!consolidated ? 'bg-forest-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Mon organisation</button>
+          <button onClick={() => setScope('own')} className={`px-3 py-1.5 ${!consolidated ? 'bg-forest-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Mon organisation</button>
+          <button onClick={() => setScope('all')} className={`px-3 py-1.5 border-l border-gray-200 ${consolidated ? 'bg-forest-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Tous les {vocab.entityPlural}</button>
         </div>
       )}
 

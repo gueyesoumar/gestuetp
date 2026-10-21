@@ -612,6 +612,13 @@ export const RISK_MASTERY_WEIGHT = 0.2
 // ligne risk_criteria pour l'org) + cycle de vie ISO 27005.
 export const DEFAULT_ACCEPTANCE_THRESHOLD = 60
 export const DEFAULT_REVIEW_MONTHS = 6
+// Cadences de revue proposees (en mois). Centralisees pour coherence (cf feedback_form_selects).
+export const REVIEW_CADENCE_OPTIONS = [
+  { value: 1, label: 'Mensuelle (1 mois)' },
+  { value: 3, label: 'Trimestrielle (3 mois)' },
+  { value: 6, label: 'Semestrielle (6 mois)' },
+  { value: 12, label: 'Annuelle (12 mois)' },
+] as const
 export const RISK_LIFECYCLE_STATUS = [
   { value: 'identified', label: 'Identifié' },
   { value: 'analysed', label: 'Analysé' },
