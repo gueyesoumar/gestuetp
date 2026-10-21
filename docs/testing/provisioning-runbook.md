@@ -19,23 +19,21 @@
 
 Crée les 8 utilisateurs (email confirmé d'emblée). Récupère chaque **UID** (champ `id`).
 
-> **zsh** : le `!` du mot de passe déclenche l'expansion d'historique. Lance d'abord
-> `set +H` (ou `setopt NO_BANG_HIST`). Vérifie aussi que `$SUPABASE_URL` et `$SERVICE_ROLE`
-> sont exportés (`echo "$SUPABASE_URL"`).
+> Mot de passe sans `!` pour éviter l'expansion d'historique zsh. Vérifie que
+> `$SUPABASE_URL` et `$SERVICE_ROLE` sont exportés (`echo "$SUPABASE_URL"`).
 
 ```bash
-set +H  # zsh : neutralise l'expansion de '!' dans le mot de passe
 for ROLE in SA CABO CABA REGA REGS ENT CLI VEN; do
   EMAIL="e2e-$(echo $ROLE | tr A-Z a-z)@test.gestugroup.com"
   curl -s -X POST "$SUPABASE_URL/auth/v1/admin/users" \
     -H "apikey: $SERVICE_ROLE" -H "Authorization: Bearer $SERVICE_ROLE" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"$EMAIL\",\"password\":\"Test-$ROLE-2026!\",\"email_confirm\":true}" \
+    -d "{\"email\":\"$EMAIL\",\"password\":\"Test-$ROLE-2026Aa\",\"email_confirm\":true}" \
     | python3 -c "import sys,json;d=json.load(sys.stdin);print('$ROLE', '$EMAIL', d.get('id','ERREUR:'+json.dumps(d)))"
 done
 ```
 
-Note les 8 UID : ils alimentent le SQL ci-dessous (`:sa_uid`, `:cabo_uid`, ...). Mots de passe : `Test-<ROLE>-2026!` (à changer).
+Note les 8 UID : ils alimentent le SQL ci-dessous (`:sa_uid`, `:cabo_uid`, ...). Mots de passe : `Test-<ROLE>-2026Aa` (à changer).
 
 ---
 
@@ -175,7 +173,7 @@ SQL
 
 L'auth E2E (`auth-auto.mjs`) calcule le code à partir du **secret base32** stocké sur le facteur.
 Pour chaque compte :
-1. Se connecter à l'app de test avec l'email + le mot de passe (`Test-<ROLE>-2026!`).
+1. Se connecter à l'app de test avec l'email + le mot de passe (`Test-<ROLE>-2026Aa`).
 2. Enrôler un TOTP (gestion MFA) : **noter le secret base32** affiché sous le QR.
 3. Finir l'enrôlement (saisir un code). Le facteur doit être **vérifié**.
 4. Reporter le trio dans les secrets GitHub `E2E_<ROLE>_EMAIL/_PASSWORD/_TOTP_SECRET`
