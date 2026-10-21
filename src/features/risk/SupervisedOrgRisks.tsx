@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useSupervisedRisks, type SupervisedRisk, type PortfolioOrg } from './useSupervisedPortfolio'
 import { useSupervisorDirectives } from './useSupervisorDirectives'
@@ -8,9 +8,10 @@ import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { AuditedScenarioBowtie, type AuditedScenario } from '../missions/AuditedScenarioBowtie'
+import { CreateSupervisedScenarioModal } from './CreateSupervisedScenarioModal'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS, riskExposure, type ScoreDimensionKey } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
-import { expColor } from './riskLabels'
+import { expColor, SourceBadge } from './riskLabels'
 
 const treatmentLabel = (v: string): string => RISK_TREATMENTS.find((t) => t.value === v)?.label ?? v
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
@@ -28,6 +29,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
   const [selected, setSelected] = useState<SupervisedRisk | null>(null)
   const [requestFor, setRequestFor] = useState<SupervisedRisk | null>(null)
   const [desc, setDesc] = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
   const dir = useSupervisorDirectives()
   const toast = useToast()
   const vocab = useVocab()
@@ -51,9 +53,12 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-500 hover:text-gray-800"><ArrowLeft size={15} /> Retour au portefeuille</button>
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900">{org.org_name}</h2>
-        <p className="text-[13px] text-gray-500 mt-0.5">{org.sector ?? 'Secteur non renseigné'} · registre de risque de l&apos;{vocab.entitySingular} (lecture) ; vous pouvez <b>demander des actions de traitement</b>.</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{org.org_name}</h2>
+          <p className="text-[13px] text-gray-500 mt-0.5">{org.sector ?? 'Secteur non renseigné'} · registre de risque de l&apos;{vocab.entitySingular} ; vous pouvez <b>créer un risque</b> et <b>demander des actions de traitement</b>.</p>
+        </div>
+        <button onClick={() => setCreateOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Créer un risque</button>
       </div>
 
       {requestFor && (
@@ -88,7 +93,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
                 const dimColor = r.dimension ? SCORE_DIMENSION_COLORS[r.dimension as ScoreDimensionKey] : '#94A3B8'
                 return (
                   <tr key={r.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(r)}>
-                    <td className="px-4 py-3"><span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span>{r.asset_name && <span className="text-gray-400"> · {r.asset_name}</span>}</td>
+                    <td className="px-4 py-3"><span className="inline-flex items-center gap-2"><span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span><SourceBadge source={r.source} /></span>{r.asset_name && <span className="text-gray-400"> · {r.asset_name}</span>}</td>
                     <td className="px-4 py-3">{r.dimension && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: `${dimColor}22`, color: dimColor }}>{SCORE_DIMENSION_LABELS[r.dimension as ScoreDimensionKey]}</span>}</td>
                     <td className="px-4 py-3 font-semibold" style={{ color: expColor(exp) }}>{exp}</td>
                     <td className="px-4 py-3"><span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100">{lifecycleLabel(r.lifecycle_status)}</span></td>
@@ -103,6 +108,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
       )}
 
       {selected && <AuditedScenarioBowtie scenario={toAudited(selected)} catalog={catalog} onClose={() => setSelected(null)} />}
+      {createOpen && <CreateSupervisedScenarioModal orgId={org.organization_id} orgName={org.org_name} onClose={() => setCreateOpen(false)} onCreated={reload} />}
     </div>
   )
 }

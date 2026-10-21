@@ -2545,6 +2545,10 @@ export interface Database {
         Args: { p_scenario: string; p_description: string; p_control_id?: string | null; p_due_date?: string | null }
         Returns: string
       }
+      create_supervised_scenario: {
+        Args: { p_org: string; p_title: string; p_dimension: string; p_likelihood: number; p_impact: number; p_description?: string | null; p_vulnerability?: string | null; p_treatment?: string }
+        Returns: string
+      }
       verify_risk_treatment: {
         Args: { p_action: string; p_decision: string }
         Returns: undefined
