@@ -116,26 +116,53 @@ SQL
 
 ---
 
-## Partie 4 - Capacités / édition par org (RPC d'entitlement)
+## Partie 4 - Capacités / édition par org (SQL)
 
-L'édition (Comply / Regul / Entreprise) **découle des capacités**. Applique le plan correspondant.
-D'abord repère les slugs disponibles :
-```bash
-psql "$DATABASE_URL" -c "select slug, name from public.plans order by slug;"
+L'édition découle des **capacités**. `my_capabilities()` lit la table projetée
+`organization_capabilities` ; un **trigger sur `org_entitlements`** la rafraîchit
+automatiquement => un `insert` dans `org_entitlements` suffit.
+
+**Plans seedés** : `decouverte` (Comply), `pro` (Comply), `regulateur` (Regul). Vérifier :
+`psql "$DATABASE_URL" -c "select slug,name from public.plans order by slug;"`.
+
+**Piège** : un plan n'octroie qu'un produit. Mapping produit->capacité :
+`comply->comply`, `regul->supervision`, `risk->risk`, `policy->policy`, `vendor->vendor`.
+`risk`/`policy`/`vendor` ne sont dans AUCUN plan => à ajouter en manuel.
+
+Écrire dans `/tmp/p4.sql` puis `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /tmp/p4.sql` :
+
+```sql
+-- Autorité R : base régulateur (supervision) + Risk/Policy/Vendor
+select public.apply_entitlement_template((select id from public.organizations where slug='autorite-test'),'regulateur');
+insert into public.org_entitlements (organization_id,key,status,pricing_kind,source,capability,granted_at)
+select o.id,m.key,'active','none','manual',m.cap,now()
+from public.organizations o cross join (values ('risk','risk'),('policy','policy'),('vendor','vendor')) m(key,cap)
+where o.slug='autorite-test'
+on conflict (organization_id,key) do update set status='active',source='manual',capability=excluded.capability,updated_at=now();
+
+-- Cabinet A : base Comply (pro) + Risk/Policy
+select public.apply_entitlement_template((select id from public.organizations where slug='cabinet-test-a'),'pro');
+insert into public.org_entitlements (organization_id,key,status,pricing_kind,source,capability,granted_at)
+select o.id,m.key,'active','none','manual',m.cap,now()
+from public.organizations o cross join (values ('risk','risk'),('policy','policy')) m(key,cap)
+where o.slug='cabinet-test-a'
+on conflict (organization_id,key) do update set status='active',source='manual',capability=excluded.capability,updated_at=now();
+
+-- Entreprise E : Comply + Risk, SANS client_portal (édition Entreprise)
+insert into public.org_entitlements (organization_id,key,status,pricing_kind,source,capability,granted_at)
+select o.id,m.key,'active','none','manual',m.cap,now()
+from public.organizations o cross join (values ('comply','comply'),('risk','risk')) m(key,cap)
+where o.slug='entreprise-test-e'
+on conflict (organization_id,key) do update set status='active',source='manual',capability=excluded.capability,updated_at=now();
+
+-- Vérification
+select o.slug, array_agg(oc.capability order by oc.capability) as capacites
+from public.organizations o join public.organization_capabilities oc on oc.org_id=o.id
+where o.slug in ('autorite-test','cabinet-test-a','entreprise-test-e') group by o.slug;
 ```
-Puis (plan `regulateur` confirmé ; adapte `cabinet`/`entreprise` au résultat ci-dessus) :
-```bash
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
--- Autorité R => édition Régulateur (supervision + risk + vendor + policy via le plan)
-select public.apply_entitlement_template((select id from public.organizations where slug='autorite-test'), 'regulateur');
--- Cabinet A => plan cabinet/comply (remplace par le slug réel)
-select public.apply_entitlement_template((select id from public.organizations where slug='cabinet-test-a'), '<slug_cabinet>');
--- Entreprise E => plan entreprise (remplace par le slug réel)
-select public.apply_entitlement_template((select id from public.organizations where slug='entreprise-test-e'), '<slug_entreprise>');
-SQL
-```
-> Si un module manque après coup, l'octroi fin se fait par l'edge `admin-entitlement`
-> (`action:grant_manual`, `key:<module>`) en tant que SA, ou par la console Abonnements.
+
+Attendu : `autorite-test -> {policy,risk,supervision,vendor}`, `cabinet-test-a -> {comply,policy,risk,...}`, `entreprise-test-e -> {comply,risk}`.
+> Si `client_portal` manque pour Cabinet A (requis pour le compte portail CLI), c'est une capacité hors `product_capability` : me le signaler pour la ligne d'octroi exacte.
 
 ---
 
