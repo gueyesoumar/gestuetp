@@ -135,7 +135,7 @@ automatiquement => un `insert` dans `org_entitlements` suffit.
 -- Autorité R : base régulateur (supervision) + Risk/Policy/Vendor
 select public.apply_entitlement_template((select id from public.organizations where slug='autorite-test'),'regulateur');
 insert into public.org_entitlements (organization_id,key,status,pricing_kind,source,capability,granted_at)
-select o.id,m.key,'active','none','manual',m.cap,now()
+select o.id,m.key,'active','none','manual',m.cap::public.org_capability,now()
 from public.organizations o cross join (values ('risk','risk'),('policy','policy'),('vendor','vendor')) m(key,cap)
 where o.slug='autorite-test'
 on conflict (organization_id,key) do update set status='active',source='manual',capability=excluded.capability,updated_at=now();
@@ -143,14 +143,14 @@ on conflict (organization_id,key) do update set status='active',source='manual',
 -- Cabinet A : base Comply (pro) + Risk/Policy
 select public.apply_entitlement_template((select id from public.organizations where slug='cabinet-test-a'),'pro');
 insert into public.org_entitlements (organization_id,key,status,pricing_kind,source,capability,granted_at)
-select o.id,m.key,'active','none','manual',m.cap,now()
+select o.id,m.key,'active','none','manual',m.cap::public.org_capability,now()
 from public.organizations o cross join (values ('risk','risk'),('policy','policy')) m(key,cap)
 where o.slug='cabinet-test-a'
 on conflict (organization_id,key) do update set status='active',source='manual',capability=excluded.capability,updated_at=now();
 
 -- Entreprise E : Comply + Risk, SANS client_portal (édition Entreprise)
 insert into public.org_entitlements (organization_id,key,status,pricing_kind,source,capability,granted_at)
-select o.id,m.key,'active','none','manual',m.cap,now()
+select o.id,m.key,'active','none','manual',m.cap::public.org_capability,now()
 from public.organizations o cross join (values ('comply','comply'),('risk','risk')) m(key,cap)
 where o.slug='entreprise-test-e'
 on conflict (organization_id,key) do update set status='active',source='manual',capability=excluded.capability,updated_at=now();
