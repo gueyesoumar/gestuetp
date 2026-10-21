@@ -19,7 +19,12 @@
 
 Crée les 8 utilisateurs (email confirmé d'emblée). Récupère chaque **UID** (champ `id`).
 
+> **zsh** : le `!` du mot de passe déclenche l'expansion d'historique. Lance d'abord
+> `set +H` (ou `setopt NO_BANG_HIST`). Vérifie aussi que `$SUPABASE_URL` et `$SERVICE_ROLE`
+> sont exportés (`echo "$SUPABASE_URL"`).
+
 ```bash
+set +H  # zsh : neutralise l'expansion de '!' dans le mot de passe
 for ROLE in SA CABO CABA REGA REGS ENT CLI VEN; do
   EMAIL="e2e-$(echo $ROLE | tr A-Z a-z)@test.gestugroup.com"
   curl -s -X POST "$SUPABASE_URL/auth/v1/admin/users" \
