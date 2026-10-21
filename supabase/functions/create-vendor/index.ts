@@ -76,8 +76,11 @@ Deno.serve(async (req) => {
       if (existing && existing.length > 0) vendorOrgId = existing[0].id
     }
     if (!vendorOrgId) {
+      // RFC 0007 : la nature 'supplier' vit sur l'ARETE, jamais en types[] (contrainte
+      // organizations_types_canonical limite types aux 4 valeurs canoniques). Le noeud
+      // fournisseur est une organisation nue ; son role de fournisseur = l'arete supplier.
       const { data: newOrg, error: orgErr } = await admin.from('organizations').insert({
-        name, slug: slugify(name), types: ['supplier'],
+        name, slug: slugify(name),
         registration_number: reg || null, sector: body.sector ?? null,
         country: body.country ?? null, website: body.website ?? null, phone: body.phone ?? null,
       }).select('id').single()
