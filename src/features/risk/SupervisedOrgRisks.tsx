@@ -9,6 +9,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { AuditedScenarioBowtie, type AuditedScenario } from '../missions/AuditedScenarioBowtie'
 import { CreateSupervisedScenarioModal } from './CreateSupervisedScenarioModal'
+import { RequestActionPanel } from './RequestActionPanel'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS, riskExposure, type ScoreDimensionKey } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import { expColor, SourceBadge } from './riskLabels'
@@ -28,7 +29,6 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
   const [catalog, setCatalog] = useState<RiskCatalogEntry[]>([])
   const [selected, setSelected] = useState<SupervisedRisk | null>(null)
   const [requestFor, setRequestFor] = useState<SupervisedRisk | null>(null)
-  const [desc, setDesc] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const dir = useSupervisorDirectives()
   const toast = useToast()
@@ -43,10 +43,10 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
     return () => ac.abort()
   }, [])
 
-  const submitRequest = async (): Promise<void> => {
-    if (!requestFor || !desc.trim()) return
-    const res = await dir.request(requestFor.id, desc.trim())
-    if (res.ok) { toast.success(`Demande envoyée à l'${vocab.entitySingular}`); setRequestFor(null); setDesc(''); reload() }
+  const submitRequest = async (d: string): Promise<void> => {
+    if (!requestFor || !d.trim()) return
+    const res = await dir.request(requestFor.id, d.trim())
+    if (res.ok) { toast.success(`Demande envoyée à l'${vocab.entitySingular}`); setRequestFor(null); reload() }
     else toast.error('Demande impossible', { description: res.error })
   }
 
@@ -61,16 +61,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
         <button onClick={() => setCreateOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Créer un risque</button>
       </div>
 
-      {requestFor && (
-        <div className="rounded-xl border border-forest-200 bg-forest-50 p-4 space-y-2">
-          <div className="text-[13px] font-semibold text-gray-900">Demander une action · <span className="font-normal">{requestFor.title}</span></div>
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder="Action demandée (ex. déployer la MFA sur les comptes admin)" className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px]" />
-          <div className="flex gap-2">
-            <button onClick={() => void submitRequest()} disabled={!desc.trim()} className="px-3 py-1.5 text-[12px] font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">Envoyer la demande</button>
-            <button onClick={() => { setRequestFor(null); setDesc('') }} className="px-3 py-1.5 text-[12px] text-gray-500">Annuler</button>
-          </div>
-        </div>
-      )}
+      {requestFor && <RequestActionPanel label={requestFor.title} dimension={requestFor.dimension} onSubmit={submitRequest} onCancel={() => setRequestFor(null)} />}
 
       {loading ? <LoadingSpinner /> : rows.length === 0 ? (
         <EmptyState title="Aucun risque" description={`${vocab.entityWithDem.charAt(0).toUpperCase()}${vocab.entityWithDem.slice(1)} n'a pas (encore) de scénario dans son registre.`} />

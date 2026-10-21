@@ -4,6 +4,7 @@ import { useSupervisorDirectives } from './useSupervisorDirectives'
 import { useVocab } from '../edition/useVocab'
 import { useToast } from '../../hooks/useToast'
 import { ExpoBadge, DimChip, LifecycleChip, IicBadge, SourceBadge } from './riskLabels'
+import { RequestActionPanel } from './RequestActionPanel'
 import { RISK_SOURCE_LABELS } from '../../lib/constants'
 import { ExpositionHelp } from './ExpositionHelp'
 import { FilterBar } from '../../components/filters/FilterBar'
@@ -33,7 +34,6 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
   const [page, setPage] = useState(1)
   const [detail, setDetail] = useState<SupervisedRisk | null>(null)
   const [requestFor, setRequestFor] = useState<SupervisedRisk | null>(null)
-  const [desc, setDesc] = useState('')
 
   const defs = useMemo<FilterDef[]>(() => {
     const secteurs = [...new Set(rows.map((r) => r.org_sector).filter((s): s is string => !!s))].sort()
@@ -61,10 +61,10 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
     return true
   }), [rows, q, f.values])
 
-  const submit = async (): Promise<void> => {
-    if (!requestFor || !desc.trim()) return
-    const res = await dir.request(requestFor.id, desc.trim())
-    if (res.ok) { toast.success(`Demande envoyée à l'${vocab.entitySingular}`); setRequestFor(null); setDesc('') }
+  const submit = async (d: string): Promise<void> => {
+    if (!requestFor || !d.trim()) return
+    const res = await dir.request(requestFor.id, d.trim())
+    if (res.ok) { toast.success(`Demande envoyée à l'${vocab.entitySingular}`); setRequestFor(null) }
     else toast.error('Demande impossible', { description: res.error })
   }
 
@@ -78,16 +78,7 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
     <div className="space-y-3">
       <FilterBar defs={defs} state={f} search={{ value: q, onChange: (v) => { setQ(v); setPage(1) }, placeholder: `Rechercher un ${vocab.entitySingular}, un scénario...` }} />
 
-      {requestFor && (
-        <div className="rounded-xl border border-forest-200 bg-forest-50 p-4 space-y-2">
-          <div className="text-[13px] font-semibold text-gray-900">Demander une action · <span className="font-normal">{requestFor.org_name} · {requestFor.title}</span></div>
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder="Action demandée (ex. déployer la MFA sur les comptes admin)" className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px]" />
-          <div className="flex gap-2">
-            <button onClick={() => void submit()} disabled={!desc.trim()} className="px-3 py-1.5 text-[12px] font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">Envoyer la demande</button>
-            <button onClick={() => { setRequestFor(null); setDesc('') }} className="px-3 py-1.5 text-[12px] text-gray-500">Annuler</button>
-          </div>
-        </div>
-      )}
+      {requestFor && <RequestActionPanel label={`${requestFor.org_name} · ${requestFor.title}`} dimension={requestFor.dimension} onSubmit={submit} onCancel={() => setRequestFor(null)} />}
 
       {filtered.length === 0 ? (
         <EmptyState title="Aucun résultat" description="Aucun risque ne correspond à ces filtres." />
@@ -118,7 +109,7 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
                     <td className="px-4 py-3"><DimChip d={r.dimension} /></td>
                     <td className="px-4 py-3"><ExpoBadge value={exp} /></td>
                     <td className="px-4 py-3"><LifecycleChip v={r.lifecycle_status} /></td>
-                    <td className="px-4 py-3 text-right"><button onClick={(e) => { e.stopPropagation(); setRequestFor(r); setDesc('') }} className="text-[12px] font-semibold text-forest-700 hover:underline whitespace-nowrap">Demander une action</button></td>
+                    <td className="px-4 py-3 text-right"><button onClick={(e) => { e.stopPropagation(); setRequestFor(r) }} className="text-[12px] font-semibold text-forest-700 hover:underline whitespace-nowrap">Demander une action</button></td>
                   </tr>
                 )
               })}

@@ -624,6 +624,53 @@ export const RISK_SOURCE_HINTS: Record<string, string> = {
   regulator: 'Créé par le régulateur superviseur',
   system: "Issu de Gëstu Regul (promotion d'un constat, d'une mission ou d'un modèle)",
 }
+
+// Actions de traitement proposées au régulateur selon la dimension du risque (#8).
+// Suggestions préremplissant la demande ; la saisie libre reste possible.
+export const RISK_DIRECTIVE_SUGGESTIONS: Record<string, string[]> = {
+  security: [
+    "Déployer l'authentification multifacteur (MFA) sur les comptes à privilèges",
+    'Appliquer les correctifs de sécurité critiques sous 30 jours',
+    'Segmenter le réseau et filtrer les flux entrants',
+    'Durcir les configurations selon un référentiel reconnu (CIS, PSSI-ES)',
+  ],
+  data_protection: [
+    'Chiffrer les données sensibles au repos et en transit',
+    'Appliquer le moindre privilège sur les accès aux données',
+    'Cartographier et classifier les données à caractère personnel (loi 2008-12)',
+    'Journaliser et superviser les accès aux données sensibles',
+  ],
+  resilience: [
+    'Mettre en place des sauvegardes régulières, testées et hors ligne',
+    'Élaborer et tester un plan de continuité et de reprise (PCA/PRA)',
+    'Définir des objectifs RTO/RPO par service essentiel',
+  ],
+  integrity: [
+    "Mettre en place un contrôle d'intégrité des fichiers et des journaux",
+    'Séparer les environnements de développement, de test et de production',
+    'Formaliser la gestion des changements',
+  ],
+  governance: [
+    'Nommer un RSSI et formaliser la politique de sécurité (PSSI)',
+    'Mettre en place un comité de sécurité et un suivi des risques',
+    'Définir des indicateurs de sécurité et un reporting périodique',
+  ],
+  verifiability: [
+    "Activer une piste d'audit inviolable des actions sensibles",
+    'Planifier des audits de sécurité périodiques',
+    'Conserver les preuves de conformité',
+  ],
+  human_factor: [
+    'Sensibiliser et former le personnel à la sécurité',
+    'Mettre en place une charte et des engagements de confidentialité',
+    'Gérer les habilitations lors des arrivées et des départs',
+  ],
+  third_party: [
+    'Évaluer la sécurité des prestataires avant contractualisation',
+    "Inscrire des clauses de sécurité et d'audit dans les contrats",
+    'Suivre et réévaluer périodiquement les tiers critiques',
+  ],
+}
 // Cadences de revue proposees (en mois). Centralisees pour coherence (cf feedback_form_selects).
 export const REVIEW_CADENCE_OPTIONS = [
   { value: 1, label: 'Mensuelle (1 mois)' },
