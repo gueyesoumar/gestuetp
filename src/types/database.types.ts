@@ -2434,6 +2434,22 @@ export interface Database {
         Args: { p_assessment: string; p_valid_months?: number }
         Returns: { score: number; verdict: string }[]
       }
+      add_vendor_finding: {
+        Args: { p_assessment: string; p_classification: string; p_description: string; p_control?: string; p_risk?: string; p_recommendation?: string; p_priority?: string }
+        Returns: string
+      }
+      delete_vendor_finding: {
+        Args: { p_finding: string }
+        Returns: undefined
+      }
+      get_vendor_findings: {
+        Args: { p_assessment: string }
+        Returns: {
+          id: string; control_id: string | null; control_code: string | null
+          classification: string; description: string; risk: string | null
+          recommendation: string | null; priority: string | null; created_at: string
+        }[]
+      }
       get_plan_contents: {
         Args: { p_plan: string }
         Returns: { modules: string[]; features: string[]; quotas: { key: string; limit: number | null }[] }

@@ -77,6 +77,20 @@ export const VENDOR_CRITICALITY_OPTIONS = [
   { value: 'eleve', label: 'Critique' },
 ] as const
 
+export const VENDOR_CLASSIFICATION_OPTIONS = [
+  { value: 'major_nc', label: 'Non-conformité majeure' },
+  { value: 'minor_nc', label: 'Non-conformité mineure' },
+  { value: 'observation', label: 'Observation' },
+  { value: 'strength', label: 'Point fort' },
+] as const
+
+export const VENDOR_PRIORITY_OPTIONS = [
+  { value: 'critical', label: 'Critique' },
+  { value: 'high', label: 'Élevée' },
+  { value: 'medium', label: 'Moyenne' },
+  { value: 'low', label: 'Faible' },
+] as const
+
 export const VENDOR_QUALIFICATION_OPTIONS = [
   { value: 'prospect', label: 'Prospect' },
   { value: 'en_evaluation', label: 'En évaluation' },

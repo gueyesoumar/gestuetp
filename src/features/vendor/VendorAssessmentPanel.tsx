@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useAssessmentDetail, type VendorAssessment, type AssessmentControl } from './useVendorAssessment'
 import { VENDOR_CONFORMITY, conformityScore, verdictOf } from './vendorLabels'
 import { QualificationBadge } from './vendorBadges'
+import { VendorFindings } from './VendorFindings'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 
 interface Props { assessment: VendorAssessment; onClosed: () => void }
@@ -30,6 +31,7 @@ export function VendorAssessmentPanel({ assessment, onClosed }: Props): JSX.Elem
   if (loading) return <div className="p-6"><LoadingSpinner /></div>
 
   return (
+    <div className="space-y-4">
     <div className="rounded-xl border border-gray-200 bg-white">
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 flex-wrap">
         <div>
@@ -78,6 +80,8 @@ export function VendorAssessmentPanel({ assessment, onClosed }: Props): JSX.Elem
           </button>
         </div>
       )}
+    </div>
+    <VendorFindings assessmentId={assessment.id} controls={controls} readOnly={closed} />
     </div>
   )
 }

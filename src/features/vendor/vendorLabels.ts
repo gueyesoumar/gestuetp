@@ -1,11 +1,20 @@
-import { VENDOR_DATA_ACCESS_OPTIONS, VENDOR_CRITICALITY_OPTIONS, VENDOR_QUALIFICATION_OPTIONS } from '../../lib/constants'
+import { VENDOR_DATA_ACCESS_OPTIONS, VENDOR_CRITICALITY_OPTIONS, VENDOR_QUALIFICATION_OPTIONS, VENDOR_CLASSIFICATION_OPTIONS, VENDOR_PRIORITY_OPTIONS } from '../../lib/constants'
 
-const labelOf = (opts: readonly { value: string; label: string }[], v: string): string =>
-  opts.find((o) => o.value === v)?.label ?? v
+const labelOf = (opts: readonly { value: string; label: string }[], v: string | null): string =>
+  opts.find((o) => o.value === v)?.label ?? (v ?? '-')
 
 export const dataAccessLabel = (v: string): string => labelOf(VENDOR_DATA_ACCESS_OPTIONS, v)
 export const criticalityLabel = (v: string): string => labelOf(VENDOR_CRITICALITY_OPTIONS, v)
 export const qualificationLabel = (v: string): string => labelOf(VENDOR_QUALIFICATION_OPTIONS, v)
+export const classificationLabel = (v: string): string => labelOf(VENDOR_CLASSIFICATION_OPTIONS, v)
+export const priorityLabel = (v: string | null): string => labelOf(VENDOR_PRIORITY_OPTIONS, v)
+
+export const CLASSIFICATION_STYLE: Record<string, string> = {
+  major_nc: 'bg-red-50 text-red-600',
+  minor_nc: 'bg-amber-50 text-amber-700',
+  observation: 'bg-blue-50 text-blue-700',
+  strength: 'bg-green-50 text-green-700',
+}
 
 // Cotation de conformite par controle (reutilise la formule d'audit c/lc/pc/nc).
 export const VENDOR_CONFORMITY = [
