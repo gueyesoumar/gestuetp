@@ -2634,6 +2634,16 @@ export interface Database {
           scenarioIncidentIds: string[]
         }
       }
+      get_supervised_scenario_bowtie: {
+        Args: { p_scenario_id: string }
+        Returns: {
+          barriers: { code: string; name: string; kind: string; effectiveness: number }[]
+          policyBarriers: { title: string; kind: string; effectiveness: number }[]
+          incidents: { id: string; category: string; severity: string }[]
+          linkedIncidentIds: string[]
+          scenarioIncidentIds: string[]
+        }
+      }
       get_supervision_assignments: {
         Args: Record<PropertyKey, never>
         Returns: {
