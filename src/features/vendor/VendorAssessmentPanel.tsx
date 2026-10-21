@@ -7,13 +7,13 @@ import { VendorEvidenceCell } from './VendorEvidenceCell'
 import { useVendorEvidence } from './useVendorEvidence'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 
-interface Props { assessment: VendorAssessment; onClosed: () => void }
+interface Props { assessment: VendorAssessment; onClosed: () => void; defaultValidMonths?: number }
 
 /** Grille de cotation d'une evaluation fournisseur : score live + verdict + cloture. */
-export function VendorAssessmentPanel({ assessment, onClosed }: Props): JSX.Element {
+export function VendorAssessmentPanel({ assessment, onClosed, defaultValidMonths = 12 }: Props): JSX.Element {
   const { controls, loading, setLevel, close } = useAssessmentDetail(assessment.id)
   const ev = useVendorEvidence(assessment.id)
-  const [months, setMonths] = useState(12)
+  const [months, setMonths] = useState(defaultValidMonths)
   const [busy, setBusy] = useState(false)
   const closed = assessment.status === 'cloturee'
 

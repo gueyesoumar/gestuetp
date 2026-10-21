@@ -100,6 +100,10 @@ export const VENDOR_QUALIFICATION_OPTIONS = [
   { value: 'suspendu', label: 'Suspendu' },
 ] as const
 
+// Cadence de re-evaluation par defaut, selon la criticite (mois). Pre-remplit la cloture.
+export const VENDOR_REASSESS_MONTHS: Record<string, number> = { eleve: 12, standard: 24 }
+export const VENDOR_REASSESS_DEFAULT_MONTHS = 12
+
 export const PAYS_OPTIONS = [
   'Bénin',
   'Burkina Faso',

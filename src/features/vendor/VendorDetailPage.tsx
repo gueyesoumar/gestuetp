@@ -6,6 +6,7 @@ import { useVendorAssessments, type VendorAssessment } from './useVendorAssessme
 import { VendorAssessmentPanel } from './VendorAssessmentPanel'
 import { InviteCandidateModal } from './InviteCandidateModal'
 import { QualificationBadge } from './vendorBadges'
+import { VENDOR_REASSESS_MONTHS, VENDOR_REASSESS_DEFAULT_MONTHS } from '../../lib/constants'
 import type { VendorListItem } from './useVendors'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 
@@ -51,7 +52,7 @@ export function VendorDetailPage({ vendor, onBack }: { vendor: VendorListItem; o
       {open ? (
         <div className="space-y-3">
           <button onClick={() => { setOpen(null); void reload() }} className="text-[12px] text-forest-700 font-semibold hover:text-forest-900">← Toutes les évaluations</button>
-          <VendorAssessmentPanel assessment={open} onClosed={() => { setOpen(null); void reload() }} />
+          <VendorAssessmentPanel assessment={open} defaultValidMonths={VENDOR_REASSESS_MONTHS[vendor.criticality] ?? VENDOR_REASSESS_DEFAULT_MONTHS} onClosed={() => { setOpen(null); void reload() }} />
         </div>
       ) : (
         <>
