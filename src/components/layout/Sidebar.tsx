@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
 import shieldSvg from '../../assets/logo-shield.svg'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
@@ -49,6 +49,13 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
   const vocab = useVocab()
   const { mainItems, groupItems } = useSidebarNavItems(profile?.organization_id)
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  // Dans un workspace de module dédié, le logo porte le nom du MODULE (Risk/Vendor/Policy),
+  // pas celui de l'édition (Comply/Regul) qui reste la marque hors module.
+  const logoTag = pathname.startsWith('/risque') ? 'risk'
+    : pathname.startsWith('/fournisseurs') ? 'vendor'
+    : pathname.startsWith('/politiques') ? 'policy'
+    : vocab.logoTag
   const [collapsed, setCollapsed] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -90,7 +97,7 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
             <img src={shieldSvg} alt="G&euml;stu" width={24} height={28} />
           ) : (
             <div className="flex flex-1 items-center justify-between">
-              <GestuLogo size="xs" variant="dark" product={vocab.logoTag} />
+              <GestuLogo size="xs" variant="dark" product={logoTag} />
               <button onClick={() => setCollapsed(true)} className="hidden text-white/30 hover:text-white/60 transition-colors lg:block">
                 <CollapseIcon />
               </button>
