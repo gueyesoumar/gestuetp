@@ -30,7 +30,7 @@ const SOURCE_STYLE: Record<string, string> = {
 /** Badge d'origine du risque : Interne / Régulateur / Automatique (#4). */
 export function SourceBadge({ source }: { source: string | null | undefined }): JSX.Element | null {
   if (!source) return null
-  return <span title={RISK_SOURCE_HINTS[source]} className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${SOURCE_STYLE[source] ?? SOURCE_STYLE.self}`}>{RISK_SOURCE_LABELS[source] ?? source}</span>
+  return <span title={RISK_SOURCE_HINTS[source]} className={`shrink-0 whitespace-nowrap text-[10px] font-semibold px-2 py-0.5 rounded border ${SOURCE_STYLE[source] ?? SOURCE_STYLE.self}`}>{RISK_SOURCE_LABELS[source] ?? source}</span>
 }
 
 /** Badge type d'assujetti : IIC (doré) ou standard. */
