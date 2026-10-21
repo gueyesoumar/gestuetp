@@ -615,13 +615,13 @@ export const DEFAULT_REVIEW_MONTHS = 6
 // Origine d'un risque (#4). self=saisie propre de l'organisation, regulator=créé par le
 // régulateur superviseur, system=issu de Gëstu Regul (promotion constat/mission/modèle).
 export const RISK_SOURCE_LABELS: Record<string, string> = {
-  self: 'Interne',
-  regulator: 'Régulateur',
-  system: 'Automatique',
+  self: 'Assujetti',
+  regulator: 'Autorité',
+  system: 'Gëstu Regul',
 }
 export const RISK_SOURCE_HINTS: Record<string, string> = {
-  self: "Saisi par l'organisation elle-même",
-  regulator: 'Créé par le régulateur superviseur',
+  self: "Saisi par l'assujetti lui-même",
+  regulator: "Créé par l'autorité de supervision",
   system: "Issu de Gëstu Regul (promotion d'un constat, d'une mission ou d'un modèle)",
 }
 
