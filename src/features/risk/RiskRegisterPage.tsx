@@ -13,7 +13,7 @@ import { RiskLegend } from './RiskLegend'
 import { RiskGlossary } from './RiskGlossary'
 import { DeleteScenarioButton } from './DeleteScenarioButton'
 import { ExpositionHelp } from './ExpositionHelp'
-import { treatmentLabel, lifecycleLabel, ExpoBadge, DimChip, LifecycleChip } from './riskLabels'
+import { treatmentLabel, lifecycleLabel, ExpoBadge, DimChip, LifecycleChip, SourceBadge } from './riskLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -119,7 +119,10 @@ export function RiskRegisterPage(): JSX.Element {
               {shown.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <button onClick={() => setDetail(s)} className="font-medium text-gray-900 hover:text-[#B34A31] text-left">{s.title}</button>
+                    <span className="inline-flex items-center gap-2">
+                      <button onClick={() => setDetail(s)} className="font-medium text-gray-900 hover:text-[#B34A31] text-left">{s.title}</button>
+                      <SourceBadge source={s.source} />
+                    </span>
                     {s.asset_name && <span className="text-gray-400"> · {s.asset_name}</span>}
                   </td>
                   <td className="px-4 py-3"><DimChip d={s.dimension} /></td>

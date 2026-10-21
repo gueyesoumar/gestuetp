@@ -31,6 +31,7 @@ export interface SupervisedRisk {
   feared_event_ref: string | null
   vulnerability: string | null
   asset_name: string | null
+  source: string
 }
 
 /** Portefeuille de risque multi-org d'un superviseur (RFC 0017 Lot C, cross-tenant RPC). */

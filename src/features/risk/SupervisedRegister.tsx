@@ -3,7 +3,8 @@ import { useSupervisedRegister, type SupervisedRisk } from './useSupervisedPortf
 import { useSupervisorDirectives } from './useSupervisorDirectives'
 import { useVocab } from '../edition/useVocab'
 import { useToast } from '../../hooks/useToast'
-import { ExpoBadge, DimChip, LifecycleChip, IicBadge } from './riskLabels'
+import { ExpoBadge, DimChip, LifecycleChip, IicBadge, SourceBadge } from './riskLabels'
+import { RISK_SOURCE_LABELS } from '../../lib/constants'
 import { ExpositionHelp } from './ExpositionHelp'
 import { FilterBar } from '../../components/filters/FilterBar'
 import { useFilters, type FilterDef } from '../../components/filters/useFilters'
@@ -41,6 +42,7 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
       { key: 'secteur', label: 'Secteur', type: 'select', options: secteurs.map((s) => ({ value: s, label: s })) },
       { key: 'type', label: 'Type', type: 'select', options: [{ value: 'iic', label: 'IIC' }, { value: 'std', label: 'Standard' }] },
       { key: 'dim', label: 'Dimension', type: 'select', options: dims.map((d) => ({ value: d, label: SCORE_DIMENSION_LABELS[d as ScoreDimensionKey] ?? d })) },
+      { key: 'source', label: 'Origine', type: 'select', options: Object.entries(RISK_SOURCE_LABELS).map(([value, label]) => ({ value, label })) },
       { key: 'hors', label: 'Hors seuil (≥ 60)', type: 'toggle' },
     ]
   }, [rows])
@@ -54,6 +56,7 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
     if (f.values.type === 'iic' && !r.org_is_iic) return false
     if (f.values.type === 'std' && r.org_is_iic) return false
     if (f.values.dim && r.dimension !== f.values.dim) return false
+    if (f.values.source && r.source !== f.values.source) return false
     if (f.values.hors && e < 60) return false
     return true
   }), [rows, q, f.values])
@@ -111,7 +114,7 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
                     <td className="px-4 py-3 font-medium text-gray-900">{r.org_name}</td>
                     <td className="px-4 py-3"><IicBadge iic={r.org_is_iic} /></td>
                     <td className="px-4 py-3 text-gray-500">{r.org_sector ?? '-'}</td>
-                    <td className="px-4 py-3 text-gray-700"><span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span></td>
+                    <td className="px-4 py-3 text-gray-700"><span className="inline-flex items-center gap-2"><span className="font-medium text-gray-900 hover:text-[#6D5AE6]">{r.title}</span><SourceBadge source={r.source} /></span></td>
                     <td className="px-4 py-3"><DimChip d={r.dimension} /></td>
                     <td className="px-4 py-3"><ExpoBadge value={exp} /></td>
                     <td className="px-4 py-3"><LifecycleChip v={r.lifecycle_status} /></td>

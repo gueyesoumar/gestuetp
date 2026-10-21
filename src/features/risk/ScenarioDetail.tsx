@@ -17,7 +17,7 @@ import { RISK_PHASES, type RiskPhaseKey } from './phases'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_LIFECYCLE_STATUS } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
-import { expColor } from './riskLabels'
+import { expColor, SourceBadge } from './riskLabels'
 
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
 
@@ -47,6 +47,7 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
                     <p>Étapes ISO 27005 : <b>identifié</b> &rarr; <b>analysé</b> (coté) &rarr; <b>évalué</b> (vs seuil) &rarr; <b>traité</b> &rarr; <b>accepté</b> (résiduel formellement validé) &rarr; <b>surveillé</b> (revue périodique).</p>
                   </HelpHint>
                 </span>
+                <SourceBadge source={scenario.source} />
                 <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-gray-400">Exposition <ExpositionHelp /></span>
               </div>
               {prov && (

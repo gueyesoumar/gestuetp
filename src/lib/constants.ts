@@ -612,6 +612,18 @@ export const RISK_MASTERY_WEIGHT = 0.2
 // ligne risk_criteria pour l'org) + cycle de vie ISO 27005.
 export const DEFAULT_ACCEPTANCE_THRESHOLD = 60
 export const DEFAULT_REVIEW_MONTHS = 6
+// Origine d'un risque (#4). self=saisie propre de l'organisation, regulator=créé par le
+// régulateur superviseur, system=issu de Gëstu Regul (promotion constat/mission/modèle).
+export const RISK_SOURCE_LABELS: Record<string, string> = {
+  self: 'Interne',
+  regulator: 'Régulateur',
+  system: 'Automatique',
+}
+export const RISK_SOURCE_HINTS: Record<string, string> = {
+  self: "Saisi par l'organisation elle-même",
+  regulator: 'Créé par le régulateur superviseur',
+  system: "Issu de Gëstu Regul (promotion d'un constat, d'une mission ou d'un modèle)",
+}
 // Cadences de revue proposees (en mois). Centralisees pour coherence (cf feedback_form_selects).
 export const REVIEW_CADENCE_OPTIONS = [
   { value: 1, label: 'Mensuelle (1 mois)' },

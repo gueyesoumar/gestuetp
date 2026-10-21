@@ -2607,7 +2607,7 @@ export interface Database {
           inherent_likelihood: number; inherent_impact: number; treatment: string
           lifecycle_status: string; next_review_at: string | null
           threat_ref: string | null; feared_event_ref: string | null
-          vulnerability: string | null; asset_name: string | null
+          vulnerability: string | null; asset_name: string | null; source: string
         }[]
       }
       get_supervised_plan: {
