@@ -2407,6 +2407,33 @@ export interface Database {
           next_assessment_at: string | null
         }[]
       }
+      create_vendor_assessment: {
+        Args: { p_relationship: string; p_framework: string }
+        Returns: string
+      }
+      set_vendor_evaluation: {
+        Args: { p_assessment: string; p_control: string; p_level: string; p_note?: string }
+        Returns: undefined
+      }
+      get_vendor_assessments: {
+        Args: { p_relationship: string }
+        Returns: {
+          id: string; framework_id: string; framework_name: string; status: string
+          score: number | null; verdict: string | null; assessed_at: string | null
+          valid_until: string | null; created_at: string
+        }[]
+      }
+      get_vendor_assessment_detail: {
+        Args: { p_assessment: string }
+        Returns: {
+          control_id: string; control_code: string; control_name: string
+          domain_code: string; domain_name: string; dimension: string | null; conformity_level: string | null
+        }[]
+      }
+      close_vendor_assessment: {
+        Args: { p_assessment: string; p_valid_months?: number }
+        Returns: { score: number; verdict: string }[]
+      }
       get_plan_contents: {
         Args: { p_plan: string }
         Returns: { modules: string[]; features: string[]; quotas: { key: string; limit: number | null }[] }

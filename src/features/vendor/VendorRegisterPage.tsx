@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Boxes, Plus } from 'lucide-react'
-import { useVendors } from './useVendors'
+import { useVendors, type VendorListItem } from './useVendors'
 import { CreateVendorModal } from './CreateVendorModal'
+import { VendorDetailPage } from './VendorDetailPage'
 import { QualificationBadge, CriticalityBadge } from './vendorBadges'
 import { dataAccessLabel } from './vendorLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -12,9 +13,11 @@ import { EmptyState } from '../../components/ui/EmptyState'
 export function VendorRegisterPage(): JSX.Element {
   const { rows, loading, error, busy, create } = useVendors()
   const [modal, setModal] = useState(false)
+  const [selected, setSelected] = useState<VendorListItem | null>(null)
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
+  if (selected) return <VendorDetailPage vendor={selected} onBack={() => setSelected(null)} />
 
   return (
     <div className="space-y-5">
@@ -43,7 +46,7 @@ export function VendorRegisterPage(): JSX.Element {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {rows.map((v) => (
-                <tr key={v.relationship_id} className="hover:bg-gray-50">
+                <tr key={v.relationship_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(v)}>
                   <td className="px-4 py-3 font-medium text-gray-900">{v.name}{v.services && <span className="block text-[11px] text-gray-400 font-normal">{v.services}</span>}</td>
                   <td className="px-4 py-3 text-gray-500">{v.sector ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-600">{dataAccessLabel(v.data_access_level)}</td>
