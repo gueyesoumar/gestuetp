@@ -2546,7 +2546,7 @@ export interface Database {
         Returns: string
       }
       create_supervised_scenario: {
-        Args: { p_org: string; p_title: string; p_dimension: string; p_likelihood: number; p_impact: number; p_description?: string | null; p_vulnerability?: string | null; p_treatment?: string }
+        Args: { p_org: string; p_title: string; p_dimension: string; p_likelihood: number; p_impact: number; p_description?: string | null; p_vulnerability?: string | null; p_treatment?: string; p_threat_ref?: string | null; p_feared_event_ref?: string | null }
         Returns: string
       }
       verify_risk_treatment: {

@@ -13,14 +13,19 @@ import type { NewScenario } from './useRiskRegister'
 interface Props {
   catalog: RiskCatalogEntry[]
   onClose: () => void
-  onCreate: (s: NewScenario) => Promise<string | null>
+  /** Création : own-org (orgId null) ou pour un assujetti supervisé (orgId choisi). */
+  onCreate: (s: NewScenario, orgId: string | null) => Promise<string | null>
+  /** Présent = mode superviseur : liste d'assujettis cibles (1 = verrouillé). */
+  orgs?: { id: string; name: string }[]
 }
 
 const INITIAL: ScenarioFields = { dimension: '', threat: '', feared: '', vulnerability: '', likelihood: 2, impact: 2 }
 
-export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.Element {
+export function ScenarioFormModal({ catalog, onClose, onCreate, orgs }: Props): JSX.Element {
   const toast = useToast()
   const { profile } = useAuth()
+  const supervised = !!orgs
+  const [org, setOrg] = useState(orgs && orgs.length === 1 ? orgs[0].id : '')
   const [title, setTitle] = useState('')
   const [fields, setFields] = useState<ScenarioFields>(INITIAL)
   const [treatment, setTreatment] = useState<NewScenario['treatment']>('untreated')
@@ -62,16 +67,17 @@ export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.El
   const submit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     if (!title.trim() || !fields.dimension) { toast.error('Titre et dimension requis'); return }
+    if (supervised && !org) { toast.error('Assujetti requis'); return }
     setBusy(true)
     const newId = await onCreate({
       title: title.trim(), dimension: fields.dimension as ScoreDimension,
       inherent_likelihood: fields.likelihood, inherent_impact: fields.impact, treatment,
       threat_ref: fields.threat || null, feared_event_ref: fields.feared || null, vulnerability: fields.vulnerability || null,
-    })
-    if (newId) await seedNodesFromTemplate(newId)
+    }, supervised ? org : null)
+    if (newId && !supervised) await seedNodesFromTemplate(newId)
     setBusy(false)
     if (!newId) { toast.error('Création impossible'); return }
-    toast.success('Scénario ajouté au registre')
+    toast.success(supervised ? "Risque créé dans le registre de l'assujetti" : 'Scénario ajouté au registre')
     onClose()
   }
 
@@ -82,13 +88,22 @@ export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.El
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2.5 min-w-0">
-            <h3 className="font-semibold text-gray-900">Nouveau scénario de risque</h3>
+            <h3 className="font-semibold text-gray-900 truncate">Nouveau risque{orgs && orgs.length === 1 ? ` · ${orgs[0].name}` : ''}</h3>
             <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded bg-forest-50 text-forest-700 border border-forest-100 whitespace-nowrap">3 champs suffisent</span>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0"><X size={18} /></button>
         </div>
         <form onSubmit={submit} className="px-5 py-4 space-y-3">
           <p className="text-[12px] text-gray-500">Renseignez l&apos;essentiel maintenant (intitulé, dimension, cotation). Vous pourrez préciser et compléter le scénario plus tard depuis son détail.</p>
+          {orgs && orgs.length > 1 && (
+            <div>
+              <label className="block text-[12px] font-medium text-gray-600 mb-1">Assujetti *</label>
+              <select value={org} onChange={(e) => setOrg(e.target.value)} className={field}>
+                <option value="">Choisir...</option>
+                {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+            </div>
+          )}
           <TemplatePicker onPick={applyTemplate} />
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Intitulé *</label>
@@ -120,7 +135,7 @@ export function ScenarioFormModal({ catalog, onClose, onCreate }: Props): JSX.El
 
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
-            <button type="submit" disabled={busy} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
+            <button type="submit" disabled={busy || !title.trim() || !fields.dimension || (supervised && !org)} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
               {busy ? 'Ajout...' : 'Ajouter au registre'}
             </button>
           </div>

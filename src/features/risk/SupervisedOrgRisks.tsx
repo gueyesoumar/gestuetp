@@ -8,8 +8,9 @@ import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { AuditedScenarioBowtie, type AuditedScenario } from '../missions/AuditedScenarioBowtie'
-import { CreateSupervisedScenarioModal } from './CreateSupervisedScenarioModal'
+import { ScenarioFormModal } from './ScenarioFormModal'
 import { RequestActionPanel } from './RequestActionPanel'
+import type { NewScenario } from './useRiskRegister'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_TREATMENTS, RISK_LIFECYCLE_STATUS, riskExposure, type ScoreDimensionKey } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import { expColor, SourceBadge } from './riskLabels'
@@ -50,6 +51,18 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
     else toast.error('Demande impossible', { description: res.error })
   }
 
+  const createForOrg = async (s: NewScenario, orgId: string | null): Promise<string | null> => {
+    const { data, error } = await supabase.rpc('create_supervised_scenario', {
+      p_org: orgId ?? org.organization_id, p_title: s.title, p_dimension: s.dimension ?? '',
+      p_likelihood: s.inherent_likelihood, p_impact: s.inherent_impact,
+      p_vulnerability: s.vulnerability ?? null, p_treatment: s.treatment,
+      p_threat_ref: s.threat_ref ?? null, p_feared_event_ref: s.feared_event_ref ?? null,
+    })
+    if (error) { toast.error('Création impossible', { description: error.message }); return null }
+    reload()
+    return data as string
+  }
+
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-500 hover:text-gray-800"><ArrowLeft size={15} /> Retour au portefeuille</button>
@@ -58,7 +71,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
           <h2 className="text-lg font-semibold text-gray-900">{org.org_name}</h2>
           <p className="text-[13px] text-gray-500 mt-0.5">{org.sector ?? 'Secteur non renseigné'} · registre de risque de l&apos;{vocab.entitySingular} ; vous pouvez <b>créer un risque</b> et <b>demander des actions de traitement</b>.</p>
         </div>
-        <button onClick={() => setCreateOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Créer un risque</button>
+        <button onClick={() => setCreateOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Nouveau risque</button>
       </div>
 
       {requestFor && <RequestActionPanel label={requestFor.title} dimension={requestFor.dimension} onSubmit={submitRequest} onCancel={() => setRequestFor(null)} />}
@@ -99,7 +112,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
       )}
 
       {selected && <AuditedScenarioBowtie scenario={toAudited(selected)} catalog={catalog} onClose={() => setSelected(null)} />}
-      {createOpen && <CreateSupervisedScenarioModal orgs={[{ id: org.organization_id, name: org.org_name }]} onClose={() => setCreateOpen(false)} onCreated={reload} />}
+      {createOpen && <ScenarioFormModal catalog={catalog} orgs={[{ id: org.organization_id, name: org.org_name }]} onClose={() => setCreateOpen(false)} onCreate={createForOrg} />}
     </div>
   )
 }

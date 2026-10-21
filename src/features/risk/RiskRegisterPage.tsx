@@ -1,19 +1,21 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, ClipboardList, Download, X } from 'lucide-react'
-import { useRiskRegister, type ScenarioRow } from './useRiskRegister'
+import { supabase } from '../../lib/supabase'
+import { useToast } from '../../hooks/useToast'
+import { useRiskRegister, type ScenarioRow, type NewScenario } from './useRiskRegister'
 import { useRiskCriteria } from './useRiskCriteria'
 import { useSoA } from './useSoA'
+import { useSupervisedPortfolio } from './useSupervisedPortfolio'
 import { useEdition } from '../edition/EditionContext'
 import { useVocab } from '../edition/useVocab'
 import { ScenarioFormModal } from './ScenarioFormModal'
 import { ScenarioDetail } from './ScenarioDetail'
 import { SupervisedRegister } from './SupervisedRegister'
+import { RiskScenarioTable } from './RiskScenarioTable'
 import { RiskLegend } from './RiskLegend'
 import { RiskGlossary } from './RiskGlossary'
-import { DeleteScenarioButton } from './DeleteScenarioButton'
-import { ExpositionHelp } from './ExpositionHelp'
-import { treatmentLabel, lifecycleLabel, ExpoBadge, DimChip, LifecycleChip, SourceBadge } from './riskLabels'
+import { treatmentLabel, lifecycleLabel } from './riskLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
@@ -30,10 +32,27 @@ export function RiskRegisterPage(): JSX.Element {
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const supervises = hasCapability('supervision') || hasCapability('client_portal')
+  const toast = useToast()
+  const portfolio = useSupervisedPortfolio()
+  const orgOptions = useMemo(() => portfolio.orgs.map((o) => ({ id: o.organization_id, name: o.org_name })).sort((a, b) => a.name.localeCompare(b.name)), [portfolio.orgs])
   const [scope, setScope] = useState<'own' | 'all'>('own')
   const [modal, setModal] = useState(false)
+  const [supRefresh, setSupRefresh] = useState(0)
   const [detail, setDetail] = useState<ScenarioRow | null>(null)
   const [params, setParams] = useSearchParams()
+
+  const createSupervised = async (s: NewScenario, orgId: string | null): Promise<string | null> => {
+    if (!orgId) return null
+    const { data, error } = await supabase.rpc('create_supervised_scenario', {
+      p_org: orgId, p_title: s.title, p_dimension: s.dimension ?? '',
+      p_likelihood: s.inherent_likelihood, p_impact: s.inherent_impact,
+      p_vulnerability: s.vulnerability ?? null, p_treatment: s.treatment,
+      p_threat_ref: s.threat_ref ?? null, p_feared_event_ref: s.feared_event_ref ?? null,
+    })
+    if (error) { toast.error('Création impossible', { description: error.message }); return null }
+    setSupRefresh((n) => n + 1)
+    return data as string
+  }
 
   const fv = Number(params.get('v')), fi = Number(params.get('i'))
   const cellFilter = fv >= 1 && fv <= 4 && fi >= 1 && fi <= 4
@@ -72,9 +91,9 @@ export function RiskRegisterPage(): JSX.Element {
             <>
               <button onClick={exportRegister} disabled={reg.scenarios.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> Registre</button>
               <button onClick={exportSoA} disabled={soa.rows.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><Download size={15} /> SoA</button>
-              <button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={16} /> Nouveau scénario</button>
             </>
           )}
+          <button onClick={() => setModal(true)} disabled={consolidated && orgOptions.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50"><Plus size={16} /> Nouveau risque</button>
         </div>
       </div>
 
@@ -96,56 +115,20 @@ export function RiskRegisterPage(): JSX.Element {
       )}
 
       {consolidated ? (
-        <SupervisedRegister catalog={reg.catalog} />
+        <SupervisedRegister key={supRefresh} catalog={reg.catalog} />
       ) : reg.scenarios.length === 0 ? (
-        <EmptyState title="Registre vide" description="Créez votre premier scénario de risque avec le bouton ci-dessus." action={<button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={15} /> Nouveau scénario</button>} />
+        <EmptyState title="Registre vide" description="Créez votre premier risque avec le bouton ci-dessus." action={<button onClick={() => setModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900"><Plus size={15} /> Nouveau risque</button>} />
       ) : shown.length === 0 ? (
         <EmptyState title="Aucun risque pour ce couple" description={`Aucun scénario avec vraisemblance ${fv} et impact ${fi}.`} />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-[13px]">
-            <thead className="bg-gray-50 border-b border-gray-200 text-[11px] uppercase tracking-wider text-gray-500">
-              <tr>
-                <th className="text-left px-4 py-3 font-semibold">Scénario</th>
-                <th className="text-left px-4 py-3 font-semibold">Dimension</th>
-                <th className="text-left px-4 py-3 font-semibold">Cotation</th>
-                <th className="text-left px-4 py-3 font-semibold"><span className="inline-flex items-center gap-1">Exposition <ExpositionHelp threshold={crit.acceptanceThreshold} /></span></th>
-                <th className="text-left px-4 py-3 font-semibold">Cycle de vie</th>
-                <th className="text-left px-4 py-3 font-semibold">Traitement</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {shown.map((s) => (
-                <tr key={s.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-2">
-                      <button onClick={() => setDetail(s)} className="font-medium text-gray-900 hover:text-[#B34A31] text-left">{s.title}</button>
-                      <SourceBadge source={s.source} />
-                    </span>
-                    {s.asset_name && <span className="text-gray-400"> · {s.asset_name}</span>}
-                  </td>
-                  <td className="px-4 py-3"><DimChip d={s.dimension} /></td>
-                  <td className="px-4 py-3 font-mono text-gray-500">V{s.inherent_likelihood}·I{s.inherent_impact}</td>
-                  <td className="px-4 py-3">
-                    <ExpoBadge value={s.exposure} />
-                    {crit.isAboveThreshold(s.exposure) && <span title={`Au-dessus du seuil d'acceptation (${crit.acceptanceThreshold})`} className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded align-middle">Hors seuil</span>}
-                  </td>
-                  <td className="px-4 py-3"><LifecycleChip v={s.lifecycle_status} /></td>
-                  <td className="px-4 py-3 text-gray-600">{treatmentLabel(s.treatment)}</td>
-                  <td className="px-4 py-3 text-right">
-                    <DeleteScenarioButton title={s.title} onConfirm={() => reg.deleteScenario(s.id)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RiskScenarioTable rows={shown} threshold={crit.acceptanceThreshold} isAboveThreshold={crit.isAboveThreshold} onOpen={setDetail} onDelete={reg.deleteScenario} />
       )}
 
       <RiskLegend />
 
-      {modal && <ScenarioFormModal catalog={reg.catalog} onClose={() => setModal(false)} onCreate={reg.createScenario} />}
+      {modal && (consolidated
+        ? <ScenarioFormModal catalog={reg.catalog} orgs={orgOptions} onClose={() => setModal(false)} onCreate={createSupervised} />
+        : <ScenarioFormModal catalog={reg.catalog} onClose={() => setModal(false)} onCreate={reg.createScenario} />)}
       {detail && <ScenarioDetail scenario={detail} catalog={reg.catalog} onClose={() => setDetail(null)} />}
     </div>
   )

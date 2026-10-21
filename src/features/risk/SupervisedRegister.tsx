@@ -1,12 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
-import { useSupervisedRegister, useSupervisedPortfolio, type SupervisedRisk } from './useSupervisedPortfolio'
+import { useSupervisedRegister, type SupervisedRisk } from './useSupervisedPortfolio'
 import { useSupervisorDirectives } from './useSupervisorDirectives'
 import { useVocab } from '../edition/useVocab'
 import { useToast } from '../../hooks/useToast'
 import { ExpoBadge, DimChip, LifecycleChip, IicBadge, SourceBadge } from './riskLabels'
 import { RequestActionPanel } from './RequestActionPanel'
-import { CreateSupervisedScenarioModal } from './CreateSupervisedScenarioModal'
 import { RISK_SOURCE_LABELS } from '../../lib/constants'
 import { ExpositionHelp } from './ExpositionHelp'
 import { FilterBar } from '../../components/filters/FilterBar'
@@ -28,16 +26,13 @@ const toAudited = (r: SupervisedRisk): AuditedScenario => ({
 })
 /** Registre consolidé des assujettis supervisés : filtre standard + pagination + demande d'action. */
 export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] }): JSX.Element {
-  const { rows, loading, error, reload } = useSupervisedRegister()
-  const portfolio = useSupervisedPortfolio()
+  const { rows, loading, error } = useSupervisedRegister()
   const dir = useSupervisorDirectives()
   const vocab = useVocab()
   const toast = useToast()
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [detail, setDetail] = useState<SupervisedRisk | null>(null)
-  const [createOpen, setCreateOpen] = useState(false)
-  const orgOptions = useMemo(() => portfolio.orgs.map((o) => ({ id: o.organization_id, name: o.org_name })).sort((a, b) => a.name.localeCompare(b.name)), [portfolio.orgs])
   const [requestFor, setRequestFor] = useState<SupervisedRisk | null>(null)
 
   const defs = useMemo<FilterDef[]>(() => {
@@ -78,16 +73,10 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
 
   const pageRows = pageSlice(filtered, page, PAGE)
 
+  if (rows.length === 0) return <EmptyState title="Aucun risque" description={`Vous ne supervisez pas (encore) de ${vocab.entitySingular} ayant des risques. Utilisez « Nouveau risque » pour en ajouter un au registre d'un assujetti.`} />
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-end">
-        <button onClick={() => setCreateOpen(true)} disabled={orgOptions.length === 0} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50"><Plus size={16} /> Créer un risque</button>
-      </div>
-
-      {rows.length === 0 ? (
-        <EmptyState title="Aucun risque" description={`Vous ne supervisez pas (encore) de ${vocab.entitySingular} ayant des risques. Utilisez « Créer un risque » pour en ajouter un au registre d'un assujetti.`} />
-      ) : (
-      <>
       <FilterBar defs={defs} state={f} search={{ value: q, onChange: (v) => { setQ(v); setPage(1) }, placeholder: `Rechercher un ${vocab.entitySingular}, un scénario...` }} />
 
       {requestFor && <RequestActionPanel label={`${requestFor.org_name} · ${requestFor.title}`} dimension={requestFor.dimension} onSubmit={submit} onCancel={() => setRequestFor(null)} />}
@@ -130,11 +119,8 @@ export function SupervisedRegister({ catalog }: { catalog: RiskCatalogEntry[] })
           <Pagination total={filtered.length} page={page} pageSize={PAGE} onPage={setPage} />
         </div>
       )}
-      </>
-      )}
 
       {detail && <AuditedScenarioBowtie scenario={toAudited(detail)} catalog={catalog} onClose={() => setDetail(null)} />}
-      {createOpen && <CreateSupervisedScenarioModal orgs={orgOptions} onClose={() => setCreateOpen(false)} onCreated={reload} />}
     </div>
   )
 }
