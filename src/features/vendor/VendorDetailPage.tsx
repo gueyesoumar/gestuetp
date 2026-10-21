@@ -1,10 +1,15 @@
 import { useState } from 'react'
-import { ChevronLeft, Plus } from 'lucide-react'
+import { ChevronLeft, Plus, UserPlus } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { useToast } from '../../hooks/useToast'
 import { useVendorAssessments, type VendorAssessment } from './useVendorAssessment'
 import { VendorAssessmentPanel } from './VendorAssessmentPanel'
+import { InviteCandidateModal } from './InviteCandidateModal'
 import { QualificationBadge } from './vendorBadges'
 import type { VendorListItem } from './useVendors'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+
+const STATUS_LABEL: Record<string, string> = { en_cours: 'En cours', self_assessment: 'Auto-évaluation candidat', soumise: 'Soumise, à revoir', cloturee: 'Clôturée' }
 
 /** Fiche fournisseur : evaluations securite + verdict de qualification (RFC 0020 Lot 2). */
 export function VendorDetailPage({ vendor, onBack }: { vendor: VendorListItem; onBack: () => void }): JSX.Element {
@@ -12,6 +17,15 @@ export function VendorDetailPage({ vendor, onBack }: { vendor: VendorListItem; o
   const [open, setOpen] = useState<VendorAssessment | null>(null)
   const [fw, setFw] = useState('')
   const [creating, setCreating] = useState(false)
+  const [invite, setInvite] = useState(false)
+  const toast = useToast()
+
+  const requestSelf = async (id: string): Promise<void> => {
+    const { error } = await supabase.rpc('request_vendor_self_assessment', { p_assessment: id })
+    if (error) { toast.error('Action impossible', error); return }
+    toast.success('Auto-évaluation ouverte au candidat')
+    await reload()
+  }
 
   const startNew = async (): Promise<void> => {
     if (!fw) return
@@ -30,7 +44,9 @@ export function VendorDetailPage({ vendor, onBack }: { vendor: VendorListItem; o
         <h1 className="text-xl font-semibold text-gray-900">{vendor.name}</h1>
         <QualificationBadge status={vendor.qualification_status} />
         {vendor.sector && <span className="text-[12px] text-gray-400">{vendor.sector}</span>}
+        <button onClick={() => setInvite(true)} className="ml-auto inline-flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"><UserPlus size={15} /> Inviter le candidat</button>
       </div>
+      {invite && <InviteCandidateModal relationshipId={vendor.relationship_id} onClose={() => setInvite(false)} />}
 
       {open ? (
         <div className="space-y-3">
@@ -62,7 +78,7 @@ export function VendorDetailPage({ vendor, onBack }: { vendor: VendorListItem; o
                   {rows.map((a) => (
                     <tr key={a.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setOpen(a)}>
                       <td className="px-4 py-3 font-medium text-gray-900">{a.framework_name}</td>
-                      <td className="px-4 py-3 text-gray-500">{a.status === 'cloturee' ? 'Clôturée' : 'En cours'}</td>
+                      <td className="px-4 py-3 text-gray-500">{STATUS_LABEL[a.status] ?? a.status}{a.status === 'en_cours' && <button onClick={(e) => { e.stopPropagation(); void requestSelf(a.id) }} className="block text-[11px] text-forest-700 font-semibold hover:underline">Demander l&apos;auto-évaluation</button>}</td>
                       <td className="px-4 py-3 text-right font-mono font-bold">{a.score ?? '-'}</td>
                       <td className="px-4 py-3">{a.verdict ? <QualificationBadge status={a.verdict} /> : <span className="text-gray-400">-</span>}</td>
                       <td className="px-4 py-3 text-gray-500">{a.valid_until ? new Date(a.valid_until).toLocaleDateString('fr-FR') : '-'}</td>

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy, AlertTriangle, ShieldAlert } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Paperclip, Bell, LifeBuoy, AlertTriangle, ShieldAlert, ClipboardCheck } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { useVocab } from '../../edition/useVocab'
 import { useIsRegul } from '../../edition/useIsRegul'
@@ -34,6 +34,7 @@ export function ClientSidebar(): JSX.Element {
     { to: '/client', label: 'Tableau de bord', icon: <LayoutDashboard size={16} />, end: true },
     { to: '/client/missions', label: 'Mes missions', icon: <ClipboardList size={16} />, end: false },
     { to: '/client/directives', label: 'Directives', icon: <ShieldAlert size={16} />, end: false },
+    { to: '/client/evaluations', label: 'Évaluations', icon: <ClipboardCheck size={16} />, end: false },
     ...(hasIncidents ? [{ to: '/client/incidents', label: 'Incidents', icon: <AlertTriangle size={16} />, end: false }] : []),
     { to: '/client/documents', label: 'Documents', icon: <Paperclip size={16} />, end: false },
     { to: '/client/notifications', label: 'Notifications', icon: <Bell size={16} />, end: false },

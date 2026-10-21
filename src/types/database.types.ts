@@ -2450,6 +2450,29 @@ export interface Database {
           recommendation: string | null; priority: string | null; created_at: string
         }[]
       }
+      request_vendor_self_assessment: {
+        Args: { p_assessment: string }
+        Returns: undefined
+      }
+      submit_vendor_self_assessment: {
+        Args: { p_assessment: string }
+        Returns: undefined
+      }
+      set_vendor_self_evaluation: {
+        Args: { p_assessment: string; p_control: string; p_level: string; p_note?: string }
+        Returns: undefined
+      }
+      get_my_vendor_self_assessments: {
+        Args: Record<PropertyKey, never>
+        Returns: { id: string; framework_name: string; vendor_name: string; status: string; created_at: string }[]
+      }
+      get_my_vendor_self_assessment_detail: {
+        Args: { p_assessment: string }
+        Returns: {
+          control_id: string; control_code: string; control_name: string
+          domain_code: string; domain_name: string; conformity_level: string | null; status: string
+        }[]
+      }
       get_plan_contents: {
         Args: { p_plan: string }
         Returns: { modules: string[]; features: string[]; quotas: { key: string; limit: number | null }[] }
