@@ -6,9 +6,9 @@ import { open, text, count } from './helpers'
 test.describe('Supervision - portefeuille', () => {
   test('KPIs, répartition et table', async ({ page }) => {
     test.skip(!(await open(page, '/risque/portefeuille')), 'Portefeuille inaccessible')
-    await expect(text(page, /Portefeuille de risque/)).toBeVisible()
-    await expect(text(page, /Risques|Hors seuil|Revues en retard|Demandes/)).toBeVisible()
-    await expect(text(page, /Répartition par exposition/)).toBeVisible()
+    await expect(text(page, /Cockpit de supervision|Portefeuille de risque/)).toBeVisible()
+    await expect(text(page, /Hors seuil|Revues en retard|Demandes/)).toBeVisible()
+    await expect(text(page, /Cartographie du risque|Répartition par exposition/)).toBeVisible()
   })
 
   test('pastille exposition multi-org', async ({ page }) => {
