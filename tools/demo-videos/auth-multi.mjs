@@ -18,7 +18,7 @@ if (existsSync('.env')) {
   }
 }
 
-const ROLES = [['REGA', 'rega'], ['REGS', 'regs'], ['CLI', 'cli'], ['VEN', 'ven']]
+const ROLES = [['REGA', 'rega'], ['REGS', 'regs'], ['CLI', 'cli'], ['VEN', 'ven'], ['CABO', 'cabo'], ['SA', 'sa']]
 let ok = 0, ko = 0
 for (const [U, low] of ROLES) {
   const email = env[`E2E_${U}_EMAIL`]

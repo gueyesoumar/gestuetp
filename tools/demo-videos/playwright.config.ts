@@ -42,5 +42,7 @@ export default defineConfig({
     { name: 'portail', testMatch: /portal-.*\.spec\.ts$/, use: { storageState: state('.auth/cli.json') } },
     // Portail candidat fournisseur (auto-évaluation).
     { name: 'vendor', testMatch: /vendor-portal.*\.spec\.ts$/, use: { storageState: state('.auth/ven.json') } },
+    // Cabinet owner (Comply : clients, missions, audit).
+    { name: 'cabinet', testMatch: /cabinet-.*\.spec\.ts$/, use: { storageState: state('.auth/cabo.json') } },
   ],
 })
