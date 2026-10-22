@@ -215,9 +215,11 @@ test.describe.serial('Cabinet - chaîne d\'audit', () => {
     const ass = (await rest(caba!, `control_assessments?mission_id=eq.${missionId}&auditor_id=eq.${CABA_USER}&select=id&order=id`)).body as { id: string }[]
     expect(ass.length).toBe(ctrls.length)
     const ncId = ass[0].id
+    // conformity_level = niveau de conformité (nc/pc/lc/c/na), distinct de la classification
+    // du constat (major_nc). « nc » doit abaisser le score de conformité à la clôture.
     await rest(caba!, `control_assessments?id=eq.${ncId}`, {
       method: 'PATCH', headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ conformity_level: 'major_nc', observations: 'E2E : écart constaté' }),
+      body: JSON.stringify({ conformity_level: 'nc', observations: 'E2E : écart constaté' }),
     })
     const finding = await rest(caba!, 'assessment_findings', {
       method: 'POST', headers: { Prefer: 'return=representation' },
@@ -243,9 +245,12 @@ test.describe.serial('Cabinet - chaîne d\'audit', () => {
     // 4. Clôture (CABO) : close-mission -> phase closure + ligne reports (rapport prêt).
     const close = await edge(cabo!, 'close-mission', { mission_id: missionId })
     expect(close.status).toBe(200)
-    const closeBody = close.body as { success?: boolean; report_id?: string; scoring?: unknown }
+    const closeBody = close.body as { success?: boolean; report_id?: string; scoring?: { conformity_score?: number } }
     expect(closeBody.success).toBe(true)
     expect(closeBody.report_id).toMatch(/[0-9a-f-]{36}/)
+    // Le contrôle noté « nc » doit faire descendre le score sous 100 (sinon la cotation
+    // de non-conformité n'est pas prise en compte dans le scoring).
+    expect(closeBody.scoring?.conformity_score).toBeLessThan(100)
     const closed = (await rest(cabo!, `missions?id=eq.${missionId}&select=status`)).body as { status: string }[]
     expect(closed[0].status).toBe('closure')
 
