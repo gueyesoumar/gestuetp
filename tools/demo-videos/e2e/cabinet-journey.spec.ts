@@ -83,21 +83,29 @@ test.describe('Cabinet - missions', () => {
 
 // J1 - chaîne d'audit (segment « création »). Déroule le wizard de mission de bout en
 // bout (référentiel -> client -> périmètre -> équipe -> calendrier -> confirmation ->
-// create-mission), puis ouvre la mission créée et vérifie que le workflow d'audit est
-// accessible (rail Cadrage..Confirmation + « Démarrer le cadrage »).
-// NB : la moitié « évaluation » (répondre au cadrage, coter les contrôles, constats,
-// clôture, promotion risque, rapport) nécessite du contenu seedé (questionnaire/contrôles)
-// absent de l'instance de test pour ce référentiel (Questionnaire 0/0) ; non couvert ici.
+// create-mission), ouvre la mission, puis déroule le CADRAGE : lancement du
+// questionnaire de prise de connaissance (launch-questionnaire -> 14 questions ISO)
+// et validation du cadrage, qui fait passer la mission en phase Planification.
+// Référentiel = ISO/IEC 27001, choisi parce qu'il a un questionnaire `context` seedé
+// (14 questions) ET 93 contrôles -> parcours réaliste.
+// NB : la suite (compléter le questionnaire côté client, coter les contrôles en Travaux,
+// constats, revue client, clôture, promotion risque, rapport) dépend soit d'un compte
+// portail client, soit de préconditions de phase non déterministes en pilotage UI seul ;
+// hors de ce spec.
 test.describe.serial('Cabinet - chaîne d\'audit', () => {
   let missionId = ''
 
-  test('crée une mission via le wizard 6 étapes (create-mission)', async ({ page }) => {
+  test('crée une mission ISO 27001 via le wizard 6 étapes (create-mission)', async ({ page }) => {
     test.skip(!(await open(page, '/missions')), 'Missions inaccessibles')
     await page.getByRole('link', { name: /Nouvelle mission/ }).first().click()
     await page.waitForTimeout(900)
 
-    // 1. Référentiel (carte ISO/SMSI)
-    await page.locator('div[class*=cursor], button').filter({ hasText: /SMSI|27001/ }).first().click()
+    // 1. Référentiel : cibler PRÉCISÉMENT la carte ISO/IEC 27001 (un filtre trop large
+    //    attrape un conteneur ancêtre et laisse le 1er référentiel par défaut).
+    await page.locator('button, [role=button], div[class*=cursor]')
+      .filter({ hasText: /ISO\/IEC 27001|27001/ })
+      .filter({ hasNotText: /Sélectionnez le référentiel/ })
+      .last().click()
     await page.getByRole('button', { name: /Suivant/ }).first().click()
     await page.waitForTimeout(600)
 
@@ -142,9 +150,33 @@ test.describe.serial('Cabinet - chaîne d\'audit', () => {
   test('la mission créée ouvre le workflow d\'audit', async ({ page }) => {
     test.skip(!missionId, 'Mission non créée à l\'étape précédente')
     test.skip(!(await open(page, `/missions/${missionId}`)), 'Détail mission inaccessible')
-    // En-tête « Audit SI - <client> » + rail de workflow + amorce du cadrage.
-    await expect(text(page, /Audit SI/)).toBeVisible()
+    // En-tête « ISO/IEC 27001 - <client> » + rail de workflow + amorce du cadrage.
+    await expect(text(page, /ISO\/IEC 27001/)).toBeVisible()
     await expect(text(page, /Cadrage/)).toBeVisible()
     await expect(page.getByRole('button', { name: /Démarrer le cadrage/ })).toBeVisible()
+  })
+
+  test('lance le cadrage (14 questions) et le valide -> Planification', async ({ page }) => {
+    test.skip(!missionId, 'Mission non créée à l\'étape précédente')
+    test.skip(!(await open(page, `/missions/${missionId}`)), 'Détail mission inaccessible')
+
+    // Entrer dans la phase Cadrage puis le sous-onglet Questionnaire.
+    await page.getByRole('button').filter({ hasText: /^1?Cadrage$/ }).first().click()
+    await page.waitForTimeout(700)
+    await page.getByRole('button').filter({ hasText: /Questionnaire\d+\/\d+/ }).first().click()
+    await page.waitForTimeout(900)
+
+    // Lancer le questionnaire de prise de connaissance (launch-questionnaire).
+    await page.getByRole('button', { name: /Envoyer \(\d+ questions\)/ }).first().click()
+    // Le compteur passe de 0/0 à N/14 (les 14 questions ISO sont instanciées).
+    await page.waitForFunction(
+      () => /Questionnaire\s*\d+\/(?!0\b)\d+/.test(document.querySelector('main')?.textContent || ''),
+      { timeout: 15000 },
+    )
+    await expect(text(page, /Questionnaire\s*\d+\/14/)).toBeVisible()
+
+    // Valider le cadrage : la mission avance en phase 2 (Planification).
+    await page.getByRole('button', { name: /Valider le cadrage/ }).first().click()
+    await expect(text(page, /Planifier/)).toBeVisible({ timeout: 15000 })
   })
 })
