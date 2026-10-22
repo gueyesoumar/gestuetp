@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures'
 import { type Page } from '@playwright/test'
 import { open, text, count } from './helpers'
+import { tokenFrom, rest, edge, rpc, SUPABASE_URL } from './api'
 
 // Remplit le nom du client (requis étape 1), robuste à l'association du label.
 async function fillNom(page: Page, valeur: string): Promise<void> {
@@ -178,5 +179,84 @@ test.describe.serial('Cabinet - chaîne d\'audit', () => {
     // Valider le cadrage : la mission avance en phase 2 (Planification).
     await page.getByRole('button', { name: /Valider le cadrage/ }).first().click()
     await expect(text(page, /Planifier/)).toBeVisible({ timeout: 15000 })
+  })
+
+  // Approche HYBRIDE : les phases profondes (Travaux..Clôture) reposent sur des composants
+  // React custom peu fiables en pilotage clic. On pilote donc les transitions via les edges/
+  // RPC RÉELS (donc on teste vraiment le backend : logique métier, séparation des tâches,
+  // RLS), avec deux logins cabinet distincts (CABA auditeur/lead cote et soumet ; CABO
+  // associé approuve et clôture, l'auto-revue étant interdite), puis on ASSÈRE l'état dans
+  // l'UI. Les appels node fetch sortent hors navigateur -> pas de préflight CORS/Vercel.
+  test('chaîne backend jusqu\'au rapport (hybride edges/RPC + assertion UI)', async ({ page }) => {
+    test.skip(!missionId, 'Mission non créée à l\'étape précédente')
+    const cabo = tokenFrom('.auth/cabo.json')
+    const caba = tokenFrom('.auth/caba.json')
+    test.skip(!cabo || !caba || !SUPABASE_URL, 'Tokens CABO/CABA ou .env indisponibles')
+    const CABA_USER = '6595fc6e-4150-4816-8639-09b306ea98b6'
+
+    // 1. Planification : créer + affecter les 93 contrôles à CABA (assign-controls),
+    //    puis passer en Travaux (RPC transition_mission_to_fieldwork).
+    const fw = (await rest(cabo!, `missions?id=eq.${missionId}&select=framework_id`)).body as { framework_id: string }[]
+    const frameworkId = fw[0].framework_id
+    const doms = (await rest(cabo!, `domains?framework_id=eq.${frameworkId}&select=id`)).body as { id: string }[]
+    const ctrls = (await rest(cabo!, `controls?domain_id=in.(${doms.map((d) => d.id).join(',')})&select=id&limit=500`)).body as { id: string }[]
+    expect(ctrls.length).toBeGreaterThan(0)
+    const assign = await edge(cabo!, 'assign-controls', {
+      mission_id: missionId,
+      assignments: ctrls.map((c) => ({ control_id: c.id, auditor_id: CABA_USER })),
+    })
+    expect(assign.status).toBe(200)
+    const trans = await rpc(cabo!, 'transition_mission_to_fieldwork', { p_mission_id: missionId })
+    expect(trans.status).toBe(200)
+    expect((trans.body as { ok?: boolean }).ok).toBe(true)
+
+    // 2. Travaux (CABA) : coter 1 contrôle Non conforme + 1 constat + submit-assessment,
+    //    puis bulk « tout conforme » sur le reste -> bascule auto en internal_review.
+    const ass = (await rest(caba!, `control_assessments?mission_id=eq.${missionId}&auditor_id=eq.${CABA_USER}&select=id&order=id`)).body as { id: string }[]
+    expect(ass.length).toBe(ctrls.length)
+    const ncId = ass[0].id
+    await rest(caba!, `control_assessments?id=eq.${ncId}`, {
+      method: 'PATCH', headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ conformity_level: 'major_nc', observations: 'E2E : écart constaté' }),
+    })
+    const finding = await rest(caba!, 'assessment_findings', {
+      method: 'POST', headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ assessment_id: ncId, classification: 'major_nc', description: 'E2E constat majeur', recommendation: 'E2E : corriger la non-conformité', priority: 'high' }),
+    })
+    expect(finding.status).toBe(201)
+    const findingId = (finding.body as { id: string }[])[0].id
+    const submitNc = await edge(caba!, 'submit-assessment', { assessment_id: ncId })
+    expect(submitNc.status).toBe(200)
+    const bulk = await edge(caba!, 'submit-assessments-bulk', { assessment_ids: ass.slice(1).map((a) => a.id) })
+    expect(bulk.status).toBe(200)
+    const afterSubmit = (await rest(caba!, `missions?id=eq.${missionId}&select=status`)).body as { status: string }[]
+    expect(afterSubmit[0].status).toBe('internal_review')
+
+    // 3. Revue interne (CABO, associé != soumetteur) : approuver les 93 (review-assessment).
+    const toReview = (await rest(cabo!, `control_assessments?mission_id=eq.${missionId}&select=id`)).body as { id: string }[]
+    for (let i = 0; i < toReview.length; i += 15) {
+      const batch = toReview.slice(i, i + 15)
+      const res = await Promise.all(batch.map((a) => edge(cabo!, 'review-assessment', { assessment_id: a.id, decision: 'approved' })))
+      expect(res.every((r) => r.status === 200)).toBe(true)
+    }
+
+    // 4. Clôture (CABO) : close-mission -> phase closure + ligne reports (rapport prêt).
+    const close = await edge(cabo!, 'close-mission', { mission_id: missionId })
+    expect(close.status).toBe(200)
+    const closeBody = close.body as { success?: boolean; report_id?: string; scoring?: unknown }
+    expect(closeBody.success).toBe(true)
+    expect(closeBody.report_id).toMatch(/[0-9a-f-]{36}/)
+    const closed = (await rest(cabo!, `missions?id=eq.${missionId}&select=status`)).body as { status: string }[]
+    expect(closed[0].status).toBe('closure')
+
+    // 5. Promotion du constat majeur vers le registre de risque (RPC promote_finding).
+    const promote = await rpc(cabo!, 'promote_finding', { p_finding_id: findingId, p_dimension: 'security', p_likelihood: 3, p_impact: 4, p_vulnerability: 3 })
+    expect(promote.status).toBe(200)
+    const promoted = (await rest(cabo!, `assessment_findings?id=eq.${findingId}&select=promoted_at`)).body as { promoted_at: string | null }[]
+    expect(promoted[0].promoted_at).not.toBeNull()
+
+    // 6. Assertion UI : la mission clôturée ouvre bien la phase Clôture / le rapport.
+    test.skip(!(await open(page, `/missions/${missionId}`)), 'Détail mission inaccessible')
+    await expect(text(page, /Rapport|Clôtur|Clôture/)).toBeVisible({ timeout: 15000 })
   })
 })
