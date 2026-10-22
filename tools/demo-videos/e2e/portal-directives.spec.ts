@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { open, text, count } from './helpers'
 
 // Portail assujetti (projet « portail », session .auth/client.json). Lecture seule :

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { open, text } from './helpers'
 
 // J6 - Contraste du scoping : REGA (admin, voit tout) voit Douanes ET Santé dans le

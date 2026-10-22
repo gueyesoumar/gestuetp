@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { open, text, count } from './helpers'
 
 // J3 - Vendor côté candidat (VEN, portail). Auto-évaluation PASI.

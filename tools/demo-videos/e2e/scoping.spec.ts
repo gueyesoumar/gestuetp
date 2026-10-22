@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { open, text, count } from './helpers'
 
 // J6 - Isolation / scoping superviseur (mig 00327).

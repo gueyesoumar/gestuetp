@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { open, text } from './helpers'
 
 // J3 - Vendor côté régulateur (REGA). Registre des tiers + fiche fournisseur.

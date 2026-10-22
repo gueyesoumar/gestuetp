@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { open, text, count } from './helpers'
 
 // Supervision régulateur (lecture seule) : portefeuille, affectations, registre consolidé.
