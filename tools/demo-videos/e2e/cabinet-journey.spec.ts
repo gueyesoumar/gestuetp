@@ -80,3 +80,71 @@ test.describe('Cabinet - missions', () => {
     await expect(text(page, /6 étapes guidées/)).toBeVisible()
   })
 })
+
+// J1 - chaîne d'audit (segment « création »). Déroule le wizard de mission de bout en
+// bout (référentiel -> client -> périmètre -> équipe -> calendrier -> confirmation ->
+// create-mission), puis ouvre la mission créée et vérifie que le workflow d'audit est
+// accessible (rail Cadrage..Confirmation + « Démarrer le cadrage »).
+// NB : la moitié « évaluation » (répondre au cadrage, coter les contrôles, constats,
+// clôture, promotion risque, rapport) nécessite du contenu seedé (questionnaire/contrôles)
+// absent de l'instance de test pour ce référentiel (Questionnaire 0/0) ; non couvert ici.
+test.describe.serial('Cabinet - chaîne d\'audit', () => {
+  let missionId = ''
+
+  test('crée une mission via le wizard 6 étapes (create-mission)', async ({ page }) => {
+    test.skip(!(await open(page, '/missions')), 'Missions inaccessibles')
+    await page.getByRole('link', { name: /Nouvelle mission/ }).first().click()
+    await page.waitForTimeout(900)
+
+    // 1. Référentiel (carte ISO/SMSI)
+    await page.locator('div[class*=cursor], button').filter({ hasText: /SMSI|27001/ }).first().click()
+    await page.getByRole('button', { name: /Suivant/ }).first().click()
+    await page.waitForTimeout(600)
+
+    // 2. Client (un client E2E créé plus haut doit exister)
+    const client = page.getByRole('button').filter({ hasText: /E2E Cabinet \d/ })
+    test.skip(!(await count(client)), 'Aucun client E2E disponible pour la mission')
+    await client.first().click()
+    await page.getByRole('button', { name: /Suivant/ }).first().click()
+    await page.waitForTimeout(600)
+
+    // 3. Périmètre : cocher au moins un domaine
+    await page.locator('input[type=checkbox]').first().check()
+    await page.getByRole('button', { name: /Suivant/ }).first().click()
+    await page.waitForTimeout(600)
+
+    // 4. Équipe : associé et chef de mission DISTINCTS + un auditeur
+    await page.locator('select').nth(0).selectOption({ label: 'E2E CabinetOwner' })
+    await page.locator('select').nth(1).selectOption({ label: 'E2E CabinetAuditeur' })
+    await page.locator('input[type=checkbox]').first().check()
+    await page.getByRole('button', { name: /Suivant/ }).first().click()
+    await page.waitForTimeout(600)
+
+    // 5. Calendrier : dates début/fin
+    await page.locator('input[type=date]').nth(0).fill('2026-11-01')
+    await page.locator('input[type=date]').nth(1).fill('2026-12-15')
+    await page.getByRole('button', { name: /Suivant/ }).first().click()
+    await page.waitForTimeout(600)
+
+    // 6. Confirmation : créer et capturer l'id renvoyé par create-mission
+    await expect(text(page, /Récapitulatif/)).toBeVisible()
+    const [resp] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('create-mission') && r.request().method() === 'POST', { timeout: 15000 }),
+      page.getByRole('button', { name: /Créer la mission/ }).click(),
+    ])
+    expect(resp.status()).toBe(201)
+    const body = await resp.json().catch(() => ({})) as { mission_id?: string }
+    missionId = body.mission_id ?? ''
+    expect(missionId).toMatch(/[0-9a-f-]{36}/)
+    await expect(page).toHaveURL(/\/missions(\/|$|\?)/, { timeout: 10000 })
+  })
+
+  test('la mission créée ouvre le workflow d\'audit', async ({ page }) => {
+    test.skip(!missionId, 'Mission non créée à l\'étape précédente')
+    test.skip(!(await open(page, `/missions/${missionId}`)), 'Détail mission inaccessible')
+    // En-tête « Audit SI - <client> » + rail de workflow + amorce du cadrage.
+    await expect(text(page, /Audit SI/)).toBeVisible()
+    await expect(text(page, /Cadrage/)).toBeVisible()
+    await expect(page.getByRole('button', { name: /Démarrer le cadrage/ })).toBeVisible()
+  })
+})
