@@ -1,3 +1,4 @@
+import { lazy, Suspense, type ComponentType } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
@@ -13,82 +14,91 @@ import { FullscreenLoader } from './components/FullscreenLoader'
 import { TenantAccessGuard } from './components/TenantAccessGuard'
 import { ClientProtectedRoute } from './components/ClientProtectedRoute'
 import { AdminProtectedRoute } from './components/AdminProtectedRoute'
-import { RiskPage } from './features/risk/RiskPage'
-import { RiskRegisterPage } from './features/risk/RiskRegisterPage'
-import { RiskCriteriaPage } from './features/risk/RiskCriteriaPage'
-import { RiskPlanPage } from './features/risk/RiskPlanPage'
-import { RiskAcceptancesPage } from './features/risk/RiskAcceptancesPage'
-import { RiskReviewPage } from './features/risk/RiskReviewPage'
-import { RiskSimulatorPage } from './features/risk/RiskSimulatorPage'
-import { RiskPortfolioPage } from './features/risk/RiskPortfolioPage'
-import { RiskExecutivePage } from './features/risk/RiskExecutivePage'
-import { VendorRegisterPage } from './features/vendor/VendorRegisterPage'
-import { SupervisionAssignmentsPage } from './features/risk/SupervisionAssignmentsPage'
-import { ScenarioTemplatesPage } from './features/risk/ScenarioTemplatesPage'
-import { PolicyBoardPage } from './features/policy/PolicyBoardPage'
-import { PolicyCoveragePage } from './features/policy/PolicyCoveragePage'
 import { AppLayout } from './components/layout/AppLayout'
 import { ClientLayout } from './features/client-portal/layout/ClientLayout'
-import { LoginPage } from './pages/LoginPage'
-import { HubPage } from './pages/HubPage'
-import { DashboardPage } from './pages/DashboardPage'
-import { ContinuousCompliancePage } from './pages/ContinuousCompliancePage'
-import { OrganizationPage } from './pages/OrganizationPage'
-import { FrameworksPage } from './pages/FrameworksPage'
-import { FrameworkDetailPage } from './pages/FrameworkDetailPage'
-import { FrameworkComparisonPage } from './pages/FrameworkComparisonPage'
-import { MissionsListPage } from './pages/MissionsListPage'
-import { MissionCreatePage } from './pages/MissionCreatePage'
-import { MissionDetailPage } from './pages/MissionDetailPage'
-import { ClientsListPage } from './pages/ClientsListPage'
-import { ClientCreatePage } from './pages/ClientCreatePage'
-import { ClientDetailPage } from './pages/ClientDetailPage'
-import { NotificationsPage } from './pages/NotificationsPage'
-import { SupportCenterPage } from './pages/SupportCenterPage'
-import { CabinetSupportPage } from './pages/CabinetSupportPage'
-import { QuestionnaireClientPage } from './pages/QuestionnaireClientPage'
-import { ClientDashboardPage } from './features/client-portal/dashboard/ClientDashboardPage'
-import { ClientMissionsPage } from './features/client-portal/missions/ClientMissionsPage'
-import { ClientMissionDetailPage } from './features/client-portal/missions/ClientMissionDetailPage'
-import { ClientDocumentsPage } from './features/client-portal/ClientDocumentsPage'
-import { ClientDirectivesPage } from './features/client-portal/directives/ClientDirectivesPage'
-import { ClientVendorAssessmentsPage } from './features/client-portal/vendor/ClientVendorAssessmentsPage'
-import { ClientSupportCenterPage } from './features/client-portal/ClientSupportCenterPage'
-import { RecorderProvider } from './features/support/recorder/RecorderContext'
-import { ClientNotificationsPage } from './features/client-portal/ClientNotificationsPage'
-import { SetPasswordPage } from './pages/SetPasswordPage'
-import { UnsubscribePage } from './pages/UnsubscribePage'
-import { AccountPage } from './pages/AccountPage'
 import { AdminLayout } from './features/admin/AdminLayout'
-import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
-import { CabinetsListPage } from './pages/admin/CabinetsListPage'
-import { CabinetDetailPage } from './pages/admin/CabinetDetailPage'
-import { UsersSearchPage } from './pages/admin/UsersSearchPage'
-import { UserDetailPage } from './pages/admin/UserDetailPage'
-import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage'
-import { AdminPlansPage } from './pages/admin/AdminPlansPage'
-import { MonitoringPage } from './pages/admin/MonitoringPage'
-import { AdminSupportPage } from './pages/admin/AdminSupportPage'
-import { AdminHelpPage } from './pages/admin/AdminHelpPage'
-import { FrameworksAdminListPage } from './pages/admin/FrameworksAdminListPage'
-import { AdminFrameworkCreatePage } from './pages/admin/AdminFrameworkCreatePage'
-import { AdminFrameworkDetailPage } from './pages/admin/AdminFrameworkDetailPage'
-import { AdminPasswordPolicyPage } from './pages/admin/AdminPasswordPolicyPage'
-import { SupervisionPage } from './pages/SupervisionPage'
-import { EntityDetailPage } from './pages/EntityDetailPage'
-import { CampaignDetailPage } from './pages/CampaignDetailPage'
-import { SubsidiariesPage } from './features/group-module/SubsidiariesPage'
-import { SubsidiaryDetailPage } from './features/group-module/SubsidiaryDetailPage'
-import { ContinuousReviewsPage } from './features/group-module/ContinuousReviewsPage'
-import { TransversalPlansPage } from './features/group-module/TransversalPlansPage'
+import { RecorderProvider } from './features/support/recorder/RecorderContext'
+import { LoginPage } from './pages/LoginPage'
+
+// Code-splitting (P1 perf) : chaque PAGE est chargee en chunk separe a la demande,
+// pour que le bundle initial ne contienne que le shell (providers, guards, layouts)
+// et la page courante. Les pages exposent un export NOMME -> helper qui l'adapte en
+// export default attendu par React.lazy. LoginPage reste statique (premier rendu).
+function lazyPage(loader: () => Promise<Record<string, unknown>>, name: string) {
+  return lazy(async () => ({ default: (await loader())[name] as ComponentType }))
+}
+
+const RiskPage = lazyPage(() => import('./features/risk/RiskPage'), 'RiskPage')
+const RiskRegisterPage = lazyPage(() => import('./features/risk/RiskRegisterPage'), 'RiskRegisterPage')
+const RiskCriteriaPage = lazyPage(() => import('./features/risk/RiskCriteriaPage'), 'RiskCriteriaPage')
+const RiskPlanPage = lazyPage(() => import('./features/risk/RiskPlanPage'), 'RiskPlanPage')
+const RiskAcceptancesPage = lazyPage(() => import('./features/risk/RiskAcceptancesPage'), 'RiskAcceptancesPage')
+const RiskReviewPage = lazyPage(() => import('./features/risk/RiskReviewPage'), 'RiskReviewPage')
+const RiskSimulatorPage = lazyPage(() => import('./features/risk/RiskSimulatorPage'), 'RiskSimulatorPage')
+const RiskPortfolioPage = lazyPage(() => import('./features/risk/RiskPortfolioPage'), 'RiskPortfolioPage')
+const RiskExecutivePage = lazyPage(() => import('./features/risk/RiskExecutivePage'), 'RiskExecutivePage')
+const VendorRegisterPage = lazyPage(() => import('./features/vendor/VendorRegisterPage'), 'VendorRegisterPage')
+const SupervisionAssignmentsPage = lazyPage(() => import('./features/risk/SupervisionAssignmentsPage'), 'SupervisionAssignmentsPage')
+const ScenarioTemplatesPage = lazyPage(() => import('./features/risk/ScenarioTemplatesPage'), 'ScenarioTemplatesPage')
+const PolicyBoardPage = lazyPage(() => import('./features/policy/PolicyBoardPage'), 'PolicyBoardPage')
+const PolicyCoveragePage = lazyPage(() => import('./features/policy/PolicyCoveragePage'), 'PolicyCoveragePage')
+const HubPage = lazyPage(() => import('./pages/HubPage'), 'HubPage')
+const DashboardPage = lazyPage(() => import('./pages/DashboardPage'), 'DashboardPage')
+const ContinuousCompliancePage = lazyPage(() => import('./pages/ContinuousCompliancePage'), 'ContinuousCompliancePage')
+const OrganizationPage = lazyPage(() => import('./pages/OrganizationPage'), 'OrganizationPage')
+const FrameworksPage = lazyPage(() => import('./pages/FrameworksPage'), 'FrameworksPage')
+const FrameworkDetailPage = lazyPage(() => import('./pages/FrameworkDetailPage'), 'FrameworkDetailPage')
+const FrameworkComparisonPage = lazyPage(() => import('./pages/FrameworkComparisonPage'), 'FrameworkComparisonPage')
+const MissionsListPage = lazyPage(() => import('./pages/MissionsListPage'), 'MissionsListPage')
+const MissionCreatePage = lazyPage(() => import('./pages/MissionCreatePage'), 'MissionCreatePage')
+const MissionDetailPage = lazyPage(() => import('./pages/MissionDetailPage'), 'MissionDetailPage')
+const ClientsListPage = lazyPage(() => import('./pages/ClientsListPage'), 'ClientsListPage')
+const ClientCreatePage = lazyPage(() => import('./pages/ClientCreatePage'), 'ClientCreatePage')
+const ClientDetailPage = lazyPage(() => import('./pages/ClientDetailPage'), 'ClientDetailPage')
+const NotificationsPage = lazyPage(() => import('./pages/NotificationsPage'), 'NotificationsPage')
+const SupportCenterPage = lazyPage(() => import('./pages/SupportCenterPage'), 'SupportCenterPage')
+const CabinetSupportPage = lazyPage(() => import('./pages/CabinetSupportPage'), 'CabinetSupportPage')
+const QuestionnaireClientPage = lazyPage(() => import('./pages/QuestionnaireClientPage'), 'QuestionnaireClientPage')
+const ClientDashboardPage = lazyPage(() => import('./features/client-portal/dashboard/ClientDashboardPage'), 'ClientDashboardPage')
+const ClientMissionsPage = lazyPage(() => import('./features/client-portal/missions/ClientMissionsPage'), 'ClientMissionsPage')
+const ClientMissionDetailPage = lazyPage(() => import('./features/client-portal/missions/ClientMissionDetailPage'), 'ClientMissionDetailPage')
+const ClientDocumentsPage = lazyPage(() => import('./features/client-portal/ClientDocumentsPage'), 'ClientDocumentsPage')
+const ClientDirectivesPage = lazyPage(() => import('./features/client-portal/directives/ClientDirectivesPage'), 'ClientDirectivesPage')
+const ClientVendorAssessmentsPage = lazyPage(() => import('./features/client-portal/vendor/ClientVendorAssessmentsPage'), 'ClientVendorAssessmentsPage')
+const ClientSupportCenterPage = lazyPage(() => import('./features/client-portal/ClientSupportCenterPage'), 'ClientSupportCenterPage')
+const ClientNotificationsPage = lazyPage(() => import('./features/client-portal/ClientNotificationsPage'), 'ClientNotificationsPage')
+const SetPasswordPage = lazyPage(() => import('./pages/SetPasswordPage'), 'SetPasswordPage')
+const UnsubscribePage = lazyPage(() => import('./pages/UnsubscribePage'), 'UnsubscribePage')
+const AccountPage = lazyPage(() => import('./pages/AccountPage'), 'AccountPage')
+const AdminDashboardPage = lazyPage(() => import('./pages/admin/AdminDashboardPage'), 'AdminDashboardPage')
+const CabinetsListPage = lazyPage(() => import('./pages/admin/CabinetsListPage'), 'CabinetsListPage')
+const CabinetDetailPage = lazyPage(() => import('./pages/admin/CabinetDetailPage'), 'CabinetDetailPage')
+const UsersSearchPage = lazyPage(() => import('./pages/admin/UsersSearchPage'), 'UsersSearchPage')
+const UserDetailPage = lazyPage(() => import('./pages/admin/UserDetailPage'), 'UserDetailPage')
+const AdminAuditLogPage = lazyPage(() => import('./pages/admin/AdminAuditLogPage'), 'AdminAuditLogPage')
+const AdminPlansPage = lazyPage(() => import('./pages/admin/AdminPlansPage'), 'AdminPlansPage')
+const MonitoringPage = lazyPage(() => import('./pages/admin/MonitoringPage'), 'MonitoringPage')
+const AdminSupportPage = lazyPage(() => import('./pages/admin/AdminSupportPage'), 'AdminSupportPage')
+const AdminHelpPage = lazyPage(() => import('./pages/admin/AdminHelpPage'), 'AdminHelpPage')
+const FrameworksAdminListPage = lazyPage(() => import('./pages/admin/FrameworksAdminListPage'), 'FrameworksAdminListPage')
+const AdminFrameworkCreatePage = lazyPage(() => import('./pages/admin/AdminFrameworkCreatePage'), 'AdminFrameworkCreatePage')
+const AdminFrameworkDetailPage = lazyPage(() => import('./pages/admin/AdminFrameworkDetailPage'), 'AdminFrameworkDetailPage')
+const AdminPasswordPolicyPage = lazyPage(() => import('./pages/admin/AdminPasswordPolicyPage'), 'AdminPasswordPolicyPage')
+const SupervisionPage = lazyPage(() => import('./pages/SupervisionPage'), 'SupervisionPage')
+const EntityDetailPage = lazyPage(() => import('./pages/EntityDetailPage'), 'EntityDetailPage')
+const CampaignDetailPage = lazyPage(() => import('./pages/CampaignDetailPage'), 'CampaignDetailPage')
+const SubsidiariesPage = lazyPage(() => import('./features/group-module/SubsidiariesPage'), 'SubsidiariesPage')
+const SubsidiaryDetailPage = lazyPage(() => import('./features/group-module/SubsidiaryDetailPage'), 'SubsidiaryDetailPage')
+const ContinuousReviewsPage = lazyPage(() => import('./features/group-module/ContinuousReviewsPage'), 'ContinuousReviewsPage')
+const TransversalPlansPage = lazyPage(() => import('./features/group-module/TransversalPlansPage'), 'TransversalPlansPage')
 // Pages Regul - montées sous le shell unifié quand l'édition résolue est « regul ».
-import { RegulDashboard } from './features/regul/RegulDashboard'
-import { RegulMissionsListPage } from './features/regul/RegulMissionsListPage'
-import { RegulMissionCreatePage } from './features/regul/RegulMissionCreatePage'
-import { RegulMeasuresPage } from './features/regul/RegulMeasuresPage'
-import { RegulReferentielsPage } from './features/regul/RegulReferentielsPage'
-import { RegulIncidentsPage } from './features/regul/incidents/RegulIncidentsPage'
-import { AssujettiIncidentsPage } from './features/regul/incidents/AssujettiIncidentsPage'
+const RegulDashboard = lazyPage(() => import('./features/regul/RegulDashboard'), 'RegulDashboard')
+const RegulMissionsListPage = lazyPage(() => import('./features/regul/RegulMissionsListPage'), 'RegulMissionsListPage')
+const RegulMissionCreatePage = lazyPage(() => import('./features/regul/RegulMissionCreatePage'), 'RegulMissionCreatePage')
+const RegulMeasuresPage = lazyPage(() => import('./features/regul/RegulMeasuresPage'), 'RegulMeasuresPage')
+const RegulReferentielsPage = lazyPage(() => import('./features/regul/RegulReferentielsPage'), 'RegulReferentielsPage')
+const RegulIncidentsPage = lazyPage(() => import('./features/regul/incidents/RegulIncidentsPage'), 'RegulIncidentsPage')
+const AssujettiIncidentsPage = lazyPage(() => import('./features/regul/incidents/AssujettiIncidentsPage'), 'AssujettiIncidentsPage')
 
 // Arbre de routes UNIFIÉ du shell ETP (RFC 0001 §5-6 ; RFC 0002 P2). Les CAPACITÉS
 // de l'org (résolues au runtime) choisissent les routes-modules montées sous le même
@@ -102,6 +112,7 @@ function AppRoutes(): JSX.Element {
   const activeKeys = new Set(APP_MODULES.filter((m) => m.enabled(hasCapability)).map((m) => m.key))
   const isSupervision = activeKeys.has('supervision-core')
   return (
+    <Suspense fallback={<FullscreenLoader />}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/set-password" element={<SetPasswordPage />} />
@@ -227,6 +238,7 @@ function AppRoutes(): JSX.Element {
           refresh d'une route Regul non encore montée) : on attend la résolution. */}
       <Route path="*" element={edLoading ? <FullscreenLoader /> : <Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   )
 }
 

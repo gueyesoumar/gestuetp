@@ -143,6 +143,9 @@ export function useDashboardStats(): UseDashboardStatsResult {
       let approvedCount = 0
       let clientRejections = 0
       const rejectionsByMission: Record<string, number> = {}
+      // Agregat par mission (total + evalues) construit depuis CETTE requete unique,
+      // pour alimenter le resume des missions actives sans N+1 (perf P4).
+      const controlsByMission = new Map<string, { total: number; evaluated: number }>()
 
       if (missionIds.length > 0) {
         const { data: assessments } = await supabase
@@ -160,6 +163,12 @@ export function useDashboardStats(): UseDashboardStatsResult {
           for (const a of assessments.filter((a) => a.status === 'rejected')) {
             rejectionsByMission[a.mission_id] = (rejectionsByMission[a.mission_id] ?? 0) + 1
           }
+          for (const a of assessments) {
+            const agg = controlsByMission.get(a.mission_id) ?? { total: 0, evaluated: 0 }
+            agg.total += 1
+            if (a.status !== 'draft') agg.evaluated += 1
+            controlsByMission.set(a.mission_id, agg)
+          }
         }
       }
 
@@ -176,33 +185,25 @@ export function useDashboardStats(): UseDashboardStatsResult {
         totalDocuments = count ?? 0
       }
 
-      // 5. Resume des missions actives
-      const activeMissionsList: MissionSummary[] = []
-      for (const m of missionsList.filter((m) => m.status !== 'closure').slice(0, 8)) {
-        const { data: controls } = await supabase
-          .from('control_assessments')
-          .select('status')
-          .eq('mission_id', m.id)
-          .abortSignal(abortController.signal)
-
-        if (abortController.signal.aborted) return
-
-        const total = controls?.length ?? 0
-        const evaluated = controls?.filter((c) => c.status !== 'draft').length ?? 0
-        const clientObj = m.client as unknown as { name: string; sector: string | null } | null
-
-        activeMissionsList.push({
-          id: m.id,
-          name: m.name,
-          clientName: clientObj?.name ?? '',
-          clientSector: clientObj?.sector ?? '',
-          status: m.status,
-          totalControls: total,
-          evaluatedControls: evaluated,
-          endDate: m.end_date,
-          updatedAt: m.updated_at,
+      // 5. Resume des missions actives - lu depuis l'agregat deja calcule (plus de N+1).
+      const activeMissionsList: MissionSummary[] = missionsList
+        .filter((m) => m.status !== 'closure')
+        .slice(0, 8)
+        .map((m) => {
+          const agg = controlsByMission.get(m.id) ?? { total: 0, evaluated: 0 }
+          const clientObj = m.client as unknown as { name: string; sector: string | null } | null
+          return {
+            id: m.id,
+            name: m.name,
+            clientName: clientObj?.name ?? '',
+            clientSector: clientObj?.sector ?? '',
+            status: m.status,
+            totalControls: agg.total,
+            evaluatedControls: agg.evaluated,
+            endDate: m.end_date,
+            updatedAt: m.updated_at,
+          }
         })
-      }
 
       // 6. Average score
       const totalControlsSum = activeMissionsList.reduce((s, m) => s + m.totalControls, 0)
