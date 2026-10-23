@@ -32,9 +32,9 @@ export function CoverSection({ data, theme }: SectionProps): JSX.Element {
   const title = fw === 'le référentiel applicable' ? 'Rapport d’audit de conformité' : `Rapport d’audit - ${fw}`
   return (
     <View style={{ flexGrow: 1, backgroundColor: theme.primary, padding: 40, justifyContent: 'space-between' }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>{data.cabinetName.toUpperCase()}</Text>
-        <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: theme.accent }}>{ref}</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Text style={{ flex: 1, fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>{data.cabinetName.toUpperCase()}</Text>
+        <Text style={{ flexShrink: 0, marginLeft: 16, fontSize: 9, fontFamily: 'Helvetica-Bold', color: theme.accent }}>{ref}</Text>
       </View>
       <View>
         <Text style={[s.coverEyebrow, { color: theme.accent }]}>RAPPORT D{'’'}AUDIT</Text>
