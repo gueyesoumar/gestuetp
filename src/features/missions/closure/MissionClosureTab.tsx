@@ -5,6 +5,7 @@ import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useToast } from '../../../hooks/useToast'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { useMissionUserRole } from '../useMissionUserRole'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
@@ -93,21 +94,33 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     return () => controller.abort()
   }, [mission.id, promoRefresh])
 
+  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021 Lot 1). OFF par
+  // defaut -> chemin jsPDF inchange (aucune regression).
+  const reportV2 = useFeatureFlag('report_engine_v2')
+
   const handleGenerateAuditReport = useCallback(async () => {
     setGeneratingPdf(true)
     try {
-      const [data, { runAuditReportPdfInWorker }] = await Promise.all([
-        loadAuditReportData(mission),
-        import('../../reports/runAuditReportPdfInWorker'),
-      ])
-      await runAuditReportPdfInWorker(data)
+      if (reportV2.enabled) {
+        const [data, { renderAuditReportV2 }] = await Promise.all([
+          loadAuditReportData(mission),
+          import('../../reports/audit-report-v2/renderAuditReportV2'),
+        ])
+        await renderAuditReportV2(data)
+      } else {
+        const [data, { runAuditReportPdfInWorker }] = await Promise.all([
+          loadAuditReportData(mission),
+          import('../../reports/runAuditReportPdfInWorker'),
+        ])
+        await runAuditReportPdfInWorker(data)
+      }
       toast.success('Rapport PDF généré', { description: mission.name })
     } catch (err) {
       toast.error('Génération du rapport impossible', err)
     } finally {
       setGeneratingPdf(false)
     }
-  }, [mission, toast])
+  }, [mission, toast, reportV2.enabled])
 
   const handleClose = useCallback(async () => {
     setClosing(true)
