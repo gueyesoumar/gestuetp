@@ -12,7 +12,9 @@ alter table public.regulatory_measures
 create index if not exists idx_measures_source_action on public.regulatory_measures(source_action_id);
 
 -- 2) Fonction d'agregation : + drapeau escalated (au moins une mesure rattachee).
-create or replace function public.get_regulator_action_tracking(p_entity_id uuid default null)
+--    DROP prealable car le type de retour change (colonne 'escalated').
+drop function if exists public.get_regulator_action_tracking(uuid);
+create function public.get_regulator_action_tracking(p_entity_id uuid default null)
 returns table (
   id uuid,
   code text,

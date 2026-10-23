@@ -12,7 +12,9 @@ alter table public.corrective_action_requests drop constraint if exists car_sour
 drop index if exists public.idx_car_entity;
 
 -- 3) Restauration de la fonction 00352 (INNER JOIN missions, sans colonne source).
-create or replace function public.get_regulator_action_tracking(p_entity_id uuid default null)
+--    DROP prealable car le type de retour change.
+drop function if exists public.get_regulator_action_tracking(uuid);
+create function public.get_regulator_action_tracking(p_entity_id uuid default null)
 returns table (
   id uuid,
   code text,

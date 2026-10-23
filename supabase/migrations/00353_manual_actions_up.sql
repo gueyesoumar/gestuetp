@@ -26,7 +26,10 @@ create index if not exists idx_car_entity on public.corrective_action_requests(e
 
 -- 4) Fonction d'agregation : LEFT JOIN missions (les actions manuelles n'ont pas de
 --    mission) + scope double (missions du regulateur OU assujetti manuel du sous-arbre).
-create or replace function public.get_regulator_action_tracking(p_entity_id uuid default null)
+--    DROP prealable : le type de retour change (colonne 'source'), ce que
+--    'create or replace' refuse ('cannot change return type of existing function').
+drop function if exists public.get_regulator_action_tracking(uuid);
+create function public.get_regulator_action_tracking(p_entity_id uuid default null)
 returns table (
   id uuid,
   code text,

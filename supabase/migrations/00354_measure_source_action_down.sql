@@ -1,8 +1,10 @@
 -- Migration: 00354_measure_source_action_down
 -- Rollback de 00354 : retire le lien mesure->action et le drapeau escalated du RPC.
 
--- 1) Restauration de la fonction 00353 (sans escalated).
-create or replace function public.get_regulator_action_tracking(p_entity_id uuid default null)
+-- 1) Restauration de la fonction 00353 (sans escalated). DROP prealable car le type
+--    de retour change.
+drop function if exists public.get_regulator_action_tracking(uuid);
+create function public.get_regulator_action_tracking(p_entity_id uuid default null)
 returns table (
   id uuid,
   code text,
