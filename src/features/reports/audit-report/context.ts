@@ -51,7 +51,7 @@ export interface AuditReportData {
   cabinetWebsite: string | null
   cabinetSupportEmail: string | null
   cabinetFooterText: string | null
-  /** Couleurs de marque pour le rapport. Hex (#RRGGBB) ou null → fallback Forest/Gold. */
+  /** Couleurs de marque pour le rapport. Hex (#RRGGBB) ou null -> fallback Forest/Gold. */
   cabinetPrimaryColor: string | null
   cabinetAccentColor: string | null
   evidenceDocs: EvidenceDoc[]
@@ -94,7 +94,7 @@ export interface DocContext {
   contentW: number
   y: number
   reportRef: string
-  /** map page number → label de section pour le footer dynamique */
+  /** map page number -> label de section pour le footer dynamique */
   sectionByPage: Map<number, string>
   currentSection: string
   /** Pages où NE PAS afficher header/footer/watermark (couverture). */

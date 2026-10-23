@@ -2,6 +2,7 @@ import type jsPDF from 'jspdf'
 import { type RGB, BORDER, CREAM, FOREST_900, FOREST_700, GOLD_500, TEXT_500, TEXT_700, WHITE } from './colors'
 import type { DocContext } from './context'
 import { checkPage, newSection } from './page-chrome'
+import { fitText } from './utils'
 
 // -- Drawing primitives -----------------------------------------------------
 
@@ -48,9 +49,9 @@ export function drawSectionBanner(ctx: DocContext, num: string, title: string, l
   // Numéro géant
   setText(doc, GOLD_500, 28, 'bold')
   doc.text(num, marginL + 8, ctx.y + 20)
-  // Titre
+  // Titre (borné : commence à +32, laisse 4mm de marge droite)
   setText(doc, WHITE, 16, 'bold')
-  doc.text(title, marginL + 32, ctx.y + 14)
+  doc.text(fitText(doc, title, contentW - 32 - 4), marginL + 32, ctx.y + 14)
   setText(doc, [200, 220, 210], 9, 'normal')
   const ll = doc.splitTextToSize(lead, contentW - 38) as string[]
   doc.text(ll[0] ?? '', marginL + 32, ctx.y + 21)
@@ -60,7 +61,7 @@ export function drawSectionBanner(ctx: DocContext, num: string, title: string, l
 export function drawH3(ctx: DocContext, title: string): void {
   checkPage(ctx, 10)
   setText(ctx.doc, FOREST_900, 11.5, 'bold')
-  ctx.doc.text(title, ctx.marginL, ctx.y)
+  ctx.doc.text(fitText(ctx.doc, title, ctx.contentW), ctx.marginL, ctx.y)
   // souligné court doré
   ctx.doc.setDrawColor(...GOLD_500)
   ctx.doc.setLineWidth(0.6)
@@ -73,12 +74,17 @@ export function drawKpi(doc: jsPDF, x: number, y: number, w: number, h: number, 
   fillRounded(doc, x, y, w, h, 2, WHITE)
   strokeRounded(doc, x, y, w, h, 2, BORDER, 0.4)
   fillRect(doc, x, y, w, 2, color)
+  const innerW = w - 8
   setText(doc, TEXT_500, 7.2, 'bold')
-  doc.text(label.toUpperCase(), x + 4, y + 7)
-  setText(doc, color, 22, 'bold')
-  doc.text(value, x + 4, y + 18)
+  doc.text(fitText(doc, label.toUpperCase(), innerW), x + 4, y + 7)
+  // Valeur : taille adaptative pour que les grands nombres (3 chiffres) tiennent
+  // dans la largeur de la carte sans déborder ni chevaucher le sous-titre.
+  let vSize = 22
+  setText(doc, color, vSize, 'bold')
+  while (vSize > 13 && doc.getTextWidth(value) > innerW) { vSize -= 1; doc.setFontSize(vSize) }
+  doc.text(value, x + 4, y + 16.5)
   setText(doc, TEXT_500, 7.5, 'normal')
-  doc.text(sub, x + 4, y + h - 4)
+  doc.text(fitText(doc, sub, innerW), x + 4, y + h - 3.5)
 }
 
 export function drawTable(ctx: DocContext, headers: string[], rows: string[][], widths: number[]): void {
@@ -90,7 +96,9 @@ export function drawTable(ctx: DocContext, headers: string[], rows: string[][], 
   fillRect(doc, marginL, ctx.y, totalW, headerH, ctx.palette.primary)
   setText(doc, WHITE, 8, 'bold')
   let cx = marginL
-  for (let i = 0; i < headers.length; i++) { doc.text(headers[i], cx + 4, ctx.y + 5.4); cx += widths[i] }
+  // Chaque cellule est bornée à la largeur de SA colonne (4mm de pad gauche + 2 droite)
+  // pour ne pas déborder dans la colonne voisine ni au-delà de la marge.
+  for (let i = 0; i < headers.length; i++) { doc.text(fitText(doc, headers[i], widths[i] - 6), cx + 4, ctx.y + 5.4); cx += widths[i] }
   ctx.y += headerH
 
   setText(doc, TEXT_700, 8, 'normal')
@@ -99,7 +107,7 @@ export function drawTable(ctx: DocContext, headers: string[], rows: string[][], 
     checkPage(ctx, rowH)
     if (zebra) fillRect(doc, marginL, ctx.y, totalW, rowH, CREAM)
     cx = marginL
-    for (let i = 0; i < row.length; i++) { doc.text(row[i], cx + 4, ctx.y + 4); cx += widths[i] }
+    for (let i = 0; i < row.length; i++) { doc.text(fitText(doc, row[i], widths[i] - 6), cx + 4, ctx.y + 4); cx += widths[i] }
     ctx.y += rowH
     zebra = !zebra
   }

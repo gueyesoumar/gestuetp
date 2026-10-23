@@ -3,7 +3,7 @@ import type { DocContext } from './context'
 import { ROLE_LABELS } from '../../missions/mission-constants'
 import { checkPage } from './page-chrome'
 import { drawH3, drawSectionBanner, drawTable, setText, writeWrapped } from './primitives'
-import { formatDate, truncate } from './utils'
+import { fitText, formatDate, truncate } from './utils'
 import { frameworkLabel, generateGlossary } from '../auditReportNarratives'
 
 // -- Annexes ---------------------------------------------------------------
@@ -101,10 +101,13 @@ export function drawAnnexDDistribution(ctx: DocContext): void {
 function drawDistributionRow(ctx: DocContext, name: string, role: string, email: string): void {
   checkPage(ctx, 8)
   const { doc, marginL, contentW } = ctx
+  // Email mesuré pour borner le rôle (3 colonnes sur une ligne : nom | rôle | email).
+  setText(doc, TEXT_700, 8.5, 'normal')
+  const emailW = doc.getTextWidth(email)
   setText(doc, FOREST_900, 9.5, 'bold')
-  doc.text(name, marginL, ctx.y)
+  doc.text(fitText(doc, name, 54), marginL, ctx.y)
   setText(doc, TEXT_500, 8.5, 'normal')
-  doc.text(role, marginL + 56, ctx.y)
+  doc.text(fitText(doc, role, contentW - emailW - 4 - 56), marginL + 56, ctx.y)
   setText(doc, TEXT_700, 8.5, 'normal')
   doc.text(email, marginL + contentW, ctx.y, { align: 'right' })
   ctx.y += 5

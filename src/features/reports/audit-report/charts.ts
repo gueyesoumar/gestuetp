@@ -92,10 +92,11 @@ export function drawPriorityMatrix(ctx: DocContext, x: number, y: number, w: num
   doc.line(ix, iy + ih / 2, ix + iw, iy + ih / 2)
   doc.line(ix + iw / 2, iy, ix + iw / 2, iy + ih)
 
-  // Axes labels
+  // Axes labels (pas de glyphes Unicode flèches : absents de la police WinAnsi de
+  // jsPDF, ils rendaient des caractères parasites « I' »).
   setText(doc, TEXT_500, 6.5, 'bold')
-  doc.text('IMPACT ↑', x + 4, y + 10)
-  doc.text('EFFORT →', x + w - 4, y + h - 5, { align: 'right' })
+  doc.text('IMPACT (+)', x + 4, y + 10)
+  doc.text('EFFORT (+)', x + w - 4, y + h - 5, { align: 'right' })
 
   // Quadrants labels
   setText(doc, TEXT_500, 7, 'bold')
@@ -120,7 +121,7 @@ export function drawPriorityMatrix(ctx: DocContext, x: number, y: number, w: num
       : a.finding_classification === 'observation' ? 0.30
       : 0.5
     const domScore = domainScoreById.get(a.control_id) ?? 75
-    // Domaine peu mature → impact bonus (la reco aura plus de levier)
+    // Domaine peu mature -> impact bonus (la reco aura plus de levier)
     const domBonus = (100 - domScore) / 400 // 0..0.25
     const jitterImpact = ((hashStr(a.id + 'i') % 20) - 10) / 200 // ±0.05
     const impact = clamp01(baseImpact + domBonus + jitterImpact)

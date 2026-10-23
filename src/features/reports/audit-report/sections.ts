@@ -11,7 +11,7 @@ import {
   drawH3, drawKpi, drawSectionBanner, drawTable, fillRect, fillRounded,
   setText, strokeRounded, writeParagraphs, writeWrapped,
 } from './primitives'
-import { memberName, statusLabel, truncate } from './utils'
+import { fitText, memberName, statusLabel } from './utils'
 import {
   clientLabel, describeVerdict, generateActionPlanNarrative, generateConclusionNarrative,
   generateContextNarrative, generateDomainNarrative, generateExecutiveNarrative,
@@ -58,7 +58,7 @@ export function drawSection03ExecutiveSummary(ctx: DocContext): void {
   doc.text('OPINION D’AUDIT', vx + 4, ctx.y + 14)
   const vColor = v.label === 'Favorable' ? GREEN : v.label === 'Favorable avec réserves' ? GOLD_500 : v.label === 'Réservée' ? ORANGE : RED
   setText(doc, vColor, 13, 'bold')
-  doc.text(v.label, vx + 4, ctx.y + 22)
+  doc.text(fitText(doc, v.label, 64), vx + 4, ctx.y + 22)
   setText(doc, TEXT_700, 7.8, 'normal')
   const ll = doc.splitTextToSize(v.toneOpening, 64) as string[]
   let yy = ctx.y + 27
@@ -68,7 +68,7 @@ export function drawSection03ExecutiveSummary(ctx: DocContext): void {
   // KPI row
   const kpiH = 24, gap = 4, kpiW = (contentW - gap * 3) / 4
   drawKpi(doc, marginL + 0 * (kpiW + gap), ctx.y, kpiW, kpiH, 'Contrôles', `${t.totalControls}`, 'évalués', FOREST_700)
-  drawKpi(doc, marginL + 1 * (kpiW + gap), ctx.y, kpiW, kpiH, 'Conformes', `${t.conformes}`, 'level c', GREEN)
+  drawKpi(doc, marginL + 1 * (kpiW + gap), ctx.y, kpiW, kpiH, 'Conformes', `${t.conformes}`, 'niveau C', GREEN)
   drawKpi(doc, marginL + 2 * (kpiW + gap), ctx.y, kpiW, kpiH, 'NC majeures', `${t.ncMajor}`, 'à traiter', RED)
   drawKpi(doc, marginL + 3 * (kpiW + gap), ctx.y, kpiW, kpiH, 'NC mineures', `${t.ncMinor}`, 'à corriger', ORANGE)
   ctx.y += kpiH + 10
@@ -102,7 +102,8 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
   fillRounded(doc, marginL, ctx.y, contentW, 16, 2, ctx.palette.primaryLight)
   fillRect(doc, marginL, ctx.y, 4, 16, ctx.palette.accent)
   setText(doc, FOREST_900, 12, 'bold')
-  doc.text(`${d.code} : ${d.name}`, marginL + 8, ctx.y + 10)
+  // Titre borné pour ne pas recouvrir le badge de score (à droite, ~28mm).
+  doc.text(fitText(doc, `${d.code} : ${d.name}`, contentW - 8 - 30), marginL + 8, ctx.y + 10)
   // Score badge
   const sx = marginL + contentW - 26
   const sc = d.score >= 80 ? GREEN : d.score >= 60 ? GOLD_500 : RED
@@ -113,7 +114,7 @@ function drawDomainBlock(ctx: DocContext, d: DomainStat): void {
 
   // Stats inline - alignées avec le titre du bandeau au-dessus (marginL + 8)
   setText(doc, TEXT_500, 8.5, 'normal')
-  doc.text(`${d.scored}/${d.total} contrôles évalués · ${d.conformes} strictement conformes · ${d.ncMajor} NC maj · ${d.ncMinor} NC min · ${d.observations} obs.`, marginL + 8, ctx.y)
+  doc.text(fitText(doc, `${d.scored}/${d.total} contrôles évalués · ${d.conformes} strictement conformes · ${d.ncMajor} NC maj · ${d.ncMinor} NC min · ${d.observations} obs.`, contentW - 8), marginL + 8, ctx.y)
   ctx.y += 6
 
   // Narratif
@@ -163,7 +164,7 @@ function drawNCFactSheet(ctx: DocContext, a: AssessmentWithControl, idx: number,
   setText(doc, WHITE, 8.5, 'bold')
   doc.text(`FICHE NC MAJEURE  ·  ${idx}/${total}`, marginL + 6, ctx.y + 7)
   setText(doc, WHITE, 13, 'bold')
-  doc.text(`${a.control.code} : ${truncate(a.control.name, 60)}`, marginL + 6, ctx.y + 14)
+  doc.text(fitText(doc, `${a.control.code} : ${a.control.name}`, contentW - 12), marginL + 6, ctx.y + 14)
   ctx.y += 22
 
   const sheet = generateNCFactSheet(a, ctx.data)
@@ -265,7 +266,7 @@ function drawRecoCard(ctx: DocContext, a: AssessmentWithControl, idx: number): v
   doc.text(priority, marginL + 21.5, ctx.y + 7.5, { align: 'center' })
 
   setText(doc, FOREST_900, 9, 'bold')
-  doc.text(`${a.control.code} : ${truncate(a.control.name, 55)}`, marginL + BODY_X, ctx.y + 8)
+  doc.text(fitText(doc, `${a.control.code} : ${a.control.name}`, contentW - BODY_X - 4), marginL + BODY_X, ctx.y + 8)
 
   setText(doc, TEXT_700, 9, 'normal')
   let ly = ctx.y + 14
@@ -294,8 +295,9 @@ export function drawSection07ActionPlan(ctx: DocContext): void {
     sorted.slice(0, 40).map((a) => [
       a.control.code,
       a.finding_classification === 'major_nc' ? 'NC maj' : a.finding_classification === 'minor_nc' ? 'NC min' : 'Obs.',
-      truncate(a.control.name, 38),
-      truncate(a.findings ?? '-', 60),
+      // Chaînes complètes : drawTable borne chaque cellule à la largeur de sa colonne.
+      a.control.name,
+      a.findings ?? '-',
     ]),
     [22, 18, 60, 74],
   )

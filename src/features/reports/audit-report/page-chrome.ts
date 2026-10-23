@@ -1,5 +1,6 @@
 import { BORDER, FOREST_900, GOLD_500, TEXT_500, WATERMARK_GRAY } from './colors'
 import type { DocContext } from './context'
+import { fitText } from './utils'
 
 // -- Pagination -------------------------------------------------------------
 
@@ -56,14 +57,20 @@ function drawPageHeader(ctx: DocContext, _pageNum: number, _total: number): void
   doc.setDrawColor(...GOLD_500)
   doc.setLineWidth(0.5)
   doc.line(marginL, 12, pageW - marginR, 12)
-  // texte
-  doc.setFont('helvetica', 'bold')
+  // Référence à droite (mesurée d'abord pour borner le titre à gauche et éviter
+  // qu'un nom de cabinet long ne percute « Rapport ... · Confidentiel »).
+  const right = `Rapport ${ctx.reportRef}  ·  Confidentiel`
+  doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
+  const rightW = doc.getTextWidth(right)
+  // titre cabinet à gauche, borné
+  doc.setFont('helvetica', 'bold')
   doc.setTextColor(...FOREST_900)
-  doc.text(ctx.data.cabinetName.toUpperCase(), marginL, 9)
+  const leftMax = (pageW - marginR) - marginL - rightW - 6
+  doc.text(fitText(doc, ctx.data.cabinetName.toUpperCase(), leftMax), marginL, 9)
+  // référence à droite
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...TEXT_500)
-  const right = `Rapport ${ctx.reportRef}  ·  Confidentiel`
   doc.text(right, pageW - marginR, 9, { align: 'right' })
 }
 

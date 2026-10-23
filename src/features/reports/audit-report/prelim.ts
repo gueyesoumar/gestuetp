@@ -4,7 +4,7 @@ import { clientLabel, frameworkLabel, generateExecutiveLetterBody } from '../aud
 import type { LogoData } from './logo-loader'
 import { setPageContext } from './page-chrome'
 import { fillRect, fillRounded, setText, strokeRounded, writeWrapped } from './primitives'
-import { formatDate, formatPeriodShort, memberName } from './utils'
+import { fitText, formatDate, formatPeriodShort, memberName } from './utils'
 
 // -- Couverture -------------------------------------------------------------
 
@@ -22,8 +22,12 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabi
     if (!cabinetLogoDark) fillRounded(doc, marginL - 1, 21, lw + 2, lh + 2, 1.5, WHITE)
     doc.addImage(cabLogo.dataUrl, cabLogo.format, marginL, 22, lw, lh, undefined, 'FAST')
   } else {
+    // Réf mesurée d'abord pour borner le nom cabinet (sinon un nom long déborde
+    // et percute la référence dessinée au même y).
+    setText(doc, GOLD_500, 8.5, 'bold')
+    const refW = doc.getTextWidth(ctx.reportRef)
     setText(doc, WHITE, 12, 'bold')
-    doc.text(data.cabinetName.toUpperCase(), marginL, 30)
+    doc.text(fitText(doc, data.cabinetName.toUpperCase(), (pageW - marginL) - marginL - refW - 6), marginL, 30)
   }
 
   // Référence rapport - coin haut droit
@@ -50,7 +54,7 @@ export function drawCoverPage(ctx: DocContext, clientLogo: LogoData | null, cabi
 
   // Client name
   setText(doc, [220, 230, 225], 14, 'normal')
-  doc.text(clientLabel(data), marginL, ty + 4)
+  doc.text(fitText(doc, clientLabel(data), pageW - 2 * marginL), marginL, ty + 4)
 
   // Bandeau infos clés - colonnes calibrées (largeur dispo 174 mm)
   // Colonnes : période 78mm | version 38mm | date 58mm
@@ -135,15 +139,14 @@ export function drawExecutiveLetter(ctx: DocContext, cabinetLogoLight: LogoData 
   if (cabinetLogoLight) {
     doc.addImage(cabinetLogoLight.dataUrl, cabinetLogoLight.format, marginL, ctx.y, 32, 16, undefined, 'FAST')
   } else {
+    // Nom cabinet (foncé, à gauche), borné à ~55% de la largeur pour laisser la
+    // colonne de droite (coordonnées) libre. On NE redessine PAS le nom à droite :
+    // le doublon « gris + foncé » provoquait un chevauchement sur les noms longs.
     setText(doc, FOREST_900, 13, 'bold')
-    doc.text(ctx.data.cabinetName, marginL, ctx.y + 8)
+    doc.text(fitText(doc, ctx.data.cabinetName, (pageW - 2 * marginL) * 0.55), marginL, ctx.y + 8)
   }
   setText(doc, TEXT_500, 7.5, 'normal')
   let cy = ctx.y + 4
-  if (!cabinetLogoLight) {
-    // Pas de logo : on peut mettre nom + adresse en miroir à droite
-    doc.text(ctx.data.cabinetName, pageW - marginL, cy, { align: 'right' }); cy += 4
-  }
   if (ctx.data.cabinetAddress) {
     for (const l of ctx.data.cabinetAddress.split('\n')) { doc.text(l, pageW - marginL, cy, { align: 'right' }); cy += 4 }
   }
