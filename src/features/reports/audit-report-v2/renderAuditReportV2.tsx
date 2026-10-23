@@ -1,14 +1,12 @@
+import { pdf } from '@react-pdf/renderer'
 import type { AuditReportData } from '../generateAuditReportPDF'
+import { AuditReportDocument } from './AuditReportDocument'
 import { computeReportRef } from './report-model'
 
-// Moteur de rendu v2 (react-pdf), charge en IMPORT DYNAMIQUE : react-pdf et le
-// document restent hors du bundle initial (cohérent avec le code-splitting).
-// Rendu 100% cote client (confidentialite des donnees d'audit, D-REP-1).
+// Rendu v2 (react-pdf), 100% cote client (confidentialite des donnees, D-REP-1).
+// Ce module n'est atteint que via la modale d'apercu (chargee en React.lazy), donc
+// react-pdf reste hors du bundle initial.
 export async function renderAuditReportV2(data: AuditReportData): Promise<void> {
-  const [{ pdf }, { AuditReportDocument }] = await Promise.all([
-    import('@react-pdf/renderer'),
-    import('./AuditReportDocument'),
-  ])
   const blob = await pdf(<AuditReportDocument data={data} />).toBlob()
   const ref = computeReportRef(data.mission.id, data.mission.end_date)
   triggerDownload(blob, `rapport-audit-${ref}.pdf`)

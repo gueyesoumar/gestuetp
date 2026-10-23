@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
@@ -13,7 +13,11 @@ import { ClosureActionCards } from './ClosureActionCards'
 import { FindingSynthesis } from './FindingSynthesis'
 import { AuditConclusion } from './AuditConclusion'
 import { loadAuditReportData } from '../../reports/loadAuditReportData'
+import type { AuditReportData } from '../../reports/generateAuditReportPDF'
 import type { MissionDetail } from '../useMissionDetail'
+
+// Modale d'apercu v2 (react-pdf) chargee a la demande : react-pdf reste hors bundle initial.
+const AuditReportV2Modal = lazy(() => import('../../reports/audit-report-v2/AuditReportV2Modal'))
 import type { ControlAssessment } from '../../../types/database.types'
 
 interface DomainScore {
@@ -94,27 +98,26 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     return () => controller.abort()
   }, [mission.id, promoRefresh])
 
-  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021 Lot 1). OFF par
-  // defaut -> chemin jsPDF inchange (aucune regression).
+  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021). OFF par defaut
+  // -> chemin jsPDF inchange (aucune regression). ON -> apercu in-app (D-REP-3).
   const reportV2 = useFeatureFlag('report_engine_v2')
+  const [previewData, setPreviewData] = useState<AuditReportData | null>(null)
 
   const handleGenerateAuditReport = useCallback(async () => {
     setGeneratingPdf(true)
     try {
       if (reportV2.enabled) {
-        const [data, { renderAuditReportV2 }] = await Promise.all([
-          loadAuditReportData(mission),
-          import('../../reports/audit-report-v2/renderAuditReportV2'),
-        ])
-        await renderAuditReportV2(data)
+        // v2 : on ouvre l'apercu ; le telechargement se fait depuis la modale.
+        const data = await loadAuditReportData(mission)
+        setPreviewData(data)
       } else {
         const [data, { runAuditReportPdfInWorker }] = await Promise.all([
           loadAuditReportData(mission),
           import('../../reports/runAuditReportPdfInWorker'),
         ])
         await runAuditReportPdfInWorker(data)
+        toast.success('Rapport PDF généré', { description: mission.name })
       }
-      toast.success('Rapport PDF généré', { description: mission.name })
     } catch (err) {
       console.error('[audit report]', err)
       toast.error('Génération du rapport impossible', { description: err instanceof Error ? err.message : String(err) })
@@ -268,6 +271,12 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
           </>
         }
       />
+
+      {previewData && (
+        <Suspense fallback={null}>
+          <AuditReportV2Modal data={previewData} onClose={() => setPreviewData(null)} />
+        </Suspense>
+      )}
     </div>
   )
 }
