@@ -67,7 +67,7 @@ export function ManualActionModal({ subsidiaries, defaultEntityId, onClose, onSa
             </div>
           </div>
           <div>
-            <label className="block text-[12px] font-medium text-gray-600 mb-1">Description *</label>
+            <label className="block text-[12px] font-medium text-gray-600 mb-1">Action à mener *</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={field} autoFocus
               placeholder="Action corrective attendue de l'assujetti..." />
           </div>

@@ -2359,6 +2359,8 @@ export interface Database {
           control_name: string | null
           finding_classification: string
           description: string
+          recommendation: string | null
+          risk: string | null
           deadline: string | null
           client_target_date: string | null
           status: string

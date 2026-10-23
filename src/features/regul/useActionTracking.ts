@@ -13,7 +13,11 @@ export interface TrackedAction {
   control_code: string | null
   control_name: string | null
   finding_classification: string
+  /** Le CONSTAT (observation). Pour une action manuelle, contient directement l'action saisie. */
   description: string
+  /** La RECOMMANDATION = l'action a mener (source de verite, null pour une action manuelle). */
+  recommendation: string | null
+  risk: string | null
   deadline: string | null
   client_target_date: string | null
   status: string
@@ -70,6 +74,13 @@ export function isActionOverdue(a: TrackedAction): boolean {
   const target = a.client_target_date ?? a.deadline
   if (!target) return false
   return new Date(target) < new Date()
+}
+
+/** Texte de l'action a mener. Mission : la recommandation du constat (repli sur le
+ *  constat si vide). Manuel : la description saisie EST l'action. */
+export function actionLabel(a: TrackedAction): string {
+  const reco = a.recommendation?.trim()
+  return reco && reco.length > 0 ? reco : a.description
 }
 
 export interface ManualActionInput {

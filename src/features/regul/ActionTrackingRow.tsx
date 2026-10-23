@@ -1,5 +1,5 @@
 import { ClipboardList, ExternalLink, CheckCircle2, RotateCcw, ArrowUpCircle } from 'lucide-react'
-import { isActionOverdue, useManualAction, type TrackedAction } from './useActionTracking'
+import { actionLabel, isActionOverdue, useManualAction, type TrackedAction } from './useActionTracking'
 import { useToast } from '../../hooks/useToast'
 
 const CLASS_BADGE: Record<string, { label: string; color: string }> = {
@@ -18,12 +18,13 @@ const fmtDate = (d: string | null): string =>
 
 interface Props {
   action: TrackedAction
+  onOpenDetail: (action: TrackedAction) => void
   onOpenMission: (missionId: string) => void
   onEscalate: (action: TrackedAction) => void
   onChanged: () => void
 }
 
-export function ActionTrackingRow({ action: a, onOpenMission, onEscalate, onChanged }: Props): JSX.Element {
+export function ActionTrackingRow({ action: a, onOpenDetail, onOpenMission, onEscalate, onChanged }: Props): JSX.Element {
   const toast = useToast()
   const { busy, setStatus } = useManualAction()
   const cls = CLASS_BADGE[a.finding_classification]
@@ -40,7 +41,7 @@ export function ActionTrackingRow({ action: a, onOpenMission, onEscalate, onChan
   return (
     <div className="flex items-start gap-3 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50">
       <ClipboardList size={16} className="mt-0.5 text-forest-600 flex-shrink-0" />
-      <div className="flex-1 min-w-0">
+      <button onClick={() => onOpenDetail(a)} className="flex-1 min-w-0 text-left">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-gray-900 text-[13px]">{a.code}</span>
           {cls && <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${cls.color}`}>{cls.label}</span>}
@@ -51,11 +52,11 @@ export function ActionTrackingRow({ action: a, onOpenMission, onEscalate, onChan
           {overdue && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">En retard</span>}
           {a.escalated && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-700">Escaladée</span>}
         </div>
-        <p className="mt-0.5 text-[12.5px] text-gray-700 truncate">{a.control_code ? `${a.control_code} · ` : ''}{a.description}</p>
+        <p className="mt-0.5 text-[12.5px] text-gray-800 truncate">{actionLabel(a)}</p>
         <p className="mt-0.5 text-[11.5px] text-gray-400">
           {a.entity_name}{a.mission_name ? ` · ${a.mission_name}` : ''} · Échéance {fmtDate(a.client_target_date ?? a.deadline)}
         </p>
-      </div>
+      </button>
       <div className="flex-shrink-0 flex items-center gap-1">
         {a.status !== 'closed' && (
           <button onClick={() => onEscalate(a)} className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-orange-700 hover:bg-orange-50 rounded-lg" title="Escalader en mesure">

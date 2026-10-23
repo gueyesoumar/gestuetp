@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, AlertTriangle } from 'lucide-react'
 import { useSubsidiaries } from '../group-module/useSubsidiaries'
-import { useActionTracking, isActionOverdue, type TrackedAction } from './useActionTracking'
+import { useActionTracking, isActionOverdue, actionLabel, type TrackedAction } from './useActionTracking'
 import { ActionTrackingRow } from './ActionTrackingRow'
+import { ActionDetailDrawer } from './ActionDetailDrawer'
 import { ManualActionModal } from './ManualActionModal'
 import { MeasureFormModal } from './MeasureFormModal'
 import { FilterBar } from '../../components/filters/FilterBar'
@@ -29,6 +30,7 @@ export function RegulActionTrackingVolet(): JSX.Element {
   const [page, setPage] = useState(1)
   const [showCreate, setShowCreate] = useState(false)
   const [escalate, setEscalate] = useState<TrackedAction | null>(null)
+  const [detail, setDetail] = useState<TrackedAction | null>(null)
 
   const defs: FilterDef[] = useMemo(() => [
     { key: 'entity', label: 'Assujetti', type: 'select', options: subsidiaries.map((s) => ({ value: s.id, label: s.name })) },
@@ -79,7 +81,7 @@ export function RegulActionTrackingVolet(): JSX.Element {
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
           {pageRows.map((a) => (
-            <ActionTrackingRow key={a.id} action={a} onOpenMission={(id) => navigate(`/controles/${id}`)} onEscalate={setEscalate} onChanged={refetch} />
+            <ActionTrackingRow key={a.id} action={a} onOpenDetail={setDetail} onOpenMission={(id) => navigate(`/controles/${id}`)} onEscalate={setEscalate} onChanged={refetch} />
           ))}
           <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
@@ -94,9 +96,19 @@ export function RegulActionTrackingVolet(): JSX.Element {
         />
       )}
 
+      {detail && (
+        <ActionDetailDrawer
+          action={detail}
+          onEscalate={(x) => { setDetail(null); setEscalate(x) }}
+          onOpenMission={(id) => navigate(`/controles/${id}`)}
+          onChanged={() => { refetch(); setDetail(null) }}
+          onClose={() => setDetail(null)}
+        />
+      )}
+
       {escalate && (
         <MeasureFormModal
-          fromAction={{ entityId: escalate.entity_id, actionId: escalate.id, code: escalate.code, description: escalate.description }}
+          fromAction={{ entityId: escalate.entity_id, actionId: escalate.id, code: escalate.code, description: actionLabel(escalate) }}
           onClose={() => setEscalate(null)}
           onSaved={() => { setEscalate(null); refetch() }}
         />
