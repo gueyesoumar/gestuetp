@@ -15,10 +15,16 @@ const routeLabels: Record<string, string> = {
   'referentiels': 'R\u00e9f\u00e9rentiels',
   'comparer': 'Comparer',
   'missions': 'Missions',
+  // Module régulateur (Gëstu Regul)
+  'assujettis': 'Assujettis',
+  'controles': 'Missions de contrôle',
+  'constats': 'Suivi des actions',
+  'incidents': 'Incidents',
+  'fournisseurs': 'Fournisseurs',
 }
 
 // Routes parentes qui ont des enfants dynamiques (UUID ou slug)
-const dynamicParents = ['missions', 'clients', 'referentiels']
+const dynamicParents = ['missions', 'clients', 'referentiels', 'assujettis', 'controles']
 
 function isUuidOrSlug(segment: string): boolean {
   return !routeLabels[segment]
@@ -46,9 +52,18 @@ export function Breadcrumb() {
       const labels: Record<string, string> = {}
 
       for (const { parent, id } of toResolve) {
-        if (parent === 'missions') {
+        if (parent === 'missions' || parent === 'controles') {
           const { data } = await supabase
             .from('missions')
+            .select('name')
+            .eq('id', id)
+            .abortSignal(abortController.signal)
+            .single()
+          if (data) labels[id] = data.name
+        } else if (parent === 'assujettis') {
+          // Assujetti = nœud organizations (RFC 0007).
+          const { data } = await supabase
+            .from('organizations')
             .select('name')
             .eq('id', id)
             .abortSignal(abortController.signal)

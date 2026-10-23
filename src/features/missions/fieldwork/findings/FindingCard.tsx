@@ -88,6 +88,12 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
           {!readOnly && (
             <button type="button" onClick={() => setEditing(true)} className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-forest-700 hover:text-forest-900"><Pencil size={11} /> Modifier</button>
           )}
+          {/* Promotion au registre disponible même en lecture seule (après clôture) :
+              l'action ne modifie pas le constat, elle crée un risque. */}
+          {readOnly && !isStrength && onPromote && (finding.promoted_at
+            ? <span className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-forest-700"><Check size={11} /> Promu</span>
+            : <button type="button" onClick={() => run(() => onPromote(finding))} className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-forest-700 hover:text-forest-900"><ArrowUpRight size={11} /> Promouvoir</button>
+          )}
           {menu}
         </div>
 

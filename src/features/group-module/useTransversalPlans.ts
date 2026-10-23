@@ -90,7 +90,7 @@ export function useTransversalPlans(): UseTransversalPlansResult {
       }
 
       const enriched: TransversalCAR[] = ((rows ?? []) as CorrectiveActionRequest[]).map((c) => {
-        const m = missionMap.get(c.mission_id)
+        const m = c.mission_id ? missionMap.get(c.mission_id) : undefined
         return {
           ...c,
           subsidiary_id: m?.client_id ?? null,

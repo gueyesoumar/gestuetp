@@ -149,13 +149,16 @@ export function useSubsidiaries(): UseSubsidiariesResult {
         for (const f of (fws ?? []) as Array<{ id: string; name: string }>) fwMap.set(f.id, f.name)
       }
 
-      // 4. Assessments pour conformity_level (calcul du score moyen pondéré par filiale)
       const missionIds = missionList.map((m) => m.id)
-      const { data: assessmentsRaw, error: assessmentsErr } = (missionIds.length > 0
+
+      // 4. Assessments pour conformity_level : UNIQUEMENT les missions clôturées.
+      //    le score de conformité reflète les audits terminés (pas le travail en cours).
+      const closedMissionIds = missionList.filter((m) => m.status === 'closure').map((m) => m.id)
+      const { data: assessmentsRaw, error: assessmentsErr } = (closedMissionIds.length > 0
         ? await supabase
             .from('control_assessments')
             .select('mission_id, conformity_level')
-            .in('mission_id', missionIds)
+            .in('mission_id', closedMissionIds)
             .abortSignal(ac.signal)
         : { data: [] as Array<{ mission_id: string; conformity_level: string | null }>, error: null }) as { data: Array<{ mission_id: string; conformity_level: string | null }>; error: { message: string } | null }
       if (ac.signal.aborted) return
@@ -193,12 +196,13 @@ export function useSubsidiaries(): UseSubsidiariesResult {
       const rows: SubsidiaryRow[] = subList.map((sub) => {
         const subMissions = missionList.filter((m) => m.client_id === sub.id)
         const subMissionIds = new Set(subMissions.map((m) => m.id))
+        const subClosedMissionIds = new Set(subMissions.filter((m) => m.status === 'closure').map((m) => m.id))
 
-        // Score moyen pondéré (toutes missions, conformity_level)
+        // Score moyen pondéré sur les missions CLÔTURÉES uniquement (conformity_level)
         let scoreSum = 0
         let scoreCount = 0
         for (const a of assessments) {
-          if (!subMissionIds.has(a.mission_id)) continue
+          if (!subClosedMissionIds.has(a.mission_id)) continue
           const w = weightOf(a.conformity_level)
           if (w !== null) { scoreSum += w; scoreCount += 1 }
         }

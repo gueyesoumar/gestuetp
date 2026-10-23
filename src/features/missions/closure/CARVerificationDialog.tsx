@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { useCARVerification, type VerifyAction } from './useCARVerification'
 import { CARTimeline } from './CARTimeline'
-import type { CorrectiveActionRequest } from '../../../types/database.types'
+import type { ActionPlanCAR } from '../../reports/generateActionPlanXLSX'
 
 interface CARVerificationDialogProps {
-  car: CorrectiveActionRequest | null
+  car: ActionPlanCAR | null
   canVerify: boolean
   onClose: () => void
   onChanged: () => void | Promise<void>
@@ -50,6 +50,13 @@ export function CARVerificationDialog({ car, canVerify, onClose, onChanged, user
             <p className="text-xs text-gray-500 mt-2">&Eacute;ch&eacute;ance demand&eacute;e : {formatDate(car.deadline)}</p>
           )}
         </Section>
+
+        {(car.finding?.recommendation || car.finding?.risk) && (
+          <Section title="Recommandation">
+            {car.finding?.risk && <Field label="Risque identifié" value={car.finding.risk} />}
+            {car.finding?.recommendation && <Field label="Action à effectuer" value={car.finding.recommendation} />}
+          </Section>
+        )}
 
         {hasResponse && (
           <Section title="Réponse du client">

@@ -1,12 +1,18 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
+import { InfoPopover } from '../../../components/ui/InfoPopover'
 import type { Priority } from './usePilotage'
+
+const PRIORITY_RULE = 'La liste priorise les assujettis selon des règles. Priorité haute : assujetti critique (IIC) jamais contrôlé, ou conformité inférieure à 40 %. Priorité moyenne : au moins un plan d\'action en retard, ou aucun contrôle planifié. Les priorités hautes sont affichées en premier.'
 
 /** File de priorisation : où le régulateur doit agir en premier. */
 export function PilotagePriorityList({ items }: { items: Priority[] }): JSX.Element {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
-      <h3 className="text-sm font-bold text-gray-900 mb-1">À traiter en priorité</h3>
+      <div className="flex items-center gap-1 mb-1">
+        <h3 className="text-sm font-bold text-gray-900">À traiter en priorité</h3>
+        <InfoPopover text={PRIORITY_RULE} />
+      </div>
       <p className="text-[12px] text-gray-500 mb-4">Assujettis nécessitant une action du régulateur.</p>
       {items.length === 0 ? (
         <p className="text-[13px] text-gray-400 py-6 text-center">Aucune action prioritaire : le parc est sous contrôle.</p>

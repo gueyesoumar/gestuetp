@@ -112,7 +112,7 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
     })
 
     // 5. Enrichir CAR avec domain_name (via assessment.control_id → domain)
-    const assessIds = carRows.map((c) => c.assessment_id)
+    const assessIds = carRows.map((c) => c.assessment_id).filter((id): id is string => !!id)
     const ctrlByAssess = new Map<string, string>()
     if (assessIds.length > 0) {
       const { data: aRows } = await supabase
@@ -140,7 +140,7 @@ export function useActionPlan(mission: MissionDetail): UseActionPlanResult {
     }
 
     const enriched: ActionPlanCAR[] = carRows.map((c) => {
-      const ctrlId = ctrlByAssess.get(c.assessment_id)
+      const ctrlId = c.assessment_id ? ctrlByAssess.get(c.assessment_id) : null
       const domain = ctrlId ? map.get(ctrlId) : null
       const finding = c.finding_id ? findingById.get(c.finding_id) ?? null : null
       return { ...(c as ActionPlanCAR), domain_name: domain ?? null, finding }

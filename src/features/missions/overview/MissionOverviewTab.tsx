@@ -59,7 +59,7 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
           <DomainProgressList domains={filteredDomains} assessments={assessments} />
           <EvidenceTracker missionId={mission.id} domains={filteredDomains} documents={documents} />
         </div>
-        <TeamActivityPanel missionId={mission.id} members={members} onRefetch={onRefetch} />
+        <TeamActivityPanel missionId={mission.id} members={members} leadAuditorId={mission.lead_auditor_user?.id ?? null} associateId={mission.associate_user?.id ?? null} onRefetch={onRefetch} />
       </div>
     </div>
   )

@@ -1,14 +1,11 @@
 import { useState } from 'react'
-import { BarChart3, List } from 'lucide-react'
+import { BarChart3, List, ArrowRight } from 'lucide-react'
 import { useMissionControls } from '../useMissionControls'
 import { ControlSyntheseView } from '../ControlSyntheseView'
 import { ControlListView } from '../ControlListView'
 import { ControlDetailDrawer } from '../ControlDetailDrawer'
 import { useClientActionItems } from './useClientActionItems'
-import { Check } from 'lucide-react'
-import { ACTION_PRIORITY_LABELS, ACTION_STATUS_LABELS } from '../../client-constants'
 import type { ClientMissionDetail } from '../useClientMissionDetail'
-import type { ActionStatus } from '../../../../types/database.types'
 import type { ControlWithAssessment } from '../useMissionControls'
 
 interface Props {
@@ -16,16 +13,17 @@ interface Props {
   canContribute: boolean
   canApprove: boolean
   onRefetch: () => void
+  onTabChange?: (tab: string) => void
 }
 
 type ViewMode = 'synthese' | 'liste'
 
-export function ClientResultsTab({ mission, canContribute, canApprove }: Props): JSX.Element {
+export function ClientResultsTab({ mission, canContribute, canApprove, onTabChange }: Props): JSX.Element {
   const [view, setView] = useState<ViewMode>('synthese')
   const [selectedControl, setSelectedControl] = useState<ControlWithAssessment | null>(null)
 
   const data = useMissionControls(mission.id)
-  const { items, loading: aLoading, updateStatus, updating } = useClientActionItems(mission.id)
+  const { items, loading: aLoading } = useClientActionItems(mission.id)
 
   // Compute prev/next based on the currently filtered list (only evaluated controls)
   const evaluated = data.controls.filter((c) => c.assessmentId !== null)
@@ -100,57 +98,28 @@ export function ClientResultsTab({ mission, canContribute, canApprove }: Props):
         />
       )}
 
-      {/* Action items */}
+      {/* Plan d'action : résumé compact. Le détail actionnable (réponses, export) est dans l'onglet dédié. */}
       <section>
-        <div className="flex items-center gap-2 mb-3">
-          <h3 className="text-sm font-bold">Plan d{'’'}action</h3>
-          {items.length > 0 && (
-            <span className="text-[10px] font-medium text-forest-700 bg-forest-50 px-2 py-0.5 rounded-full">
-              {items.filter((i) => i.status !== 'done').length} en cours
-            </span>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h3 className="text-sm font-bold">Plan d{'’'}action</h3>
+            {aLoading ? (
+              <p className="text-xs text-gray-400 mt-0.5">Chargement...</p>
+            ) : items.length > 0 ? (
+              <p className="text-xs text-gray-500 mt-0.5">
+                {items.filter((i) => i.status !== 'done').length} action(s) à traiter sur {items.length}.
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-0.5">Les recommandations seront disponibles après la validation des constats.</p>
+            )}
+          </div>
+          {items.length > 0 && onTabChange && (
+            <button type="button" onClick={() => onTabChange('action_plan')}
+              className="inline-flex items-center gap-1.5 bg-forest-700 text-white px-4 py-2 rounded-lg text-[13px] font-semibold hover:bg-forest-900 transition-colors shrink-0">
+              Ouvrir le plan d{'’'}action <ArrowRight size={14} />
+            </button>
           )}
         </div>
-
-        {aLoading ? (
-          <p className="text-xs text-gray-400 text-center py-4">Chargement...</p>
-        ) : items.length > 0 ? (
-          <div className="space-y-2">
-            {items.map((item) => {
-              const prioConfig = ACTION_PRIORITY_LABELS[item.priority]
-              const statusConfig = ACTION_STATUS_LABELS[item.status]
-              const borderColor = item.priority === 'critical' ? 'border-l-red-500' : item.priority === 'high' ? 'border-l-orange-500' : item.priority === 'medium' ? 'border-l-gold-500' : 'border-l-gray-300'
-              return (
-                <div key={item.id} className={`border border-gray-200 rounded-lg bg-white border-l-[3px] ${borderColor} ${item.status === 'done' ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center gap-2.5 px-3 py-2.5">
-                    {canContribute && item.status !== 'done' ? (
-                      <button onClick={() => updateStatus(item.id, item.status === 'open' ? 'in_progress' : 'done' as ActionStatus)} disabled={updating}
-                        className="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center shrink-0 hover:border-green-500 transition-colors cursor-pointer">
-                        {item.status === 'in_progress' && <span className="text-[10px] text-blue-500">{'●'}</span>}
-                      </button>
-                    ) : (
-                      <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 ${item.status === 'done' ? 'bg-green-500 border-2 border-green-500' : 'border-2 border-gray-300'}`}>
-                        {item.status === 'done' && <Check size={10} className="text-white" />}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-semibold ${item.status === 'done' ? 'line-through text-gray-400' : ''}`}>{item.title}</p>
-                      <div className="flex gap-2 mt-1 items-center">
-                        {item.controlCode && <span className="font-mono text-[8px] font-semibold bg-forest-50 text-forest-700 px-1.5 py-0.5 rounded">{item.controlCode}</span>}
-                        {prioConfig && <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${prioConfig.color}`}>{prioConfig.label}</span>}
-                        {item.dueDate && <span className="text-[9px] text-gray-300">{'É'}ch. {new Date(item.dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
-                      </div>
-                    </div>
-                    {statusConfig && <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full ${statusConfig.color}`}>{statusConfig.label}</span>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="bg-white border border-gray-200 rounded-xl p-5 text-center">
-            <p className="text-xs text-gray-400">Les recommandations seront disponibles apr{'è'}s la validation des constats.</p>
-          </div>
-        )}
       </section>
 
       {/* Drawer */}

@@ -659,10 +659,15 @@ export interface ControlAssessmentUpdate {
 
 export interface CorrectiveActionRequest {
   id: string
-  mission_id: string
-  assessment_id: string
+  /** Null pour les actions saisies manuellement par le regulateur (source='manual', migration 00353). */
+  mission_id: string | null
+  assessment_id: string | null
   /** FK vers assessment_findings.id depuis migration 00100 (source de verite). */
   finding_id: string | null
+  /** Origine : 'mission' (derive d'un constat) ou 'manual' (saisie regulateur). Migration 00353. */
+  source: 'mission' | 'manual'
+  /** Assujetti cible pour les actions manuelles (null pour les CAR de mission, derive via mission.client_id). Migration 00353. */
+  entity_id: string | null
   code: string
   /** Snapshot denormalise au moment de la creation. Source de verite : finding_id. */
   finding_classification: string
@@ -2339,6 +2344,28 @@ export interface Database {
       get_subsidiary_ids: {
         Args: { parent_id: string }
         Returns: string[]
+      }
+      get_regulator_action_tracking: {
+        Args: { p_entity_id?: string | null }
+        Returns: {
+          id: string
+          code: string
+          source: string
+          mission_id: string | null
+          mission_name: string | null
+          entity_id: string
+          entity_name: string
+          control_code: string | null
+          control_name: string | null
+          finding_classification: string
+          description: string
+          deadline: string | null
+          client_target_date: string | null
+          status: string
+          verification_status: string
+          escalated: boolean
+          created_at: string
+        }[]
       }
       user_belongs_to_cabinet: {
         Args: { p_cabinet_id: string }

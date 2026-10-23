@@ -72,7 +72,7 @@ export function ClientMissionDetailPage(): JSX.Element {
         <ClientExchangesTab mission={mission} canContribute={canContribute} onRefetch={refetch} />
       )}
       {activeTab === 'results' && (
-        <ClientResultsTab mission={mission} canContribute={canContribute} canApprove={canApprove} onRefetch={refetch} />
+        <ClientResultsTab mission={mission} canContribute={canContribute} canApprove={canApprove} onRefetch={refetch} onTabChange={(t) => setActiveTab(t as ClientTabKey)} />
       )}
       {activeTab === 'action_plan' && (
         <ClientActionPlanTab mission={mission} canContribute={canContribute} />

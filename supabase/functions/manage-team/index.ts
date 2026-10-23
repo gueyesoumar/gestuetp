@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: callerProfile } = await supabaseAdmin
-      .from('users').select('id, organization_id, is_active').eq('auth_id', callerId).single()
+      .from('users').select('id, organization_id, is_active, is_platform_owner').eq('auth_id', callerId).single()
     if (!callerProfile) {
       return new Response(JSON.stringify({ error: 'Profil introuvable' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -52,9 +52,17 @@ Deno.serve(async (req) => {
 
     // Verify mission belongs to caller's cabinet
     const { data: mission } = await supabaseAdmin
-      .from('missions').select('id, cabinet_id').eq('id', mission_id).single()
+      .from('missions').select('id, cabinet_id, lead_auditor_id, associate_id').eq('id', mission_id).single()
     if (!mission || mission.cabinet_id !== callerProfile.organization_id) {
       return new Response(JSON.stringify({ error: 'Accès interdit' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Gestion de l'équipe réservée au chef de mission et à l'associé de CETTE mission
+    // (en plus de can_assign_team). Backdoor super-admin conservé.
+    const isLeadOrAssociate = mission.lead_auditor_id === callerProfile.id || mission.associate_id === callerProfile.id
+    if (!isLeadOrAssociate && !callerProfile.is_platform_owner) {
+      return new Response(JSON.stringify({ error: 'Seuls le chef de mission et l\'associé peuvent gérer l\'équipe de cette mission' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -66,10 +74,14 @@ Deno.serve(async (req) => {
 
       // Cloisonnement : l'utilisateur ajouté doit appartenir au cabinet de l'appelant
       const { data: targetUser } = await supabaseAdmin
-        .from('users').select('id').eq('id', user_id).eq('organization_id', callerProfile.organization_id).maybeSingle()
+        .from('users').select('id, is_active').eq('id', user_id).eq('organization_id', callerProfile.organization_id).maybeSingle()
       if (!targetUser) {
         return new Response(JSON.stringify({ error: 'Cet utilisateur ne fait pas partie du cabinet' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      if (!targetUser.is_active) {
+        return new Response(JSON.stringify({ error: 'Cet utilisateur est désactivé : réactivez-le avant de l\'ajouter à une mission.' }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
       // Si on ajoute quelqu'un comme lead_auditor : caller doit avoir
@@ -92,8 +104,10 @@ Deno.serve(async (req) => {
 
       if (insertError) {
         console.error('manage-team add:', insertError.message)
-        return new Response(JSON.stringify({ error: 'Ajout du membre impossible' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        // 23505 = violation d'unicité (mission_id, user_id) : déjà membre.
+        const dup = (insertError as { code?: string }).code === '23505'
+        return new Response(JSON.stringify({ error: dup ? 'Cet utilisateur est déjà membre de la mission.' : 'Ajout du membre impossible.' }),
+          { status: dup ? 409 : 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
       return new Response(JSON.stringify({ success: true }),

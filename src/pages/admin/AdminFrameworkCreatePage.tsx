@@ -53,7 +53,7 @@ export function AdminFrameworkCreatePage() {
     if (error) { toast.error('Création impossible', error); return }
     if (data?.error) {
       const detail = await readInvokeError(error, data, 'Création impossible')
-      toast.error('Création impossible')
+      toast.error('Création impossible', { description: detail })
       console.error(detail)
       return
     }

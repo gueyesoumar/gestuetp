@@ -56,7 +56,7 @@ export function usePilotage(): PilotageData {
       const isHigh = s.regulatoryProfile?.criticality === 'eleve'
       if (isHigh && !controlled) priorities.push({ id: s.id, name: s.name, reason: 'Assujetti critique (IIC) jamais contrôlé', severity: 'high' })
       else if (s.conformityScore !== null && s.conformityScore < 40) priorities.push({ id: s.id, name: s.name, reason: `Conformité critique (${s.conformityScore}%)`, severity: 'high' })
-      else if (s.overdueCount > 0) priorities.push({ id: s.id, name: s.name, reason: `${s.overdueCount} contrôle(s) en retard`, severity: 'medium' })
+      else if (s.overdueCount > 0) priorities.push({ id: s.id, name: s.name, reason: `${s.overdueCount} plan(s) d'action en retard`, severity: 'medium' })
       else if (!controlled) priorities.push({ id: s.id, name: s.name, reason: 'Aucun contrôle planifié', severity: 'medium' })
     }
     priorities.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'high' ? -1 : 1))

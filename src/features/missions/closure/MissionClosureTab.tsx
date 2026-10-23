@@ -48,6 +48,9 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
   const [closeError, setCloseError] = useState<string | null>(null)
   const [scoring, setScoring] = useState<ScoringData | null>(null)
   const [findingClassifications, setFindingClassifications] = useState<string[]>([])
+  const [promotableCount, setPromotableCount] = useState(0)
+  const [promoting, setPromoting] = useState(false)
+  const [promoRefresh, setPromoRefresh] = useState(0)
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const isClosed = mission.status === 'closure'
@@ -73,18 +76,22 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       const ids = assess.map((a) => a.id)
       if (ids.length === 0) {
         setFindingClassifications([])
+        setPromotableCount(0)
         return
       }
       const { data: findingsRows } = await supabase
         .from('assessment_findings')
-        .select('classification')
+        .select('classification, promoted_at')
         .in('assessment_id', ids)
       if (controller.signal.aborted) return
-      setFindingClassifications((findingsRows ?? []).map((f: { classification: string }) => f.classification))
+      const rows = (findingsRows ?? []) as { classification: string; promoted_at: string | null }[]
+      setFindingClassifications(rows.map((f) => f.classification))
+      // Constats promouvables au registre : tout sauf les points forts, non encore promus.
+      setPromotableCount(rows.filter((f) => f.classification !== 'strength' && !f.promoted_at).length)
     }
     load().catch(() => { /* abort au démontage : ignoré */ })
     return () => controller.abort()
-  }, [mission.id])
+  }, [mission.id, promoRefresh])
 
   const handleGenerateAuditReport = useCallback(async () => {
     setGeneratingPdf(true)
@@ -121,6 +128,20 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     toast.success('Mission clôturée', { description: mission.name })
     onRefetch()
   }, [mission.id, mission.name, onRefetch, toast])
+
+  const handleBulkPromote = useCallback(async () => {
+    setPromoting(true)
+    const { data, error } = await supabase.rpc('promote_findings_bulk', { p_mission_id: mission.id })
+    setPromoting(false)
+    if (error) {
+      toast.error('Promotion impossible', error)
+      return
+    }
+    const n = (data as number) ?? 0
+    toast.success(n > 0 ? `${n} constat(s) promu(s) au registre de risque` : 'Aucun constat à promouvoir')
+    setPromoRefresh((k) => k + 1)
+    onRefetch()
+  }, [mission.id, toast, onRefetch])
 
   // Auditeur sans contrôle affecté → rien à afficher.
   if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
@@ -185,6 +206,30 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       {(isClosed || scoring) && (
         <>
           <FindingSynthesis classifications={findingClassifications} />
+
+          {userRole.isPrivileged && (
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900">Promotion au registre de risque</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {promotableCount > 0
+                      ? `${promotableCount} constat(s) promouvable(s) vers le registre de risque de l'assujetti.`
+                      : 'Tous les constats promouvables sont déjà au registre.'}
+                  </p>
+                </div>
+                {promotableCount > 0 && (
+                  <button onClick={() => void handleBulkPromote()} disabled={promoting}
+                    className="bg-forest-700 text-white px-4 py-2 rounded-lg text-[13px] font-semibold hover:bg-forest-900 disabled:opacity-50 transition-colors">
+                    {promoting ? 'Promotion...' : `Promouvoir les ${promotableCount} constats`}
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-400 mt-2">
+                Astuce : activez « promotion automatique des constats » dans les critères de risque pour promouvoir automatiquement à la clôture. La promotion au cas par cas reste disponible dans l&apos;onglet Résultats.
+              </p>
+            </div>
+          )}
           <AuditConclusion
             missionId={mission.id}
             initialConclusion={(mission as unknown as Record<string, unknown>).audit_conclusion as string | null ?? null}

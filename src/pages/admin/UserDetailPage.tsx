@@ -45,7 +45,7 @@ export function UserDetailPage() {
     }
     if (data?.error) {
       const detail = await readInvokeError(fnError, data, 'Démarrage impossible')
-      toast.error('Démarrage impossible')
+      toast.error('Démarrage impossible', { description: detail })
       console.error('admin-view-user:', detail)
       return
     }

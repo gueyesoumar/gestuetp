@@ -41,6 +41,9 @@ interface Payload {
   reference?: string | null
   measure_id?: string
   status?: string
+  /** Escalade depuis une action corrective (Lot 3) : mission_id/finding_ids sont
+   *  derives serveur depuis la CAR, pas depuis le client. */
+  source_action_id?: string
 }
 
 function json(body: unknown, status = 200): Response {
@@ -90,10 +93,35 @@ Deno.serve(async (req) => {
       if (!subtree.has(entityId)) return json({ error: "Assujetti hors de votre périmètre" }, 403)
       if (!body.measure_type || !MEASURE_TYPES.includes(body.measure_type)) return json({ error: 'Type de mesure invalide' }, 400)
       if (!body.title?.trim()) return json({ error: 'Titre requis' }, 400)
+
+      // Escalade depuis une action corrective : on derive le rattachement
+      // (mission_id, finding_ids) SERVEUR depuis la CAR, et on verifie que l'action
+      // cible bien le meme assujetti. Aucune confiance sur les champs de lien client.
+      let missionId: string | null = body.mission_id ?? null
+      let findingIds: string[] = body.finding_ids ?? []
+      let sourceActionId: string | null = null
+      if (body.source_action_id) {
+        const { data: car } = await admin
+          .from('corrective_action_requests')
+          .select('id, entity_id, mission_id, finding_id, missions(client_id)')
+          .eq('id', body.source_action_id)
+          .maybeSingle()
+        const carEntity = (car?.missions as { client_id?: string } | null)?.client_id ?? car?.entity_id ?? null
+        if (!car || carEntity !== entityId) return json({ error: 'Action corrective hors de votre périmètre' }, 403)
+        missionId = car.mission_id ?? null
+        findingIds = car.finding_id ? [car.finding_id] : []
+        sourceActionId = car.id
+      } else if (missionId) {
+        // Rattachement direct a une mission : elle doit appartenir a l'assujetti.
+        const { data: mis } = await admin.from('missions').select('client_id').eq('id', missionId).maybeSingle()
+        if (!mis || mis.client_id !== entityId) return json({ error: "La mission ne correspond pas à l'assujetti" }, 400)
+      }
+
       const { data: m, error } = await admin.from('regulatory_measures').insert({
         entity_id: entityId,
-        mission_id: body.mission_id ?? null,
-        finding_ids: body.finding_ids ?? [],
+        mission_id: missionId,
+        finding_ids: findingIds,
+        source_action_id: sourceActionId,
         measure_type: body.measure_type,
         status: 'issued',
         title: body.title.trim(),

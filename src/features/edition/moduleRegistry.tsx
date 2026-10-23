@@ -55,7 +55,7 @@ export const APP_MODULES: AppModule[] = [
         { to: '/assujettis', label: c.vocab.entitiesTitle, icon: <Building2 {...sz} /> },
         { to: '/controles', label: c.vocab.missionTerm, icon: <ClipboardCheck {...sz} /> },
       ]
-      if (c.has('measures')) items.push({ to: '/constats', label: 'Constats & mesures', icon: <AlertTriangle {...sz} /> })
+      if (c.has('measures')) items.push({ to: '/constats', label: 'Suivi des actions', icon: <AlertTriangle {...sz} /> })
       if (c.has('incidents')) items.push({ to: '/incidents', label: 'Incidents', icon: <Siren {...sz} /> })
       items.push({ to: '/referentiels', label: 'Référentiels', icon: <BookMarked {...sz} /> })
       return items

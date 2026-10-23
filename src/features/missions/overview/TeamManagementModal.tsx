@@ -47,7 +47,7 @@ export function TeamManagementModal({ missionId, members, onClose, onRefetch }: 
     if (fnError || data?.error) {
       const detail = await readInvokeError(fnError, data, 'Erreur lors de l\u2019ajout du membre.')
       console.error('Add member:', detail)
-      setError('Erreur lors de l\u2019ajout du membre.')
+      setError(detail)
     } else {
       const added = allOrgMembers.find((m) => m.id === addUserId)
       setSuccess(`${added?.first_name} ${added?.last_name} ajout\u00e9 comme ${roleLabel(addRole)}.`)
@@ -69,7 +69,7 @@ export function TeamManagementModal({ missionId, members, onClose, onRefetch }: 
     if (fnError || data?.error) {
       const detail = await readInvokeError(fnError, data, 'Erreur lors du retrait du membre.')
       console.error('Remove member:', detail)
-      setError('Erreur lors du retrait du membre.')
+      setError(detail)
     } else {
       setSuccess(`${userName} retir\u00e9 de la mission.`)
       onRefetch()

@@ -47,7 +47,11 @@ interface MissionFieldworkTabProps {
 export function MissionFieldworkTab({ mission, domains, members, assignments, onRefetch }: MissionFieldworkTabProps) {
   const { profile } = useAuth()
   const { assessments: myAssessments, loading, error, refetch } = useAuditorAssessments(mission.id)
-  const { assessments: allSubmitted } = useReviewAssessments(mission.id)
+  const { assessments: allSubmitted, refetch: refetchReview } = useReviewAssessments(mission.id)
+  // La vue fusionne les contrôles de l'auditeur (useAuditorAssessments) et ceux soumis par
+  // d'autres (useReviewAssessments). Une validation porte souvent sur ces derniers : il faut
+  // rafraîchir LES DEUX sources, sinon la pastille de statut reste figée jusqu'au rechargement.
+  const refetchAll = useCallback(() => { refetch(); refetchReview() }, [refetch, refetchReview])
 
   const isLead = profile?.id === mission.lead_auditor_user?.id
   const isAssociate = profile?.id === mission.associate_user?.id
@@ -73,7 +77,7 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
     const returns = statusEvents.filter((e) => e.event_type === 'returned_to_fieldwork')
     return returns.length > 0 ? returns[returns.length - 1] : null
   }, [statusEvents])
-  const state = useFieldworkState(assessments, refetch)
+  const state = useFieldworkState(assessments, refetchAll)
   const [reviewTransition, setReviewTransition] = useState<string | null>(null)
   const [confirmLaunch, setConfirmLaunch] = useState(false)
   const [launching, setLaunching] = useState(false)
@@ -165,9 +169,9 @@ export function MissionFieldworkTab({ mission, domains, members, assignments, on
       `${submitted} contrôle${submitted > 1 ? 's' : ''} soumis${skipped > 0 ? `, ${skipped} ignoré${skipped > 1 ? 's' : ''}` : ''}`,
     )
     setSelectedIds(new Set())
-    refetch()
+    refetchAll()
     onRefetch()
-  }, [assessments, selectedIds, toast, refetch, onRefetch])
+  }, [assessments, selectedIds, toast, refetchAll, onRefetch])
 
   // Filter assignments: auditors see only their own, lead/associate see all
   const filteredAssignments = useMemo(() => {

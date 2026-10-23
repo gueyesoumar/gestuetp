@@ -84,6 +84,15 @@ export const VENDOR_CLASSIFICATION_OPTIONS = [
   { value: 'strength', label: 'Point fort' },
 ] as const
 
+// Gravite d'une action corrective (CAR de mission et actions manuelles regulateur).
+// Memes valeurs que la classification des constats, sans 'strength' (une action
+// n'est jamais un point fort).
+export const ACTION_CLASSIFICATION_OPTIONS = [
+  { value: 'major_nc', label: 'Non-conformité majeure' },
+  { value: 'minor_nc', label: 'Non-conformité mineure' },
+  { value: 'observation', label: 'Observation' },
+] as const
+
 export const VENDOR_PRIORITY_OPTIONS = [
   { value: 'critical', label: 'Critique' },
   { value: 'high', label: 'Élevée' },

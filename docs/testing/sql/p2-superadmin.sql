@@ -2,7 +2,7 @@
 -- psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/testing/sql/p2-superadmin.sql
 do $$
 declare v_org uuid; v_role uuid; v_user uuid;
-  v_auth_id uuid := '<SA_UID>';
+  v_auth_id uuid := '4af87e38-42d4-4d76-ae63-01ebb9153a62';
 begin
   insert into public.organizations (name, slug, types, is_active, plan_id)
   values ('Gëstu (test éditeur)', 'gestu-test', array['platform'], true, null) returning id into v_org;

@@ -5,28 +5,34 @@ import type { MeasureType } from '../../lib/constants'
 import { useIssueMeasure, type Measure } from './useMeasures'
 import { useToast } from '../../hooks/useToast'
 
+/** Escalade depuis une action corrective du Suivi. mission_id/finding_ids sont
+ *  derives serveur depuis l'action (seul actionId est transmis). */
+export interface FromAction { entityId: string; actionId: string; code: string; description: string }
+
 interface Props {
-  /** Émission simple (entité) ou escalade (à partir d'une mesure source). */
+  /** Émission simple (entité), escalade d'une mesure (source), ou escalade d'une action (fromAction). */
   entityId?: string
   source?: Measure | null
+  fromAction?: FromAction
   onClose: () => void
   onSaved: () => void
 }
 
-export function MeasureFormModal({ entityId, source, onClose, onSaved }: Props): JSX.Element {
+export function MeasureFormModal({ entityId, source, fromAction, onClose, onSaved }: Props): JSX.Element {
   const toast = useToast()
   const { busy, issue, escalate } = useIssueMeasure()
   const isEscalate = !!source
-  // En escalade : seuls les niveaux strictement supérieurs sont proposés.
+  const isFromAction = !!fromAction
+  // En escalade de mesure : seuls les niveaux strictement supérieurs sont proposés.
   const allowed = isEscalate
     ? MEASURE_TYPE_ORDER.filter((t) => MEASURE_TYPE_ORDER.indexOf(t) > MEASURE_TYPE_ORDER.indexOf(source!.measure_type))
     : [...MEASURE_TYPE_ORDER]
 
   const [measureType, setMeasureType] = useState<MeasureType>(allowed[0])
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState(fromAction ? `Suite à l'action ${fromAction.code}` : '')
   const [legalBasis, setLegalBasis] = useState('')
   const [deadline, setDeadline] = useState('')
-  const [body, setBody] = useState('')
+  const [body, setBody] = useState(fromAction ? fromAction.description : '')
 
   const field = 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700'
 
@@ -36,9 +42,11 @@ export function MeasureFormModal({ entityId, source, onClose, onSaved }: Props):
     const common = { measure_type: measureType, title: title.trim(), legal_basis: legalBasis || null, deadline: deadline || null, body: body || null }
     const res = isEscalate
       ? await escalate({ measure_id: source!.id, ...common })
-      : await issue({ entity_id: entityId, ...common })
+      : isFromAction
+        ? await issue({ entity_id: fromAction!.entityId, source_action_id: fromAction!.actionId, ...common })
+        : await issue({ entity_id: entityId, ...common })
     if (!res.ok) { toast.error(res.error ?? 'Action impossible'); return }
-    toast.success(isEscalate ? 'Mesure escaladée' : 'Mesure émise')
+    toast.success(isEscalate || isFromAction ? 'Mesure escaladée' : 'Mesure émise')
     onSaved()
   }
 
@@ -46,12 +54,15 @@ export function MeasureFormModal({ entityId, source, onClose, onSaved }: Props):
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={(ev) => ev.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">{isEscalate ? 'Escalader la mesure' : 'Émettre une mesure'}</h3>
+          <h3 className="font-semibold text-gray-900">{isEscalate ? 'Escalader la mesure' : isFromAction ? 'Escalader en mesure' : 'Émettre une mesure'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
         <form onSubmit={submit} className="px-5 py-4 space-y-3">
           {isEscalate && (
             <p className="text-[12px] text-gray-500">Depuis&nbsp;: <b>{MEASURE_TYPE_LABELS[source!.measure_type]}</b>, {source!.title}</p>
+          )}
+          {isFromAction && (
+            <p className="text-[12px] text-gray-500">Depuis l&apos;action&nbsp;: <b>{fromAction!.code}</b></p>
           )}
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Type de mesure *</label>
@@ -80,7 +91,7 @@ export function MeasureFormModal({ entityId, source, onClose, onSaved }: Props):
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
             <button type="submit" disabled={busy} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-              {busy ? 'Enregistrement...' : isEscalate ? 'Escalader' : 'Émettre'}
+              {busy ? 'Enregistrement...' : (isEscalate || isFromAction) ? 'Escalader' : 'Émettre'}
             </button>
           </div>
         </form>
