@@ -4,11 +4,13 @@ import { Menu } from 'lucide-react'
 import { Breadcrumb } from './Breadcrumb'
 import { BellIcon } from '../icons/NavIcons'
 import { Badge } from '../ui/Badge'
-import { useNotifications } from '../../features/notifications/useNotifications'
+import type { UseNotificationsResult } from '../../features/notifications/useNotifications'
 import type { NotificationType } from '../../types/database.types'
 
 interface TopBarProps {
   onMenuToggle: () => void
+  /** Notifications remontées par AppLayout (une seule instance partagée avec la Sidebar). */
+  notifications: UseNotificationsResult
 }
 
 const typeConfig: Record<NotificationType, { label: string; variant: 'forest' | 'gold' | 'red' | 'green' | 'gray' }> = {
@@ -33,9 +35,9 @@ function timeAgo(dateStr: string): string {
   return `${days}j`
 }
 
-export function TopBar({ onMenuToggle }: TopBarProps) {
+export function TopBar({ onMenuToggle, notifications: notif }: TopBarProps) {
   const navigate = useNavigate()
-  const { notifications, unreadCount, markAsRead } = useNotifications()
+  const { notifications, unreadCount, markAsRead } = notif
   const [panelOpen, setPanelOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 

@@ -9,6 +9,8 @@ export interface GroupPermissions {
   canCreateCampaign: boolean
   canManageSubsidiaries: boolean
   canViewEntityDetail: boolean
+  /** L'org courante est-elle de type groupe/superviseur ? (déjà résolu via la hiérarchie) */
+  isGroup: boolean
   loading: boolean
 }
 
@@ -24,7 +26,7 @@ export interface GroupPermissions {
 export function useGroupPermissions(): GroupPermissions {
   const { profile } = useAuth()
   const { isGroup, loading: orgLoading } = useOrganizationHierarchy(profile?.organization_id)
-  const [permissions, setPermissions] = useState<Omit<GroupPermissions, 'loading'>>({
+  const [permissions, setPermissions] = useState<Omit<GroupPermissions, 'loading' | 'isGroup'>>({
     canViewSupervision: true,
     canCreateCampaign: true,
     canManageSubsidiaries: true,
@@ -113,5 +115,5 @@ export function useGroupPermissions(): GroupPermissions {
     return () => controller.abort()
   }, [profile?.id, isGroup, orgLoading])
 
-  return { ...permissions, loading }
+  return { ...permissions, isGroup, loading }
 }

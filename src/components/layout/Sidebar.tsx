@@ -10,7 +10,7 @@ import {
 } from '../icons/NavIcons'
 import { useAuth } from '../../hooks/useAuth'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
-import { useNotifications } from '../../features/notifications/useNotifications'
+import type { UseNotificationsResult } from '../../features/notifications/useNotifications'
 import { useVocab } from '../../features/edition/useVocab'
 import { useSidebarNavItems } from './useSidebarNav'
 import type { User } from '../../types/database.types'
@@ -20,14 +20,16 @@ interface SidebarProps {
   profile: User | null
   open: boolean
   onClose: () => void
+  /** Notifications remontées par AppLayout (une seule instance partagée avec TopBar). */
+  notifications: UseNotificationsResult
 }
 
 interface MenuItem { to: string; label: string; icon: ReactNode }
 interface MenuGroup { label: string; items: MenuItem[] }
 
-export function Sidebar({ profile, open, onClose }: SidebarProps) {
+export function Sidebar({ profile, open, onClose, notifications }: SidebarProps) {
   const { signOut } = useAuth()
-  const { canManageMembers, canEditOrganization, canManageRoles } = useCabinetPermissions()
+  const { canManageMembers, canEditOrganization, canManageRoles, canManageSupervisionAssignments, canManageRiskCriteria } = useCabinetPermissions()
   const hasOrgAccess = canManageMembers || canEditOrganization || canManageRoles
 
   // Menu profil groupé par nature (Compte / Organisation / Aide). La section
@@ -45,9 +47,9 @@ export function Sidebar({ profile, open, onClose }: SidebarProps) {
       ...(canManageMembers ? [{ to: '/demandes-support', label: 'Demandes support', icon: <Inbox size={20} strokeWidth={1.5} /> }] : []),
     ] },
   ]
-  const { unreadCount } = useNotifications()
+  const { unreadCount } = notifications
   const vocab = useVocab()
-  const { mainItems, groupItems } = useSidebarNavItems(profile?.organization_id)
+  const { mainItems, groupItems } = useSidebarNavItems({ canManageSupervisionAssignments, canManageRiskCriteria })
   const navigate = useNavigate()
   const { pathname } = useLocation()
   // Dans un workspace de module dédié, le logo porte le nom du MODULE (Risk/Vendor/Policy),

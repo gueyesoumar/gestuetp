@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import type { Notification } from '../../types/database.types'
 
-interface UseNotificationsResult {
+export interface UseNotificationsResult {
   notifications: Notification[]
   unreadCount: number
   loading: boolean

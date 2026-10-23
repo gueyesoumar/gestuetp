@@ -3,8 +3,6 @@ import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal,
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
-import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
-import { useOrganizationHierarchy } from '../../hooks/useOrganizationHierarchy'
 import { APP_MODULES, type ModuleCtx, type NavItem } from '../../features/edition/moduleRegistry'
 
 export type { NavItem }
@@ -15,14 +13,17 @@ export type { NavItem }
  * et les items de nav de chaque monde sont fournis par les modules activés.
  * Les workspaces dédiés Risk / Policy gardent leur sous-nav propre (ci-dessous).
  */
+/** Les flags de permission cabinet sont injectés par le parent (Sidebar) pour éviter
+ *  un second appel à useCabinetPermissions dans le shell (dédupe perf P2). isGroup est
+ *  lu depuis useGroupPermissions (qui résout déjà la hiérarchie) plutôt que via un
+ *  second useOrganizationHierarchy. */
 export function useSidebarNavItems(
-  organizationId: string | null | undefined,
+  perms: { canManageSupervisionAssignments: boolean; canManageRiskCriteria: boolean },
 ): { mainItems: NavItem[]; groupItems: NavItem[] } {
+  const { canManageSupervisionAssignments, canManageRiskCriteria } = perms
   const { hasCapability } = useEdition()
   const vocab = useVocab()
-  const { canViewSupervision } = useGroupPermissions()
-  const { canManageSupervisionAssignments, canManageRiskCriteria } = useCabinetPermissions()
-  const { isGroup } = useOrganizationHierarchy(organizationId ?? undefined)
+  const { canViewSupervision, isGroup } = useGroupPermissions()
   const { pathname } = useLocation()
 
   // Workspace dédié Gëstu Risk : sous /risque, la barre latérale bascule sur la

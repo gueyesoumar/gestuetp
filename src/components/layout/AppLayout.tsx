@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useVocab } from '../../features/edition/useVocab'
+import { useNotifications } from '../../features/notifications/useNotifications'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { DemoModeBanner } from '../../features/demo/DemoModeBanner'
@@ -12,6 +13,8 @@ export function AppLayout() {
   const { profile } = useAuth()
   const vocab = useVocab()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  // Une seule instance de notifications pour tout le shell (partagée Sidebar + TopBar).
+  const notifications = useNotifications()
 
   return (
     <div className="flex h-screen bg-page-bg">
@@ -19,11 +22,13 @@ export function AppLayout() {
         profile={profile}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        notifications={notifications}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar
           onMenuToggle={() => setSidebarOpen((prev) => !prev)}
+          notifications={notifications}
         />
 
         {vocab.contextBanner && (
