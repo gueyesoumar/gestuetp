@@ -3,6 +3,9 @@ import { describeVerdict, generateContextNarrative, generateMethodologyNarrative
 import { Prose, SectionBanner, H3 } from './components'
 import { RadarChart } from './charts'
 import { RecommendationsSection } from './recommendations'
+import { NCFactSheetsSection } from './nc-fiches'
+import { ActionPlanSection, ConclusionSection } from './action-conclusion'
+import { AnnexGlossarySection, AnnexEvidenceSection, AnnexReferencesSection, AnnexDistributionSection } from './annexes'
 import type { DecoratedData, ReportTheme } from './report-model'
 
 export interface SectionProps {
@@ -119,5 +122,12 @@ export const CONTENT_SECTIONS: ContentSection[] = [
   { key: 'methodology', title: 'Méthodologie', Component: MethodologySection },
   { key: 'synthesis', title: 'Synthèse exécutive', Component: SynthesisSection },
   { key: 'domains', title: 'Résultats par domaine', Component: DomainDetailsSection },
+  { key: 'nc_fiches', title: 'Fiches de non-conformités majeures', Component: NCFactSheetsSection },
   { key: 'recommendations', title: 'Recommandations', Component: RecommendationsSection },
+  { key: 'action_plan', title: 'Plan d’action', Component: ActionPlanSection },
+  { key: 'conclusion', title: 'Conclusion', Component: ConclusionSection },
+  { key: 'annex_glossary', title: 'Annexe A - Glossaire', Component: AnnexGlossarySection },
+  { key: 'annex_evidence', title: 'Annexe B - Preuves examinées', Component: AnnexEvidenceSection },
+  { key: 'annex_references', title: 'Annexe C - Références normatives', Component: AnnexReferencesSection },
+  { key: 'annex_distribution', title: 'Annexe D - Liste de diffusion', Component: AnnexDistributionSection },
 ]

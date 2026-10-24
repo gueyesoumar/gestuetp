@@ -83,3 +83,30 @@ export function H3({ children, theme }: { children: string; theme: ReportTheme }
     </View>
   )
 }
+
+/** Tableau : `widths` = ratios de largeur (flex). Les cellules RETOURNENT A LA LIGNE
+ *  automatiquement (react-pdf), plus besoin de tronquer comme en jsPDF. */
+export function PdfTable({ headers, rows, widths, theme }: { headers: string[]; rows: string[][]; widths: number[]; theme: ReportTheme }): JSX.Element {
+  return (
+    <View style={{ borderWidth: 0.5, borderColor: theme.border, borderRadius: 2, marginBottom: 6 }}>
+      <View style={{ flexDirection: 'row', backgroundColor: theme.primary }}>
+        {headers.map((h, i) => <Text key={i} style={{ flex: widths[i], paddingVertical: 4, paddingHorizontal: 5, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>{h}</Text>)}
+      </View>
+      {rows.map((row, ri) => (
+        <View key={ri} style={{ flexDirection: 'row', backgroundColor: ri % 2 ? '#faf9f7' : '#ffffff' }} wrap={false}>
+          {row.map((cell, ci) => <Text key={ci} style={{ flex: widths[ci], paddingVertical: 3.5, paddingHorizontal: 5, fontSize: 7.5, color: '#374151' }}>{cell}</Text>)}
+        </View>
+      ))}
+    </View>
+  )
+}
+
+/** Champ etiquete (fiches NC, blocs). */
+export function Field({ label, text, color }: { label: string; text: string; color?: string }): JSX.Element {
+  return (
+    <View style={{ marginBottom: 5 }}>
+      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: color ?? '#6b7280', marginBottom: 1 }}>{label.toUpperCase()}</Text>
+      <Text style={{ fontSize: 9, lineHeight: 1.4, color: '#374151' }}>{text}</Text>
+    </View>
+  )
+}

@@ -9,7 +9,11 @@ const page = StyleSheet.create({ cover: { padding: 0 } })
 
 // Lot 2a : couverture + lettre + sommaire + chrome. L'ordre des sections de contenu
 // deviendra pilote par template (D-REP-2). Les sections 2b/2c s'ajoutent ici.
-const DEFAULT_ORDER: string[] = ['context', 'methodology', 'synthesis', 'domains', 'recommendations']
+const DEFAULT_ORDER: string[] = [
+  'context', 'methodology', 'synthesis', 'domains', 'nc_fiches', 'recommendations',
+  'action_plan', 'conclusion',
+  'annex_glossary', 'annex_evidence', 'annex_references', 'annex_distribution',
+]
 
 export function AuditReportDocument({ data: raw }: { data: AuditReportData }): JSX.Element {
   const data = decorateData(raw)
