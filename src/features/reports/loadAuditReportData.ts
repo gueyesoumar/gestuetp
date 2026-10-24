@@ -147,7 +147,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   // 8. Documents (preuves examinées) - annexe B
   const { data: docRows, error: docsErr } = await supabase
     .from('documents')
-    .select('id, file_name, document_type, created_at')
+    .select('id, file_name, document_type:mime_type, created_at')
     .eq('mission_id', mission.id)
     .order('created_at', { ascending: false })
     .limit(200)
