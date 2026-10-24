@@ -153,7 +153,7 @@ function lightenRgb(rgb: RGB, ratio: number): RGB {
   ]
 }
 
-function computeTotals(assessments: AssessmentWithControl[]): AuditTotals {
+export function computeTotals(assessments: AssessmentWithControl[]): AuditTotals {
   let assessed = 0, c = 0, lc = 0, pc = 0, nc = 0, na = 0, ncMajor = 0, ncMinor = 0, observations = 0
   let scoreSum = 0, scoreCount = 0
   for (const a of assessments) {
@@ -178,7 +178,7 @@ function computeTotals(assessments: AssessmentWithControl[]): AuditTotals {
   }
 }
 
-function computeDomainStats(domains: DomainWithControls[], assessments: AssessmentWithControl[]): DomainStat[] {
+export function computeDomainStats(domains: DomainWithControls[], assessments: AssessmentWithControl[]): DomainStat[] {
   const byControl = new Map(assessments.map((a) => [a.control_id, a]))
   return domains.map((d) => {
     let scored = 0, sum = 0, conformes = 0, ncMajor = 0, ncMinor = 0, observations = 0

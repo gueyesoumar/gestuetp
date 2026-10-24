@@ -1,35 +1,42 @@
 import { Document, Page, View, StyleSheet } from '@react-pdf/renderer'
 import type { AuditReportData } from '../generateAuditReportPDF'
-import { buildTheme, computeTotals } from './report-model'
-import { CoverSection, CONTENT_SECTIONS, type ContentSection } from './sections'
+import { buildTheme, decorateData } from './report-model'
+import { CONTENT_SECTIONS, type ContentSection } from './sections'
+import { CoverSection, ExecutiveLetterSection, SommaireSection } from './front-matter'
+import { ReportPage } from './components'
 
-const page = StyleSheet.create({
-  cover: { padding: 0 },
-  content: { paddingVertical: 36, paddingHorizontal: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#1a2e23' },
-})
+const page = StyleSheet.create({ cover: { padding: 0 } })
 
-// Lot 1 (coquille) : couverture + synthese. L'ordre deviendra pilote par template (D-REP-2).
+// Lot 2a : couverture + lettre + sommaire + chrome. L'ordre des sections de contenu
+// deviendra pilote par template (D-REP-2). Les sections 2b/2c s'ajoutent ici.
 const DEFAULT_ORDER: string[] = ['synthesis']
 
-export function AuditReportDocument({ data }: { data: AuditReportData }): JSX.Element {
+export function AuditReportDocument({ data: raw }: { data: AuditReportData }): JSX.Element {
+  const data = decorateData(raw)
   const theme = buildTheme(data)
-  const totals = computeTotals(data.assessments)
   const sections = DEFAULT_ORDER
     .map((k) => CONTENT_SECTIONS.find((sec) => sec.key === k))
     .filter((sec): sec is ContentSection => Boolean(sec))
+  const sommaire = ['Lettre au comité d’audit', ...sections.map((sec) => sec.title)]
 
   return (
     <Document title={`Rapport d'audit - ${data.mission.name}`}>
       <Page size="A4" style={page.cover}>
-        <CoverSection data={data} totals={totals} theme={theme} />
+        <CoverSection data={data} theme={theme} />
       </Page>
-      <Page size="A4" style={page.content}>
+      <ReportPage data={data} theme={theme} footerLabel="Rapport d’audit">
+        <View {...{ bookmark: 'Lettre au comité d’audit' }}>
+          <ExecutiveLetterSection data={data} theme={theme} />
+        </View>
+        <View break {...{ bookmark: 'Sommaire' }}>
+          <SommaireSection entries={sommaire} theme={theme} />
+        </View>
         {sections.map((sec) => (
-          <View key={sec.key}>
-            <sec.Component data={data} totals={totals} theme={theme} />
+          <View key={sec.key} break {...{ bookmark: sec.title }}>
+            <sec.Component data={data} theme={theme} />
           </View>
         ))}
-      </Page>
+      </ReportPage>
     </Document>
   )
 }

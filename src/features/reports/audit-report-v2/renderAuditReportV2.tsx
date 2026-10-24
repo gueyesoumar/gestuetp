@@ -9,7 +9,9 @@ import { computeReportRef } from './report-model'
 export async function renderAuditReportV2(data: AuditReportData): Promise<void> {
   const blob = await pdf(<AuditReportDocument data={data} />).toBlob()
   const ref = computeReportRef(data.mission.id, data.mission.end_date)
-  triggerDownload(blob, `rapport-audit-${ref}.pdf`)
+  const safeName = (data.client?.client_name ?? data.mission.name).replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
+  const year = new Date(data.mission.end_date ?? Date.now()).getFullYear()
+  triggerDownload(blob, `Rapport_audit_${safeName}_${year}_${ref}.pdf`)
 }
 
 function triggerDownload(blob: Blob, filename: string): void {

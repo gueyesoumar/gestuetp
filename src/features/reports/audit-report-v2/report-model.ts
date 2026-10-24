@@ -1,8 +1,8 @@
-import { conformityWeight } from '../audit-report/utils'
-import type { AuditReportData, AssessmentWithControl } from '../generateAuditReportPDF'
+import type { AuditReportData } from '../generateAuditReportPDF'
+import { computeTotals, computeDomainStats, type AuditTotals, type DomainStat } from '../audit-report/context'
 
-// Modele de donnees du rapport v2 (react-pdf). Reutilise le loader et les helpers
-// existants ; ne depend PAS de jsPDF ni du DocContext (decouple du moteur v1).
+// Modele de donnees du rapport v2 (react-pdf). Reutilise le loader et les calculs
+// existants (computeTotals/computeDomainStats) ; ne depend PAS de jsPDF.
 
 export interface ReportTheme {
   primary: string
@@ -28,33 +28,15 @@ export function buildTheme(data: AuditReportData): ReportTheme {
   }
 }
 
-export interface ReportTotals {
-  total: number
-  assessed: number
-  conformes: number
-  ncMajor: number
-  ncMinor: number
-  observations: number
-  score: number
-}
+/** Donnees decorees des totaux : les fonctions de prose (auditReportNarratives)
+ *  lisent data.totals/data.domainStats, que le loader ne renseigne pas. */
+export type DecoratedData = AuditReportData & { totals: AuditTotals; domainStats: DomainStat[] }
 
-/** Memes ponderations que le moteur v1 (c=100, lc=75, pc=50, nc=0, na exclu). */
-export function computeTotals(assessments: AssessmentWithControl[]): ReportTotals {
-  let sum = 0
-  let n = 0
-  for (const a of assessments) {
-    const w = conformityWeight(a.conformity_level)
-    if (w !== null) { sum += w; n += 1 }
-  }
-  const by = (c: string): number => assessments.filter((a) => a.finding_classification === c).length
+export function decorateData(data: AuditReportData): DecoratedData {
   return {
-    total: assessments.length,
-    assessed: n,
-    conformes: assessments.filter((a) => a.conformity_level === 'c').length,
-    ncMajor: by('major_nc'),
-    ncMinor: by('minor_nc'),
-    observations: by('observation'),
-    score: n ? Math.round(sum / n) : 0,
+    ...data,
+    totals: computeTotals(data.assessments),
+    domainStats: computeDomainStats(data.domains, data.assessments),
   }
 }
 
