@@ -57,3 +57,29 @@ export function Prose({ paragraphs }: { paragraphs: string[] }): JSX.Element {
     </>
   )
 }
+
+/** Bandeau de section numerote (numero + titre + chapeau), comme le moteur v1. */
+export function SectionBanner({ num, title, lead, theme }: { num: string; title: string; lead?: string; theme: ReportTheme }): JSX.Element {
+  return (
+    <View style={{ marginBottom: 12 }} wrap={false}>
+      <View style={{ backgroundColor: theme.primary, padding: 12, flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: theme.accent, marginRight: 12 }}>{num}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>{title}</Text>
+          {lead ? <Text style={{ fontSize: 8.5, color: '#c7d4cd', marginTop: 2 }}>{lead}</Text> : null}
+        </View>
+      </View>
+      <View style={{ height: 1.5, backgroundColor: theme.accent }} />
+    </View>
+  )
+}
+
+/** Sous-titre avec filet dore court. */
+export function H3({ children, theme }: { children: string; theme: ReportTheme }): JSX.Element {
+  return (
+    <View style={{ marginTop: 8, marginBottom: 4 }}>
+      <Text style={{ fontSize: 11.5, fontFamily: 'Helvetica-Bold', color: theme.ink }}>{children}</Text>
+      <View style={{ height: 0.8, width: 28, backgroundColor: theme.accent, marginTop: 2 }} />
+    </View>
+  )
+}

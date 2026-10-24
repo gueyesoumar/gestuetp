@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from '@react-pdf/renderer'
-import { describeVerdict } from '../auditReportNarratives'
+import { describeVerdict, generateContextNarrative, generateMethodologyNarrative, generateExecutiveNarrative, generateDomainNarrative } from '../auditReportNarratives'
+import { Prose, SectionBanner, H3 } from './components'
 import type { DecoratedData, ReportTheme } from './report-model'
 
 export interface SectionProps {
@@ -8,23 +9,43 @@ export interface SectionProps {
 }
 
 const s = StyleSheet.create({
-  h2: { fontSize: 14, fontFamily: 'Helvetica-Bold', marginBottom: 8 },
   scoreRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderRadius: 4, marginBottom: 14 },
   scoreNum: { fontSize: 34, fontFamily: 'Helvetica-Bold', color: '#ffffff' },
   scoreLabel: { fontSize: 8, color: '#dfe8e3' },
   verdict: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
-  kpiRow: { flexDirection: 'row', gap: 8 },
+  kpiRow: { flexDirection: 'row', gap: 8, marginBottom: 6 },
   kpi: { flexGrow: 1, flexBasis: 0, borderWidth: 1, borderRadius: 4, padding: 8 },
   kpiVal: { fontSize: 18, fontFamily: 'Helvetica-Bold' },
-  kpiSub: { fontSize: 7, marginTop: 2 },
+  domHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f3f4f6', paddingVertical: 5, paddingHorizontal: 8, borderRadius: 3 },
+  domName: { flex: 1, fontSize: 10.5, fontFamily: 'Helvetica-Bold', marginRight: 8 },
+  domScore: { fontSize: 11, fontFamily: 'Helvetica-Bold' },
+  domStats: { fontSize: 8, marginTop: 3 },
 })
 
-export function Kpi({ label, value, sub, color, theme }: { label: string; value: string; sub: string; color: string; theme: ReportTheme }): JSX.Element {
+function Kpi({ label, value, sub, color, theme }: { label: string; value: string; sub: string; color: string; theme: ReportTheme }): JSX.Element {
   return (
     <View style={[s.kpi, { borderColor: theme.border }]}>
       <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: theme.muted }}>{label.toUpperCase()}</Text>
       <Text style={[s.kpiVal, { color }]}>{value}</Text>
-      <Text style={[s.kpiSub, { color: theme.muted }]}>{sub}</Text>
+      <Text style={{ fontSize: 7, marginTop: 2, color: theme.muted }}>{sub}</Text>
+    </View>
+  )
+}
+
+export function ContextSection({ data, theme }: SectionProps): JSX.Element {
+  return (
+    <View>
+      <SectionBanner num="01" title="Contexte de la mission" lead="Périmètre, objectifs et cadre de l'audit" theme={theme} />
+      <Prose paragraphs={generateContextNarrative(data)} />
+    </View>
+  )
+}
+
+export function MethodologySection({ data, theme }: SectionProps): JSX.Element {
+  return (
+    <View>
+      <SectionBanner num="02" title="Méthodologie" lead="Démarche, référentiel et barème d'évaluation" theme={theme} />
+      <Prose paragraphs={generateMethodologyNarrative(data)} />
     </View>
   )
 }
@@ -35,7 +56,7 @@ export function SynthesisSection({ data, theme }: SectionProps): JSX.Element {
   const vColor = v.label === 'Favorable' ? '#15803d' : v.label === 'Favorable avec réserves' ? theme.accent : v.label === 'Réservée' ? '#c2410c' : '#b91c1c'
   return (
     <View>
-      <Text style={[s.h2, { color: theme.ink }]}>Synthèse exécutive</Text>
+      <SectionBanner num="03" title="Synthèse exécutive" lead="Score de conformité, opinion et chiffres clés" theme={theme} />
       <View style={[s.scoreRow, { backgroundColor: theme.primary }]}>
         <View>
           <Text style={s.scoreLabel}>SCORE DE CONFORMITÉ</Text>
@@ -52,12 +73,36 @@ export function SynthesisSection({ data, theme }: SectionProps): JSX.Element {
         <Kpi label="NC majeures" value={`${t.ncMajor}`} sub="à traiter" color="#b91c1c" theme={theme} />
         <Kpi label="NC mineures" value={`${t.ncMinor}`} sub="à corriger" color="#c2410c" theme={theme} />
       </View>
+      <H3 theme={theme}>Lecture rapide</H3>
+      <Prose paragraphs={generateExecutiveNarrative(data)} />
     </View>
   )
 }
 
-/** Registre des sections de CONTENU (hors front-matter). Fondation des templates
- *  (D-REP-2) : un template choisira la liste, l'ordre et la visibilite par key. */
+export function DomainDetailsSection({ data, theme }: SectionProps): JSX.Element {
+  return (
+    <View>
+      <SectionBanner num="04" title="Résultats par domaine" lead="Score et analyse de chaque domaine du référentiel" theme={theme} />
+      {data.domainStats.map((d) => {
+        const color = d.score >= 80 ? '#15803d' : d.score >= 60 ? theme.accent : '#b91c1c'
+        return (
+          <View key={d.code} style={{ marginBottom: 10 }}>
+            <View style={s.domHead} wrap={false}>
+              <Text style={[s.domName, { color: theme.ink }]}>{d.code} : {d.name}</Text>
+              <Text style={[s.domScore, { color }]}>{d.score}%</Text>
+            </View>
+            <Text style={[s.domStats, { color: theme.muted }]}>
+              {d.scored}/{d.total} contrôles évalués {'·'} {d.conformes} conformes {'·'} {d.ncMajor} NC maj {'·'} {d.ncMinor} NC min {'·'} {d.observations} obs.
+            </Text>
+            <Prose paragraphs={generateDomainNarrative(d, data)} />
+          </View>
+        )
+      })}
+    </View>
+  )
+}
+
+/** Registre des sections de CONTENU (hors front-matter). Fondation des templates (D-REP-2). */
 export interface ContentSection {
   key: string
   title: string
@@ -65,5 +110,8 @@ export interface ContentSection {
 }
 
 export const CONTENT_SECTIONS: ContentSection[] = [
+  { key: 'context', title: 'Contexte de la mission', Component: ContextSection },
+  { key: 'methodology', title: 'Méthodologie', Component: MethodologySection },
   { key: 'synthesis', title: 'Synthèse exécutive', Component: SynthesisSection },
+  { key: 'domains', title: 'Résultats par domaine', Component: DomainDetailsSection },
 ]

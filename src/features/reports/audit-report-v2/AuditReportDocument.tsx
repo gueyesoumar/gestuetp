@@ -9,7 +9,7 @@ const page = StyleSheet.create({ cover: { padding: 0 } })
 
 // Lot 2a : couverture + lettre + sommaire + chrome. L'ordre des sections de contenu
 // deviendra pilote par template (D-REP-2). Les sections 2b/2c s'ajoutent ici.
-const DEFAULT_ORDER: string[] = ['synthesis']
+const DEFAULT_ORDER: string[] = ['context', 'methodology', 'synthesis', 'domains']
 
 export function AuditReportDocument({ data: raw }: { data: AuditReportData }): JSX.Element {
   const data = decorateData(raw)
