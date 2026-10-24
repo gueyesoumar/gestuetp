@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet } from '@react-pdf/renderer'
 import { describeVerdict, generateContextNarrative, generateMethodologyNarrative, generateExecutiveNarrative, generateDomainNarrative } from '../auditReportNarratives'
 import { Prose, SectionBanner, H3 } from './components'
+import { RadarChart } from './charts'
+import { RecommendationsSection } from './recommendations'
 import type { DecoratedData, ReportTheme } from './report-model'
 
 export interface SectionProps {
@@ -83,6 +85,9 @@ export function DomainDetailsSection({ data, theme }: SectionProps): JSX.Element
   return (
     <View>
       <SectionBanner num="04" title="Résultats par domaine" lead="Score et analyse de chaque domaine du référentiel" theme={theme} />
+      <View style={{ alignItems: 'center', marginBottom: 10 }} wrap={false}>
+        <RadarChart stats={data.domainStats} theme={theme} />
+      </View>
       {data.domainStats.map((d) => {
         const color = d.score >= 80 ? '#15803d' : d.score >= 60 ? theme.accent : '#b91c1c'
         return (
@@ -114,4 +119,5 @@ export const CONTENT_SECTIONS: ContentSection[] = [
   { key: 'methodology', title: 'Méthodologie', Component: MethodologySection },
   { key: 'synthesis', title: 'Synthèse exécutive', Component: SynthesisSection },
   { key: 'domains', title: 'Résultats par domaine', Component: DomainDetailsSection },
+  { key: 'recommendations', title: 'Recommandations', Component: RecommendationsSection },
 ]
