@@ -1,27 +1,15 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
-import { X } from 'lucide-react'
-import { DOCUMENT_CATALOGS, getSectionCatalog } from '../reports/document-catalogs'
-import type { SectionCatalogEntry } from '../reports/report-kit/catalog'
+import { useState, lazy, Suspense } from 'react'
+import { X, Plus } from 'lucide-react'
+import { DOCUMENT_CATALOGS } from '../reports/document-catalogs'
 import { TemplateTextsFields } from './TemplateTextsFields'
-import { TemplateSectionsList, type Row } from './TemplateSectionsList'
+import { TemplateSectionsList } from './TemplateSectionsList'
+import { useTemplateRows } from './useTemplateRows'
 import type { ReportDocumentType, ReportTemplate, ReportTemplateInsert } from '../../types/database.types'
 import { useToast } from '../../hooks/useToast'
 
 const TemplatePreviewPane = lazy(() => import('./TemplatePreviewPane'))
 
 interface Result { ok: boolean; error?: string }
-
-function buildRows(tpl: ReportTemplate | null | undefined, catalog: SectionCatalogEntry[]): Row[] {
-  const byKey = new Map(catalog.map((c) => [c.key, c.title]))
-  if (!tpl) return catalog.map((c) => ({ key: c.key, title: c.title, visible: true, options: {} }))
-  const rows: Row[] = []
-  for (const s of tpl.sections) {
-    const title = byKey.get(s.key)
-    if (title) { rows.push({ key: s.key, title, visible: s.visible, options: s.options ?? {} }); byKey.delete(s.key) }
-  }
-  for (const [key, title] of byKey) rows.push({ key, title, visible: false, options: {} })
-  return rows
-}
 
 interface Props {
   template?: ReportTemplate | null
@@ -38,20 +26,10 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
   const [scope, setScope] = useState<'cabinet' | 'client'>(template?.scope ?? 'cabinet')
   const [clientId, setClientId] = useState(template?.client_id ?? '')
   const [isDefault, setIsDefault] = useState(template?.is_default ?? false)
-  const [rows, setRows] = useState<Row[]>(() => buildRows(template, getSectionCatalog(template?.document_type ?? 'audit_report')))
+  const { rows, setRows, toggle, setOption, setCustomField, addCustom, removeCustom, previewSections, serialize } = useTemplateRows(template, docType)
   const [texts, setTexts] = useState<Record<string, string>>(template?.texts ?? {})
   const [showTexts, setShowTexts] = useState(false)
   const [busy, setBusy] = useState(false)
-
-  // Changer de type de document (nouveau modele seulement) recharge le catalogue.
-  useEffect(() => {
-    if (template) return
-    setRows(buildRows(null, getSectionCatalog(docType)))
-  }, [docType, template])
-
-  const toggle = (i: number): void => setRows((r) => r.map((row, k) => k === i ? { ...row, visible: !row.visible } : row))
-  const setOption = (i: number, key: string, value: unknown): void =>
-    setRows((r) => r.map((row, k) => k === i ? { ...row, options: { ...row.options, [key]: value } } : row))
 
   const submit = async (): Promise<void> => {
     if (!name.trim()) { toast.error('Le nom est requis'); return }
@@ -67,7 +45,7 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
       scope,
       client_id: scope === 'client' ? clientId : null,
       is_default: scope === 'cabinet' ? isDefault : false,
-      sections: rows.map((r) => ({ key: r.key, visible: r.visible, ...(Object.keys(r.options).length ? { options: r.options } : {}) })),
+      sections: serialize(),
       texts: cleanTexts,
     })
     setBusy(false)
@@ -76,7 +54,6 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
   }
 
   const field = 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700'
-  const previewSections = rows.map((r) => ({ key: r.key, visible: r.visible, options: r.options }))
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -115,8 +92,13 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
               )}
             </div>
             <div>
-              <p className="text-[12px] font-medium text-gray-600 mb-1">Sections (glisser pour réordonner, cocher pour afficher)</p>
-              <TemplateSectionsList rows={rows} onReorder={setRows} onToggle={toggle} onOption={setOption} />
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[12px] font-medium text-gray-600">Sections (glisser pour réordonner, cocher pour afficher)</p>
+                <button type="button" onClick={addCustom} className="inline-flex items-center gap-1 text-[11px] font-medium text-forest-700 hover:underline">
+                  <Plus size={13} /> Section libre
+                </button>
+              </div>
+              <TemplateSectionsList rows={rows} onReorder={setRows} onToggle={toggle} onOption={setOption} onCustomField={setCustomField} onRemove={removeCustom} />
             </div>
             <div>
               <button type="button" onClick={() => setShowTexts((s) => !s)} className="text-[12px] font-medium text-forest-700 hover:underline">

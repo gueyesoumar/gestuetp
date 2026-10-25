@@ -294,7 +294,15 @@ export interface PlatformRolePermissions {
   can_view_entity_detail?: boolean
 }
 
-export interface ReportTemplateSection { key: string; visible: boolean; options?: Record<string, unknown> }
+export interface ReportTemplateSection {
+  key: string
+  visible: boolean
+  options?: Record<string, unknown>
+  /** Section libre (A2) : contenu rédigé par le cabinet au lieu d'une section du catalogue. */
+  kind?: 'custom'
+  title?: string
+  body?: string
+}
 
 /** Template de rapport (RFC 0021 Lot 3, migration 00357). */
 /** Type de document couvert par un modèle (RFC 0021 E2, migration 00359). */

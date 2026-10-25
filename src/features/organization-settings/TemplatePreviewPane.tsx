@@ -6,10 +6,11 @@ import { ScopingNoteDocument } from '../reports/scoping-note-v2/ScopingNoteDocum
 import { buildSampleScopingData } from '../reports/scoping-note-v2/sampleScopingData'
 import { InterviewCRDocument } from '../reports/interview-cr-v2/InterviewCRDocument'
 import { buildSampleInterviewData } from '../reports/interview-cr-v2/sampleInterviewData'
+import type { ReportTemplateSection } from '../../types/database.types'
 
 interface Props {
   documentType: string
-  sections: { key: string; visible: boolean; options: Record<string, unknown> }[]
+  sections: ReportTemplateSection[]
   texts: Record<string, string>
 }
 

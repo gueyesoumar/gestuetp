@@ -1,6 +1,7 @@
 import { ROLE_LABELS } from '../../missions/mission-constants'
 import { computeDurationWeeks, type ScopingNoteData } from '../scoping-note/context'
 import type { ReportTheme } from '../report-kit/theme'
+import type { ReportTemplateSection } from '../../../types/database.types'
 
 // Modele de donnees de la note de cadrage v2 (react-pdf). Reutilise le type et les
 // calculs du moteur v1 ; ne depend PAS de jsPDF. RFC 0021 E2.1.
@@ -12,7 +13,7 @@ export interface ScopingDecoratedData extends ScopingNoteData {
   durationWeeks: number
   roleLabel: (role: string) => string
   /** Sections resolues du template (ordre + visibilite + options). */
-  templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null
+  templateSections?: ReportTemplateSection[] | null
   /** Surcharges de libelles du template. */
   templateTexts?: Record<string, string> | null
 }
@@ -29,7 +30,7 @@ export interface ScopingSectionProps {
 
 export function decorateScoping(
   data: ScopingNoteData,
-  templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null,
+  templateSections?: ReportTemplateSection[] | null,
   templateTexts?: Record<string, string> | null,
 ): ScopingDecoratedData {
   const excludedIds = new Set(data.exclusions.map((e) => e.control_id))

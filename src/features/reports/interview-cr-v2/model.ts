@@ -2,6 +2,7 @@ import { parseNotes, type Sections } from '../interview-cr/parse-notes'
 import { timeToMin } from '../interview-cr/static-helpers'
 import type { CRData } from '../interview-cr'
 import type { ReportTheme } from '../report-kit/theme'
+import type { ReportTemplateSection } from '../../../types/database.types'
 
 // Modele de donnees du compte-rendu d'entretien v2 (react-pdf). Reutilise le type et
 // le parseur de notes du moteur v1 ; ne depend PAS de jsPDF. RFC 0021 E2.2.
@@ -10,7 +11,7 @@ export interface CRDecoratedData extends CRData {
   parsed: Sections
   dateStr: string
   timeRange: string
-  templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null
+  templateSections?: ReportTemplateSection[] | null
   templateTexts?: Record<string, string> | null
 }
 
@@ -24,7 +25,7 @@ export interface CRSectionProps {
 
 export function decorateCR(
   data: CRData,
-  templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null,
+  templateSections?: ReportTemplateSection[] | null,
   templateTexts?: Record<string, string> | null,
 ): CRDecoratedData {
   const parsed = parseNotes(data.rawNotes)

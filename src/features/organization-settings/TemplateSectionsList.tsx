@@ -2,18 +2,20 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { TemplateSectionRow } from './TemplateSectionRow'
 
-export interface Row { key: string; title: string; visible: boolean; options: Record<string, unknown> }
+export interface Row { key: string; title: string; visible: boolean; options: Record<string, unknown>; kind?: 'custom'; body?: string }
 
 interface Props {
   rows: Row[]
   onReorder: (rows: Row[]) => void
   onToggle: (index: number) => void
   onOption: (index: number, key: string, value: unknown) => void
+  onCustomField: (index: number, field: 'title' | 'body', value: string) => void
+  onRemove: (index: number) => void
 }
 
 // Liste des sections du modele : glisser-deposer (dnd-kit) + capteurs pointeur ET
 // clavier pour l'accessibilite. Extraite du modal pour tenir la limite de taille.
-export function TemplateSectionsList({ rows, onReorder, onToggle, onOption }: Props): JSX.Element {
+export function TemplateSectionsList({ rows, onReorder, onToggle, onOption, onCustomField, onRemove }: Props): JSX.Element {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -32,7 +34,9 @@ export function TemplateSectionsList({ rows, onReorder, onToggle, onOption }: Pr
         <div className="border border-gray-200 rounded-lg divide-y divide-gray-50 overflow-hidden">
           {rows.map((row, i) => (
             <TemplateSectionRow key={row.key} rowKey={row.key} title={row.title} visible={row.visible}
-              options={row.options} onToggleVisible={() => onToggle(i)} onOption={(k, v) => onOption(i, k, v)} />
+              options={row.options} isCustom={row.kind === 'custom'} body={row.body ?? ''}
+              onToggleVisible={() => onToggle(i)} onOption={(k, v) => onOption(i, k, v)}
+              onCustomField={(field, v) => onCustomField(i, field, v)} onRemove={() => onRemove(i)} />
           ))}
         </div>
       </SortableContext>

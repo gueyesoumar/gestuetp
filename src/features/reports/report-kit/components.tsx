@@ -66,7 +66,7 @@ export function SectionBanner({ num, title, lead, theme }: { num: string; title:
   return (
     <View style={{ marginBottom: 12 }} wrap={false}>
       <View style={{ backgroundColor: theme.primary, padding: 12, flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: theme.accent, marginRight: 12 }}>{num}</Text>
+        {num ? <Text style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: theme.accent, marginRight: 12 }}>{num}</Text> : null}
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>{title}</Text>
           {lead ? <Text style={{ fontSize: 8.5, color: '#c7d4cd', marginTop: 2 }}>{lead}</Text> : null}
@@ -100,6 +100,18 @@ export function PdfTable({ headers, rows, widths, theme }: { headers: string[]; 
           {row.map((cell, ci) => <Text key={ci} style={{ flex: widths[ci], paddingVertical: 3.5, paddingHorizontal: 5, fontSize: 7.5, color: '#374151' }}>{cell}</Text>)}
         </View>
       ))}
+    </View>
+  )
+}
+
+/** Section libre (A2) : bandeau de section + texte redige par le cabinet. Le corps
+ *  est decoupe en paragraphes sur les sauts de ligne. Partagee par les 3 documents. */
+export function CustomSection({ num, title, body, theme }: { num?: string; title: string; body: string; theme: ReportTheme }): JSX.Element {
+  const paragraphs = body.split(/\n+/).map((p) => p.trim()).filter((p) => p.length > 0)
+  return (
+    <View>
+      <SectionBanner num={num ?? ''} title={title} theme={theme} />
+      <Prose paragraphs={paragraphs} />
     </View>
   )
 }

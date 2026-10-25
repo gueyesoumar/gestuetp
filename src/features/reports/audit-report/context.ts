@@ -1,6 +1,6 @@
 import type { MissionDetail, MissionMemberRow } from '../../missions/useMissionDetail'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
-import type { AssessmentFinding, CabinetClient, ControlAssessment } from '../../../types/database.types'
+import type { AssessmentFinding, CabinetClient, ControlAssessment, ReportTemplateSection } from '../../../types/database.types'
 import { conformityWeight } from './utils'
 
 // Types + calculs du rapport d'audit, PARTAGES par le moteur react-pdf v2. Le moteur
@@ -56,9 +56,9 @@ export interface AuditReportData {
   cabinetPrimaryColor: string | null
   cabinetAccentColor: string | null
   evidenceDocs: EvidenceDoc[]
-  /** Sections resolues du template de rapport (ordre + visibilite + options). null/absent =
-   *  ordre integre par defaut. RFC 0021 Lot 3. */
-  templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null
+  /** Sections resolues du template de rapport (ordre + visibilite + options + sections
+   *  libres A2). null/absent = ordre integre par defaut. RFC 0021 Lot 3. */
+  templateSections?: ReportTemplateSection[] | null
   /** Surcharges de libelles du template (RFC 0021 B1). null/absent = defauts. */
   templateTexts?: Record<string, string> | null
   /** Décoré par report-model.decorateData, pas requis côté loader. */

@@ -1,4 +1,4 @@
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Trash2 } from 'lucide-react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { SECTION_CATALOG } from '../reports/audit-report-v2/section-catalog'
@@ -8,16 +8,20 @@ interface Props {
   title: string
   visible: boolean
   options: Record<string, unknown>
+  isCustom: boolean
+  body: string
   onToggleVisible: () => void
   onOption: (key: string, value: unknown) => void
+  onCustomField: (field: 'title' | 'body', value: string) => void
+  onRemove: () => void
 }
 
-// Ligne de section de l'editeur : poignee de glisser-deposer (dnd-kit, accessible
-// clavier via les capteurs du modal) + visibilite + controles d'options GENERES
-// depuis le schema declaratif du catalogue (E1).
-export function TemplateSectionRow({ rowKey, title, visible, options, onToggleVisible, onOption }: Props): JSX.Element {
+// Ligne de section de l'editeur : poignee de glisser-deposer (dnd-kit) + visibilite.
+// Section du catalogue -> controles d'options generes (E1). Section libre (A2) ->
+// champ titre + zone de texte + suppression.
+export function TemplateSectionRow({ rowKey, title, visible, options, isCustom, body, onToggleVisible, onOption, onCustomField, onRemove }: Props): JSX.Element {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: rowKey })
-  const defs = SECTION_CATALOG.find((c) => c.key === rowKey)?.options ?? []
+  const defs = isCustom ? [] : (SECTION_CATALOG.find((c) => c.key === rowKey)?.options ?? [])
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
   return (
     <div ref={setNodeRef} style={style} className="px-3 py-2 bg-white">
@@ -27,9 +31,22 @@ export function TemplateSectionRow({ rowKey, title, visible, options, onToggleVi
           <GripVertical size={14} />
         </button>
         <input type="checkbox" checked={visible} onChange={onToggleVisible} />
-        <span className={`flex-1 text-[13px] ${visible ? 'text-gray-900' : 'text-gray-300 line-through'}`}>{title}</span>
+        {isCustom ? (
+          <>
+            <input value={title} onChange={(e) => onCustomField('title', e.target.value)} placeholder="Titre de la section"
+              className="flex-1 text-[13px] px-2 py-1 border border-gray-200 rounded focus:border-forest-700 outline-none" />
+            <button type="button" onClick={onRemove} className="text-gray-300 hover:text-red-600" aria-label="Supprimer la section"><Trash2 size={14} /></button>
+          </>
+        ) : (
+          <span className={`flex-1 text-[13px] ${visible ? 'text-gray-900' : 'text-gray-300 line-through'}`}>{title}</span>
+        )}
       </div>
-      {visible && defs.length > 0 && (
+      {isCustom && visible && (
+        <textarea value={body} onChange={(e) => onCustomField('body', e.target.value)} rows={3}
+          placeholder="Texte de la section (un paragraphe par ligne)"
+          className="mt-1.5 ml-11 w-[calc(100%-2.75rem)] text-[12px] px-2 py-1.5 border border-gray-200 rounded focus:border-forest-700 outline-none resize-y" />
+      )}
+      {!isCustom && visible && defs.length > 0 && (
         <div className="mt-1.5 ml-11 flex flex-wrap gap-x-4 gap-y-1">
           {defs.map((d) => d.type === 'toggle' ? (
             <label key={d.key} className="flex items-center gap-1.5 text-[11px] text-gray-600">
