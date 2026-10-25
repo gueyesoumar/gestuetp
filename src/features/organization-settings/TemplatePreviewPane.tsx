@@ -37,9 +37,13 @@ export default function TemplatePreviewPane({ documentType, sections, texts }: P
   }, [documentType, sections, texts])
 
   const doc = useMemo(() => buildDocument(snap.documentType, snap.sections, snap.texts), [snap])
+  // Cle de contenu : force un remount propre de PDFViewer a chaque changement (ordre,
+  // options, libelles, sections libres). Sans cela, react-pdf ne rafraichit pas l'apercu
+  // quand la STRUCTURE ne change pas de taille (ex: reordonnancement, edition de texte).
+  const docKey = useMemo(() => JSON.stringify(snap), [snap])
 
   return (
-    <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }} showToolbar={false}>
+    <PDFViewer key={docKey} style={{ width: '100%', height: '100%', border: 'none' }} showToolbar={false}>
       {doc}
     </PDFViewer>
   )
