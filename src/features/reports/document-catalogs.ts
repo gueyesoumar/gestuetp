@@ -4,6 +4,7 @@
 // multi-documents. SANS dependance react-pdf : importe uniquement les catalogues.
 import type { SectionCatalogEntry } from './report-kit/catalog'
 import { SECTION_CATALOG as AUDIT_SECTIONS } from './audit-report-v2/section-catalog'
+import { SCOPING_SECTION_CATALOG } from './scoping-note-v2/catalog'
 
 export type DocumentType = 'audit_report' | 'scoping_note' | 'interview_cr'
 
@@ -17,6 +18,7 @@ export interface DocumentCatalog {
  *  react-pdf et son catalogue sont livres (audit_report = E2.0 ; cadrage/CR = E2.1/E2.2). */
 export const DOCUMENT_CATALOGS: DocumentCatalog[] = [
   { type: 'audit_report', label: 'Rapport d\'audit', catalog: AUDIT_SECTIONS },
+  { type: 'scoping_note', label: 'Note de cadrage', catalog: SCOPING_SECTION_CATALOG },
 ]
 
 /** Catalogue de sections d'un type de document (repli : rapport d'audit). */

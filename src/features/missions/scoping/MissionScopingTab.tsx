@@ -1,6 +1,9 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Star } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { loadReportTemplate } from '../../reports/loadReportTemplate'
+import type { ScopingNoteData } from '../../reports/scoping-note/context'
 import { supabase } from '../../../lib/supabase'
 import { useScopingData } from './useScopingData'
 import { useSaveScoping } from './useSaveScoping'
@@ -25,6 +28,9 @@ import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import type { MissionDetail, MissionMemberRow } from '../useMissionDetail'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { CabinetClient } from '../../../types/database.types'
+
+const ScopingNoteV2Modal = lazy(() => import('../../reports/scoping-note-v2/ScopingNoteV2Modal'))
+type ScopingPreview = ScopingNoteData & { templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null; templateTexts?: Record<string, string> | null }
 
 interface MissionScopingTabProps {
   mission: MissionDetail
@@ -183,17 +189,28 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   }, [mission, requests, totalCount, answeredCount])
 
   // === ACTION 2: Generer la note de cadrage (PDF) ===
+  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021 E2.1). OFF par defaut
+  // -> chemin jsPDF inchange. ON -> apercu in-app de la note de cadrage.
+  const reportV2 = useFeatureFlag('report_engine_v2')
+  const [notePreview, setNotePreview] = useState<ScopingPreview | null>(null)
+
   const handleGenerateNote = useCallback(async () => {
     setActionSuccess(null)
     try {
-      const { generateScopingNotePDF } = await import('../../reports/generateScopingNotePDF')
-      await generateScopingNotePDF({ mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } })
-      setActionSuccess('Note de cadrage PDF t\u00e9l\u00e9charg\u00e9e.')
+      const base = { mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } }
+      if (reportV2.enabled) {
+        const tpl = await loadReportTemplate(mission.cabinet_id, mission.client_id ?? null, 'scoping_note')
+        setNotePreview({ ...base, templateSections: tpl?.sections ?? null, templateTexts: tpl?.texts ?? null })
+      } else {
+        const { generateScopingNotePDF } = await import('../../reports/generateScopingNotePDF')
+        await generateScopingNotePDF(base)
+        setActionSuccess('Note de cadrage PDF t\u00e9l\u00e9charg\u00e9e.')
+      }
     } catch (err) {
       console.error('handleGenerateNote:', err)
       setActionSuccess('Erreur lors de la g\u00e9n\u00e9ration du PDF.')
     }
-  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected, lead, associate])
+  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected, lead, associate, reportV2.enabled])
 
   // === ACTION 3: Valider le cadrage ===
   const handleValidateScoping = useCallback(async () => {
@@ -327,6 +344,12 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
             onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
           />
         )
+      )}
+
+      {notePreview && (
+        <Suspense fallback={null}>
+          <ScopingNoteV2Modal data={notePreview} onClose={() => setNotePreview(null)} />
+        </Suspense>
       )}
     </div>
   )
