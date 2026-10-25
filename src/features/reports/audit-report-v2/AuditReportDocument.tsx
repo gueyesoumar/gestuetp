@@ -22,10 +22,19 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
   const order = data.templateSections && data.templateSections.length > 0
     ? data.templateSections.filter((x) => x.visible).map((x) => x.key)
     : DEFAULT_ORDER
-  const sections = order
+  const resolved = order
     .map((k) => CONTENT_SECTIONS.find((sec) => sec.key === k))
     .filter((sec): sec is ContentSection => Boolean(sec))
-  const sommaire = ['Lettre au comité d’audit', ...sections.map((sec) => sec.title)]
+  // Numerotation derivee de la POSITION (et non codee en dur) : les sections de
+  // contenu sont numerotees 01,02,... et les annexes lettrees A,B,... selon leur
+  // ordre resolu (template compris).
+  let nCount = 0
+  let aCount = 0
+  const sections = resolved.map((sec) => ({
+    sec,
+    num: sec.key.startsWith('annex_') ? String.fromCharCode(65 + aCount++) : String(++nCount).padStart(2, '0'),
+  }))
+  const sommaire = ['Lettre au comité d’audit', ...sections.map((x) => x.sec.title)]
 
   return (
     <Document title={`Rapport d'audit - ${data.mission.name}`}>
@@ -39,9 +48,9 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
         <View break {...{ bookmark: 'Sommaire' }}>
           <SommaireSection entries={sommaire} theme={theme} />
         </View>
-        {sections.map((sec) => (
+        {sections.map(({ sec, num }) => (
           <View key={sec.key} break {...{ bookmark: sec.title }}>
-            <sec.Component data={data} theme={theme} />
+            <sec.Component data={data} theme={theme} num={num} />
           </View>
         ))}
       </ReportPage>

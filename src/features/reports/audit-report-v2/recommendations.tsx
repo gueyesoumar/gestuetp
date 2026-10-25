@@ -37,12 +37,12 @@ function RecoCard({ a, idx, theme }: { a: AssessmentWithControl; idx: number; th
   )
 }
 
-export function RecommendationsSection({ data, theme }: SectionProps): JSX.Element {
+export function RecommendationsSection({ data, theme, num }: SectionProps): JSX.Element {
   const items = data.assessments.filter(isFinding)
   const top = items.filter((a) => (a.recommendations ?? '').trim().length > 0).sort((a, b) => severity(a) - severity(b)).slice(0, 10)
   return (
     <View>
-      <SectionBanner num="06" title="Recommandations et matrice de priorisation" lead="Hiérarchisation des recommandations selon l'axe impact x effort" theme={theme} />
+      <SectionBanner num={num} title="Recommandations et matrice de priorisation" lead="Hiérarchisation des recommandations selon l'axe impact x effort" theme={theme} />
       <Prose paragraphs={generateRecommendationNarrative(data)} />
       {items.length === 0 ? (
         <Text style={{ fontSize: 10, color: theme.muted }}>Aucune recommandation à hiérarchiser à ce stade.</Text>
