@@ -1,4 +1,5 @@
 import type { SectionCatalogEntry } from '../reports/report-kit/catalog'
+import { getSampleBody } from '../reports/sampleBodies'
 
 const GLOBALS: { key: string; label: string; def: string }[] = [
   { key: 'cover.eyebrow', label: 'Couverture - en-tête', def: 'RAPPORT D’AUDIT' },
@@ -10,7 +11,7 @@ const inp = 'w-full px-2.5 py-1.5 text-[12px] border border-gray-200 rounded-md 
 
 /** Surcharges de libellés et de corps d'un template (B1 / B1.2). Placeholder = défaut ;
  *  un champ vide = on garde le défaut (ou le texte généré pour le corps). */
-export function TemplateTextsFields({ catalog, texts, onChange }: { catalog: SectionCatalogEntry[]; texts: Record<string, string>; onChange: (key: string, value: string) => void }): JSX.Element {
+export function TemplateTextsFields({ catalog, documentType, texts, onChange }: { catalog: SectionCatalogEntry[]; documentType: string; texts: Record<string, string>; onChange: (key: string, value: string) => void }): JSX.Element {
   return (
     <div className="space-y-4">
       <div>
@@ -32,8 +33,16 @@ export function TemplateTextsFields({ catalog, texts, onChange }: { catalog: Sec
               <input className={inp} value={texts[`${c.key}.title`] ?? ''} placeholder={`Titre : ${c.title}`} onChange={(e) => onChange(`${c.key}.title`, e.target.value)} />
               <input className={inp} value={texts[`${c.key}.lead`] ?? ''} placeholder={`Chapeau : ${c.lead}`} onChange={(e) => onChange(`${c.key}.lead`, e.target.value)} />
               {c.overridable && (
-                <textarea className={`${inp} resize-y`} rows={3} value={texts[`${c.key}.body`] ?? ''}
-                  placeholder="Corps : laisser vide pour le texte généré automatiquement" onChange={(e) => onChange(`${c.key}.body`, e.target.value)} />
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-gray-500">Corps du texte</span>
+                    <button type="button" onClick={() => onChange(`${c.key}.body`, getSampleBody(documentType, c.key))}
+                      className="text-[11px] font-medium text-forest-700 hover:underline">Charger le texte proposé</button>
+                  </div>
+                  <textarea className={`${inp} resize-y`} rows={4} value={texts[`${c.key}.body`] ?? ''}
+                    placeholder="Laisser vide pour le texte généré automatiquement, ou « Charger le texte proposé » puis adapter."
+                    onChange={(e) => onChange(`${c.key}.body`, e.target.value)} />
+                </div>
               )}
             </div>
           ))}
