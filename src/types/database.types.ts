@@ -310,7 +310,8 @@ export interface ReportTemplate {
 }
 
 export interface ReportTemplateInsert {
-  organization_id: string
+  /** Injecté par le hook (RLS impose organization_id = get_my_organization_id()). */
+  organization_id?: string
   name: string
   scope?: 'cabinet' | 'client'
   client_id?: string | null

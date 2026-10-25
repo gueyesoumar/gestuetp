@@ -6,6 +6,7 @@ import { RecommendationsSection } from './recommendations'
 import { NCFactSheetsSection } from './nc-fiches'
 import { ActionPlanSection, ConclusionSection } from './action-conclusion'
 import { AnnexGlossarySection, AnnexEvidenceSection, AnnexReferencesSection, AnnexDistributionSection } from './annexes'
+import { SECTION_CATALOG } from './section-catalog'
 import type { DecoratedData, ReportTheme } from './report-model'
 
 export interface SectionProps {
@@ -117,17 +118,22 @@ export interface ContentSection {
   Component: (props: SectionProps) => JSX.Element
 }
 
-export const CONTENT_SECTIONS: ContentSection[] = [
-  { key: 'context', title: 'Contexte de la mission', Component: ContextSection },
-  { key: 'methodology', title: 'Méthodologie', Component: MethodologySection },
-  { key: 'synthesis', title: 'Synthèse exécutive', Component: SynthesisSection },
-  { key: 'domains', title: 'Résultats par domaine', Component: DomainDetailsSection },
-  { key: 'nc_fiches', title: 'Fiches de non-conformités majeures', Component: NCFactSheetsSection },
-  { key: 'recommendations', title: 'Recommandations', Component: RecommendationsSection },
-  { key: 'action_plan', title: 'Plan d’action', Component: ActionPlanSection },
-  { key: 'conclusion', title: 'Conclusion', Component: ConclusionSection },
-  { key: 'annex_glossary', title: 'Annexe A - Glossaire', Component: AnnexGlossarySection },
-  { key: 'annex_evidence', title: 'Annexe B - Preuves examinées', Component: AnnexEvidenceSection },
-  { key: 'annex_references', title: 'Annexe C - Références normatives', Component: AnnexReferencesSection },
-  { key: 'annex_distribution', title: 'Annexe D - Liste de diffusion', Component: AnnexDistributionSection },
-]
+const COMPONENTS: Record<string, (props: SectionProps) => JSX.Element> = {
+  context: ContextSection,
+  methodology: MethodologySection,
+  synthesis: SynthesisSection,
+  domains: DomainDetailsSection,
+  nc_fiches: NCFactSheetsSection,
+  recommendations: RecommendationsSection,
+  action_plan: ActionPlanSection,
+  conclusion: ConclusionSection,
+  annex_glossary: AnnexGlossarySection,
+  annex_evidence: AnnexEvidenceSection,
+  annex_references: AnnexReferencesSection,
+  annex_distribution: AnnexDistributionSection,
+}
+
+// Derive du catalogue (ordre + libelles) : source unique partagee avec l'editeur.
+export const CONTENT_SECTIONS: ContentSection[] = SECTION_CATALOG
+  .map((c) => ({ key: c.key, title: c.title, Component: COMPONENTS[c.key] }))
+  .filter((c): c is ContentSection => Boolean(c.Component))
