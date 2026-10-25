@@ -1,12 +1,9 @@
-// Catalogue des sections de contenu du rapport (key + titre + chapeau + options
-// declarees), SANS dependance react-pdf : l'editeur de templates l'importe sans
-// tirer le moteur PDF. Source de verite des libelles/chapeaux/ordre/options.
+// Catalogue des sections de contenu du RAPPORT D'AUDIT (key + titre + chapeau +
+// options declarees). Les types et le resolveur sont dans le socle partage
+// (report-kit/catalog), reutilises par les autres documents (RFC 0021 E2).
+import { resolveOptions as resolveOptionsKit, type OptionDef, type SectionCatalogEntry } from '../report-kit/catalog'
 
-export type OptionDef =
-  | { key: string; label: string; type: 'toggle'; default: boolean }
-  | { key: string; label: string; type: 'number'; default: number; min: number; max: number }
-
-export interface SectionCatalogEntry { key: string; title: string; lead: string; options?: OptionDef[] }
+export type { OptionDef, SectionCatalogEntry }
 
 export const SECTION_CATALOG: SectionCatalogEntry[] = [
   { key: 'context', title: 'Contexte de la mission', lead: 'Périmètre, objectifs et cadre de l’audit' },
@@ -38,10 +35,7 @@ export const SECTION_CATALOG: SectionCatalogEntry[] = [
   { key: 'annex_distribution', title: 'Annexe D - Liste de diffusion', lead: 'Destinataires autorisés du présent rapport (confidentialité)' },
 ]
 
-/** Options resolues d'une section : defaut du catalogue + surcharge du template. */
+/** Options resolues d'une section du rapport d'audit (defaut catalogue + surcharge). */
 export function resolveOptions(sectionKey: string, templateOptions: Record<string, unknown> | undefined): Record<string, unknown> {
-  const defs = SECTION_CATALOG.find((c) => c.key === sectionKey)?.options ?? []
-  const out: Record<string, unknown> = {}
-  for (const d of defs) out[d.key] = templateOptions?.[d.key] ?? d.default
-  return out
+  return resolveOptionsKit(SECTION_CATALOG, sectionKey, templateOptions)
 }

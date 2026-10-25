@@ -1,18 +1,19 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { X } from 'lucide-react'
-import { SECTION_CATALOG } from '../reports/audit-report-v2/section-catalog'
+import { DOCUMENT_CATALOGS, getSectionCatalog } from '../reports/document-catalogs'
+import type { SectionCatalogEntry } from '../reports/report-kit/catalog'
 import { TemplateTextsFields } from './TemplateTextsFields'
 import { TemplateSectionsList, type Row } from './TemplateSectionsList'
-import type { ReportTemplate, ReportTemplateInsert } from '../../types/database.types'
+import type { ReportDocumentType, ReportTemplate, ReportTemplateInsert } from '../../types/database.types'
 import { useToast } from '../../hooks/useToast'
 
 const TemplatePreviewPane = lazy(() => import('./TemplatePreviewPane'))
 
 interface Result { ok: boolean; error?: string }
 
-function buildRows(tpl?: ReportTemplate | null): Row[] {
-  const byKey = new Map(SECTION_CATALOG.map((c) => [c.key, c.title]))
-  if (!tpl) return SECTION_CATALOG.map((c) => ({ key: c.key, title: c.title, visible: true, options: {} }))
+function buildRows(tpl: ReportTemplate | null | undefined, catalog: SectionCatalogEntry[]): Row[] {
+  const byKey = new Map(catalog.map((c) => [c.key, c.title]))
+  if (!tpl) return catalog.map((c) => ({ key: c.key, title: c.title, visible: true, options: {} }))
   const rows: Row[] = []
   for (const s of tpl.sections) {
     const title = byKey.get(s.key)
@@ -33,13 +34,20 @@ interface Props {
 export function TemplateEditorModal({ template, clients, onSave, onClose, onSaved }: Props): JSX.Element {
   const toast = useToast()
   const [name, setName] = useState(template?.name ?? '')
+  const [docType, setDocType] = useState<ReportDocumentType>(template?.document_type ?? 'audit_report')
   const [scope, setScope] = useState<'cabinet' | 'client'>(template?.scope ?? 'cabinet')
   const [clientId, setClientId] = useState(template?.client_id ?? '')
   const [isDefault, setIsDefault] = useState(template?.is_default ?? false)
-  const [rows, setRows] = useState<Row[]>(() => buildRows(template))
+  const [rows, setRows] = useState<Row[]>(() => buildRows(template, getSectionCatalog(template?.document_type ?? 'audit_report')))
   const [texts, setTexts] = useState<Record<string, string>>(template?.texts ?? {})
   const [showTexts, setShowTexts] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  // Changer de type de document (nouveau modele seulement) recharge le catalogue.
+  useEffect(() => {
+    if (template) return
+    setRows(buildRows(null, getSectionCatalog(docType)))
+  }, [docType, template])
 
   const toggle = (i: number): void => setRows((r) => r.map((row, k) => k === i ? { ...row, visible: !row.visible } : row))
   const setOption = (i: number, key: string, value: unknown): void =>
@@ -55,6 +63,7 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
     const res = await onSave({
       id: template?.id,
       name: name.trim(),
+      document_type: docType,
       scope,
       client_id: scope === 'client' ? clientId : null,
       is_default: scope === 'cabinet' ? isDefault : false,
@@ -81,6 +90,14 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
               <label className="block text-[12px] font-medium text-gray-600 mb-1">Nom du modèle *</label>
               <input value={name} onChange={(e) => setName(e.target.value)} className={field} autoFocus />
             </div>
+            {DOCUMENT_CATALOGS.length > 1 && (
+              <div>
+                <label className="block text-[12px] font-medium text-gray-600 mb-1">Type de document</label>
+                <select value={docType} onChange={(e) => setDocType(e.target.value as ReportDocumentType)} disabled={Boolean(template)} className={`${field} disabled:bg-gray-50 disabled:text-gray-400`}>
+                  {DOCUMENT_CATALOGS.map((d) => <option key={d.type} value={d.type}>{d.label}</option>)}
+                </select>
+              </div>
+            )}
             <div className="flex gap-2">
               <select value={scope} onChange={(e) => setScope(e.target.value as 'cabinet' | 'client')} className={field}>
                 <option value="cabinet">Défaut du cabinet</option>
@@ -111,9 +128,13 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
           <div className="hidden lg:flex flex-1 min-h-0 flex-col bg-gray-100">
             <p className="px-4 py-2 text-[11px] font-medium text-gray-500 border-b border-gray-200 bg-white">Aperçu (données d&rsquo;illustration)</p>
             <div className="flex-1 min-h-0">
-              <Suspense fallback={<div className="h-full flex items-center justify-center text-[13px] text-gray-400">Préparation de l&rsquo;aperçu...</div>}>
-                <TemplatePreviewPane sections={previewSections} texts={texts} />
-              </Suspense>
+              {docType === 'audit_report' ? (
+                <Suspense fallback={<div className="h-full flex items-center justify-center text-[13px] text-gray-400">Préparation de l&rsquo;aperçu...</div>}>
+                  <TemplatePreviewPane sections={previewSections} texts={texts} />
+                </Suspense>
+              ) : (
+                <div className="h-full flex items-center justify-center text-[13px] text-gray-400 px-6 text-center">Aperçu disponible prochainement pour ce type de document.</div>
+              )}
             </div>
           </div>
         </div>

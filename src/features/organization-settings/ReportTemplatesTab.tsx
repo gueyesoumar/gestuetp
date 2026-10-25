@@ -7,7 +7,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { useToast } from '../../hooks/useToast'
-import { SECTION_CATALOG } from '../reports/audit-report-v2/section-catalog'
+import { getSectionCatalog } from '../reports/document-catalogs'
 import type { ReportTemplate } from '../../types/database.types'
 
 export function ReportTemplatesTab(): JSX.Element {
@@ -20,7 +20,6 @@ export function ReportTemplatesTab(): JSX.Element {
 
   const clientOptions = clients.filter((c) => c.client_org_id).map((c) => ({ id: c.client_org_id as string, name: c.client_name }))
   const clientName = (id: string | null): string => clientOptions.find((c) => c.id === id)?.name ?? 'Client'
-  const total = SECTION_CATALOG.length
 
   const doDelete = async (): Promise<void> => {
     if (!toDelete) return
@@ -48,6 +47,7 @@ export function ReportTemplatesTab(): JSX.Element {
         <div className="border border-gray-200 rounded-xl divide-y divide-gray-50">
           {templates.map((t) => {
             const visible = t.sections.filter((s) => s.visible).length
+            const total = getSectionCatalog(t.document_type).length
             return (
               <div key={t.id} className="flex items-center gap-3 px-4 py-3">
                 <FileText size={16} className="text-forest-600 shrink-0" />

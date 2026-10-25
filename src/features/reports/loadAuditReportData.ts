@@ -162,6 +162,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     .from('report_templates')
     .select('scope, client_id, is_default, sections, texts')
     .eq('organization_id', mission.cabinet_id)
+    .eq('document_type', 'audit_report')
   if (tplErr) console.error('[loadAuditReportData] templates:', tplErr.message)
   if (tplRows && tplRows.length > 0) {
     const rows = tplRows as Array<{ scope: string; client_id: string | null; is_default: boolean; sections: { key: string; visible: boolean; options?: Record<string, unknown> }[]; texts: Record<string, string> | null }>

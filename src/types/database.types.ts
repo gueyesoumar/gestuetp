@@ -297,10 +297,14 @@ export interface PlatformRolePermissions {
 export interface ReportTemplateSection { key: string; visible: boolean; options?: Record<string, unknown> }
 
 /** Template de rapport (RFC 0021 Lot 3, migration 00357). */
+/** Type de document couvert par un modèle (RFC 0021 E2, migration 00359). */
+export type ReportDocumentType = 'audit_report' | 'scoping_note' | 'interview_cr'
+
 export interface ReportTemplate {
   id: string
   organization_id: string
   name: string
+  document_type: ReportDocumentType
   scope: 'cabinet' | 'client'
   client_id: string | null
   sections: ReportTemplateSection[]
@@ -316,6 +320,7 @@ export interface ReportTemplateInsert {
   /** Injecté par le hook (RLS impose organization_id = get_my_organization_id()). */
   organization_id?: string
   name: string
+  document_type?: ReportDocumentType
   scope?: 'cabinet' | 'client'
   client_id?: string | null
   sections?: ReportTemplateSection[]
