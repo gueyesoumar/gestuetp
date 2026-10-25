@@ -59,7 +59,7 @@ export function PerimetreSection({ data, theme, num, title, lead }: ScopingSecti
       <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <PerimeterGrid cards={cards} theme={theme} />
       <H3 theme={theme}>Domaines et inclusion par contrôle</H3>
-      <PdfTable theme={theme} headers={['Domaine', 'Libellé', 'Inclus / Total', 'Couverture']} widths={[18, 50, 18, 14]}
+      <PdfTable theme={theme} headers={['Domaine', 'Libellé', 'Inclus / Total', 'Couverture']} widths={[18, 50, 18, 14]} align={['left', 'left', 'right', 'right']}
         rows={data.domains.map((d) => {
           const total = d.controls.length
           const incl = d.controls.filter((c) => !data.excludedIds.has(c.id)).length

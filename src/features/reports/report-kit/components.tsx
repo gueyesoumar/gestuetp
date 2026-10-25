@@ -16,8 +16,11 @@ const st = StyleSheet.create({
   footer: { position: 'absolute', bottom: 22, left: 40, right: 40, flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 0.4, borderTopColor: '#e5e7eb', paddingTop: 5 },
   footerText: { fontSize: 7, color: '#6b7280' },
   watermark: { position: 'absolute', top: 360, left: 0, right: 0, textAlign: 'center', fontSize: 64, fontFamily: 'Helvetica-Bold', color: '#1a2e23', opacity: 0.045 },
-  para: { fontSize: 10, lineHeight: 1.5, color: '#374151', marginBottom: 6 },
+  para: { fontSize: 10, lineHeight: 1.5, color: '#374151', marginBottom: 7 },
 })
+
+// Rythme vertical commun (C3) : espacements harmonises entre les 3 documents.
+const SP = { section: 14, h3Top: 12, h3Bottom: 5 }
 
 /** Page de contenu avec en-tete, pied et pagination repetes (elements `fixed`),
  *  et filigrane discret. La couverture n'utilise PAS ce wrapper. */
@@ -61,10 +64,11 @@ export function Prose({ paragraphs }: { paragraphs: string[] }): JSX.Element {
   )
 }
 
-/** Bandeau de section numerote (numero + titre + chapeau). */
+/** Bandeau de section numerote (numero + titre + chapeau). `minPresenceAhead` evite
+ *  qu'un bandeau reste seul en bas de page (son contenu partant a la page suivante). */
 export function SectionBanner({ num, title, lead, theme }: { num: string; title: string; lead?: string; theme: ReportTheme }): JSX.Element {
   return (
-    <View style={{ marginBottom: 12 }} wrap={false}>
+    <View style={{ marginBottom: SP.section }} wrap={false} minPresenceAhead={72}>
       <View style={{ backgroundColor: theme.primary, padding: 12, flexDirection: 'row', alignItems: 'center' }}>
         {num ? <Text style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: theme.accent, marginRight: 12 }}>{num}</Text> : null}
         <View style={{ flex: 1 }}>
@@ -80,7 +84,7 @@ export function SectionBanner({ num, title, lead, theme }: { num: string; title:
 /** Sous-titre avec filet dore court. */
 export function H3({ children, theme }: { children: string; theme: ReportTheme }): JSX.Element {
   return (
-    <View style={{ marginTop: 8, marginBottom: 4 }}>
+    <View style={{ marginTop: SP.h3Top, marginBottom: SP.h3Bottom }} wrap={false}>
       <Text style={{ fontSize: 11.5, fontFamily: 'Helvetica-Bold', color: theme.ink }}>{children}</Text>
       <View style={{ height: 0.8, width: 28, backgroundColor: theme.accent, marginTop: 2 }} />
     </View>
@@ -89,15 +93,16 @@ export function H3({ children, theme }: { children: string; theme: ReportTheme }
 
 /** Tableau : `widths` = ratios de largeur (flex). Les cellules RETOURNENT A LA LIGNE
  *  automatiquement (react-pdf), plus besoin de tronquer comme en jsPDF. */
-export function PdfTable({ headers, rows, widths, theme }: { headers: string[]; rows: string[][]; widths: number[]; theme: ReportTheme }): JSX.Element {
+export function PdfTable({ headers, rows, widths, theme, align }: { headers: string[]; rows: string[][]; widths: number[]; theme: ReportTheme; align?: ('left' | 'right')[] }): JSX.Element {
+  const ta = (i: number): 'left' | 'right' => align?.[i] ?? 'left'
   return (
-    <View style={{ borderWidth: 0.5, borderColor: theme.border, borderRadius: 2, marginBottom: 6 }}>
+    <View style={{ borderWidth: 0.5, borderColor: theme.border, borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
       <View style={{ flexDirection: 'row', backgroundColor: theme.primary }}>
-        {headers.map((h, i) => <Text key={i} style={{ flex: widths[i], paddingVertical: 4, paddingHorizontal: 5, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>{h}</Text>)}
+        {headers.map((h, i) => <Text key={i} style={{ flex: widths[i], textAlign: ta(i), paddingVertical: 5, paddingHorizontal: 6, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>{h}</Text>)}
       </View>
       {rows.map((row, ri) => (
-        <View key={ri} style={{ flexDirection: 'row', backgroundColor: ri % 2 ? '#faf9f7' : '#ffffff' }} wrap={false}>
-          {row.map((cell, ci) => <Text key={ci} style={{ flex: widths[ci], paddingVertical: 3.5, paddingHorizontal: 5, fontSize: 7.5, color: '#374151' }}>{cell}</Text>)}
+        <View key={ri} style={{ flexDirection: 'row', backgroundColor: ri % 2 ? '#faf9f6' : '#ffffff' }} wrap={false}>
+          {row.map((cell, ci) => <Text key={ci} style={{ flex: widths[ci], textAlign: ta(ci), paddingVertical: 4, paddingHorizontal: 6, fontSize: 7.5, color: '#374151' }}>{cell}</Text>)}
         </View>
       ))}
     </View>
