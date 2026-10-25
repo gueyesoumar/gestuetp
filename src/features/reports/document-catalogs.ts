@@ -5,6 +5,7 @@
 import type { SectionCatalogEntry } from './report-kit/catalog'
 import { SECTION_CATALOG as AUDIT_SECTIONS } from './audit-report-v2/section-catalog'
 import { SCOPING_SECTION_CATALOG } from './scoping-note-v2/catalog'
+import { CR_SECTION_CATALOG } from './interview-cr-v2/catalog'
 
 export type DocumentType = 'audit_report' | 'scoping_note' | 'interview_cr'
 
@@ -19,6 +20,7 @@ export interface DocumentCatalog {
 export const DOCUMENT_CATALOGS: DocumentCatalog[] = [
   { type: 'audit_report', label: 'Rapport d\'audit', catalog: AUDIT_SECTIONS },
   { type: 'scoping_note', label: 'Note de cadrage', catalog: SCOPING_SECTION_CATALOG },
+  { type: 'interview_cr', label: 'Compte-rendu d\'entretien', catalog: CR_SECTION_CATALOG },
 ]
 
 /** Catalogue de sections d'un type de document (repli : rapport d'audit). */

@@ -4,6 +4,8 @@ import { AuditReportDocument } from '../reports/audit-report-v2/AuditReportDocum
 import { buildSampleReportData } from '../reports/audit-report-v2/sampleReportData'
 import { ScopingNoteDocument } from '../reports/scoping-note-v2/ScopingNoteDocument'
 import { buildSampleScopingData } from '../reports/scoping-note-v2/sampleScopingData'
+import { InterviewCRDocument } from '../reports/interview-cr-v2/InterviewCRDocument'
+import { buildSampleInterviewData } from '../reports/interview-cr-v2/sampleInterviewData'
 
 interface Props {
   documentType: string
@@ -19,6 +21,9 @@ function buildDocument(documentType: string, sections: Props['sections'], texts:
   const templateTexts = Object.keys(texts).length > 0 ? texts : null
   if (documentType === 'scoping_note') {
     return <ScopingNoteDocument data={{ ...buildSampleScopingData(), templateSections: sections, templateTexts }} />
+  }
+  if (documentType === 'interview_cr') {
+    return <InterviewCRDocument data={{ ...buildSampleInterviewData(), templateSections: sections, templateTexts }} />
   }
   return <AuditReportDocument data={{ ...buildSampleReportData(), templateSections: sections, templateTexts }} />
 }

@@ -128,7 +128,7 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
           <div className="hidden lg:flex flex-1 min-h-0 flex-col bg-gray-100">
             <p className="px-4 py-2 text-[11px] font-medium text-gray-500 border-b border-gray-200 bg-white">Aperçu (données d&rsquo;illustration)</p>
             <div className="flex-1 min-h-0">
-              {docType === 'audit_report' || docType === 'scoping_note' ? (
+              {docType === 'audit_report' || docType === 'scoping_note' || docType === 'interview_cr' ? (
                 <Suspense fallback={<div className="h-full flex items-center justify-center text-[13px] text-gray-400">Préparation de l&rsquo;aperçu...</div>}>
                   <TemplatePreviewPane documentType={docType} sections={previewSections} texts={texts} />
                 </Suspense>

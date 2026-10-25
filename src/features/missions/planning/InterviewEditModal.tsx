@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { generateCompteRendu } from './interviewHelpers'
 import { PvEditor } from './PvEditor'
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
+import { loadReportTemplateForMission } from '../../reports/loadReportTemplate'
+import type { CRData } from '../../reports/interview-cr'
 import type { ClientContact, InterviewScheduleUpdate, PvNotes } from '../../../types/database.types'
 import type { MissionMemberRow } from '../useMissionDetail'
 import type { AuditTopicWithControls } from './useAuditTopics'
 import type { InterviewWithRelations } from './usePlanningData'
+
+const InterviewCRV2Modal = lazy(() => import('../../reports/interview-cr-v2/InterviewCRV2Modal'))
+type CRPreview = CRData & { templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null; templateTexts?: Record<string, string> | null }
 
 interface InterviewEditModalProps {
   interview: InterviewWithRelations
@@ -36,6 +42,9 @@ export function InterviewEditModal({
   const [pvNotes, setPvNotes] = useState<PvNotes | null>(interview.pv_notes ?? null)
   const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set(interview.topic_ids))
   const [selectedActorIds, setSelectedActorIds] = useState<Set<string>>(new Set(interview.actor_ids))
+  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021 E2.2). OFF = jsPDF.
+  const reportV2 = useFeatureFlag('report_engine_v2')
+  const [crPreview, setCrPreview] = useState<CRPreview | null>(null)
 
   const auditorMembers = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
 
@@ -87,11 +96,18 @@ export function InterviewEditModal({
     const topicNames = Array.from(selectedTopicIds)
       .map((id) => topics.find((t) => t.id === id)?.name)
       .filter((n): n is string => Boolean(n))
-    const { generateInterviewCRPDF } = await import('../../reports/generateInterviewCRPDF')
-    generateInterviewCRPDF({ interview, contact: firstActor, auditorName, missionName, rawNotes: notes, controlCodes: topicNames })
+    const base = { interview, contact: firstActor, auditorName, missionName, rawNotes: notes, controlCodes: topicNames }
+    if (reportV2.enabled) {
+      const tpl = await loadReportTemplateForMission(interview.mission_id, 'interview_cr')
+      setCrPreview({ ...base, templateSections: tpl?.sections ?? null, templateTexts: tpl?.texts ?? null })
+    } else {
+      const { generateInterviewCRPDF } = await import('../../reports/generateInterviewCRPDF')
+      generateInterviewCRPDF(base)
+    }
   }
 
   return (
+    <>
     <Modal open onClose={onClose} title="Modifier l&rsquo;entretien">
       <div className="space-y-4 max-h-[70vh] overflow-y-auto">
         {error && <ErrorAlert message={error} />}
@@ -220,6 +236,12 @@ export function InterviewEditModal({
         </div>
       </div>
     </Modal>
+    {crPreview && (
+      <Suspense fallback={null}>
+        <InterviewCRV2Modal data={crPreview} onClose={() => setCrPreview(null)} />
+      </Suspense>
+    )}
+    </>
   )
 }
 

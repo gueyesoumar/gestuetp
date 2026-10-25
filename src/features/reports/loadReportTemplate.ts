@@ -22,3 +22,16 @@ export async function loadReportTemplate(
   const chosen = rows.find((t) => t.scope === 'client' && t.client_id === clientId) ?? rows.find((t) => t.scope === 'cabinet' && t.is_default)
   return chosen ? { sections: chosen.sections, texts: chosen.texts } : null
 }
+
+/** Variante quand seul l'id de mission est connu (ex: CR d'entretien) : resout
+ *  d'abord le cabinet et le client de la mission. */
+export async function loadReportTemplateForMission(missionId: string, documentType: string): Promise<ResolvedTemplate | null> {
+  const { data, error } = await supabase
+    .from('missions')
+    .select('cabinet_id, client_id')
+    .eq('id', missionId)
+    .single()
+  if (error || !data) { if (error) console.error('[loadReportTemplateForMission]', error.message); return null }
+  const m = data as { cabinet_id: string; client_id: string | null }
+  return loadReportTemplate(m.cabinet_id, m.client_id, documentType)
+}
