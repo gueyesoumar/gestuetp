@@ -58,6 +58,8 @@ export interface AuditReportData {
   /** Sections resolues du template de rapport (ordre + visibilite). null/absent =
    *  ordre integre par defaut. RFC 0021 Lot 3. */
   templateSections?: { key: string; visible: boolean }[] | null
+  /** Surcharges de libelles du template (RFC 0021 B1). null/absent = defauts. */
+  templateTexts?: Record<string, string> | null
   /** Décoré par createContext, pas requis côté loader. */
   totals?: AuditTotals
   domainStats?: DomainStat[]

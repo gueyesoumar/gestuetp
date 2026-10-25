@@ -2,7 +2,9 @@ import { View, Text, StyleSheet } from '@react-pdf/renderer'
 import { frameworkLabel, clientLabel, generateExecutiveLetterBody } from '../auditReportNarratives'
 import { formatDate, formatPeriodShort } from '../audit-report/utils'
 import { Prose } from './components'
-import { computeReportRef, type DecoratedData, type ReportTheme } from './report-model'
+import { computeReportRef, resolveText, type DecoratedData, type ReportTheme } from './report-model'
+
+type Texts = Record<string, string> | null
 
 const f = StyleSheet.create({
   cover: { flexGrow: 1, padding: 40, justifyContent: 'space-between' },
@@ -24,7 +26,7 @@ const f = StyleSheet.create({
   somLabel: { fontSize: 10, color: '#374151' },
 })
 
-export function CoverSection({ data, theme }: { data: DecoratedData; theme: ReportTheme }): JSX.Element {
+export function CoverSection({ data, theme, texts }: { data: DecoratedData; theme: ReportTheme; texts: Texts }): JSX.Element {
   const ref = computeReportRef(data.mission.id, data.mission.end_date)
   const fw = frameworkLabel(data)
   const title = fw === 'le référentiel applicable' ? 'Rapport d’audit de conformité' : `Rapport d’audit - ${fw}`
@@ -35,18 +37,18 @@ export function CoverSection({ data, theme }: { data: DecoratedData; theme: Repo
         <Text style={[f.coverRef, { color: theme.accent }]}>{ref}</Text>
       </View>
       <View>
-        <Text style={[f.eyebrow, { color: theme.accent }]}>RAPPORT D{'’'}AUDIT</Text>
+        <Text style={[f.eyebrow, { color: theme.accent }]}>{resolveText(texts, 'cover.eyebrow', 'RAPPORT D’AUDIT')}</Text>
         <Text style={f.title}>{title}</Text>
         <Text style={f.client}>{clientLabel(data)}</Text>
         <Text style={f.meta}>Période d{'’'}audit : {formatPeriodShort(data.mission.start_date, data.mission.end_date)}</Text>
         <Text style={f.meta}>Émis le {formatDate(new Date().toISOString())}</Text>
       </View>
-      <Text style={f.conf}>Confidentiel - Diffusion restreinte</Text>
+      <Text style={f.conf}>{resolveText(texts, 'cover.confidentiality', 'Confidentiel - Diffusion restreinte')}</Text>
     </View>
   )
 }
 
-export function ExecutiveLetterSection({ data, theme }: { data: DecoratedData; theme: ReportTheme }): JSX.Element {
+export function ExecutiveLetterSection({ data, theme, texts }: { data: DecoratedData; theme: ReportTheme; texts: Texts }): JSX.Element {
   return (
     <View>
       <Text style={[f.h2, { color: theme.ink }]}>Lettre au comité d{'’'}audit</Text>
@@ -56,7 +58,7 @@ export function ExecutiveLetterSection({ data, theme }: { data: DecoratedData; t
       <Text style={f.recipientSub}>Comité d{'’'}audit et instances de gouvernance</Text>
       <Prose paragraphs={generateExecutiveLetterBody(data)} />
       <Text style={f.sign}>Pour {data.cabinetName},</Text>
-      <Text style={f.sign}>L{'’'}équipe d{'’'}audit</Text>
+      <Text style={f.sign}>{resolveText(texts, 'letter.closing', 'L’équipe d’audit')}</Text>
     </View>
   )
 }

@@ -14,6 +14,9 @@ export interface SectionProps {
   theme: ReportTheme
   /** Numero/lettre de section calcule selon la position dans l'ordre resolu. */
   num: string
+  /** Titre et chapeau resolus (surcharge template B1 sinon defaut catalogue). */
+  title: string
+  lead: string
 }
 
 const s = StyleSheet.create({
@@ -40,31 +43,31 @@ function Kpi({ label, value, sub, color, theme }: { label: string; value: string
   )
 }
 
-export function ContextSection({ data, theme, num }: SectionProps): JSX.Element {
+export function ContextSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   return (
     <View>
-      <SectionBanner num={num} title="Contexte de la mission" lead="Périmètre, objectifs et cadre de l'audit" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <Prose paragraphs={generateContextNarrative(data)} />
     </View>
   )
 }
 
-export function MethodologySection({ data, theme, num }: SectionProps): JSX.Element {
+export function MethodologySection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   return (
     <View>
-      <SectionBanner num={num} title="Méthodologie" lead="Démarche, référentiel et barème d'évaluation" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <Prose paragraphs={generateMethodologyNarrative(data)} />
     </View>
   )
 }
 
-export function SynthesisSection({ data, theme, num }: SectionProps): JSX.Element {
+export function SynthesisSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   const t = data.totals
   const v = describeVerdict(t.conformityScore, t.ncMajor)
   const vColor = v.label === 'Favorable' ? '#15803d' : v.label === 'Favorable avec réserves' ? theme.accent : v.label === 'Réservée' ? '#c2410c' : '#b91c1c'
   return (
     <View>
-      <SectionBanner num={num} title="Synthèse exécutive" lead="Score de conformité, opinion et chiffres clés" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <View style={[s.scoreRow, { backgroundColor: theme.primary }]}>
         <View>
           <Text style={s.scoreLabel}>SCORE DE CONFORMITÉ</Text>
@@ -87,10 +90,10 @@ export function SynthesisSection({ data, theme, num }: SectionProps): JSX.Elemen
   )
 }
 
-export function DomainDetailsSection({ data, theme, num }: SectionProps): JSX.Element {
+export function DomainDetailsSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   return (
     <View>
-      <SectionBanner num={num} title="Résultats par domaine" lead="Score et analyse de chaque domaine du référentiel" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <View style={{ alignItems: 'center', marginBottom: 10 }} wrap={false}>
         <RadarChart stats={data.domainStats} theme={theme} />
       </View>

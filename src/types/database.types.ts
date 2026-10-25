@@ -304,6 +304,9 @@ export interface ReportTemplate {
   scope: 'cabinet' | 'client'
   client_id: string | null
   sections: ReportTemplateSection[]
+  /** Surcharges de libellés fixes (clés plates : `<sectionKey>.title`, `.lead`,
+   *  `cover.eyebrow`, `cover.confidentiality`, `letter.closing`). RFC 0021 B1. */
+  texts: Record<string, string>
   is_default: boolean
   created_at: string
   updated_at: string
@@ -316,6 +319,7 @@ export interface ReportTemplateInsert {
   scope?: 'cabinet' | 'client'
   client_id?: string | null
   sections?: ReportTemplateSection[]
+  texts?: Record<string, string>
   is_default?: boolean
 }
 

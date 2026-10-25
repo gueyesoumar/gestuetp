@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, ArrowUp, ArrowDown } from 'lucide-react'
 import { SECTION_CATALOG } from '../reports/audit-report-v2/section-catalog'
+import { TemplateTextsFields } from './TemplateTextsFields'
 import type { ReportTemplate, ReportTemplateInsert } from '../../types/database.types'
 import { useToast } from '../../hooks/useToast'
 
@@ -34,6 +35,8 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
   const [clientId, setClientId] = useState(template?.client_id ?? '')
   const [isDefault, setIsDefault] = useState(template?.is_default ?? false)
   const [rows, setRows] = useState<Row[]>(() => buildRows(template))
+  const [texts, setTexts] = useState<Record<string, string>>(template?.texts ?? {})
+  const [showTexts, setShowTexts] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const move = (i: number, d: -1 | 1): void => setRows((r) => {
@@ -47,6 +50,9 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
     if (!name.trim()) { toast.error('Le nom est requis'); return }
     if (scope === 'client' && !clientId) { toast.error('Sélectionnez un client'); return }
     setBusy(true)
+    const cleanTexts = Object.fromEntries(
+      Object.entries(texts).filter(([, v]) => v.trim().length > 0).map(([k, v]) => [k, v.trim()]),
+    )
     const res = await onSave({
       id: template?.id,
       name: name.trim(),
@@ -54,6 +60,7 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
       client_id: scope === 'client' ? clientId : null,
       is_default: scope === 'cabinet' ? isDefault : false,
       sections: rows.map((r) => ({ key: r.key, visible: r.visible })),
+      texts: cleanTexts,
     })
     setBusy(false)
     if (!res.ok) { toast.error(res.error ?? 'Enregistrement impossible'); return }
@@ -101,6 +108,12 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
                 </div>
               ))}
             </div>
+          </div>
+          <div>
+            <button type="button" onClick={() => setShowTexts((s) => !s)} className="text-[12px] font-medium text-forest-700 hover:underline">
+              {showTexts ? 'Masquer' : 'Personnaliser'} les libellés
+            </button>
+            {showTexts && <div className="mt-2"><TemplateTextsFields texts={texts} onChange={(k, v) => setTexts((s) => ({ ...s, [k]: v }))} /></div>}
           </div>
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100 sticky bottom-0 bg-white">

@@ -11,11 +11,11 @@ const sev = (a: AssessmentWithControl): number =>
 const typeLabel = (a: AssessmentWithControl): string =>
   a.finding_classification === 'major_nc' ? 'NC maj' : a.finding_classification === 'minor_nc' ? 'NC min' : 'Obs.'
 
-export function ActionPlanSection({ data, theme, num }: SectionProps): JSX.Element {
+export function ActionPlanSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   const items = data.assessments.filter(isFinding).sort((a, b) => sev(a) - sev(b) || a.control.code.localeCompare(b.control.code))
   return (
     <View>
-      <SectionBanner num={num} title="Plan d'action de remédiation" lead="Récapitulatif des actions correctives, suivies sur la plateforme" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <Prose paragraphs={generateActionPlanNarrative(data)} />
       {items.length === 0 ? (
         <Text style={{ fontSize: 10, color: theme.muted }}>Aucune action à inscrire au plan : aucune non-conformité ni observation.</Text>
@@ -36,10 +36,10 @@ export function ActionPlanSection({ data, theme, num }: SectionProps): JSX.Eleme
   )
 }
 
-export function ConclusionSection({ data, theme, num }: SectionProps): JSX.Element {
+export function ConclusionSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   return (
     <View>
-      <SectionBanner num={num} title="Conclusion" lead="Synthèse du jugement d'audit et suites attendues" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <Prose paragraphs={generateConclusionNarrative(data)} />
     </View>
   )

@@ -15,20 +15,20 @@ function KeyVal({ k, v, theme, kw = 70 }: { k: string; v: string; theme: ReportT
   )
 }
 
-export function AnnexGlossarySection({ theme, num }: SectionProps): JSX.Element {
+export function AnnexGlossarySection({ theme, num, title, lead }: SectionProps): JSX.Element {
   return (
     <View>
-      <SectionBanner num={num} title="Glossaire" lead="Définitions des termes techniques utilisés dans le rapport" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       {generateGlossary().map((g) => <KeyVal key={g.term} k={g.term} v={g.def} theme={theme} kw={90} />)}
     </View>
   )
 }
 
-export function AnnexEvidenceSection({ data, theme, num }: SectionProps): JSX.Element {
+export function AnnexEvidenceSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   const docs = data.evidenceDocs
   return (
     <View>
-      <SectionBanner num={num} title="Preuves examinées" lead="Éléments documentaires versés au dossier de mission" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       {docs.length === 0 ? (
         <Text style={{ fontSize: 9.5, lineHeight: 1.5, color: theme.muted }}>Aucun document versé au dossier via la plateforme. Les preuves examinées ont fait l&rsquo;objet de constats archivés dans les fiches de travail internes.</Text>
       ) : (
@@ -43,7 +43,7 @@ export function AnnexEvidenceSection({ data, theme, num }: SectionProps): JSX.El
   )
 }
 
-export function AnnexReferencesSection({ data, theme, num }: SectionProps): JSX.Element {
+export function AnnexReferencesSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   const fw = frameworkLabel(data)
   const refs: { ref: string; title: string }[] = [
     { ref: fw || 'Référentiel d’audit', title: 'Cadre de référence principal de la mission' },
@@ -54,7 +54,7 @@ export function AnnexReferencesSection({ data, theme, num }: SectionProps): JSX.
   ]
   return (
     <View>
-      <SectionBanner num={num} title="Références normatives" lead="Standards et bonnes pratiques mobilisés au cours de l'audit" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       {refs.map((r) => <KeyVal key={r.ref} k={r.ref} v={r.title} theme={theme} kw={110} />)}
     </View>
   )
@@ -70,10 +70,10 @@ function DistRow({ name, role, email, theme }: { name: string; role: string; ema
   )
 }
 
-export function AnnexDistributionSection({ data, theme, num }: SectionProps): JSX.Element {
+export function AnnexDistributionSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   return (
     <View>
-      <SectionBanner num={num} title="Liste de diffusion" lead="Destinataires autorisés du présent rapport (confidentialité)" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       <Prose paragraphs={['Le présent rapport est confidentiel ; sa diffusion est strictement restreinte aux personnes listées ci-dessous. Toute communication ou reproduction hors de ce périmètre nécessite l’accord écrit préalable du cabinet.']} />
       <H3 theme={theme}>Côté cabinet</H3>
       {data.members.map((m) => {

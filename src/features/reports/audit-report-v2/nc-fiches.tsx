@@ -7,11 +7,11 @@ import type { SectionProps } from './sections'
 // Section 05. D-REP-5 : on affiche le RISQUE REEL (assessment_findings.risk, via
 // a.risk_notes) et on RETIRE la « cause racine » et l'« impact » generes par
 // heuristique (textes fabriques, hors donnees) du moteur v1.
-export function NCFactSheetsSection({ data, theme, num }: SectionProps): JSX.Element {
+export function NCFactSheetsSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
   const fiches = data.assessments.filter((a) => a.finding_classification === 'major_nc')
   return (
     <View>
-      <SectionBanner num={num} title="Fiches de non-conformités majeures" lead="Détail des écarts majeurs : exigence, constat, risque et recommandation" theme={theme} />
+      <SectionBanner num={num} title={title} lead={lead} theme={theme} />
       {fiches.length === 0 ? (
         <Text style={{ fontSize: 10, color: theme.muted }}>Aucune non-conformité majeure relevée au cours de la mission.</Text>
       ) : (
