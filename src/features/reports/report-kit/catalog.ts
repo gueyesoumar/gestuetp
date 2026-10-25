@@ -7,7 +7,14 @@ export type OptionDef =
   | { key: string; label: string; type: 'toggle'; default: boolean }
   | { key: string; label: string; type: 'number'; default: number; min: number; max: number }
 
-export interface SectionCatalogEntry { key: string; title: string; lead: string; options?: OptionDef[] }
+export interface SectionCatalogEntry {
+  key: string
+  title: string
+  lead: string
+  options?: OptionDef[]
+  /** Le corps rédigé de la section peut être surchargé par le template (B1.2). */
+  overridable?: boolean
+}
 
 /** Options resolues d'une section : defaut du catalogue + surcharge du template. */
 export function resolveOptions(

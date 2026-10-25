@@ -2,6 +2,7 @@ import { View, Text } from '@react-pdf/renderer'
 import { generateActionPlanNarrative, generateConclusionNarrative } from '../auditReportNarratives'
 import type { AssessmentWithControl } from '../audit-report/context'
 import { Prose, SectionBanner, PdfTable } from './components'
+import { resolveBody } from '../report-kit/theme'
 import type { SectionProps } from './sections'
 
 const isFinding = (a: AssessmentWithControl): boolean =>
@@ -37,11 +38,11 @@ export function ActionPlanSection({ data, theme, num, title, lead, options }: Se
   )
 }
 
-export function ConclusionSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
+export function ConclusionSection({ data, theme, num, title, lead, bodyOverride }: SectionProps): JSX.Element {
   return (
     <View>
       <SectionBanner num={num} title={title} lead={lead} theme={theme} />
-      <Prose paragraphs={generateConclusionNarrative(data)} />
+      <Prose paragraphs={resolveBody(bodyOverride, generateConclusionNarrative(data))} />
     </View>
   )
 }

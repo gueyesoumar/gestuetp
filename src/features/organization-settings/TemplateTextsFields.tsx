@@ -1,4 +1,4 @@
-import { SECTION_CATALOG } from '../reports/audit-report-v2/section-catalog'
+import type { SectionCatalogEntry } from '../reports/report-kit/catalog'
 
 const GLOBALS: { key: string; label: string; def: string }[] = [
   { key: 'cover.eyebrow', label: 'Couverture - en-tête', def: 'RAPPORT D’AUDIT' },
@@ -8,9 +8,9 @@ const GLOBALS: { key: string; label: string; def: string }[] = [
 
 const inp = 'w-full px-2.5 py-1.5 text-[12px] border border-gray-200 rounded-md focus:border-forest-700 focus:ring-1 focus:ring-forest-700'
 
-/** Surcharges de libellés d'un template (B1). Placeholder = texte par défaut ;
- *  un champ vide = on garde le défaut. */
-export function TemplateTextsFields({ texts, onChange }: { texts: Record<string, string>; onChange: (key: string, value: string) => void }): JSX.Element {
+/** Surcharges de libellés et de corps d'un template (B1 / B1.2). Placeholder = défaut ;
+ *  un champ vide = on garde le défaut (ou le texte généré pour le corps). */
+export function TemplateTextsFields({ catalog, texts, onChange }: { catalog: SectionCatalogEntry[]; texts: Record<string, string>; onChange: (key: string, value: string) => void }): JSX.Element {
   return (
     <div className="space-y-4">
       <div>
@@ -27,10 +27,14 @@ export function TemplateTextsFields({ texts, onChange }: { texts: Record<string,
       <div>
         <p className="text-[12px] font-semibold text-gray-700 mb-1.5">Libellés des sections</p>
         <div className="space-y-3">
-          {SECTION_CATALOG.map((c) => (
+          {catalog.map((c) => (
             <div key={c.key} className="border border-gray-100 rounded-md p-2 space-y-1.5">
               <input className={inp} value={texts[`${c.key}.title`] ?? ''} placeholder={`Titre : ${c.title}`} onChange={(e) => onChange(`${c.key}.title`, e.target.value)} />
               <input className={inp} value={texts[`${c.key}.lead`] ?? ''} placeholder={`Chapeau : ${c.lead}`} onChange={(e) => onChange(`${c.key}.lead`, e.target.value)} />
+              {c.overridable && (
+                <textarea className={`${inp} resize-y`} rows={3} value={texts[`${c.key}.body`] ?? ''}
+                  placeholder="Corps : laisser vide pour le texte généré automatiquement" onChange={(e) => onChange(`${c.key}.body`, e.target.value)} />
+              )}
             </div>
           ))}
         </div>

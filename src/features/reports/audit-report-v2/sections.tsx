@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from '@react-pdf/renderer'
 import { describeVerdict, generateContextNarrative, generateMethodologyNarrative, generateExecutiveNarrative, generateDomainNarrative } from '../auditReportNarratives'
+import { resolveBody } from '../report-kit/theme'
 import { Prose, SectionBanner, H3 } from './components'
 import { RadarChart } from './charts'
 import { RecommendationsSection } from './recommendations'
@@ -17,8 +18,9 @@ export interface SectionProps {
   /** Titre et chapeau resolus (surcharge template B1 sinon defaut catalogue). */
   title: string
   lead: string
-  /** Options resolues de la section (A1 : defaut catalogue + surcharge template). */
+  /** Options resolues (A1). `bodyOverride` : corps redige remplacant le texte genere (B1.2). */
   options: Record<string, unknown>
+  bodyOverride?: string
 }
 
 const s = StyleSheet.create({
@@ -45,20 +47,20 @@ function Kpi({ label, value, sub, color, theme }: { label: string; value: string
   )
 }
 
-export function ContextSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
+export function ContextSection({ data, theme, num, title, lead, bodyOverride }: SectionProps): JSX.Element {
   return (
     <View>
       <SectionBanner num={num} title={title} lead={lead} theme={theme} />
-      <Prose paragraphs={generateContextNarrative(data)} />
+      <Prose paragraphs={resolveBody(bodyOverride, generateContextNarrative(data))} />
     </View>
   )
 }
 
-export function MethodologySection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
+export function MethodologySection({ data, theme, num, title, lead, bodyOverride }: SectionProps): JSX.Element {
   return (
     <View>
       <SectionBanner num={num} title={title} lead={lead} theme={theme} />
-      <Prose paragraphs={generateMethodologyNarrative(data)} />
+      <Prose paragraphs={resolveBody(bodyOverride, generateMethodologyNarrative(data))} />
     </View>
   )
 }

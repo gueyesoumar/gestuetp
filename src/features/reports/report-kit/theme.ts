@@ -33,6 +33,14 @@ export function resolveText(texts: Record<string, string> | null | undefined, ke
   return v && v.trim().length > 0 ? v : fallback
 }
 
+/** Corps de section : surcharge du cabinet (B1.2) decoupee en paragraphes, sinon le
+ *  texte genere par defaut. Un override vide = texte genere conserve. */
+export function resolveBody(override: string | null | undefined, fallback: string[]): string[] {
+  const v = override?.trim()
+  if (!v) return fallback
+  return v.split(/\n+/).map((p) => p.trim()).filter((p) => p.length > 0)
+}
+
 /** Reference de document deterministe (PREFIXE-AAAA-NNN), stable pour un id donne. */
 export function computeDocRef(prefix: string, id: string, date: string | null | undefined): string {
   const year = date ? new Date(date).getFullYear() : new Date().getFullYear()

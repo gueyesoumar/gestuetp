@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from 'react'
 import { X, Plus } from 'lucide-react'
-import { DOCUMENT_CATALOGS } from '../reports/document-catalogs'
+import { DOCUMENT_CATALOGS, getSectionCatalog } from '../reports/document-catalogs'
 import { TemplateTextsFields } from './TemplateTextsFields'
 import { TemplateSectionsList } from './TemplateSectionsList'
 import { useTemplateRows } from './useTemplateRows'
@@ -104,7 +104,7 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
               <button type="button" onClick={() => setShowTexts((s) => !s)} className="text-[12px] font-medium text-forest-700 hover:underline">
                 {showTexts ? 'Masquer' : 'Personnaliser'} les libellés
               </button>
-              {showTexts && <div className="mt-2"><TemplateTextsFields texts={texts} onChange={(k, v) => setTexts((s) => ({ ...s, [k]: v }))} /></div>}
+              {showTexts && <div className="mt-2"><TemplateTextsFields catalog={getSectionCatalog(docType)} texts={texts} onChange={(k, v) => setTexts((s) => ({ ...s, [k]: v }))} /></div>}
             </div>
           </div>
           <div className="hidden lg:flex flex-1 min-h-0 flex-col bg-gray-100">

@@ -6,8 +6,8 @@ import { resolveOptions as resolveOptionsKit, type OptionDef, type SectionCatalo
 export type { OptionDef, SectionCatalogEntry }
 
 export const SECTION_CATALOG: SectionCatalogEntry[] = [
-  { key: 'context', title: 'Contexte de la mission', lead: 'Périmètre, objectifs et cadre de l’audit' },
-  { key: 'methodology', title: 'Méthodologie', lead: 'Démarche, référentiel et barème d’évaluation' },
+  { key: 'context', title: 'Contexte de la mission', lead: 'Périmètre, objectifs et cadre de l’audit', overridable: true },
+  { key: 'methodology', title: 'Méthodologie', lead: 'Démarche, référentiel et barème d’évaluation', overridable: true },
   { key: 'synthesis', title: 'Synthèse exécutive', lead: 'Score de conformité, opinion et chiffres clés' },
   {
     key: 'domains', title: 'Résultats par domaine', lead: 'Score et analyse de chaque domaine du référentiel',
@@ -28,7 +28,7 @@ export const SECTION_CATALOG: SectionCatalogEntry[] = [
     key: 'action_plan', title: 'Plan d’action', lead: 'Récapitulatif des actions correctives, suivies sur la plateforme',
     options: [{ key: 'maxRows', label: 'Lignes max du tableau', type: 'number', default: 40, min: 10, max: 100 }],
   },
-  { key: 'conclusion', title: 'Conclusion', lead: 'Synthèse du jugement d’audit et suites attendues' },
+  { key: 'conclusion', title: 'Conclusion', lead: 'Synthèse du jugement d’audit et suites attendues', overridable: true },
   { key: 'annex_glossary', title: 'Annexe A - Glossaire', lead: 'Définitions des termes techniques utilisés dans le rapport' },
   { key: 'annex_evidence', title: 'Annexe B - Preuves examinées', lead: 'Éléments documentaires versés au dossier de mission' },
   { key: 'annex_references', title: 'Annexe C - Références normatives', lead: 'Standards et bonnes pratiques mobilisés au cours de l’audit' },

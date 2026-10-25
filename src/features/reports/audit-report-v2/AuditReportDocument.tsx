@@ -31,7 +31,7 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
   let nCount = 0
   let aCount = 0
   type Item =
-    | { type: 'catalog'; key: string; Component: typeof CONTENT_SECTIONS[number]['Component']; num: string; title: string; lead: string; options: Record<string, unknown> }
+    | { type: 'catalog'; key: string; Component: typeof CONTENT_SECTIONS[number]['Component']; num: string; title: string; lead: string; options: Record<string, unknown>; bodyOverride?: string }
     | { type: 'custom'; key: string; num: string; title: string; body: string }
   const sections = entries.map((entry): Item | null => {
     if (entry.kind === 'custom') {
@@ -45,6 +45,7 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
       title: resolveText(texts, `${sec.key}.title`, sec.title),
       lead: resolveText(texts, `${sec.key}.lead`, leadOf(sec.key)),
       options: resolveOptions(sec.key, entry.options),
+      bodyOverride: texts?.[`${sec.key}.body`],
     }
   }).filter((x): x is Item => x !== null)
   const sommaire = [{ num: '', title: 'Lettre au comité d’audit' }, ...sections.map((x) => ({ num: x.num, title: x.title }))]
@@ -65,7 +66,7 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
           <View key={item.key} break {...{ bookmark: item.title }}>
             {item.type === 'custom'
               ? <CustomSection num={item.num} title={item.title} body={item.body} theme={theme} />
-              : <item.Component data={data} theme={theme} num={item.num} title={item.title} lead={item.lead} options={item.options} />}
+              : <item.Component data={data} theme={theme} num={item.num} title={item.title} lead={item.lead} options={item.options} bodyOverride={item.bodyOverride} />}
           </View>
         ))}
       </ReportPage>
