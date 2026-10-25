@@ -42,8 +42,8 @@ export function ReportPage({ data, theme, footerLabel, children }: {
       {children}
 
       <View fixed style={st.footer}>
-        <Text style={st.footerText}>{footerLabel ?? ''}</Text>
-        <Text style={st.footerText} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        <Text style={[st.footerText, { flex: 1, maxLines: 1 }]}>{data.cabinetFooterText || footerLabel || ''}</Text>
+        <Text style={[st.footerText, { flexShrink: 0, marginLeft: 12 }]} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
       </View>
     </Page>
   )

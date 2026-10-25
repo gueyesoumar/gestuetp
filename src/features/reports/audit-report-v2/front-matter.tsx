@@ -49,6 +49,9 @@ export function CoverSection({ data, theme, texts }: { data: DecoratedData; them
 }
 
 export function ExecutiveLetterSection({ data, theme, texts }: { data: DecoratedData; theme: ReportTheme; texts: Texts }): JSX.Element {
+  const lead = data.members.find((m) => m.role === 'lead_auditor')
+  const lu = lead ? (lead as unknown as { user?: { first_name?: string; last_name?: string; job_title?: string } }).user : null
+  const signatory = lu ? `${lu.first_name ?? ''} ${lu.last_name ?? ''}`.trim() : ''
   return (
     <View>
       <Text style={[f.h2, { color: theme.ink }]}>Lettre au comité d{'’'}audit</Text>
@@ -59,6 +62,11 @@ export function ExecutiveLetterSection({ data, theme, texts }: { data: Decorated
       <Prose paragraphs={generateExecutiveLetterBody(data)} />
       <Text style={f.sign}>Pour {data.cabinetName},</Text>
       <Text style={f.sign}>{resolveText(texts, 'letter.closing', 'L’équipe d’audit')}</Text>
+      {signatory ? (
+        <Text style={[f.sign, { fontFamily: 'Helvetica-Bold', marginTop: 10 }]}>
+          {signatory}{lu?.job_title ? ` - ${lu.job_title}` : ''}
+        </Text>
+      ) : null}
     </View>
   )
 }
