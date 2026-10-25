@@ -1,18 +1,19 @@
-import type jsPDF from 'jspdf'
 import type { MissionDetail, MissionMemberRow } from '../../missions/useMissionDetail'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { AssessmentFinding, CabinetClient, ControlAssessment } from '../../../types/database.types'
-import { type RGB, FOREST_900, GOLD_500 } from './colors'
 import { conformityWeight } from './utils'
 
-// -- Types externes ---------------------------------------------------------
+// Types + calculs du rapport d'audit, PARTAGES par le moteur react-pdf v2. Le moteur
+// jsPDF v1 a ete retire (RFC 0021 Lot 4) : ce fichier ne contient plus de dependance PDF.
+
+// -- Types -----------------------------------------------------------------
 
 export interface AssessmentWithControl extends ControlAssessment {
   control: { id: string; code: string; name: string; description: string | null; domain_id: string }
   /**
    * Champs synthetises a partir de assessment_findings par loadAuditReportData
-   * pour le rendu du PDF (findings concatenes, classification top-severite).
-   * Ne PAS utiliser ces champs hors du generateur PDF - preferer findings_list.
+   * pour le rendu (findings concatenes, classification top-severite).
+   * Ne PAS utiliser ces champs hors du generateur - preferer findings_list.
    */
   findings: string | null
   recommendations: string | null
@@ -55,12 +56,12 @@ export interface AuditReportData {
   cabinetPrimaryColor: string | null
   cabinetAccentColor: string | null
   evidenceDocs: EvidenceDoc[]
-  /** Sections resolues du template de rapport (ordre + visibilite). null/absent =
+  /** Sections resolues du template de rapport (ordre + visibilite + options). null/absent =
    *  ordre integre par defaut. RFC 0021 Lot 3. */
   templateSections?: { key: string; visible: boolean; options?: Record<string, unknown> }[] | null
   /** Surcharges de libelles du template (RFC 0021 B1). null/absent = defauts. */
   templateTexts?: Record<string, string> | null
-  /** Décoré par createContext, pas requis côté loader. */
+  /** Décoré par report-model.decorateData, pas requis côté loader. */
   totals?: AuditTotals
   domainStats?: DomainStat[]
 }
@@ -79,84 +80,7 @@ export interface DomainStat {
   conformes: number; ncMajor: number; ncMinor: number; observations: number
 }
 
-export interface Palette {
-  /** Couleur de marque dominante (sections, hero, scores). Fallback FOREST_900. */
-  primary: RGB
-  /** Variante claire (5-8 %) du primary pour blocs/encarts. */
-  primaryLight: RGB
-  /** Couleur d'accent (filets, badges, chiffres). Fallback GOLD_500. */
-  accent: RGB
-  /** Variante claire de l'accent pour bandeaux d'info. */
-  accentLight: RGB
-}
-
-export interface DocContext {
-  doc: jsPDF
-  data: AuditReportData & { totals: AuditTotals; domainStats: DomainStat[] }
-  palette: Palette
-  pageW: number; pageH: number
-  marginL: number; marginR: number
-  contentW: number
-  y: number
-  reportRef: string
-  /** map page number -> label de section pour le footer dynamique */
-  sectionByPage: Map<number, string>
-  currentSection: string
-  /** Pages où NE PAS afficher header/footer/watermark (couverture). */
-  bareCoverPages: Set<number>
-  /** Repère les pages de début de section pour le sommaire. */
-  tocAnchors: { num: string; title: string; page: number }[]
-  /** Numéro de la page TOC, pour overwrite des numéros de page à la fin. */
-  tocPageNumber: number | null
-  /** Lignes TOC à compléter à la fin : (anchorKey, y) */
-  tocLines: { anchorKey: string; y: number }[]
-}
-
-export function createContext(doc: jsPDF, data: AuditReportData): DocContext {
-  const totals = computeTotals(data.assessments)
-  const domainStats = computeDomainStats(data.domains, data.assessments)
-  const palette = buildPalette(data.cabinetPrimaryColor ?? null, data.cabinetAccentColor ?? null)
-  return {
-    doc,
-    data: { ...data, totals, domainStats },
-    palette,
-    pageW: 210, pageH: 297, marginL: 18, marginR: 18,
-    contentW: 174, y: 0,
-    reportRef: computeReportRef(data.mission.id, data.mission.end_date),
-    sectionByPage: new Map(),
-    currentSection: 'Couverture',
-    bareCoverPages: new Set([1]),
-    tocAnchors: [],
-    tocPageNumber: null,
-    tocLines: [],
-  }
-}
-
-function buildPalette(primaryHex: string | null, accentHex: string | null): Palette {
-  const primary = hexToRgb(primaryHex) ?? FOREST_900
-  const accent = hexToRgb(accentHex) ?? GOLD_500
-  return {
-    primary,
-    primaryLight: lightenRgb(primary, 0.92),
-    accent,
-    accentLight: lightenRgb(accent, 0.85),
-  }
-}
-
-function hexToRgb(hex: string | null | undefined): RGB | null {
-  if (!hex) return null
-  const m = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
-  if (!m) return null
-  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)]
-}
-
-function lightenRgb(rgb: RGB, ratio: number): RGB {
-  return [
-    Math.round(rgb[0] + (255 - rgb[0]) * ratio),
-    Math.round(rgb[1] + (255 - rgb[1]) * ratio),
-    Math.round(rgb[2] + (255 - rgb[2]) * ratio),
-  ]
-}
+// -- Calculs ---------------------------------------------------------------
 
 export function computeTotals(assessments: AssessmentWithControl[]): AuditTotals {
   let assessed = 0, c = 0, lc = 0, pc = 0, nc = 0, na = 0, ncMajor = 0, ncMinor = 0, observations = 0
@@ -205,12 +129,4 @@ export function computeDomainStats(domains: DomainWithControls[], assessments: A
       conformes, ncMajor, ncMinor, observations,
     }
   })
-}
-
-function computeReportRef(missionId: string, endDate: string | null | undefined): string {
-  const year = endDate ? new Date(endDate).getFullYear() : new Date().getFullYear()
-  let h = 0
-  for (let i = 0; i < missionId.length; i++) h = ((h << 5) - h + missionId.charCodeAt(i)) | 0
-  const seq = Math.abs(h) % 1000
-  return `AUD-${year}-${String(seq).padStart(3, '0')}`
 }

@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Star } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
-import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { loadReportTemplate } from '../../reports/loadReportTemplate'
 import type { ScopingNoteData } from '../../reports/scoping-note/context'
 import { supabase } from '../../../lib/supabase'
@@ -189,28 +188,21 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   }, [mission, requests, totalCount, answeredCount])
 
   // === ACTION 2: Generer la note de cadrage (PDF) ===
-  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021 E2.1). OFF par defaut
-  // -> chemin jsPDF inchange. ON -> apercu in-app de la note de cadrage.
-  const reportV2 = useFeatureFlag('report_engine_v2')
+  // Moteur de rapport react-pdf (RFC 0021 Lot 4) : jsPDF retire. On ouvre l'apercu
+  // in-app de la note de cadrage.
   const [notePreview, setNotePreview] = useState<ScopingPreview | null>(null)
 
   const handleGenerateNote = useCallback(async () => {
     setActionSuccess(null)
     try {
       const base = { mission, members, domains, exclusions, risks, client, questionnaireProgress: questProgress, documentsReceived: docsReceived, documentsExpected: docsExpected, reviewLabels: { lead, associate } }
-      if (reportV2.enabled) {
-        const tpl = await loadReportTemplate(mission.cabinet_id, mission.client_id ?? null, 'scoping_note')
-        setNotePreview({ ...base, templateSections: tpl?.sections ?? null, templateTexts: tpl?.texts ?? null })
-      } else {
-        const { generateScopingNotePDF } = await import('../../reports/generateScopingNotePDF')
-        await generateScopingNotePDF(base)
-        setActionSuccess('Note de cadrage PDF t\u00e9l\u00e9charg\u00e9e.')
-      }
+      const tpl = await loadReportTemplate(mission.cabinet_id, mission.client_id ?? null, 'scoping_note')
+      setNotePreview({ ...base, templateSections: tpl?.sections ?? null, templateTexts: tpl?.texts ?? null })
     } catch (err) {
       console.error('handleGenerateNote:', err)
       setActionSuccess('Erreur lors de la g\u00e9n\u00e9ration du PDF.')
     }
-  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected, lead, associate, reportV2.enabled])
+  }, [mission, members, domains, exclusions, risks, client, questProgress, docsReceived, docsExpected, lead, associate])
 
   // === ACTION 3: Valider le cadrage ===
   const handleValidateScoping = useCallback(async () => {

@@ -5,7 +5,6 @@ import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useToast } from '../../../hooks/useToast'
-import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { useMissionUserRole } from '../useMissionUserRole'
 import { HeroScoreCard } from './HeroScoreCard'
 import { DomainBreakdownList } from './DomainBreakdownList'
@@ -98,33 +97,22 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     return () => controller.abort()
   }, [mission.id, promoRefresh])
 
-  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021). OFF par defaut
-  // -> chemin jsPDF inchange (aucune regression). ON -> apercu in-app (D-REP-3).
-  const reportV2 = useFeatureFlag('report_engine_v2')
+  // Moteur de rapport react-pdf (RFC 0021 Lot 4) : jsPDF retire. On ouvre l'apercu
+  // in-app ; le telechargement se fait depuis la modale (D-REP-3).
   const [previewData, setPreviewData] = useState<AuditReportData | null>(null)
 
   const handleGenerateAuditReport = useCallback(async () => {
     setGeneratingPdf(true)
     try {
-      if (reportV2.enabled) {
-        // v2 : on ouvre l'apercu ; le telechargement se fait depuis la modale.
-        const data = await loadAuditReportData(mission)
-        setPreviewData(data)
-      } else {
-        const [data, { runAuditReportPdfInWorker }] = await Promise.all([
-          loadAuditReportData(mission),
-          import('../../reports/runAuditReportPdfInWorker'),
-        ])
-        await runAuditReportPdfInWorker(data)
-        toast.success('Rapport PDF généré', { description: mission.name })
-      }
+      const data = await loadAuditReportData(mission)
+      setPreviewData(data)
     } catch (err) {
       console.error('[audit report]', err)
       toast.error('Génération du rapport impossible', { description: err instanceof Error ? err.message : String(err) })
     } finally {
       setGeneratingPdf(false)
     }
-  }, [mission, toast, reportV2.enabled])
+  }, [mission, toast])
 
   const handleClose = useCallback(async () => {
     setClosing(true)

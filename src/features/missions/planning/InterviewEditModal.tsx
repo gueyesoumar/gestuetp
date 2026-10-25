@@ -3,7 +3,6 @@ import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { generateCompteRendu } from './interviewHelpers'
 import { PvEditor } from './PvEditor'
-import { useFeatureFlag } from '../../../hooks/useFeatureFlag'
 import { loadReportTemplateForMission } from '../../reports/loadReportTemplate'
 import type { CRData } from '../../reports/interview-cr'
 import type { ClientContact, InterviewScheduleUpdate, PvNotes } from '../../../types/database.types'
@@ -42,8 +41,7 @@ export function InterviewEditModal({
   const [pvNotes, setPvNotes] = useState<PvNotes | null>(interview.pv_notes ?? null)
   const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set(interview.topic_ids))
   const [selectedActorIds, setSelectedActorIds] = useState<Set<string>>(new Set(interview.actor_ids))
-  // Moteur de rapport v2 (react-pdf) derriere un flag (RFC 0021 E2.2). OFF = jsPDF.
-  const reportV2 = useFeatureFlag('report_engine_v2')
+  // Moteur de rapport react-pdf (RFC 0021 Lot 4) : jsPDF retire. Apercu in-app du CR.
   const [crPreview, setCrPreview] = useState<CRPreview | null>(null)
 
   const auditorMembers = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
@@ -97,13 +95,8 @@ export function InterviewEditModal({
       .map((id) => topics.find((t) => t.id === id)?.name)
       .filter((n): n is string => Boolean(n))
     const base = { interview, contact: firstActor, auditorName, missionName, rawNotes: notes, controlCodes: topicNames }
-    if (reportV2.enabled) {
-      const tpl = await loadReportTemplateForMission(interview.mission_id, 'interview_cr')
-      setCrPreview({ ...base, templateSections: tpl?.sections ?? null, templateTexts: tpl?.texts ?? null })
-    } else {
-      const { generateInterviewCRPDF } = await import('../../reports/generateInterviewCRPDF')
-      generateInterviewCRPDF(base)
-    }
+    const tpl = await loadReportTemplateForMission(interview.mission_id, 'interview_cr')
+    setCrPreview({ ...base, templateSections: tpl?.sections ?? null, templateTexts: tpl?.texts ?? null })
   }
 
   return (
