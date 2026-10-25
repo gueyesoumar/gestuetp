@@ -71,14 +71,14 @@ export function ExecutiveLetterSection({ data, theme, texts }: { data: Decorated
   )
 }
 
-export function SommaireSection({ entries, theme }: { entries: string[]; theme: ReportTheme }): JSX.Element {
+export function SommaireSection({ entries, theme }: { entries: { num: string; title: string }[]; theme: ReportTheme }): JSX.Element {
   return (
     <View>
       <Text style={[f.h2, { color: theme.ink, marginBottom: 10 }]}>Sommaire</Text>
-      {entries.map((label, i) => (
+      {entries.map((e, i) => (
         <View key={i} style={f.somItem}>
-          <Text style={[f.somNum, { color: theme.accent }]}>{String(i + 1).padStart(2, '0')}</Text>
-          <Text style={f.somLabel}>{label}</Text>
+          <Text style={[f.somNum, { color: theme.accent }]}>{e.num || '·'}</Text>
+          <Text style={f.somLabel}>{e.title}</Text>
         </View>
       ))}
     </View>

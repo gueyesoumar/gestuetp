@@ -48,8 +48,13 @@ export function useTemplateRows(template: ReportTemplate | null | undefined, doc
     setRows((r) => r.map((row, k) => k === i ? { ...row, options: { ...row.options, [key]: value } } : row)), [])
   const setCustomField = useCallback((i: number, field: 'title' | 'body', value: string) =>
     setRows((r) => r.map((row, k) => k === i ? { ...row, [field]: value } : row)), [])
-  const addCustom = useCallback(() =>
-    setRows((r) => [...r, { key: `custom-${Date.now()}`, title: 'Nouvelle section', visible: true, options: {}, kind: 'custom', body: '' }]), [])
+  const addCustom = useCallback(() => setRows((r) => {
+    const row: Row = { key: `custom-${Date.now()}`, title: 'Nouvelle section', visible: true, options: {}, kind: 'custom', body: '' }
+    // Inserer AVANT les annexes (sinon une section de contenu se retrouve apres les
+    // annexes, en derniere page) ; a defaut d'annexe, ajouter a la fin.
+    const annexIdx = r.findIndex((x) => x.key.startsWith('annex_'))
+    return annexIdx < 0 ? [...r, row] : [...r.slice(0, annexIdx), row, ...r.slice(annexIdx)]
+  }), [])
   const removeCustom = useCallback((i: number) => setRows((r) => r.filter((_, k) => k !== i)), [])
 
   const previewSections: ReportTemplateSection[] = rows.map((r) => r.kind === 'custom'

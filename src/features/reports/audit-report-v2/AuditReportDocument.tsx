@@ -47,7 +47,7 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
       options: resolveOptions(sec.key, entry.options),
     }
   }).filter((x): x is Item => x !== null)
-  const sommaire = ['Lettre au comité d’audit', ...sections.map((x) => x.title)]
+  const sommaire = [{ num: '', title: 'Lettre au comité d’audit' }, ...sections.map((x) => ({ num: x.num, title: x.title }))]
 
   return (
     <Document title={`Rapport d'audit - ${data.mission.name}`}>
