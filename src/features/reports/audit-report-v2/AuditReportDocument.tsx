@@ -18,7 +18,11 @@ const DEFAULT_ORDER: string[] = [
 export function AuditReportDocument({ data: raw }: { data: AuditReportData }): JSX.Element {
   const data = decorateData(raw)
   const theme = buildTheme(data)
-  const sections = DEFAULT_ORDER
+  // Ordre/visibilite : template resolu (RFC 0021 Lot 3) sinon ordre integre par defaut.
+  const order = data.templateSections && data.templateSections.length > 0
+    ? data.templateSections.filter((x) => x.visible).map((x) => x.key)
+    : DEFAULT_ORDER
+  const sections = order
     .map((k) => CONTENT_SECTIONS.find((sec) => sec.key === k))
     .filter((sec): sec is ContentSection => Boolean(sec))
   const sommaire = ['Lettre au comité d’audit', ...sections.map((sec) => sec.title)]

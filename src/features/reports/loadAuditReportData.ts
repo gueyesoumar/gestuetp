@@ -154,7 +154,24 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
   if (docsErr) console.error('[loadAuditReportData] documents:', docsErr.message)
   const evidenceDocs = ((docRows ?? []) as unknown as EvidenceDoc[])
 
+  // 9. Template de rapport applicable (RFC 0021 Lot 3) : surcharge client sinon
+  //    defaut cabinet. Absent -> ordre integre par defaut (null).
+  let templateSections: { key: string; visible: boolean }[] | null = null
+  const { data: tplRows, error: tplErr } = await supabase
+    .from('report_templates')
+    .select('scope, client_id, is_default, sections')
+    .eq('organization_id', mission.cabinet_id)
+  if (tplErr) console.error('[loadAuditReportData] templates:', tplErr.message)
+  if (tplRows && tplRows.length > 0) {
+    const rows = tplRows as Array<{ scope: string; client_id: string | null; is_default: boolean; sections: { key: string; visible: boolean }[] }>
+    const clientTpl = rows.find((t) => t.scope === 'client' && t.client_id === mission.client_id)
+    const defaultTpl = rows.find((t) => t.scope === 'cabinet' && t.is_default)
+    const chosen = clientTpl ?? defaultTpl
+    templateSections = chosen ? chosen.sections : null
+  }
+
   return {
+    templateSections,
     mission, members, domains, assessments,
     client, clientContacts,
     cabinetName,

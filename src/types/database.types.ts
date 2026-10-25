@@ -283,6 +283,8 @@ export interface PlatformRolePermissions {
   can_accept_risk?: boolean
   /** Gérer les affectations de supervision (secteurs/assujettis aux membres, migration 00326). */
   can_manage_supervision_assignments?: boolean
+  /** Gérer les templates de rapport du cabinet (RFC 0021 Lot 3, migration 00357). */
+  can_manage_report_templates?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
@@ -290,6 +292,30 @@ export interface PlatformRolePermissions {
   can_create_campaign?: boolean
   can_manage_subsidiaries?: boolean
   can_view_entity_detail?: boolean
+}
+
+export interface ReportTemplateSection { key: string; visible: boolean }
+
+/** Template de rapport (RFC 0021 Lot 3, migration 00357). */
+export interface ReportTemplate {
+  id: string
+  organization_id: string
+  name: string
+  scope: 'cabinet' | 'client'
+  client_id: string | null
+  sections: ReportTemplateSection[]
+  is_default: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface ReportTemplateInsert {
+  organization_id: string
+  name: string
+  scope?: 'cabinet' | 'client'
+  client_id?: string | null
+  sections?: ReportTemplateSection[]
+  is_default?: boolean
 }
 
 export interface PlatformRole {

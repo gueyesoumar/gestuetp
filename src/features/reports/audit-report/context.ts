@@ -55,6 +55,9 @@ export interface AuditReportData {
   cabinetPrimaryColor: string | null
   cabinetAccentColor: string | null
   evidenceDocs: EvidenceDoc[]
+  /** Sections resolues du template de rapport (ordre + visibilite). null/absent =
+   *  ordre integre par defaut. RFC 0021 Lot 3. */
+  templateSections?: { key: string; visible: boolean }[] | null
   /** Décoré par createContext, pas requis côté loader. */
   totals?: AuditTotals
   domainStats?: DomainStat[]
