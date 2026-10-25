@@ -37,9 +37,11 @@ function RecoCard({ a, idx, theme }: { a: AssessmentWithControl; idx: number; th
   )
 }
 
-export function RecommendationsSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
+export function RecommendationsSection({ data, theme, num, title, lead, options }: SectionProps): JSX.Element {
   const items = data.assessments.filter(isFinding)
-  const top = items.filter((a) => (a.recommendations ?? '').trim().length > 0).sort((a, b) => severity(a) - severity(b)).slice(0, 10)
+  const topN = typeof options.topN === 'number' ? options.topN : 10
+  const showMatrix = options.matrix !== false
+  const top = items.filter((a) => (a.recommendations ?? '').trim().length > 0).sort((a, b) => severity(a) - severity(b)).slice(0, topN)
   return (
     <View>
       <SectionBanner num={num} title={title} lead={lead} theme={theme} />
@@ -48,13 +50,17 @@ export function RecommendationsSection({ data, theme, num, title, lead }: Sectio
         <Text style={{ fontSize: 10, color: theme.muted }}>Aucune recommandation à hiérarchiser à ce stade.</Text>
       ) : (
         <>
-          <H3 theme={theme}>Matrice impact x effort</H3>
-          <View style={{ alignItems: 'center', marginBottom: 10 }}>
-            <PriorityMatrix items={items} data={data} />
-          </View>
+          {showMatrix && (
+            <>
+              <H3 theme={theme}>Matrice impact x effort</H3>
+              <View style={{ alignItems: 'center', marginBottom: 10 }}>
+                <PriorityMatrix items={items} data={data} />
+              </View>
+            </>
+          )}
           {top.length > 0 && (
             <>
-              <H3 theme={theme}>Top 10 recommandations</H3>
+              <H3 theme={theme}>{`Principales recommandations (${top.length})`}</H3>
               {top.map((a, i) => <RecoCard key={a.id} a={a} idx={i + 1} theme={theme} />)}
             </>
           )}

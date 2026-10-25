@@ -1,22 +1,23 @@
 import { useState } from 'react'
-import { X, ArrowUp, ArrowDown } from 'lucide-react'
+import { X } from 'lucide-react'
 import { SECTION_CATALOG } from '../reports/audit-report-v2/section-catalog'
 import { TemplateTextsFields } from './TemplateTextsFields'
+import { TemplateSectionRow } from './TemplateSectionRow'
 import type { ReportTemplate, ReportTemplateInsert } from '../../types/database.types'
 import { useToast } from '../../hooks/useToast'
 
-interface Row { key: string; title: string; visible: boolean }
+interface Row { key: string; title: string; visible: boolean; options: Record<string, unknown> }
 interface Result { ok: boolean; error?: string }
 
 function buildRows(tpl?: ReportTemplate | null): Row[] {
   const byKey = new Map(SECTION_CATALOG.map((c) => [c.key, c.title]))
-  if (!tpl) return SECTION_CATALOG.map((c) => ({ key: c.key, title: c.title, visible: true }))
+  if (!tpl) return SECTION_CATALOG.map((c) => ({ key: c.key, title: c.title, visible: true, options: {} }))
   const rows: Row[] = []
   for (const s of tpl.sections) {
     const title = byKey.get(s.key)
-    if (title) { rows.push({ key: s.key, title, visible: s.visible }); byKey.delete(s.key) }
+    if (title) { rows.push({ key: s.key, title, visible: s.visible, options: s.options ?? {} }); byKey.delete(s.key) }
   }
-  for (const [key, title] of byKey) rows.push({ key, title, visible: false })
+  for (const [key, title] of byKey) rows.push({ key, title, visible: false, options: {} })
   return rows
 }
 
@@ -45,6 +46,8 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
     const n = [...r]; [n[i], n[j]] = [n[j], n[i]]; return n
   })
   const toggle = (i: number): void => setRows((r) => r.map((row, k) => k === i ? { ...row, visible: !row.visible } : row))
+  const setOption = (i: number, key: string, value: unknown): void =>
+    setRows((r) => r.map((row, k) => k === i ? { ...row, options: { ...row.options, [key]: value } } : row))
 
   const submit = async (): Promise<void> => {
     if (!name.trim()) { toast.error('Le nom est requis'); return }
@@ -59,7 +62,7 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
       scope,
       client_id: scope === 'client' ? clientId : null,
       is_default: scope === 'cabinet' ? isDefault : false,
-      sections: rows.map((r) => ({ key: r.key, visible: r.visible })),
+      sections: rows.map((r) => ({ key: r.key, visible: r.visible, ...(Object.keys(r.options).length ? { options: r.options } : {}) })),
       texts: cleanTexts,
     })
     setBusy(false)
@@ -100,12 +103,18 @@ export function TemplateEditorModal({ template, clients, onSave, onClose, onSave
             <p className="text-[12px] font-medium text-gray-600 mb-1">Sections (ordre et visibilité)</p>
             <div className="border border-gray-200 rounded-lg divide-y divide-gray-50">
               {rows.map((row, i) => (
-                <div key={row.key} className="flex items-center gap-2 px-3 py-2">
-                  <input type="checkbox" checked={row.visible} onChange={() => toggle(i)} />
-                  <span className={`flex-1 text-[13px] ${row.visible ? 'text-gray-900' : 'text-gray-300 line-through'}`}>{row.title}</span>
-                  <button onClick={() => move(i, -1)} disabled={i === 0} className="text-gray-400 hover:text-gray-700 disabled:opacity-20"><ArrowUp size={14} /></button>
-                  <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="text-gray-400 hover:text-gray-700 disabled:opacity-20"><ArrowDown size={14} /></button>
-                </div>
+                <TemplateSectionRow
+                  key={row.key}
+                  rowKey={row.key}
+                  title={row.title}
+                  visible={row.visible}
+                  options={row.options}
+                  isFirst={i === 0}
+                  isLast={i === rows.length - 1}
+                  onToggleVisible={() => toggle(i)}
+                  onMove={(d) => move(i, d)}
+                  onOption={(key, value) => setOption(i, key, value)}
+                />
               ))}
             </div>
           </div>

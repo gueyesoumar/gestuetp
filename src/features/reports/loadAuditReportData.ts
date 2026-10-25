@@ -164,7 +164,7 @@ export async function loadAuditReportData(mission: MissionDetail): Promise<Audit
     .eq('organization_id', mission.cabinet_id)
   if (tplErr) console.error('[loadAuditReportData] templates:', tplErr.message)
   if (tplRows && tplRows.length > 0) {
-    const rows = tplRows as Array<{ scope: string; client_id: string | null; is_default: boolean; sections: { key: string; visible: boolean }[]; texts: Record<string, string> | null }>
+    const rows = tplRows as Array<{ scope: string; client_id: string | null; is_default: boolean; sections: { key: string; visible: boolean; options?: Record<string, unknown> }[]; texts: Record<string, string> | null }>
     const clientTpl = rows.find((t) => t.scope === 'client' && t.client_id === mission.client_id)
     const defaultTpl = rows.find((t) => t.scope === 'cabinet' && t.is_default)
     const chosen = clientTpl ?? defaultTpl

@@ -7,8 +7,9 @@ import type { SectionProps } from './sections'
 // Section 05. D-REP-5 : on affiche le RISQUE REEL (assessment_findings.risk, via
 // a.risk_notes) et on RETIRE la « cause racine » et l'« impact » generes par
 // heuristique (textes fabriques, hors donnees) du moteur v1.
-export function NCFactSheetsSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
+export function NCFactSheetsSection({ data, theme, num, title, lead, options }: SectionProps): JSX.Element {
   const fiches = data.assessments.filter((a) => a.finding_classification === 'major_nc')
+  const showRisk = options.showRisk !== false
   return (
     <View>
       <SectionBanner num={num} title={title} lead={lead} theme={theme} />
@@ -28,7 +29,7 @@ export function NCFactSheetsSection({ data, theme, num, title, lead }: SectionPr
                 <Field label="Exigence du référentiel" text={sheet.requirement} />
                 <Field label="Constat d'audit" text={sheet.observation} color="#b91c1c" />
                 <Field label="Éléments de preuve examinés" text={sheet.evidence} />
-                {risk ? <Field label="Risque identifié" text={risk} color="#c2410c" /> : null}
+                {risk && showRisk ? <Field label="Risque identifié" text={risk} color="#c2410c" /> : null}
                 <Field label="Recommandation" text={sheet.recommendation} color="#15803d" />
                 <Field label="Justification de la classification" text={sheet.severityRationale} />
                 <Text style={{ fontSize: 7.5, color: theme.muted, marginTop: 2 }}>

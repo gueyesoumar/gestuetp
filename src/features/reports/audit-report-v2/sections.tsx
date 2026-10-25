@@ -17,6 +17,8 @@ export interface SectionProps {
   /** Titre et chapeau resolus (surcharge template B1 sinon defaut catalogue). */
   title: string
   lead: string
+  /** Options resolues de la section (A1 : defaut catalogue + surcharge template). */
+  options: Record<string, unknown>
 }
 
 const s = StyleSheet.create({
@@ -90,13 +92,15 @@ export function SynthesisSection({ data, theme, num, title, lead }: SectionProps
   )
 }
 
-export function DomainDetailsSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
+export function DomainDetailsSection({ data, theme, num, title, lead, options }: SectionProps): JSX.Element {
   return (
     <View>
       <SectionBanner num={num} title={title} lead={lead} theme={theme} />
-      <View style={{ alignItems: 'center', marginBottom: 10 }} wrap={false}>
-        <RadarChart stats={data.domainStats} theme={theme} />
-      </View>
+      {options.radar !== false && (
+        <View style={{ alignItems: 'center', marginBottom: 10 }} wrap={false}>
+          <RadarChart stats={data.domainStats} theme={theme} />
+        </View>
+      )}
       {data.domainStats.map((d) => {
         const color = d.score >= 80 ? '#15803d' : d.score >= 60 ? theme.accent : '#b91c1c'
         return (

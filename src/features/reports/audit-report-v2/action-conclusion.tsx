@@ -11,7 +11,8 @@ const sev = (a: AssessmentWithControl): number =>
 const typeLabel = (a: AssessmentWithControl): string =>
   a.finding_classification === 'major_nc' ? 'NC maj' : a.finding_classification === 'minor_nc' ? 'NC min' : 'Obs.'
 
-export function ActionPlanSection({ data, theme, num, title, lead }: SectionProps): JSX.Element {
+export function ActionPlanSection({ data, theme, num, title, lead, options }: SectionProps): JSX.Element {
+  const maxRows = typeof options.maxRows === 'number' ? options.maxRows : 40
   const items = data.assessments.filter(isFinding).sort((a, b) => sev(a) - sev(b) || a.control.code.localeCompare(b.control.code))
   return (
     <View>
@@ -25,10 +26,10 @@ export function ActionPlanSection({ data, theme, num, title, lead }: SectionProp
             theme={theme}
             headers={['Réf.', 'Type', 'Contrôle', 'Constat (extrait)']}
             widths={[16, 12, 40, 56]}
-            rows={items.slice(0, 40).map((a) => [a.control.code, typeLabel(a), a.control.name, a.findings ?? '-'])}
+            rows={items.slice(0, maxRows).map((a) => [a.control.code, typeLabel(a), a.control.name, a.findings ?? '-'])}
           />
-          {items.length > 40 ? (
-            <Text style={{ fontSize: 8.5, color: theme.muted }}>({items.length - 40} action(s) supplémentaire(s) accessibles via l&rsquo;export Excel du plan d&rsquo;action.)</Text>
+          {items.length > maxRows ? (
+            <Text style={{ fontSize: 8.5, color: theme.muted }}>({items.length - maxRows} action(s) supplémentaire(s) accessibles via l&rsquo;export Excel du plan d&rsquo;action.)</Text>
           ) : null}
         </>
       )}

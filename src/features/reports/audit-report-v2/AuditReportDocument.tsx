@@ -2,7 +2,7 @@ import { Document, Page, View, StyleSheet } from '@react-pdf/renderer'
 import type { AuditReportData } from '../generateAuditReportPDF'
 import { buildTheme, decorateData, resolveText } from './report-model'
 import { CONTENT_SECTIONS, type ContentSection } from './sections'
-import { SECTION_CATALOG } from './section-catalog'
+import { SECTION_CATALOG, resolveOptions } from './section-catalog'
 import { CoverSection, ExecutiveLetterSection, SommaireSection } from './front-matter'
 import { ReportPage } from './components'
 
@@ -38,6 +38,7 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
     num: sec.key.startsWith('annex_') ? String.fromCharCode(65 + aCount++) : String(++nCount).padStart(2, '0'),
     title: resolveText(texts, `${sec.key}.title`, sec.title),
     lead: resolveText(texts, `${sec.key}.lead`, leadOf(sec.key)),
+    options: resolveOptions(sec.key, data.templateSections?.find((s) => s.key === sec.key)?.options),
   }))
   const sommaire = ['Lettre au comité d’audit', ...sections.map((x) => x.title)]
 
@@ -53,9 +54,9 @@ export function AuditReportDocument({ data: raw }: { data: AuditReportData }): J
         <View break {...{ bookmark: 'Sommaire' }}>
           <SommaireSection entries={sommaire} theme={theme} />
         </View>
-        {sections.map(({ sec, num, title, lead }) => (
+        {sections.map(({ sec, num, title, lead, options }) => (
           <View key={sec.key} break {...{ bookmark: title }}>
-            <sec.Component data={data} theme={theme} num={num} title={title} lead={lead} />
+            <sec.Component data={data} theme={theme} num={num} title={title} lead={lead} options={options} />
           </View>
         ))}
       </ReportPage>

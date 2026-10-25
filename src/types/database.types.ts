@@ -294,7 +294,7 @@ export interface PlatformRolePermissions {
   can_view_entity_detail?: boolean
 }
 
-export interface ReportTemplateSection { key: string; visible: boolean }
+export interface ReportTemplateSection { key: string; visible: boolean; options?: Record<string, unknown> }
 
 /** Template de rapport (RFC 0021 Lot 3, migration 00357). */
 export interface ReportTemplate {
