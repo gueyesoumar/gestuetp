@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Pencil, Check, RefreshCw, X, FileEdit, Calendar, Trash2, MoreVertical } from 'lucide-react'
 import type { ClientContact, InterviewStatus } from '../../../types/database.types'
 import type { InterviewWithRelations } from './usePlanningData'
@@ -22,6 +22,8 @@ const STATUS_CONFIG: Record<InterviewStatus, { label: string; cls: string }> = {
 
 export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatusChange, onDelete }: InterviewCardProps) {
   const [showMenu, setShowMenu] = useState(false)
+  const [menuUp, setMenuUp] = useState(false)
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
   const d = new Date(interview.scheduled_date)
   const day = d.getDate()
   const month = d.toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase()
@@ -80,8 +82,9 @@ export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatus
       {/* Actions menu */}
       <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
         <button
+          ref={menuBtnRef}
           type="button"
-          onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu) }}
+          onClick={(e) => { e.stopPropagation(); if (!showMenu && menuBtnRef.current) setMenuUp(window.innerHeight - menuBtnRef.current.getBoundingClientRect().bottom < 260); setShowMenu(!showMenu) }}
           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
           aria-label="Actions"
         >
@@ -90,7 +93,7 @@ export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatus
         {showMenu && (
           <>
             <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setShowMenu(false) }} />
-            <div className="absolute right-0 top-8 z-20 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1">
+            <div className={`absolute right-0 ${menuUp ? 'bottom-8' : 'top-8'} z-20 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1`}>
               <MenuBtn label="Modifier" icon={<Pencil size={12} />} onClick={() => { setShowMenu(false); onEdit(interview) }} />
               {interview.status === 'scheduled' && (
                 <>

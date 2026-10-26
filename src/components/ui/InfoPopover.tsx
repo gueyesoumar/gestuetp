@@ -8,7 +8,7 @@ interface InfoPopoverProps {
 
 export function InfoPopover({ text }: InfoPopoverProps) {
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
 
@@ -30,7 +30,10 @@ export function InfoPopover({ text }: InfoPopoverProps) {
   const toggle = () => {
     if (!open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect()
-      setPos({ top: r.bottom + 6, right: window.innerWidth - r.right })
+      const right = window.innerWidth - r.right
+      // Rabattre vers le haut si l'espace sous l'icône est insuffisant.
+      if (window.innerHeight - r.bottom < 160) setPos({ bottom: window.innerHeight - r.top + 6, right })
+      else setPos({ top: r.bottom + 6, right })
     }
     setOpen((v) => !v)
   }
@@ -48,7 +51,7 @@ export function InfoPopover({ text }: InfoPopoverProps) {
       {open && pos && createPortal(
         <div
           ref={popRef}
-          style={{ position: 'fixed', top: pos.top, right: pos.right }}
+          style={{ position: 'fixed', top: pos.top, bottom: pos.bottom, right: pos.right }}
           className="z-[60] w-64 rounded-lg border border-gray-200 bg-white p-3.5 shadow-lg"
         >
           <div className="flex items-start justify-between gap-2">

@@ -253,13 +253,17 @@ function FilterPill({ label, active, onClick, variant }: { label: string; active
 
 function UserMenu({ user, onPickAction, onChangeRole }: { user: AdminUserRow; onPickAction: (action: SimpleAction) => void; onChangeRole: () => void }) {
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
 
   const toggle = () => {
     if (!open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect()
-      setPos({ top: r.bottom + 4, right: window.innerWidth - r.right })
+      const right = window.innerWidth - r.right
+      // Rabattre vers le haut si l'espace sous le bouton est insuffisant (dernières
+      // lignes) : évite le débordement et le chevauchement du widget flottant.
+      if (window.innerHeight - r.bottom < 240) setPos({ bottom: window.innerHeight - r.top + 4, right })
+      else setPos({ top: r.bottom + 4, right })
     }
     setOpen((v) => !v)
   }
@@ -275,7 +279,7 @@ function UserMenu({ user, onPickAction, onChangeRole }: { user: AdminUserRow; on
       {open && pos && createPortal(
         <>
           <div onClick={() => setOpen(false)} className="fixed inset-0 z-[60]" />
-          <div style={{ position: 'fixed', top: pos.top, right: pos.right }} className="w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-[70] overflow-hidden py-1">
+          <div style={{ position: 'fixed', top: pos.top, bottom: pos.bottom, right: pos.right }} className="w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-[70] overflow-hidden py-1">
             <Link to={`/admin/utilisateurs/${user.id}`} onClick={() => setOpen(false)} className="block w-full text-left px-3 py-2 text-[12.5px] hover:bg-page-bg text-gray-700">Inspecter (aperçu)</Link>
             <div className="border-t border-gray-100 my-1" />
             <button onClick={() => pick(() => onPickAction('reset_password'))} className="block w-full text-left px-3 py-2 text-[12.5px] hover:bg-page-bg text-gray-700">Réinitialiser le mot de passe</button>

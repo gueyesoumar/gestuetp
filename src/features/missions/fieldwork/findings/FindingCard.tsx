@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { MoreHorizontal, ChevronUp, ChevronDown, ChevronRight, Trash2, Sparkles, ArrowUpRight, Check, GitBranch, Pencil } from 'lucide-react'
 import { FindingClassificationPicker, FindingPriorityPicker, getClassificationConfig } from './FindingPickers'
 import { FindingBody } from './FindingBody'
@@ -24,6 +24,8 @@ interface FindingCardProps {
 
 export function FindingCard({ finding, index, total, readOnly, onChange, onDelete, onMoveUp, onMoveDown, onPromote, systemicCount, onMakeSystemic, templates = [], onSaveTemplate }: FindingCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuUp, setMenuUp] = useState(false)
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
   // Un constat déjà rédigé s'affiche replié ; un nouveau (vide) s'ouvre en édition.
   const [editing, setEditing] = useState(() => !finding.description?.trim())
   // Déroulé lecture seule du constat replié (voir le détail sans passer en édition).
@@ -41,11 +43,11 @@ export function FindingCard({ finding, index, total, readOnly, onChange, onDelet
 
   const menu = !readOnly && (
     <div className="ml-auto relative">
-      <button type="button" onClick={() => setMenuOpen((v) => !v)} className="text-gray-400 hover:text-gray-700 p-1" aria-label="Actions du constat"><MoreHorizontal size={15} /></button>
+      <button ref={menuBtnRef} type="button" onClick={() => { if (!menuOpen && menuBtnRef.current) setMenuUp(window.innerHeight - menuBtnRef.current.getBoundingClientRect().bottom < 240); setMenuOpen((v) => !v) }} className="text-gray-400 hover:text-gray-700 p-1" aria-label="Actions du constat"><MoreHorizontal size={15} /></button>
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-0 top-7 z-20 w-56 bg-white border border-gray-200 rounded-lg shadow-lg p-1">
+          <div className={`absolute right-0 ${menuUp ? 'bottom-7' : 'top-7'} z-20 w-56 bg-white border border-gray-200 rounded-lg shadow-lg p-1`}>
             <button type="button" className={itemCls} disabled={index === 0} onClick={() => run(() => void onMoveUp())}><ChevronUp size={13} /> Monter</button>
             <button type="button" className={itemCls} disabled={index === total - 1} onClick={() => run(() => void onMoveDown())}><ChevronDown size={13} /> Descendre</button>
             {!finding.systemic_group_id && !isStrength && onMakeSystemic && (

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { X, ChevronDown, Loader2 } from 'lucide-react'
 import type { RiskLevel, AuditTechnique } from '../../../types/database.types'
 import type { MissionMemberRow } from '../useMissionDetail'
@@ -39,6 +39,8 @@ export function WorkProgramBulkToolbar({
   onSetTechniques,
 }: WorkProgramBulkToolbarProps) {
   const [techniquesOpen, setTechniquesOpen] = useState(false)
+  const [techUp, setTechUp] = useState(false)
+  const techBtnRef = useRef<HTMLButtonElement>(null)
   const [pickedTechniques, setPickedTechniques] = useState<Set<AuditTechnique>>(new Set())
 
   const toggleTechnique = (t: AuditTechnique): void => {
@@ -111,9 +113,10 @@ export function WorkProgramBulkToolbar({
       {/* Set techniques (multi) */}
       <div className="relative">
         <button
+          ref={techBtnRef}
           type="button"
           disabled={saving}
-          onClick={() => setTechniquesOpen(!techniquesOpen)}
+          onClick={() => { if (!techniquesOpen && techBtnRef.current) setTechUp(window.innerHeight - techBtnRef.current.getBoundingClientRect().bottom < 320); setTechniquesOpen(!techniquesOpen) }}
           className="text-[11px] bg-forest-900/40 border border-forest-900 rounded-lg px-2 py-1 text-white inline-flex items-center gap-1 hover:bg-forest-900/60 disabled:opacity-50"
         >
           Techniques <ChevronDown size={11} />
@@ -121,7 +124,7 @@ export function WorkProgramBulkToolbar({
         {techniquesOpen && (
           <>
             <div className="fixed inset-0 z-[5]" onClick={() => setTechniquesOpen(false)} />
-            <div className="absolute right-0 top-9 z-10 w-52 bg-white border border-gray-200 rounded-xl shadow-lg p-2 text-gray-700">
+            <div className={`absolute right-0 z-10 w-52 bg-white border border-gray-200 rounded-xl shadow-lg p-2 text-gray-700 ${techUp ? 'bottom-9' : 'top-9'}`}>
               <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-1.5 px-1">
                 Techniques &agrave; appliquer
               </p>

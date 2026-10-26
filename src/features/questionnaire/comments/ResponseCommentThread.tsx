@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { Send, X, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import type { ResponseComment, UseResponseCommentsReturn } from './useResponseComments'
@@ -54,11 +54,18 @@ export function ResponseCommentThread({ questionCode, hook, onClose, variant = '
   }
 
   const isPopover = variant === 'popover'
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [up, setUp] = useState(false)
+  // Rabattre le popover vers le haut s'il déborde sous la fenêtre (ligne basse).
+  useLayoutEffect(() => {
+    if (!isPopover || !rootRef.current) return
+    setUp(rootRef.current.getBoundingClientRect().bottom > window.innerHeight - 8)
+  }, [isPopover, filtered.length])
 
   return (
-    <div className={
+    <div ref={rootRef} className={
       isPopover
-        ? 'absolute right-0 top-full mt-1 w-80 z-20 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden'
+        ? `absolute right-0 w-80 z-20 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden ${up ? 'bottom-full mb-1' : 'top-full mt-1'}`
         : 'mt-2 bg-info-50 border border-info-200 rounded-lg overflow-hidden'
     } style={isPopover ? undefined : { background: '#EFF6FF', borderColor: '#BFDBFE' }}>
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-[#FAFAF8]">

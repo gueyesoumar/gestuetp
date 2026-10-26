@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { FindingClassification, FindingPriority, FindingPatch } from './useAssessmentFindings'
 
@@ -32,14 +32,17 @@ interface ClassificationPickerProps {
 
 export function FindingClassificationPicker({ value, readOnly, onChange }: ClassificationPickerProps) {
   const [open, setOpen] = useState(false)
+  const [up, setUp] = useState(false)
+  const btnRef = useRef<HTMLButtonElement>(null)
   const cfg = getClassificationConfig(value)
 
   return (
     <div className="relative">
       <button
+        ref={btnRef}
         type="button"
         disabled={readOnly}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => { if (!open && btnRef.current) setUp(window.innerHeight - btnRef.current.getBoundingClientRect().bottom < 200); setOpen((v) => !v) }}
         className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${cfg.pillBg} disabled:opacity-50`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
@@ -47,7 +50,7 @@ export function FindingClassificationPicker({ value, readOnly, onChange }: Class
         {!readOnly && <ChevronDown size={10} />}
       </button>
       {open && !readOnly && (
-        <div className="absolute top-full left-0 mt-1 z-10 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg p-1 min-w-[140px]">
+        <div className={`absolute left-0 z-10 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg p-1 min-w-[140px] ${up ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
           {CLASSIFICATION_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -75,15 +78,18 @@ interface PriorityPickerProps {
 
 export function FindingPriorityPicker({ value, readOnly, onChange }: PriorityPickerProps) {
   const [open, setOpen] = useState(false)
+  const [up, setUp] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
   const cfg = getPriorityConfig(value)
+  const toggle = (): void => { if (!open && ref.current) setUp(window.innerHeight - ref.current.getBoundingClientRect().bottom < 200); setOpen((v) => !v) }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       {cfg ? (
         <button
           type="button"
           disabled={readOnly}
-          onClick={() => setOpen((v) => !v)}
+          onClick={toggle}
           className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border ${cfg.color} disabled:opacity-50`}
         >
           {cfg.label}
@@ -92,14 +98,14 @@ export function FindingPriorityPicker({ value, readOnly, onChange }: PriorityPic
       ) : !readOnly ? (
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={toggle}
           className="text-[10px] text-gray-400 hover:text-gray-700 px-1.5 py-0.5 border border-dashed border-gray-300 rounded"
         >
           + Priorit&eacute;
         </button>
       ) : null}
       {open && !readOnly && (
-        <div className="absolute top-full left-0 mt-1 z-10 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg p-1 min-w-[120px]">
+        <div className={`absolute left-0 z-10 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg p-1 min-w-[120px] ${up ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
           {PRIORITY_OPTIONS.map((opt) => (
             <button
               key={opt.value}

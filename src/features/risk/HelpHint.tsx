@@ -14,14 +14,17 @@ const W = 288
  *  recadré dans la fenêtre, se ferme au clic extérieur / défilement / resize. */
 export function HelpHint({ title, children, footer }: Props): JSX.Element {
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; left: number }>({ top: 0, left: 0 })
   const btnRef = useRef<HTMLButtonElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
 
   const place = useCallback(() => {
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
-    setPos({ top: r.bottom + 6, left: Math.max(8, Math.min(r.left, window.innerWidth - W - 8)) })
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8))
+    // Rabattre vers le haut si l'espace sous l'icône est insuffisant.
+    if (window.innerHeight - r.bottom < 180) setPos({ bottom: window.innerHeight - r.top + 6, left })
+    else setPos({ top: r.bottom + 6, left })
   }, [])
 
   useEffect(() => {
@@ -57,7 +60,7 @@ export function HelpHint({ title, children, footer }: Props): JSX.Element {
       {open && (
         <div
           ref={popRef}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: W, zIndex: 50 }}
+          style={{ position: 'fixed', top: pos.top, bottom: pos.bottom, left: pos.left, width: W, zIndex: 50 }}
           className="rounded-xl border border-gray-200 bg-white p-3 text-left normal-case font-normal tracking-normal shadow-xl"
         >
           <p className="text-[12px] font-bold text-gray-900 mb-1.5">{title}</p>

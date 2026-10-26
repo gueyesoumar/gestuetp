@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { ShieldAlert, ShieldCheck, Shield, EyeOff } from 'lucide-react'
 
 type Sensitivity = 'faible' | 'moyenne' | 'elevee' | 'non_inspecte' | null
@@ -32,6 +32,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 /** Pastille de sensibilité IA (détection déterministe). Cliquable → raison du classement. */
 export function SensitivityBadge({ level, counts, categories }: SensitivityBadgeProps): JSX.Element | null {
   const [open, setOpen] = useState(false)
+  const [up, setUp] = useState(false)
+  const btnRef = useRef<HTMLButtonElement>(null)
   if (!level) return null
   const s = STYLES[level]
   const secret = counts?.secret ?? 0
@@ -58,8 +60,9 @@ export function SensitivityBadge({ level, counts, categories }: SensitivityBadge
   return (
     <span className="relative inline-flex">
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => { if (!open && btnRef.current) setUp(window.innerHeight - btnRef.current.getBoundingClientRect().bottom < 220); setOpen((o) => !o) }}
         className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${s.cls}`}
         title="Voir la raison du classement"
       >
@@ -69,7 +72,7 @@ export function SensitivityBadge({ level, counts, categories }: SensitivityBadge
       {open && (
         <>
           <span className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-gray-200 bg-white p-3 text-left shadow-lg">
+          <div className={`absolute right-0 z-50 w-64 rounded-lg border border-gray-200 bg-white p-3 text-left shadow-lg ${up ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
             <p className="text-[12px] font-semibold text-gray-900">{s.label}</p>
             <p className="mt-1 text-[11px] text-gray-500">{why}</p>
 
