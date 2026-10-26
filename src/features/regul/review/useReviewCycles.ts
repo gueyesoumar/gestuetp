@@ -7,6 +7,7 @@ interface Result {
   cycles: Record<string, AssujettiReviewCycle>
   loading: boolean
   setCadence: (frameworkId: string, months: number | null) => Promise<{ ok: boolean; error?: string }>
+  launchReview: (sourceMissionId: string) => Promise<{ ok: boolean; error?: string; data?: unknown }>
 }
 
 /** Cycles de revue d'un assujetti (map par framework_id). Édition via l'Edge
@@ -44,7 +45,11 @@ export function useReviewCycles(orgId: string | undefined): Result {
     return res
   }, [orgId])
 
-  return { cycles, loading, setCadence }
+  const launchReview = useCallback(async (sourceMissionId: string) => {
+    return await invokeEdgeFunction('launch-review', { source_mission_id: sourceMissionId })
+  }, [])
+
+  return { cycles, loading, setCadence, launchReview }
 }
 
 /** Statut d'échéance d'une revue, dérivé de next_review_at (seuil « bientôt » = 60 j). */

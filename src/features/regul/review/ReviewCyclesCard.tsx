@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useReviewCycles, reviewStatus } from './useReviewCycles'
 import { useToast } from '../../../hooks/useToast'
 
@@ -10,18 +12,29 @@ const OPTIONS = [
 ]
 
 const fmt = (iso: string | null | undefined): string =>
-  iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'
+  iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'
 
 /** Cycles de revue par référentiel d'un assujetti (n°18 Lot 1). Affiché en Regul. */
 export function ReviewCyclesCard({ orgId, frameworks }: { orgId: string; frameworks: { id: string; name: string }[] }): JSX.Element | null {
-  const { cycles, loading, setCadence } = useReviewCycles(orgId)
+  const { cycles, loading, setCadence, launchReview } = useReviewCycles(orgId)
   const toast = useToast()
+  const navigate = useNavigate()
+  const [launching, setLaunching] = useState<string | null>(null)
   if (frameworks.length === 0) return null
 
   const onChange = async (fwId: string, val: string): Promise<void> => {
     const r = await setCadence(fwId, val === '' ? null : Number(val))
     if (!r.ok) toast.error(r.error ?? 'Mise à jour impossible')
     else toast.success('Cadence de revue mise à jour')
+  }
+
+  const onLaunch = async (sourceMissionId: string): Promise<void> => {
+    setLaunching(sourceMissionId)
+    const r = await launchReview(sourceMissionId)
+    setLaunching(null)
+    const missionId = (r.data as { mission_id?: string } | undefined)?.mission_id
+    if (r.ok && missionId) { toast.success('Contrôle de revue créé'); navigate(`/controles/${missionId}`) }
+    else toast.error(r.error ?? 'Lancement impossible')
   }
 
   return (
@@ -48,7 +61,13 @@ export function ReviewCyclesCard({ orgId, frameworks }: { orgId: string; framewo
                   className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-[12.5px] disabled:opacity-50">
                   {OPTIONS.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
                 </select>
-                <span className="text-[11.5px] text-gray-400">Le lancement de la revue arrive prochainement.</span>
+                {c?.last_mission_id
+                  ? <button type="button" disabled={launching === c.last_mission_id}
+                      onClick={() => void onLaunch(c.last_mission_id!)}
+                      className="rounded-lg bg-forest-700 px-3 py-2 text-[12.5px] font-semibold text-white hover:bg-forest-900 disabled:opacity-50">
+                      {launching === c.last_mission_id ? 'Lancement en cours' : 'Lancer la revue'}
+                    </button>
+                  : <span className="text-[11.5px] text-gray-400">Lancement possible après un premier contrôle clôturé.</span>}
               </div>
             </div>
           )

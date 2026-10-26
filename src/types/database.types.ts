@@ -573,6 +573,8 @@ export interface Mission {
   workflow_disabled_steps?: string[]
   /** Template de parcours choisi à la création (RFC 0009 phase 2, migration 00253). */
   workflow_template_id?: string | null
+  /** Mission précédente dont celle-ci est la revue périodique (n°18 Lot 3, migration 00364). */
+  review_of_mission_id?: string | null
   /** Surcharge du consentement IA pour cette mission (NULL = hérite du client ; RFC 0012, migration 00262). */
   ai_consent_override?: boolean | null
   /** Surcharge de l'anonymisation IA pour cette mission (NULL = hérite du client ; RFC 0012 P4, migration 00266). */
@@ -672,6 +674,8 @@ export interface ControlAssessment {
   conformity_level: string | null
   conformity_override_reason: string | null
   cycle_id: string | null
+  /** Revue périodique (n°18 Lot 3b) : 'unchanged' / 'modified' vs la revue précédente. */
+  review_delta?: 'unchanged' | 'modified' | null
   created_at: string
   updated_at: string
 }
