@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Star } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { loadReportTemplate } from '../../reports/loadReportTemplate'
+import { invokeEdgeFunction } from '../../../lib/invokeEdgeFunction'
 import type { ScopingNoteData } from '../../reports/scoping-note/context'
 import { supabase } from '../../../lib/supabase'
 import { useScopingData } from './useScopingData'
@@ -137,52 +138,18 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const handleRemindClient = useCallback(async () => {
     setActionLoading(true)
     setActionSuccess(null)
-    try {
-      const session = await supabase.auth.getSession()
-      const token = session.data.session?.access_token
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL
-      const apikey = import.meta.env.VITE_SUPABASE_ANON_KEY
-      const headers = { 'Content-Type': 'application/json', 'apikey': apikey, 'Authorization': `Bearer ${token}` }
-
-      // Trouver les utilisateurs de l'organisation client
-      const usersRes = await fetch(`${baseUrl}/rest/v1/users?organization_id=eq.${mission.client_id}&is_active=eq.true&select=id`, { headers })
-      const clientUsers: { id: string }[] = usersRes.ok ? await usersRes.json() : []
-
-      if (clientUsers.length === 0) {
-        setActionSuccess('Aucun utilisateur client trouv\u00e9. V\u00e9rifiez que le client a des utilisateurs actifs.')
-        setActionLoading(false)
-        return
-      }
-
-      const pendingDocs = requests.filter((r) => r.status === 'pending').length
-      const questPending = totalCount - answeredCount
-
-      const notifications = clientUsers.map((u) => ({
-        user_id: u.id,
-        type: 'invitation',
-        title: `Rappel : Mission ${mission.name}`,
-        body: [
-          questPending > 0 ? `${questPending} question${questPending > 1 ? 's' : ''} du questionnaire en attente` : null,
-          pendingDocs > 0 ? `${pendingDocs} document${pendingDocs > 1 ? 's' : ''} en attente` : null,
-        ].filter(Boolean).join('. ') || 'Merci de compl\u00e9ter les \u00e9l\u00e9ments de cadrage.',
-        link: `/missions/${mission.id}`,
-        metadata: { mission_id: mission.id },
-      }))
-
-      const notifRes = await fetch(`${baseUrl}/rest/v1/notifications`, {
-        method: 'POST', headers: { ...headers, 'Prefer': 'return=minimal' },
-        body: JSON.stringify(notifications),
-      })
-
-      if (!notifRes.ok) {
-        console.error('handleRemindClient:', await notifRes.text())
-        setActionSuccess('Erreur lors de l\u2019envoi de la relance.')
-      } else {
-        setActionSuccess(`Relance envoy\u00e9e \u00e0 ${clientUsers.length} utilisateur${clientUsers.length > 1 ? 's' : ''} client.`)
-      }
-    } catch (err) {
-      console.error('handleRemindClient:', err)
-      setActionSuccess('Erreur inattendue.')
+    // Insert via Edge Function (service_role) : l'insert REST direct \u00e9tait bloqu\u00e9 par la
+    // RLS (pas de policy INSERT pour authenticated). RFC n\u00b017 Lot 3.
+    const pendingDocs = requests.filter((r) => r.status === 'pending').length
+    const questPending = totalCount - answeredCount
+    const res = await invokeEdgeFunction<{ count: number }>('remind-client', { mission_id: mission.id, questPending, pendingDocs })
+    if (!res.ok) {
+      setActionSuccess(res.error ?? 'Erreur lors de l\u2019envoi de la relance.')
+    } else if ((res.data?.count ?? 0) === 0) {
+      setActionSuccess('Aucun utilisateur client actif \u00e0 relancer.')
+    } else {
+      const c = res.data?.count ?? 0
+      setActionSuccess(`Relance envoy\u00e9e \u00e0 ${c} utilisateur${c > 1 ? 's' : ''} client.`)
     }
     setActionLoading(false)
   }, [mission, requests, totalCount, answeredCount])
