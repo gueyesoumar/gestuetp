@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { notifyMany } from '../_shared/notify.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -150,6 +151,21 @@ Deno.serve(async (req) => {
         to_status: 'client_review',
         metadata: { count: ids.length },
       })
+
+    // Notifier les approbateurs client (in-app, fail-soft)
+    // deno-lint-ignore no-explicit-any
+    const { data: approverRows } = await (supabaseAdmin.from('client_mission_access') as any)
+      .select('client_portal_contacts!inner(user_id)')
+      .eq('mission_id', mission_id)
+      .eq('permission', 'approver')
+    const approverIds = ((approverRows ?? []) as any[]).map((r) => r.client_portal_contacts?.user_id)
+    await notifyMany(supabaseAdmin, approverIds, {
+      type: 'client_review',
+      title: 'Contrôles à valider',
+      body: `${ids.length} contrôle(s) vous ont été transmis pour validation.`,
+      link: `/client/missions/${mission_id}`,
+      metadata: { mission_id, count: ids.length },
+    })
 
     return new Response(
       JSON.stringify({ success: true, count: ids.length }),

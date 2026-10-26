@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { notifyMany } from '../_shared/notify.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
     // Verifier que l'appelant est du côté client de la mission
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, cabinet_id, client_id, status')
+      .select('id, cabinet_id, client_id, status, lead_auditor_id, associate_id')
       .eq('id', assessment.mission_id)
       .single()
 
@@ -204,6 +205,18 @@ Deno.serve(async (req) => {
         })
       }
     }
+
+    // Notifier l'équipe d'audit de la réponse client (in-app, fail-soft)
+    const team = mission as { lead_auditor_id?: string | null; associate_id?: string | null }
+    await notifyMany(supabaseAdmin, [team.lead_auditor_id, team.associate_id], {
+      type: 'client_response',
+      title: decision === 'approved' ? 'Contrôle validé par le client' : 'Contrôle rejeté par le client',
+      body: decision === 'approved'
+        ? 'Le client a validé un contrôle.'
+        : `Le client a rejeté un contrôle${comment ? ` : ${comment}` : '.'}`,
+      link: `/missions/${assessment.mission_id}`,
+      metadata: { mission_id: assessment.mission_id, assessment_id },
+    })
 
     return new Response(
       JSON.stringify({ success: true, new_status: decision === 'approved' ? 'approved' : 'draft' }),

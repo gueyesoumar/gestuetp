@@ -11,6 +11,7 @@ import {
   renderCARPrecisionEmail,
 } from '../_shared/email-templates/car.ts'
 import { resolveOrgVocab } from '../_shared/vocab.ts'
+import { notifyMany } from '../_shared/notify.ts'
 
 type VerifyAction = 'accept' | 'reject' | 'request_precision'
 
@@ -180,6 +181,23 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Mise à jour impossible' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // Notifier l'équipe client de la décision sur la CAR (in-app, fail-soft)
+    if (mission.client_id) {
+      // deno-lint-ignore no-explicit-any
+      const { data: carContacts } = await admin.from('client_portal_contacts')
+        .select('user_id').eq('client_org_id', mission.client_id) as any
+      const carOwnerIds = ((carContacts ?? []) as any[]).map((r) => r.user_id)
+      const label = action === 'accept' ? 'Action corrective acceptée' : action === 'reject' ? 'Action corrective rejetée' : 'Complément demandé'
+      await notifyMany(admin, carOwnerIds, {
+        type: 'car', title: label,
+        body: action === 'accept'
+          ? `L'action corrective ${car.code} a été acceptée.`
+          : `L'action corrective ${car.code} nécessite une suite${comment ? ` : ${comment}` : '.'}`,
+        link: `/client/missions/${mission.id}`,
+        metadata: { mission_id: mission.id, car_id },
+      })
     }
 
     // Email au RSSI client (best-effort, non bloquant)

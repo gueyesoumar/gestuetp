@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { notify } from '../_shared/notify.ts'
 
 // Soumission de masse « Marquer conforme & soumettre » (voie express Conforme, RFC UX Lot 3).
 //
@@ -154,6 +155,21 @@ Deno.serve(async (req) => {
             .eq('id', mid)
             .eq('status', 'fieldwork')
         }
+      }
+    }
+
+    // 5. Notifier les relecteurs des missions concernées (une notif/mission, fail-soft)
+    for (const mid of affectedMissions) {
+      const m = missionById.get(mid)
+      const reviewerId = (m?.lead_auditor_id === callerProfile.id && m?.associate_id) ? m.associate_id : m?.lead_auditor_id
+      if (reviewerId && reviewerId !== callerProfile.id) {
+        await notify(admin, {
+          userId: reviewerId, type: 'submission',
+          title: 'Évaluations à relire',
+          body: 'Des évaluations ont été soumises et attendent votre relecture.',
+          link: `/missions/${mid}`,
+          metadata: { mission_id: mid },
+        })
       }
     }
 

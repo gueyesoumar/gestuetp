@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
+import { notify } from '../_shared/notify.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -201,6 +202,18 @@ Deno.serve(async (req) => {
       organizationId: callerProfile.organization_id, actorUserId: callerProfile.id,
       action: `assessment.${decision}`, targetType: 'assessment', targetId: assessment_id,
       summary: decision === 'approved' ? 'Évaluation approuvée' : 'Évaluation rejetée',
+    })
+
+    // 9. Notifier l'auditeur de la décision (in-app, fail-soft)
+    await notify(supabaseAdmin, {
+      userId: assessmentFull?.auditor_id ?? '',
+      type: decision === 'approved' ? 'approval' : 'rejection',
+      title: decision === 'approved' ? 'Évaluation validée' : 'Évaluation à revoir',
+      body: decision === 'approved'
+        ? 'Une de vos évaluations a été validée par le relecteur.'
+        : `Une de vos évaluations a été rejetée${comment ? ` : ${comment}` : '.'}`,
+      link: `/missions/${assessment.mission_id}`,
+      metadata: { mission_id: assessment.mission_id, assessment_id },
     })
 
     return new Response(

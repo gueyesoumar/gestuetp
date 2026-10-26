@@ -1155,7 +1155,7 @@ export interface RegulatoryCatalogItem {
   updated_at: string
 }
 
-export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation' | 'support'
+export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation' | 'support' | 'client_review' | 'mission_assigned' | 'car' | 'admin_view'
 
 export interface Notification {
   id: string

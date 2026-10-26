@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
+import { notifyMany } from '../_shared/notify.ts'
 
 // Scoring de conformité (lecture seule) : score pondéré (c=100, lc=75, pc=50,
 // nc=0 ; na/null exclus) + ventilation par domaine. Extrait pour être réutilisé
@@ -203,6 +204,15 @@ Deno.serve(async (req) => {
     // vérifié côté RPC). Non bloquant pour la clôture.
     const { error: promoteError } = await supabaseAdmin.rpc('auto_promote_mission_findings', { p_mission_id: mission_id })
     if (promoteError) console.error('close-mission auto-promote:', promoteError.message)
+
+    // Notifier l'équipe d'audit de la clôture (in-app, fail-soft) ; l'auteur exclu.
+    await notifyMany(supabaseAdmin, [mission.lead_auditor_id, mission.associate_id].filter((id) => id !== callerProfile.id), {
+      type: 'mission_closure',
+      title: 'Mission clôturée',
+      body: 'Une mission à laquelle vous participez a été clôturée.',
+      link: `/missions/${mission_id}`,
+      metadata: { mission_id },
+    })
 
     return new Response(
       JSON.stringify({

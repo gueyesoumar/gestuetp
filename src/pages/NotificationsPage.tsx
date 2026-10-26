@@ -14,6 +14,10 @@ const typeConfig: Record<NotificationType, { label: string; variant: 'forest' | 
   mission_closure: { label: 'Cl\u00f4ture', variant: 'green', dotColor: 'bg-success' },
   invitation: { label: 'Invitation', variant: 'forest', dotColor: 'bg-forest-500' },
   support: { label: 'Support', variant: 'gold', dotColor: 'bg-gold-500' },
+  client_review: { label: 'Validation client', variant: 'gold', dotColor: 'bg-gold-500' },
+  mission_assigned: { label: 'Affectation', variant: 'forest', dotColor: 'bg-forest-500' },
+  car: { label: 'Action corrective', variant: 'gold', dotColor: 'bg-gold-500' },
+  admin_view: { label: 'Consultation', variant: 'gray', dotColor: 'bg-gray-400' },
 }
 
 function timeAgo(dateStr: string): string {

@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { notify } from '../_shared/notify.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -243,6 +244,18 @@ Deno.serve(async (req) => {
           .eq('id', assessment.mission_id)
           .eq('status', 'fieldwork')
       }
+    }
+
+    // 11. Notifier le prochain relecteur (in-app, fail-soft)
+    const reviewerId = newStatus === 'in_review' ? mission?.associate_id : mission?.lead_auditor_id
+    if (reviewerId && reviewerId !== callerProfile.id) {
+      await notify(supabaseAdmin, {
+        userId: reviewerId, type: 'submission',
+        title: 'Évaluation à relire',
+        body: 'Une évaluation a été soumise et attend votre relecture.',
+        link: `/missions/${assessment.mission_id}`,
+        metadata: { mission_id: assessment.mission_id, assessment_id },
+      })
     }
 
     return new Response(

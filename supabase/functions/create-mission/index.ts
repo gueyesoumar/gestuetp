@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { logActivity } from '../_shared/audit-log.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
+import { notifyMany } from '../_shared/notify.ts'
 
 type MissionKind = 'audit' | 'continuous_supervision'
 
@@ -381,6 +382,15 @@ Deno.serve(async (req) => {
       organizationId: callerProfile.organization_id, actorUserId: callerProfile.id,
       action: 'mission.created', targetType: 'mission', targetId: newMissionId, targetLabel: name,
       summary: `Mission créée : ${name}`,
+    })
+
+    // Notifier l'équipe affectée (hors créateur/chef de mission) (in-app, fail-soft)
+    await notifyMany(supabaseAdmin, [associate_id, ...(member_ids ?? [])].filter((id) => id !== callerProfile.id), {
+      type: 'mission_assigned',
+      title: 'Nouvelle affectation',
+      body: `Vous avez été affecté(e) à la mission « ${name} ».`,
+      link: `/missions/${newMissionId}`,
+      metadata: { mission_id: newMissionId },
     })
 
     return new Response(
