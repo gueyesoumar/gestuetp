@@ -1157,6 +1157,13 @@ export interface RegulatoryCatalogItem {
 
 export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation' | 'support' | 'client_review' | 'mission_assigned' | 'car' | 'admin_view'
 
+/** Préférences in-app de notifications (RFC n°17 Lot 4, migration 00361). */
+export interface NotificationPreferences {
+  user_id: string
+  muted_types: NotificationType[]
+  updated_at: string
+}
+
 export interface Notification {
   id: string
   user_id: string
@@ -2278,6 +2285,12 @@ export interface Database {
         Row: Notification & Rec
         Insert: never & Rec
         Update: never & Rec
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: NotificationPreferences & Rec
+        Insert: NotificationPreferences & Rec
+        Update: Partial<NotificationPreferences> & Rec
         Relationships: []
       }
       regulatory_catalog: {

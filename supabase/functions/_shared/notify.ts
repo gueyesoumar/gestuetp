@@ -18,22 +18,36 @@ export interface NotifyInput {
   metadata?: Record<string, unknown>
 }
 
-export async function notify(admin: SupabaseClient, n: NotifyInput): Promise<void> {
-  if (!n.userId) return
+/** Retire les destinataires ayant masqué ce type en préférences in-app (Lot 4).
+ *  Fail-open : en cas d'erreur de lecture des préférences, on n'écarte personne. */
+async function filterByPreferences(admin: SupabaseClient, ids: string[], type: string): Promise<string[]> {
   try {
-    const { error } = await admin.from('notifications').insert({
-      user_id: n.userId, type: n.type, title: n.title,
-      body: n.body ?? null, link: n.link ?? null, metadata: n.metadata ?? {},
-    } as any)
-    if (error) console.error('[notify]', n.type, error.message)
-  } catch (e) { console.error('[notify] unexpected', n.type, e) }
+    const { data, error } = await admin
+      .from('notification_preferences')
+      .select('user_id, muted_types')
+      .in('user_id', ids)
+    if (error || !data) return ids
+    const muted = new Set(
+      (data as { user_id: string; muted_types: string[] }[])
+        .filter((r) => (r.muted_types ?? []).includes(type))
+        .map((r) => r.user_id),
+    )
+    return ids.filter((id) => !muted.has(id))
+  } catch { return ids }
 }
 
-/** Notifie plusieurs destinataires (dédupliqués, valeurs vides ignorées). */
+export async function notify(admin: SupabaseClient, n: NotifyInput): Promise<void> {
+  if (!n.userId) return
+  await notifyMany(admin, [n.userId], n)
+}
+
+/** Notifie plusieurs destinataires (dédupliqués, valeurs vides ignorées, préférences respectées). */
 export async function notifyMany(admin: SupabaseClient, userIds: (string | null | undefined)[], n: Omit<NotifyInput, 'userId'>): Promise<void> {
-  const ids = [...new Set(userIds.filter((id): id is string => Boolean(id)))]
-  if (ids.length === 0) return
+  const unique = [...new Set(userIds.filter((id): id is string => Boolean(id)))]
+  if (unique.length === 0) return
   try {
+    const ids = await filterByPreferences(admin, unique, n.type)
+    if (ids.length === 0) return
     const rows = ids.map((user_id) => ({
       user_id, type: n.type, title: n.title,
       body: n.body ?? null, link: n.link ?? null, metadata: n.metadata ?? {},

@@ -38,7 +38,7 @@ function timeAgo(dateStr: string): string {
 export function NotificationsPage() {
   const navigate = useNavigate()
   const { hasCapability } = useEdition()
-  const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead } = useNotifications()
+  const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead, hasMore, loadingMore, loadMore } = useNotifications()
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
@@ -115,6 +115,18 @@ export function NotificationsPage() {
               </button>
             )
           })}
+        </div>
+      )}
+
+      {hasMore && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => void loadMore()}
+            disabled={loadingMore}
+            className="rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-600 hover:bg-forest-50 hover:border-forest-300 hover:text-forest-700 transition-colors disabled:opacity-50"
+          >
+            {loadingMore ? 'Chargement...' : 'Charger plus'}
+          </button>
         </div>
       )}
     </div>

@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import type { Notification } from '../../types/database.types'
 
+const PAGE_SIZE = 50
+
 export interface UseNotificationsResult {
   notifications: Notification[]
   unreadCount: number
@@ -11,6 +13,9 @@ export interface UseNotificationsResult {
   markAsRead: (id: string) => Promise<void>
   markAllAsRead: () => Promise<void>
   refetch: () => void
+  hasMore: boolean
+  loadingMore: boolean
+  loadMore: () => Promise<void>
 }
 
 export function useNotifications(): UseNotificationsResult {
@@ -19,6 +24,8 @@ export function useNotifications(): UseNotificationsResult {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
 
@@ -36,7 +43,7 @@ export function useNotifications(): UseNotificationsResult {
       .select('*')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
-      .limit(50)
+      .limit(PAGE_SIZE)
       .abortSignal(abortController.signal)
       .then(({ data, error: queryError }) => {
         if (abortController.signal.aborted) return
@@ -45,6 +52,7 @@ export function useNotifications(): UseNotificationsResult {
           setError('Impossible de charger les notifications.')
         } else {
           setNotifications(data ?? [])
+          setHasMore((data?.length ?? 0) === PAGE_SIZE)
         }
         setLoading(false)
       })
@@ -105,5 +113,25 @@ export function useNotifications(): UseNotificationsResult {
     )
   }, [profile])
 
-  return { notifications, unreadCount, loading, error, markAsRead, markAllAsRead, refetch }
+  const loadMore = useCallback(async () => {
+    if (!profile || loadingMore) return
+    setLoadingMore(true)
+    const from = notifications.length
+    const { data, error: queryError } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE_SIZE - 1)
+    setLoadingMore(false)
+    if (queryError) { console.error('[useNotifications] loadMore:', queryError.message); return }
+    const rows = (data ?? []) as Notification[]
+    setNotifications((prev) => {
+      const seen = new Set(prev.map((n) => n.id))
+      return [...prev, ...rows.filter((r) => !seen.has(r.id))]
+    })
+    setHasMore(rows.length === PAGE_SIZE)
+  }, [profile, notifications.length, loadingMore])
+
+  return { notifications, unreadCount, loading, error, markAsRead, markAllAsRead, refetch, hasMore, loadingMore, loadMore }
 }
