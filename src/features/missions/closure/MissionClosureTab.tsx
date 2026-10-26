@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { useToast } from '../../../hooks/useToast'
 import { useMissionUserRole } from '../useMissionUserRole'
@@ -148,8 +149,12 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
     onRefetch()
   }, [mission.id, toast, onRefetch])
 
+  // Tant que le rôle n'est pas résolu, ne rien afficher : sinon un auditeur restreint
+  // voit une fraction de seconde le score global + la répartition par domaine.
+  if (userRole.loading) return <LoadingSpinner />
+
   // Auditeur sans contrôle affecté → rien à afficher.
-  if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
+  if (userRole.isAuditor && userRole.assignedControlIds.size === 0) {
     return (
       <EmptyState
         title="Aucun contrôle affecté"
