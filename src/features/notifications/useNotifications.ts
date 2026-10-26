@@ -52,6 +52,25 @@ export function useNotifications(): UseNotificationsResult {
     return () => abortController.abort()
   }, [profile, refreshKey])
 
+  // Temps réel (RFC n°17 Lot 2) : la RLS + le filtre user_id garantissent qu'on ne
+  // reçoit que ses propres notifications. INSERT => ajout en tête ; UPDATE => remplace.
+  useEffect(() => {
+    if (!profile) return
+    const uid = profile.id
+    const channel = supabase
+      .channel(`notifications:${uid}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${uid}` }, (payload) => {
+        const n = payload.new as Notification
+        setNotifications((prev) => prev.some((x) => x.id === n.id) ? prev : [n, ...prev].slice(0, 50))
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${uid}` }, (payload) => {
+        const n = payload.new as Notification
+        setNotifications((prev) => prev.map((x) => x.id === n.id ? n : x))
+      })
+      .subscribe()
+    return () => { void supabase.removeChannel(channel) }
+  }, [profile])
+
   const unreadCount = notifications.filter((n) => !n.is_read).length
 
   const markAsRead = useCallback(async (id: string) => {
