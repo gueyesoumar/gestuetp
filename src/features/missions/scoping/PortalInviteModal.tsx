@@ -187,7 +187,7 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
                               value={permFor(c.id)}
                               onChange={(e) => void updatePermission(c.id, e.target.value as ClientPermission)}
                               disabled={savingPerm === c.id}
-                              title="R\u00f4le sur cette mission"
+                              title="Rôle sur cette mission"
                               className="text-[10px] border border-gray-200 rounded-lg px-2 py-1 bg-white outline-none focus:border-forest-500 shrink-0 disabled:opacity-50"
                             >
                               <option value="approver">{PERMISSION_LABELS.approver}</option>

@@ -4,6 +4,8 @@ import { Menu } from 'lucide-react'
 import { Breadcrumb } from './Breadcrumb'
 import { BellIcon } from '../icons/NavIcons'
 import { Badge } from '../ui/Badge'
+import { resolveNotificationLink } from '../../features/notifications/notificationLink'
+import { useEdition } from '../../features/edition/EditionContext'
 import type { UseNotificationsResult } from '../../features/notifications/useNotifications'
 import type { NotificationType } from '../../types/database.types'
 
@@ -41,6 +43,7 @@ function timeAgo(dateStr: string): string {
 
 export function TopBar({ onMenuToggle, notifications: notif }: TopBarProps) {
   const navigate = useNavigate()
+  const { hasCapability } = useEdition()
   const { notifications, unreadCount, markAsRead } = notif
   const [panelOpen, setPanelOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -61,7 +64,7 @@ export function TopBar({ onMenuToggle, notifications: notif }: TopBarProps) {
   const handleClick = async (id: string, link: string | null, isRead: boolean) => {
     if (!isRead) await markAsRead(id)
     setPanelOpen(false)
-    if (link) navigate(link)
+    if (link) navigate(resolveNotificationLink(link, hasCapability('supervision')))
   }
 
   return (

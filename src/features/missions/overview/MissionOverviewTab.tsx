@@ -36,8 +36,8 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
   if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
     return (
       <EmptyState
-        title="Aucun contr\u00f4le affect\u00e9"
-        description="Le chef de mission ne vous a pas encore affect\u00e9 de contr\u00f4le dans cette mission."
+        title="Aucun contrôle affecté"
+        description="Le chef de mission ne vous a pas encore affecté de contrôle dans cette mission."
       />
     )
   }

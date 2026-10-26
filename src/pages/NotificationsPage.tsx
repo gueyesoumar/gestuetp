@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useNotifications } from '../features/notifications/useNotifications'
+import { resolveNotificationLink } from '../features/notifications/notificationLink'
+import { useEdition } from '../features/edition/EditionContext'
 import { Badge } from '../components/ui/Badge'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
@@ -35,6 +37,7 @@ function timeAgo(dateStr: string): string {
 
 export function NotificationsPage() {
   const navigate = useNavigate()
+  const { hasCapability } = useEdition()
   const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead } = useNotifications()
 
   if (loading) return <LoadingSpinner />
@@ -42,7 +45,7 @@ export function NotificationsPage() {
 
   const handleClick = async (id: string, link: string | null, isRead: boolean) => {
     if (!isRead) await markAsRead(id)
-    if (link) navigate(link)
+    if (link) navigate(resolveNotificationLink(link, hasCapability('supervision')))
   }
 
   return (
