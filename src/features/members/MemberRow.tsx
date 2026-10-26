@@ -27,14 +27,23 @@ export function MemberRow({
   onResetPassword,
 }: MemberRowProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+  const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null)
   const [showPerms, setShowPerms] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
 
   const toggleMenu = (): void => {
     if (!menuOpen && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect()
-      setMenuPos({ top: r.bottom + 4, right: window.innerWidth - r.right })
+      const right = window.innerWidth - r.right
+      // Rabattre le menu vers le HAUT quand l'espace sous le bouton est insuffisant
+      // (dernières lignes) : évite le débordement hors écran et le chevauchement avec
+      // le widget flottant en bas à droite.
+      const EST_HEIGHT = 200
+      if (window.innerHeight - r.bottom < EST_HEIGHT) {
+        setMenuPos({ bottom: window.innerHeight - r.top + 4, right })
+      } else {
+        setMenuPos({ top: r.bottom + 4, right })
+      }
     }
     setMenuOpen((v) => !v)
   }
@@ -102,7 +111,7 @@ export function MemberRow({
           <>
             <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[60]" />
             <div
-              style={{ position: 'fixed', top: menuPos.top, right: menuPos.right }}
+              style={{ position: 'fixed', top: menuPos.top, bottom: menuPos.bottom, right: menuPos.right }}
               className="w-52 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-[70]"
             >
               <MenuButton
