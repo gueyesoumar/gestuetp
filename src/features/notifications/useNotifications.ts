@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useId } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import type { Notification } from '../../types/database.types'
@@ -26,6 +26,10 @@ export function useNotifications(): UseNotificationsResult {
   const [refreshKey, setRefreshKey] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  // Id unique par instance de hook : plusieurs composants montent useNotifications
+  // simultanément (cloche AppLayout + page). Sans topic distinct, supabase.channel()
+  // renvoie le canal déjà abonné et le 2e .on('postgres_changes') jette.
+  const instanceId = useId()
 
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
 
@@ -66,7 +70,7 @@ export function useNotifications(): UseNotificationsResult {
     if (!profile) return
     const uid = profile.id
     const channel = supabase
-      .channel(`notifications:${uid}`)
+      .channel(`notifications:${uid}:${instanceId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${uid}` }, (payload) => {
         const n = payload.new as Notification
         setNotifications((prev) => prev.some((x) => x.id === n.id) ? prev : [n, ...prev].slice(0, 50))
@@ -77,7 +81,7 @@ export function useNotifications(): UseNotificationsResult {
       })
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
-  }, [profile])
+  }, [profile, instanceId])
 
   const unreadCount = notifications.filter((n) => !n.is_read).length
 
