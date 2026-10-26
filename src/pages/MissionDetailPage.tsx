@@ -7,6 +7,7 @@ import { useAllAssessments } from '../features/missions/useAllAssessments'
 import { useMissionProgress } from '../features/missions/useMissionProgress'
 import { useMissionUserRole } from '../features/missions/useMissionUserRole'
 import { MissionDetailHeader } from '../features/missions/MissionDetailHeader'
+import { ReviewSummaryStrip } from '../features/missions/review/ReviewSummaryStrip'
 import { MissionStepper } from '../features/missions/MissionStepper'
 import { MissionOverviewTab } from '../features/missions/overview/MissionOverviewTab'
 import { MissionScopingTab } from '../features/missions/scoping/MissionScopingTab'
@@ -100,6 +101,7 @@ export function MissionDetailPage(){
   return (
     <div className="-m-7">
       <MissionDetailHeader mission={mission} progress={progress} onCtaClick={handleCtaClick} />
+      <ReviewSummaryStrip missionId={mission.id} />
       <MissionStepper phases={visiblePhases} activeTab={activeTab} onTabChange={(t) => setActiveTab(t as TabKey)} showAuditedRisks={mission.cabinet_id !== mission.client_id} />
 
       <div className="p-7">
