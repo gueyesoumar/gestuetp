@@ -16,6 +16,7 @@ const CONFIGURABLE: { type: NotificationType; label: string; description: string
   { type: 'car', label: 'Actions correctives', description: 'Décisions sur vos actions correctives.' },
   { type: 'mission_closure', label: 'Clôtures de mission', description: 'Quand une mission à laquelle vous participez est clôturée.' },
   { type: 'invitation', label: 'Rappels et invitations', description: 'Relances et invitations liées à vos missions.' },
+  { type: 'review_due', label: 'Revues de conformité', description: 'Quand une revue périodique d\'un assujetti que vous supervisez approche ou est en retard.' },
 ]
 
 export function InAppPreferencesSection({ userId }: Props): JSX.Element | null {

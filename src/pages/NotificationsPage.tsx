@@ -20,6 +20,7 @@ const typeConfig: Record<NotificationType, { label: string; variant: 'forest' | 
   mission_assigned: { label: 'Affectation', variant: 'forest', dotColor: 'bg-forest-500' },
   car: { label: 'Action corrective', variant: 'gold', dotColor: 'bg-gold-500' },
   admin_view: { label: 'Consultation', variant: 'gray', dotColor: 'bg-gray-400' },
+  review_due: { label: 'Revue', variant: 'gold', dotColor: 'bg-gold-500' },
 }
 
 function timeAgo(dateStr: string): string {
