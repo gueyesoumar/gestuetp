@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { hasCabinetPerm } from '../_shared/cabinet-permissions.ts'
+import { notify } from '../_shared/notify.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -52,7 +53,7 @@ Deno.serve(async (req) => {
 
     // Verify mission belongs to caller's cabinet
     const { data: mission } = await supabaseAdmin
-      .from('missions').select('id, cabinet_id, lead_auditor_id, associate_id').eq('id', mission_id).single()
+      .from('missions').select('id, name, cabinet_id, lead_auditor_id, associate_id').eq('id', mission_id).single()
     if (!mission || mission.cabinet_id !== callerProfile.organization_id) {
       return new Response(JSON.stringify({ error: 'Accès interdit' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -108,6 +109,17 @@ Deno.serve(async (req) => {
         const dup = (insertError as { code?: string }).code === '23505'
         return new Response(JSON.stringify({ error: dup ? 'Cet utilisateur est déjà membre de la mission.' : 'Ajout du membre impossible.' }),
           { status: dup ? 409 : 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Notifier le membre ajouté (sauf si c'est l'appelant lui-même) (in-app, fail-soft)
+      if (user_id !== callerProfile.id) {
+        await notify(supabaseAdmin, {
+          userId: user_id, type: 'mission_assigned',
+          title: 'Nouvelle affectation',
+          body: `Vous avez été affecté(e) à la mission « ${(mission as { name?: string }).name ?? ''} ».`,
+          link: `/missions/${mission_id}`,
+          metadata: { mission_id },
+        })
       }
 
       return new Response(JSON.stringify({ success: true }),
