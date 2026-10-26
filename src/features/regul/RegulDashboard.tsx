@@ -4,6 +4,7 @@ import { usePilotage } from './pilotage/usePilotage'
 import { PilotageRiskMap } from './pilotage/PilotageRiskMap'
 import { PilotagePriorityList } from './pilotage/PilotagePriorityList'
 import { PilotageMeasuresBreakdown } from './pilotage/PilotageMeasuresBreakdown'
+import { ReviewsDuePanel } from './pilotage/ReviewsDuePanel'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { InfoPopover } from '../../components/ui/InfoPopover'
@@ -43,7 +44,7 @@ function Kpi({ icon, value, label, tone, to, info }: { icon: ReactNode; value: s
  */
 export function RegulDashboard(): JSX.Element {
   const { profile } = useAuth()
-  const { loading, posture, riskItems, measuresByType, deadlines, priorities } = usePilotage()
+  const { loading, posture, riskItems, measuresByType, deadlines, priorities, reviewsDue } = usePilotage()
 
   if (loading) return <LoadingSpinner />
 
@@ -74,7 +75,10 @@ export function RegulDashboard(): JSX.Element {
         <PilotagePriorityList items={priorities} />
       </div>
 
-      <PilotageMeasuresBreakdown stats={measuresByType} soon={deadlines.soon} overdue={deadlines.overdue} />
+      <div className="grid gap-5 lg:grid-cols-2">
+        <PilotageMeasuresBreakdown stats={measuresByType} soon={deadlines.soon} overdue={deadlines.overdue} />
+        <ReviewsDuePanel items={reviewsDue} />
+      </div>
     </div>
   )
 }

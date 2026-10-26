@@ -4,6 +4,7 @@ import type { SubsidiaryRow } from './useSubsidiaries'
 import { ENTITY_TYPE_LABELS } from '../../lib/constants'
 import { useVocab } from '../edition/useVocab'
 import { useIsRegul } from '../edition/useIsRegul'
+import { reviewStatus } from '../regul/review/useReviewCycles'
 
 interface SubsidiaryCardProps {
   subsidiary: SubsidiaryRow
@@ -39,7 +40,8 @@ function initials(name: string): string {
 export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }: SubsidiaryCardProps): JSX.Element {
   const vocab = useVocab()
   const isRegul = useIsRegul()
-  const { conformityScore, activeMissions, closedMissions, overdueCount, lastReviewDate, nextReviewDate, frameworkLabels, entityType } = subsidiary
+  const { conformityScore, activeMissions, closedMissions, overdueCount, lastReviewDate, nextReviewDate, reviewCycle, frameworkLabels, entityType } = subsidiary
+  const reviewSt = reviewStatus(reviewCycle?.date)
   const band = bandFor(conformityScore)
   const dasharray = `${conformityScore ?? 0} 100`
   const showActions = !!onEdit || !!onDeactivate
@@ -99,6 +101,12 @@ export function SubsidiaryCard({ subsidiary, parentName, onEdit, onDeactivate }:
         <span>Dernière revue : {formatShortDate(lastReviewDate)}</span>
         <span>Prochaine : {formatShortDate(nextReviewDate)}</span>
       </div>
+      {isRegul && reviewSt && reviewCycle && (
+        <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
+          <span className="text-gray-500">Revue {reviewCycle.framework}</span>
+          <span className={`whitespace-nowrap rounded-full px-2 py-0.5 font-bold ${reviewSt.cls}`}>{reviewSt.label}</span>
+        </div>
+      )}
 
       {showActions && (
         <div className="mt-3 flex justify-end gap-1.5">

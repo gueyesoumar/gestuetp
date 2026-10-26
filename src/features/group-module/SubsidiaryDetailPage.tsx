@@ -10,6 +10,7 @@ import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { useVocab } from '../edition/useVocab'
 import { useIsRegul } from '../edition/useIsRegul'
 import { AssujettiInviteModal } from '../regul/AssujettiInviteModal'
+import { ReviewCyclesCard } from '../regul/review/ReviewCyclesCard'
 
 export function SubsidiaryDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>()
@@ -30,6 +31,17 @@ export function SubsidiaryDetailPage(): JSX.Element {
 
       <SubsidiaryHero data={data} />
       <SubsidiaryKPIs data={data} />
+
+      {isRegul && (
+        <ReviewCyclesCard
+          orgId={data.id}
+          frameworks={Array.from(new Map(
+            data.missions
+              .filter((m) => m.framework_id && m.framework_name)
+              .map((m) => [m.framework_id as string, { id: m.framework_id as string, name: m.framework_name as string }]),
+          ).values())}
+        />
+      )}
 
       {isRegul && (
         <section className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4">

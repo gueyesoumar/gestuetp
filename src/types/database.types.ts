@@ -1157,6 +1157,19 @@ export interface RegulatoryCatalogItem {
 
 export type NotificationType = 'submission' | 'approval' | 'rejection' | 'client_response' | 'mission_closure' | 'invitation' | 'support' | 'client_review' | 'mission_assigned' | 'car' | 'admin_view'
 
+/** Cycle de revue périodique (assujetti × référentiel) — n°18 Lot 1, migration 00362. */
+export interface AssujettiReviewCycle {
+  id: string
+  organization_id: string
+  framework_id: string
+  frequency_months: number | null
+  last_reviewed_at: string | null
+  next_review_at: string | null
+  last_mission_id: string | null
+  created_at: string
+  updated_at: string
+}
+
 /** Préférences in-app de notifications (RFC n°17 Lot 4, migration 00361). */
 export interface NotificationPreferences {
   user_id: string
@@ -2291,6 +2304,12 @@ export interface Database {
         Row: NotificationPreferences & Rec
         Insert: NotificationPreferences & Rec
         Update: Partial<NotificationPreferences> & Rec
+        Relationships: []
+      }
+      assujetti_review_cycles: {
+        Row: AssujettiReviewCycle & Rec
+        Insert: never & Rec
+        Update: never & Rec
         Relationships: []
       }
       regulatory_catalog: {

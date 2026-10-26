@@ -20,6 +20,8 @@ export interface SubsidiaryRow {
   overdueCount: number
   lastReviewDate: string | null
   nextReviewDate: string | null
+  /** Revue périodique (n°18) : échéance la plus urgente (assujetti × référentiel). */
+  reviewCycle: { date: string; framework: string } | null
   frameworkLabels: string[]
 }
 
@@ -149,6 +151,20 @@ export function useSubsidiaries(): UseSubsidiariesResult {
         for (const f of (fws ?? []) as Array<{ id: string; name: string }>) fwMap.set(f.id, f.name)
       }
 
+      // Cycles de revue périodique (n°18) : échéance la plus urgente par assujetti.
+      const reviewMap = new Map<string, { date: string; framework: string }>()
+      const { data: reviewCyclesRaw } = await supabase
+        .from('assujetti_review_cycles')
+        .select('organization_id, framework_id, next_review_at')
+        .in('organization_id', subIds)
+        .abortSignal(ac.signal)
+      if (ac.signal.aborted) return
+      for (const rc of (reviewCyclesRaw ?? []) as Array<{ organization_id: string; framework_id: string; next_review_at: string | null }>) {
+        if (!rc.next_review_at) continue
+        const cur = reviewMap.get(rc.organization_id)
+        if (!cur || rc.next_review_at < cur.date) reviewMap.set(rc.organization_id, { date: rc.next_review_at, framework: fwMap.get(rc.framework_id) ?? '' })
+      }
+
       const missionIds = missionList.map((m) => m.id)
 
       // 4. Assessments pour conformity_level : UNIQUEMENT les missions clôturées.
@@ -248,6 +264,7 @@ export function useSubsidiaries(): UseSubsidiariesResult {
           overdueCount,
           lastReviewDate: lastClosed?.closed_at?.slice(0, 10) ?? null,
           nextReviewDate: nextOpen?.period_end ?? null,
+          reviewCycle: reviewMap.get(sub.id) ?? null,
           frameworkLabels,
         }
       })

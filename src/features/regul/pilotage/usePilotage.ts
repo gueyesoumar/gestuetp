@@ -9,6 +9,7 @@ const SOON_DAYS = 30
 export interface RiskItem { id: string; name: string; criticality: string; score: number | null }
 export interface Priority { id: string; name: string; reason: string; severity: 'high' | 'medium' }
 export interface TypeStat { type: MeasureType; total: number; open: number }
+export interface ReviewDue { id: string; name: string; framework: string; date: string; overdue: boolean }
 
 export interface PilotageData {
   loading: boolean
@@ -17,6 +18,7 @@ export interface PilotageData {
   measuresByType: TypeStat[]
   deadlines: { soon: number; overdue: number }
   priorities: Priority[]
+  reviewsDue: ReviewDue[]
 }
 
 /** Agrège le parc (posture, risques, mesures, priorisation) - M8, lecture seule. */
@@ -61,6 +63,17 @@ export function usePilotage(): PilotageData {
     }
     priorities.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'high' ? -1 : 1))
 
+    // Revues de conformité dues ou en retard (n°18) - seuil « bientôt » = 60 j.
+    const reviewLimit = new Date(now.getTime() + 60 * 86400000)
+    const reviewsDue: ReviewDue[] = subsidiaries
+      .filter((s) => s.reviewCycle && new Date(s.reviewCycle.date) <= reviewLimit)
+      .map((s) => ({
+        id: s.id, name: s.name,
+        framework: s.reviewCycle!.framework, date: s.reviewCycle!.date,
+        overdue: new Date(s.reviewCycle!.date) < now,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+
     return {
       loading: sLoading || mLoading,
       posture: {
@@ -75,6 +88,7 @@ export function usePilotage(): PilotageData {
       measuresByType,
       deadlines: { soon, overdue: overdueM },
       priorities,
+      reviewsDue,
     }
   }, [subsidiaries, measures, sLoading, mLoading, averageScore, totalActiveMissions, totalOverdue, totalCount])
 }

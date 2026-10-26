@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
     // Charger la mission
     const { data: mission } = await supabaseAdmin
       .from('missions')
-      .select('id, lead_auditor_id, associate_id, framework_id, status')
+      .select('id, lead_auditor_id, associate_id, framework_id, client_id, status')
       .eq('id', mission_id)
       .single()
 
@@ -204,6 +204,16 @@ Deno.serve(async (req) => {
     // vérifié côté RPC). Non bloquant pour la clôture.
     const { error: promoteError } = await supabaseAdmin.rpc('auto_promote_mission_findings', { p_mission_id: mission_id })
     if (promoteError) console.error('close-mission auto-promote:', promoteError.message)
+
+    // Revue périodique (n°18) : avancer l'échéance du cycle (assujetti, référentiel)
+    // si une cadence est configurée. Non bloquant.
+    if (mission.client_id && mission.framework_id) {
+      const { error: rollErr } = await supabaseAdmin.rpc('roll_assujetti_review', {
+        p_org: mission.client_id, p_framework: mission.framework_id,
+        p_mission: mission_id, p_closed_at: new Date().toISOString(),
+      })
+      if (rollErr) console.error('close-mission roll review:', rollErr.message)
+    }
 
     // Notifier l'équipe d'audit de la clôture (in-app, fail-soft) ; l'auteur exclu.
     await notifyMany(supabaseAdmin, [mission.lead_auditor_id, mission.associate_id].filter((id) => id !== callerProfile.id), {
