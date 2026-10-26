@@ -5,6 +5,7 @@ import { EvidenceTracker } from './EvidenceTracker'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionUserRole } from '../useMissionUserRole'
 import { EmptyState } from '../../../components/ui/EmptyState'
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import type { MissionDetail, MissionMemberRow } from '../useMissionDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
@@ -33,7 +34,12 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
       .filter((d) => d.controls.length > 0)
   }, [domains, userRole.isPrivileged, userRole.loading, userRole.assignedControlIds])
 
-  if (userRole.isAuditor && !userRole.loading && userRole.assignedControlIds.size === 0) {
+  // Tant que le rôle de l'utilisateur sur la mission n'est pas résolu, on n'affiche
+  // NI la vue normale NI l'état vide : sinon un auditeur restreint voit une fraction
+  // de seconde la vue d'ensemble complète avant de basculer sur « aucun contrôle ».
+  if (userRole.loading) return <LoadingSpinner />
+
+  if (userRole.isAuditor && userRole.assignedControlIds.size === 0) {
     return (
       <EmptyState
         title="Aucun contrôle affecté"
