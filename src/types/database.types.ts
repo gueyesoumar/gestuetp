@@ -2684,7 +2684,7 @@ export interface Database {
         Returns: { id: string; file_path: string; file_name: string; uploaded_by: string | null; created_at: string }[]
       }
       get_scenario_templates: {
-        Args: Record<PropertyKey, never>
+        Args: { p_sector?: string | null }
         Returns: {
           id: string; owner_org_id: string | null; sectors: string[]; title: string; dimension: string | null
           suggested_likelihood: number; suggested_impact: number
