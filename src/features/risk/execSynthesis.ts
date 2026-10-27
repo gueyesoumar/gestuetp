@@ -13,6 +13,20 @@ export function exposureScore(orgs: PortfolioOrg[]): number {
   return Math.max(0, Math.min(100, Math.round(weighted)))
 }
 
+export interface ExposureDist { maitrise: number; vigilance: number; critique: number; nonEvalue: number; total: number }
+
+/** Répartition des institutions par niveau d'exposition (mêmes seuils que la posture). */
+export function exposureDistribution(orgs: PortfolioOrg[]): ExposureDist {
+  let maitrise = 0, vigilance = 0, critique = 0, nonEvalue = 0
+  for (const o of orgs) {
+    if (o.scenario_count === 0) { nonEvalue++; continue }
+    if (o.avg_exposure >= 55) critique++
+    else if (o.avg_exposure >= 30) vigilance++
+    else maitrise++
+  }
+  return { maitrise, vigilance, critique, nonEvalue, total: orgs.length }
+}
+
 export type Severity = 'critique' | 'serieux' | 'modere'
 export const severityOf = (e: number): Severity => (e >= 60 ? 'critique' : e >= 30 ? 'serieux' : 'modere')
 export const SEVERITY_LABEL: Record<Severity, string> = { critique: 'Critique', serieux: 'Sérieux', modere: 'Modéré' }

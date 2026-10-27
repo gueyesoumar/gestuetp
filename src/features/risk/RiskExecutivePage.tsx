@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useSupervisedPortfolio } from './useSupervisedPortfolio'
 import { useSupervisedRegister } from './useSupervisedPortfolio'
 import { useSupervisorDirectives } from './useSupervisorDirectives'
-import { exposureScore, postureLabel, topThreats } from './execSynthesis'
+import { exposureScore, postureLabel, topThreats, exposureDistribution } from './execSynthesis'
 import { RiskSectorRadar } from './RiskSectorRadar'
 import { ExecExposure } from './ExecExposure'
 import { ExecThreats } from './ExecThreats'
@@ -19,6 +19,7 @@ export function RiskExecutivePage(): JSX.Element {
   const { rows: directives } = useSupervisorDirectives()
 
   const exposure = useMemo(() => exposureScore(orgs), [orgs])
+  const dist = useMemo(() => exposureDistribution(orgs), [orgs])
   const threats = useMemo(() => topThreats(rows, 5), [rows])
 
   if (loading) return <LoadingSpinner />
@@ -59,7 +60,7 @@ export function RiskExecutivePage(): JSX.Element {
               <h3 className="text-sm font-bold text-gray-900 mb-3">Radar des institutions</h3>
               <RiskSectorRadar orgs={orgs} />
             </div>
-            <ExecExposure exposure={exposure} posture={posture} />
+            <ExecExposure exposure={exposure} posture={posture} dist={dist} />
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[1.45fr_1fr] items-start">
