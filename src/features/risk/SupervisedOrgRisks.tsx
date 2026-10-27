@@ -22,6 +22,7 @@ const toAudited = (r: SupervisedRisk): AuditedScenario => ({
   inherent_likelihood: r.inherent_likelihood, inherent_impact: r.inherent_impact,
   threat_ref: r.threat_ref, feared_event_ref: r.feared_event_ref,
   vulnerability: r.vulnerability, asset_name: r.asset_name,
+  lifecycle_status: r.lifecycle_status, source: r.source,
 })
 
 /** Drill-down : registre de risque d'UN assujetti supervisé + demande d'action. */
