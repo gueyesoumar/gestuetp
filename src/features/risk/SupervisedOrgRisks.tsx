@@ -58,7 +58,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
       p_vulnerability: s.vulnerability ?? null, p_treatment: s.treatment,
       p_threat_ref: s.threat_ref ?? null, p_feared_event_ref: s.feared_event_ref ?? null,
     })
-    if (error) { toast.error('Création impossible', { description: error.message }); return null }
+    if (error) { console.error('[create_supervised_scenario]', error.message); toast.error('Création impossible'); return null }
     reload()
     return data as string
   }

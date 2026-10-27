@@ -109,7 +109,7 @@ export function MissionClosureTab({ mission, onRefetch }: MissionClosureTabProps
       setPreviewData(data)
     } catch (err) {
       console.error('[audit report]', err)
-      toast.error('Génération du rapport impossible', { description: err instanceof Error ? err.message : String(err) })
+      toast.error('Génération du rapport impossible')
     } finally {
       setGeneratingPdf(false)
     }
