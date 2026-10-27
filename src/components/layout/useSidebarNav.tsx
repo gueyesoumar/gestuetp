@@ -4,6 +4,7 @@ import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { APP_MODULES, type ModuleCtx, type NavItem } from '../../features/edition/moduleRegistry'
+import { riskOverviewEnabled } from '../../features/risk/riskOverviewFlag'
 
 export type { NavItem }
 
@@ -30,9 +31,10 @@ export function useSidebarNavItems(
   // sous-nav du module (le lien « Hub ETP » du shell assure le retour à l'écosystème).
   if (pathname.startsWith('/risque') && hasCapability('risk')) {
     const supervises = hasCapability('supervision') || hasCapability('client_portal')
-    const items: NavItem[] = [
-      { to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true },
-    ]
+    const items: NavItem[] = []
+    if (riskOverviewEnabled(hasCapability)) {
+      items.push({ to: '/risque', label: "Vue d'ensemble", icon: <LayoutDashboard size={20} strokeWidth={1.5} />, end: true })
+    }
     if (supervises) items.push({ to: '/risque/synthese', label: 'Synthèse', icon: <Gauge size={20} strokeWidth={1.5} /> })
     if (supervises) items.push({ to: '/risque/portefeuille', label: 'Portefeuille', icon: <Network size={20} strokeWidth={1.5} /> })
     const apprecier = <ClipboardList size={20} strokeWidth={1.5} />

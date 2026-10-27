@@ -4,6 +4,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from './features/auth/AuthContext'
 import { EditionProvider, useEdition } from './features/edition/EditionContext'
 import { APP_MODULES } from './features/edition/moduleRegistry'
+import { riskOverviewEnabled } from './features/risk/riskOverviewFlag'
 import { MfaGate } from './features/auth/mfa/MfaGate'
 import { PasswordExpiryGate } from './features/auth/PasswordExpiryGate'
 import { OnboardingWelcome } from './features/onboarding/OnboardingWelcome'
@@ -136,7 +137,7 @@ function AppRoutes(): JSX.Element {
         <Route path="organisation" element={<OrganizationPage />} />
         <Route path="membres" element={<Navigate to="/organisation?tab=membres" replace />} />
         <Route path="piste-audit" element={<Navigate to="/organisation?tab=piste-audit" replace />} />
-        <Route path="risque" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskPage /> : <Navigate to="/" replace />} />
+        <Route path="risque" element={edLoading ? <FullscreenLoader /> : !hasCapability('risk') ? <Navigate to="/" replace /> : riskOverviewEnabled(hasCapability) ? <RiskPage /> : <Navigate to="/risque/synthese" replace />} />
         <Route path="risque/registre" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
         <Route path="risque/criteres" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskCriteriaPage /> : <Navigate to="/" replace />} />
         <Route path="risque/modeles" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <ScenarioTemplatesPage /> : <Navigate to="/" replace />} />
