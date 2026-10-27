@@ -2,9 +2,9 @@ import { useMemo } from 'react'
 import { useSupervisedPortfolio } from './useSupervisedPortfolio'
 import { useSupervisedRegister } from './useSupervisedPortfolio'
 import { useSupervisorDirectives } from './useSupervisorDirectives'
-import { protectionScore, postureLabel, topThreats } from './execSynthesis'
+import { exposureScore, postureLabel, topThreats } from './execSynthesis'
 import { RiskSectorRadar } from './RiskSectorRadar'
-import { ExecProtection } from './ExecProtection'
+import { ExecExposure } from './ExecExposure'
 import { ExecThreats } from './ExecThreats'
 import { ExecDecisions } from './ExecDecisions'
 import { ExecVitalsSectors } from './ExecVitalsSectors'
@@ -18,7 +18,7 @@ export function RiskExecutivePage(): JSX.Element {
   const { rows } = useSupervisedRegister()
   const { rows: directives } = useSupervisorDirectives()
 
-  const protection = useMemo(() => protectionScore(orgs), [orgs])
+  const exposure = useMemo(() => exposureScore(orgs), [orgs])
   const threats = useMemo(() => topThreats(rows, 5), [rows])
 
   if (loading) return <LoadingSpinner />
@@ -29,7 +29,7 @@ export function RiskExecutivePage(): JSX.Element {
   const aboveTotal = orgs.reduce((s, o) => s + o.above_threshold, 0)
   const overdue = orgs.reduce((s, o) => s + o.overdue_reviews, 0)
   const lateDirectives = directives.filter((d) => d.verification_status === 'pending' && d.due_date && d.due_date < new Date().toISOString().slice(0, 10)).length
-  const posture = postureLabel(protection)
+  const posture = postureLabel(exposure)
 
   return (
     <div className="space-y-5">
@@ -48,7 +48,7 @@ export function RiskExecutivePage(): JSX.Element {
           </div>
 
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Kpi value={`${protection}`} suffix="/100" label="Niveau de protection" tone="text-gray-900" />
+            <Kpi value={`${exposure}`} suffix="/100" label="Niveau d'exposition" tone={exposure >= 55 ? 'text-red-600' : 'text-gray-900'} />
             <Kpi value={`${vitalsAtRisk}`} suffix={`/${vitals.length}`} label="Vitales à risque" tone="text-red-600" />
             <Kpi value={`${aboveTotal}`} label="Risques hors seuil" tone={aboveTotal > 0 ? 'text-red-600' : 'text-gray-900'} />
             <Kpi value={`${lateDirectives + overdue}`} label="Décisions en attente" tone="text-amber-600" />
@@ -59,7 +59,7 @@ export function RiskExecutivePage(): JSX.Element {
               <h3 className="text-sm font-bold text-gray-900 mb-3">Radar des institutions</h3>
               <RiskSectorRadar orgs={orgs} />
             </div>
-            <ExecProtection protection={protection} posture={posture} />
+            <ExecExposure exposure={exposure} posture={posture} />
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[1.45fr_1fr] items-start">

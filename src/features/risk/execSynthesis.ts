@@ -5,12 +5,12 @@ import type { PortfolioOrg, SupervisedRisk } from './useSupervisedPortfolio'
 
 export const exposureOf = (v: number, i: number): number => Math.round(((v * i) / 16) * 100)
 
-/** Indice de protection national = 100 - exposition moyenne pondérée par le nombre de risques. */
-export function protectionScore(orgs: PortfolioOrg[]): number {
+/** Exposition moyenne nationale, pondérée par le nombre de risques (concept ISO 27005). */
+export function exposureScore(orgs: PortfolioOrg[]): number {
   const tot = orgs.reduce((s, o) => s + o.scenario_count, 0)
-  if (tot === 0) return 100
+  if (tot === 0) return 0
   const weighted = orgs.reduce((s, o) => s + o.avg_exposure * o.scenario_count, 0) / tot
-  return Math.max(0, Math.min(100, Math.round(100 - weighted)))
+  return Math.max(0, Math.min(100, Math.round(weighted)))
 }
 
 export type Severity = 'critique' | 'serieux' | 'modere'
@@ -39,9 +39,9 @@ export function topThreats(rows: SupervisedRisk[], n = 5): ExecThreat[] {
     .slice(0, n)
 }
 
-/** Posture nationale en langage dirigeant selon l'indice de protection. */
-export function postureLabel(protection: number): { label: string; tone: 'crit' | 'warn' | 'ok' } {
-  if (protection < 45) return { label: 'Situation critique', tone: 'crit' }
-  if (protection < 70) return { label: 'Vigilance renforcée', tone: 'warn' }
+/** Posture nationale en langage dirigeant selon l'exposition moyenne. */
+export function postureLabel(exposure: number): { label: string; tone: 'crit' | 'warn' | 'ok' } {
+  if (exposure >= 55) return { label: 'Situation critique', tone: 'crit' }
+  if (exposure >= 30) return { label: 'Vigilance renforcée', tone: 'warn' }
   return { label: 'Situation maîtrisée', tone: 'ok' }
 }
