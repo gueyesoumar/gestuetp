@@ -39,6 +39,10 @@ export function TemplatePicker({ onPick, sector }: Props): JSX.Element | null {
 
   if (templates.length === 0) return null
 
+  // Séparer les modèles tagués secteur des modèles généraux (sectors vide).
+  const sectoral = templates.filter((t) => t.sectors.length > 0)
+  const general = templates.filter((t) => t.sectors.length === 0)
+
   return (
     <div className="rounded-lg border border-forest-100 bg-forest-50/50 p-3">
       <label className="flex items-center gap-1.5 text-[12px] font-semibold text-forest-800 mb-1">
@@ -53,10 +57,17 @@ export function TemplatePicker({ onPick, sector }: Props): JSX.Element | null {
         }}
         className="w-full px-3 py-2 text-sm border border-forest-200 rounded-lg bg-white focus:border-forest-700"
       >
-        <option value="">Choisir un modèle adapté à votre secteur...</option>
-        {templates.map((t) => (
-          <option key={t.id} value={t.id}>{t.title}{t.sectors.length > 0 ? ` (${t.sectors.join(', ')})` : ''}</option>
-        ))}
+        <option value="">Choisir un modèle...</option>
+        {sectoral.length > 0 && (
+          <optgroup label={sector ? `Modèles · ${sector}` : 'Modèles sectoriels'}>
+            {sectoral.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
+          </optgroup>
+        )}
+        {general.length > 0 && (
+          <optgroup label="Modèles généraux (tous secteurs)">
+            {general.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
+          </optgroup>
+        )}
       </select>
     </div>
   )
