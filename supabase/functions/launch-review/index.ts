@@ -66,25 +66,39 @@ Deno.serve(async (req) => {
       return json({ error: 'Un contrôle est déjà en cours pour ce référentiel', existing_mission_id: (openOnes as Array<{ id: string }>)[0].id }, 409)
     }
 
-    // 4. Équipe : rôles repris DEPUIS mission_members, source de vérité (« Gérer
-    //    l'équipe » modifie les rôles là, sans toucher les colonnes de la mission).
-    //    On réutilise chaque personne encore active et dans l'org, en préservant son rôle.
+    // 4. Équipe (Option A) : rôles repris DEPUIS mission_members (source de vérité :
+    //    « Gérer l'équipe » y modifie les rôles sans toucher les colonnes de la mission).
+    //    On préserve le rôle exact de chaque membre ACTIF ; on n'affecte JAMAIS un
+    //    compte désactivé. Si un responsable (chef/associé) est désactivé, on comble le
+    //    poste vacant avec un membre actif restant et on renvoie un avertissement.
     const { data: srcMembers } = await admin.from('mission_members').select('user_id, role').eq('mission_id', src.id)
     const members = (srcMembers ?? []) as Array<{ user_id: string; role: string }>
-    const candidateIds = [...new Set([src.lead_auditor_id, src.associate_id, ...members.map((m) => m.user_id)].filter(Boolean) as string[])]
+    const memberUserIds = [...new Set(members.map((m) => m.user_id))]
     const validSet = new Set<string>()
-    if (candidateIds.length > 0) {
-      const { data: valid } = await admin.from('users').select('id').in('id', candidateIds).eq('organization_id', caller.organization_id).eq('is_active', true)
+    if (memberUserIds.length > 0) {
+      const { data: valid } = await admin.from('users').select('id').in('id', memberUserIds).eq('organization_id', caller.organization_id).eq('is_active', true)
       for (const u of (valid ?? []) as Array<{ id: string }>) validSet.add(u.id)
     }
-    const validMemberIds = [...new Set(members.filter((m) => validSet.has(m.user_id)).map((m) => m.user_id))]
-    const lead = members.find((m) => m.role === 'lead_auditor' && validSet.has(m.user_id))?.user_id
-      ?? (src.lead_auditor_id && validSet.has(src.lead_auditor_id) ? src.lead_auditor_id : caller.id)
-    let associate = members.find((m) => m.role === 'associate' && validSet.has(m.user_id) && m.user_id !== lead)?.user_id
-      ?? (src.associate_id && validSet.has(src.associate_id) && src.associate_id !== lead ? src.associate_id : null)
-    if (!associate) associate = validMemberIds.find((id) => id !== lead) ?? null
+    const activeMembers = members.filter((m) => validSet.has(m.user_id))
+    const activeIds = [...new Set(activeMembers.map((m) => m.user_id))]
+    const roleOf = new Map(activeMembers.map((m) => [m.user_id, m.role]))
+
+    // Chef : chef actif de la source, sinon un auditeur actif promu, sinon l'appelant.
+    const lead = activeMembers.find((m) => m.role === 'lead_auditor')?.user_id
+      ?? activeMembers.find((m) => m.role === 'auditor')?.user_id
+      ?? caller.id
+    // Associé : Directeur actif de la source (!= chef), sinon un autre actif, sinon l'appelant.
+    const associate = activeMembers.find((m) => m.role === 'associate' && m.user_id !== lead)?.user_id
+      ?? activeIds.find((id) => id !== lead)
+      ?? (caller.id !== lead ? caller.id : null)
     if (!associate) return json({ error: 'Équipe de la mission source indisponible : créez le contrôle manuellement' }, 400)
-    const memberIds = [...new Set([lead, associate, ...validMemberIds])]
+    const memberIds = [...new Set([lead, associate, ...activeIds])]
+
+    // Avertissement si un responsable source a été écarté (désactivé) -> rôles ajustés.
+    const droppedResponsible = members.some((m) => (m.role === 'lead_auditor' || m.role === 'associate') && !validSet.has(m.user_id))
+    const teamWarning = (droppedResponsible || roleOf.get(lead) !== 'lead_auditor' || roleOf.get(associate) !== 'associate')
+      ? 'Un responsable de la mission source est désactivé : l\'équipe de la revue a été ajustée, vérifiez les rôles.'
+      : null
 
     // 5. Périmètre : on recopie les exclusions de la source.
     const { data: excl } = await admin.from('mission_exclusions').select('control_id').eq('mission_id', src.id)
@@ -137,7 +151,7 @@ Deno.serve(async (req) => {
       link: `/missions/${newMissionId}`, metadata: { mission_id: newMissionId, review_of: src.id },
     })
 
-    return json({ success: true, mission_id: newMissionId }, 201)
+    return json({ success: true, mission_id: newMissionId, warning: teamWarning }, 201)
   } catch (err) {
     console.error('[launch-review]', err instanceof Error ? err.message : String(err))
     return json({ error: 'Erreur interne' }, 500)

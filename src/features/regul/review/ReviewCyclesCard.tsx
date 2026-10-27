@@ -32,9 +32,12 @@ export function ReviewCyclesCard({ orgId, frameworks }: { orgId: string; framewo
     setLaunching(sourceMissionId)
     const r = await launchReview(sourceMissionId)
     setLaunching(null)
-    const missionId = (r.data as { mission_id?: string } | undefined)?.mission_id
-    if (r.ok && missionId) { toast.success('Contrôle de revue créé'); navigate(`/controles/${missionId}`) }
-    else toast.error(r.error ?? 'Lancement impossible')
+    const res = r.data as { mission_id?: string; warning?: string | null } | undefined
+    if (r.ok && res?.mission_id) {
+      if (res.warning) toast.warn(res.warning)
+      else toast.success('Contrôle de revue créé')
+      navigate(`/controles/${res.mission_id}`)
+    } else toast.error(r.error ?? 'Lancement impossible')
   }
 
   return (
