@@ -9,9 +9,11 @@ export interface NavItem {
   icon: ReactNode
   /** Force une correspondance exacte pour l'état actif (index d'un workspace). */
   end?: boolean
-  /** En-tête de section optionnel (cosmétique) : groupe les items consécutifs
-   *  partageant le même libellé sous un sous-titre dans la barre latérale. */
+  /** En-tête de section optionnel : groupe les items consécutifs partageant le même
+   *  libellé sous un accordéon repliable dans la barre latérale. */
   section?: string
+  /** Icône de l'accordéon de section (reprise du 1er item portant la section). */
+  sectionIcon?: ReactNode
 }
 
 /** Contexte de résolution d'un module : capacités + vocabulaire + permissions. */

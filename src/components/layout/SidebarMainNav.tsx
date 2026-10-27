@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
+import type { ReactNode } from 'react'
 import type { NavItem } from './useSidebarNav'
 
 interface Props {
@@ -41,11 +42,11 @@ function NavRow({ item, collapsed, indent, onNavigate }: { item: NavItem; collap
 export function SidebarMainNav({ items, collapsed, onNavigate }: Props): JSX.Element {
   const { pathname } = useLocation()
   const direct = items.filter((it) => !it.section)
-  const sections: { label: string; items: NavItem[] }[] = []
+  const sections: { label: string; icon: ReactNode; items: NavItem[] }[] = []
   items.forEach((it) => {
     if (!it.section) return
     const g = sections.find((s) => s.label === it.section)
-    if (g) g.items.push(it); else sections.push({ label: it.section, items: [it] })
+    if (g) g.items.push(it); else sections.push({ label: it.section, icon: it.sectionIcon ?? null, items: [it] })
   })
   const activeLabel = sections.find((s) => s.items.some((it) => matchActive(it.to, pathname)))?.label ?? null
 
@@ -73,13 +74,14 @@ export function SidebarMainNav({ items, collapsed, onNavigate }: Props): JSX.Ele
           {sec.items.map((it) => <NavRow key={it.to} item={it} collapsed onNavigate={onNavigate} />)}
         </div>
       ) : (
-        <div key={sec.label} className="mt-2">
+        <div key={sec.label} className="mt-1">
           <button
             type="button" onClick={() => toggle(sec.label)} aria-expanded={open.has(sec.label)}
-            className={`flex w-full items-center justify-between gap-2 rounded-xl px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${open.has(sec.label) ? 'bg-white/[0.06] text-white/70' : 'text-white/35 hover:bg-white/8 hover:text-white/60'}`}
+            className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-colors ${open.has(sec.label) ? 'bg-white/[0.06] text-white/85' : 'text-white/55 hover:bg-white/8 hover:text-white/85'}`}
           >
-            <span className="truncate">{sec.label}</span>
-            <ChevronRight size={13} className={`shrink-0 transition-transform ${open.has(sec.label) ? 'rotate-90' : ''}`} />
+            <span className="flex-shrink-0">{sec.icon}</span>
+            <span className="flex-1 text-left truncate">{sec.label}</span>
+            <ChevronRight size={15} className={`shrink-0 transition-transform ${open.has(sec.label) ? 'rotate-90' : ''}`} />
           </button>
           {open.has(sec.label) && (
             <div className="mt-0.5">
