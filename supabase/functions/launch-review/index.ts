@@ -66,19 +66,25 @@ Deno.serve(async (req) => {
       return json({ error: 'Un contrôle est déjà en cours pour ce référentiel', existing_mission_id: (openOnes as Array<{ id: string }>)[0].id }, 409)
     }
 
-    // 4. Équipe : réutilise celle de la source si encore active et dans l'org, sinon repli.
-    const { data: srcMembers } = await admin.from('mission_members').select('user_id').eq('mission_id', src.id)
-    const candidateIds = [...new Set([src.lead_auditor_id, src.associate_id, ...((srcMembers ?? []) as Array<{ user_id: string }>).map((m) => m.user_id)].filter(Boolean) as string[])]
+    // 4. Équipe : rôles repris DEPUIS mission_members, source de vérité (« Gérer
+    //    l'équipe » modifie les rôles là, sans toucher les colonnes de la mission).
+    //    On réutilise chaque personne encore active et dans l'org, en préservant son rôle.
+    const { data: srcMembers } = await admin.from('mission_members').select('user_id, role').eq('mission_id', src.id)
+    const members = (srcMembers ?? []) as Array<{ user_id: string; role: string }>
+    const candidateIds = [...new Set([src.lead_auditor_id, src.associate_id, ...members.map((m) => m.user_id)].filter(Boolean) as string[])]
     const validSet = new Set<string>()
     if (candidateIds.length > 0) {
       const { data: valid } = await admin.from('users').select('id').in('id', candidateIds).eq('organization_id', caller.organization_id).eq('is_active', true)
       for (const u of (valid ?? []) as Array<{ id: string }>) validSet.add(u.id)
     }
-    const lead = src.lead_auditor_id && validSet.has(src.lead_auditor_id) ? src.lead_auditor_id : caller.id
-    let associate = src.associate_id && validSet.has(src.associate_id) && src.associate_id !== lead ? src.associate_id : null
-    if (!associate) associate = [...validSet].find((id) => id !== lead) ?? null
+    const validMemberIds = [...new Set(members.filter((m) => validSet.has(m.user_id)).map((m) => m.user_id))]
+    const lead = members.find((m) => m.role === 'lead_auditor' && validSet.has(m.user_id))?.user_id
+      ?? (src.lead_auditor_id && validSet.has(src.lead_auditor_id) ? src.lead_auditor_id : caller.id)
+    let associate = members.find((m) => m.role === 'associate' && validSet.has(m.user_id) && m.user_id !== lead)?.user_id
+      ?? (src.associate_id && validSet.has(src.associate_id) && src.associate_id !== lead ? src.associate_id : null)
+    if (!associate) associate = validMemberIds.find((id) => id !== lead) ?? null
     if (!associate) return json({ error: 'Équipe de la mission source indisponible : créez le contrôle manuellement' }, 400)
-    const memberIds = [...new Set([lead, associate, ...validSet])]
+    const memberIds = [...new Set([lead, associate, ...validMemberIds])]
 
     // 5. Périmètre : on recopie les exclusions de la source.
     const { data: excl } = await admin.from('mission_exclusions').select('control_id').eq('mission_id', src.id)
