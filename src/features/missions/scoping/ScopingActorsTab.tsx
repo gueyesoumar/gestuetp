@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Plus, Pencil, Trash2, Star, X, Check, UserCircle2, Sparkles, UserPlus } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
-import { useMissionActors } from './useMissionActors'
 import { OrgChartImportModal } from './OrgChartImportModal'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
-import type { ClientContact, ClientContactInsert } from '../../../types/database.types'
+import type { ClientContact, ClientContactInsert, ClientContactUpdate } from '../../../types/database.types'
 
 interface ScopingActorsTabProps {
   missionId: string
@@ -16,6 +15,14 @@ interface ScopingActorsTabProps {
   /** Ouvre la modale portail. Avec un prefill pour inviter un acteur ; sans, pour
    *  gérer/modifier le rôle d'un contact déjà invité. */
   onInviteActor?: (prefill?: { name: string; email: string; jobTitle?: string }) => void
+  /** Acteurs + CRUD fournis par le parent (source unique, cf. badge d'onglet). */
+  actors: ClientContact[]
+  loading: boolean
+  error: string | null
+  saving: boolean
+  add: (data: Omit<ClientContactInsert, 'mission_id'>) => Promise<ClientContact | null>
+  update: (id: string, patch: ClientContactUpdate) => Promise<boolean>
+  remove: (id: string) => Promise<boolean>
 }
 
 interface DraftActor {
@@ -44,8 +51,7 @@ function fromActor(a: ClientContact): DraftActor {
   }
 }
 
-export function ScopingActorsTab({ missionId, clientOrgId, showPortal = false, onInviteActor }: ScopingActorsTabProps) {
-  const { actors, loading, error, saving, add, update, remove } = useMissionActors(missionId)
+export function ScopingActorsTab({ missionId, clientOrgId, showPortal = false, onInviteActor, actors, loading, error, saving, add, update, remove }: ScopingActorsTabProps) {
   const [draft, setDraft] = useState<DraftActor | null>(null)
   const [showImport, setShowImport] = useState(false)
   // Emails des contacts ayant déjà un accès portail (pont par email, RFC 0007).

@@ -18,6 +18,7 @@ import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
 import { InterviewMatrixPanel } from './InterviewMatrixPanel'
 import { ScopingActorsTab } from '../scoping/ScopingActorsTab'
+import { useMissionActors } from '../scoping/useMissionActors'
 import { buildPvTemplate } from './buildPvTemplate'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningRiskCallout } from './PlanningRiskCallout'
@@ -57,12 +58,20 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   // Sous-étape Entretiens désélectionnable via le template (RFC 0009).
   const showInterviews = isStepEnabled(mission, 'planning.interviews')
   useEffect(() => { if (!showInterviews && activeTab === 'entretiens') setActiveTab('programme') }, [showInterviews, activeTab])
-  // En quittant l'onglet Acteurs, rafraîchir les données Planif (le gate, la matrice et
-  // les modales lisent `contacts` via un fetch séparé de celui de l'onglet Acteurs).
-  const goTab = useCallback((next: PlanTab) => {
-    if (activeTab === 'acteurs' && next !== 'acteurs') refetchPlanning()
-    setActiveTab(next)
-  }, [activeTab, refetchPlanning])
+  // Acteurs : source unique partagée par le badge d'onglet et le contenu. Chaque
+  // mutation rafraîchit aussi les données Planif (le gate, la matrice et les modales
+  // lisent `contacts` via un fetch séparé) -> badge et panneaux à jour immédiatement.
+  const actorsApi = useMissionActors(mission.id)
+  const addActor = useCallback(async (d: Parameters<typeof actorsApi.add>[0]) => {
+    const r = await actorsApi.add(d); if (r) refetchPlanning(); return r
+  }, [actorsApi, refetchPlanning])
+  const updateActor = useCallback(async (id: string, p: Parameters<typeof actorsApi.update>[1]) => {
+    const r = await actorsApi.update(id, p); if (r) refetchPlanning(); return r
+  }, [actorsApi, refetchPlanning])
+  const removeActor = useCallback(async (id: string) => {
+    const r = await actorsApi.remove(id); if (r) refetchPlanning(); return r
+  }, [actorsApi, refetchPlanning])
+  const goTab = useCallback((next: PlanTab) => setActiveTab(next), [])
   const [showInterviewModal, setShowInterviewModal] = useState(false)
   const [editingInterview, setEditingInterview] = useState<InterviewWithRelations | null>(null)
   const [showMatrix, setShowMatrix] = useState(false)
@@ -325,7 +334,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           {showInterviews && (
             <TabBtn label="Entretiens" count={interviews.length} active={activeTab === 'entretiens'} onClick={() => goTab('entretiens')} />
           )}
-          <TabBtn label="Acteurs" count={contacts.length} active={activeTab === 'acteurs'} onClick={() => goTab('acteurs')} />
+          <TabBtn label="Acteurs" count={actorsApi.actors.length} active={activeTab === 'acteurs'} onClick={() => goTab('acteurs')} />
         </div>
 
         {/* Tab content */}
@@ -357,7 +366,16 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
         )}
         {activeTab === 'acteurs' && (
           <div className="p-4">
-            <ScopingActorsTab missionId={mission.id} />
+            <ScopingActorsTab
+              missionId={mission.id}
+              actors={actorsApi.actors}
+              loading={actorsApi.loading}
+              error={actorsApi.error}
+              saving={actorsApi.saving}
+              add={addActor}
+              update={updateActor}
+              remove={removeActor}
+            />
           </div>
         )}
       </div>

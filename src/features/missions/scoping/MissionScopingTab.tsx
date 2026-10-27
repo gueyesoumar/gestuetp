@@ -58,7 +58,9 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   const { answeredCount, totalCount } = useMissionQuestionnaire(mission.id)
   const { documents } = useMissionDocuments(mission.id)
   const { requests } = useMissionEvidenceRequests(mission.id)
-  const { actors } = useMissionActors(mission.id)
+  // Source unique pour les acteurs : le badge d'onglet ET le contenu partagent cet
+  // état, sinon un ajout dans l'onglet ne rafraîchit pas le compteur (source unique).
+  const { actors, loading: actorsLoading, error: actorsError, saving: actorsSaving, add: addActor, update: updateActor, remove: removeActor } = useMissionActors(mission.id)
   const [activeTab, setActiveTab] = useState<ScopingTab>('scope')
   // Moteur Contrôle (RFC 0003) : Cadrage allégé - sous-onglet Risques retiré,
   // Questionnaire optionnel (conservé mais hors checklist requise).
@@ -254,6 +256,13 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
             clientOrgId={mission.client_id}
             showPortal={showPortal}
             onInviteActor={(p) => { setPortalPrefill(p ?? null); setShowPortalModal(true) }}
+            actors={actors}
+            loading={actorsLoading}
+            error={actorsError}
+            saving={actorsSaving}
+            add={addActor}
+            update={updateActor}
+            remove={removeActor}
           />
         )}
       </div>

@@ -106,6 +106,20 @@ Deno.serve(async (req) => {
     const { error: linkErr } = await admin.from('missions').update({ review_of_mission_id: src.id }).eq('id', newMissionId)
     if (linkErr) console.error('[launch-review] link:', linkErr.message)
 
+    // 8.bis Acteurs : les interlocuteurs SI sont stockés par mission (client_contacts).
+    //       On les recopie depuis la source pour pré-remplir la revue (non bloquant).
+    const { data: srcContacts } = await admin
+      .from('client_contacts')
+      .select('name, job_title, department, email, phone, is_primary')
+      .eq('mission_id', src.id)
+    const contacts = (srcContacts ?? []) as Array<Record<string, unknown>>
+    if (contacts.length > 0) {
+      const { error: copyErr } = await admin
+        .from('client_contacts')
+        .insert(contacts.map((c) => ({ ...c, mission_id: newMissionId })))
+      if (copyErr) console.error('[launch-review] copy contacts:', copyErr.message)
+    }
+
     await logActivity(admin, {
       organizationId: caller.organization_id, actorUserId: caller.id,
       action: 'mission.review_launched', targetType: 'mission', targetId: newMissionId as string, targetLabel: name,
