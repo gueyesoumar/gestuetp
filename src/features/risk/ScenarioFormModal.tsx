@@ -16,7 +16,7 @@ interface Props {
   /** Création : own-org (orgId null) ou pour un assujetti supervisé (orgId choisi). */
   onCreate: (s: NewScenario, orgId: string | null) => Promise<string | null>
   /** Présent = mode superviseur : liste d'assujettis cibles (1 = verrouillé). */
-  orgs?: { id: string; name: string }[]
+  orgs?: { id: string; name: string; sector: string | null }[]
 }
 
 const INITIAL: ScenarioFields = { dimension: '', threat: '', feared: '', vulnerability: '', likelihood: 2, impact: 2 }
@@ -104,7 +104,7 @@ export function ScenarioFormModal({ catalog, onClose, onCreate, orgs }: Props): 
               </select>
             </div>
           )}
-          <TemplatePicker onPick={applyTemplate} />
+          <TemplatePicker onPick={applyTemplate} sector={orgs?.find((o) => o.id === org)?.sector ?? null} />
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Intitulé *</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} placeholder="ex. Rançongiciel sur le SI de production" autoFocus />

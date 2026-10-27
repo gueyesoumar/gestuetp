@@ -14,10 +14,12 @@ export interface ScenarioTemplate {
 
 interface Props {
   onPick: (t: ScenarioTemplate) => void
+  /** Secteur de l'assujetti sélectionné : filtre les modèles (vide = universel, toujours affiché). */
+  sector?: string | null
 }
 
 /** Sélecteur « Partir d'un modèle » : modèles applicables (plateforme + régulateur), filtrés par secteur. */
-export function TemplatePicker({ onPick }: Props): JSX.Element | null {
+export function TemplatePicker({ onPick, sector }: Props): JSX.Element | null {
   const [templates, setTemplates] = useState<ScenarioTemplate[]>([])
   const [value, setValue] = useState('')
 
@@ -32,7 +34,13 @@ export function TemplatePicker({ onPick }: Props): JSX.Element | null {
     return () => ac.abort()
   }, [])
 
-  if (templates.length === 0) return null
+  // Un changement de secteur peut masquer le modèle choisi : on réinitialise la sélection.
+  useEffect(() => { setValue('') }, [sector])
+
+  // Secteur connu -> modèles du secteur + universels (sectors vide) ; sinon tout.
+  const visible = templates.filter((t) => t.sectors.length === 0 || !sector || t.sectors.includes(sector))
+
+  if (visible.length === 0) return null
 
   return (
     <div className="rounded-lg border border-forest-100 bg-forest-50/50 p-3">
@@ -43,13 +51,13 @@ export function TemplatePicker({ onPick }: Props): JSX.Element | null {
         value={value}
         onChange={(e) => {
           setValue(e.target.value)
-          const t = templates.find((x) => x.id === e.target.value)
+          const t = visible.find((x) => x.id === e.target.value)
           if (t) onPick(t)
         }}
         className="w-full px-3 py-2 text-sm border border-forest-200 rounded-lg bg-white focus:border-forest-700"
       >
         <option value="">Choisir un modèle adapté à votre secteur...</option>
-        {templates.map((t) => (
+        {visible.map((t) => (
           <option key={t.id} value={t.id}>{t.title}{t.sectors.length > 0 ? ` (${t.sectors.join(', ')})` : ''}</option>
         ))}
       </select>

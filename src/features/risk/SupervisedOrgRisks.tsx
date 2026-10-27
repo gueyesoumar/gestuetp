@@ -112,7 +112,7 @@ export function SupervisedOrgRisks({ org, onBack }: { org: PortfolioOrg; onBack:
       )}
 
       {selected && <AuditedScenarioBowtie scenario={toAudited(selected)} catalog={catalog} onClose={() => setSelected(null)} />}
-      {createOpen && <ScenarioFormModal catalog={catalog} orgs={[{ id: org.organization_id, name: org.org_name }]} onClose={() => setCreateOpen(false)} onCreate={createForOrg} />}
+      {createOpen && <ScenarioFormModal catalog={catalog} orgs={[{ id: org.organization_id, name: org.org_name, sector: org.sector }]} onClose={() => setCreateOpen(false)} onCreate={createForOrg} />}
     </div>
   )
 }

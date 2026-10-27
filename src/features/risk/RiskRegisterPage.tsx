@@ -34,7 +34,7 @@ export function RiskRegisterPage(): JSX.Element {
   const supervises = hasCapability('supervision') || hasCapability('client_portal')
   const toast = useToast()
   const portfolio = useSupervisedPortfolio()
-  const orgOptions = useMemo(() => portfolio.orgs.map((o) => ({ id: o.organization_id, name: o.org_name })).sort((a, b) => a.name.localeCompare(b.name)), [portfolio.orgs])
+  const orgOptions = useMemo(() => portfolio.orgs.map((o) => ({ id: o.organization_id, name: o.org_name, sector: o.sector })).sort((a, b) => a.name.localeCompare(b.name)), [portfolio.orgs])
   const [scope, setScope] = useState<'own' | 'all'>('own')
   const [modal, setModal] = useState(false)
   const [supRefresh, setSupRefresh] = useState(0)
