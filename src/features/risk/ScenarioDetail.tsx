@@ -17,7 +17,8 @@ import { RISK_PHASES, type RiskPhaseKey } from './phases'
 import { SCORE_DIMENSION_LABELS, SCORE_DIMENSION_COLORS, RISK_LIFECYCLE_STATUS } from '../../lib/constants'
 import type { RiskCatalogEntry } from '../../types/database.types'
 import type { ScenarioRow } from './useRiskRegister'
-import { expColor, SourceBadge } from './riskLabels'
+import { SourceBadge } from './riskLabels'
+import { RiskExposureBar } from './RiskExposureBar'
 
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
 
@@ -59,14 +60,17 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0"><X size={18} /></button>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Metric label="Inhérent" value={model.inherentExp} color={expColor(model.inherentExp)} />
-            <Metric label="Résiduel" value={model.hasBarriers ? model.residual : null} color={expColor(model.residual)} />
-            <div className="rounded-lg bg-gray-50 px-3 py-2">
-              <div className="text-[10px] uppercase tracking-wide text-gray-400">Prochaine revue</div>
-              <div className="text-[13px] font-semibold text-gray-700">{scenario.next_review_at ?? 'Non planifiée'}</div>
+          <div className="mt-3 space-y-3">
+            <RiskExposureBar inherentExp={model.inherentExp} residual={model.residual} hasBarriers={model.hasBarriers}
+              likelihood={scenario.inherent_likelihood} impact={scenario.inherent_impact} bump={inc.bump}
+              effPrev={model.effPrev} effCorr={model.effCorr} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg bg-gray-50 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wide text-gray-400">Prochaine revue</div>
+                <div className="text-[13px] font-semibold text-gray-700">{scenario.next_review_at ?? 'Non planifiée'}</div>
+              </div>
+              <CompletenessGauge comp={comp} />
             </div>
-            <CompletenessGauge comp={comp} />
           </div>
         </div>
 
@@ -100,15 +104,6 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
           </>
         )}
       </div>
-    </div>
-  )
-}
-
-function Metric({ label, value, color }: { label: string; value: number | null; color: string }): JSX.Element {
-  return (
-    <div className="rounded-lg bg-gray-50 px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide text-gray-400">{label}</div>
-      <div className="text-[15px] font-bold" style={value == null ? undefined : { color }}>{value == null ? '-' : value}</div>
     </div>
   )
 }

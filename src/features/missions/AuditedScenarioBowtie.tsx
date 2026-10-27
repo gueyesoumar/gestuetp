@@ -7,7 +7,8 @@ import {
   type ScoreDimensionKey, type RiskControlLinkKind,
 } from '../../lib/constants'
 import { SourceBadge } from '../risk/riskLabels'
-import { Arm, Node, pct, expColor, type Barrier } from './AuditedBowtieParts'
+import { RiskExposureBar } from '../risk/RiskExposureBar'
+import { Arm, Node, type Barrier } from './AuditedBowtieParts'
 import type { RiskCatalogEntry } from '../../types/database.types'
 
 export interface AuditedScenario {
@@ -76,23 +77,9 @@ export function AuditedScenarioBowtie({ scenario, catalog, onClose }: { scenario
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0"><X size={18} /></button>
         </div>
 
-        {/* Barre d'exposition inhérente (reprise de la proposition A) */}
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-5 flex-wrap">
-          <div>
-            <div className="text-[10px] uppercase tracking-wide text-gray-400">Exposition inhérente</div>
-            <div className="font-mono font-bold text-[32px] leading-none" style={{ color: expColor(inherentExp) }}>{inherentExp}<span className="text-[14px] text-gray-400">/100</span></div>
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative h-2.5 rounded-full" style={{ background: 'linear-gradient(90deg,#27AE60 0 30%,#B8860B 30% 60%,#C0392B 60% 100%)' }}>
-              <span className="absolute -top-1 w-0.5 h-[18px] bg-gray-900 rounded" style={{ left: `${inherentExp}%` }} />
-            </div>
-            <div className="flex justify-between text-[10px] text-gray-400 font-semibold mt-1.5"><span>Maîtrisé</span><span>Critique</span></div>
-            <div className="text-[11.5px] text-gray-500 mt-1.5">
-              Vraisemblance <b className="font-mono">{scenario.inherent_likelihood}/4</b>{bump > 0 && <b className="font-mono" style={{ color: '#C0392B' }}>+{bump}</b>} · Impact <b className="font-mono">{scenario.inherent_impact}/4</b> · {hasBarriers
-                ? <>Résiduel <b style={{ color: expColor(residual) }}>{residual}</b> (préventif {effPrev == null ? '-' : `${pct(effPrev)}%`} · correctif {effCorr == null ? '-' : `${pct(effCorr)}%`})</>
-                : <span style={{ color: '#B8860B', fontWeight: 600 }}>Résiduel = inhérent · aucune barrière</span>}
-            </div>
-          </div>
+        {/* Barre d'exposition inhérente (composant partagé) */}
+        <div className="px-5 py-4 border-b border-gray-100">
+          <RiskExposureBar inherentExp={inherentExp} residual={residual} hasBarriers={hasBarriers} likelihood={scenario.inherent_likelihood} impact={scenario.inherent_impact} bump={bump} effPrev={effPrev} effCorr={effCorr} />
         </div>
 
         {/* Nœud papillon (proposition B) */}
