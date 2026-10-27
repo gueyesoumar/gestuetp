@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { GestuLogo } from '../GestuLogo'
 import shieldSvg from '../../assets/logo-shield.svg'
 import { CoBrandingFooter } from '../../features/branding/CoBrandingFooter'
@@ -14,6 +14,7 @@ import type { UseNotificationsResult } from '../../features/notifications/useNot
 import { useVocab } from '../../features/edition/useVocab'
 import { useSidebarNavItems } from './useSidebarNav'
 import { SidebarMainNav } from './SidebarMainNav'
+import { useActiveModule } from './useActiveModule'
 import type { User } from '../../types/database.types'
 import type { ReactNode } from 'react'
 
@@ -52,13 +53,10 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
   const vocab = useVocab()
   const { mainItems, groupItems } = useSidebarNavItems({ canManageSupervisionAssignments, canManageRiskCriteria })
   const navigate = useNavigate()
-  const { pathname } = useLocation()
-  // Dans un workspace de module dédié, le logo porte le nom du MODULE (Risk/Vendor/Policy),
-  // pas celui de l'édition (Comply/Regul) qui reste la marque hors module.
-  const logoTag = pathname.startsWith('/risque') ? 'risk'
-    : pathname.startsWith('/fournisseurs') ? 'vendor'
-    : pathname.startsWith('/politiques') ? 'policy'
-    : vocab.logoTag
+  const activeModule = useActiveModule()
+  // Dans un workspace de module dédié (conservé sur les pages chrome), le logo porte le
+  // nom du MODULE (Risk/Vendor/Policy), sinon la marque de l'édition (Comply/Regul).
+  const logoTag = activeModule ?? vocab.logoTag
   const [collapsed, setCollapsed] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)

@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { useActiveModule } from './useActiveModule'
 import { ClipboardCheck, LayoutDashboard, FileText, Activity, SlidersHorizontal, ListChecks, ShieldCheck, History, Network, Sparkles, UsersRound, LibraryBig, Gauge, Boxes, ClipboardList, Wrench, Eye, Settings } from 'lucide-react'
 import { useEdition } from '../../features/edition/EditionContext'
 import { useVocab } from '../../features/edition/useVocab'
@@ -25,11 +25,11 @@ export function useSidebarNavItems(
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const { canViewSupervision, isGroup } = useGroupPermissions()
-  const { pathname } = useLocation()
+  const activeModule = useActiveModule()
 
-  // Workspace dédié Gëstu Risk : sous /risque, la barre latérale bascule sur la
-  // sous-nav du module (le lien « Hub ETP » du shell assure le retour à l'écosystème).
-  if (pathname.startsWith('/risque') && hasCapability('risk')) {
+  // Workspace dédié Gëstu Risk : la barre latérale bascule sur la sous-nav du module.
+  // Le module reste actif sur les pages chrome (compte, organisation...) via useActiveModule.
+  if (activeModule === 'risk' && hasCapability('risk')) {
     const supervises = hasCapability('supervision') || hasCapability('client_portal')
     const items: NavItem[] = []
     if (riskOverviewEnabled(hasCapability)) {
@@ -56,7 +56,7 @@ export function useSidebarNavItems(
   }
 
   // Workspace dédié Gëstu Vendor : sous /fournisseurs, sous-nav du module (RFC 0020).
-  if (pathname.startsWith('/fournisseurs') && hasCapability('vendor')) {
+  if (activeModule === 'vendor' && hasCapability('vendor')) {
     return {
       mainItems: [
         { to: '/fournisseurs', label: 'Registre des tiers', icon: <Boxes size={20} strokeWidth={1.5} />, end: true },
@@ -66,7 +66,7 @@ export function useSidebarNavItems(
   }
 
   // Workspace dédié Gëstu Policy : sous /politiques, sous-nav du module.
-  if (pathname.startsWith('/politiques') && hasCapability('policy')) {
+  if (activeModule === 'policy' && hasCapability('policy')) {
     return {
       mainItems: [
         { to: '/politiques', label: 'Registre', icon: <FileText size={20} strokeWidth={1.5} />, end: true },
