@@ -31,7 +31,6 @@ export type Severity = 'critique' | 'serieux' | 'modere'
 export const severityOf = (e: number): Severity => (e >= 60 ? 'critique' : e >= 30 ? 'serieux' : 'modere')
 export const SEVERITY_LABEL: Record<Severity, string> = { critique: 'Critique', serieux: 'Sérieux', modere: 'Modéré' }
 export const probaOf = (v: number): string => (v >= 4 ? 'Élevée' : v === 3 ? 'Moyenne à élevée' : v === 2 ? 'Moyenne' : 'Faible')
-export const durationOf = (e: number): string => (e >= 70 ? 'Plusieurs jours à semaines' : e >= 40 ? 'Quelques heures à jours' : 'Impact limité')
 
 export interface ExecThreat {
   id: string

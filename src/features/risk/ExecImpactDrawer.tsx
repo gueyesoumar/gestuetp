@@ -1,17 +1,24 @@
 import { useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { X } from 'lucide-react'
 import type { ExecThreat } from './execSynthesis'
-import { severityOf, SEVERITY_LABEL, probaOf, durationOf } from './execSynthesis'
-import { impactFor } from './impactTemplates'
+import { severityOf, SEVERITY_LABEL, probaOf } from './execSynthesis'
+import { RISK_TREATMENTS } from '../../lib/constants'
+import { useSupervisedScenarioDetail } from './useSupervisedScenarioDetail'
 
 const SEV_PILL: Record<string, string> = {
   critique: 'bg-red-50 text-red-700 border-red-200',
   serieux: 'bg-amber-50 text-amber-700 border-amber-200',
   modere: 'bg-gray-100 text-gray-600 border-gray-200',
 }
+const TREATMENT = Object.fromEntries(RISK_TREATMENTS.map((t) => [t.value, t.label]))
+const fmtDate = (iso: string | null): string => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Non planifiée')
 
-/** Panneau « Si ce risque se matérialise » : simulation d'impact en langage décideur. */
+/** Panneau « Si ce risque se matérialise » : fiche FACTUELLE du scénario (données réelles
+ *  du registre), en langage dirigeant. Aucune donnée fabriquée. */
 export function ExecImpactDrawer({ threat, onClose }: { threat: ExecThreat | null; onClose: () => void }): JSX.Element | null {
+  const { detail, loading } = useSupervisedScenarioDetail(threat?.id ?? null)
+
   useEffect(() => {
     if (!threat) return
     const onKey = (e: KeyboardEvent): void => { if (e.key === 'Escape') onClose() }
@@ -21,7 +28,7 @@ export function ExecImpactDrawer({ threat, onClose }: { threat: ExecThreat | nul
 
   if (!threat) return null
   const sev = severityOf(threat.exposure)
-  const m = impactFor(threat.sector)
+  const vitale = detail?.org_is_iic ?? threat.is_iic
 
   return (
     <>
@@ -33,32 +40,47 @@ export function ExecImpactDrawer({ threat, onClose }: { threat: ExecThreat | nul
             <button onClick={onClose} className="ml-auto w-8 h-8 grid place-items-center rounded-lg border border-gray-200 text-gray-400 hover:text-gray-700" aria-label="Fermer"><X size={16} /></button>
           </div>
           <h2 className="text-[17px] font-bold text-gray-900 leading-snug">{threat.title}</h2>
-          <div className="text-[12px] text-gray-500 mt-1 flex items-center gap-2">{threat.org_name}{threat.is_iic && <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[#FBF4E2] text-[#9C7A1F] border border-[#E6D7A8]">Vitale</span>}</div>
+          <div className="text-[12px] text-gray-500 mt-1 flex items-center gap-2">{threat.org_name}{vitale && <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[#FBF4E2] text-[#9C7A1F] border border-[#E6D7A8]">Vitale</span>}</div>
         </div>
-        <div className="px-5 py-4 pb-8">
-          <p className="text-[10px] uppercase tracking-widest font-bold text-[#9C7A1F] mb-2">Si ce risque se matérialise</p>
-          <p className="text-[15px] leading-relaxed text-gray-900 bg-white border border-gray-200 border-l-[3px] border-l-red-400 rounded-lg px-4 py-3">
-            Sur {threat.org_name}, {m.lead}.
-          </p>
-          <div className="flex gap-2 flex-wrap my-5">
+
+        <div className="px-5 py-4 pb-8 space-y-5">
+          <div className="flex gap-2 flex-wrap">
+            <Fact label="Gravité" value={SEVERITY_LABEL[sev]} />
             <Fact label="Probabilité" value={probaOf(threat.likelihood)} />
-            <Fact label="Durée estimée" value={durationOf(threat.exposure)} />
-            <Fact label="Indice de risque" value={`${threat.exposure} / 100`} />
+            <Fact label="Exposition" value={`${threat.exposure} / 100`} />
           </div>
-          <p className="text-[10px] uppercase tracking-widest font-bold text-[#9C7A1F] mb-2">Conséquences concrètes</p>
-          <div>
-            {m.domains.map((d, i) => (
-              <div key={i} className="flex gap-3 py-3 border-t border-gray-100 first:border-t-0">
-                <span className="shrink-0 text-[9.5px] font-bold uppercase tracking-wide text-forest-700 bg-forest-50 border border-forest-100 rounded px-2 py-1 h-fit min-w-[92px] text-center">{d.tag}</span>
-                <span className="text-[13px] text-gray-700 leading-relaxed">{d.text}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 bg-[#FBF4E2] border border-[#E6D7A8] rounded-lg px-4 py-3">
-            <p className="text-[10px] uppercase tracking-widest font-bold text-[#9C7A1F] mb-1.5">Ce qui réduirait le risque</p>
-            <p className="text-[13px] text-gray-900">{m.mitigation}</p>
-          </div>
-          <p className="text-[10.5px] text-gray-400 mt-4 italic">Estimation à titre indicatif, fondée sur l&apos;évaluation du risque. Ordres de grandeur, non des prévisions exactes.</p>
+
+          <Section title="Ce qui est en jeu">
+            <p className="text-[14px] leading-relaxed text-gray-900 bg-white border border-gray-200 border-l-[3px] border-l-red-400 rounded-lg px-4 py-3">
+              {loading ? 'Chargement...' : (detail?.feared_label ?? 'Non précisé')}
+            </p>
+            <p className="text-[12.5px] text-gray-500 mt-2">Actif concerné : <span className="font-medium text-gray-700">{loading ? '...' : (detail?.asset_name ?? 'Non précisé')}</span></p>
+          </Section>
+
+          <Section title="Prise en charge">
+            <div className="flex gap-2 flex-wrap">
+              <Fact label="Traitement" value={loading ? '...' : (TREATMENT[detail?.treatment ?? ''] ?? 'Non précisé')} />
+              <Fact label="Prochaine revue" value={loading ? '...' : fmtDate(detail?.next_review_at ?? null)} />
+            </div>
+          </Section>
+
+          <Section title="Mesures en place">
+            {loading ? (
+              <p className="text-[13px] text-gray-400">Chargement...</p>
+            ) : (detail?.measures.length ?? 0) > 0 ? (
+              <ul className="space-y-1.5">
+                {detail!.measures.map((m, i) => (
+                  <li key={i} className="flex items-start gap-2 text-[13px] text-gray-800">
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-forest-500 shrink-0" />{m}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[13px] text-gray-400">Non précisé : aucune mesure rattachée à ce risque.</p>
+            )}
+          </Section>
+
+          <p className="text-[10.5px] text-gray-400 italic">Données issues du registre de risque de l&apos;institution.</p>
         </div>
       </aside>
     </>
@@ -70,6 +92,15 @@ function Fact({ label, value }: { label: string; value: string }): JSX.Element {
     <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 flex-1 min-w-[120px]">
       <div className="text-[9.5px] uppercase tracking-wide font-bold text-gray-500">{label}</div>
       <div className="text-[13px] font-bold text-gray-900 mt-0.5">{value}</div>
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }): JSX.Element {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-widest font-bold text-[#9C7A1F] mb-2">{title}</p>
+      {children}
     </div>
   )
 }

@@ -2695,6 +2695,15 @@ export interface Database {
         Args: { p_template: string }
         Returns: { node_type: string; label: string; position: number }[]
       }
+      get_supervised_scenario_detail: {
+        Args: { p_scenario: string }
+        Returns: {
+          id: string; title: string; org_name: string; org_is_iic: boolean
+          inherent_likelihood: number; inherent_impact: number
+          treatment: string; lifecycle_status: string; next_review_at: string | null
+          feared_label: string | null; asset_name: string | null; measures: string[]
+        }[]
+      }
       get_audited_org_risks: {
         Args: { p_mission_id: string }
         Returns: {
