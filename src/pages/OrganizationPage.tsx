@@ -5,12 +5,13 @@ import { WorkflowSettingsTab } from '../features/organization-settings/WorkflowS
 import { TerminologyEditor } from '../features/organization-settings/TerminologyEditor'
 import { WorkflowTemplatesTab } from '../features/organization-settings/WorkflowTemplatesTab'
 import { ReportTemplatesTab } from '../features/organization-settings/ReportTemplatesTab'
+import { SectorsSettingsPage } from '../features/sectors/SectorsSettingsPage'
 import { MembersPage } from './MembersPage'
 import { RolesTab } from '../features/members/RolesTab'
 import { AuditTrailPage } from '../features/audit/AuditTrailPage'
 import { useCabinetPermissions } from '../hooks/useCabinetPermissions'
 
-type TabKey = 'general' | 'membres' | 'roles' | 'parametres' | 'parcours' | 'rapports' | 'terminologie' | 'piste-audit'
+type TabKey = 'general' | 'membres' | 'roles' | 'parametres' | 'parcours' | 'rapports' | 'secteurs' | 'terminologie' | 'piste-audit'
 
 /**
  * Hub Organisation tout-en-onglets : Général, Membres, Rôles & permissions,
@@ -20,7 +21,7 @@ type TabKey = 'general' | 'membres' | 'roles' | 'parametres' | 'parcours' | 'rap
  * l'URL (?tab=) pour le lien direct et les redirections depuis /membres, /piste-audit.
  */
 export function OrganizationPage(): JSX.Element {
-  const { canManageMembers, canManageRoles, canEditOrganization, canViewAuditTrail, canManageWorkflow, canManageReportTemplates } = useCabinetPermissions()
+  const { canManageMembers, canManageRoles, canEditOrganization, canViewAuditTrail, canManageWorkflow, canManageReportTemplates, canManageSectors } = useCabinetPermissions()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const tabs: { key: TabKey; label: string; render: () => ReactNode }[] = [
@@ -30,6 +31,7 @@ export function OrganizationPage(): JSX.Element {
     { key: 'parametres', label: 'Paramètres', render: () => <WorkflowSettingsTab /> },
     ...(canManageWorkflow ? [{ key: 'parcours' as TabKey, label: 'Parcours', render: () => <WorkflowTemplatesTab /> }] : []),
     ...(canManageReportTemplates ? [{ key: 'rapports' as TabKey, label: 'Modèles de rapport', render: () => <ReportTemplatesTab /> }] : []),
+    ...(canManageSectors ? [{ key: 'secteurs' as TabKey, label: 'Secteurs', render: () => <SectorsSettingsPage /> }] : []),
     ...(canEditOrganization ? [{ key: 'terminologie' as TabKey, label: 'Terminologie', render: () => <TerminologyEditor /> }] : []),
     ...(canViewAuditTrail ? [{ key: 'piste-audit' as TabKey, label: "Piste d'audit", render: () => <AuditTrailPage /> }] : []),
   ]

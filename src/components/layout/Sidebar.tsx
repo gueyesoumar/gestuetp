@@ -31,7 +31,7 @@ interface MenuGroup { label: string; items: MenuItem[] }
 
 export function Sidebar({ profile, open, onClose, notifications }: SidebarProps) {
   const { signOut } = useAuth()
-  const { canManageMembers, canEditOrganization, canManageRoles, canManageSupervisionAssignments, canManageRiskCriteria, canManageSectors } = useCabinetPermissions()
+  const { canManageMembers, canEditOrganization, canManageRoles, canManageSupervisionAssignments, canManageRiskCriteria } = useCabinetPermissions()
   const hasOrgAccess = canManageMembers || canEditOrganization || canManageRoles
 
   // Menu profil groupé par nature (Compte / Organisation / Aide). La section
@@ -51,7 +51,7 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
   ]
   const { unreadCount } = notifications
   const vocab = useVocab()
-  const { mainItems, groupItems } = useSidebarNavItems({ canManageSupervisionAssignments, canManageRiskCriteria, canManageSectors })
+  const { mainItems, groupItems } = useSidebarNavItems({ canManageSupervisionAssignments, canManageRiskCriteria })
   const navigate = useNavigate()
   const activeModule = useActiveModule()
   // Dans un workspace de module dédié (conservé sur les pages chrome), le logo porte le

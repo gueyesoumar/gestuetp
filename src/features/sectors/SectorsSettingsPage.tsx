@@ -31,11 +31,11 @@ export function SectorsSettingsPage(): JSX.Element {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Boxes size={20} className="text-[#E07A5F]" /> Secteurs
-        </h1>
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Boxes size={18} className="text-[#E07A5F]" /> Secteurs
+        </h3>
         <p className="mt-1 text-[13px] text-gray-500">
           La taxonomie proposée sur vos entités, modèles de risque et affectations. Les secteurs hérités (plateforme, régulateur) sont en lecture seule.
         </p>
