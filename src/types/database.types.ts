@@ -2704,6 +2704,14 @@ export interface Database {
           is_active: boolean; sort_order: number | null
         }[]
       }
+      get_sector_usage: {
+        Args: { p_label: string }
+        Returns: { entities: number; templates: number; assignments: number }[]
+      }
+      reassign_sector: {
+        Args: { p_from: string; p_to: string }
+        Returns: undefined
+      }
       get_supervised_scenario_detail: {
         Args: { p_scenario: string }
         Returns: {
