@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
-import { PUBLIC_SECTORS, SCORE_DIMENSION_LABELS } from '../../lib/constants'
+import { SCORE_DIMENSION_LABELS } from '../../lib/constants'
+import { useSectors } from '../../hooks/useSectors'
 import type { ScoreDimensionKey } from '../../lib/constants'
 import type { ScenarioTemplateRow, TemplateInput, TemplateNode } from './useScenarioTemplates'
 
@@ -22,6 +23,7 @@ const linesToNodes = (causes: string, cons: string): TemplateNode[] => [
 export function TemplateFormModal({ template, loadNodes, onSave, onClose }: Props): JSX.Element {
   const [title, setTitle] = useState(template?.title ?? '')
   const [sectors, setSectors] = useState<string[]>(template?.sectors ?? [])
+  const { sectors: sectorOptions } = useSectors()
   const [dimension, setDimension] = useState<string>(template?.dimension ?? 'security')
   const [v, setV] = useState(template?.suggested_likelihood ?? 2)
   const [i, setI] = useState(template?.suggested_impact ?? 2)
@@ -66,9 +68,9 @@ export function TemplateFormModal({ template, loadNodes, onSave, onClose }: Prop
           <div>
             <label className="block text-[12px] font-medium text-gray-600 mb-1">Secteurs <span className="font-normal text-gray-400">(aucun coché = tous secteurs)</span></label>
             <div className="max-h-32 overflow-y-auto rounded-lg border border-gray-200 p-2 grid grid-cols-2 gap-1">
-              {PUBLIC_SECTORS.map((s) => (
-                <label key={s} className="flex items-center gap-1.5 text-[12px] text-gray-700">
-                  <input type="checkbox" checked={sectors.includes(s)} onChange={() => toggleSector(s)} className="rounded border-gray-300 text-forest-600" /> {s}
+              {sectorOptions.map((s) => (
+                <label key={s.id} className="flex items-center gap-1.5 text-[12px] text-gray-700">
+                  <input type="checkbox" checked={sectors.includes(s.label)} onChange={() => toggleSector(s.label)} className="rounded border-gray-300 text-forest-600" /> {s.label}
                 </label>
               ))}
             </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '../../components/ui/Modal'
 import { useCreateCabinetClient } from '../clients/useCreateCabinetClient'
-import { SECTEURS_OPTIONS } from '../../lib/constants'
+import { SectorSelect } from '../../components/ui/SectorSelect'
 
 interface QuickClientModalProps {
   open: boolean
@@ -48,10 +48,7 @@ export function QuickClientModal({ open, onClose, onCreated }: QuickClientModalP
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-[12px] font-medium text-gray-700 mb-1">Secteur</label>
-            <select value={sector} onChange={(e) => setSector(e.target.value)} className="w-full">
-              <option value="">-</option>
-              {SECTEURS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <SectorSelect value={sector} onChange={setSector} className="w-full" placeholder="-" />
           </div>
           <div>
             <label className="block text-[12px] font-medium text-gray-700 mb-1">Ville</label>

@@ -285,6 +285,8 @@ export interface PlatformRolePermissions {
   can_manage_supervision_assignments?: boolean
   /** Gérer les templates de rapport du cabinet (RFC 0021 Lot 3, migration 00357). */
   can_manage_report_templates?: boolean
+  /** Gérer le référentiel de secteurs de l'org (RFC 0022 Lot 1, migration 00368). */
+  can_manage_sectors?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */

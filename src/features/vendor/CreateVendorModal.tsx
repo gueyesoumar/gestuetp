@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '../../components/ui/Modal'
-import { VENDOR_DATA_ACCESS_OPTIONS, VENDOR_CRITICALITY_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
+import { VENDOR_DATA_ACCESS_OPTIONS, VENDOR_CRITICALITY_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
+import { SectorSelect } from '../../components/ui/SectorSelect'
 import type { CreateVendorInput } from './useVendors'
 
 const field = 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-forest-500 focus:ring-1 focus:ring-forest-500'
@@ -43,10 +44,7 @@ export function CreateVendorModal({ busy, onClose, onCreate }: Props): JSX.Eleme
         </div>
         <div>
           <label className={label}>Secteur</label>
-          <select className={field} value={f.sector ?? ''} onChange={(e) => set('sector', e.target.value)}>
-            <option value="">-</option>
-            {SECTEURS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <SectorSelect className={field} value={f.sector ?? ''} onChange={(v) => set('sector', v)} placeholder="-" />
         </div>
         <div>
           <label className={label}>Accès aux données</label>

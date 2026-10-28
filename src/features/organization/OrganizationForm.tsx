@@ -5,7 +5,8 @@ import { SplitForm } from '../../components/ui/SplitForm'
 import { SplitFormSection } from '../../components/ui/SplitFormSection'
 import { FormField } from '../../components/ui/FormField'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
-import { SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
+import { PAYS_OPTIONS } from '../../lib/constants'
+import { SectorSelect } from '../../components/ui/SectorSelect'
 import { getOrgTypeLabel } from '../../lib/organization-utils'
 
 interface OrganizationFormProps {
@@ -101,10 +102,7 @@ export function OrganizationForm({ organization, onSubmit, submitting, error }: 
             <FormField id="org-reg" label="N&deg; d&apos;immatriculation (NINEA, SIRET)" value={registrationNumber} onChange={setRegistrationNumber} disabled={submitting} />
             <div>
               <label htmlFor="org-sector" className="block text-[13px] font-medium text-gray-700">Secteur d&apos;activit&eacute;</label>
-              <select id="org-sector" value={sector} onChange={(e) => setSector(e.target.value)} disabled={submitting} className={selectClass}>
-                <option value="">S&eacute;lectionner</option>
-                {SECTEURS_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
-              </select>
+              <SectorSelect id="org-sector" value={sector} onChange={setSector} disabled={submitting} className={selectClass} />
             </div>
             <FormField id="org-desc" label="Description" value={description} onChange={setDescription} multiline disabled={submitting} placeholder="Pr&eacute;sentation de l&apos;organisation..." />
           </div>

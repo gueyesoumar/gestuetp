@@ -41,6 +41,7 @@ const RiskExecutivePage = lazyPage(() => import('./features/risk/RiskExecutivePa
 const VendorRegisterPage = lazyPage(() => import('./features/vendor/VendorRegisterPage'), 'VendorRegisterPage')
 const SupervisionAssignmentsPage = lazyPage(() => import('./features/risk/SupervisionAssignmentsPage'), 'SupervisionAssignmentsPage')
 const ScenarioTemplatesPage = lazyPage(() => import('./features/risk/ScenarioTemplatesPage'), 'ScenarioTemplatesPage')
+const SectorsSettingsPage = lazyPage(() => import('./features/sectors/SectorsSettingsPage'), 'SectorsSettingsPage')
 const PolicyBoardPage = lazyPage(() => import('./features/policy/PolicyBoardPage'), 'PolicyBoardPage')
 const PolicyCoveragePage = lazyPage(() => import('./features/policy/PolicyCoveragePage'), 'PolicyCoveragePage')
 const HubPage = lazyPage(() => import('./pages/HubPage'), 'HubPage')
@@ -141,6 +142,7 @@ function AppRoutes(): JSX.Element {
         <Route path="risque/registre" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
         <Route path="risque/criteres" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskCriteriaPage /> : <Navigate to="/" replace />} />
         <Route path="risque/modeles" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <ScenarioTemplatesPage /> : <Navigate to="/" replace />} />
+        <Route path="risque/secteurs" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <SectorsSettingsPage /> : <Navigate to="/" replace />} />
         <Route path="risque/plan" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskPlanPage /> : <Navigate to="/" replace />} />
         <Route path="risque/acceptations" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskAcceptancesPage /> : <Navigate to="/" replace />} />
         <Route path="risque/simulateur" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskSimulatorPage /> : <Navigate to="/" replace />} />

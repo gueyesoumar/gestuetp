@@ -1,5 +1,6 @@
 import { FormField } from '../../components/ui/FormField'
-import { SECTEURS_OPTIONS, PAYS_OPTIONS } from '../../lib/constants'
+import { PAYS_OPTIONS } from '../../lib/constants'
+import { SectorSelect } from '../../components/ui/SectorSelect'
 
 const selectClass = 'mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-100'
 
@@ -59,10 +60,7 @@ export function OrganizationDetailsSection({
 
       <div>
         <label htmlFor="org-sector" className="block text-[13px] font-medium text-gray-700">Secteur d&apos;activit&eacute;</label>
-        <select id="org-sector" value={sector} onChange={(e) => onSector(e.target.value)} disabled={disabled} className={selectClass}>
-          <option value="">S&eacute;lectionner</option>
-          {SECTEURS_OPTIONS.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
-        </select>
+        <SectorSelect id="org-sector" value={sector} onChange={onSector} disabled={disabled} className={selectClass} />
       </div>
 
       <FormField id="org-description" label="Description" value={description} onChange={onDescription} multiline disabled={disabled} placeholder="Pr&eacute;sentation de l&apos;organisation..." />

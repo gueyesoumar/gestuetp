@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { ENTITY_TYPE_OPTIONS, REGUL_ENTITY_TYPE_OPTIONS, SECTEURS_OPTIONS, PAYS_OPTIONS, CRITICALITY_OPTIONS, REG_STATUS_OPTIONS } from '../../lib/constants'
+import { ENTITY_TYPE_OPTIONS, REGUL_ENTITY_TYPE_OPTIONS, PAYS_OPTIONS, CRITICALITY_OPTIONS, REG_STATUS_OPTIONS } from '../../lib/constants'
+import { SectorSelect } from '../../components/ui/SectorSelect'
 import type { EntityType } from '../../lib/constants'
 import { useVocab } from '../edition/useVocab'
 import { useIsRegul } from '../edition/useIsRegul'
@@ -119,10 +120,7 @@ export function EntityFormModal({ initial, parentOptions, onClose, onSaved }: Pr
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[12px] font-medium text-gray-600 mb-1">Secteur</label>
-              <select value={sector} onChange={(e) => setSector(e.target.value)} className={field}>
-                <option value="">Non renseigné</option>
-                {SECTEURS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <SectorSelect value={sector} onChange={setSector} className={field} placeholder="Non renseigné" />
             </div>
             <div>
               <label className="block text-[12px] font-medium text-gray-600 mb-1">Pays</label>

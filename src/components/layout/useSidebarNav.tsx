@@ -19,9 +19,9 @@ export type { NavItem }
  *  lu depuis useGroupPermissions (qui résout déjà la hiérarchie) plutôt que via un
  *  second useOrganizationHierarchy. */
 export function useSidebarNavItems(
-  perms: { canManageSupervisionAssignments: boolean; canManageRiskCriteria: boolean },
+  perms: { canManageSupervisionAssignments: boolean; canManageRiskCriteria: boolean; canManageSectors: boolean },
 ): { mainItems: NavItem[]; groupItems: NavItem[] } {
-  const { canManageSupervisionAssignments, canManageRiskCriteria } = perms
+  const { canManageSupervisionAssignments, canManageRiskCriteria, canManageSectors } = perms
   const { hasCapability } = useEdition()
   const vocab = useVocab()
   const { canViewSupervision, isGroup } = useGroupPermissions()
@@ -52,6 +52,7 @@ export function useSidebarNavItems(
     items.push({ to: '/risque/criteres', label: 'Critères', icon: <SlidersHorizontal size={20} strokeWidth={1.5} />, section: 'Paramétrage', sectionIcon: parametrage })
     if (supervises && canManageSupervisionAssignments) items.push({ to: '/risque/affectations', label: 'Affectations', icon: <UsersRound size={20} strokeWidth={1.5} />, section: 'Paramétrage', sectionIcon: parametrage })
     if (canManageRiskCriteria) items.push({ to: '/risque/modeles', label: 'Modèles', icon: <LibraryBig size={20} strokeWidth={1.5} />, section: 'Paramétrage', sectionIcon: parametrage })
+    if (canManageSectors) items.push({ to: '/risque/secteurs', label: 'Secteurs', icon: <Boxes size={20} strokeWidth={1.5} />, section: 'Paramétrage', sectionIcon: parametrage })
     return { mainItems: items, groupItems: [] }
   }
 
