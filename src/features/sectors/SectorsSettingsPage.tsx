@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Boxes, Plus } from 'lucide-react'
 import { useOrgSectors } from './useOrgSectors'
+import type { OrgSector, SectorUsage } from './useOrgSectors'
 import { SectorRow } from './SectorRow'
+import { DeactivateSectorDialog } from './DeactivateSectorDialog'
 import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
 import { useToast } from '../../hooks/useToast'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -12,6 +14,8 @@ export function SectorsSettingsPage(): JSX.Element {
   const { canManageSectors } = useCabinetPermissions()
   const toast = useToast()
   const [label, setLabel] = useState('')
+  const [pending, setPending] = useState<{ sector: OrgSector; usage: SectorUsage } | null>(null)
+  const [busy, setBusy] = useState(false)
   const ro = !canManageSectors
 
   if (s.loading) return <LoadingSpinner />
@@ -26,8 +30,36 @@ export function SectorsSettingsPage(): JSX.Element {
     if (ok) toast.success('Secteur renommé'); else toast.error('Renommage impossible')
   }
   const toggle = async (id: string, active: boolean): Promise<void> => {
-    const ok = await s.setActive(id, active)
-    if (!ok) toast.error('Modification impossible')
+    if (active) {
+      const ok = await s.setActive(id, true)
+      if (!ok) toast.error('Modification impossible')
+      return
+    }
+    // Désactivation : si le secteur est utilisé, on ouvre le dialogue guidé.
+    const row = s.own.find((r) => r.id === id)
+    if (!row) return
+    const usage = await s.fetchUsage(row.label)
+    if (!usage || (usage.entities === 0 && usage.templates === 0 && usage.assignments === 0)) {
+      const ok = await s.setActive(id, false)
+      if (ok) toast.success('Secteur archivé'); else toast.error('Archivage impossible')
+      return
+    }
+    setPending({ sector: row, usage })
+  }
+  const doArchive = async (): Promise<void> => {
+    if (!pending) return
+    setBusy(true)
+    const ok = await s.setActive(pending.sector.id, false)
+    setBusy(false); setPending(null)
+    if (ok) toast.success('Secteur archivé'); else toast.error('Archivage impossible')
+  }
+  const doReassign = async (toLabel: string): Promise<void> => {
+    if (!pending) return
+    setBusy(true)
+    const reassigned = await s.reassign(pending.sector.label, toLabel)
+    const archived = reassigned ? await s.setActive(pending.sector.id, false) : false
+    setBusy(false); setPending(null)
+    if (reassigned && archived) toast.success('Réaffecté puis archivé'); else toast.error('Réaffectation impossible')
   }
 
   return (
@@ -96,6 +128,17 @@ export function SectorsSettingsPage(): JSX.Element {
             ))}
           </div>
         </section>
+      )}
+      {pending && (
+        <DeactivateSectorDialog
+          sector={pending.sector}
+          usage={pending.usage}
+          options={[...s.own, ...s.inherited].filter((r) => r.is_active && r.label !== pending.sector.label)}
+          busy={busy}
+          onReassignAndArchive={(t) => void doReassign(t)}
+          onArchive={() => void doArchive()}
+          onClose={() => setPending(null)}
+        />
       )}
     </div>
   )

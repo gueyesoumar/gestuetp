@@ -11,6 +11,12 @@ export interface OrgSector {
   sort_order: number | null
 }
 
+export interface SectorUsage {
+  entities: number
+  templates: number
+  assignments: number
+}
+
 interface UseOrgSectorsResult {
   own: OrgSector[]
   inherited: OrgSector[]
@@ -20,6 +26,8 @@ interface UseOrgSectorsResult {
   create: (label: string) => Promise<boolean>
   rename: (id: string, label: string) => Promise<boolean>
   setActive: (id: string, active: boolean) => Promise<boolean>
+  fetchUsage: (label: string) => Promise<SectorUsage | null>
+  reassign: (from: string, to: string) => Promise<boolean>
 }
 
 /**
@@ -89,7 +97,21 @@ export function useOrgSectors(): UseOrgSectorsResult {
     return true
   }, [reload])
 
+  const fetchUsage = useCallback(async (label: string): Promise<SectorUsage | null> => {
+    const { data, error: e } = await supabase.rpc('get_sector_usage', { p_label: label })
+    if (e) { console.error('[useOrgSectors.fetchUsage]', e.message); return null }
+    const row = (data ?? [])[0] as SectorUsage | undefined
+    return row ?? { entities: 0, templates: 0, assignments: 0 }
+  }, [])
+
+  const reassign = useCallback(async (from: string, to: string): Promise<boolean> => {
+    const { error: e } = await supabase.rpc('reassign_sector', { p_from: from, p_to: to })
+    if (e) { console.error('[useOrgSectors.reassign]', e.message); return false }
+    reload()
+    return true
+  }, [reload])
+
   const own = rows.filter((r) => orgId !== null && r.owner_org_id === orgId)
   const inherited = rows.filter((r) => r.owner_org_id !== orgId)
-  return { own, inherited, loading, error, reload, create, rename, setActive }
+  return { own, inherited, loading, error, reload, create, rename, setActive, fetchUsage, reassign }
 }
