@@ -2695,6 +2695,13 @@ export interface Database {
         Args: { p_template: string }
         Returns: { node_type: string; label: string; position: number }[]
       }
+      get_sectors: {
+        Args: { p_include_inactive?: boolean }
+        Returns: {
+          id: string; owner_org_id: string | null; label: string; kind: string
+          is_active: boolean; sort_order: number | null
+        }[]
+      }
       get_supervised_scenario_detail: {
         Args: { p_scenario: string }
         Returns: {
