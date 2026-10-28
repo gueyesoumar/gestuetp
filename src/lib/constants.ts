@@ -271,6 +271,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   can_create_campaign: 'Créer des campagnes',
   can_manage_subsidiaries: 'Gérer les filiales',
   can_view_entity_detail: "Voir le détail d'une entité",
+  can_manage_sectors: 'Gérer les secteurs',
 } as const
 
 export const DASHBOARD_VIEW_LABELS: Record<string, string> = {
