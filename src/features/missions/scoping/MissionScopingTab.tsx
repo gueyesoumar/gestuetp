@@ -308,6 +308,12 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
             cabinetId={mission.cabinet_id}
             clientOrgId={mission.client_id}
             prefill={portalPrefill ?? undefined}
+            onContactCreated={async ({ name, email, jobTitle }) => {
+              const exists = actors.some((a) => a.email && a.email.toLowerCase() === email.toLowerCase())
+              if (!exists) {
+                await addActor({ name, email, job_title: jobTitle ?? null, department: null, phone: null, is_primary: false })
+              }
+            }}
             onClose={closePortalModal}
             onSuccess={() => setActionSuccess('Invitation envoy\u00e9e avec succ\u00e8s.')}
           />

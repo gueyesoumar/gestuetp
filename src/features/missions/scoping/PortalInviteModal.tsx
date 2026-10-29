@@ -11,11 +11,14 @@ interface PortalInviteModalProps {
   clientOrgId: string
   /** Pré-remplissage (ex. invitation depuis un Acteur du cadrage). */
   prefill?: { name: string; email: string; jobTitle?: string }
+  /** Appelé quand un NOUVEAU contact est créé depuis le formulaire, pour le
+   *  répercuter côté « Acteurs » de la mission (le parent gère le dédoublonnage). */
+  onContactCreated?: (contact: { name: string; email: string; jobTitle?: string }) => void
   onClose: () => void
   onSuccess: () => void
 }
 
-export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, onClose, onSuccess }: PortalInviteModalProps): JSX.Element {
+export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, onContactCreated, onClose, onSuccess }: PortalInviteModalProps): JSX.Element {
   const { profile } = useAuth()
   const [cabinetClientId, setCabinetClientId] = useState<string | null>(null)
   const [ficheMissing, setFicheMissing] = useState(false)
@@ -72,8 +75,8 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
     return () => ac.abort()
   }, [fetchData])
 
-  const handleInvite = async (_contactId: string, contactName: string, contactEmail: string): Promise<void> => {
-    if (!profile || !cabinetClientId) return
+  const handleInvite = async (_contactId: string, contactName: string, contactEmail: string): Promise<boolean> => {
+    if (!profile || !cabinetClientId) return false
     setInviting(true)
     setError(null)
 
@@ -98,14 +101,14 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
     } catch {
       setError('Erreur r\u00e9seau. V\u00e9rifiez votre connexion.')
       setInviting(false)
-      return
+      return false
     }
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: 'Erreur inconnue' }))
       setError((body as { error: string }).error)
       setInviting(false)
-      return
+      return false
     }
 
     const result = await res.json() as { email_sent?: boolean }
@@ -115,6 +118,7 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
     setInviting(false)
     fetchData()
     onSuccess()
+    return true
   }
 
   const handleCreateAndInvite = async (): Promise<void> => {
@@ -122,7 +126,10 @@ export function PortalInviteModal({ missionId, cabinetId, clientOrgId, prefill, 
       setError('Nom et email requis')
       return
     }
-    await handleInvite('', name.trim(), email.trim())
+    const ok = await handleInvite('', name.trim(), email.trim())
+    if (!ok) return
+    // R\u00e9percute le nouveau contact dans la liste des \u00ab Acteurs \u00bb de la mission.
+    onContactCreated?.({ name: name.trim(), email: email.trim(), jobTitle: jobTitle.trim() || undefined })
     setShowForm(false)
     setName('')
     setEmail('')
