@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useMemo, useState, lazy, Suspense } from 'react'
+import { FileText } from 'lucide-react'
 import { useSupervisedPortfolio } from './useSupervisedPortfolio'
 import { useSupervisedRegister } from './useSupervisedPortfolio'
 import { useSupervisorDirectives } from './useSupervisorDirectives'
@@ -11,12 +12,17 @@ import { ExecVitalsSectors } from './ExecVitalsSectors'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { useCabinetPermissions } from '../../hooks/useCabinetPermissions'
+
+const NationalReportModal = lazy(() => import('../reports/national-report/NationalReportModal'))
 
 /** Synthèse exécutive (RFC 0018 Lot C) : lecture dirigeant de la situation cyber nationale. */
 export function RiskExecutivePage(): JSX.Element {
   const { orgs, loading, error } = useSupervisedPortfolio()
   const { rows } = useSupervisedRegister()
   const { rows: directives } = useSupervisorDirectives()
+  const { canGenerateNationalReport } = useCabinetPermissions()
+  const [showReport, setShowReport] = useState(false)
 
   const exposure = useMemo(() => exposureScore(orgs), [orgs])
   const dist = useMemo(() => exposureDistribution(orgs), [orgs])
@@ -34,11 +40,24 @@ export function RiskExecutivePage(): JSX.Element {
 
   return (
     <div className="space-y-5">
-      <div>
-        <p className="text-[10px] uppercase tracking-[2px] font-bold text-[#9C7A1F]">Sécurité des systèmes d&apos;information de l&apos;État</p>
-        <h1 className="text-2xl font-bold text-gray-900 mt-1">Situation cyber nationale</h1>
-        <p className="mt-1 text-[13px] text-gray-500">Vue d&apos;ensemble pour la décision · {orgs.length} institutions suivies.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] uppercase tracking-[2px] font-bold text-[#9C7A1F]">Sécurité des systèmes d&apos;information de l&apos;État</p>
+          <h1 className="text-2xl font-bold text-gray-900 mt-1">Situation cyber nationale</h1>
+          <p className="mt-1 text-[13px] text-gray-500">Vue d&apos;ensemble pour la décision · {orgs.length} institutions suivies.</p>
+        </div>
+        {canGenerateNationalReport && (
+          <button onClick={() => setShowReport(true)}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
+            <FileText size={15} /> Générer le rapport
+          </button>
+        )}
       </div>
+      {showReport && (
+        <Suspense fallback={null}>
+          <NationalReportModal onClose={() => setShowReport(false)} />
+        </Suspense>
+      )}
 
       {orgs.length === 0 ? (
         <EmptyState title="Aucune institution supervisée" description="Vous n'avez pas encore d'organisation sous supervision à synthétiser." />
