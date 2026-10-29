@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
           can_delete_mission: true, can_manage_members: true, can_manage_clients: true,
           can_edit_organization: true, can_manage_roles: true, can_view_audit_trail: true,
           can_manage_vendors: true, can_manage_report_templates: true,
-          can_manage_sectors: true,
+          can_manage_sectors: true, can_generate_national_report: true,
         },
       })
       .select('id')

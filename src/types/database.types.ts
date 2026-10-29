@@ -287,6 +287,8 @@ export interface PlatformRolePermissions {
   can_manage_report_templates?: boolean
   /** Gérer le référentiel de secteurs de l'org (RFC 0022 Lot 1, migration 00368). */
   can_manage_sectors?: boolean
+  /** Générer les rapports de supervision nationale (RFC 0024 Lot 1, migration 00370). */
+  can_generate_national_report?: boolean
   dashboard_views?: DashboardView[]
   default_dashboard_view?: DashboardView
   /** Permissions groupe (optionnelles, ignorées pour les cabinets classiques) */
@@ -2711,6 +2713,14 @@ export interface Database {
       reassign_sector: {
         Args: { p_from: string; p_to: string }
         Returns: undefined
+      }
+      get_national_regul_summary: {
+        Args: { p_from?: string | null; p_to?: string | null }
+        Returns: Record<string, unknown>
+      }
+      get_national_risk_summary: {
+        Args: { p_from?: string | null; p_to?: string | null }
+        Returns: Record<string, unknown>
       }
       get_supervised_scenario_detail: {
         Args: { p_scenario: string }
