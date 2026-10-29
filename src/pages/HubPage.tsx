@@ -7,7 +7,6 @@
 import type { CSSProperties } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useBranding } from '../features/branding/useBranding'
-import { useComplyHubStats } from '../features/dashboard/useComplyHubStats'
 import { VaultBackground } from '../components/vault/VaultBackground'
 import { HubCockpit } from '../features/hub/HubCockpit'
 import { effectiveSurface } from '../features/branding/surface'
@@ -15,7 +14,6 @@ import { effectiveSurface } from '../features/branding/surface'
 export function HubPage(): JSX.Element {
   const { profile, signOut } = useAuth()
   const { branding } = useBranding()
-  const { stats: complyStats } = useComplyHubStats()
 
   const isBranded = Boolean(branding)
   // Polarité du chrome hub : surcharge par écran (hub) si définie, sinon globale.
@@ -23,7 +21,7 @@ export function HubPage(): JSX.Element {
   const isLight = isBranded && branding != null && effectiveSurface(branding, 'hub') === 'light'
 
   const cockpit = (
-    <HubCockpit selfScore={complyStats.conformityScore} profile={profile} onSignOut={signOut} isBranded={isBranded} />
+    <HubCockpit profile={profile} onSignOut={signOut} isBranded={isBranded} />
   )
 
   if (isLight) {

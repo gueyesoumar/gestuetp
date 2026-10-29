@@ -16,29 +16,19 @@ interface ProductLauncherProps {
   products: HubProduct[]
   isEnterable: (p: HubProduct) => boolean
   onOpen: (p: HubProduct) => void
-  composite: number | null
-  bandLabel: string
-  onPosture: () => void
   portfolio: PortfolioLink | null
 }
 
 export function ProductLauncher({
-  products, isEnterable, onOpen, composite, bandLabel, onPosture, portfolio,
+  products, isEnterable, onOpen, portfolio,
 }: ProductLauncherProps): JSX.Element {
   const mine = products.filter(isEnterable)
   const available = products.filter((p) => !isEnterable(p))
 
   return (
     <div className="flex w-full flex-col items-center gap-8 px-4 py-6">
-      {/* posture compacte */}
       <div className="flex flex-col items-center gap-4">
-        <div className="inline-flex items-center gap-3 rounded-full border border-[rgb(var(--hub-fg)/0.12)] bg-[rgb(var(--hub-fg)/0.04)] px-[18px] py-[9px]">
-          <span className="text-[10.5px] font-semibold uppercase tracking-[1.5px] text-[rgb(var(--hub-fg)/0.5)]">Confiance</span>
-          <span className="font-mono text-[20px] font-semibold leading-none text-[#D4A843]">{composite ?? '-'}</span>
-          <span className="rounded-full bg-[#D4A843] px-2.5 py-[3px] text-[11px] font-semibold text-[#1B4332]">{bandLabel}</span>
-          <button type="button" onClick={onPosture} className="ml-0.5 text-[12px] font-semibold text-[#E2C26B] hover:text-[#F0D98A]">détail →</button>
-        </div>
-        <h2 className="text-[28px] font-light tracking-[-0.4px] text-[rgb(var(--hub-fg))]">Votre écosystème de confiance</h2>
+        <h2 className="text-[28px] font-light tracking-[-0.4px] text-[rgb(var(--hub-fg))]">Votre écosystème Gëstu</h2>
       </div>
 
       {/* grille produits */}
