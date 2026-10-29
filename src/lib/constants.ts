@@ -189,6 +189,7 @@ export const REGUL_ENTITY_TYPE_OPTIONS = [
   { value: 'societe_nationale', label: 'Société Nationale' },
   { value: 'operateur', label: 'Opérateur' },
   { value: 'institution_financiere', label: 'Institution Financière' },
+  { value: 'institution_publique', label: 'Institutions publiques' },
   { value: 'autre', label: 'Autre' },
 ] as const
 
@@ -253,6 +254,7 @@ export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   societe_nationale: 'Société Nationale',
   operateur: 'Opérateur',
   institution_financiere: 'Institution Financière',
+  institution_publique: 'Institutions publiques',
   autre: 'Autre',
 }
 
