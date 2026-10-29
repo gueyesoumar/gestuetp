@@ -7,6 +7,7 @@ import { useSubsidiaries } from '../group-module/useSubsidiaries'
 import { EntityFormModal } from '../group-module/EntityFormModal'
 import { useCreateMission } from '../missions/useCreateMission'
 import { WorkflowTemplatePicker } from '../missions/WorkflowTemplatePicker'
+import { useReviewLabels } from '../organization-settings/useReviewLabels'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { useToast } from '../../hooks/useToast'
 
@@ -19,6 +20,7 @@ export function RegulMissionCreatePage(): JSX.Element {
   const { members, loading: mLoading } = useMembers()
   const { subsidiaries, loading: sLoading, refresh } = useSubsidiaries()
   const { createMission, creating } = useCreateMission()
+  const { lead: leadLabel, associate: associateLabel } = useReviewLabels()
 
   // Pré-remplissage de l'assujetti quand on arrive depuis sa fiche (F2).
   const prefillAssujetti = (location.state as { assujettiId?: string } | null)?.assujettiId ?? ''
@@ -98,14 +100,14 @@ export function RegulMissionCreatePage(): JSX.Element {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-[12px] font-medium text-gray-600 mb-1">Chef de mission *</label>
+            <label className="block text-[12px] font-medium text-gray-600 mb-1">{leadLabel} *</label>
             <select value={leadId} onChange={(e) => setLeadId(e.target.value)} className={field}>
               <option value="">Sélectionner...</option>
               {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-[12px] font-medium text-gray-600 mb-1">Auditeur associé *</label>
+            <label className="block text-[12px] font-medium text-gray-600 mb-1">{associateLabel} *</label>
             <select value={associateId} onChange={(e) => setAssociateId(e.target.value)} className={field}>
               <option value="">Sélectionner...</option>
               {members.map((m) => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}

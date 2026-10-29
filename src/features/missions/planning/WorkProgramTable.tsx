@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Badge } from '../../../components/ui/Badge'
 import { WorkProgramControlRow } from './WorkProgramControlRow'
 import { WorkProgramBulkToolbar } from './WorkProgramBulkToolbar'
@@ -137,6 +137,7 @@ export function WorkProgramTable({
                   domainSelected={allInDomainSelected}
                   domainPartial={!allInDomainSelected && someInDomainSelected}
                   onToggleDomain={() => toggleDomain(filteredIds)}
+                  searchActive={q.length > 0}
                 >
                   {filtered.map((control) => (
                     <WorkProgramControlRow
@@ -172,12 +173,15 @@ interface DomainGroupProps {
   domainSelected: boolean
   domainPartial: boolean
   onToggleDomain: () => void
+  searchActive: boolean
   children: React.ReactNode
 }
 
-function DomainGroup({ code, name, assigned, total, unassignedIds, auditors, onAssignDomain, domainSelected, domainPartial, onToggleDomain, children }: DomainGroupProps) {
+function DomainGroup({ code, name, assigned, total, unassignedIds, auditors, onAssignDomain, domainSelected, domainPartial, onToggleDomain, searchActive, children }: DomainGroupProps) {
   const [bulkAuditor, setBulkAuditor] = useState('')
-  const [open, setOpen] = useState(true)
+  // Replié par défaut ; une recherche active déplie les domaines correspondants.
+  const [open, setOpen] = useState(false)
+  useEffect(() => { setOpen(searchActive) }, [searchActive])
   return (
     <>
       <tr className="bg-[#FAFAFA] border-b border-gray-200 border-t border-t-gray-200 cursor-pointer select-none" onClick={() => setOpen(!open)}>
