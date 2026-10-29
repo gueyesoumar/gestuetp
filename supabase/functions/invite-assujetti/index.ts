@@ -73,8 +73,11 @@ Deno.serve(async (req) => {
     const { assujetti_org_id, contact_name, email, phone, job_title, mission_id } = body
     const permission = body.permission ?? 'viewer'
 
-    if (!assujetti_org_id || !contact_name || !email || !mission_id) {
-      return json({ error: 'Champs requis : assujetti_org_id, contact_name, email, mission_id' }, 400)
+    // mission_id est OPTIONNEL : on peut créer un contact d'assujetti sans lui
+    // accorder tout de suite l'accès à une mission. Le cloisonnement ne repose PAS
+    // sur la mission mais sur la garde sous-arbre ci-dessous.
+    if (!assujetti_org_id || !contact_name || !email) {
+      return json({ error: 'Champs requis : assujetti_org_id, contact_name, email' }, 400)
     }
 
     // Garde sous-arbre : l'assujetti doit appartenir au parc du régulateur appelant.
@@ -88,14 +91,18 @@ Deno.serve(async (req) => {
       return json({ error: 'Assujetti hors de votre parc' }, 403)
     }
 
-    // La mission doit appartenir au régulateur ET cibler cet assujetti.
-    const { data: mission } = await admin
-      .from('missions')
-      .select('id, cabinet_id, client_id, name')
-      .eq('id', mission_id)
-      .single()
-    if (!mission || mission.cabinet_id !== caller.organization_id || mission.client_id !== assujetti_org_id) {
-      return json({ error: 'Mission invalide pour cet assujetti' }, 403)
+    // Si une mission est fournie, elle doit appartenir au régulateur ET cibler cet assujetti.
+    let mission: { id: string; cabinet_id: string; client_id: string; name: string } | null = null
+    if (mission_id) {
+      const { data: m } = await admin
+        .from('missions')
+        .select('id, cabinet_id, client_id, name')
+        .eq('id', mission_id)
+        .single()
+      if (!m || m.cabinet_id !== caller.organization_id || m.client_id !== assujetti_org_id) {
+        return json({ error: 'Mission invalide pour cet assujetti' }, 403)
+      }
+      mission = m as { id: string; cabinet_id: string; client_id: string; name: string }
     }
 
     // Contact existant ? (chemin entity_org_id)
@@ -200,13 +207,15 @@ Deno.serve(async (req) => {
         .eq('id', contactId)
     }
 
-    // Accès mission (upsert)
-    const { error: accessError } = await admin
-      .from('client_mission_access')
-      .upsert({ contact_id: contactId, mission_id, permission, granted_by: caller.id }, { onConflict: 'contact_id,mission_id' })
-    if (accessError) {
-      console.error('[invite-assujetti] upsert access:', accessError.message)
-      return json({ error: "Erreur lors de l'attribution de l'accès" }, 500)
+    // Accès mission (upsert) - uniquement si une mission est fournie.
+    if (mission_id) {
+      const { error: accessError } = await admin
+        .from('client_mission_access')
+        .upsert({ contact_id: contactId, mission_id, permission, granted_by: caller.id }, { onConflict: 'contact_id,mission_id' })
+      if (accessError) {
+        console.error('[invite-assujetti] upsert access:', accessError.message)
+        return json({ error: "Erreur lors de l'attribution de l'accès" }, 500)
+      }
     }
 
     // Email (lien recovery pour définir le mot de passe)
@@ -223,11 +232,11 @@ Deno.serve(async (req) => {
 
       const emailResult = await sendEmail({
         to: email,
-        subject: `Invitation au portail : ${mission.name}`,
+        subject: mission ? `Invitation au portail : ${mission.name}` : 'Invitation au portail de supervision',
         html: clientInviteTemplate({
           contactName: contact_name,
           cabinetName: regulatorName,
-          missionTitle: (mission.name as string) ?? 'Mission de contrôle',
+          missionTitle: mission?.name ?? 'Portail de supervision',
           inviteLink,
           branding,
         }),
