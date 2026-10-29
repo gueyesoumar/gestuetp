@@ -54,7 +54,7 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefil
 
   const handleInvite = async (): Promise<void> => {
     if (!profile) return
-    if (!name.trim() || !email.trim() || !missionId) { setError('Nom, email et mission requis'); return }
+    if (!name.trim() || !email.trim()) { setError('Nom et email requis'); return }
     setInviting(true); setError(null)
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
@@ -63,7 +63,7 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefil
       res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-assujetti`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ assujetti_org_id: entityOrgId, contact_name: name.trim(), email: email.trim(), job_title: jobTitle.trim() || undefined, mission_id: missionId, permission }),
+        body: JSON.stringify({ assujetti_org_id: entityOrgId, contact_name: name.trim(), email: email.trim(), job_title: jobTitle.trim() || undefined, mission_id: missionId || undefined, permission }),
       })
     } catch { setError('Erreur réseau. Vérifiez votre connexion.'); setInviting(false); return }
     if (!res.ok) {
@@ -151,11 +151,11 @@ export function AssujettiInviteModal({ entityOrgId, entityName, missions, prefil
                     <option value="contributor">{PERMISSION_LABELS.contributor}</option>
                   </select>
                   <select value={missionId} onChange={(e) => setMissionId(e.target.value)} className="col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-forest-500 bg-white">
-                    {missions.length === 0 && <option value="">Aucune mission de contrôle</option>}
+                    <option value="">Sans mission (créer le contact seulement)</option>
                     {missions.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                 </div>
-                <button onClick={handleInvite} disabled={inviting || missions.length === 0} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 transition-colors disabled:opacity-50">
+                <button onClick={handleInvite} disabled={inviting} className="px-4 py-2 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 transition-colors disabled:opacity-50">
                   {inviting ? 'Envoi...' : 'Créer et inviter'}
                 </button>
               </div>

@@ -47,7 +47,7 @@ export function SubsidiaryDetailPage(): JSX.Element {
         <section className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4">
           <div>
             <h3 className="text-sm font-bold text-gray-900">Portail assujetti</h3>
-            <p className="text-[12px] text-gray-500 mt-0.5">Donnez à un contact de cet assujetti l&apos;accès cloisonné à une mission de contrôle.</p>
+            <p className="text-[12px] text-gray-500 mt-0.5">Ajoutez des contacts de cet assujetti, avec ou sans mission en cours, et donnez-leur l&apos;accès cloisonné à une mission de contrôle.</p>
           </div>
           <button onClick={() => setInviteOpen(true)} className="px-3.5 py-2 bg-forest-700 text-white rounded-lg text-xs font-semibold hover:bg-forest-900 transition-colors shrink-0">
             Gérer les accès
