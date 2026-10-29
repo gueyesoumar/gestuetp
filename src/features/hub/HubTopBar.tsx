@@ -1,14 +1,13 @@
 import type { User } from '../../types/database.types'
-import type { HubPerspective } from './useHubPerspectives'
 import { BrandLockup } from './BrandLockup'
 import { HubOrgIdentity } from './HubOrgIdentity'
 import { HubUserMenu } from './HubUserMenu'
 
 // Barre du haut de l'app-shell : marque Gëstu + co-branding de l'organisation
-// à gauche ; onglets de vue (Lanceur / Ma posture / portefeuille) + menu
-// utilisateur à droite. Les onglets remplacent l'ancien menu déroulant « Vue ».
+// à gauche ; onglets de vue + menu utilisateur à droite. Le Hub n'expose plus
+// que le Lanceur : le sélecteur ne s'affiche que s'il y a plus d'une vue.
 
-export type HubView = 'launcher' | HubPerspective
+export type HubView = 'launcher' | 'self' | 'clients' | 'group' | 'assujettis'
 
 const VIEW_LABEL: Record<HubView, string> = {
   launcher: 'Lanceur',
@@ -37,20 +36,22 @@ export function HubTopBar({ views, current, onChange, profile, onSignOut, showAd
         {!isBranded && <HubOrgIdentity />}
       </div>
       <div className="flex items-center gap-3">
-        <nav className="flex items-center gap-1 rounded-full border border-[rgb(var(--hub-fg)/0.1)] bg-[rgb(var(--hub-fg)/0.04)] p-1">
-          {views.map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => onChange(v)}
-              className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors ${
-                v === current ? 'bg-[#D4A843] text-[#1B4332]' : 'text-[rgb(var(--hub-fg)/0.6)] hover:text-[rgb(var(--hub-fg))]'
-              }`}
-            >
-              {VIEW_LABEL[v]}
-            </button>
-          ))}
-        </nav>
+        {views.length > 1 && (
+          <nav className="flex items-center gap-1 rounded-full border border-[rgb(var(--hub-fg)/0.1)] bg-[rgb(var(--hub-fg)/0.04)] p-1">
+            {views.map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onChange(v)}
+                className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors ${
+                  v === current ? 'bg-[#D4A843] text-[#1B4332]' : 'text-[rgb(var(--hub-fg)/0.6)] hover:text-[rgb(var(--hub-fg))]'
+                }`}
+              >
+                {VIEW_LABEL[v]}
+              </button>
+            ))}
+          </nav>
+        )}
         {profile && <HubUserMenu profile={profile} onSignOut={onSignOut} showAdmin={showAdmin} />}
       </div>
     </header>

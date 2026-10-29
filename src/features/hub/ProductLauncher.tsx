@@ -1,26 +1,19 @@
 /**
  * ProductLauncher - vue « Lanceur » du Hub (RFC Hub UX, direction D3).
  * Grille de produits abonnement-aware, entrée directe (1 clic, plus de popover).
- * Posture compacte + accès portefeuille discret. Skin vault sombre.
+ * Skin vault sombre.
  */
 
 import type { HubProduct } from '../../lib/hubProducts'
-
-interface PortfolioLink {
-  label: string
-  count: number
-  onOpen: () => void
-}
 
 interface ProductLauncherProps {
   products: HubProduct[]
   isEnterable: (p: HubProduct) => boolean
   onOpen: (p: HubProduct) => void
-  portfolio: PortfolioLink | null
 }
 
 export function ProductLauncher({
-  products, isEnterable, onOpen, portfolio,
+  products, isEnterable, onOpen,
 }: ProductLauncherProps): JSX.Element {
   const mine = products.filter(isEnterable)
   const available = products.filter((p) => !isEnterable(p))
@@ -62,13 +55,6 @@ export function ProductLauncher({
             ))}
           </div>
         </div>
-      )}
-
-      {/* accès portefeuille */}
-      {portfolio && (
-        <button type="button" onClick={portfolio.onOpen} className="text-[12.5px] text-[rgb(var(--hub-fg)/0.45)] hover:text-[rgb(var(--hub-fg)/0.7)]">
-          Voir votre portefeuille · {portfolio.count} {portfolio.label} →
-        </button>
       )}
     </div>
   )
