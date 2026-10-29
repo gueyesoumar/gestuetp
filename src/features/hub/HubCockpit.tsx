@@ -13,19 +13,13 @@ import { ProductLauncher } from './ProductLauncher'
 import { SegmentedDial } from './SegmentedDial'
 import { HubSidePanel } from './HubSidePanel'
 import { PoweredByGestu } from '../branding/BrandedAuthHeader'
-import { useSelfDimensionScores } from './useSelfDimensionScores'
-import { bandLabel } from './trustBand'
-import { DemoInvite } from '../demo/DemoInvite'
 import { DemoTour } from '../demo/DemoTour'
-import { useDemoSandbox } from '../demo/useDemoSandbox'
 import { OnboardingProgress } from '../onboarding/OnboardingProgress'
 
 // App-shell du Hub (RFC Hub UX, direction D3 « Lanceur épuré »). Vue par défaut =
-// lanceur (grille produits, entrée directe). Deux vues secondaires réutilisées :
-// « Ma posture » (self : cadran + 6 axes) et le portefeuille (tuiles par entité).
+// lanceur (grille produits, entrée directe) + vue portefeuille (tuiles par entité).
 
 interface HubCockpitProps {
-  selfScore: number | null
   profile: User | null
   onSignOut: () => void
   isBranded: boolean
@@ -39,16 +33,13 @@ function average(values: Array<number | null>): number | null {
 
 const ENTITY_LABEL: Record<HubPerspective, string> = { self: '', clients: 'clients', group: 'filiales', assujettis: 'assujettis' }
 
-export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCockpitProps): JSX.Element {
+export function HubCockpit({ profile, onSignOut, isBranded }: HubCockpitProps): JSX.Element {
   const data = useHubPerspectives()
   const catalog = useHubProducts()
-  const selfDims = useSelfDimensionScores()
-  const demo = useDemoSandbox()
   const navigate = useNavigate()
   const { hasCapability } = useEdition()
 
-  // Produit primaire + noms d'édition dérivés du REGISTRE de modules (RFC 0013 C1) -
-  // plus de binaire `supervision ? 'Regul' : 'Comply'`.
+  // Produit primaire + noms d'édition dérivés du REGISTRE de modules (RFC 0013 C1).
   const primaryProduct = APP_MODULES.find((m) => m.enabled(hasCapability))?.product ?? 'Comply'
   const editionProducts = useMemo(() => new Set(APP_MODULES.map((m) => m.product).filter(Boolean) as string[]), [])
   const hasRisk = hasCapability('risk')
@@ -57,9 +48,6 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
 
   const products = useMemo(
     () => catalog.products
-      // On ne montre PAS l'édition de l'autre monde (ex. tuile « Regul » pour une org
-      // Comply) : une édition n'est pas un produit à souscrire depuis le Hub. Seuls le
-      // monde primaire de l'org + les modules (Risk/Policy) restent.
       .filter((p) => !editionProducts.has(p.name) || p.name === primaryProduct)
       .map((p) => {
         if (p.name === 'Risk') return { ...p, active: hasRisk, badge: hasRisk ? 'Actif' : p.badge }
@@ -82,7 +70,9 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
   }, [navigate, primaryProduct])
 
   const [view, setView] = useState<HubView>('launcher')
-  const views = useMemo<HubView[]>(() => ['launcher', ...data.perspectives], [data.perspectives])
+  // La vue « self » (profil de confiance) est retirée : seules les perspectives
+  // portefeuille (clients / filiales / assujettis) subsistent.
+  const views = useMemo<HubView[]>(() => ['launcher', ...data.perspectives.filter((p) => p !== 'self')], [data.perspectives])
 
   const clientsAvg = useMemo(() => average(data.clients.map((t) => t.score)), [data.clients])
   const groupAvg = useMemo(() => average(data.subsidiaries.map((t) => t.score)), [data.subsidiaries])
@@ -104,7 +94,6 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
     )
   }
 
-  const composite = selfDims.composite ?? selfScore
   const entityPersp = data.perspectives.find((p) => p !== 'self') ?? null
   const portfolio = entityPersp
     ? {
@@ -118,18 +107,10 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
     return (
       <div className="flex h-full w-full flex-col px-6 py-3">
         {topBar}
-        {/* Onboarding - placement P2 : barre fine épinglée sous la top-bar, qui
-            n'empiète pas sur le lanceur (le centre reste au produit). */}
         <OnboardingProgress tone="dark" className="mt-1 shrink-0" />
-        {/* Conteneur défilant : le lanceur est centré quand il tient dans l'écran
-            (min-h-full + justify-center), et défile proprement sinon. */}
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="flex min-h-full flex-col justify-center py-2">
-            <ProductLauncher
-              products={products} isEnterable={isEnterable} onOpen={onOpen}
-              composite={composite} bandLabel={bandLabel(composite)} onPosture={() => setView('self')} portfolio={portfolio}
-            />
-            {!demo.loading && !demo.hasDemo && <DemoInvite />}
+            <ProductLauncher products={products} isEnterable={isEnterable} onOpen={onOpen} portfolio={portfolio} />
           </div>
         </div>
         <PoweredByGestu className="mt-2 shrink-0" />
@@ -138,20 +119,13 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
     )
   }
 
-  const tempered = selfDims.compositePosture !== null && selfDims.composite !== null && selfDims.composite < selfDims.compositePosture
-  const selfSubtitle = tempered
-    ? `Posture ${selfDims.compositePosture} → réel ${selfDims.composite} · ${selfDims.measuredAxes}/${selfDims.totalAxes} axes`
-    : `Votre organisation · ${selfDims.measuredAxes}/${selfDims.totalAxes} axes mesurés`
-
   const centre = view === 'clients' ? { score: clientsAvg, subtitle: `Portefeuille · ${data.clients.length}` }
     : view === 'group' ? { score: groupAvg, subtitle: `Groupe · ${data.subsidiaries.length}` }
-      : view === 'assujettis' ? { score: assujettisAvg, subtitle: `Parc · ${data.assujettis.length}` }
-        : { score: composite, subtitle: selfSubtitle }
+      : { score: assujettisAvg, subtitle: `Parc · ${data.assujettis.length}` }
 
   const panelTitle = view === 'clients' ? 'Détail par client · plus exposé → plus solide'
     : view === 'group' ? 'Détail par filiale · plus exposé → plus solide'
-      : view === 'assujettis' ? 'Détail par assujetti · plus exposé → plus solide'
-        : 'Profil de confiance : 6 dimensions'
+      : 'Détail par assujetti · plus exposé → plus solide'
 
   return (
     <div className="flex h-full w-full flex-col px-6 py-3">
@@ -161,11 +135,9 @@ export function HubCockpit({ selfScore, profile, onSignOut, isBranded }: HubCock
           <div className="h-[240px] w-[240px]"><SegmentedDial score={centre.score} /></div>
           <span className="max-w-[280px] text-center text-[12px] text-[rgb(var(--hub-fg)/0.55)]">{centre.subtitle}</span>
         </div>
-        {view === 'self'
-          ? <HubSidePanel mode="self" title={panelTitle} axes={selfDims.axes} factors={selfDims.factors} />
-          : <HubSidePanel mode="entities" title={panelTitle}
-              tiles={view === 'clients' ? data.clients : view === 'group' ? data.subsidiaries : data.assujettis}
-              emptyLabel={view === 'clients' ? 'Aucun client dans votre périmètre.' : view === 'group' ? 'Aucune filiale rattachée.' : 'Aucun assujetti dans votre périmètre.'} />}
+        <HubSidePanel mode="entities" title={panelTitle}
+          tiles={view === 'clients' ? data.clients : view === 'group' ? data.subsidiaries : data.assujettis}
+          emptyLabel={view === 'clients' ? 'Aucun client dans votre périmètre.' : view === 'group' ? 'Aucune filiale rattachée.' : 'Aucun assujetti dans votre périmètre.'} />
       </div>
       <PoweredByGestu className="mt-2 shrink-0" />
     </div>
