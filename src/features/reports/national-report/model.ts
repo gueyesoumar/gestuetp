@@ -63,3 +63,22 @@ const CLASSIF: Record<string, string> = {
 export const classifLabel = (k: string): string => CLASSIF[k] ?? k
 
 export const pct = (n: number): string => `${Math.round(n)}%`
+
+interface Decision { scope: 'regul' | 'risk' | 'both'; short: string; full: string }
+const DECISIONS: Decision[] = [
+  { scope: 'regul',
+    short: 'Doter l’autorité d’un cadre légal contraignant (signalement, sanctions).',
+    full: 'Cadre légal contraignant : rendre obligatoires la déclaration des incidents majeurs et les audits de sécurité, et assortir la supervision d’un régime de sanctions. Sans ce levier, la gradation s’arrête au rappel.' },
+  { scope: 'risk',
+    short: 'Lancer un plan d’urgence sur les infrastructures vitales exposées.',
+    full: 'Plan d’urgence sur les infrastructures vitales exposées : jalons et revue trimestrielle par l’autorité, en ciblant d’abord l’authentification forte et les sauvegardes testées.' },
+  { scope: 'both',
+    short: 'Investir dans la capacité nationale de cyber-résilience.',
+    full: 'Investir dans la capacité de cyber-résilience nationale : compétences, supervision continue, coopération régionale.' },
+  { scope: 'both',
+    short: 'Encadrer la chaîne des prestataires sensibles.',
+    full: 'Encadrer la chaîne des prestataires sensibles : qualification obligatoire sur les fonctions critiques de l’État.' },
+]
+export const decisionsFor = (v: ReportVariant): Decision[] =>
+  DECISIONS.filter((d) => v === 'global' || d.scope === v || d.scope === 'both')
+

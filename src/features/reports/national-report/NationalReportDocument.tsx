@@ -13,10 +13,10 @@ export function NationalReportDocument({ input }: { input: NationalReportInput }
   const theme = buildTheme(null, null)
   const n = (i: number): string => String(i + 1).padStart(2, '0')
   const parts: ((num: string) => JSX.Element)[] = []
-  parts.push((num) => <SyntheseSection input={input} theme={theme} num={num} />)
+  parts.push((num) => <SyntheseSection input={input} theme={theme} num={num} variant={input.variant} />)
   if (input.variant !== 'risk') parts.push((num) => <RegulSection r={input.regul} theme={theme} num={num} />)
   if (input.variant !== 'regul') parts.push((num) => <RiskSection k={input.risk} theme={theme} num={num} />)
-  parts.push((num) => <CrossSection input={input} theme={theme} num={num} />)
+  parts.push((num) => <CrossSection input={input} theme={theme} num={num} variant={input.variant} />)
 
   return (
     <Document title={`Rapport de supervision nationale - ${input.periodLabel}`}>
