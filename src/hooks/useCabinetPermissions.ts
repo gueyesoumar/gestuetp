@@ -31,6 +31,7 @@ export interface CabinetPermissions {
   canManageSupervisionAssignments: boolean
   canManageReportTemplates: boolean
   canManageSectors: boolean
+  canGenerateNationalReport: boolean
   loading: boolean
 }
 
@@ -51,6 +52,7 @@ const DEFAULT_PERMS: Omit<CabinetPermissions, 'loading'> = {
   canManageSupervisionAssignments: false,
   canManageReportTemplates: false,
   canManageSectors: false,
+  canGenerateNationalReport: false,
 }
 
 const ALL_TRUE: Omit<CabinetPermissions, 'loading'> = {
@@ -70,6 +72,7 @@ const ALL_TRUE: Omit<CabinetPermissions, 'loading'> = {
   canManageSupervisionAssignments: true,
   canManageReportTemplates: true,
   canManageSectors: true,
+  canGenerateNationalReport: true,
 }
 
 export function useCabinetPermissions(): CabinetPermissions {
@@ -129,6 +132,7 @@ export function useCabinetPermissions(): CabinetPermissions {
           if (p.can_manage_supervision_assignments) acc.canManageSupervisionAssignments = true
           if (p.can_manage_report_templates) acc.canManageReportTemplates = true
           if (p.can_manage_sectors) acc.canManageSectors = true
+          if (p.can_generate_national_report) acc.canGenerateNationalReport = true
         }
 
         setPerms(acc)
