@@ -18,8 +18,8 @@ const EMPTY = { graphIsGroup: false, graphIsCabinet: false, graphIsClient: false
 /**
  * Rôles d'une organisation dérivés du GRAPHE de relations (RFC 0007, P0).
  *
- * Lit les arêtes actives entrantes ET sortantes du nœud (même modèle que
- * `useHubPerspectives`). Les consommateurs combinent ces signaux avec le legacy
+ * Lit les arêtes actives entrantes ET sortantes du nœud. Les consommateurs
+ * combinent ces signaux avec le legacy
  * `types[]` / `parent_org_id` (repli → aucune régression) tant que le graphe
  * n'est pas la source unique. La RLS `org_rel_select_own` autorise la lecture
  * des arêtes où l'org est acteur OU cible.
