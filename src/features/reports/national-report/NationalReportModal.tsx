@@ -5,13 +5,18 @@ import { supabase } from '../../../lib/supabase'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { NationalReportDocument } from './NationalReportDocument'
 import { renderNationalReport } from './renderNationalReport'
-import type { NationalReportInput, NationalRegulSummary, NationalRiskSummary } from './model'
+import type { NationalReportInput, NationalRegulSummary, NationalRiskSummary, ReportVariant } from './model'
+
+const VARIANTS: { v: ReportVariant; label: string }[] = [
+  { v: 'global', label: 'Global' }, { v: 'regul', label: 'Regul' }, { v: 'risk', label: 'Risk' },
+]
 
 const AUTHORITY = 'Autorité nationale de cybersécurité'
 const YEARS = [new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2]
 
 export default function NationalReportModal({ onClose }: { onClose: () => void }): JSX.Element {
   const [year, setYear] = useState(YEARS[0])
+  const [variant, setVariant] = useState<ReportVariant>('global')
   const [input, setInput] = useState<NationalReportInput | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
@@ -38,11 +43,11 @@ export default function NationalReportModal({ onClose }: { onClose: () => void }
         authorityName: AUTHORITY,
         periodLabel: `Exercice ${year}`,
         generatedAt: new Date().toISOString(),
-        variant: 'global',
+        variant,
       })
     })()
     return () => { active = false; ac.abort() }
-  }, [year])
+  }, [year, variant])
 
   const download = async (): Promise<void> => {
     if (!input) return
@@ -56,6 +61,10 @@ export default function NationalReportModal({ onClose }: { onClose: () => void }
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
           <h3 className="font-semibold text-gray-900">Rapport de supervision nationale</h3>
           <div className="flex items-center gap-2">
+            <select value={variant} onChange={(e) => setVariant(e.target.value as ReportVariant)}
+              className="px-2.5 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700">
+              {VARIANTS.map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
+            </select>
             <select value={year} onChange={(e) => setYear(Number(e.target.value))}
               className="px-2.5 py-2 text-[13px] border border-gray-300 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700">
               {YEARS.map((y) => <option key={y} value={y}>Exercice {y}</option>)}
