@@ -33,7 +33,8 @@ export function ExecThreats({ threats }: { threats: ExecThreat[] }): JSX.Element
               </div>
               <div className="shrink-0 text-right">
                 <div className="font-mono font-bold text-[17px]" style={{ color: s.color }}>{th.exposure}</div>
-                <div className="text-[9px] font-bold uppercase tracking-wide" style={{ color: s.color }}>{SEVERITY_LABEL[sev]}</div>
+                <div className="text-[8px] font-semibold uppercase tracking-wide text-gray-400 leading-tight">Niv. exposition</div>
+                <div className="text-[9px] font-bold uppercase tracking-wide mt-0.5" style={{ color: s.color }}>{SEVERITY_LABEL[sev]}</div>
               </div>
               <ChevronRight size={16} className="text-gray-300 shrink-0" />
             </button>

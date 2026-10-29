@@ -35,6 +35,13 @@ export function ExecVitalsSectors({ orgs }: { orgs: PortfolioOrg[] }): JSX.Eleme
       <div className="rounded-xl border border-gray-200 bg-white">
         <div className="px-4 py-3 border-b border-gray-100"><h3 className="text-sm font-bold text-gray-900">Secteurs les plus menacés</h3></div>
         <div className="px-4 py-4">
+          {sectors.length > 0 && (
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <span style={{ width: 120 }} />
+              <span className="flex-1" />
+              <span className="text-[8px] font-semibold uppercase tracking-wide text-gray-400 text-right leading-tight">Niv. exposition</span>
+            </div>
+          )}
           {sectors.map((s) => <Bar key={s.sector} label={s.sector} value={s.avg} color={barColor(s.avg)} wide />)}
           {sectors.length === 0 && <p className="text-[12px] text-gray-400">Aucun secteur à afficher.</p>}
         </div>
