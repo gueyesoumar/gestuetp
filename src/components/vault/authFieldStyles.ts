@@ -12,8 +12,10 @@ export const FIELD_WRAP =
 export const FIELD_LEAD = 'grid place-items-center pl-3.5 pr-0.5 text-[#8FA596]'
 
 // Zone de saisie (hauteur de cible >= 44px via py-[13px] + texte 15px).
+// border-0 + focus:shadow-none : neutralisent la bordure et le halo de focus que
+// @layer base (index.css) applique à tout input ; ici le contour vit sur FIELD_WRAP.
 export const FIELD_INPUT =
-  'min-w-0 flex-1 bg-transparent py-[13px] pl-3 pr-3.5 text-[15px] text-[#F3F7F3] placeholder-[#8DA294] outline-none disabled:opacity-50'
+  'min-w-0 flex-1 border-0 bg-transparent py-[13px] pl-3 pr-3.5 text-[15px] text-[#F3F7F3] placeholder-[#8DA294] outline-none focus:shadow-none disabled:opacity-50'
 
 // Libellé de champ (contraste AA sur fond sombre).
 export const FIELD_LABEL = 'mb-2 flex items-center gap-2 text-[13px] font-medium text-[#E6EDE8]'
