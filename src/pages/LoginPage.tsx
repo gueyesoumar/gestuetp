@@ -48,7 +48,7 @@ export function LoginPage(): JSX.Element {
     setSubmitting(true)
     const { error: authError } = await signIn(email, password)
     if (authError) {
-      setError('Identifiants incorrects. Veuillez réessayer.')
+      setError('Adresse email ou mot de passe incorrect.')
       setSubmitting(false)
     }
   }
@@ -113,7 +113,7 @@ export function LoginPage(): JSX.Element {
               {mode === 'reset' ? 'Mot de passe oublié' : 'Connexion'}
             </h3>
             {mode === 'login' && (
-              <p className="mb-8 text-[13.5px] text-white/55">Accédez à votre espace.</p>
+              <p className="mb-8 text-[13.5px] text-white/65">Accédez à votre espace.</p>
             )}
             {mode === 'reset' && <div className="mb-6" />}
             {deniedBanner}
@@ -139,13 +139,13 @@ export function LoginPage(): JSX.Element {
             {mode === 'reset' ? 'Mot de passe oublié' : 'Connexion'}
           </h3>
           {mode === 'login' && (
-            <p className="mb-8 text-[13.5px] text-white/55">Accédez à votre espace de supervision.</p>
+            <p className="mb-8 text-[13.5px] text-white/65">Accédez à votre espace de supervision.</p>
           )}
           {mode === 'reset' && <div className="mb-6" />}
           {deniedBanner}
           {formArea}
-          <p className="mt-9 text-center text-[11px] text-white/30">
-            Plateforme Gëstu ETP — accès réservé aux comptes autorisés.
+          <p className="mt-9 text-center text-[11px] text-white/45">
+            Plateforme Gëstu ETP : accès réservé aux comptes autorisés.
           </p>
         </div>
       </div>
