@@ -1,10 +1,13 @@
 /**
- * LoginForm - dark-themed login form for the vault.
+ * LoginForm - formulaire de connexion du panneau sombre « Split souverain ».
+ * Passe a11y/contraste : champs délimités, focus or visible, détection Verr. Maj.,
+ * erreur avec role=alert, statut système explicite (spinner) sur le CTA.
  */
 
 import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import type { FormEvent, KeyboardEvent } from 'react'
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowBigUp, Loader2 } from 'lucide-react'
+import { FIELD_WRAP, FIELD_LEAD, FIELD_INPUT, FIELD_LABEL, CTA_CLASS, CTA_GRADIENT } from './authFieldStyles'
 
 interface LoginFormProps {
   email: string
@@ -28,24 +31,29 @@ export function LoginForm({
   onForgot,
 }: LoginFormProps): JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
+  const [capsOn, setCapsOn] = useState(false)
+
+  const trackCaps = (e: KeyboardEvent<HTMLInputElement>): void => {
+    setCapsOn(e.getModifierState('CapsLock'))
+  }
 
   return (
     <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5">
       {error && (
-        <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-[13px] text-red-300">
-          {error}
+        <div
+          role="alert"
+          className="flex items-start gap-2.5 rounded-[10px] border border-[#F3A29B]/45 bg-[#B3261E]/[0.16] px-3.5 py-3 text-[13px] font-medium text-[#F4B4AD]"
+        >
+          <AlertCircle size={17} className="mt-px shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
       {/* Email */}
       <div>
-        <label htmlFor="login-email" className="mb-1.5 block text-[12px] font-medium text-white/[0.72]">
-          Adresse email
-        </label>
-        <div className="relative">
-          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
-            <Mail size={16} />
-          </span>
+        <label htmlFor="login-email" className={FIELD_LABEL}>Adresse email</label>
+        <div className={FIELD_WRAP}>
+          <span className={FIELD_LEAD}><Mail size={17} /></span>
           <input
             id="login-email"
             type="email"
@@ -53,63 +61,62 @@ export function LoginForm({
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
             disabled={submitting}
-            placeholder="vous@exemple.com"
-            className="w-full rounded-xl border border-white/[0.15] bg-white/5 py-3 pl-11 pr-4 text-[14px] text-white placeholder-white/30 outline-none transition-all focus:border-[#D4A843]/50 focus:shadow-[0_0_0_3px_rgba(212,168,67,0.15)] disabled:opacity-50"
+            placeholder="vous@exemple.gouv.sn"
+            autoComplete="username"
+            className={FIELD_INPUT}
           />
         </div>
       </div>
 
-      {/* Password */}
+      {/* Mot de passe */}
       <div>
-        <label htmlFor="login-password" className="mb-1.5 block text-[12px] font-medium text-white/[0.72]">
-          Mot de passe
-        </label>
-        <div className="relative">
-          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
-            <Lock size={16} />
-          </span>
+        <label htmlFor="login-password" className={FIELD_LABEL}>Mot de passe</label>
+        <div className={FIELD_WRAP}>
+          <span className={FIELD_LEAD}><Lock size={17} /></span>
           <input
             id="login-password"
             type={showPassword ? 'text' : 'password'}
             required
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
+            onKeyDown={trackCaps}
+            onKeyUp={trackCaps}
             disabled={submitting}
-            placeholder={'••••••••'}
-            className="w-full rounded-xl border border-white/[0.15] bg-white/5 py-3 pl-11 pr-11 text-[14px] text-white placeholder-white/30 outline-none transition-all focus:border-[#D4A843]/50 focus:shadow-[0_0_0_3px_rgba(212,168,67,0.15)] disabled:opacity-50"
+            placeholder="Votre mot de passe"
+            autoComplete="current-password"
+            className={`${FIELD_INPUT} pr-0`}
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-white/40 transition-colors hover:text-white/70"
+            className="grid place-items-center px-3.5 text-[#9CB2A4] transition-colors hover:text-[#E8C76C]"
           >
-            {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
+        {capsOn && (
+          <p className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold text-[#E9B770]">
+            <ArrowBigUp size={14} /> Verrouillage des majuscules activé
+          </p>
+        )}
       </div>
 
-      {/* Forgot */}
-      <div className="flex justify-end -mt-1">
+      {/* Mot de passe oublié */}
+      <div className="-mt-1 flex justify-end">
         <button
           type="button"
           onClick={onForgot}
-          className="text-[12px] text-[#E2C26B] transition-colors hover:text-[#F0D98A]"
+          className="text-[13px] font-semibold text-[#E8C76C] transition-colors hover:text-[#F0D98A]"
         >
           Mot de passe oublié ?
         </button>
       </div>
 
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full rounded-xl py-3 text-[14px] font-bold text-[#1B4332] transition-all disabled:opacity-50"
-        style={{
-          background: 'linear-gradient(135deg, #D4A843 0%, #E2C26B 100%)',
-        }}
-      >
-        {submitting ? 'Connexion...' : 'Se connecter'}
+      {/* Soumission */}
+      <button type="submit" disabled={submitting} className={CTA_CLASS} style={{ background: CTA_GRADIENT }}>
+        {submitting && <Loader2 size={17} className="animate-spin motion-reduce:animate-none" />}
+        {submitting ? 'Connexion en cours' : 'Se connecter'}
       </button>
     </form>
   )

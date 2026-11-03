@@ -24,7 +24,7 @@ export function ShieldMark({ size = 30 }: { size?: number }): JSX.Element {
 
 function Badge({ icon, children }: { icon: ReactNode; children: ReactNode }): JSX.Element {
   return (
-    <div className="flex items-center gap-2 text-white/50">
+    <div className="flex items-center gap-2 text-white/65">
       {icon}
       <span className="text-[11px] font-medium uppercase tracking-wider">{children}</span>
     </div>
@@ -81,7 +81,7 @@ export function VaultBrandPanel(): JSX.Element {
           La confiance numérique,<br />
           <span className="font-semibold">gouvernée de bout en bout.</span>
         </h2>
-        <p className="max-w-[400px] text-[15px] leading-[1.65] text-white/[0.62]">
+        <p className="max-w-[400px] text-[15px] leading-[1.65] text-white/[0.72]">
           Audits multi-référentiels, supervision des assujettis, gestion des risques et des
           incidents : sur une plateforme souveraine, cloisonnée et probante.
         </p>
