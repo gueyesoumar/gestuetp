@@ -23,8 +23,8 @@ function NavRow({ item, collapsed, indent, onNavigate }: { item: NavItem; collap
       to={item.to} end={item.end ?? item.to === '/'} onClick={onNavigate}
       title={collapsed ? item.label : undefined}
       className={({ isActive }) => collapsed
-        ? `relative flex items-center justify-center w-11 h-11 mx-auto mb-1 rounded-xl transition-colors ${isActive ? 'bg-white/12 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/70'}`
-        : `relative flex items-center gap-3 rounded-xl ${indent ? 'pl-8 pr-3.5' : 'px-3.5'} py-2.5 mb-0.5 text-[13px] font-medium transition-colors ${isActive ? 'bg-white/12 text-white' : 'text-white/45 hover:bg-white/8 hover:text-white/80'}`}
+        ? `relative flex items-center justify-center w-11 h-11 mx-auto mb-1 rounded-xl transition-colors ${isActive ? 'bg-white/12 text-white' : 'text-white/60 hover:bg-white/8 hover:text-white/90'}`
+        : `relative flex items-center gap-3 rounded-xl ${indent ? 'pl-8 pr-3.5' : 'px-3.5'} py-2.5 mb-0.5 text-[13px] font-medium transition-colors ${isActive ? 'bg-white/12 text-white' : 'text-white/60 hover:bg-white/8 hover:text-white/90'}`}
     >
       {({ isActive }) => (
         <>
@@ -65,7 +65,7 @@ export function SidebarMainNav({ items, collapsed, onNavigate }: Props): JSX.Ele
 
   return (
     <>
-      {!collapsed && <p className="mb-2 px-3.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/30">Espace de travail</p>}
+      {!collapsed && <p className="mb-2 px-3.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/50">Espace de travail</p>}
       {direct.map((it) => <NavRow key={it.to} item={it} collapsed={collapsed} onNavigate={onNavigate} />)}
 
       {sections.map((sec) => collapsed ? (
@@ -77,7 +77,7 @@ export function SidebarMainNav({ items, collapsed, onNavigate }: Props): JSX.Ele
         <div key={sec.label} className="mt-1">
           <button
             type="button" onClick={() => toggle(sec.label)} aria-expanded={open.has(sec.label)}
-            className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-colors ${open.has(sec.label) ? 'bg-white/[0.06] text-white/85' : 'text-white/55 hover:bg-white/8 hover:text-white/85'}`}
+            className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-colors ${open.has(sec.label) ? 'bg-white/[0.06] text-white/85' : 'text-white/60 hover:bg-white/8 hover:text-white/90'}`}
           >
             <span className="flex-shrink-0">{sec.icon}</span>
             <span className="flex-1 text-left truncate">{sec.label}</span>

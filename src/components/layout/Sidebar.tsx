@@ -57,7 +57,10 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
   // Dans un workspace de module dédié (conservé sur les pages chrome), le logo porte le
   // nom du MODULE (Risk/Vendor/Policy), sinon la marque de l'édition (Comply/Regul).
   const logoTag = activeModule ?? vocab.logoTag
-  const [collapsed, setCollapsed] = useState(false)
+  // Préférence de repli mémorisée par utilisateur (confort d'affichage).
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem('sidebar-collapsed') === '1' } catch { return false }
+  })
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -75,6 +78,10 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [profileMenuOpen])
+
+  useEffect(() => {
+    try { localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0') } catch { /* stockage indisponible */ }
+  }, [collapsed])
 
   const handleProfileNav = (to: string) => {
     setProfileMenuOpen(false)
@@ -99,7 +106,7 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
           ) : (
             <div className="flex flex-1 items-center justify-between">
               <GestuLogo size="xs" variant="dark" product={logoTag} />
-              <button onClick={() => setCollapsed(true)} className="hidden text-white/30 hover:text-white/60 transition-colors lg:block">
+              <button onClick={() => setCollapsed(true)} className="hidden text-white/55 hover:text-white/80 transition-colors lg:block">
                 <CollapseIcon />
               </button>
             </div>
@@ -107,7 +114,7 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
         </div>
 
         {collapsed && (
-          <button onClick={() => setCollapsed(false)} className="hidden mx-auto mt-3 text-white/30 hover:text-white/60 transition-colors lg:block">
+          <button onClick={() => setCollapsed(false)} className="hidden mx-auto mt-3 text-white/55 hover:text-white/80 transition-colors lg:block">
             <ExpandIcon />
           </button>
         )}
@@ -120,8 +127,8 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
             data-tour="hub-link"
             title={collapsed ? 'Retour au Hub ETP' : undefined}
             className={collapsed
-              ? 'flex items-center justify-center w-11 h-11 mx-auto rounded-xl text-white/30 hover:bg-white/8 hover:text-white/60 transition-colors'
-              : 'flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white/35 hover:bg-white/8 hover:text-white/70 transition-colors'
+              ? 'flex items-center justify-center w-11 h-11 mx-auto rounded-xl text-white/60 hover:bg-white/8 hover:text-white/85 transition-colors'
+              : 'flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white/60 hover:bg-white/8 hover:text-white/85 transition-colors'
             }
           >
             {collapsed ? (
@@ -155,10 +162,10 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
                   className={({ isActive }) =>
                     collapsed
                       ? `relative flex items-center justify-center w-11 h-11 mx-auto mb-1 rounded-xl transition-colors ${
-                          isActive ? 'bg-white/12 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/70'
+                          isActive ? 'bg-white/12 text-white' : 'text-white/60 hover:bg-white/8 hover:text-white/90'
                         }`
                       : `relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 mb-0.5 text-[13px] font-medium transition-colors ${
-                          isActive ? 'bg-white/12 text-white' : 'text-white/45 hover:bg-white/8 hover:text-white/80'
+                          isActive ? 'bg-white/12 text-white' : 'text-white/60 hover:bg-white/8 hover:text-white/90'
                         }`
                   }
                 >
@@ -185,7 +192,7 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
               <div className={`absolute bottom-full mb-1 rounded-xl bg-forest-700 border border-white/10 shadow-xl overflow-hidden py-1 ${collapsed ? 'left-1 w-52' : 'left-2 right-2'}`}>
                 {menuGroups.map((group) => (
                   <div key={group.label}>
-                    <p className="px-4 pt-2 pb-1 text-[9px] font-bold uppercase tracking-wider text-white/35">{group.label}</p>
+                    <p className="px-4 pt-2 pb-1 text-[9px] font-bold uppercase tracking-wider text-white/55">{group.label}</p>
                     {group.items.map((item) => (
                       <button
                         key={item.to}
@@ -235,9 +242,9 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
                     <p className="truncate text-[13px] font-medium text-white">
                       {profile.first_name} {profile.last_name}
                     </p>
-                    <p className="truncate text-[11px] text-white/35">{profile.email}</p>
+                    <p className="truncate text-[11px] text-white/60">{profile.email}</p>
                   </div>
-                  <span className={`text-white/30 transition-transform ${profileMenuOpen ? '' : 'rotate-180'}`}>
+                  <span className={`text-white/55 transition-transform ${profileMenuOpen ? '' : 'rotate-180'}`}>
                     <ChevronUpIcon />
                   </span>
                 </>
