@@ -44,7 +44,7 @@ export function AccountPage(): JSX.Element {
             className={`pb-3 text-[13px] font-medium border-b-2 transition-colors ${
               activeTab === tab.key
                 ? 'border-forest-600 text-forest-700'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             {tab.label}

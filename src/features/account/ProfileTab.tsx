@@ -25,6 +25,20 @@ export function ProfileTab(): JSX.Element | null {
 
   if (!profile) return null
 
+  const isDirty =
+    firstName.value !== (profile.first_name ?? '') ||
+    lastName.value !== (profile.last_name ?? '') ||
+    phone.value !== (profile.phone ?? '') ||
+    jobTitle !== (profile.job_title ?? '')
+
+  const handleCancel = (): void => {
+    firstName.reset(profile.first_name ?? '')
+    lastName.reset(profile.last_name ?? '')
+    phone.reset(profile.phone ?? '')
+    setJobTitle(profile.job_title ?? '')
+    setSuccess(false)
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSuccess(false)
@@ -43,9 +57,15 @@ export function ProfileTab(): JSX.Element | null {
   return (
     <div className="space-y-6">
       {error && <ErrorAlert message={error} />}
-      {success && <div className="rounded-lg bg-green-50 p-3 text-[13px] text-green-700">Profil mis à jour.</div>}
+      {success && !isDirty && <div className="rounded-lg bg-green-50 p-3 text-[13px] text-green-700">Profil mis à jour.</div>}
 
-      <SplitForm onSubmit={handleSubmit} submitting={updating} submitLabel="Mettre à jour">
+      <SplitForm
+        onSubmit={handleSubmit}
+        submitting={updating}
+        submitLabel="Mettre à jour"
+        submitDisabled={!isDirty}
+        onCancel={isDirty ? handleCancel : undefined}
+      >
         <SplitFormSection title="Informations" description="Votre nom et vos coordonnées">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

@@ -75,8 +75,13 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
         setProfileMenuOpen(false)
       }
     }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setProfileMenuOpen(false) }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [profileMenuOpen])
 
   useEffect(() => {
@@ -189,15 +194,16 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
         {profile && (
           <div ref={menuRef} className="relative border-t border-white/10">
             {profileMenuOpen && (
-              <div className={`absolute bottom-full mb-1 rounded-xl bg-forest-700 border border-white/10 shadow-xl overflow-hidden py-1 ${collapsed ? 'left-1 w-52' : 'left-2 right-2'}`}>
+              <div role="menu" aria-label="Menu du compte" className={`absolute bottom-full mb-1 rounded-xl bg-forest-700 border border-white/15 shadow-[0_18px_44px_rgba(0,0,0,0.5)] overflow-hidden py-1 ${collapsed ? 'left-1 w-52' : 'left-2 right-2'}`}>
                 {menuGroups.map((group) => (
                   <div key={group.label}>
                     <p className="px-4 pt-2 pb-1 text-[9px] font-bold uppercase tracking-wider text-white/55">{group.label}</p>
                     {group.items.map((item) => (
                       <button
                         key={item.to}
+                        role="menuitem"
                         onClick={() => handleProfileNav(item.to)}
-                        className="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                        className="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-white/70 outline-none hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500 transition-colors"
                       >
                         <span className="flex-shrink-0">{item.icon}</span>
                         <span className="flex-1 text-left">{item.label}</span>
@@ -212,8 +218,9 @@ export function Sidebar({ profile, open, onClose, notifications }: SidebarProps)
                 ))}
                 <div className="mt-1 border-t border-white/10 pt-1">
                   <button
+                    role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); signOut() }}
-                    className="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-red-300 hover:bg-white/10 hover:text-red-200 transition-colors"
+                    className="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-red-300 outline-none hover:bg-white/10 hover:text-red-200 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500 transition-colors"
                   >
                     <span className="flex-shrink-0"><LogoutIcon /></span>
                     <span>Déconnexion</span>
