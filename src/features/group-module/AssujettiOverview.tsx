@@ -70,7 +70,7 @@ export function AssujettiOverview({ data, profile, onLaunch }: AssujettiOverview
             <dt className="text-gray-500">Criticité</dt><dd className="m-0 text-right font-semibold text-gray-900">{profile?.criticality === 'eleve' ? 'Élevée (IIC)' : 'Standard'}</dd>
             <dt className="text-gray-500">Référentiels</dt><dd className="m-0 text-right font-semibold text-gray-900">{refs.length ? refs.join(', ') : 'Aucun'}</dd>
             <dt className="text-gray-500">Région</dt><dd className="m-0 text-right font-semibold text-gray-900">{[data.city, data.country].filter(Boolean).join(', ') || 'Non renseigné'}</dd>
-            <dt className="text-gray-500">Assujetti depuis</dt><dd className="m-0 text-right font-semibold text-gray-900">{fmtDate(profile?.entryDate ?? null)}</dd>
+            <dt className="text-gray-500">Assujetti depuis</dt><dd className="m-0 text-right font-semibold text-gray-900">{fmtDate(profile?.entryDate ?? profile?.createdAt ?? null)}</dd>
           </dl>
         </div>
 

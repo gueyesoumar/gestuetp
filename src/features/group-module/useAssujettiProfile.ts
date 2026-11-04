@@ -9,6 +9,8 @@ export interface AssujettiRegProfile {
   tier: string | null
   status: string | null
   entryDate: string | null
+  // Date de création de la fiche (secours quand entryDate n'est pas saisie).
+  createdAt: string | null
 }
 
 /**
@@ -27,7 +29,7 @@ export function useAssujettiProfile(orgId: string | undefined): { profile: Assuj
 
     const load = async (): Promise<void> => {
       const [orgRes, rpRes] = await Promise.all([
-        supabase.from('organizations').select('entity_type').eq('id', orgId).maybeSingle(),
+        supabase.from('organizations').select('entity_type, created_at').eq('id', orgId).maybeSingle(),
         supabase.from('entity_regulatory_profile').select('criticality, obligation_regime, tier, status, entry_date').eq('organization_id', orgId).maybeSingle(),
       ])
       if (ac.signal.aborted) return
@@ -41,6 +43,7 @@ export function useAssujettiProfile(orgId: string | undefined): { profile: Assuj
         tier: rp?.tier ?? null,
         status: rp?.status ?? null,
         entryDate: rp?.entry_date ?? null,
+        createdAt: (orgRes.data?.created_at as string | null) ?? null,
       })
       setLoading(false)
     }
