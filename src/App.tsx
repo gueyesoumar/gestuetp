@@ -90,6 +90,7 @@ const EntityDetailPage = lazyPage(() => import('./pages/EntityDetailPage'), 'Ent
 const CampaignDetailPage = lazyPage(() => import('./pages/CampaignDetailPage'), 'CampaignDetailPage')
 const SubsidiariesPage = lazyPage(() => import('./features/group-module/SubsidiariesPage'), 'SubsidiariesPage')
 const SubsidiaryDetailPage = lazyPage(() => import('./features/group-module/SubsidiaryDetailPage'), 'SubsidiaryDetailPage')
+const AssujettiDetailPage = lazyPage(() => import('./features/group-module/AssujettiDetailPage'), 'AssujettiDetailPage')
 const ContinuousReviewsPage = lazyPage(() => import('./features/group-module/ContinuousReviewsPage'), 'ContinuousReviewsPage')
 const TransversalPlansPage = lazyPage(() => import('./features/group-module/TransversalPlansPage'), 'TransversalPlansPage')
 // Pages Regul - montées sous le shell unifié quand l'édition résolue est « regul ».
@@ -157,7 +158,7 @@ function AppRoutes(): JSX.Element {
           <>
             <Route path="referentiels" element={<RegulReferentielsPage />} />
             <Route path="assujettis" element={<SubsidiariesPage />} />
-            <Route path="assujettis/:id" element={<SubsidiaryDetailPage />} />
+            <Route path="assujettis/:id" element={<AssujettiDetailPage />} />
             <Route path="controles" element={<RegulMissionsListPage />} />
             <Route path="controles/nouvelle" element={<RegulMissionCreatePage />} />
             <Route path="controles/:id" element={<MissionDetailPage />} />
