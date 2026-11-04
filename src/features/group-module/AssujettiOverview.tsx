@@ -24,8 +24,12 @@ function Tile({ label, value, note }: { label: string; value: string; note: stri
 /** Onglet « Vue d'ensemble » du dossier d'assujetti : synthèse entity-scoped. */
 export function AssujettiOverview({ data, profile, onLaunch }: AssujettiOverviewProps): JSX.Element {
   const refs = Array.from(new Set(data.missions.map((m) => m.framework_name).filter(Boolean) as string[]))
+  // Seules les missions clôturées alimentent la conformité publiée par référentiel :
+  // une mission en cours a un score partiel, non probant.
   const refScore = (name: string): number | null => {
-    const scores = data.missions.filter((m) => m.framework_name === name && m.conformityScore !== null).map((m) => m.conformityScore as number)
+    const scores = data.missions
+      .filter((m) => m.framework_name === name && m.status === 'closure' && m.conformityScore !== null)
+      .map((m) => m.conformityScore as number)
     return scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
   }
 
@@ -67,7 +71,10 @@ export function AssujettiOverview({ data, profile, onLaunch }: AssujettiOverview
 
         <div className="space-y-4">
           <div className="rounded-xl border border-gray-200 bg-white">
-            <div className="border-b border-gray-100 px-4 py-3"><h3 className="text-sm font-bold text-gray-900">Conformité par référentiel</h3></div>
+            <div className="border-b border-gray-100 px-4 py-3">
+              <h3 className="text-sm font-bold text-gray-900">Conformité par référentiel</h3>
+              <p className="mt-0.5 text-[11.5px] text-gray-400">Missions clôturées uniquement</p>
+            </div>
             <div className="px-4 py-3">
               {refs.length === 0 ? (
                 <p className="text-[13px] text-gray-400">Aucun référentiel évalué pour l&apos;instant.</p>
