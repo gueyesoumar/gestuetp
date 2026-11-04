@@ -1,135 +1,96 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { CheckCheck, Settings } from 'lucide-react'
 import { useNotifications } from '../features/notifications/useNotifications'
 import { resolveNotificationLink } from '../features/notifications/notificationLink'
+import { groupNotificationsByAge } from '../features/notifications/notificationGroups'
+import { NotificationRow } from '../features/notifications/NotificationRow'
 import { useEdition } from '../features/edition/EditionContext'
-import { Badge } from '../components/ui/Badge'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../components/ui/ErrorAlert'
 import { EmptyState } from '../components/ui/EmptyState'
-import type { NotificationType } from '../types/database.types'
+import type { Notification } from '../types/database.types'
 
-const typeConfig: Record<NotificationType, { label: string; variant: 'forest' | 'gold' | 'red' | 'green' | 'gray'; dotColor: string }> = {
-  submission: { label: 'Soumission', variant: 'forest', dotColor: 'bg-forest-500' },
-  approval: { label: 'Approbation', variant: 'green', dotColor: 'bg-success' },
-  rejection: { label: 'Rejet', variant: 'red', dotColor: 'bg-error' },
-  client_response: { label: 'R\u00e9ponse client', variant: 'gold', dotColor: 'bg-gold-500' },
-  mission_closure: { label: 'Cl\u00f4ture', variant: 'green', dotColor: 'bg-success' },
-  invitation: { label: 'Invitation', variant: 'forest', dotColor: 'bg-forest-500' },
-  support: { label: 'Support', variant: 'gold', dotColor: 'bg-gold-500' },
-  client_review: { label: 'Validation client', variant: 'gold', dotColor: 'bg-gold-500' },
-  mission_assigned: { label: 'Affectation', variant: 'forest', dotColor: 'bg-forest-500' },
-  car: { label: 'Action corrective', variant: 'gold', dotColor: 'bg-gold-500' },
-  admin_view: { label: 'Consultation', variant: 'gray', dotColor: 'bg-gray-400' },
-  review_due: { label: 'Revue', variant: 'gold', dotColor: 'bg-gold-500' },
-}
+type Filter = 'all' | 'unread'
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return '\u00c0 l\u2019instant'
-  if (minutes < 60) return `Il y a ${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `Il y a ${hours}h`
-  const days = Math.floor(hours / 24)
-  if (days === 1) return 'Hier'
-  if (days < 7) return `Il y a ${days} jours`
-  return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-}
-
-export function NotificationsPage() {
+export function NotificationsPage(): JSX.Element {
   const navigate = useNavigate()
   const { hasCapability } = useEdition()
   const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead, hasMore, loadingMore, loadMore } = useNotifications()
+  const [filter, setFilter] = useState<Filter>('all')
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorAlert message={error} />
 
-  const handleClick = async (id: string, link: string | null, isRead: boolean) => {
-    if (!isRead) await markAsRead(id)
-    if (link) navigate(resolveNotificationLink(link, hasCapability('supervision')))
+  const open = async (n: Notification): Promise<void> => {
+    if (!n.is_read) await markAsRead(n.id)
+    if (n.link) navigate(resolveNotificationLink(n.link, hasCapability('supervision')))
   }
 
+  const visible = filter === 'unread' ? notifications.filter((n) => !n.is_read) : notifications
+  const groups = groupNotificationsByAge(visible)
+
   return (
-    <div>
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Notifications</h2>
           <p className="mt-1 text-[13px] text-gray-500">
-            {unreadCount > 0
-              ? `${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lue${unreadCount > 1 ? 's' : ''}`
-              : 'Toutes les notifications sont lues'}
+            {unreadCount > 0 ? `${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lue${unreadCount > 1 ? 's' : ''}` : 'Toutes les notifications sont lues'}
           </p>
         </div>
-        {unreadCount > 0 && (
-          <button
-            onClick={markAllAsRead}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-600 hover:bg-forest-50 hover:border-forest-300 hover:text-forest-700 transition-colors"
-          >
-            Tout marquer comme lu
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+            {(['all', 'unread'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                className={`rounded-md px-3 py-1.5 text-[12.5px] font-semibold transition-colors ${filter === f ? 'bg-white text-forest-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                {f === 'all' ? 'Toutes' : 'Non lues'}
+              </button>
+            ))}
+          </div>
+          {unreadCount > 0 && (
+            <button onClick={markAllAsRead} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-[12.5px] font-medium text-gray-600 transition-colors hover:border-forest-300 hover:bg-forest-50 hover:text-forest-700">
+              <CheckCheck size={15} /> Tout marquer comme lu
+            </button>
+          )}
+        </div>
       </div>
 
-      {notifications.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            title="Aucune notification"
-            description="Vous serez notifi&eacute; des soumissions, validations et rejets."
-          />
-        </div>
+      {groups.length === 0 ? (
+        <EmptyState
+          title={filter === 'unread' ? 'Aucune notification non lue' : 'Aucune notification'}
+          description={filter === 'unread' ? 'Tout est à jour.' : 'Vous serez notifié des soumissions, validations et rejets.'}
+        />
       ) : (
-        <div className="mt-6 rounded-xl border border-gray-200 bg-white overflow-hidden">
-          {notifications.map((n) => {
-            const cfg = typeConfig[n.type] ?? typeConfig.submission
-            return (
-              <button
-                key={n.id}
-                onClick={() => handleClick(n.id, n.link, n.is_read)}
-                className={`flex w-full items-start gap-4 px-5 py-4 text-left border-b border-gray-100 last:border-b-0 transition-colors ${
-                  n.is_read ? 'bg-white hover:bg-gray-50' : 'bg-forest-50/50 hover:bg-forest-50'
-                }`}
-              >
-                <div className="mt-1.5 flex-shrink-0">
-                  <div className={`h-2.5 w-2.5 rounded-full ${n.is_read ? 'bg-gray-200' : cfg.dotColor}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[13px] font-semibold ${n.is_read ? 'text-gray-600' : 'text-gray-900'}`}>
-                      {n.title}
-                    </span>
-                    <Badge label={cfg.label} variant={cfg.variant} />
-                  </div>
-                  {n.body && (
-                    <p className={`mt-0.5 text-[13px] line-clamp-2 ${n.is_read ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {n.body}
-                    </p>
-                  )}
-                  <div className="mt-1 text-[11px] text-gray-300">
-                    {timeAgo(n.created_at)}
-                  </div>
-                </div>
-                {!n.is_read && (
-                  <div className="mt-2 flex-shrink-0">
-                    <div className="h-2 w-2 rounded-full bg-forest-500" />
-                  </div>
-                )}
-              </button>
-            )
-          })}
+        <div className="space-y-5">
+          {groups.map((g) => (
+            <section key={g.label}>
+              <h3 className="mb-2 ml-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400">{g.label}</h3>
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                {g.items.map((n) => <NotificationRow key={n.id} notif={n} onOpen={open} />)}
+              </div>
+            </section>
+          ))}
         </div>
       )}
 
       {hasMore && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => void loadMore()}
-            disabled={loadingMore}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-600 hover:bg-forest-50 hover:border-forest-300 hover:text-forest-700 transition-colors disabled:opacity-50"
-          >
+        <div className="text-center">
+          <button onClick={() => void loadMore()} disabled={loadingMore} className="rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-gray-600 transition-colors hover:border-forest-300 hover:bg-forest-50 hover:text-forest-700 disabled:opacity-50">
             {loadingMore ? 'Chargement...' : 'Charger plus'}
           </button>
         </div>
       )}
+
+      <div className="border-t border-gray-100 pt-4 text-center">
+        <Link to="/compte?tab=notifications" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-forest-700 hover:text-forest-900">
+          <Settings size={15} /> Préférences de notification
+        </Link>
+      </div>
     </div>
   )
 }
