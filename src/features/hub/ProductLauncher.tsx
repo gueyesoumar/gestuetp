@@ -5,6 +5,7 @@
  */
 
 import type { HubProduct } from '../../lib/hubProducts'
+import { HubSearch } from './HubSearch'
 
 interface ProductLauncherProps {
   products: HubProduct[]
@@ -20,8 +21,9 @@ export function ProductLauncher({
 
   return (
     <div className="flex w-full flex-col items-center gap-8 px-4 py-6">
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex w-full max-w-[960px] flex-col items-center gap-4">
         <h2 className="text-[28px] font-light tracking-[-0.4px] text-[rgb(var(--hub-fg))]">Votre écosystème Gëstu</h2>
+        <HubSearch products={products} isEnterable={isEnterable} onOpen={onOpen} />
       </div>
 
       {/* grille produits */}
