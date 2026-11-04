@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, ArrowLeft } from 'lucide-react'
 import { useSubsidiaryDetail } from './useSubsidiaryDetail'
 import { useAssujettiProfile } from './useAssujettiProfile'
 import { useAssujettiRemediation } from './useAssujettiRemediation'
@@ -52,8 +52,13 @@ export function AssujettiDetailPage(): JSX.Element {
 
   return (
     <div className="space-y-5">
-      <Link to="/assujettis" className="text-[13px] text-forest-700 hover:text-forest-900">&larr; Retour aux assujettis</Link>
-      <AssujettiHero data={data} profile={profile} onLaunch={launch} />
+      {/* Fil d'Ariane rattaché au hero (gap serré) plutôt que flottant seul. */}
+      <div className="space-y-2">
+        <Link to="/assujettis" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-forest-700 hover:text-forest-900">
+          <ArrowLeft size={15} /> Retour aux assujettis
+        </Link>
+        <AssujettiHero data={data} profile={profile} onLaunch={launch} />
+      </div>
 
       <div className="flex flex-wrap gap-5 border-b border-gray-200">
         {tabs.map((t) => (
