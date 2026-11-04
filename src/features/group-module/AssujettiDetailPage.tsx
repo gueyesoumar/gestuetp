@@ -3,26 +3,34 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useSubsidiaryDetail } from './useSubsidiaryDetail'
 import { useAssujettiProfile } from './useAssujettiProfile'
+import { useAssujettiRemediation } from './useAssujettiRemediation'
 import { AssujettiHero } from './AssujettiHero'
 import { AssujettiOverview } from './AssujettiOverview'
+import { AssujettiFindings } from './AssujettiFindings'
+import { AssujettiPlans } from './AssujettiPlans'
 import { SubsidiaryMissionsList } from './SubsidiaryMissionsList'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../components/ui/ErrorAlert'
 import { AssujettiInviteModal } from '../regul/AssujettiInviteModal'
 import { ReviewCyclesCard } from '../regul/review/ReviewCyclesCard'
+import { useEdition } from '../edition/EditionContext'
 
-type Tab = 'apercu' | 'controles' | 'revues' | 'contacts'
+type Tab = 'apercu' | 'controles' | 'constats' | 'plans' | 'revues' | 'contacts'
 
 /**
  * Dossier d'assujetti (Regul) - vue 360° à onglets. Page dédiée, distincte de
- * SubsidiaryDetailPage (/filiales, Comply) pour ne pas diverger. Lot 1 : Vue
- * d'ensemble + Contrôles + Revues + Contacts (Constats/Plans/Incidents à venir).
+ * SubsidiaryDetailPage (/filiales, Comply) pour ne pas diverger. Constats/Plans
+ * gatés par la capacité measures (Incidents à venir au Lot 3).
  */
 export function AssujettiDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { hasCapability } = useEdition()
   const { data, loading, error } = useSubsidiaryDetail(id)
   const { profile } = useAssujettiProfile(id)
+  const canMeasures = hasCapability('measures')
+  const missionIds = data?.missions.map((m) => m.id) ?? []
+  const { findings, cars } = useAssujettiRemediation(canMeasures ? missionIds : [], canMeasures && data ? data.id : undefined)
   const [tab, setTab] = useState<Tab>('apercu')
   const [inviteOpen, setInviteOpen] = useState(false)
 
@@ -37,6 +45,7 @@ export function AssujettiDetailPage(): JSX.Element {
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: 'apercu', label: "Vue d'ensemble" },
     { key: 'controles', label: 'Contrôles', count: data.missions.length },
+    ...(canMeasures ? [{ key: 'constats' as Tab, label: 'Constats', count: findings.length }, { key: 'plans' as Tab, label: "Plans d'action", count: cars.length }] : []),
     { key: 'revues', label: 'Revues', count: data.cycles.length },
     { key: 'contacts', label: 'Contacts & accès' },
   ]
@@ -73,6 +82,8 @@ export function AssujettiDetailPage(): JSX.Element {
         </section>
       )}
 
+      {tab === 'constats' && <AssujettiFindings findings={findings} />}
+      {tab === 'plans' && <AssujettiPlans cars={cars} />}
       {tab === 'revues' && <ReviewCyclesCard orgId={data.id} frameworks={frameworks} />}
 
       {tab === 'contacts' && (
