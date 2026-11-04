@@ -1,4 +1,5 @@
 import { ShieldAlert, Play, Plus } from 'lucide-react'
+import { ENTITY_TYPE_LABELS } from '../../lib/constants'
 import type { SubsidiaryDetail } from './useSubsidiaryDetail'
 import type { AssujettiRegProfile } from './useAssujettiProfile'
 
@@ -10,6 +11,11 @@ interface AssujettiOverviewProps {
 
 const fmtDate = (d: string | null): string =>
   d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Non renseigné'
+
+// Libellé lisible de la nature (clé stable -> libellé). Cast en Record<string>
+// pour tolérer une clé hors enum (fallback sur la clé brute).
+const natureLabel = (t: string | null | undefined): string =>
+  t ? (ENTITY_TYPE_LABELS as Record<string, string>)[t] ?? t : 'Non renseigné'
 
 function Tile({ label, value, note }: { label: string; value: string; note: string }): JSX.Element {
   return (
@@ -59,13 +65,12 @@ export function AssujettiOverview({ data, profile, onLaunch }: AssujettiOverview
         <div className="rounded-xl border border-gray-200 bg-white">
           <div className="border-b border-gray-100 px-4 py-3"><h3 className="text-sm font-bold text-gray-900">Profil réglementaire</h3></div>
           <dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-2.5 px-4 py-4 text-[13.5px]">
-            <dt className="text-gray-500">Nature</dt><dd className="m-0 text-right font-semibold text-gray-900">{profile?.entityType ?? 'Non renseigné'}</dd>
+            <dt className="text-gray-500">Nature</dt><dd className="m-0 text-right font-semibold text-gray-900">{natureLabel(profile?.entityType)}</dd>
             <dt className="text-gray-500">Secteur</dt><dd className="m-0 text-right font-semibold text-gray-900">{data.sector ?? 'Non renseigné'}</dd>
             <dt className="text-gray-500">Criticité</dt><dd className="m-0 text-right font-semibold text-gray-900">{profile?.criticality === 'eleve' ? 'Élevée (IIC)' : 'Standard'}</dd>
             <dt className="text-gray-500">Référentiels</dt><dd className="m-0 text-right font-semibold text-gray-900">{refs.length ? refs.join(', ') : 'Aucun'}</dd>
             <dt className="text-gray-500">Région</dt><dd className="m-0 text-right font-semibold text-gray-900">{[data.city, data.country].filter(Boolean).join(', ') || 'Non renseigné'}</dd>
             <dt className="text-gray-500">Assujetti depuis</dt><dd className="m-0 text-right font-semibold text-gray-900">{fmtDate(profile?.entryDate ?? null)}</dd>
-            <dt className="text-gray-500">Régime</dt><dd className="m-0 text-right font-semibold text-gray-900">{profile?.obligationRegime ?? 'Non renseigné'}</dd>
           </dl>
         </div>
 
