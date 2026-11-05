@@ -20,6 +20,8 @@ interface PlanningValidationGateProps {
   showInterviewChecks?: boolean
   /** Rend chaque prérequis manquant actionnable (filtre la table / change d'onglet). */
   onFix?: (key: string) => void
+  /** Contrôles exclus du périmètre (mission_exclusions) : ignorés par les prérequis. */
+  excludedControlIds?: Set<string>
 }
 
 // Checks liés aux entretiens - masqués si la sous-étape Entretiens est désélectionnée.
@@ -34,11 +36,13 @@ interface CheckItem {
   countLabel: string
 }
 
-export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true, onFix }: PlanningValidationGateProps) {
+export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true, onFix, excludedControlIds }: PlanningValidationGateProps) {
   const [confirming, setConfirming] = useState(false)
 
   const checks = useMemo<CheckItem[]>(() => {
-    const allControls = domains.flatMap((d) => d.controls)
+    // Les contrôles exclus du périmètre ne comptent dans aucun prérequis (cohérent
+    // avec le RPC serveur, mig 00372).
+    const allControls = domains.flatMap((d) => d.controls).filter((c) => !excludedControlIds?.has(c.id))
     const totalControls = allControls.length
     const planMap = new Map(plannings.map((p) => [p.control_id, p]))
     const assignSet = new Set(assignments.map((a) => a.control_id))
@@ -132,7 +136,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
       },
     ]
     return showInterviewChecks ? all : all.filter((c) => !INTERVIEW_CHECK_KEYS.includes(c.key))
-  }, [domains, plannings, assignments, contacts, interviews, topics, showInterviewChecks])
+  }, [domains, plannings, assignments, contacts, interviews, topics, showInterviewChecks, excludedControlIds])
 
   const blockers = checks.filter((c) => c.blocker)
   const warnings = checks.filter((c) => !c.blocker)

@@ -23,6 +23,8 @@ interface WorkProgramTableProps {
   /** Filtre de travail piloté par le parent (les boutons « Corriger » du gate l'activent). */
   workFilter?: WorkFilter
   onWorkFilter?: (f: WorkFilter) => void
+  /** Contrôles exclus du périmètre (mission_exclusions) : masqués du programme. */
+  excludedControlIds?: Set<string>
 }
 
 export type WorkFilter = 'all' | 'notech' | 'noauditor' | 'critical'
@@ -33,13 +35,14 @@ export function WorkProgramTable({
   onPlanningChange, onAssign, onAssignDomain,
   onBulkPlanning, onBulkAssign, bulkSaving,
   externalSelection, onSelectionChange,
-  workFilter, onWorkFilter,
+  workFilter, onWorkFilter, excludedControlIds,
 }: WorkProgramTableProps) {
   void missionId
   const [search, setSearch] = useState('')
   const [internalFilter, setInternalFilter] = useState<WorkFilter>('all')
   const wf = workFilter ?? internalFilter
   const setWf = onWorkFilter ?? setInternalFilter
+  const notExcluded = useCallback((id: string) => !excludedControlIds?.has(id), [excludedControlIds])
   const [internalSelection, setInternalSelection] = useState<Set<string>>(new Set())
   const selection = externalSelection ?? internalSelection
   const setSelection = useCallback((next: Set<string>) => {
@@ -50,7 +53,7 @@ export function WorkProgramTable({
   const planMap = useMemo(() => new Map(plannings.map((p) => [p.control_id, p])), [plannings])
   const assignMap = useMemo(() => new Map(assignments.map((a) => [a.control_id, a])), [assignments])
   const auditors = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
-  const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
+  const totalControls = domains.reduce((s, d) => s + d.controls.filter((c) => notExcluded(c.id)).length, 0)
 
   const hasTech = useCallback((id: string) => (planMap.get(id)?.audit_techniques?.length ?? 0) > 0, [planMap])
   const matchFilter = useCallback((id: string): boolean => {
@@ -60,13 +63,13 @@ export function WorkProgramTable({
     return true
   }, [wf, hasTech, assignMap, planMap])
   const counts = useMemo(() => {
-    const all = domains.flatMap((d) => d.controls)
+    const all = domains.flatMap((d) => d.controls).filter((c) => notExcluded(c.id))
     return {
       notech: all.filter((c) => !hasTech(c.id)).length,
       noauditor: all.filter((c) => !assignMap.has(c.id)).length,
       critical: all.filter((c) => planMap.get(c.id)?.risk_level === 'critical').length,
     }
-  }, [domains, hasTech, assignMap, planMap])
+  }, [domains, hasTech, assignMap, planMap, notExcluded])
 
   const toggleControl = useCallback((id: string) => {
     const next = new Set(selection)
@@ -143,10 +146,11 @@ export function WorkProgramTable({
           </thead>
           <tbody>
             {domains.map((domain) => {
-              const domainAssigned = domain.controls.filter((c) => assignMap.has(c.id)).length
-              const unassigned = domain.controls.filter((c) => !assignMap.has(c.id)).map((c) => c.id)
+              const scoped = domain.controls.filter((c) => notExcluded(c.id))
+              const domainAssigned = scoped.filter((c) => assignMap.has(c.id)).length
+              const unassigned = scoped.filter((c) => !assignMap.has(c.id)).map((c) => c.id)
               const q = search.toLowerCase()
-              const filtered = domain.controls.filter((c) => matchFilter(c.id) && (!q || c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)))
+              const filtered = scoped.filter((c) => matchFilter(c.id) && (!q || c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)))
               if (filtered.length === 0) return null
 
               const filteredIds = filtered.map((c) => c.id)
@@ -159,7 +163,7 @@ export function WorkProgramTable({
                   code={domain.code}
                   name={domain.name}
                   assigned={domainAssigned}
-                  total={domain.controls.length}
+                  total={scoped.length}
                   unassignedIds={unassigned}
                   auditors={auditors}
                   onAssignDomain={onAssignDomain}

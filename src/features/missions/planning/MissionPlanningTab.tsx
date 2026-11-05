@@ -13,6 +13,7 @@ import { useInterviewRelations } from './useInterviewRelations'
 import { useAuditTopics } from './useAuditTopics'
 import { generateWorkProgram } from './generateWorkProgram'
 import { WorkProgramTable, type WorkFilter } from './WorkProgramTable'
+import { useMissionExclusions } from './useMissionExclusions'
 import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
@@ -83,6 +84,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selection, setSelection] = useState<Set<string>>(new Set())
   const [workFilter, setWorkFilter] = useState<WorkFilter>('all')
+  const excludedControlIds = useMissionExclusions(mission.id)
   // « Corriger » d'un prérequis du gate : cible les contrôles concernés (filtre la
   // table) ou route vers l'onglet qui porte le correctif (acteurs / entretiens).
   const handleGateFix = useCallback((key: string): void => {
@@ -323,6 +325,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             onValidate={handleValidatePlanning}
             showInterviewChecks={showInterviews}
             onFix={handleGateFix}
+            excludedControlIds={excludedControlIds}
           />
         )}
 
@@ -365,6 +368,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             onSelectionChange={setSelection}
             workFilter={workFilter}
             onWorkFilter={setWorkFilter}
+            excludedControlIds={excludedControlIds}
           />
         )}
         {showInterviews && activeTab === 'entretiens' && (
