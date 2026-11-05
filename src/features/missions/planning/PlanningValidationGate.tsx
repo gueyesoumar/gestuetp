@@ -3,7 +3,6 @@ import { Check, AlertTriangle, X, Lock, ArrowRight, Loader2, ChevronRight, Chevr
 import type { ClientContact } from '../../../types/database.types'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { ControlAssignmentRow } from '../useMissionDetail'
-import type { AuditTopicWithControls } from './useAuditTopics'
 import type { InterviewWithRelations } from './usePlanningData'
 
 interface PlanningValidationGateProps {
@@ -11,7 +10,6 @@ interface PlanningValidationGateProps {
   assignments: ControlAssignmentRow[]
   contacts: ClientContact[]
   interviews: InterviewWithRelations[]
-  topics: AuditTopicWithControls[]
   validating: boolean
   serverMissing?: { key: string; label: string; count: number; total: number }[] | null
   onValidate: () => Promise<void>
@@ -24,7 +22,7 @@ interface PlanningValidationGateProps {
 }
 
 // Checks liés aux entretiens - masqués si la sous-étape Entretiens est désélectionnée.
-const INTERVIEW_CHECK_KEYS = ['interviews', 'domains-topics']
+const INTERVIEW_CHECK_KEYS = ['interviews']
 
 interface CheckItem {
   key: string
@@ -35,7 +33,7 @@ interface CheckItem {
   countLabel: string
 }
 
-export function PlanningValidationGate({ domains, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true, onFix, excludedControlIds }: PlanningValidationGateProps) {
+export function PlanningValidationGate({ domains, assignments, contacts, interviews, validating, serverMissing, onValidate, showInterviewChecks = true, onFix, excludedControlIds }: PlanningValidationGateProps) {
   const [confirming, setConfirming] = useState(false)
   // Détail des prérequis replié par défaut (gain de place) ; préférence mémorisée.
   const [open, setOpen] = useState<boolean>(() => {
@@ -65,12 +63,6 @@ export function PlanningValidationGate({ domains, assignments, contacts, intervi
     // 4. Au moins 1 entretien planifié (non annulé)
     const activeInterviews = interviews.filter((iv) => iv.status !== 'cancelled')
 
-    // 5. Domaines avec au moins 1 sujet
-    const domainsWithTopics = domains.filter((d) => {
-      const ctrlIds = new Set(d.controls.map((c) => c.id))
-      return topics.some((t) => t.control_ids.some((cid) => ctrlIds.has(cid)))
-    }).length
-
     const all: CheckItem[] = [
       {
         key: 'assigned',
@@ -91,22 +83,14 @@ export function PlanningValidationGate({ domains, assignments, contacts, intervi
       {
         key: 'interviews',
         label: 'Au moins 1 entretien planifié',
-        detail: 'Générez depuis la matrice ou créez manuellement.',
+        detail: 'Planifiez un entretien avec les interlocuteurs.',
         blocker: false,
         ok: activeInterviews.length > 0,
         countLabel: `${activeInterviews.length}`,
       },
-      {
-        key: 'domains-topics',
-        label: 'Tous les domaines couverts par un sujet d’audit',
-        detail: 'Aide à structurer les entretiens via la matrice.',
-        blocker: false,
-        ok: domains.length === 0 || domainsWithTopics === domains.length,
-        countLabel: `${domainsWithTopics}/${domains.length}`,
-      },
     ]
     return showInterviewChecks ? all : all.filter((c) => !INTERVIEW_CHECK_KEYS.includes(c.key))
-  }, [domains, assignments, contacts, interviews, topics, showInterviewChecks, excludedControlIds])
+  }, [domains, assignments, contacts, interviews, showInterviewChecks, excludedControlIds])
 
   const blockers = checks.filter((c) => c.blocker)
   const warnings = checks.filter((c) => !c.blocker)

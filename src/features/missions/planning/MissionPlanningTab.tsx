@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { isStepEnabled } from '../mission-constants'
 import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
@@ -10,17 +10,14 @@ import { useSavePlanning } from './useSavePlanning'
 import { useAssignControls } from '../useAssignControls'
 import { useInterviews } from './useInterviews'
 import { useInterviewRelations } from './useInterviewRelations'
-import { useAuditTopics } from './useAuditTopics'
 import { generateWorkProgram } from './generateWorkProgram'
 import { WorkProgramTable, type WorkFilter } from './WorkProgramTable'
 import { useMissionExclusions } from './useMissionExclusions'
 import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
-import { InterviewMatrixPanel } from './InterviewMatrixPanel'
 import { ScopingActorsTab } from '../scoping/ScopingActorsTab'
 import { useMissionActors } from '../scoping/useMissionActors'
-import { buildPvTemplate } from './buildPvTemplate'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningValidationGate } from './PlanningValidationGate'
 import { SmartPlanPreviewModal } from './SmartPlanPreviewModal'
@@ -52,8 +49,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const { assignControls, assigning } = useAssignControls(onRefetch)
   const bulkSaving = planSaving || assigning
   const { createInterview, updateInterview, deleteInterview, saving: interviewSaving, error: interviewError } = useInterviews(refetchPlanning)
-  const { syncTopics, syncActors } = useInterviewRelations()
-  const { topics: auditTopics } = useAuditTopics(mission.framework_id, mission.id)
+  const { syncActors } = useInterviewRelations()
   const [activeTab, setActiveTab] = useState<PlanTab>('programme')
   // Sous-étape Entretiens désélectionnable via le template (RFC 0009).
   const showInterviews = isStepEnabled(mission, 'planning.interviews')
@@ -74,8 +70,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const goTab = useCallback((next: PlanTab) => setActiveTab(next), [])
   const [showInterviewModal, setShowInterviewModal] = useState(false)
   const [editingInterview, setEditingInterview] = useState<InterviewWithRelations | null>(null)
-  const [showMatrix, setShowMatrix] = useState(false)
-  const [generatingMatrix, setGeneratingMatrix] = useState(false)
   const [generating, setGenerating] = useState(false)
   const planFlag = useFeatureFlag('smart_plan_mission')
   const [genSuccess, setGenSuccess] = useState<string | null>(null)
@@ -131,12 +125,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
 
 
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
-  const controlIdToCode = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const d of domains) for (const c of d.controls) m.set(c.id, c.code)
-    return m
-  }, [domains])
-
   const handleAssign = useCallback((controlId: string, auditorId: string) => {
     assignControls(mission.id, [{ control_id: controlId, auditor_id: auditorId }])
   }, [mission.id, assignControls])
@@ -298,7 +286,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             assignments={assignments}
             contacts={contacts}
             interviews={interviews}
-            topics={auditTopics}
             validating={validating}
             serverMissing={serverMissing}
             onValidate={handleValidatePlanning}
@@ -337,12 +324,11 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           />
         )}
         {showInterviews && activeTab === 'entretiens' && (
-          <InterviewsPanel interviews={interviews} contacts={contacts} topics={auditTopics}
+          <InterviewsPanel interviews={interviews} contacts={contacts}
             onAdd={() => setShowInterviewModal(true)}
             onEdit={(iv) => setEditingInterview(iv)}
             onStatusChange={(id, status) => updateInterview(id, { status })}
             onDelete={(id) => deleteInterview(id)}
-            onOpenMatrix={() => setShowMatrix(true)}
             saving={interviewSaving} />
         )}
         {activeTab === 'acteurs' && (
@@ -381,9 +367,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           missionId={mission.id}
           members={members}
           actors={contacts}
-          topics={auditTopics}
           onCreateInterview={async (data) => {
-            const pvTemplate = buildPvTemplate(data.topic_ids, auditTopics, controlIdToCode)
             const ok = await createInterview({
               mission_id: data.mission_id,
               title: data.title,
@@ -393,40 +377,12 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
               duration_minutes: data.duration_minutes,
               location: data.location || undefined,
               notes: data.notes || undefined,
-              pv_template: pvTemplate,
-            }, { topicIds: data.topic_ids, actorIds: data.actor_ids })
+            }, { topicIds: [], actorIds: data.actor_ids })
             return ok
           }}
           onClose={() => setShowInterviewModal(false)}
           saving={interviewSaving}
           error={interviewError}
-        />
-      )}
-
-      {/* Matrix modal */}
-      {showMatrix && (
-        <InterviewMatrixPanel
-          missionId={mission.id}
-          startDate={mission.start_date}
-          endDate={mission.end_date}
-          actors={contacts}
-          topics={auditTopics}
-          members={members}
-          controlIdToCode={controlIdToCode}
-          onGenerate={async (specs) => {
-            setGeneratingMatrix(true)
-            let created = 0
-            for (const spec of specs) {
-              const ok = await createInterview(spec.base, { topicIds: spec.topicIds, actorIds: spec.actorIds })
-              if (ok) created++
-            }
-            setGeneratingMatrix(false)
-            setShowMatrix(false)
-            setGenSuccess(`${created} entretien${created > 1 ? 's' : ''} généré${created > 1 ? 's' : ''} depuis la matrice.`)
-            refetchPlanning()
-          }}
-          onClose={() => setShowMatrix(false)}
-          generating={generatingMatrix}
         />
       )}
 
@@ -436,10 +392,8 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           interview={editingInterview}
           members={members}
           actors={contacts}
-          topics={auditTopics}
           missionName={mission.name}
           onUpdate={updateInterview}
-          onSyncTopics={syncTopics}
           onSyncActors={syncActors}
           onClose={() => setEditingInterview(null)}
           saving={interviewSaving}
@@ -453,7 +407,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           <PlanningBudgetBanner assignments={assignments} totalControls={totalControls} />
           <PlanningWorkloadSection members={members} assignments={assignments} totalControls={totalControls} />
           <PlanningGanttSection domains={domains} startDate={mission.start_date} endDate={mission.end_date} />
-          <PlanningNextInterview interviews={interviews} topics={auditTopics} />
+          <PlanningNextInterview interviews={interviews} />
           <PlanningActionsSection />
         </div>
       )}

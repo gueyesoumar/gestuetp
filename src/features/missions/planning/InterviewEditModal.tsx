@@ -2,12 +2,10 @@ import { useState, lazy, Suspense } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { generateCompteRendu } from './interviewHelpers'
-import { PvEditor } from './PvEditor'
 import { loadReportTemplateForMission } from '../../reports/loadReportTemplate'
 import type { CRData } from '../../reports/interview-cr'
-import type { ClientContact, InterviewScheduleUpdate, PvNotes } from '../../../types/database.types'
+import type { ClientContact, InterviewScheduleUpdate } from '../../../types/database.types'
 import type { MissionMemberRow } from '../useMissionDetail'
-import type { AuditTopicWithControls } from './useAuditTopics'
 import type { InterviewWithRelations } from './usePlanningData'
 
 const InterviewCRV2Modal = lazy(() => import('../../reports/interview-cr-v2/InterviewCRV2Modal'))
@@ -17,10 +15,8 @@ interface InterviewEditModalProps {
   interview: InterviewWithRelations
   members: MissionMemberRow[]
   actors: ClientContact[]
-  topics: AuditTopicWithControls[]
   missionName: string
   onUpdate: (id: string, data: InterviewScheduleUpdate) => Promise<boolean>
-  onSyncTopics: (interviewId: string, topicIds: string[]) => Promise<boolean>
   onSyncActors: (interviewId: string, actorIds: string[]) => Promise<boolean>
   onClose: () => void
   saving: boolean
@@ -28,18 +24,13 @@ interface InterviewEditModalProps {
 }
 
 export function InterviewEditModal({
-  interview, members, actors, topics, missionName,
-  onUpdate, onSyncTopics, onSyncActors, onClose, saving, error,
+  interview, members, actors, missionName,
+  onUpdate, onSyncActors, onClose, saving, error,
 }: InterviewEditModalProps) {
   const [title, setTitle] = useState(interview.title)
   const [auditorId, setAuditorId] = useState(interview.auditor_id)
   const [date, setDate] = useState(interview.scheduled_date)
-  const [time, setTime] = useState(interview.scheduled_time.slice(0, 5))
-  const [duration, setDuration] = useState(interview.duration_minutes)
-  const [location, setLocation] = useState(interview.location ?? '')
   const [notes, setNotes] = useState(interview.notes ?? '')
-  const [pvNotes, setPvNotes] = useState<PvNotes | null>(interview.pv_notes ?? null)
-  const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set(interview.topic_ids))
   const [selectedActorIds, setSelectedActorIds] = useState<Set<string>>(new Set(interview.actor_ids))
   // Moteur de rapport react-pdf (RFC 0021 Lot 4) : jsPDF retire. Apercu in-app du CR.
   const [crPreview, setCrPreview] = useState<CRPreview | null>(null)
@@ -51,24 +42,11 @@ export function InterviewEditModal({
       title,
       auditor_id: auditorId,
       scheduled_date: date,
-      scheduled_time: time,
-      duration_minutes: duration,
-      location: location || null,
       notes: notes || null,
-      pv_notes: pvNotes,
     })
     if (!ok) return
-    const topicsOk = await onSyncTopics(interview.id, Array.from(selectedTopicIds))
     const actorsOk = await onSyncActors(interview.id, Array.from(selectedActorIds))
-    if (topicsOk && actorsOk) onClose()
-  }
-
-  const toggleTopic = (id: string) => {
-    setSelectedTopicIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id); else next.add(id)
-      return next
-    })
+    if (actorsOk) onClose()
   }
 
   const toggleActor = (id: string) => {
@@ -91,10 +69,7 @@ export function InterviewEditModal({
     const auditor = members.find((m) => m.user_id === auditorId)
     const auditorName = auditor ? `${auditor.user.first_name} ${auditor.user.last_name}` : 'Auditeur'
     const firstActor = Array.from(selectedActorIds).map((id) => actors.find((a) => a.id === id)).find(Boolean)
-    const topicNames = Array.from(selectedTopicIds)
-      .map((id) => topics.find((t) => t.id === id)?.name)
-      .filter((n): n is string => Boolean(n))
-    const base = { interview, contact: firstActor, auditorName, missionName, rawNotes: notes, controlCodes: topicNames }
+    const base = { interview, contact: firstActor, auditorName, missionName, rawNotes: notes, controlCodes: [] as string[] }
     const tpl = await loadReportTemplateForMission(interview.mission_id, 'interview_cr')
     setCrPreview({ ...base, templateSections: tpl?.sections ?? null, templateTexts: tpl?.texts ?? null })
   }
@@ -110,45 +85,25 @@ export function InterviewEditModal({
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500" />
         </Field>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <Field label="Date">
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500" />
           </Field>
-          <Field label="Heure">
-            <input type="time" value={time} onChange={(e) => setTime(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500" />
-          </Field>
-          <Field label="Dur&eacute;e">
-            <select value={duration} onChange={(e) => setDuration(Number(e.target.value))}
+          <Field label="Auditeur">
+            <select value={auditorId} onChange={(e) => setAuditorId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500">
-              <option value={30}>30 min</option>
-              <option value={60}>1h</option>
-              <option value={90}>1h30</option>
-              <option value={120}>2h</option>
-              <option value={180}>3h</option>
+              {auditorMembers.map((a) => (
+                <option key={a.user_id} value={a.user_id}>{a.user.first_name} {a.user.last_name}</option>
+              ))}
             </select>
           </Field>
         </div>
 
-        <Field label="Auditeur">
-          <select value={auditorId} onChange={(e) => setAuditorId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500">
-            {auditorMembers.map((a) => (
-              <option key={a.user_id} value={a.user_id}>{a.user.first_name} {a.user.last_name}</option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Lieu">
-          <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Salle, visio..."
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-forest-500" />
-        </Field>
-
-        {/* Acteurs convoqu&eacute;s */}
+        {/* Interlocuteurs */}
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1.5">
-            Acteurs convoqu&eacute;s <span className="text-gray-300">({selectedActorIds.size})</span>
+            Interlocuteurs <span className="text-gray-300">({selectedActorIds.size})</span>
           </label>
           {actors.length === 0 ? (
             <p className="text-[11px] text-gray-400 italic">Aucun acteur d&eacute;clar&eacute; pour cette mission. Ajoutez-les dans l&rsquo;onglet &laquo; Acteurs &raquo; du cadrage.</p>
@@ -166,39 +121,6 @@ export function InterviewEditModal({
           )}
         </div>
 
-        {/* Sujets couverts */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
-            Sujets couverts <span className="text-gray-300">({selectedTopicIds.size})</span>
-          </label>
-          {topics.length === 0 ? (
-            <p className="text-[11px] text-gray-400 italic">Aucun sujet disponible pour ce r&eacute;f&eacute;rentiel.</p>
-          ) : (
-            <div className="border border-gray-200 rounded-lg max-h-[200px] overflow-y-auto">
-              {topics.map((t) => (
-                <label key={t.id} className="flex items-start gap-2 px-3 py-1.5 hover:bg-gold-50 cursor-pointer text-xs">
-                  <input type="checkbox" checked={selectedTopicIds.has(t.id)} onChange={() => toggleTopic(t.id)}
-                    className="mt-0.5 rounded border-gray-300 accent-gold-500" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-gray-700 font-medium">{t.name}</span>
-                    <span className="ml-1.5 text-[10px] text-gold-700">({t.control_ids.length} ctrl)</span>
-                    {t.description && <p className="text-[10px] text-gray-400 mt-0.5">{t.description}</p>}
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* PV pré-rempli structuré */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">PV pr&eacute;-rempli (par sujet)</label>
-          <PvEditor
-            template={interview.pv_template}
-            notes={pvNotes}
-            onChange={setPvNotes}
-          />
-        </div>
 
         {/* Notes libres / synthèse globale */}
         <div>
