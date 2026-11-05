@@ -1,18 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, Plus, X } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useSubsidiaries, type SubsidiaryRow } from './useSubsidiaries'
 import { useManageEntity } from './useManageEntity'
 import { SubsidiaryCard } from './SubsidiaryCard'
 import { EntityFormModal, type EntityFormValue } from './EntityFormModal'
 import { InactiveEntitiesSection } from './InactiveEntitiesSection'
+import { FilterBar } from '../../components/filters/FilterBar'
+import { useFilters } from '../../components/filters/useFilters'
+import { Pagination, pageSlice } from '../../components/ui/Pagination'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { buildSubsidiaryFilterDefs, buildDescendantsResolver } from './subsidiaryHelpers'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useToast } from '../../hooks/useToast'
 import { useVocab } from '../edition/useVocab'
 import { useIsRegul } from '../edition/useIsRegul'
+
+const PAGE_SIZE = 12
 
 export function SubsidiariesPage(): JSX.Element {
   const vocab = useVocab()
@@ -23,19 +29,18 @@ export function SubsidiariesPage(): JSX.Element {
   const { deactivateEntity } = useManageEntity()
   const toast = useToast()
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [modal, setModal] = useState<{ initial: EntityFormValue | null } | null>(null)
   const groupId = profile?.organization_id ?? null
 
-  // Pré-filtres activés depuis les cartes du tableau de bord (Regul).
-  const [searchParams, setSearchParams] = useSearchParams()
-  const critFilter = searchParams.get('crit')          // 'eleve' → IIC
-  const overdueFilter = searchParams.get('retard') === '1'
-  const activeFilterLabel = critFilter === 'eleve' ? 'IIC' : overdueFilter ? 'Plans d’action en retard' : null
-  const clearFilter = (): void => {
-    const next = new URLSearchParams(searchParams)
-    next.delete('crit'); next.delete('retard')
-    setSearchParams(next, { replace: true })
-  }
+  const filterDefs = useMemo(() => buildSubsidiaryFilterDefs(isRegul), [isRegul])
+
+  // Deep-links des cartes du tableau de bord (Regul) : pré-activation des filtres.
+  const [searchParams] = useSearchParams()
+  const filters = useFilters(filterDefs, {
+    criticality: searchParams.get('crit') ?? undefined,
+    overdue: searchParams.get('retard') === '1' ? true : undefined,
+  })
 
   const nameById = useMemo(() => {
     const m = new Map<string, string>()
@@ -44,35 +49,21 @@ export function SubsidiariesPage(): JSX.Element {
   }, [subsidiaries])
 
   // Descendants d'une entité (pour exclure les cycles du select "rattachée à").
-  const descendantsOf = useMemo(() => {
-    const children = new Map<string, string[]>()
-    for (const s of subsidiaries) {
-      if (!s.parentOrgId) continue
-      const arr = children.get(s.parentOrgId) ?? []
-      arr.push(s.id); children.set(s.parentOrgId, arr)
-    }
-    return (rootId: string): Set<string> => {
-      const out = new Set<string>()
-      const stack = [rootId]
-      while (stack.length) {
-        const id = stack.pop()!
-        for (const c of children.get(id) ?? []) { if (!out.has(c)) { out.add(c); stack.push(c) } }
-      }
-      return out
-    }
-  }, [subsidiaries])
+  const descendantsOf = useMemo(() => buildDescendantsResolver(subsidiaries), [subsidiaries])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return subsidiaries.filter((s) => {
-      if (critFilter && s.regulatoryProfile?.criticality !== critFilter) return false
-      if (overdueFilter && s.overdueCount <= 0) return false
+      if (filters.values.criticality && s.regulatoryProfile?.criticality !== filters.values.criticality) return false
+      if (filters.values.nature && s.entityType !== filters.values.nature) return false
+      if (filters.values.overdue && s.overdueCount <= 0) return false
       if (!q) return true
-      return s.name.toLowerCase().includes(q) ||
-        (s.sector ?? '').toLowerCase().includes(q) ||
-        (s.city ?? '').toLowerCase().includes(q)
+      return s.name.toLowerCase().includes(q) || (s.sector ?? '').toLowerCase().includes(q) || (s.city ?? '').toLowerCase().includes(q)
     })
-  }, [subsidiaries, search, critFilter, overdueFilter])
+  }, [subsidiaries, search, filters.values])
+
+  useEffect(() => { setPage(1) }, [search, filters.values])
+  const paged = pageSlice(filtered, page, PAGE_SIZE)
 
   const openCreate = (): void => setModal({ initial: null })
   const openEdit = (s: SubsidiaryRow): void => setModal({ initial: {
@@ -108,46 +99,35 @@ export function SubsidiariesPage(): JSX.Element {
               : `${totalCount} ${totalCount > 1 ? vocab.entityPlural : vocab.entitySingular} ${averageScore !== null ? `· score moyen ${averageScore}%` : ''} · ${totalActiveMissions} mission${totalActiveMissions !== 1 ? 's' : ''} active${totalActiveMissions !== 1 ? 's' : ''}${totalOverdue > 0 ? ` · ${totalOverdue} plan${totalOverdue > 1 ? 's' : ''} en retard` : ''}`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {totalCount > 0 && (
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher&hellip;" className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg w-64 focus:border-forest-700 focus:ring-1 focus:ring-forest-700" />
-            </div>
-          )}
-          {canManageSubsidiaries && (
-            <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
-              <Plus size={16} /> Cr&eacute;er {vocab.entityGender === 'f' ? 'une' : 'un'} {vocab.entitySingular}
-            </button>
-          )}
-        </div>
+        {canManageSubsidiaries && (
+          <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
+            <Plus size={16} /> Cr&eacute;er {vocab.entityGender === 'f' ? 'une' : 'un'} {vocab.entitySingular}
+          </button>
+        )}
       </div>
 
-      {activeFilterLabel && (
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-1 text-[12px] font-semibold text-forest-700">
-            Filtre&nbsp;: {activeFilterLabel}
-            <button onClick={clearFilter} className="text-forest-500 hover:text-forest-900" aria-label="Effacer le filtre"><X size={13} /></button>
-          </span>
-          <span className="text-[12px] text-gray-400">{filtered.length} résultat{filtered.length !== 1 ? 's' : ''}</span>
-        </div>
+      {totalCount > 0 && (
+        <FilterBar defs={filterDefs} state={filters} search={{ value: search, onChange: setSearch, placeholder: `Rechercher un${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}...` }} />
       )}
 
       {totalCount === 0 ? (
         <EmptyState title={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}`} description={canManageSubsidiaries ? `Créez votre ${vocab.entityGender === 'f' ? 'première' : 'premier'} ${vocab.entitySingular}${isRegul ? '' : ' (filiale, site, direction...)'} avec le bouton ci-dessus.` : `Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} n’est encore rattaché${vocab.entityGender === 'f' ? 'e' : ''}.`} />
       ) : filtered.length === 0 ? (
-        <EmptyState title="Aucun résultat" description={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} ne correspond à votre recherche.`} />
+        <EmptyState title="Aucun résultat" description={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} ne correspond à vos critères.`} />
       ) : (
-        <div className="grid grid-cols-3 gap-4">
-          {filtered.map((s) => (
-            <SubsidiaryCard
-              key={s.id}
-              subsidiary={s}
-              parentName={s.parentOrgId && s.parentOrgId !== groupId ? nameById.get(s.parentOrgId) ?? null : null}
-              onEdit={canManageSubsidiaries ? openEdit : undefined}
-              onDeactivate={canManageSubsidiaries ? askDeactivate : undefined}
-            />
-          ))}
+        <div>
+          <div className="grid grid-cols-3 gap-4">
+            {paged.map((s) => (
+              <SubsidiaryCard
+                key={s.id}
+                subsidiary={s}
+                parentName={s.parentOrgId && s.parentOrgId !== groupId ? nameById.get(s.parentOrgId) ?? null : null}
+                onEdit={canManageSubsidiaries ? openEdit : undefined}
+                onDeactivate={canManageSubsidiaries ? askDeactivate : undefined}
+              />
+            ))}
+          </div>
+          <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       )}
 
