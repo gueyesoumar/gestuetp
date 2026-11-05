@@ -1,20 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { MissionKindBadge } from '../MissionKindBadge'
+import { deriveMissionBoardColumns } from '../mission-constants'
 import type { MissionWithDetails } from '../useMissions'
-import type { MissionStatus } from '../../../types/database.types'
 
 interface MissionsKanbanViewProps {
   missions: MissionWithDetails[]
 }
-
-const columns: { status: MissionStatus[]; label: string; color: string; barColor: string }[] = [
-  { status: ['initialization', 'scoping'], label: 'Cadrage', color: 'text-gray-400', barColor: 'bg-gray-300' },
-  { status: ['planning'], label: 'Planification', color: 'text-forest-700', barColor: 'bg-forest-300' },
-  { status: ['fieldwork'], label: 'Travaux', color: 'text-forest-700', barColor: 'bg-forest-500' },
-  { status: ['internal_review'], label: 'Revue', color: 'text-gold-600', barColor: 'bg-gold-500' },
-  { status: ['client_review'], label: 'Client', color: 'text-forest-500', barColor: 'bg-forest-300' },
-  { status: ['closure'], label: 'Clôturées', color: 'text-success', barColor: 'bg-success' },
-]
 
 const fwIcons: Record<string, { abbr: string; bg: string }> = {
   'ISO/IEC 27001': { abbr: 'ISO', bg: 'bg-forest-100 text-forest-700' },
@@ -28,12 +19,13 @@ const fwIcons: Record<string, { abbr: string; bg: string }> = {
 
 export function MissionsKanbanView({ missions }: MissionsKanbanViewProps) {
   const navigate = useNavigate()
+  const columns = deriveMissionBoardColumns(missions)
 
   return (
     <div className="flex gap-3.5 overflow-x-auto pb-4">
       {columns.map((col) => {
-        const colMissions = missions.filter((m) => col.status.includes(m.status))
-        const isClosed = col.status.includes('closure')
+        const colMissions = missions.filter((m) => col.statuses.includes(m.status))
+        const isClosed = col.statuses.includes('closure')
 
         return (
           <div key={col.label} className="min-w-[250px] flex-1">

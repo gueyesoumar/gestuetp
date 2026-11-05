@@ -113,6 +113,57 @@ export function getMissionPhases(mission: MissionEngineInput): MissionPhase[] {
   return disabled.length === 0 ? base : base.filter((p) => !disabled.includes(p.key))
 }
 
+export interface MissionBoardColumn {
+  key: string
+  statuses: MissionStatus[]
+  label: string
+  color: string
+  barColor: string
+}
+
+// Libellés courts (colonnes du board) et style par phase. Le statut
+// `initialization` (pré-cadrage) est rattaché à la colonne Cadrage.
+const BOARD_COLUMN_LABEL: Record<string, string> = {
+  scoping: 'Cadrage', planning: 'Planification', fieldwork: 'Travaux',
+  internal_review: 'Revue', client_review: 'Client', closure: 'Clôturées',
+}
+const BOARD_COLUMN_STYLE: Record<string, { color: string; barColor: string }> = {
+  scoping: { color: 'text-gray-400', barColor: 'bg-gray-300' },
+  planning: { color: 'text-forest-700', barColor: 'bg-forest-300' },
+  fieldwork: { color: 'text-forest-700', barColor: 'bg-forest-500' },
+  internal_review: { color: 'text-gold-600', barColor: 'bg-gold-500' },
+  client_review: { color: 'text-forest-500', barColor: 'bg-forest-300' },
+  closure: { color: 'text-success', barColor: 'bg-success' },
+}
+
+/**
+ * Colonnes du board de missions (liste/Kanban) dérivées des MOTEURS réellement
+ * présents : union des `getMissionPhases` des missions affichées (phases adossées
+ * à un statut, hors `action_plan`), triées par index. Une mission Contrôle (5
+ * phases, sans `client_review`) n'affiche donc pas de colonne « Client » morte.
+ * Board vide → parcours audit complet par défaut.
+ */
+export function deriveMissionBoardColumns(missions: MissionEngineInput[]): MissionBoardColumn[] {
+  const present = new Map<string, number>()
+  for (const m of missions) {
+    for (const p of getMissionPhases(m)) {
+      if (p.key !== 'action_plan' && !present.has(p.key)) present.set(p.key, p.index)
+    }
+  }
+  const entries: [string, number][] = present.size > 0
+    ? [...present.entries()]
+    : MISSION_PHASES.filter((p) => p.key !== 'action_plan').map((p) => [p.key, p.index])
+  return entries
+    .sort((a, b) => a[1] - b[1])
+    .map(([key]) => ({
+      key,
+      statuses: key === 'scoping' ? (['initialization', 'scoping'] as MissionStatus[]) : ([key] as MissionStatus[]),
+      label: BOARD_COLUMN_LABEL[key] ?? key,
+      color: BOARD_COLUMN_STYLE[key]?.color ?? 'text-gray-400',
+      barColor: BOARD_COLUMN_STYLE[key]?.barColor ?? 'bg-gray-300',
+    }))
+}
+
 /** Source UNIQUE des libellés de statut de mission (badge + listes). */
 export const MISSION_STATUS_LABELS: Record<MissionStatus, string> = {
   initialization: 'Initialisation',
