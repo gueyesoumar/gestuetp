@@ -115,7 +115,7 @@ export function MissionDetailPage(){
           <MissionScopingTab mission={mission} members={members} domains={domains} client={cabinetClient} onRefetch={refetch} />
         )}
         {activeTab === 'planning' && userRole.isPrivileged && (
-          <MissionPlanningTab mission={mission} domains={domains} members={members} assignments={assignments} onRefetch={refetch} />
+          <MissionPlanningTab mission={mission} domains={domains} members={members} assignments={assignments} onRefetch={refetch} onGoToPhase={(t) => setActiveTab(t as TabKey)} />
         )}
         {activeTab === 'fieldwork' && (
           <MissionFieldworkTab mission={mission} domains={domains} members={members} assignments={assignments} onRefetch={refetch} />

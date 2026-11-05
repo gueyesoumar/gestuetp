@@ -16,8 +16,6 @@ import { useMissionExclusions } from './useMissionExclusions'
 import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
-import { ScopingActorsTab } from '../scoping/ScopingActorsTab'
-import { useMissionActors } from '../scoping/useMissionActors'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
 import { PlanningValidationGate } from './PlanningValidationGate'
 import { SmartPlanPreviewModal } from './SmartPlanPreviewModal'
@@ -39,11 +37,13 @@ interface MissionPlanningTabProps {
   members: MissionMemberRow[]
   assignments: ControlAssignmentRow[]
   onRefetch: () => void
+  /** Naviguer vers une autre phase de la mission (ex. Cadrage pour les acteurs). */
+  onGoToPhase?: (tab: string) => void
 }
 
-type PlanTab = 'programme' | 'entretiens' | 'acteurs'
+type PlanTab = 'programme' | 'entretiens'
 
-export function MissionPlanningTab({ mission, domains, members, assignments, onRefetch }: MissionPlanningTabProps) {
+export function MissionPlanningTab({ mission, domains, members, assignments, onRefetch, onGoToPhase }: MissionPlanningTabProps) {
   const { interviews, contacts, loading, error, refetch: refetchPlanning } = usePlanningData(mission.id)
   const { batchUpsert, saving: planSaving } = useSavePlanning(refetchPlanning)
   const { assignControls, assigning } = useAssignControls(onRefetch)
@@ -54,19 +54,9 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   // Sous-étape Entretiens désélectionnable via le template (RFC 0009).
   const showInterviews = isStepEnabled(mission, 'planning.interviews')
   useEffect(() => { if (!showInterviews && activeTab === 'entretiens') setActiveTab('programme') }, [showInterviews, activeTab])
-  // Acteurs : source unique partagée par le badge d'onglet et le contenu. Chaque
-  // mutation rafraîchit aussi les données Planif (le gate, la matrice et les modales
-  // lisent `contacts` via un fetch séparé) -> badge et panneaux à jour immédiatement.
-  const actorsApi = useMissionActors(mission.id)
-  const addActor = useCallback(async (d: Parameters<typeof actorsApi.add>[0]) => {
-    const r = await actorsApi.add(d); if (r) refetchPlanning(); return r
-  }, [actorsApi, refetchPlanning])
-  const updateActor = useCallback(async (id: string, p: Parameters<typeof actorsApi.update>[1]) => {
-    const r = await actorsApi.update(id, p); if (r) refetchPlanning(); return r
-  }, [actorsApi, refetchPlanning])
-  const removeActor = useCallback(async (id: string) => {
-    const r = await actorsApi.remove(id); if (r) refetchPlanning(); return r
-  }, [actorsApi, refetchPlanning])
+  // Les acteurs (interlocuteurs) se gèrent au Cadrage ; la planif les consomme
+  // seulement (sélection dans le formulaire d'entretien). `contacts` vient de
+  // usePlanningData -> disponible pour le gate et les modales sans écran dédié.
   const goTab = useCallback((next: PlanTab) => setActiveTab(next), [])
   const [showInterviewModal, setShowInterviewModal] = useState(false)
   const [editingInterview, setEditingInterview] = useState<InterviewWithRelations | null>(null)
@@ -82,9 +72,9 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   // table) ou route vers l'onglet qui porte le correctif (acteurs / entretiens).
   const handleGateFix = useCallback((key: string): void => {
     if (key === 'assigned') { setWorkFilter('noauditor'); setActiveTab('programme') }
-    else if (key === 'actors') setActiveTab('acteurs')
+    else if (key === 'actors') onGoToPhase?.('scoping')
     else setActiveTab('entretiens')
-  }, [])
+  }, [onGoToPhase])
   const [preview, setPreview] = useState<{ proposals: SmartPlanProposal[]; assignments: SmartPlanAssignment[] } | null>(null)
   const [applyingPreview, setApplyingPreview] = useState(false)
   const [validating, setValidating] = useState(false)
@@ -302,7 +292,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           {showInterviews && (
             <TabBtn label="Entretiens" count={interviews.length} active={activeTab === 'entretiens'} onClick={() => goTab('entretiens')} />
           )}
-          <TabBtn label="Acteurs" count={actorsApi.actors.length} active={activeTab === 'acteurs'} onClick={() => goTab('acteurs')} />
         </div>
 
         {/* Tab content */}
@@ -330,20 +319,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             onStatusChange={(id, status) => updateInterview(id, { status })}
             onDelete={(id) => deleteInterview(id)}
             saving={interviewSaving} />
-        )}
-        {activeTab === 'acteurs' && (
-          <div className="p-4">
-            <ScopingActorsTab
-              missionId={mission.id}
-              actors={actorsApi.actors}
-              loading={actorsApi.loading}
-              error={actorsApi.error}
-              saving={actorsApi.saving}
-              add={addActor}
-              update={updateActor}
-              remove={removeActor}
-            />
-          </div>
         )}
       </div>
 
