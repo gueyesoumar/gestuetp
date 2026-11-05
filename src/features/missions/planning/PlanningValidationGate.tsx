@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, AlertTriangle, X, Lock, ArrowRight, Loader2, ChevronRight, ChevronDown } from 'lucide-react'
-import type { ControlPlanning, ClientContact } from '../../../types/database.types'
+import type { ClientContact } from '../../../types/database.types'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { ControlAssignmentRow } from '../useMissionDetail'
 import type { AuditTopicWithControls } from './useAuditTopics'
@@ -8,7 +8,6 @@ import type { InterviewWithRelations } from './usePlanningData'
 
 interface PlanningValidationGateProps {
   domains: DomainWithControls[]
-  plannings: ControlPlanning[]
   assignments: ControlAssignmentRow[]
   contacts: ClientContact[]
   interviews: InterviewWithRelations[]
@@ -36,7 +35,7 @@ interface CheckItem {
   countLabel: string
 }
 
-export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true, onFix, excludedControlIds }: PlanningValidationGateProps) {
+export function PlanningValidationGate({ domains, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true, onFix, excludedControlIds }: PlanningValidationGateProps) {
   const [confirming, setConfirming] = useState(false)
   // Détail des prérequis replié par défaut (gain de place) ; préférence mémorisée.
   const [open, setOpen] = useState<boolean>(() => {
@@ -55,19 +54,12 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
     // avec le RPC serveur, mig 00372).
     const allControls = domains.flatMap((d) => d.controls).filter((c) => !excludedControlIds?.has(c.id))
     const totalControls = allControls.length
-    const planMap = new Map(plannings.map((p) => [p.control_id, p]))
     const assignSet = new Set(assignments.map((a) => a.control_id))
 
     // 1. Tous les contrôles ont un auditeur
     const assignedCount = allControls.filter((c) => assignSet.has(c.id)).length
 
-    // 2. Tous les contrôles ont au moins 1 technique d'audit
-    const withTechnique = allControls.filter((c) => {
-      const p = planMap.get(c.id)
-      return p?.audit_techniques && p.audit_techniques.length > 0
-    }).length
-
-    // 3. Au moins 1 acteur SI
+    // 2. Au moins 1 acteur SI
     const actorsCount = contacts.length
 
     // 4. Au moins 1 entretien planifié (non annulé)
@@ -87,14 +79,6 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
         blocker: true,
         ok: totalControls > 0 && assignedCount === totalControls,
         countLabel: `${assignedCount}/${totalControls}`,
-      },
-      {
-        key: 'technique',
-        label: 'Tous les contrôles ont au moins 1 technique d’audit',
-        detail: 'Inspection, entretien, observation, etc.',
-        blocker: false,
-        ok: totalControls > 0 && withTechnique === totalControls,
-        countLabel: `${withTechnique}/${totalControls}`,
       },
       {
         key: 'actors',
@@ -122,7 +106,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
       },
     ]
     return showInterviewChecks ? all : all.filter((c) => !INTERVIEW_CHECK_KEYS.includes(c.key))
-  }, [domains, plannings, assignments, contacts, interviews, topics, showInterviewChecks, excludedControlIds])
+  }, [domains, assignments, contacts, interviews, topics, showInterviewChecks, excludedControlIds])
 
   const blockers = checks.filter((c) => c.blocker)
   const warnings = checks.filter((c) => !c.blocker)

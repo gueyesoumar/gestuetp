@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { X, Sparkles, Check, Loader2, Info } from 'lucide-react'
-import type { ControlPlanning, RiskLevel, AuditTechnique } from '../../../types/database.types'
+import type { RiskLevel, AuditTechnique } from '../../../types/database.types'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { ControlAssignmentRow, MissionMemberRow } from '../useMissionDetail'
 
@@ -24,7 +24,6 @@ interface SmartPlanPreviewModalProps {
   proposals: SmartPlanProposal[]
   assignments: SmartPlanAssignment[]
   domains: DomainWithControls[]
-  currentPlannings: ControlPlanning[]
   currentAssignments: ControlAssignmentRow[]
   members: MissionMemberRow[]
   applying: boolean
@@ -32,14 +31,13 @@ interface SmartPlanPreviewModalProps {
   onClose: () => void
 }
 
-export function SmartPlanPreviewModal({ proposals, assignments, domains, currentPlannings, currentAssignments, members, applying, onApply, onClose }: SmartPlanPreviewModalProps) {
+export function SmartPlanPreviewModal({ proposals, assignments, domains, currentAssignments, members, applying, onApply, onClose }: SmartPlanPreviewModalProps) {
   const controlMap = useMemo(() => {
     const m = new Map<string, { code: string; name: string; domainCode: string }>()
     for (const d of domains) for (const c of d.controls) m.set(c.id, { code: c.code, name: c.name, domainCode: d.code })
     return m
   }, [domains])
 
-  const planMap = useMemo(() => new Map(currentPlannings.map((p) => [p.control_id, p])), [currentPlannings])
   const assignMap = useMemo(() => new Map(currentAssignments.map((a) => [a.control_id, a.auditor_id])), [currentAssignments])
   const proposalAssignMap = useMemo(() => new Map(assignments.map((a) => [a.control_id, a.auditor_id])), [assignments])
   const auditorMap = useMemo(() => {
@@ -51,36 +49,26 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
   // Compute diffs
   const diffs = useMemo(() => proposals.map((p) => {
     const ctrl = controlMap.get(p.id)
-    const current = planMap.get(p.id)
     const currentAuditor = assignMap.get(p.id) ?? null
     const proposedAuditor = proposalAssignMap.get(p.id) ?? null
-
-    const currentTechs = (current?.audit_techniques ?? []).slice().sort()
-    const proposedTechs = p.audit_techniques.slice().sort()
-    const techsChanged = JSON.stringify(currentTechs) !== JSON.stringify(proposedTechs)
     const auditorChanged = currentAuditor !== proposedAuditor && proposedAuditor !== null
-
-    const hasChange = techsChanged || auditorChanged
     return {
       controlId: p.id,
       code: ctrl?.code ?? p.id.slice(0, 8),
       name: ctrl?.name ?? '',
       domainCode: ctrl?.domainCode ?? '',
       proposal: p,
-      currentTechs,
-      proposedTechs,
       currentAuditor,
       proposedAuditor,
-      techsChanged, auditorChanged,
-      hasChange,
+      auditorChanged,
+      hasChange: auditorChanged,
     }
-  }), [proposals, controlMap, planMap, assignMap, proposalAssignMap])
+  }), [proposals, controlMap, assignMap, proposalAssignMap])
 
   const changedDiffs = diffs.filter((d) => d.hasChange)
   const [selected, setSelected] = useState<Set<string>>(new Set(changedDiffs.map((d) => d.controlId)))
 
   const stats = useMemo(() => ({
-    techsChanges: changedDiffs.filter((d) => d.techsChanged).length,
     auditorChanges: changedDiffs.filter((d) => d.auditorChanged).length,
   }), [changedDiffs])
 
@@ -128,7 +116,6 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
         {/* Stats */}
         {changedDiffs.length > 0 && (
           <div className="px-5 py-2.5 border-b border-gray-200 bg-[#FAFAFA] flex items-center gap-4 text-[11px]">
-            <StatBadge label="Techniques chang&eacute;es" count={stats.techsChanges} />
             <StatBadge label="Affectations propos&eacute;es" count={stats.auditorChanges} />
             <div className="ml-auto flex items-center gap-2">
               <label className="flex items-center gap-1.5 text-[11px] text-gray-700 cursor-pointer">
@@ -175,13 +162,6 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
                         </div>
 
                         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
-                          {d.techsChanged && (
-                            <DiffField
-                              label="Techniques"
-                              before={<span className="text-gray-500">{d.currentTechs.join(', ') || '-'}</span>}
-                              after={<span className="text-forest-700 font-medium">{d.proposedTechs.join(', ') || '-'}</span>}
-                            />
-                          )}
                           {d.auditorChanged && (
                             <DiffField
                               label="Auditeur"

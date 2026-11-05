@@ -47,8 +47,8 @@ interface MissionPlanningTabProps {
 type PlanTab = 'programme' | 'entretiens' | 'acteurs'
 
 export function MissionPlanningTab({ mission, domains, members, assignments, onRefetch }: MissionPlanningTabProps) {
-  const { plannings, interviews, contacts, loading, error, refetch: refetchPlanning } = usePlanningData(mission.id)
-  const { upsertPlanning, batchUpsert, saving: planSaving } = useSavePlanning(refetchPlanning)
+  const { interviews, contacts, loading, error, refetch: refetchPlanning } = usePlanningData(mission.id)
+  const { batchUpsert, saving: planSaving } = useSavePlanning(refetchPlanning)
   const { assignControls, assigning } = useAssignControls(onRefetch)
   const bulkSaving = planSaving || assigning
   const { createInterview, updateInterview, deleteInterview, saving: interviewSaving, error: interviewError } = useInterviews(refetchPlanning)
@@ -88,7 +88,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   // table) ou route vers l'onglet qui porte le correctif (acteurs / entretiens).
   const handleGateFix = useCallback((key: string): void => {
     if (key === 'assigned') { setWorkFilter('noauditor'); setActiveTab('programme') }
-    else if (key === 'technique') { setWorkFilter('notech'); setActiveTab('programme') }
     else if (key === 'actors') setActiveTab('acteurs')
     else setActiveTab('entretiens')
   }, [])
@@ -138,10 +137,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
     return m
   }, [domains])
 
-  const handlePlanningChange = useCallback((controlId: string, field: string, value: unknown) => {
-    upsertPlanning(mission.id, controlId, { [field]: value })
-  }, [mission.id, upsertPlanning])
-
   const handleAssign = useCallback((controlId: string, auditorId: string) => {
     assignControls(mission.id, [{ control_id: controlId, auditor_id: auditorId }])
   }, [mission.id, assignControls])
@@ -149,16 +144,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const handleAssignDomain = useCallback((controlIds: string[], auditorId: string) => {
     assignControls(mission.id, controlIds.map((id) => ({ control_id: id, auditor_id: auditorId })))
   }, [mission.id, assignControls])
-
-  const handleBulkPlanning = useCallback(async (controlIds: string[], data: { risk_level?: RiskLevel; audit_techniques?: AuditTechnique[] }): Promise<boolean> => {
-    if (controlIds.length === 0) return true
-    const entries: ControlPlanningInsert[] = controlIds.map((id) => ({
-      mission_id: mission.id,
-      control_id: id,
-      ...data,
-    }))
-    return batchUpsert(entries)
-  }, [mission.id, batchUpsert])
 
   const handleBulkAssign = useCallback(async (controlIds: string[], auditorId: string): Promise<void> => {
     if (controlIds.length === 0) return
@@ -310,7 +295,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
         {activeTab === 'programme' && (
           <PlanningValidationGate
             domains={domains}
-            plannings={plannings}
             assignments={assignments}
             contacts={contacts}
             interviews={interviews}
@@ -339,13 +323,10 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           <WorkProgramTable
             missionId={mission.id}
             domains={domains}
-            plannings={plannings}
             assignments={assignments}
             members={members}
-            onPlanningChange={handlePlanningChange}
             onAssign={handleAssign}
             onAssignDomain={handleAssignDomain}
-            onBulkPlanning={handleBulkPlanning}
             onBulkAssign={handleBulkAssign}
             bulkSaving={bulkSaving}
             externalSelection={selection}
@@ -386,7 +367,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           proposals={preview.proposals}
           assignments={preview.assignments}
           domains={domains}
-          currentPlannings={plannings}
           currentAssignments={assignments}
           members={members}
           applying={applyingPreview}

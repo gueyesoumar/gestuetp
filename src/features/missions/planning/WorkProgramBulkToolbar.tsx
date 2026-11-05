@@ -1,6 +1,4 @@
-import { useState, useRef } from 'react'
-import { X, ChevronDown, Loader2 } from 'lucide-react'
-import type { AuditTechnique } from '../../../types/database.types'
+import { X, Loader2 } from 'lucide-react'
 import type { MissionMemberRow } from '../useMissionDetail'
 
 interface WorkProgramBulkToolbarProps {
@@ -9,17 +7,7 @@ interface WorkProgramBulkToolbarProps {
   saving: boolean
   onClear: () => void
   onAssignAuditor: (auditorId: string) => Promise<void>
-  onSetTechniques: (techniques: AuditTechnique[]) => Promise<void>
 }
-
-const TECHNIQUES: { value: AuditTechnique; label: string }[] = [
-  { value: 'inspection', label: 'Inspection' },
-  { value: 'entretien', label: 'Entretien' },
-  { value: 'observation', label: 'Observation' },
-  { value: 'reexecution', label: 'Re-exécution' },
-  { value: 'echantillon', label: 'Échantillon' },
-  { value: 'analytique', label: 'Analytique' },
-]
 
 export function WorkProgramBulkToolbar({
   selectedCount,
@@ -27,27 +15,7 @@ export function WorkProgramBulkToolbar({
   saving,
   onClear,
   onAssignAuditor,
-  onSetTechniques,
 }: WorkProgramBulkToolbarProps) {
-  const [techniquesOpen, setTechniquesOpen] = useState(false)
-  const [techUp, setTechUp] = useState(false)
-  const techBtnRef = useRef<HTMLButtonElement>(null)
-  const [pickedTechniques, setPickedTechniques] = useState<Set<AuditTechnique>>(new Set())
-
-  const toggleTechnique = (t: AuditTechnique): void => {
-    setPickedTechniques((prev) => {
-      const next = new Set(prev)
-      if (next.has(t)) next.delete(t); else next.add(t)
-      return next
-    })
-  }
-
-  const applyTechniques = async (): Promise<void> => {
-    await onSetTechniques([...pickedTechniques])
-    setPickedTechniques(new Set())
-    setTechniquesOpen(false)
-  }
-
   return (
     <div className="flex items-center gap-2 px-4 py-2.5 bg-forest-700 text-white border-b border-forest-900 sticky top-0 z-[2]">
       <button
@@ -84,59 +52,6 @@ export function WorkProgramBulkToolbar({
         ))}
       </select>
 
-      {/* Set techniques (multi) */}
-      <div className="relative">
-        <button
-          ref={techBtnRef}
-          type="button"
-          disabled={saving}
-          onClick={() => { if (!techniquesOpen && techBtnRef.current) setTechUp(window.innerHeight - techBtnRef.current.getBoundingClientRect().bottom < 320); setTechniquesOpen(!techniquesOpen) }}
-          className="text-[11px] bg-forest-900/40 border border-forest-900 rounded-lg px-2 py-1 text-white inline-flex items-center gap-1 hover:bg-forest-900/60 disabled:opacity-50"
-        >
-          Techniques <ChevronDown size={11} />
-        </button>
-        {techniquesOpen && (
-          <>
-            <div className="fixed inset-0 z-[5]" onClick={() => setTechniquesOpen(false)} />
-            <div className={`absolute right-0 z-10 w-52 bg-white border border-gray-200 rounded-xl shadow-lg p-2 text-gray-700 ${techUp ? 'bottom-9' : 'top-9'}`}>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-1.5 px-1">
-                Techniques &agrave; appliquer
-              </p>
-              {TECHNIQUES.map((t) => (
-                <label key={t.value} className="flex items-center gap-2 px-1.5 py-1 hover:bg-forest-50 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={pickedTechniques.has(t.value)}
-                    onChange={() => toggleTechnique(t.value)}
-                    className="w-3.5 h-3.5 accent-forest-700"
-                  />
-                  <span className="text-[12px]">{t.label}</span>
-                </label>
-              ))}
-              <div className="border-t border-gray-100 mt-1.5 pt-1.5 flex justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPickedTechniques(new Set())}
-                  className="text-[11px] text-gray-500 hover:text-gray-700 px-2 py-1"
-                >
-                  R&eacute;init.
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void applyTechniques()}
-                  disabled={pickedTechniques.size === 0}
-                  className="text-[11px] font-semibold text-white bg-forest-700 hover:bg-forest-900 px-2.5 py-1 rounded-lg disabled:opacity-40"
-                >
-                  Appliquer
-                </button>
-              </div>
-              <p className="text-[10px] text-gray-400 leading-relaxed mt-1.5 px-1">
-                Remplace les techniques actuelles des contr&ocirc;les s&eacute;lectionn&eacute;s.
-              </p>
-            </div>
-          </>
-        )}
-      </div>
     </div>
   )
 }
