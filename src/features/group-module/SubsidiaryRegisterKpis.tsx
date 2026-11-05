@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { InfoPopover } from '../../components/ui/InfoPopover'
 import type { SubsidiaryRow } from './useSubsidiaries'
 
 /**
@@ -20,18 +21,21 @@ export function SubsidiaryRegisterKpis({ rows, entityLabel }: { rows: Subsidiary
     }
   }, [rows])
 
-  const tiles: { label: string; value: string; tone: string }[] = [
-    { label: entityLabel, value: String(count), tone: 'text-gray-900' },
-    { label: 'Conformité faible', value: String(lowConf), tone: lowConf > 0 ? 'text-red-600' : 'text-gray-900' },
-    { label: 'Non contrôlés', value: String(uncontrolled), tone: uncontrolled > 0 ? 'text-gold-600' : 'text-gray-900' },
-    { label: 'Revues en retard', value: String(reviewLate), tone: reviewLate > 0 ? 'text-red-600' : 'text-gray-900' },
+  const tiles: { label: string; value: string; tone: string; info: string }[] = [
+    { label: entityLabel, value: String(count), tone: 'text-gray-900', info: 'Nombre d’entités correspondant aux filtres et à la recherche en cours (la sélection affichée, pas le total du parc).' },
+    { label: 'Conformité faible', value: String(lowConf), tone: lowConf > 0 ? 'text-red-600' : 'text-gray-900', info: 'Entités dont le score de conformité est inférieur à 60 %. Score calculé sur les missions clôturées, pondéré par niveau (conforme 100, largement 75, partiellement 50, non conforme 0 ; non applicable exclu). Les entités jamais évaluées ne sont pas comptées ici.' },
+    { label: 'Non contrôlés', value: String(uncontrolled), tone: uncontrolled > 0 ? 'text-gold-600' : 'text-gray-900', info: 'Entités sans aucune mission (ni active ni clôturée) : angle mort de couverture, jamais évaluées.' },
+    { label: 'Revues en retard', value: String(reviewLate), tone: reviewLate > 0 ? 'text-red-600' : 'text-gray-900', info: 'Entités dont l’échéance de revue périodique la plus urgente est dépassée.' },
   ]
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {tiles.map((t) => (
         <div key={t.label} className="rounded-xl border border-gray-200 bg-white px-4 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t.label}</p>
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t.label}</p>
+            <InfoPopover text={t.info} />
+          </div>
           <p className={`mt-0.5 text-[22px] font-bold tabular-nums ${t.tone}`}>{t.value}</p>
         </div>
       ))}
