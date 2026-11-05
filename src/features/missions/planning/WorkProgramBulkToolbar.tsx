@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { X, ChevronDown, Loader2 } from 'lucide-react'
-import type { RiskLevel, AuditTechnique } from '../../../types/database.types'
+import type { AuditTechnique } from '../../../types/database.types'
 import type { MissionMemberRow } from '../useMissionDetail'
 
 interface WorkProgramBulkToolbarProps {
@@ -9,16 +9,8 @@ interface WorkProgramBulkToolbarProps {
   saving: boolean
   onClear: () => void
   onAssignAuditor: (auditorId: string) => Promise<void>
-  onSetRisk: (risk: RiskLevel) => Promise<void>
   onSetTechniques: (techniques: AuditTechnique[]) => Promise<void>
 }
-
-const RISKS: { value: RiskLevel; label: string; cls: string }[] = [
-  { value: 'critical', label: 'Critique', cls: 'bg-red-600 text-white' },
-  { value: 'high', label: 'Élevé', cls: 'bg-amber-500 text-white' },
-  { value: 'medium', label: 'Moyen', cls: 'bg-yellow-400 text-yellow-900' },
-  { value: 'low', label: 'Faible', cls: 'bg-gray-300 text-gray-700' },
-]
 
 const TECHNIQUES: { value: AuditTechnique; label: string }[] = [
   { value: 'inspection', label: 'Inspection' },
@@ -35,7 +27,6 @@ export function WorkProgramBulkToolbar({
   saving,
   onClear,
   onAssignAuditor,
-  onSetRisk,
   onSetTechniques,
 }: WorkProgramBulkToolbarProps) {
   const [techniquesOpen, setTechniquesOpen] = useState(false)
@@ -92,23 +83,6 @@ export function WorkProgramBulkToolbar({
           </option>
         ))}
       </select>
-
-      {/* Set risk */}
-      <div className="flex items-center gap-1 bg-forest-900/40 rounded-lg px-1.5 py-0.5 border border-forest-900">
-        <span className="text-[10px] uppercase tracking-wide opacity-70 mr-1">Risque</span>
-        {RISKS.map((r) => (
-          <button
-            key={r.value}
-            type="button"
-            disabled={saving}
-            onClick={() => void onSetRisk(r.value)}
-            className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.cls} hover:opacity-80 disabled:opacity-50`}
-            title={r.label}
-          >
-            {r.label[0]}
-          </button>
-        ))}
-      </div>
 
       {/* Set techniques (multi) */}
       <div className="relative">

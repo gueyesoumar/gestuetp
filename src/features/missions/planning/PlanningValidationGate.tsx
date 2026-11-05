@@ -25,7 +25,7 @@ interface PlanningValidationGateProps {
 }
 
 // Checks liés aux entretiens - masqués si la sous-étape Entretiens est désélectionnée.
-const INTERVIEW_CHECK_KEYS = ['interviews', 'critical-coverage', 'domains-topics']
+const INTERVIEW_CHECK_KEYS = ['interviews', 'domains-topics']
 
 interface CheckItem {
   key: string
@@ -73,24 +73,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
     // 4. Au moins 1 entretien planifié (non annulé)
     const activeInterviews = interviews.filter((iv) => iv.status !== 'cancelled')
 
-    // 5. Couverture critique : chaque contrôle critique a au moins 1 entretien
-    const topicsByControl = new Map<string, string[]>()
-    for (const t of topics) {
-      for (const cid of t.control_ids) {
-        const arr = topicsByControl.get(cid) ?? []
-        arr.push(t.id)
-        topicsByControl.set(cid, arr)
-      }
-    }
-    const coveredTopicIds = new Set<string>()
-    for (const iv of activeInterviews) for (const tid of iv.topic_ids) coveredTopicIds.add(tid)
-    const criticalControls = allControls.filter((c) => planMap.get(c.id)?.risk_level === 'critical')
-    const criticalCovered = criticalControls.filter((c) => {
-      const tids = topicsByControl.get(c.id) ?? []
-      return tids.some((tid) => coveredTopicIds.has(tid))
-    }).length
-
-    // 6. Domaines avec au moins 1 sujet
+    // 5. Domaines avec au moins 1 sujet
     const domainsWithTopics = domains.filter((d) => {
       const ctrlIds = new Set(d.controls.map((c) => c.id))
       return topics.some((t) => t.control_ids.some((cid) => ctrlIds.has(cid)))
@@ -128,14 +111,6 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
         blocker: false,
         ok: activeInterviews.length > 0,
         countLabel: `${activeInterviews.length}`,
-      },
-      {
-        key: 'critical-coverage',
-        label: 'Contrôles critiques couverts par un entretien',
-        detail: 'Chaque contrôle classé Critique devrait être abordé en entretien.',
-        blocker: false,
-        ok: criticalControls.length === 0 || criticalCovered === criticalControls.length,
-        countLabel: criticalControls.length === 0 ? '-' : `${criticalCovered}/${criticalControls.length}`,
       },
       {
         key: 'domains-topics',
