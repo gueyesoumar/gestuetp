@@ -7,6 +7,7 @@ import { useMissionUserRole } from '../useMissionUserRole'
 import { useMissionFindingsCount } from '../useMissionFindingsCount'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
+import { InfoPopover } from '../../../components/ui/InfoPopover'
 import type { MissionDetail, MissionMemberRow } from '../useMissionDetail'
 import type { AssessmentWithControl } from '../useAuditorAssessments'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
@@ -63,11 +64,11 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
 
       {/* KPI row */}
       <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-5">
-        <KpiCard label="Progression globale" value={`${progress.overallPercent}%`} color="var(--color-forest-700)" bar={progress.overallPercent} barColor="#40916C" />
-        <KpiCard label="Contr&ocirc;les &eacute;valu&eacute;s" value={`${progress.assessedControls}/${progress.totalControls}`} color="var(--color-gold-500)" sub={`${progress.submittedControls} soumis \u00b7 ${progress.approvedControls} approuv\u00e9s`} />
-        <KpiCard label="Conformit&eacute;" value={`${progress.conformityScore}%`} color="var(--color-success)" sub="Score pond&eacute;r&eacute;" />
-        <KpiCard label="Constats" value={findingsCount === null ? '...' : `${findingsCount}`} color="var(--color-gold-600)" sub="relev&eacute;s" />
-        <KpiCard label="Jours restants" value={progress.daysRemaining !== null ? `${progress.daysRemaining}` : '-'} color="var(--color-forest-700)" />
+        <KpiCard label="Progression globale" value={`${progress.overallPercent}%`} color="var(--color-forest-700)" bar={progress.overallPercent} barColor="#40916C" info="Avancement de la mission : position dans les phases du moteur (5 pour le Contr\u00f4le, 6 pour l\u2019Audit) combin\u00e9e au taux de contr\u00f4les \u00e9valu\u00e9s." />
+        <KpiCard label="Contr&ocirc;les &eacute;valu&eacute;s" value={`${progress.assessedControls}/${progress.totalControls}`} color="var(--color-gold-500)" sub={`${progress.submittedControls} soumis \u00b7 ${progress.approvedControls} approuv\u00e9s`} info="Contr\u00f4les soumis, en revue ou approuv\u00e9s, sur le total du p\u00e9rim\u00e8tre de la mission." />
+        <KpiCard label="Conformit&eacute;" value={`${progress.conformityScore}%`} color="var(--color-success)" sub="Score pond&eacute;r&eacute;" info="Score pond\u00e9r\u00e9 sur les contr\u00f4les \u00e9valu\u00e9s : conforme 100, largement 75, partiellement 50, non conforme 0. Les non applicables et non \u00e9valu\u00e9s sont exclus." />
+        <KpiCard label="Constats" value={findingsCount === null ? '...' : `${findingsCount}`} color="var(--color-gold-600)" sub="relev&eacute;s" info="Nombre de constats relev\u00e9s sur les contr\u00f4les de la mission, toutes classifications confondues (majeur, mineur, observation, point fort)." />
+        <KpiCard label="Jours restants" value={progress.daysRemaining !== null ? `${progress.daysRemaining}` : '-'} color="var(--color-forest-700)" info="Jours avant la date de fin pr\u00e9vue de la mission." />
       </div>
 
       {/* Two columns */}
@@ -82,12 +83,15 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
   )
 }
 
-function KpiCard({ label, value, color, sub, bar, barColor }: {
-  label: string; value: string; color: string; sub?: string; bar?: number; barColor?: string
+function KpiCard({ label, value, color, sub, bar, barColor, info }: {
+  label: string; value: string; color: string; sub?: string; bar?: number; barColor?: string; info?: string
 }){
   return (
     <div className="bg-white border border-gray-200 rounded-xl px-5 py-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">{label}</p>
+      <div className="flex items-center justify-between gap-1 mb-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+        {info && <InfoPopover text={info} />}
+      </div>
       <p className="text-[28px] font-bold leading-none" style={{ color }}>{value}</p>
       {sub && <p className="text-xs text-gray-300 mt-1">{sub}</p>}
       {bar !== undefined && (
