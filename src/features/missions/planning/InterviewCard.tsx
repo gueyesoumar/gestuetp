@@ -6,7 +6,6 @@ import type { InterviewWithRelations } from './usePlanningData'
 interface InterviewCardProps {
   interview: InterviewWithRelations
   actors: ClientContact[]
-  topicLabels: Map<string, string>
   onEdit: (interview: InterviewWithRelations) => void
   onStatusChange: (id: string, status: InterviewStatus) => void
   onDelete: (id: string) => void
@@ -20,7 +19,7 @@ const STATUS_CONFIG: Record<InterviewStatus, { label: string; cls: string }> = {
   rescheduled: { label: 'Report\u00e9', cls: 'bg-amber-50 text-amber-600' },
 }
 
-export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatusChange, onDelete }: InterviewCardProps) {
+export function InterviewCard({ interview, actors, onEdit, onStatusChange, onDelete }: InterviewCardProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [menuUp, setMenuUp] = useState(false)
   const menuBtnRef = useRef<HTMLButtonElement>(null)
@@ -60,18 +59,6 @@ export function InterviewCard({ interview, actors, topicLabels, onEdit, onStatus
             <>{' \u00b7 '}<strong>{actors.map((a) => a.name).join(', ')}</strong></>
           )}
         </p>
-
-        {/* Topic tags */}
-        {interview.topic_ids.length > 0 && (
-          <div className="flex gap-1 mt-1.5 flex-wrap">
-            {interview.topic_ids.slice(0, 4).map((id) => (
-              <span key={id} className="text-[9px] px-1.5 py-0.5 rounded bg-gold-50 text-gold-700 border border-gold-200">
-                {topicLabels.get(id) ?? id.slice(0, 8)}
-              </span>
-            ))}
-            {interview.topic_ids.length > 4 && <span className="text-[9px] text-gray-300">+{interview.topic_ids.length - 4}</span>}
-          </div>
-        )}
 
         {/* Notes/compte-rendu (collapsed) */}
         {interview.notes && (
