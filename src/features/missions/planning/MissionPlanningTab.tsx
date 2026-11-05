@@ -12,7 +12,7 @@ import { useInterviews } from './useInterviews'
 import { useInterviewRelations } from './useInterviewRelations'
 import { useAuditTopics } from './useAuditTopics'
 import { generateWorkProgram } from './generateWorkProgram'
-import { WorkProgramTable } from './WorkProgramTable'
+import { WorkProgramTable, type WorkFilter } from './WorkProgramTable'
 import { InterviewsPanel } from './InterviewsPanel'
 import { InterviewFormModal } from './InterviewFormModal'
 import { InterviewEditModal } from './InterviewEditModal'
@@ -82,6 +82,15 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
   const [aiSkip, setAiSkip] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selection, setSelection] = useState<Set<string>>(new Set())
+  const [workFilter, setWorkFilter] = useState<WorkFilter>('all')
+  // « Corriger » d'un prérequis du gate : cible les contrôles concernés (filtre la
+  // table) ou route vers l'onglet qui porte le correctif (acteurs / entretiens).
+  const handleGateFix = useCallback((key: string): void => {
+    if (key === 'assigned') { setWorkFilter('noauditor'); setActiveTab('programme') }
+    else if (key === 'technique') { setWorkFilter('notech'); setActiveTab('programme') }
+    else if (key === 'actors') setActiveTab('acteurs')
+    else setActiveTab('entretiens')
+  }, [])
   const [preview, setPreview] = useState<{ proposals: SmartPlanProposal[]; assignments: SmartPlanAssignment[] } | null>(null)
   const [applyingPreview, setApplyingPreview] = useState(false)
   const [validating, setValidating] = useState(false)
@@ -313,6 +322,7 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             serverMissing={serverMissing}
             onValidate={handleValidatePlanning}
             showInterviewChecks={showInterviews}
+            onFix={handleGateFix}
           />
         )}
 
@@ -353,6 +363,8 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
             bulkSaving={bulkSaving}
             externalSelection={selection}
             onSelectionChange={setSelection}
+            workFilter={workFilter}
+            onWorkFilter={setWorkFilter}
           />
         )}
         {showInterviews && activeTab === 'entretiens' && (
