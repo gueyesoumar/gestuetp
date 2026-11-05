@@ -12,6 +12,7 @@ import { Pagination, pageSlice } from '../../components/ui/Pagination'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { buildSubsidiaryFilterDefs, buildDescendantsResolver } from './subsidiaryHelpers'
+import { SubsidiaryRegisterKpis } from './SubsidiaryRegisterKpis'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useToast } from '../../hooks/useToast'
@@ -24,7 +25,7 @@ export function SubsidiariesPage(): JSX.Element {
   const vocab = useVocab()
   const isRegul = useIsRegul()
   const { profile } = useAuth()
-  const { subsidiaries, loading, totalCount, averageScore, totalActiveMissions, totalOverdue, refresh } = useSubsidiaries()
+  const { subsidiaries, loading, totalCount, refresh } = useSubsidiaries()
   const { canManageSubsidiaries } = useGroupPermissions()
   const { deactivateEntity } = useManageEntity()
   const toast = useToast()
@@ -93,11 +94,7 @@ export function SubsidiariesPage(): JSX.Element {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">{vocab.entitiesTitle}</h2>
-          <p className="mt-1 text-[13px] text-gray-500">
-            {totalCount === 0
-              ? `Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} rattaché${vocab.entityGender === 'f' ? 'e' : ''}.`
-              : `${totalCount} ${totalCount > 1 ? vocab.entityPlural : vocab.entitySingular} ${averageScore !== null ? `· score moyen ${averageScore}%` : ''} · ${totalActiveMissions} mission${totalActiveMissions !== 1 ? 's' : ''} active${totalActiveMissions !== 1 ? 's' : ''}${totalOverdue > 0 ? ` · ${totalOverdue} plan${totalOverdue > 1 ? 's' : ''} en retard` : ''}`}
-          </p>
+          <p className="mt-1 text-[13px] text-gray-500">{isRegul ? 'Les entités supervisées, leur criticité et leur conformité.' : 'Les entités rattachées, leur périmètre et leur conformité.'}</p>
         </div>
         {canManageSubsidiaries && (
           <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
@@ -107,7 +104,10 @@ export function SubsidiariesPage(): JSX.Element {
       </div>
 
       {totalCount > 0 && (
-        <FilterBar defs={filterDefs} state={filters} search={{ value: search, onChange: setSearch, placeholder: `Rechercher un${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}...` }} />
+        <>
+          <FilterBar defs={filterDefs} state={filters} search={{ value: search, onChange: setSearch, placeholder: `Rechercher un${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}...` }} />
+          <SubsidiaryRegisterKpis rows={filtered} isRegul={isRegul} />
+        </>
       )}
 
       {totalCount === 0 ? (
