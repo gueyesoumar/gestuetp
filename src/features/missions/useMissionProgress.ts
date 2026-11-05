@@ -54,6 +54,15 @@ export function useMissionProgress(
       : assessments
 
     const phaseIndex = STATUS_TO_PHASE_INDEX[mission.status]
+    // Phases réelles du moteur (hors « action_plan » qui n'est pas un statut).
+    // Le dénominateur d'avancement en découle : 5 phases pour le moteur Contrôle,
+    // 6 pour l'Audit - au lieu d'un « /6 » codé en dur (faux pour le Contrôle).
+    const missionPhases = getMissionPhases(mission)
+    const statusPhases = missionPhases.filter((p) => p.key !== 'action_plan')
+    const phaseCount = statusPhases.length || 1
+    const normStatus = mission.status === 'initialization' ? 'scoping' : mission.status
+    const stepPos = statusPhases.findIndex((p) => p.key === normStatus)
+    const stepN = stepPos >= 0 ? stepPos + 1 : phaseIndex + 1
     const totalControls = scopedDomains.reduce((sum, d) => sum + d.controls.length, 0)
     const assessedControls = scopedAssessments.filter((a) => isAssessmentCompleted(a.status)).length
     const approvedControls = scopedAssessments.filter((a) => isAssessmentApproved(a.status)).length
@@ -79,8 +88,8 @@ export function useMissionProgress(
     const conformityScore = conformityCount > 0 ? Math.round(conformitySum / conformityCount) : 0
 
     const overallPercent = totalControls > 0
-      ? Math.round(((phaseIndex + 1) / 6) * 50 + (assessedControls / totalControls) * 50)
-      : Math.round(((phaseIndex + 1) / 6) * 100)
+      ? Math.round((stepN / phaseCount) * 50 + (assessedControls / totalControls) * 50)
+      : Math.round((stepN / phaseCount) * 100)
 
     let daysRemaining: number | null = null
     if (mission.end_date) {
@@ -91,11 +100,11 @@ export function useMissionProgress(
     const draftCount = scopedAssessments.filter((a) => a.status === 'draft' || a.status === 'rejected').length
     // Parcours sans « Validation client » (moteur contrôle/supervision, ou étape
     // désélectionnée par le template RFC 0009) → la Revue mène droit à la clôture.
-    const skipClientReview = !getMissionPhases(mission).some((p) => p.key === 'client_review')
+    const skipClientReview = !missionPhases.some((p) => p.key === 'client_review')
     const nextAction = computeNextAction(mission.status, draftCount, submittedControls, totalControls, assessedControls, skipClientReview)
 
     const isClosure = mission.status === 'closure'
-    const phases = getMissionPhases(mission)
+    const phases = missionPhases
       // Phase virtuelle "action_plan" visible uniquement pendant la cl\u00f4ture
       .filter((p) => p.key !== 'action_plan' || isClosure)
       .map((p) => {

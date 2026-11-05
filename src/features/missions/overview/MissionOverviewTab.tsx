@@ -4,6 +4,7 @@ import { TeamActivityPanel } from './TeamActivityPanel'
 import { EvidenceTracker } from './EvidenceTracker'
 import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionUserRole } from '../useMissionUserRole'
+import { useMissionFindingsCount } from '../useMissionFindingsCount'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import type { MissionDetail, MissionMemberRow } from '../useMissionDetail'
@@ -34,6 +35,15 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
       .filter((d) => d.controls.length > 0)
   }, [domains, userRole.isPrivileged, userRole.loading, userRole.assignedControlIds])
 
+  // Constats : scopés comme les autres KPI (auditeur restreint = ses contrôles).
+  const scopedAssessmentIds = useMemo(() => {
+    const inScope = userRole.isPrivileged || userRole.loading
+      ? assessments
+      : assessments.filter((a) => userRole.assignedControlIds.has(a.control_id))
+    return inScope.map((a) => a.id)
+  }, [assessments, userRole.isPrivileged, userRole.loading, userRole.assignedControlIds])
+  const findingsCount = useMissionFindingsCount(scopedAssessmentIds)
+
   // Tant que le rôle de l'utilisateur sur la mission n'est pas résolu, on n'affiche
   // NI la vue normale NI l'état vide : sinon un auditeur restreint voit une fraction
   // de seconde la vue d'ensemble complète avant de basculer sur « aucun contrôle ».
@@ -52,10 +62,11 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
     <div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-5">
         <KpiCard label="Progression globale" value={`${progress.overallPercent}%`} color="var(--color-forest-700)" bar={progress.overallPercent} barColor="#40916C" />
         <KpiCard label="Contr&ocirc;les &eacute;valu&eacute;s" value={`${progress.assessedControls}/${progress.totalControls}`} color="var(--color-gold-500)" sub={`${progress.submittedControls} soumis \u00b7 ${progress.approvedControls} approuv\u00e9s`} />
         <KpiCard label="Conformit&eacute;" value={`${progress.conformityScore}%`} color="var(--color-success)" sub="Score pond&eacute;r&eacute;" />
+        <KpiCard label="Constats" value={findingsCount === null ? '...' : `${findingsCount}`} color="var(--color-gold-600)" sub="relev&eacute;s" />
         <KpiCard label="Jours restants" value={progress.daysRemaining !== null ? `${progress.daysRemaining}` : '-'} color="var(--color-forest-700)" />
       </div>
 
