@@ -32,13 +32,6 @@ interface SmartPlanPreviewModalProps {
   onClose: () => void
 }
 
-const RISK_LABEL: Record<RiskLevel, { label: string; cls: string }> = {
-  critical: { label: 'Critique', cls: 'bg-red-50 text-red-700 border-red-200' },
-  high: { label: 'Élevé', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  medium: { label: 'Moyen', cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  low: { label: 'Faible', cls: 'bg-gray-50 text-gray-600 border-gray-200' },
-}
-
 export function SmartPlanPreviewModal({ proposals, assignments, domains, currentPlannings, currentAssignments, members, applying, onApply, onClose }: SmartPlanPreviewModalProps) {
   const controlMap = useMemo(() => {
     const m = new Map<string, { code: string; name: string; domainCode: string }>()
@@ -62,25 +55,23 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
     const currentAuditor = assignMap.get(p.id) ?? null
     const proposedAuditor = proposalAssignMap.get(p.id) ?? null
 
-    const riskChanged = (current?.risk_level ?? 'medium') !== p.risk_level
     const currentTechs = (current?.audit_techniques ?? []).slice().sort()
     const proposedTechs = p.audit_techniques.slice().sort()
     const techsChanged = JSON.stringify(currentTechs) !== JSON.stringify(proposedTechs)
     const auditorChanged = currentAuditor !== proposedAuditor && proposedAuditor !== null
 
-    const hasChange = riskChanged || techsChanged || auditorChanged
+    const hasChange = techsChanged || auditorChanged
     return {
       controlId: p.id,
       code: ctrl?.code ?? p.id.slice(0, 8),
       name: ctrl?.name ?? '',
       domainCode: ctrl?.domainCode ?? '',
       proposal: p,
-      currentRisk: current?.risk_level ?? 'medium' as RiskLevel,
       currentTechs,
       proposedTechs,
       currentAuditor,
       proposedAuditor,
-      riskChanged, techsChanged, auditorChanged,
+      techsChanged, auditorChanged,
       hasChange,
     }
   }), [proposals, controlMap, planMap, assignMap, proposalAssignMap])
@@ -89,7 +80,6 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
   const [selected, setSelected] = useState<Set<string>>(new Set(changedDiffs.map((d) => d.controlId)))
 
   const stats = useMemo(() => ({
-    riskChanges: changedDiffs.filter((d) => d.riskChanged).length,
     techsChanges: changedDiffs.filter((d) => d.techsChanged).length,
     auditorChanges: changedDiffs.filter((d) => d.auditorChanged).length,
   }), [changedDiffs])
@@ -138,7 +128,6 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
         {/* Stats */}
         {changedDiffs.length > 0 && (
           <div className="px-5 py-2.5 border-b border-gray-200 bg-[#FAFAFA] flex items-center gap-4 text-[11px]">
-            <StatBadge label="Risques modifi&eacute;s" count={stats.riskChanges} />
             <StatBadge label="Techniques chang&eacute;es" count={stats.techsChanges} />
             <StatBadge label="Affectations propos&eacute;es" count={stats.auditorChanges} />
             <div className="ml-auto flex items-center gap-2">
@@ -186,13 +175,6 @@ export function SmartPlanPreviewModal({ proposals, assignments, domains, current
                         </div>
 
                         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
-                          {d.riskChanged && (
-                            <DiffField
-                              label="Risque"
-                              before={<RiskPill level={d.currentRisk} />}
-                              after={<RiskPill level={d.proposal.risk_level} />}
-                            />
-                          )}
                           {d.techsChanged && (
                             <DiffField
                               label="Techniques"
@@ -270,9 +252,4 @@ function DiffField({ label, before, after }: { label: string; before: React.Reac
       {after}
     </span>
   )
-}
-
-function RiskPill({ level }: { level: RiskLevel }) {
-  const cfg = RISK_LABEL[level]
-  return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${cfg.cls}`}>{cfg.label}</span>
 }

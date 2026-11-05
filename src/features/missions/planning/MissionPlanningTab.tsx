@@ -22,7 +22,6 @@ import { ScopingActorsTab } from '../scoping/ScopingActorsTab'
 import { useMissionActors } from '../scoping/useMissionActors'
 import { buildPvTemplate } from './buildPvTemplate'
 import { PlanningBudgetBanner } from './PlanningBudgetBanner'
-import { PlanningRiskCallout } from './PlanningRiskCallout'
 import { PlanningValidationGate } from './PlanningValidationGate'
 import { SmartPlanPreviewModal } from './SmartPlanPreviewModal'
 import type { SmartPlanProposal, SmartPlanAssignment } from './SmartPlanPreviewModal'
@@ -131,10 +130,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
     }
   }, [mission.id, onRefetch, refetchPlanning])
 
-  const handleCalloutSelect = useCallback((ids: string[]) => {
-    setSelection(new Set(ids))
-    setActiveTab('programme')
-  }, [])
 
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
   const controlIdToCode = useMemo(() => {
@@ -329,17 +324,6 @@ export function MissionPlanningTab({ mission, domains, members, assignments, onR
           />
         )}
 
-        {/* Risk callout */}
-        {activeTab === 'programme' && (
-          <PlanningRiskCallout
-            domains={domains}
-            plannings={plannings}
-            assignments={assignments}
-            topics={auditTopics}
-            interviews={interviews}
-            onSelectControls={handleCalloutSelect}
-          />
-        )}
 
         {/* Sub-tabs */}
         <div className="flex border-b border-gray-200 bg-[#FAFAFA]">
