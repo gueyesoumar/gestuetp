@@ -18,6 +18,8 @@ interface PlanningValidationGateProps {
   onValidate: () => Promise<void>
   /** Sous-étape Entretiens active (RFC 0009). Si false, on masque les checks liés aux entretiens. */
   showInterviewChecks?: boolean
+  /** Rend chaque prérequis manquant actionnable (filtre la table / change d'onglet). */
+  onFix?: (key: string) => void
 }
 
 // Checks liés aux entretiens - masqués si la sous-étape Entretiens est désélectionnée.
@@ -32,7 +34,7 @@ interface CheckItem {
   countLabel: string
 }
 
-export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true }: PlanningValidationGateProps) {
+export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true, onFix }: PlanningValidationGateProps) {
   const [confirming, setConfirming] = useState(false)
 
   const checks = useMemo<CheckItem[]>(() => {
@@ -215,11 +217,15 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
               {c.ok ? <Check size={10} /> : c.blocker ? <X size={10} /> : <AlertTriangle size={10} />}
             </span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className={`text-[12px] font-medium ${c.ok ? 'text-gray-700' : c.blocker ? 'text-red-700' : 'text-amber-800'}`}>
                   {c.label}
                 </span>
+                {!c.ok && !c.blocker && <span className="rounded px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700">Avertissement</span>}
                 <span className="text-[10px] font-mono text-gray-400 ml-auto">{c.countLabel}</span>
+                {!c.ok && onFix && (
+                  <button type="button" onClick={() => onFix(c.key)} className="rounded-md border border-gray-200 bg-white px-2 py-0.5 text-[10.5px] font-semibold text-forest-700 hover:border-forest-400">Corriger</button>
+                )}
               </div>
               {!c.ok && <p className="text-[10.5px] text-gray-500 leading-snug">{c.detail}</p>}
             </div>

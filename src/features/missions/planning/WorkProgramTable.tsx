@@ -20,7 +20,12 @@ interface WorkProgramTableProps {
   bulkSaving: boolean
   externalSelection?: Set<string>
   onSelectionChange?: (ids: Set<string>) => void
+  /** Filtre de travail piloté par le parent (les boutons « Corriger » du gate l'activent). */
+  workFilter?: WorkFilter
+  onWorkFilter?: (f: WorkFilter) => void
 }
+
+export type WorkFilter = 'all' | 'notech' | 'noauditor' | 'critical'
 
 export function WorkProgramTable({
   missionId,
@@ -28,9 +33,13 @@ export function WorkProgramTable({
   onPlanningChange, onAssign, onAssignDomain,
   onBulkPlanning, onBulkAssign, bulkSaving,
   externalSelection, onSelectionChange,
+  workFilter, onWorkFilter,
 }: WorkProgramTableProps) {
   void missionId
   const [search, setSearch] = useState('')
+  const [internalFilter, setInternalFilter] = useState<WorkFilter>('all')
+  const wf = workFilter ?? internalFilter
+  const setWf = onWorkFilter ?? setInternalFilter
   const [internalSelection, setInternalSelection] = useState<Set<string>>(new Set())
   const selection = externalSelection ?? internalSelection
   const setSelection = useCallback((next: Set<string>) => {
@@ -42,6 +51,22 @@ export function WorkProgramTable({
   const assignMap = useMemo(() => new Map(assignments.map((a) => [a.control_id, a])), [assignments])
   const auditors = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
   const totalControls = domains.reduce((s, d) => s + d.controls.length, 0)
+
+  const hasTech = useCallback((id: string) => (planMap.get(id)?.audit_techniques?.length ?? 0) > 0, [planMap])
+  const matchFilter = useCallback((id: string): boolean => {
+    if (wf === 'notech') return !hasTech(id)
+    if (wf === 'noauditor') return !assignMap.has(id)
+    if (wf === 'critical') return planMap.get(id)?.risk_level === 'critical'
+    return true
+  }, [wf, hasTech, assignMap, planMap])
+  const counts = useMemo(() => {
+    const all = domains.flatMap((d) => d.controls)
+    return {
+      notech: all.filter((c) => !hasTech(c.id)).length,
+      noauditor: all.filter((c) => !assignMap.has(c.id)).length,
+      critical: all.filter((c) => planMap.get(c.id)?.risk_level === 'critical').length,
+    }
+  }, [domains, hasTech, assignMap, planMap])
 
   const toggleControl = useCallback((id: string) => {
     const next = new Set(selection)
@@ -87,13 +112,17 @@ export function WorkProgramTable({
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-gray-200 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher..."
             className="px-2.5 py-1.5 pl-7 border border-gray-200 rounded-lg text-xs w-[200px] outline-none focus:border-forest-500 bg-[#FAFAF8] bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2213%22%20height%3D%2213%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M21%2021l-4.35-4.35M11%2019a8%208%200%20100-16%208%208%200%20000%2016z%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22/%3E%3C/svg%3E')] bg-no-repeat bg-[8px_center]"
           />
+          <FilterChip label="Tous" active={wf === 'all'} onClick={() => setWf('all')} />
+          <FilterChip label="Sans technique" count={counts.notech} active={wf === 'notech'} tone="warn" onClick={() => setWf('notech')} />
+          <FilterChip label="Sans auditeur" count={counts.noauditor} active={wf === 'noauditor'} tone="warn" onClick={() => setWf('noauditor')} />
+          <FilterChip label="Critiques" count={counts.critical} active={wf === 'critical'} onClick={() => setWf('critical')} />
         </div>
         <div className="flex gap-2 items-center">
           <Badge label={`${assignments.length}/${totalControls} affectés`} variant={assignments.length === totalControls ? 'green' : 'gray'} />
@@ -117,7 +146,7 @@ export function WorkProgramTable({
               const domainAssigned = domain.controls.filter((c) => assignMap.has(c.id)).length
               const unassigned = domain.controls.filter((c) => !assignMap.has(c.id)).map((c) => c.id)
               const q = search.toLowerCase()
-              const filtered = domain.controls.filter((c) => !q || c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
+              const filtered = domain.controls.filter((c) => matchFilter(c.id) && (!q || c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)))
               if (filtered.length === 0) return null
 
               const filteredIds = filtered.map((c) => c.id)
@@ -137,7 +166,7 @@ export function WorkProgramTable({
                   domainSelected={allInDomainSelected}
                   domainPartial={!allInDomainSelected && someInDomainSelected}
                   onToggleDomain={() => toggleDomain(filteredIds)}
-                  searchActive={q.length > 0}
+                  searchActive={q.length > 0 || wf !== 'all'}
                 >
                   {filtered.map((control) => (
                     <WorkProgramControlRow
@@ -159,6 +188,18 @@ export function WorkProgramTable({
         </table>
       </div>
     </div>
+  )
+}
+
+function FilterChip({ label, count, active, tone, onClick }: { label: string; count?: number; active: boolean; tone?: 'warn'; onClick: () => void }) {
+  const base = active
+    ? tone === 'warn' ? 'bg-amber-500 border-amber-500 text-white' : 'bg-forest-700 border-forest-700 text-white'
+    : 'bg-white border-gray-200 text-gray-600 hover:border-forest-300'
+  return (
+    <button onClick={onClick} aria-pressed={active} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] font-semibold transition-colors ${base}`}>
+      {label}
+      {count !== undefined && <span className={`font-mono text-[10px] ${active ? 'opacity-85' : 'text-gray-400'}`}>{count}</span>}
+    </button>
   )
 }
 
