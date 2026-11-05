@@ -106,7 +106,7 @@ export function SubsidiariesPage(): JSX.Element {
       {totalCount > 0 && (
         <>
           <FilterBar defs={filterDefs} state={filters} search={{ value: search, onChange: setSearch, placeholder: `Rechercher un${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular}...` }} />
-          <SubsidiaryRegisterKpis rows={filtered} isRegul={isRegul} />
+          <SubsidiaryRegisterKpis rows={filtered} entityLabel={vocab.entitiesTitle} />
         </>
       )}
 
