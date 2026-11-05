@@ -1,6 +1,27 @@
 import type { FilterDef } from '../../components/filters/useFilters'
-import { CRITICALITY_OPTIONS, REGUL_ENTITY_TYPE_OPTIONS, ENTITY_TYPE_OPTIONS } from '../../lib/constants'
+import { CRITICALITY_OPTIONS, REGUL_ENTITY_TYPE_OPTIONS, ENTITY_TYPE_OPTIONS, ENTITY_TYPE_LABELS } from '../../lib/constants'
+import { coverageState } from './SubsidiaryCoverage'
 import type { SubsidiaryRow } from './useSubsidiaries'
+
+/** Lignes CSV d'un export du registre (en-tête + données), product-aware. */
+export function buildSubsidiaryCsv(rows: SubsidiaryRow[], isRegul: boolean): Array<Array<string | number>> {
+  const header = ['Assujetti', 'Secteur', 'Nature', 'Criticité', 'Couverture', 'Référentiel', 'Plans en retard', ...(isRegul ? ['Prochaine revue'] : [])]
+  const cov = (s: SubsidiaryRow): string => {
+    const st = coverageState(s.conformityScore, s.activeMissions)
+    return st === 'evaluated' ? `${s.conformityScore}%` : st === 'inprogress' ? 'En cours' : 'À évaluer'
+  }
+  const body = rows.map((s): Array<string | number> => [
+    s.name,
+    s.sector ?? '',
+    s.entityType ? ENTITY_TYPE_LABELS[s.entityType] : '',
+    isRegul && s.regulatoryProfile?.criticality === 'eleve' ? 'IIC' : 'Standard',
+    cov(s),
+    s.frameworkLabels.join(' / '),
+    s.overdueCount,
+    ...(isRegul ? [s.reviewCycle?.date ?? s.nextReviewDate ?? ''] : []),
+  ])
+  return [header, ...body]
+}
 
 /**
  * Filtres déclaratifs du registre (standard plateforme), conditionnés au produit

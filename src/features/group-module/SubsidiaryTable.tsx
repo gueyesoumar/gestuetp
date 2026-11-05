@@ -12,17 +12,25 @@ interface Props {
   routeBase: string
   onEdit?: (s: SubsidiaryRow) => void
   onDeactivate?: (s: SubsidiaryRow) => void
+  /** Sélection multiple (si fournie, affiche la colonne de cases à cocher). */
+  selected?: Set<string>
+  allChecked?: boolean
+  onToggle?: (id: string) => void
+  onToggleAll?: (checked: boolean) => void
 }
+
+const stopClick = (e: React.MouseEvent): void => e.stopPropagation()
 
 type SortKey = 'name' | 'cov' | 'plans' | 'rev'
 const initials = (name: string): string => name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 const fmt = (d: string | null): string => (d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '-')
 const revDate = (s: SubsidiaryRow): string | null => s.reviewCycle?.date ?? s.nextReviewDate
 
-export function SubsidiaryTable({ rows, isRegul, routeBase, onEdit, onDeactivate }: Props): JSX.Element {
+export function SubsidiaryTable({ rows, isRegul, routeBase, onEdit, onDeactivate, selected, allChecked, onToggle, onToggleAll }: Props): JSX.Element {
   const navigate = useNavigate()
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'name', dir: 1 })
   const showActions = !!onEdit || !!onDeactivate
+  const selectable = !!selected && !!onToggle
 
   const sorted = useMemo(() => {
     const val = (s: SubsidiaryRow): string | number => {
@@ -45,6 +53,9 @@ export function SubsidiaryTable({ rows, isRegul, routeBase, onEdit, onDeactivate
       <table className="w-full min-w-[820px] border-collapse">
         <thead>
           <tr className="border-b border-gray-100 bg-gray-50/60">
+            {selectable && (
+              <th className="w-10 px-3.5 py-2.5"><input type="checkbox" className="h-4 w-4 accent-forest-700 align-middle" checked={!!allChecked} onChange={(e) => onToggleAll?.(e.target.checked)} aria-label="Tout sélectionner" /></th>
+            )}
             {th('name', 'Assujetti')}
             <th className="px-3.5 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-gray-500">Nature</th>
             <th className="px-3.5 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-gray-500">Criticité</th>
@@ -57,7 +68,10 @@ export function SubsidiaryTable({ rows, isRegul, routeBase, onEdit, onDeactivate
         </thead>
         <tbody>
           {sorted.map((s) => (
-            <tr key={s.id} onClick={() => navigate(`${routeBase}/${s.id}`)} className="cursor-pointer border-b border-gray-50 last:border-0 hover:bg-gray-50/70">
+            <tr key={s.id} onClick={() => navigate(`${routeBase}/${s.id}`)} className={`cursor-pointer border-b border-gray-50 last:border-0 hover:bg-gray-50/70 ${selected?.has(s.id) ? 'bg-forest-50/40' : ''}`}>
+              {selectable && (
+                <td className="px-3.5 py-2.5" onClick={stopClick}><input type="checkbox" className="h-4 w-4 accent-forest-700 align-middle" checked={selected!.has(s.id)} onChange={() => onToggle!(s.id)} aria-label={`Sélectionner ${s.name}`} /></td>
+              )}
               <td className="px-3.5 py-2.5">
                 <div className="flex items-center gap-2.5">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-forest-50 text-[10px] font-extrabold text-forest-700">{initials(s.name)}</span>
