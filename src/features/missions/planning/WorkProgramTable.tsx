@@ -3,19 +3,15 @@ import { Badge } from '../../../components/ui/Badge'
 import { WorkProgramControlRow } from './WorkProgramControlRow'
 import { WorkProgramBulkToolbar } from './WorkProgramBulkToolbar'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
-import type { ControlPlanning, RiskLevel, AuditTechnique } from '../../../types/database.types'
 import type { MissionMemberRow, ControlAssignmentRow } from '../useMissionDetail'
 
 interface WorkProgramTableProps {
   missionId: string
   domains: DomainWithControls[]
-  plannings: ControlPlanning[]
   assignments: ControlAssignmentRow[]
   members: MissionMemberRow[]
-  onPlanningChange: (controlId: string, field: string, value: unknown) => void
   onAssign: (controlId: string, auditorId: string) => void
   onAssignDomain: (controlIds: string[], auditorId: string) => void
-  onBulkPlanning: (controlIds: string[], data: { risk_level?: RiskLevel; audit_techniques?: AuditTechnique[] }) => Promise<boolean>
   onBulkAssign: (controlIds: string[], auditorId: string) => Promise<void>
   bulkSaving: boolean
   externalSelection?: Set<string>
@@ -27,13 +23,13 @@ interface WorkProgramTableProps {
   excludedControlIds?: Set<string>
 }
 
-export type WorkFilter = 'all' | 'notech' | 'noauditor'
+export type WorkFilter = 'all' | 'noauditor'
 
 export function WorkProgramTable({
   missionId,
-  domains, plannings, assignments, members,
-  onPlanningChange, onAssign, onAssignDomain,
-  onBulkPlanning, onBulkAssign, bulkSaving,
+  domains, assignments, members,
+  onAssign, onAssignDomain,
+  onBulkAssign, bulkSaving,
   externalSelection, onSelectionChange,
   workFilter, onWorkFilter, excludedControlIds,
 }: WorkProgramTableProps) {
@@ -50,24 +46,18 @@ export function WorkProgramTable({
     else setInternalSelection(next)
   }, [onSelectionChange])
 
-  const planMap = useMemo(() => new Map(plannings.map((p) => [p.control_id, p])), [plannings])
   const assignMap = useMemo(() => new Map(assignments.map((a) => [a.control_id, a])), [assignments])
   const auditors = members.filter((m) => m.role === 'auditor' || m.role === 'lead_auditor')
   const totalControls = domains.reduce((s, d) => s + d.controls.filter((c) => notExcluded(c.id)).length, 0)
 
-  const hasTech = useCallback((id: string) => (planMap.get(id)?.audit_techniques?.length ?? 0) > 0, [planMap])
   const matchFilter = useCallback((id: string): boolean => {
-    if (wf === 'notech') return !hasTech(id)
     if (wf === 'noauditor') return !assignMap.has(id)
     return true
-  }, [wf, hasTech, assignMap])
+  }, [wf, assignMap])
   const counts = useMemo(() => {
     const all = domains.flatMap((d) => d.controls).filter((c) => notExcluded(c.id))
-    return {
-      notech: all.filter((c) => !hasTech(c.id)).length,
-      noauditor: all.filter((c) => !assignMap.has(c.id)).length,
-    }
-  }, [domains, hasTech, assignMap, notExcluded])
+    return { noauditor: all.filter((c) => !assignMap.has(c.id)).length }
+  }, [domains, assignMap, notExcluded])
 
   const toggleControl = useCallback((id: string) => {
     const next = new Set(selection)
@@ -89,10 +79,6 @@ export function WorkProgramTable({
     await onBulkAssign([...selection], auditorId)
   }, [selection, onBulkAssign])
 
-  const handleBulkTechniques = useCallback(async (techniques: AuditTechnique[]) => {
-    await onBulkPlanning([...selection], { audit_techniques: techniques })
-  }, [selection, onBulkPlanning])
-
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Bulk toolbar (sticky when selection > 0) */}
@@ -103,7 +89,6 @@ export function WorkProgramTable({
           saving={bulkSaving}
           onClear={clearSelection}
           onAssignAuditor={handleBulkAssign}
-          onSetTechniques={handleBulkTechniques}
         />
       )}
 
@@ -116,7 +101,6 @@ export function WorkProgramTable({
             className="px-2.5 py-1.5 pl-7 border border-gray-200 rounded-lg text-xs w-[200px] outline-none focus:border-forest-500 bg-[#FAFAF8] bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2213%22%20height%3D%2213%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M21%2021l-4.35-4.35M11%2019a8%208%200%20100-16%208%208%200%20000%2016z%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22/%3E%3C/svg%3E')] bg-no-repeat bg-[8px_center]"
           />
           <FilterChip label="Tous" active={wf === 'all'} onClick={() => setWf('all')} />
-          <FilterChip label="Sans technique" count={counts.notech} active={wf === 'notech'} tone="warn" onClick={() => setWf('notech')} />
           <FilterChip label="Sans auditeur" count={counts.noauditor} active={wf === 'noauditor'} tone="warn" onClick={() => setWf('noauditor')} />
         </div>
         <div className="flex gap-2 items-center">
@@ -167,10 +151,8 @@ export function WorkProgramTable({
                     <WorkProgramControlRow
                       key={control.id}
                       control={control}
-                      planning={planMap.get(control.id)}
                       assignment={assignMap.get(control.id)}
                       auditors={auditors}
-                      onPlanningChange={onPlanningChange}
                       onAssign={onAssign}
                       selected={selection.has(control.id)}
                       onToggleSelect={() => toggleControl(control.id)}

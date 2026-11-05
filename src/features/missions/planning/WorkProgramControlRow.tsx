@@ -1,29 +1,16 @@
-import type { Control, ControlPlanning, AuditTechnique } from '../../../types/database.types'
+import type { Control } from '../../../types/database.types'
 import type { MissionMemberRow, ControlAssignmentRow } from '../useMissionDetail'
 
 interface WorkProgramControlRowProps {
   control: Control
-  planning: ControlPlanning | undefined
   assignment: ControlAssignmentRow | undefined
   auditors: MissionMemberRow[]
-  onPlanningChange: (controlId: string, field: string, value: unknown) => void
   onAssign: (controlId: string, auditorId: string) => void
   selected: boolean
   onToggleSelect: () => void
 }
 
-const TECHNIQUE_STYLES: Record<AuditTechnique, { short: string; cls: string }> = {
-  inspection: { short: 'Inspection', cls: 'bg-blue-50 text-blue-600' },
-  entretien: { short: 'Entretien', cls: 'bg-green-50 text-green-700' },
-  observation: { short: 'Observation', cls: 'bg-yellow-50 text-yellow-700' },
-  reexecution: { short: 'Re-exéc.', cls: 'bg-purple-50 text-purple-600' },
-  echantillon: { short: 'Échantillon', cls: 'bg-orange-50 text-orange-600' },
-  analytique: { short: 'Analytique', cls: 'bg-gray-100 text-gray-500' },
-}
-
-export function WorkProgramControlRow({ control, planning, assignment, auditors, onPlanningChange, onAssign, selected, onToggleSelect }: WorkProgramControlRowProps) {
-  void onPlanningChange
-  const techniques = planning?.audit_techniques ?? []
+export function WorkProgramControlRow({ control, assignment, auditors, onAssign, selected, onToggleSelect }: WorkProgramControlRowProps) {
   const rowCls = selected ? 'bg-forest-50/60 hover:bg-forest-50' : 'hover:bg-forest-50/50'
 
   return (
@@ -69,25 +56,14 @@ export function WorkProgramControlRow({ control, planning, assignment, auditors,
         </td>
       </tr>
 
-      {/* Ligne 2 : Techniques + Echantillonnage + Description */}
+      {/* Ligne 2 : Description du contrôle */}
       <tr className={`${rowCls} transition-colors`}>
         <td></td>
         <td></td>
         <td colSpan={2} className="pl-2 pr-4 pb-3 pt-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {techniques.map((t) => (
-              <span key={t} className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${TECHNIQUE_STYLES[t]?.cls ?? 'bg-gray-100 text-gray-500'}`}>
-                {TECHNIQUE_STYLES[t]?.short ?? t}
-              </span>
-            ))}
-            {techniques.length === 0 && <span className="text-[10px] text-gray-300 italic">Aucune technique</span>}
-            {planning?.sampling_population && (
-              <span className="text-[10px] text-gray-400">{'·'} {'É'}ch. {planning.sampling_size}/{planning.sampling_population}</span>
-            )}
-            {control.description && (
-              <span className="text-[10px] text-gray-300 truncate max-w-[400px]" title={control.description}>{'·'} {control.description}</span>
-            )}
-          </div>
+          {control.description && (
+            <span className="text-[11px] text-gray-400 truncate max-w-[520px] inline-block align-top" title={control.description}>{control.description}</span>
+          )}
         </td>
       </tr>
     </>
