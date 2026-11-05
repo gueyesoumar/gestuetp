@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Table2, LayoutGrid, Download, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Table2, LayoutGrid, Download, X, Play, CalendarClock } from 'lucide-react'
 import type { SubsidiaryRow } from './useSubsidiaries'
 import { SubsidiaryCard } from './SubsidiaryCard'
 import { SubsidiaryTable } from './SubsidiaryTable'
@@ -27,6 +28,7 @@ const readView = (): View => {
 /** Résultats du registre : bascule Tableau / Cartes (mémorisée), sélection en lot
  * (tableau) + export CSV, et pagination. Cartes par défaut. */
 export function SubsidiaryResults({ rows, isRegul, routeBase, parentNameOf, onEdit, onDeactivate }: Props): JSX.Element {
+  const navigate = useNavigate()
   const [view, setView] = useState<View>(readView)
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -74,6 +76,21 @@ export function SubsidiaryResults({ rows, isRegul, routeBase, parentNameOf, onEd
           <button onClick={() => exportCsv(selectedRows)} className="inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/10 px-3 py-1.5 text-[12.5px] font-semibold hover:bg-white/20">
             <Download size={14} /> Exporter la sélection
           </button>
+          {isRegul && (() => {
+            const one = selected.size === 1 ? [...selected][0] : null
+            const hint = one ? undefined : 'Disponible pour un seul assujetti à la fois'
+            const cls = 'inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/10 px-3 py-1.5 text-[12.5px] font-semibold enabled:hover:bg-white/20 disabled:opacity-50'
+            return (
+              <>
+                <button disabled={!one} title={hint} onClick={() => one && navigate('/controles/nouvelle', { state: { assujettiId: one } })} className={cls}>
+                  <Play size={14} /> Lancer l&rsquo;évaluation
+                </button>
+                <button disabled={!one} title={hint} onClick={() => one && navigate(`${routeBase}/${one}`, { state: { tab: 'revues' } })} className={cls}>
+                  <CalendarClock size={14} /> Programmer une revue
+                </button>
+              </>
+            )
+          })()}
           <button onClick={() => setSelected(new Set())} className="ml-auto inline-flex items-center gap-1 text-[12.5px] font-semibold text-white/80 hover:text-white">
             <X size={14} /> Annuler
           </button>

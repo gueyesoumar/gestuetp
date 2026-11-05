@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Plus, ArrowLeft } from 'lucide-react'
 import { useSubsidiaryDetail } from './useSubsidiaryDetail'
 import { useAssujettiProfile } from './useAssujettiProfile'
@@ -25,13 +25,15 @@ type Tab = 'apercu' | 'controles' | 'constats' | 'plans' | 'revues' | 'contacts'
 export function AssujettiDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { hasCapability } = useEdition()
   const { data, loading, error } = useSubsidiaryDetail(id)
   const { profile } = useAssujettiProfile(id)
   const canMeasures = hasCapability('measures')
   const missionIds = data?.missions.map((m) => m.id) ?? []
   const { findings, cars } = useAssujettiRemediation(canMeasures ? missionIds : [], canMeasures && data ? data.id : undefined)
-  const [tab, setTab] = useState<Tab>('apercu')
+  // Onglet initial éventuellement imposé par la navigation (ex. « Programmer une revue »).
+  const [tab, setTab] = useState<Tab>(((location.state as { tab?: Tab } | null)?.tab) ?? 'apercu')
   const [inviteOpen, setInviteOpen] = useState(false)
 
   if (loading) return <LoadingSpinner />
