@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Check, AlertTriangle, X, Lock, ArrowRight, Loader2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Check, AlertTriangle, X, Lock, ArrowRight, Loader2, ChevronRight, ChevronDown } from 'lucide-react'
 import type { ControlPlanning, ClientContact } from '../../../types/database.types'
 import type { DomainWithControls } from '../../frameworks/useFrameworkDetail'
 import type { ControlAssignmentRow } from '../useMissionDetail'
@@ -38,6 +38,17 @@ interface CheckItem {
 
 export function PlanningValidationGate({ domains, plannings, assignments, contacts, interviews, topics, validating, serverMissing, onValidate, showInterviewChecks = true, onFix, excludedControlIds }: PlanningValidationGateProps) {
   const [confirming, setConfirming] = useState(false)
+  // Détail des prérequis replié par défaut (gain de place) ; préférence mémorisée.
+  const [open, setOpen] = useState<boolean>(() => {
+    try { return localStorage.getItem('planning-gate-open') === '1' } catch { return false }
+  })
+  const toggleOpen = (): void => setOpen((o) => {
+    const n = !o
+    try { localStorage.setItem('planning-gate-open', n ? '1' : '0') } catch { /* indisponible */ }
+    return n
+  })
+  // Un refus serveur doit être visible : on déplie d'office.
+  useEffect(() => { if (serverMissing && serverMissing.length > 0) setOpen(true) }, [serverMissing])
 
   const checks = useMemo<CheckItem[]>(() => {
     // Les contrôles exclus du périmètre ne comptent dans aucun prérequis (cohérent
@@ -172,16 +183,24 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
 
   return (
     <div className={`mx-4 mt-3 rounded-xl border ${containerCls} overflow-hidden`}>
-      <div className="px-4 py-2.5 flex items-center gap-3 border-b border-gray-200/60">
+      <div className={`px-4 py-2.5 flex items-center gap-3 ${open || (serverMissing && serverMissing.length > 0) ? 'border-b border-gray-200/60' : ''}`}>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${blockersOk ? (allGreen ? 'bg-green-500 text-white' : 'bg-amber-500 text-white') : 'bg-red-500 text-white'}`}>
           {blockersOk ? (allGreen ? <Check size={16} /> : <AlertTriangle size={16} />) : <Lock size={16} />}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-bold text-gray-900">{headerLabel}</p>
           <p className="text-[11px] text-gray-500 leading-snug">
-            Vérifiez les prérequis ci-dessous avant de basculer en phase Travaux.
+            {open ? 'Vérifiez les prérequis ci-dessous avant de basculer en phase Travaux.' : 'Prérequis à satisfaire avant de basculer en phase Travaux.'}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={toggleOpen}
+          aria-expanded={open}
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-semibold text-gray-600 border border-gray-200 bg-white hover:border-forest-400 transition-colors"
+        >
+          Détails {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+        </button>
         <button
           type="button"
           onClick={handleClick}
@@ -214,6 +233,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
         </div>
       )}
 
+      {open && (
       <ul className="px-4 py-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5">
         {checks.map((c) => (
           <li key={c.key} className="flex items-start gap-2 py-1">
@@ -236,6 +256,7 @@ export function PlanningValidationGate({ domains, plannings, assignments, contac
           </li>
         ))}
       </ul>
+      )}
 
       {confirming && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setConfirming(false)}>
