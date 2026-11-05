@@ -35,13 +35,15 @@ retry() {
   done
 }
 
+# --yes : confirme sans prompt (requis par la CLI récente en non-interactif/CI,
+# sinon « Confirmation required: Deploy N Functions ... can't ask » -> échec).
 echo ">> [$REF] Deploiement de TOUTES les fonctions (jeton requis par defaut)..."
-retry supabase functions deploy --project-ref "$REF"
+retry supabase functions deploy --project-ref "$REF" --yes
 
 echo ">> [$REF] Re-deploiement des fonctions publiques (--no-verify-jwt)..."
 for fn in "${PUBLIC_FNS[@]}"; do
   echo "   - $fn"
-  retry supabase functions deploy "$fn" --no-verify-jwt --project-ref "$REF"
+  retry supabase functions deploy "$fn" --no-verify-jwt --project-ref "$REF" --yes
 done
 
 echo ">> [$REF] Termine."
