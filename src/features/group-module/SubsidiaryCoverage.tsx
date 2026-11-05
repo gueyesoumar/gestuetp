@@ -1,5 +1,13 @@
 const covColor = (s: number): string => (s >= 80 ? '#16A34A' : s >= 60 ? '#D4A843' : '#DC2626')
 
+export type CoverageState = 'evaluated' | 'inprogress' | 'uneval'
+
+/** État de couverture d'une entité (source unique : carte, tableau, filtre). */
+export function coverageState(score: number | null, activeMissions: number): CoverageState {
+  if (score !== null) return 'evaluated'
+  return activeMissions > 0 ? 'inprogress' : 'uneval'
+}
+
 /**
  * Couverture honnête d'une entité : score de conformité %, « En cours » (mission
  * ouverte mais pas encore de score), ou « À évaluer » (jamais contrôlée).

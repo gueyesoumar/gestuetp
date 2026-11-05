@@ -10,6 +10,11 @@ export function buildSubsidiaryFilterDefs(isRegul: boolean): FilterDef[] {
   const defs: FilterDef[] = []
   if (isRegul) defs.push({ key: 'criticality', label: 'Criticité', type: 'select', options: [...CRITICALITY_OPTIONS] })
   defs.push({ key: 'nature', label: 'Nature', type: 'select', options: isRegul ? [...REGUL_ENTITY_TYPE_OPTIONS] : [...ENTITY_TYPE_OPTIONS] })
+  defs.push({ key: 'coverage', label: 'Couverture', type: 'select', options: [
+    { value: 'uneval', label: 'À évaluer' },
+    { value: 'inprogress', label: 'En cours' },
+    { value: 'evaluated', label: 'Évalué' },
+  ] })
   defs.push({ key: 'overdue', label: 'Plans d’action en retard', type: 'toggle' })
   return defs
 }

@@ -1,25 +1,23 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useSubsidiaries, type SubsidiaryRow } from './useSubsidiaries'
 import { useManageEntity } from './useManageEntity'
-import { SubsidiaryCard } from './SubsidiaryCard'
 import { EntityFormModal, type EntityFormValue } from './EntityFormModal'
 import { InactiveEntitiesSection } from './InactiveEntitiesSection'
 import { FilterBar } from '../../components/filters/FilterBar'
 import { useFilters } from '../../components/filters/useFilters'
-import { Pagination, pageSlice } from '../../components/ui/Pagination'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { buildSubsidiaryFilterDefs, buildDescendantsResolver } from './subsidiaryHelpers'
 import { SubsidiaryRegisterKpis } from './SubsidiaryRegisterKpis'
+import { SubsidiaryResults } from './SubsidiaryResults'
+import { coverageState } from './SubsidiaryCoverage'
 import { useAuth } from '../../hooks/useAuth'
 import { useGroupPermissions } from '../../hooks/useGroupPermissions'
 import { useToast } from '../../hooks/useToast'
 import { useVocab } from '../edition/useVocab'
 import { useIsRegul } from '../edition/useIsRegul'
-
-const PAGE_SIZE = 12
 
 export function SubsidiariesPage(): JSX.Element {
   const vocab = useVocab()
@@ -30,7 +28,6 @@ export function SubsidiariesPage(): JSX.Element {
   const { deactivateEntity } = useManageEntity()
   const toast = useToast()
   const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
   const [modal, setModal] = useState<{ initial: EntityFormValue | null } | null>(null)
   const groupId = profile?.organization_id ?? null
 
@@ -57,14 +54,12 @@ export function SubsidiariesPage(): JSX.Element {
     return subsidiaries.filter((s) => {
       if (filters.values.criticality && s.regulatoryProfile?.criticality !== filters.values.criticality) return false
       if (filters.values.nature && s.entityType !== filters.values.nature) return false
+      if (filters.values.coverage && coverageState(s.conformityScore, s.activeMissions) !== filters.values.coverage) return false
       if (filters.values.overdue && s.overdueCount <= 0) return false
       if (!q) return true
       return s.name.toLowerCase().includes(q) || (s.sector ?? '').toLowerCase().includes(q) || (s.city ?? '').toLowerCase().includes(q)
     })
   }, [subsidiaries, search, filters.values])
-
-  useEffect(() => { setPage(1) }, [search, filters.values])
-  const paged = pageSlice(filtered, page, PAGE_SIZE)
 
   const openCreate = (): void => setModal({ initial: null })
   const openEdit = (s: SubsidiaryRow): void => setModal({ initial: {
@@ -115,20 +110,14 @@ export function SubsidiariesPage(): JSX.Element {
       ) : filtered.length === 0 ? (
         <EmptyState title="Aucun résultat" description={`Aucun${vocab.entityGender === 'f' ? 'e' : ''} ${vocab.entitySingular} ne correspond à vos critères.`} />
       ) : (
-        <div>
-          <div className="grid grid-cols-3 gap-4">
-            {paged.map((s) => (
-              <SubsidiaryCard
-                key={s.id}
-                subsidiary={s}
-                parentName={s.parentOrgId && s.parentOrgId !== groupId ? nameById.get(s.parentOrgId) ?? null : null}
-                onEdit={canManageSubsidiaries ? openEdit : undefined}
-                onDeactivate={canManageSubsidiaries ? askDeactivate : undefined}
-              />
-            ))}
-          </div>
-          <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
-        </div>
+        <SubsidiaryResults
+          rows={filtered}
+          isRegul={isRegul}
+          routeBase={vocab.entityRouteBase}
+          parentNameOf={(s) => (s.parentOrgId && s.parentOrgId !== groupId ? nameById.get(s.parentOrgId) ?? null : null)}
+          onEdit={canManageSubsidiaries ? openEdit : undefined}
+          onDeactivate={canManageSubsidiaries ? askDeactivate : undefined}
+        />
       )}
 
       <InactiveEntitiesSection canManage={canManageSubsidiaries} onReactivated={refresh} />
