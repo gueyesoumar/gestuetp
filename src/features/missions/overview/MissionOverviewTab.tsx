@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { TeamActivityPanel } from './TeamActivityPanel'
+import { ValidationsDigestCard } from './ValidationsDigestCard'
 import { useMissionUserRole } from '../useMissionUserRole'
 import { useMissionFindingsCount } from '../useMissionFindingsCount'
 import { EmptyState } from '../../../components/ui/EmptyState'
@@ -17,9 +18,10 @@ interface MissionOverviewTabProps {
   domains: DomainWithControls[]
   progress: MissionProgress
   onRefetch: () => void
+  onGoToTab?: (tab: string) => void
 }
 
-export function MissionOverviewTab({ mission, members, assessments, progress, onRefetch }: MissionOverviewTabProps) {
+export function MissionOverviewTab({ mission, members, assessments, progress, onRefetch, onGoToTab }: MissionOverviewTabProps) {
   const userRole = useMissionUserRole(mission)
 
   // Constats : scopés comme les autres KPI (auditeur restreint = ses contrôles).
@@ -84,6 +86,9 @@ export function MissionOverviewTab({ mission, members, assessments, progress, on
           info="Nombre de constats relev\u00e9s sur les contr\u00f4les de la mission, toutes classifications confondues (majeur, mineur, observation, point fort)."
         />
       </div>
+
+      {/* Dossier Validations (chef de mission / associ\u00e9) */}
+      {onGoToTab && <ValidationsDigestCard mission={mission} onOpen={() => onGoToTab('review')} />}
 
       {/* \u00c9quipe + Activit\u00e9 r\u00e9cente */}
       <TeamActivityPanel

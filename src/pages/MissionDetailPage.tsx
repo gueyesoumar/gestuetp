@@ -106,7 +106,7 @@ export function MissionDetailPage(){
 
       <div className="p-7">
         {activeTab === 'overview' && (
-          <MissionOverviewTab mission={mission} members={members} assessments={assessments} domains={domains} progress={progress} onRefetch={refetch} />
+          <MissionOverviewTab mission={mission} members={members} assessments={assessments} domains={domains} progress={progress} onRefetch={refetch} onGoToTab={(t) => setActiveTab(t as TabKey)} />
         )}
         {activeTab === 'audited_risks' && mission.cabinet_id !== mission.client_id && (
           <MissionAuditedRisksTab missionId={mission.id} />
