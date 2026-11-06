@@ -502,6 +502,14 @@ export const RISK_ASSET_CATEGORIES = [
   { value: 'people', label: 'Personnes' },
   { value: 'site', label: 'Site' },
 ] as const
+export const RISK_ASSET_CATEGORY_LABELS: Record<string, string> =
+  Object.fromEntries(RISK_ASSET_CATEGORIES.map((o) => [o.value, o.label]))
+export const ASSET_CRITICALITY_OPTIONS = [
+  { value: 'eleve', label: 'Élevée' },
+  { value: 'standard', label: 'Standard' },
+] as const
+export const ASSET_CRITICALITY_LABELS: Record<string, string> =
+  Object.fromEntries(ASSET_CRITICALITY_OPTIONS.map((o) => [o.value, o.label]))
 export const RISK_TREATMENTS = [
   { value: 'untreated', label: 'Non traité' },
   { value: 'reduce', label: 'Réduire' },

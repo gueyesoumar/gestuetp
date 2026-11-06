@@ -17,16 +17,19 @@ interface Props {
   onCreate: (s: NewScenario, orgId: string | null) => Promise<string | null>
   /** Présent = mode superviseur : liste d'assujettis cibles (1 = verrouillé). */
   orgs?: { id: string; name: string; sector: string | null }[]
+  /** Actifs de l'org (mode own-org) pour le select « Actif concerné ». */
+  assets?: { id: string; name: string }[]
 }
 
 const INITIAL: ScenarioFields = { dimension: '', threat: '', feared: '', vulnerability: '', likelihood: 2, impact: 2 }
 
-export function ScenarioFormModal({ catalog, onClose, onCreate, orgs }: Props): JSX.Element {
+export function ScenarioFormModal({ catalog, onClose, onCreate, orgs, assets }: Props): JSX.Element {
   const toast = useToast()
   const { profile } = useAuth()
   const supervised = !!orgs
   const [org, setOrg] = useState(orgs && orgs.length === 1 ? orgs[0].id : '')
   const [title, setTitle] = useState('')
+  const [asset, setAsset] = useState('')
   const [fields, setFields] = useState<ScenarioFields>(INITIAL)
   const [treatment, setTreatment] = useState<NewScenario['treatment']>('untreated')
   const [showRefs, setShowRefs] = useState(false)
@@ -59,7 +62,7 @@ export function ScenarioFormModal({ catalog, onClose, onCreate, orgs }: Props): 
   // Complétude en direct (mêmes critères ISO que la bande de synthèse du détail).
   const comp = scenarioCompleteness({
     threat_ref: fields.threat || null, feared_event_ref: fields.feared || null,
-    asset_name: null, vulnerability: fields.vulnerability || null,
+    asset_name: assets?.find((a) => a.id === asset)?.name ?? null, vulnerability: fields.vulnerability || null,
     inherent_likelihood: fields.likelihood, inherent_impact: fields.impact,
     treatment, next_review_at: null,
   })
@@ -73,6 +76,7 @@ export function ScenarioFormModal({ catalog, onClose, onCreate, orgs }: Props): 
       title: title.trim(), dimension: fields.dimension as ScoreDimension,
       inherent_likelihood: fields.likelihood, inherent_impact: fields.impact, treatment,
       threat_ref: fields.threat || null, feared_event_ref: fields.feared || null, vulnerability: fields.vulnerability || null,
+      asset_id: supervised ? null : (asset || null),
     }, supervised ? org : null)
     if (newId && !supervised) await seedNodesFromTemplate(newId)
     setBusy(false)
@@ -110,6 +114,17 @@ export function ScenarioFormModal({ catalog, onClose, onCreate, orgs }: Props): 
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} placeholder="ex. Rançongiciel sur le SI de production" autoFocus />
           </div>
           <ScenarioCoreFields value={fields} onChange={patch} />
+
+          {!supervised && assets && (
+            <div>
+              <label className="block text-[12px] font-medium text-gray-600 mb-1">Actif concerné <span className="text-gray-400 font-normal">(optionnel)</span></label>
+              <select value={asset} onChange={(e) => setAsset(e.target.value)} className={field}>
+                <option value="">Aucun</option>
+                {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+              {assets.length === 0 && <p className="mt-1 text-[11px] text-gray-400">Aucun actif. Ajoutez-en depuis le registre des actifs.</p>}
+            </div>
+          )}
 
           <button type="button" onClick={() => setShowRefs((v) => !v)} className="flex items-center gap-1.5 text-[12px] font-semibold text-forest-700 hover:text-forest-900">
             <ChevronDown size={15} className={`transition-transform ${showRefs ? 'rotate-180' : ''}`} /> Champs optionnels (à compléter plus tard)

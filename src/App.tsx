@@ -31,6 +31,7 @@ function lazyPage(loader: () => Promise<Record<string, unknown>>, name: string) 
 
 const RiskPage = lazyPage(() => import('./features/risk/RiskPage'), 'RiskPage')
 const RiskRegisterPage = lazyPage(() => import('./features/risk/RiskRegisterPage'), 'RiskRegisterPage')
+const RiskAssetsPage = lazyPage(() => import('./features/risk/RiskAssetsPage'), 'RiskAssetsPage')
 const RiskCriteriaPage = lazyPage(() => import('./features/risk/RiskCriteriaPage'), 'RiskCriteriaPage')
 const RiskPlanPage = lazyPage(() => import('./features/risk/RiskPlanPage'), 'RiskPlanPage')
 const RiskAcceptancesPage = lazyPage(() => import('./features/risk/RiskAcceptancesPage'), 'RiskAcceptancesPage')
@@ -140,6 +141,7 @@ function AppRoutes(): JSX.Element {
         <Route path="piste-audit" element={<Navigate to="/organisation?tab=piste-audit" replace />} />
         <Route path="risque" element={edLoading ? <FullscreenLoader /> : !hasCapability('risk') ? <Navigate to="/" replace /> : riskOverviewEnabled(hasCapability) ? <RiskPage /> : <Navigate to="/risque/synthese" replace />} />
         <Route path="risque/registre" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskRegisterPage /> : <Navigate to="/" replace />} />
+        <Route path="risque/actifs" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskAssetsPage /> : <Navigate to="/" replace />} />
         <Route path="risque/criteres" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskCriteriaPage /> : <Navigate to="/" replace />} />
         <Route path="risque/modeles" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <ScenarioTemplatesPage /> : <Navigate to="/" replace />} />
         <Route path="risque/plan" element={edLoading ? <FullscreenLoader /> : hasCapability('risk') ? <RiskPlanPage /> : <Navigate to="/" replace />} />

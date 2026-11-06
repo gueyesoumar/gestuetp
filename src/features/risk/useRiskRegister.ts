@@ -48,6 +48,7 @@ interface RegisterData {
   loading: boolean
   error: string | null
   createScenario: (s: NewScenario) => Promise<string | null>
+  updateScenario: (id: string, patch: { asset_id: string | null }) => Promise<boolean>
   deleteScenario: (id: string) => Promise<void>
   refresh: () => void
 }
@@ -115,11 +116,18 @@ export function useRiskRegister(): RegisterData {
     return (data as unknown as { id: string } | null)?.id ?? null
   }, [orgId, profile?.id, refresh])
 
+  const updateScenario = useCallback(async (id: string, patch: { asset_id: string | null }): Promise<boolean> => {
+    const { error: e } = await supabase.from('risk_scenarios').update(patch as never).eq('id', id)
+    if (e) { console.error('[updateScenario]', e.message); return false }
+    refresh()
+    return true
+  }, [refresh])
+
   const deleteScenario = useCallback(async (id: string): Promise<void> => {
     const { error: e } = await supabase.from('risk_scenarios').delete().eq('id', id)
     if (e) { console.error('[deleteScenario]', e.message); return }
     refresh()
   }, [refresh])
 
-  return { scenarios, catalog, assets, loading, error, createScenario, deleteScenario, refresh }
+  return { scenarios, catalog, assets, loading, error, createScenario, updateScenario, deleteScenario, refresh }
 }

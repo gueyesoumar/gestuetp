@@ -23,7 +23,7 @@ import { RiskExposureBar } from './RiskExposureBar'
 const lifecycleLabel = (v: string): string => RISK_LIFECYCLE_STATUS.find((s) => s.value === v)?.label ?? v
 
 /** Détail d'un scénario : bande de synthèse + jauge + 3 onglets (triptyque ISO 27005). */
-export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: ScenarioRow; catalog: RiskCatalogEntry[]; onClose: () => void }): JSX.Element {
+export function ScenarioDetail({ scenario, catalog, onClose, assets, onSetAsset }: { scenario: ScenarioRow; catalog: RiskCatalogEntry[]; onClose: () => void; assets?: { id: string; name: string }[]; onSetAsset?: (id: string, assetId: string | null) => void }): JSX.Element {
   const [tab, setTab] = useState<RiskPhaseKey>('apprecier')
   const ctrl = useScenarioControls(scenario.id)
   const inc = useScenarioIncidents(scenario.id, scenario.dimension)
@@ -71,6 +71,16 @@ export function ScenarioDetail({ scenario, catalog, onClose }: { scenario: Scena
               </div>
               <CompletenessGauge comp={comp} />
             </div>
+            {assets && onSetAsset && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-wide text-gray-400 shrink-0">Actif concerné</span>
+                <select value={scenario.asset_id ?? ''} onChange={(e) => onSetAsset(scenario.id, e.target.value || null)}
+                  className="flex-1 px-2.5 py-1.5 text-[13px] border border-gray-200 rounded-lg focus:border-forest-700 focus:ring-1 focus:ring-forest-700">
+                  <option value="">Aucun</option>
+                  {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

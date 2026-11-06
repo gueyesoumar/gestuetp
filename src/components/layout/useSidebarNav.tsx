@@ -42,6 +42,7 @@ export function useSidebarNavItems(
     const surveiller = <Eye size={20} strokeWidth={1.5} />
     const parametrage = <Settings size={20} strokeWidth={1.5} />
     items.push(
+      { to: '/risque/actifs', label: 'Actifs', icon: <Boxes size={20} strokeWidth={1.5} />, section: 'Apprécier', sectionIcon: apprecier },
       { to: '/risque/registre', label: 'Registre', icon: <ClipboardCheck size={20} strokeWidth={1.5} />, section: 'Apprécier', sectionIcon: apprecier },
       { to: '/risque/plan', label: 'Plan de traitement', icon: <ListChecks size={20} strokeWidth={1.5} />, section: 'Traiter', sectionIcon: traiter },
       { to: '/risque/acceptations', label: 'Acceptations', icon: <ShieldCheck size={20} strokeWidth={1.5} />, section: 'Traiter', sectionIcon: traiter },

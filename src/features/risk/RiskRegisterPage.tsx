@@ -128,8 +128,14 @@ export function RiskRegisterPage(): JSX.Element {
 
       {modal && (consolidated
         ? <ScenarioFormModal catalog={reg.catalog} orgs={orgOptions} onClose={() => setModal(false)} onCreate={createSupervised} />
-        : <ScenarioFormModal catalog={reg.catalog} onClose={() => setModal(false)} onCreate={reg.createScenario} />)}
-      {detail && <ScenarioDetail scenario={detail} catalog={reg.catalog} onClose={() => setDetail(null)} />}
+        : <ScenarioFormModal catalog={reg.catalog} assets={reg.assets} onClose={() => setModal(false)} onCreate={reg.createScenario} />)}
+      {detail && <ScenarioDetail scenario={detail} catalog={reg.catalog} onClose={() => setDetail(null)}
+        assets={consolidated ? undefined : reg.assets}
+        onSetAsset={consolidated ? undefined : (id, assetId) => {
+          void reg.updateScenario(id, { asset_id: assetId }).then((ok) => {
+            if (ok) setDetail((d) => (d ? { ...d, asset_id: assetId, asset_name: reg.assets.find((a) => a.id === assetId)?.name ?? null } : d))
+          })
+        }} />}
     </div>
   )
 }
