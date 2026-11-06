@@ -51,6 +51,20 @@ interface CreateResult extends MutationResult {
   id?: string
 }
 
+/** Résultat par ligne d'un import en masse. */
+export interface BulkRowResult {
+  index: number
+  ok: boolean
+  id?: string
+  name: string
+  error?: string
+}
+interface BulkResult extends MutationResult {
+  results: BulkRowResult[]
+  created: number
+  failed: number
+}
+
 /**
  * Mutations sur les entités internes d'un groupe, via l'Edge Function
  * manage-entity (service_role côté backend - aucune écriture directe sur
@@ -79,9 +93,15 @@ export function useManageEntity() {
     setBusy(false)
     return { ok: res.ok, error: res.error, id: res.data?.entity?.id }
   }, [])
+  const createEntitiesBulk = useCallback(async (rows: EntityInput[]): Promise<BulkResult> => {
+    setBusy(true)
+    const res = await invokeEdgeFunction<{ results: BulkRowResult[]; created: number; failed: number }>('manage-entity', { action: 'create_bulk', rows })
+    setBusy(false)
+    return { ok: res.ok, error: res.error, results: res.data?.results ?? [], created: res.data?.created ?? 0, failed: res.data?.failed ?? 0 }
+  }, [])
   const updateEntity = useCallback((entityId: string, patch: Partial<EntityInput>) => run({ action: 'update', entity_id: entityId, ...patch }), [run])
   const deactivateEntity = useCallback((entityId: string) => run({ action: 'deactivate', entity_id: entityId }), [run])
   const reactivateEntity = useCallback((entityId: string) => run({ action: 'reactivate', entity_id: entityId }), [run])
 
-  return { busy, createEntity, updateEntity, deactivateEntity, reactivateEntity, listInactive }
+  return { busy, createEntity, createEntitiesBulk, updateEntity, deactivateEntity, reactivateEntity, listInactive }
 }

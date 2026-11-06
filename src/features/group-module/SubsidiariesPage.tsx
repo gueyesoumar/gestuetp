@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { useSubsidiaries, type SubsidiaryRow } from './useSubsidiaries'
 import { useManageEntity } from './useManageEntity'
 import { EntityFormModal, type EntityFormValue } from './EntityFormModal'
+import { EntityImportModal } from './EntityImportModal'
 import { InactiveEntitiesSection } from './InactiveEntitiesSection'
 import { FilterBar } from '../../components/filters/FilterBar'
 import { useFilters } from '../../components/filters/useFilters'
@@ -29,6 +30,7 @@ export function SubsidiariesPage(): JSX.Element {
   const toast = useToast()
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState<{ initial: EntityFormValue | null } | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
   const groupId = profile?.organization_id ?? null
 
   const filterDefs = useMemo(() => buildSubsidiaryFilterDefs(isRegul), [isRegul])
@@ -92,9 +94,14 @@ export function SubsidiariesPage(): JSX.Element {
           <p className="mt-1 text-[13px] text-gray-500">{isRegul ? 'Les entités supervisées, leur criticité et leur conformité.' : 'Les entités rattachées, leur périmètre et leur conformité.'}</p>
         </div>
         {canManageSubsidiaries && (
-          <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
-            <Plus size={16} /> Cr&eacute;er {vocab.entityGender === 'f' ? 'une' : 'un'} {vocab.entitySingular}
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => setImportOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-forest-700 border border-forest-200 rounded-lg hover:bg-forest-50">
+              <Upload size={16} /> Importer
+            </button>
+            <button onClick={openCreate} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900">
+              <Plus size={16} /> Cr&eacute;er {vocab.entityGender === 'f' ? 'une' : 'un'} {vocab.entitySingular}
+            </button>
+          </div>
         )}
       </div>
 
@@ -128,6 +135,15 @@ export function SubsidiariesPage(): JSX.Element {
           parentOptions={parentOptions}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); refresh() }}
+        />
+      )}
+
+      {importOpen && (
+        <EntityImportModal
+          isRegul={isRegul}
+          entityLabel={vocab.entitiesTitle}
+          onClose={() => setImportOpen(false)}
+          onImported={refresh}
         />
       )}
     </div>

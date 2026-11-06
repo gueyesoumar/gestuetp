@@ -49,9 +49,12 @@ interface Payload {
   reg_status?: 'active' | 'exited'
   entry_date?: string | null
   exit_date?: string | null
+  // Import en masse (action create_bulk) : lignes à créer, rattachées au groupe appelant.
+  rows?: Payload[]
 }
 
 const CRITICALITY = ['eleve', 'standard', 'indetermine']
+const MAX_BULK_ROWS = 500
 const REG_STATUS = ['active', 'exited']
 
 /** Construit le patch de profil réglementaire à partir du payload (null si aucun champ). */
@@ -136,6 +139,41 @@ async function canManageEntities(admin: any, userId: string): Promise<boolean> {
   return !anyGroupPerm
 }
 
+/** Crée une entité (org + arête + socle + profil + audit). Factorisé pour
+ *  la création unitaire ET l'import en masse. parentId = rattachement, groupId = org du log. */
+async function createEntityRow(
+  admin: any, parentId: string, groupId: string, callerId: string, body: Payload,
+): Promise<{ ok: true; entity: any } | { ok: false; error: string; status: number }> {
+  const name = (body.name ?? '').trim()
+  if (!name) return { ok: false, error: 'Le nom est requis', status: 400 }
+  if (!body.entity_type || !ENTITY_TYPES.includes(body.entity_type)) return { ok: false, error: "Type d'entité invalide", status: 400 }
+  if (body.criticality !== undefined && body.criticality !== null && !CRITICALITY.includes(body.criticality)) return { ok: false, error: 'Criticité invalide', status: 400 }
+  if (body.reg_status !== undefined && body.reg_status !== null && !REG_STATUS.includes(body.reg_status)) return { ok: false, error: 'Statut invalide', status: 400 }
+  const { data: created, error } = await admin
+    .from('organizations')
+    .insert({
+      name, slug: slugify(name), types: [], entity_type: body.entity_type,
+      sector: body.sector ?? null, city: body.city ?? null, country: body.country ?? null, is_active: true,
+    })
+    .select('id, name, entity_type, sector, city, country, is_active')
+    .single()
+  if (error) { console.error('[manage-entity] create:', error.message); return { ok: false, error: "Impossible de créer l'entité", status: 500 } }
+  await setParentEdge(admin, parentId, created.id)
+  const { error: baseErr } = await admin.rpc('provision_org_baseline', { p_org: created.id })
+  if (baseErr) console.error('[manage-entity] provision_org_baseline:', baseErr.message)
+  const prof = profilePatch(body)
+  if (prof) {
+    const { error: perr } = await admin.from('entity_regulatory_profile').insert({ organization_id: created.id, ...prof })
+    if (perr) console.error('[manage-entity] create profile:', perr.message)
+  }
+  await logActivity(admin, {
+    organizationId: groupId, actorUserId: callerId,
+    action: 'entity.created', targetType: 'entity', targetId: created.id, targetLabel: created.name,
+    summary: `Entité créée : ${created.name}`,
+  })
+  return { ok: true, entity: created }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -199,59 +237,31 @@ Deno.serve(async (req) => {
 
     // ---- CREATE --------------------------------------------------------------
     if (action === 'create') {
-      const name = (body.name ?? '').trim()
-      if (!name) return json({ error: 'Le nom est requis' }, 400)
-      if (!body.entity_type || !ENTITY_TYPES.includes(body.entity_type)) {
-        return json({ error: "Type d'entité invalide" }, 400)
-      }
-      if (body.criticality !== undefined && !CRITICALITY.includes(body.criticality)) {
-        return json({ error: 'Criticité invalide' }, 400)
-      }
-      if (body.reg_status !== undefined && !REG_STATUS.includes(body.reg_status)) {
-        return json({ error: 'Statut invalide' }, 400)
-      }
       const parentId = body.parent_org_id ?? groupId
       // Le parent doit être le groupe lui-même ou une entité du sous-arbre.
       if (parentId !== groupId && !descendantIds.has(parentId)) {
         return json({ error: "Parent hors de votre périmètre" }, 403)
       }
-      const { data: created, error } = await admin
-        .from('organizations')
-        .insert({
-          name,
-          slug: slugify(name),
-          types: [],
-          entity_type: body.entity_type,
-          sector: body.sector ?? null,
-          city: body.city ?? null,
-          country: body.country ?? null,
-          is_active: true,
-        })
-        .select('id, name, entity_type, sector, city, country, is_active')
-        .single()
-      if (error) {
-        console.error('[manage-entity] create:', error.message)
-        return json({ error: "Impossible de créer l'entité" }, 500)
+      const r = await createEntityRow(admin, parentId, groupId, caller.id, body)
+      if (!r.ok) return json({ error: r.error }, r.status)
+      return json({ entity: r.entity }, 201)
+    }
+
+    // ---- CREATE BULK (import en masse) --------------------------------------
+    if (action === 'create_bulk') {
+      const rows = Array.isArray(body.rows) ? body.rows : []
+      if (rows.length === 0) return json({ error: 'Aucune ligne à importer' }, 400)
+      if (rows.length > MAX_BULK_ROWS) return json({ error: `Maximum ${MAX_BULK_ROWS} lignes par import` }, 400)
+      // Rattachement au groupe de l'appelant (pas de hiérarchie en masse).
+      const results: Array<{ index: number; ok: boolean; id?: string; name: string; error?: string }> = []
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        const r = await createEntityRow(admin, groupId, groupId, caller.id, row)
+        if (r.ok) results.push({ index: i, ok: true, id: r.entity.id, name: r.entity.name })
+        else results.push({ index: i, ok: false, name: (row?.name ?? '').toString().trim(), error: r.error })
       }
-      // RFC 0007 P4b : le rattachement est une ARÊTE du graphe (plus de parent_org_id).
-      await setParentEdge(admin, parentId, created.id)
-      // Socle d'accès explicite (RFC 0018 Phase 3 : trigger « comply forcé » retiré). Non bloquant.
-      const { error: baseErr } = await admin.rpc('provision_org_baseline', { p_org: created.id })
-      if (baseErr) console.error('[manage-entity] provision_org_baseline:', baseErr.message)
-      // Profil réglementaire (Regul) - best-effort, non bloquant pour la création.
-      const prof = profilePatch(body)
-      if (prof) {
-        const { error: perr } = await admin
-          .from('entity_regulatory_profile')
-          .insert({ organization_id: created.id, ...prof })
-        if (perr) console.error('[manage-entity] create profile:', perr.message)
-      }
-      await logActivity(admin, {
-        organizationId: groupId, actorUserId: caller.id,
-        action: 'entity.created', targetType: 'entity', targetId: created.id, targetLabel: created.name,
-        summary: `Entité créée : ${created.name}`,
-      })
-      return json({ entity: created }, 201)
+      const created = results.filter((x) => x.ok).length
+      return json({ results, created, failed: results.length - created }, 200)
     }
 
     // Les actions suivantes ciblent une entité existante DU SOUS-ARBRE.
