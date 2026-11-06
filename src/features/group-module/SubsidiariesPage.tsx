@@ -142,6 +142,7 @@ export function SubsidiariesPage(): JSX.Element {
         <EntityImportModal
           isRegul={isRegul}
           entityLabel={vocab.entitiesTitle}
+          existingNames={subsidiaries.map((s) => s.name)}
           onClose={() => setImportOpen(false)}
           onImported={refresh}
         />

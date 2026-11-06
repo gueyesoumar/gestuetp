@@ -1,30 +1,51 @@
-import { useRef, useState } from 'react'
-import { X, Download, Upload, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { X, Download, Upload, CheckCircle2, AlertTriangle, Copy } from 'lucide-react'
 import { useToast } from '../../hooks/useToast'
 import { useSectors } from '../../hooks/useSectors'
 import { useManageEntity } from './useManageEntity'
 import { downloadEntityTemplate, parseEntitiesFile, type ParsedEntityRow } from './entityImportTemplate'
+import { findSimilar } from './fuzzyMatch'
 
 interface Props {
   isRegul: boolean
   entityLabel: string
+  existingNames: string[]
   onClose: () => void
   onImported: () => void
 }
 
+type DecoratedRow = ParsedEntityRow & { dup: string | null }
+
 /** Import en masse d'entités / assujettis : modèle XLSX, aperçu, import (succès partiel). */
-export function EntityImportModal({ isRegul, entityLabel, onClose, onImported }: Props): JSX.Element {
+export function EntityImportModal({ isRegul, entityLabel, existingNames, onClose, onImported }: Props): JSX.Element {
   const toast = useToast()
   const { sectors } = useSectors()
   const { createEntitiesBulk, busy } = useManageEntity()
   const fileRef = useRef<HTMLInputElement>(null)
   const [rows, setRows] = useState<ParsedEntityRow[] | null>(null)
   const [fileName, setFileName] = useState('')
+  const [includeDuplicates, setIncludeDuplicates] = useState(false)
   const [done, setDone] = useState<{ created: number; failed: number; errors: string[] } | null>(null)
 
   const sheet = `${entityLabel}`.slice(0, 28) || 'Entites'
-  const valid = rows?.filter((r) => r.data) ?? []
-  const invalid = rows?.filter((r) => !r.data) ?? []
+
+  // Décoration : doublon probable vs registre existant, puis vs lignes déjà vues du fichier.
+  const decorated: DecoratedRow[] = useMemo(() => {
+    if (!rows) return []
+    const seen: string[] = []
+    return rows.map((r) => {
+      if (!r.data) return { ...r, dup: null }
+      const hit = findSimilar(r.name, existingNames)
+      const inFile = hit ? null : findSimilar(r.name, seen)
+      seen.push(r.name)
+      return { ...r, dup: hit ? hit.name : inFile ? `${inFile.name} (dans le fichier)` : null }
+    })
+  }, [rows, existingNames])
+
+  const ready = decorated.filter((d) => d.data && !d.dup)
+  const dups = decorated.filter((d) => d.data && d.dup)
+  const invalid = decorated.filter((d) => !d.data)
+  const importList = includeDuplicates ? [...ready, ...dups] : ready
 
   const onTemplate = (): void => {
     void downloadEntityTemplate({ isRegul, sectorLabels: sectors.map((s) => s.label), sheetName: sheet, filename: `modele-${sheet.toLowerCase().replace(/\s+/g, '-')}.xlsx` })
@@ -44,8 +65,8 @@ export function EntityImportModal({ isRegul, entityLabel, onClose, onImported }:
   }
 
   const onImport = async (): Promise<void> => {
-    if (valid.length === 0) return
-    const res = await createEntitiesBulk(valid.map((r) => r.data!))
+    if (importList.length === 0) return
+    const res = await createEntitiesBulk(importList.map((r) => r.data!))
     if (!res.ok) { toast.error(res.error ?? 'Import impossible'); return }
     const errs = res.results.filter((r) => !r.ok).map((r) => `${r.name} : ${r.error ?? 'erreur'}`)
     setDone({ created: res.created, failed: res.failed, errors: errs })
@@ -85,21 +106,32 @@ export function EntityImportModal({ isRegul, entityLabel, onClose, onImported }:
 
           {rows && (
             <>
-              <div className="flex items-center gap-3 text-[13px]">
-                <span className="inline-flex items-center gap-1.5 text-forest-700 font-semibold"><CheckCircle2 size={15} /> {valid.length} valide(s)</span>
+              <div className="flex items-center gap-3 text-[13px] flex-wrap">
+                <span className="inline-flex items-center gap-1.5 text-forest-700 font-semibold"><CheckCircle2 size={15} /> {ready.length} prêt(s)</span>
+                {dups.length > 0 && <span className="inline-flex items-center gap-1.5 text-amber-600 font-semibold"><Copy size={15} /> {dups.length} doublon(s) probable(s)</span>}
                 {invalid.length > 0 && <span className="inline-flex items-center gap-1.5 text-red-600 font-semibold"><AlertTriangle size={15} /> {invalid.length} en erreur</span>}
               </div>
+              {dups.length > 0 && (
+                <label className="flex items-center gap-2 text-[12.5px] text-gray-600">
+                  <input type="checkbox" checked={includeDuplicates} onChange={(e) => setIncludeDuplicates(e.target.checked)} />
+                  Importer aussi les doublons probables
+                </label>
+              )}
               <div className="border border-gray-200 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
                 <table className="w-full text-[12.5px]">
                   <thead className="bg-gray-50 text-left text-[11px] uppercase tracking-wide text-gray-500 sticky top-0">
                     <tr><th className="px-3 py-2 font-semibold">Ligne</th><th className="px-3 py-2 font-semibold">Nom</th><th className="px-3 py-2 font-semibold">Statut</th></tr>
                   </thead>
                   <tbody>
-                    {rows.map((r) => (
+                    {decorated.map((r) => (
                       <tr key={r.rowNumber} className="border-t border-gray-100">
                         <td className="px-3 py-1.5 text-gray-400">{r.rowNumber}</td>
                         <td className="px-3 py-1.5 text-gray-800">{r.name}</td>
-                        <td className="px-3 py-1.5">{r.data ? <span className="text-forest-700">Prêt</span> : <span className="text-red-600">{r.errors.join(' · ')}</span>}</td>
+                        <td className="px-3 py-1.5">{!r.data
+                          ? <span className="text-red-600">{r.errors.join(' · ')}</span>
+                          : r.dup
+                            ? <span className="text-amber-600">Doublon probable : {r.dup}</span>
+                            : <span className="text-forest-700">Prêt</span>}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -111,8 +143,8 @@ export function EntityImportModal({ isRegul, entityLabel, onClose, onImported }:
 
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100">
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Fermer</button>
-          <button onClick={() => void onImport()} disabled={busy || valid.length === 0} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
-            {busy ? 'Import...' : `Importer ${valid.length} ligne(s)`}
+          <button onClick={() => void onImport()} disabled={busy || importList.length === 0} className="px-4 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-50">
+            {busy ? 'Import...' : `Importer ${importList.length} ligne(s)`}
           </button>
         </div>
       </div>
