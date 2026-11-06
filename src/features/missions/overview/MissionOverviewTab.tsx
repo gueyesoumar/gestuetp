@@ -1,8 +1,5 @@
 import { useMemo } from 'react'
-import { DomainProgressList } from './DomainProgressList'
 import { TeamActivityPanel } from './TeamActivityPanel'
-import { EvidenceTracker } from './EvidenceTracker'
-import { useMissionDocuments } from '../useMissionDocuments'
 import { useMissionUserRole } from '../useMissionUserRole'
 import { useMissionFindingsCount } from '../useMissionFindingsCount'
 import { EmptyState } from '../../../components/ui/EmptyState'
@@ -22,19 +19,8 @@ interface MissionOverviewTabProps {
   onRefetch: () => void
 }
 
-export function MissionOverviewTab({ mission, members, assessments, domains, progress, onRefetch }: MissionOverviewTabProps) {
-  const { documents } = useMissionDocuments(mission.id)
+export function MissionOverviewTab({ mission, members, assessments, progress, onRefetch }: MissionOverviewTabProps) {
   const userRole = useMissionUserRole(mission)
-
-  // Pour les auditeurs : ne montrer que les contr\u00f4les affect\u00e9s.
-  // Le progress re\u00e7u en prop est d\u00e9j\u00e0 filtr\u00e9 par MissionDetailPage
-  // (via scopeControlIds dans useMissionProgress).
-  const filteredDomains = useMemo(() => {
-    if (userRole.isPrivileged || userRole.loading) return domains
-    return domains
-      .map((d) => ({ ...d, controls: d.controls.filter((c) => userRole.assignedControlIds.has(c.id)) }))
-      .filter((d) => d.controls.length > 0)
-  }, [domains, userRole.isPrivileged, userRole.loading, userRole.assignedControlIds])
 
   // Constats : scopés comme les autres KPI (auditeur restreint = ses contrôles).
   const scopedAssessmentIds = useMemo(() => {
@@ -59,26 +45,54 @@ export function MissionOverviewTab({ mission, members, assessments, domains, pro
     )
   }
 
+  const conformityFinal = mission.status === 'closure'
+  const daysLate = progress.daysRemaining !== null && progress.daysRemaining < 0
+
   return (
-    <div>
+    <div className="space-y-6">
 
-      {/* KPI row */}
-      <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-5">
-        <KpiCard label="Progression globale" value={`${progress.overallPercent}%`} color="var(--color-forest-700)" bar={progress.overallPercent} barColor="#40916C" info="Avancement de la mission : position dans les phases du moteur (5 pour le Contr\u00f4le, 6 pour l\u2019Audit) combin\u00e9e au taux de contr\u00f4les \u00e9valu\u00e9s." />
-        <KpiCard label="Contr&ocirc;les &eacute;valu&eacute;s" value={`${progress.assessedControls}/${progress.totalControls}`} color="var(--color-gold-500)" sub={`${progress.submittedControls} soumis \u00b7 ${progress.approvedControls} approuv\u00e9s`} info="Contr\u00f4les soumis, en revue ou approuv\u00e9s, sur le total du p\u00e9rim\u00e8tre de la mission." />
-        <KpiCard label="Conformit&eacute;" value={`${progress.conformityScore}%`} color="var(--color-success)" sub="Score pond&eacute;r&eacute;" info="Score pond\u00e9r\u00e9 sur les contr\u00f4les \u00e9valu\u00e9s : conforme 100, largement 75, partiellement 50, non conforme 0. Les non applicables et non \u00e9valu\u00e9s sont exclus." />
-        <KpiCard label="Constats" value={findingsCount === null ? '...' : `${findingsCount}`} color="var(--color-gold-600)" sub="relev&eacute;s" info="Nombre de constats relev\u00e9s sur les contr\u00f4les de la mission, toutes classifications confondues (majeur, mineur, observation, point fort)." />
-        <KpiCard label="Jours restants" value={progress.daysRemaining !== null ? `${progress.daysRemaining}` : '-'} color="var(--color-forest-700)" info="Jours avant la date de fin pr\u00e9vue de la mission." />
+      {/* 4 KPIs de d\u00e9cision */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <KpiCard
+          label="Avancement"
+          value={`${progress.overallPercent}%`}
+          color="var(--color-forest-700)"
+          bar={progress.overallPercent}
+          barColor="#40916C"
+          sub={`${progress.assessedControls}/${progress.totalControls} contr\u00f4les \u00e9valu\u00e9s`}
+          info="Avancement de la mission : position dans les phases du moteur (5 pour le Contr\u00f4le, 6 pour l\u2019Audit) combin\u00e9e au taux de contr\u00f4les \u00e9valu\u00e9s."
+        />
+        <KpiCard
+          label="Conformit\u00e9"
+          value={`${progress.conformityScore}%`}
+          color="var(--color-success)"
+          sub={conformityFinal ? `sur ${progress.assessedControls} \u00e9valu\u00e9s` : `provisoire \u00b7 sur ${progress.assessedControls} \u00e9valu\u00e9s`}
+          info="Score pond\u00e9r\u00e9 sur les contr\u00f4les \u00e9valu\u00e9s : conforme 100, largement 75, partiellement 50, non conforme 0. Les non applicables et non \u00e9valu\u00e9s sont exclus."
+        />
+        <KpiCard
+          label="\u00c9ch\u00e9ance"
+          value={progress.daysRemaining !== null ? `${Math.abs(progress.daysRemaining)} j` : '\u2014'}
+          color={daysLate ? 'var(--color-error)' : 'var(--color-forest-700)'}
+          sub={progress.daysRemaining === null ? 'sans date de fin' : daysLate ? 'de retard' : 'restants'}
+          info="Jours avant (ou apr\u00e8s) la date de fin pr\u00e9vue de la mission."
+        />
+        <KpiCard
+          label="Constats"
+          value={findingsCount === null ? '\u2026' : `${findingsCount}`}
+          color="var(--color-gold-600)"
+          sub="relev\u00e9s"
+          info="Nombre de constats relev\u00e9s sur les contr\u00f4les de la mission, toutes classifications confondues (majeur, mineur, observation, point fort)."
+        />
       </div>
 
-      {/* Two columns */}
-      <div className="grid grid-cols-[1fr_340px] gap-6">
-        <div className="space-y-6">
-          <DomainProgressList domains={filteredDomains} assessments={assessments} />
-          <EvidenceTracker missionId={mission.id} domains={filteredDomains} documents={documents} />
-        </div>
-        <TeamActivityPanel missionId={mission.id} members={members} leadAuditorId={mission.lead_auditor_user?.id ?? null} associateId={mission.associate_user?.id ?? null} onRefetch={onRefetch} />
-      </div>
+      {/* \u00c9quipe + Activit\u00e9 r\u00e9cente */}
+      <TeamActivityPanel
+        missionId={mission.id}
+        members={members}
+        leadAuditorId={mission.lead_auditor_user?.id ?? null}
+        associateId={mission.associate_user?.id ?? null}
+        onRefetch={onRefetch}
+      />
     </div>
   )
 }

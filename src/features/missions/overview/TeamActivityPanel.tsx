@@ -28,14 +28,14 @@ export function TeamActivityPanel({ missionId, members, leadAuditorId, associate
   const roleLabel = (role: string) => role === 'lead_auditor' ? lead : role === 'associate' ? associate : (ROLE_LABELS[role] ?? role)
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-4 md:grid-cols-2 md:items-start">
       {/* Team card */}
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <span className="text-[13px] font-semibold text-gray-900">{'\u00c9'}quipe</span>
+          <span className="text-[13px] font-semibold text-gray-900">\u00c9quipe</span>
           {canManageTeam && (
             <button onClick={() => setShowManage(true)} className="text-[11px] font-medium text-forest-700 hover:underline">
-              G{'\u00e9'}rer
+              G\u00e9rer
             </button>
           )}
         </div>
