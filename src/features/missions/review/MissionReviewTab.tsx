@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Crosshair } from 'lucide-react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import { readInvokeError } from '../../../lib/edgeError'
@@ -7,6 +7,7 @@ import { useToast } from '../../../hooks/useToast'
 import { useReviewAssessments } from '../useReviewAssessments'
 import { ValidationQueue } from './ValidationQueue'
 import { ValidationDetailPanel } from './ValidationDetailPanel'
+import { FocusReviewMode } from './FocusReviewMode'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorAlert } from '../../../components/ui/ErrorAlert'
 import { EmptyState } from '../../../components/ui/EmptyState'
@@ -25,14 +26,16 @@ export function MissionReviewTab({ mission }: MissionReviewTabProps){
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [detail, setDetail] = useState<ReviewAssessment | null>(null)
   const [busy, setBusy] = useState(false)
+  const [focus, setFocus] = useState(false)
 
   const stage = resolveReviewStage(profile?.id, mission.lead_auditor_user?.id, mission.associate_user?.id)
 
   const groups = useMemo(() => groupByDomain(assessments), [assessments])
-  const actionableCount = useMemo(
-    () => (stage ? assessments.filter((a) => isActionable(a, stage)).length : 0),
+  const actionableItems = useMemo(
+    () => (stage ? assessments.filter((a) => isActionable(a, stage)) : []),
     [assessments, stage],
   )
+  const actionableCount = actionableItems.length
   const validatedCount = useMemo(() => assessments.filter((a) => a.status === 'approved').length, [assessments])
 
   const toggle = useCallback((id: string) => {
@@ -92,9 +95,16 @@ export function MissionReviewTab({ mission }: MissionReviewTabProps){
           <h3 className="text-base font-bold text-gray-900">Validations</h3>
           <p className="text-[13px] text-gray-500 mt-0.5">Les contrôles soumis, regroupés par domaine. Cochez pour valider en lot.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600">{actionableCount} à valider</span>
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-600">{validatedCount} validés</span>
+          <button
+            onClick={() => setFocus(true)}
+            disabled={actionableCount === 0}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-forest-700 rounded-lg hover:bg-forest-900 disabled:opacity-40"
+          >
+            <Crosshair size={15} /> Mode focus
+          </button>
         </div>
       </div>
 
@@ -126,6 +136,14 @@ export function MissionReviewTab({ mission }: MissionReviewTabProps){
           reviewStage={stage}
           onClose={() => setDetail(null)}
           onReviewed={refetch}
+        />
+      )}
+
+      {focus && actionableItems.length > 0 && (
+        <FocusReviewMode
+          items={actionableItems}
+          reviewStage={stage}
+          onExit={() => { setFocus(false); refetch() }}
         />
       )}
     </div>
