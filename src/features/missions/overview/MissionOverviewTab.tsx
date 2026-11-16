@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { TeamActivityPanel } from './TeamActivityPanel'
 import { ValidationsDigestCard } from './ValidationsDigestCard'
+import { ExceptionsDigestCard } from './ExceptionsDigestCard'
 import { useMissionUserRole } from '../useMissionUserRole'
 import { useMissionFindingsCount } from '../useMissionFindingsCount'
 import { EmptyState } from '../../../components/ui/EmptyState'
@@ -87,8 +88,11 @@ export function MissionOverviewTab({ mission, members, assessments, progress, on
         />
       </div>
 
-      {/* Dossier Validations (chef de mission / associ\u00e9) */}
+      {/* Dossiers d'action (chef de mission / associ\u00e9) */}
       {onGoToTab && <ValidationsDigestCard mission={mission} onOpen={() => onGoToTab('review')} />}
+      {onGoToTab && userRole.isPrivileged && (
+        <ExceptionsDigestCard missionId={mission.id} onOpen={() => onGoToTab('scoping')} />
+      )}
 
       {/* \u00c9quipe + Activit\u00e9 r\u00e9cente */}
       <TeamActivityPanel
