@@ -38,11 +38,13 @@ interface MissionScopingTabProps {
   domains: DomainWithControls[]
   client: CabinetClient | null
   onRefetch: () => void
+  /** Sous-onglet du Cadrage à ouvrir à l'arrivée (deep-link depuis le cockpit). */
+  initialSubTab?: ScopingTab
 }
 
-type ScopingTab = 'scope' | 'questionnaire' | 'documents' | 'risks' | 'actors'
+export type ScopingTab = 'scope' | 'questionnaire' | 'documents' | 'risks' | 'actors'
 
-export function MissionScopingTab({ mission, members, domains, client, onRefetch }: MissionScopingTabProps) {
+export function MissionScopingTab({ mission, members, domains, client, onRefetch, initialSubTab }: MissionScopingTabProps) {
   const { profile } = useAuth()
   const { hasCapability } = useEdition()
   // Portail côté partie auditée : masqué en édition Entreprise (!client_portal) ou
@@ -61,7 +63,7 @@ export function MissionScopingTab({ mission, members, domains, client, onRefetch
   // Source unique pour les acteurs : le badge d'onglet ET le contenu partagent cet
   // état, sinon un ajout dans l'onglet ne rafraîchit pas le compteur (source unique).
   const { actors, loading: actorsLoading, error: actorsError, saving: actorsSaving, add: addActor, update: updateActor, remove: removeActor } = useMissionActors(mission.id)
-  const [activeTab, setActiveTab] = useState<ScopingTab>('scope')
+  const [activeTab, setActiveTab] = useState<ScopingTab>(initialSubTab ?? 'scope')
   // Moteur Contrôle (RFC 0003) : Cadrage allégé - sous-onglet Risques retiré,
   // Questionnaire optionnel (conservé mais hors checklist requise).
   const isControle = mission.workflow_version === 'controle'

@@ -10,7 +10,7 @@ import { MissionDetailHeader } from '../features/missions/MissionDetailHeader'
 import { ReviewSummaryStrip } from '../features/missions/review/ReviewSummaryStrip'
 import { MissionStepper } from '../features/missions/MissionStepper'
 import { MissionOverviewTab } from '../features/missions/overview/MissionOverviewTab'
-import { MissionScopingTab } from '../features/missions/scoping/MissionScopingTab'
+import { MissionScopingTab, type ScopingTab } from '../features/missions/scoping/MissionScopingTab'
 import { MissionPlanningTab } from '../features/missions/planning/MissionPlanningTab'
 import { MissionFieldworkTab } from '../features/missions/fieldwork/MissionFieldworkTab'
 import { MissionAuditedRisksTab } from '../features/missions/MissionAuditedRisksTab'
@@ -45,6 +45,7 @@ export function MissionDetailPage(){
   const progressScope = !userRole.isPrivileged && !userRole.loading ? userRole.assignedControlIds : undefined
   const progress = useMissionProgress(mission, allAssessments, domains, progressScope)
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
+  const [scopingSubTab, setScopingSubTab] = useState<ScopingTab | undefined>(undefined)
   const [cabinetClient, setCabinetClient] = useState<CabinetClient | null>(null)
 
   // Filtre les phases du Stepper pour les auditeurs.
@@ -102,17 +103,17 @@ export function MissionDetailPage(){
     <div className="-m-7">
       <MissionDetailHeader mission={mission} progress={progress} onCtaClick={handleCtaClick} />
       <ReviewSummaryStrip missionId={mission.id} />
-      <MissionStepper phases={visiblePhases} activeTab={activeTab} onTabChange={(t) => setActiveTab(t as TabKey)} showAuditedRisks={mission.cabinet_id !== mission.client_id} />
+      <MissionStepper phases={visiblePhases} activeTab={activeTab} onTabChange={(t) => { setActiveTab(t as TabKey); setScopingSubTab(undefined) }} showAuditedRisks={mission.cabinet_id !== mission.client_id} />
 
       <div className="p-7">
         {activeTab === 'overview' && (
-          <MissionOverviewTab mission={mission} members={members} assessments={assessments} domains={domains} progress={progress} onRefetch={refetch} onGoToTab={(t) => setActiveTab(t as TabKey)} />
+          <MissionOverviewTab mission={mission} members={members} assessments={assessments} domains={domains} progress={progress} onRefetch={refetch} onGoToTab={(t, sub) => { setActiveTab(t as TabKey); if (t === 'scoping') setScopingSubTab(sub as ScopingTab | undefined) }} />
         )}
         {activeTab === 'audited_risks' && mission.cabinet_id !== mission.client_id && (
           <MissionAuditedRisksTab missionId={mission.id} />
         )}
         {activeTab === 'scoping' && userRole.isPrivileged && (
-          <MissionScopingTab mission={mission} members={members} domains={domains} client={cabinetClient} onRefetch={refetch} />
+          <MissionScopingTab mission={mission} members={members} domains={domains} client={cabinetClient} onRefetch={refetch} initialSubTab={scopingSubTab} />
         )}
         {activeTab === 'planning' && userRole.isPrivileged && (
           <MissionPlanningTab mission={mission} domains={domains} members={members} assignments={assignments} onRefetch={refetch} onGoToPhase={(t) => setActiveTab(t as TabKey)} />

@@ -19,7 +19,7 @@ interface MissionOverviewTabProps {
   domains: DomainWithControls[]
   progress: MissionProgress
   onRefetch: () => void
-  onGoToTab?: (tab: string) => void
+  onGoToTab?: (tab: string, sub?: string) => void
 }
 
 export function MissionOverviewTab({ mission, members, assessments, progress, onRefetch, onGoToTab }: MissionOverviewTabProps) {
@@ -91,7 +91,7 @@ export function MissionOverviewTab({ mission, members, assessments, progress, on
       {/* Dossiers d'action (chef de mission / associé) */}
       {onGoToTab && <ValidationsDigestCard mission={mission} onOpen={() => onGoToTab('review')} />}
       {onGoToTab && userRole.isPrivileged && (
-        <ExceptionsDigestCard missionId={mission.id} onOpen={() => onGoToTab('scoping')} />
+        <ExceptionsDigestCard missionId={mission.id} onOpen={() => onGoToTab('scoping', 'documents')} />
       )}
 
       {/* Équipe + Activité récente */}
