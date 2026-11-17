@@ -54,7 +54,7 @@ export function MissionOverviewTab({ mission, members, assessments, progress, on
   return (
     <div className="space-y-6">
 
-      {/* 4 KPIs de d\u00e9cision */}
+      {/* 4 KPIs de décision */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard
           label="Avancement"
@@ -62,39 +62,39 @@ export function MissionOverviewTab({ mission, members, assessments, progress, on
           color="var(--color-forest-700)"
           bar={progress.overallPercent}
           barColor="#40916C"
-          sub={`${progress.assessedControls}/${progress.totalControls} contr\u00f4les \u00e9valu\u00e9s`}
-          info="Avancement de la mission : position dans les phases du moteur (5 pour le Contr\u00f4le, 6 pour l\u2019Audit) combin\u00e9e au taux de contr\u00f4les \u00e9valu\u00e9s."
+          sub={`${progress.assessedControls}/${progress.totalControls} contrôles évalués`}
+          info="Avancement de la mission : position dans les phases du moteur (5 pour le Contrôle, 6 pour l’Audit) combinée au taux de contrôles évalués."
         />
         <KpiCard
-          label="Conformit\u00e9"
+          label="Conformité"
           value={`${progress.conformityScore}%`}
           color="var(--color-success)"
-          sub={conformityFinal ? `sur ${progress.assessedControls} \u00e9valu\u00e9s` : `provisoire \u00b7 sur ${progress.assessedControls} \u00e9valu\u00e9s`}
-          info="Score pond\u00e9r\u00e9 sur les contr\u00f4les \u00e9valu\u00e9s : conforme 100, largement 75, partiellement 50, non conforme 0. Les non applicables et non \u00e9valu\u00e9s sont exclus."
+          sub={conformityFinal ? `sur ${progress.assessedControls} évalués` : `provisoire · sur ${progress.assessedControls} évalués`}
+          info="Score pondéré sur les contrôles évalués : conforme 100, largement 75, partiellement 50, non conforme 0. Les non applicables et non évalués sont exclus."
         />
         <KpiCard
-          label="\u00c9ch\u00e9ance"
-          value={progress.daysRemaining !== null ? `${Math.abs(progress.daysRemaining)} j` : '\u2014'}
+          label="Échéance"
+          value={progress.daysRemaining !== null ? `${Math.abs(progress.daysRemaining)} j` : '—'}
           color={daysLate ? 'var(--color-error)' : 'var(--color-forest-700)'}
           sub={progress.daysRemaining === null ? 'sans date de fin' : daysLate ? 'de retard' : 'restants'}
-          info="Jours avant (ou apr\u00e8s) la date de fin pr\u00e9vue de la mission."
+          info="Jours avant (ou après) la date de fin prévue de la mission."
         />
         <KpiCard
           label="Constats"
-          value={findingsCount === null ? '\u2026' : `${findingsCount}`}
+          value={findingsCount === null ? '…' : `${findingsCount}`}
           color="var(--color-gold-600)"
-          sub="relev\u00e9s"
-          info="Nombre de constats relev\u00e9s sur les contr\u00f4les de la mission, toutes classifications confondues (majeur, mineur, observation, point fort)."
+          sub="relevés"
+          info="Nombre de constats relevés sur les contrôles de la mission, toutes classifications confondues (majeur, mineur, observation, point fort)."
         />
       </div>
 
-      {/* Dossiers d'action (chef de mission / associ\u00e9) */}
+      {/* Dossiers d'action (chef de mission / associé) */}
       {onGoToTab && <ValidationsDigestCard mission={mission} onOpen={() => onGoToTab('review')} />}
       {onGoToTab && userRole.isPrivileged && (
         <ExceptionsDigestCard missionId={mission.id} onOpen={() => onGoToTab('scoping')} />
       )}
 
-      {/* \u00c9quipe + Activit\u00e9 r\u00e9cente */}
+      {/* Équipe + Activité récente */}
       <TeamActivityPanel
         missionId={mission.id}
         members={members}

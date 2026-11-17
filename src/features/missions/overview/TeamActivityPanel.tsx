@@ -32,10 +32,10 @@ export function TeamActivityPanel({ missionId, members, leadAuditorId, associate
       {/* Team card */}
       <div className="bg-white border border-gray-200 rounded-xl">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <span className="text-[13px] font-semibold text-gray-900">\u00c9quipe</span>
+          <span className="text-[13px] font-semibold text-gray-900">Équipe</span>
           {canManageTeam && (
             <button onClick={() => setShowManage(true)} className="text-[11px] font-medium text-forest-700 hover:underline">
-              G\u00e9rer
+              Gérer
             </button>
           )}
         </div>
